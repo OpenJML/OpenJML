@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RecordsFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">RecordsFilter.java</span></div><h1>RecordsFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filters methods &lt;code&gt;toString&lt;/code&gt;, &lt;code&gt;hashCode&lt;/code&gt; and
+ * &lt;code&gt;equals&lt;/code&gt; that compiler generates for records.
+ */
+<span class="fc" id="L25">public final class RecordsFilter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L29" title="All 2 branches covered.">		if (!&quot;java/lang/Record&quot;.equals(context.getSuperClassName())) {</span>
+<span class="fc" id="L30">			return;</span>
+		}
+<span class="fc" id="L32">		final Matcher matcher = new Matcher();</span>
+<span class="fc bfc" id="L33" title="All 8 branches covered.">		if (matcher.isEquals(methodNode) || matcher.isHashCode(methodNode)</span>
+				|| matcher.isToString(methodNode)
+				|| matcher.isFieldAccessor(methodNode)) {
+<span class="fc" id="L36">			output.ignore(methodNode.instructions.getFirst(),</span>
+					methodNode.instructions.getLast());
+		}
+<span class="fc" id="L39">	}</span>
+
+<span class="fc" id="L41">	private static class Matcher extends AbstractMatcher {</span>
+		boolean isToString(final MethodNode m) {
+<span class="fc bfc" id="L43" title="All 4 branches covered.">			if (!&quot;toString&quot;.equals(m.name)</span>
+					|| !&quot;()Ljava/lang/String;&quot;.equals(m.desc)) {
+<span class="fc" id="L45">				return false;</span>
+			}
+<span class="fc" id="L47">			firstIsALoad0(m);</span>
+<span class="fc" id="L48">			nextIsInvokeDynamic(&quot;toString&quot;);</span>
+<span class="fc" id="L49">			nextIs(Opcodes.ARETURN);</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		boolean isHashCode(final MethodNode m) {
+<span class="fc bfc" id="L54" title="All 4 branches covered.">			if (!&quot;hashCode&quot;.equals(m.name) || !&quot;()I&quot;.equals(m.desc)) {</span>
+<span class="fc" id="L55">				return false;</span>
+			}
+<span class="fc" id="L57">			firstIsALoad0(m);</span>
+<span class="fc" id="L58">			nextIsInvokeDynamic(&quot;hashCode&quot;);</span>
+<span class="fc" id="L59">			nextIs(Opcodes.IRETURN);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		/**
+		 * Criteria: method name == field name, only three instructions (aload0,
+		 * getField, return), and note that this class only happens in a record,
+		 * so it's safe to assume that this is the record field accessor
+		 * generated. It may happen that the code is explicitly written by the
+		 * developer and is intentionally kept the same as the default generated
+		 * format, but that's just trivial code, and it still makes sense to
+		 * filter them out anyway.
+		 * &lt;p&gt;
+		 * Exception: if the code is compiled within IntelliJ IDEA's Java
+		 * instrumentation, there will be extra null-assertion instructions
+		 * after the getField instruction. This case is &lt;emph&gt;ignored&lt;/emph&gt;.
+		 */
+		boolean isFieldAccessor(final MethodNode m) {
+<span class="fc bfc" id="L77" title="All 2 branches covered.">			if (!m.desc.startsWith(&quot;()&quot;)) {</span>
+				// Method with parameter(s)
+<span class="fc" id="L79">				return false;</span>
+			}
+<span class="fc" id="L81">			firstIsALoad0(m);</span>
+<span class="fc" id="L82">			nextIs(Opcodes.GETFIELD);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">			if (!(cursor instanceof FieldInsnNode)) {</span>
+<span class="fc" id="L84">				return false;</span>
+			}
+<span class="fc bfc" id="L86" title="All 2 branches covered.">			if (!((FieldInsnNode) cursor).name.equals(m.name)) {</span>
+<span class="fc" id="L87">				return false;</span>
+			}
+<span class="fc" id="L89">			next();</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L91">				return false;</span>
+			}
+<span class="fc bfc" id="L93" title="All 2 branches covered.">			switch (cursor.getOpcode()) {</span>
+			case Opcodes.IRETURN:
+			case Opcodes.LRETURN:
+			case Opcodes.FRETURN:
+			case Opcodes.DRETURN:
+			case Opcodes.ARETURN:
+<span class="fc" id="L99">				return true;</span>
+			default:
+<span class="fc" id="L101">				return false;</span>
+			}
+		}
+
+		boolean isEquals(final MethodNode m) {
+<span class="fc bfc" id="L106" title="All 4 branches covered.">			if (!&quot;equals&quot;.equals(m.name)</span>
+					|| !&quot;(Ljava/lang/Object;)Z&quot;.equals(m.desc)) {
+<span class="fc" id="L108">				return false;</span>
+			}
+<span class="fc" id="L110">			firstIsALoad0(m);</span>
+<span class="fc" id="L111">			nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L112">			nextIsInvokeDynamic(&quot;equals&quot;);</span>
+<span class="fc" id="L113">			nextIs(Opcodes.IRETURN);</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		private void nextIsInvokeDynamic(final String name) {
+<span class="fc" id="L118">			nextIs(Opcodes.INVOKEDYNAMIC);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L120">				return;</span>
+			}
+<span class="fc" id="L122">			final InvokeDynamicInsnNode i = (InvokeDynamicInsnNode) cursor;</span>
+<span class="fc" id="L123">			final Handle bsm = i.bsm;</span>
+<span class="pc bpc" id="L124" title="3 of 6 branches missed.">			if (name.equals(i.name)</span>
+					&amp;&amp; &quot;java/lang/runtime/ObjectMethods&quot;.equals(bsm.getOwner())
+					&amp;&amp; &quot;bootstrap&quot;.equals(bsm.getName())) {
+<span class="fc" id="L127">				return;</span>
+			}
+<span class="nc" id="L129">			cursor = null;</span>
+<span class="nc" id="L130">		}</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

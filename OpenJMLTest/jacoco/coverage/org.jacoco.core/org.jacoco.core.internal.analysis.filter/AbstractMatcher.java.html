@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AbstractMatcher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">AbstractMatcher.java</span></div><h1>AbstractMatcher.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
+
+<span class="fc" id="L26">abstract class AbstractMatcher {</span>
+
+<span class="fc" id="L28">	final Map&lt;String, VarInsnNode&gt; vars = new HashMap&lt;String, VarInsnNode&gt;();</span>
+
+	AbstractInsnNode cursor;
+
+	/**
+	 * Sets {@link #cursor} to first instruction of method if it is
+	 * &lt;code&gt;ALOAD 0&lt;/code&gt;, otherwise sets it to &lt;code&gt;null&lt;/code&gt;.
+	 */
+	final void firstIsALoad0(final MethodNode methodNode) {
+<span class="fc" id="L37">		cursor = methodNode.instructions.getFirst();</span>
+<span class="fc" id="L38">		skipNonOpcodes();</span>
+<span class="fc bfc" id="L39" title="All 6 branches covered.">		if (cursor != null &amp;&amp; cursor.getOpcode() == Opcodes.ALOAD</span>
+				&amp;&amp; ((VarInsnNode) cursor).var == 0) {
+<span class="fc" id="L41">			return;</span>
+		}
+<span class="fc" id="L43">		cursor = null;</span>
+<span class="fc" id="L44">	}</span>
+
+	/**
+	 * Moves {@link #cursor} to next instruction if it is {@link TypeInsnNode}
+	 * with given opcode and operand, otherwise sets it to &lt;code&gt;null&lt;/code&gt;.
+	 */
+	final void nextIsType(final int opcode, final String desc) {
+<span class="fc" id="L51">		nextIs(opcode);</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L53">			return;</span>
+		}
+<span class="fc bfc" id="L55" title="All 2 branches covered.">		if (((TypeInsnNode) cursor).desc.equals(desc)) {</span>
+<span class="fc" id="L56">			return;</span>
+		}
+<span class="fc" id="L58">		cursor = null;</span>
+<span class="fc" id="L59">	}</span>
+
+	/**
+	 * Moves {@link #cursor} to next instruction if it is {@link MethodInsnNode}
+	 * with given opcode, owner, name and descriptor, otherwise sets it to
+	 * &lt;code&gt;null&lt;/code&gt;.
+	 */
+	final void nextIsInvoke(final int opcode, final String owner,
+			final String name, final String descriptor) {
+<span class="fc" id="L68">		nextIs(opcode);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L70">			return;</span>
+		}
+<span class="fc" id="L72">		final MethodInsnNode m = (MethodInsnNode) cursor;</span>
+<span class="fc bfc" id="L73" title="All 6 branches covered.">		if (owner.equals(m.owner) &amp;&amp; name.equals(m.name)</span>
+				&amp;&amp; descriptor.equals(m.desc)) {
+<span class="fc" id="L75">			return;</span>
+		}
+<span class="fc" id="L77">		cursor = null;</span>
+<span class="fc" id="L78">	}</span>
+
+	/**
+	 * Moves {@link #cursor} to next instruction if it is {@link FieldInsnNode}
+	 * with given opcode, owner, name and descriptor, otherwise sets it to
+	 * &lt;code&gt;null&lt;/code&gt;.
+	 */
+	final void nextIsField(final int opcode, final String owner,
+			final String name, final String descriptor) {
+<span class="fc" id="L87">		nextIs(opcode);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L89">			return;</span>
+		}
+<span class="fc" id="L91">		final FieldInsnNode f = (FieldInsnNode) cursor;</span>
+<span class="fc bfc" id="L92" title="All 6 branches covered.">		if (owner.equals(f.owner) &amp;&amp; name.equals(f.name)</span>
+				&amp;&amp; descriptor.equals(f.desc)) {
+<span class="fc" id="L94">			return;</span>
+		}
+<span class="fc" id="L96">		cursor = null;</span>
+<span class="fc" id="L97">	}</span>
+
+	final void nextIsVar(final int opcode, final String name) {
+<span class="fc" id="L100">		nextIs(opcode);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L102">			return;</span>
+		}
+<span class="fc" id="L104">		final VarInsnNode actual = (VarInsnNode) cursor;</span>
+<span class="fc" id="L105">		final VarInsnNode expected = vars.get(name);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">		if (expected == null) {</span>
+<span class="fc" id="L107">			vars.put(name, actual);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">		} else if (expected.var != actual.var) {</span>
+<span class="fc" id="L109">			cursor = null;</span>
+		}
+<span class="fc" id="L111">	}</span>
+
+	/**
+	 * Moves {@link #cursor} to next instruction if it is
+	 * &lt;code&gt;TABLESWITCH&lt;/code&gt; or &lt;code&gt;LOOKUPSWITCH&lt;/code&gt;, otherwise sets it
+	 * to &lt;code&gt;null&lt;/code&gt;.
+	 */
+	final void nextIsSwitch() {
+<span class="fc" id="L119">		next();</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L121">			return;</span>
+		}
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		switch (cursor.getOpcode()) {</span>
+		case Opcodes.TABLESWITCH:
+		case Opcodes.LOOKUPSWITCH:
+<span class="fc" id="L126">			return;</span>
+		default:
+<span class="fc" id="L128">			cursor = null;</span>
+		}
+<span class="fc" id="L130">	}</span>
+
+	/**
+	 * Moves {@link #cursor} to next instruction if it has given opcode,
+	 * otherwise sets it to &lt;code&gt;null&lt;/code&gt;.
+	 */
+	final void nextIs(final int opcode) {
+<span class="fc" id="L137">		next();</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L139">			return;</span>
+		}
+<span class="fc bfc" id="L141" title="All 2 branches covered.">		if (cursor.getOpcode() != opcode) {</span>
+<span class="fc" id="L142">			cursor = null;</span>
+		}
+<span class="fc" id="L144">	}</span>
+
+	/**
+	 * Moves {@link #cursor} to next instruction.
+	 */
+	final void next() {
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		if (cursor == null) {</span>
+<span class="fc" id="L151">			return;</span>
+		}
+<span class="fc" id="L153">		cursor = cursor.getNext();</span>
+<span class="fc" id="L154">		skipNonOpcodes();</span>
+<span class="fc" id="L155">	}</span>
+
+	/**
+	 * Moves {@link #cursor} through {@link AbstractInsnNode#FRAME},
+	 * {@link AbstractInsnNode#LABEL}, {@link AbstractInsnNode#LINE}.
+	 */
+	final void skipNonOpcodes() {
+<span class="fc" id="L162">		cursor = skipNonOpcodes(cursor);</span>
+<span class="fc" id="L163">	}</span>
+
+	/**
+	 * Returns first instruction from given and following it that is not
+	 * {@link AbstractInsnNode#FRAME}, {@link AbstractInsnNode#LABEL},
+	 * {@link AbstractInsnNode#LINE}.
+	 */
+	static AbstractInsnNode skipNonOpcodes(AbstractInsnNode cursor) {
+<span class="fc bfc" id="L171" title="All 8 branches covered.">		while (cursor != null &amp;&amp; (cursor.getType() == AbstractInsnNode.FRAME</span>
+				|| cursor.getType() == AbstractInsnNode.LABEL
+				|| cursor.getType() == AbstractInsnNode.LINE)) {
+<span class="fc" id="L174">			cursor = cursor.getNext();</span>
+		}
+<span class="fc" id="L176">		return cursor;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AgentJar.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.agent</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.agent</a> &gt; <span class="el_source">AgentJar.java</span></div><h1>AgentJar.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.agent;
+
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+
+/**
+ * API to access the agent JAR file as a resource. While the agent is a JAR file
+ * it is considered as a plain resource that must be configured for the
+ * application under test (target JVM). The agent JAR does not provide any
+ * public Java API.
+ */
+public final class AgentJar {
+
+	/**
+	 * Name of the agent JAR file resource within this bundle.
+	 */
+	private static final String RESOURCE = &quot;/jacocoagent.jar&quot;;
+
+	private AgentJar() {
+	}
+
+	/**
+	 * Returns a URL pointing to the JAR file.
+	 *
+	 * @return URL of the JAR file
+	 */
+	public static URL getResource() {
+<span class="fc" id="L45">		final URL url = AgentJar.class.getResource(RESOURCE);</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">		if (url == null) {</span>
+<span class="nc" id="L47">			throw new AssertionError(ERRORMSG);</span>
+		}
+<span class="fc" id="L49">		return url;</span>
+	}
+
+	/**
+	 * Returns the content of the JAR file as a stream.
+	 *
+	 * @return content of the JAR file
+	 */
+	public static InputStream getResourceAsStream() {
+<span class="fc" id="L58">		final InputStream stream = AgentJar.class.getResourceAsStream(RESOURCE);</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">		if (stream == null) {</span>
+<span class="nc" id="L60">			throw new AssertionError(ERRORMSG);</span>
+		}
+<span class="fc" id="L62">		return stream;</span>
+	}
+
+	/**
+	 * Extract the JaCoCo agent JAR and put it into a temporary location. This
+	 * file should be deleted on exit, but may not if the VM is terminated
+	 *
+	 * @return Location of the Agent Jar file in the local file system. The file
+	 *         should exist and be readable.
+	 * @throws IOException
+	 *             Unable to unpack agent jar
+	 */
+	public static File extractToTempLocation() throws IOException {
+<span class="fc" id="L75">		final File agentJar = File.createTempFile(&quot;jacocoagent&quot;, &quot;.jar&quot;);</span>
+<span class="fc" id="L76">		agentJar.deleteOnExit();</span>
+
+<span class="fc" id="L78">		extractTo(agentJar);</span>
+
+<span class="fc" id="L80">		return agentJar;</span>
+	}
+
+	/**
+	 * Extract the JaCoCo agent JAR and put it into the specified location.
+	 *
+	 * @param destination
+	 *            Location to write JaCoCo Agent Jar to. Must be writeable
+	 * @throws IOException
+	 *             Unable to unpack agent jar
+	 */
+	public static void extractTo(File destination) throws IOException {
+<span class="fc" id="L92">		InputStream inputJarStream = getResourceAsStream();</span>
+<span class="fc" id="L93">		OutputStream outputJarStream = null;</span>
+
+		try {
+
+<span class="fc" id="L97">			outputJarStream = new FileOutputStream(destination);</span>
+
+<span class="fc" id="L99">			final byte[] buffer = new byte[8192];</span>
+
+			int bytesRead;
+<span class="fc bfc" id="L102" title="All 2 branches covered.">			while ((bytesRead = inputJarStream.read(buffer)) != -1) {</span>
+<span class="fc" id="L103">				outputJarStream.write(buffer, 0, bytesRead);</span>
+			}
+		} finally {
+<span class="fc" id="L106">			safeClose(inputJarStream);</span>
+<span class="fc" id="L107">			safeClose(outputJarStream);</span>
+		}
+<span class="fc" id="L109">	}</span>
+
+	/**
+	 * Close a stream ignoring any error
+	 *
+	 * @param closeable
+	 *            stream to be closed
+	 */
+	private static void safeClose(Closeable closeable) {
+		try {
+<span class="fc bfc" id="L119" title="All 2 branches covered.">			if (closeable != null) {</span>
+<span class="fc" id="L120">				closeable.close();</span>
+			}
+<span class="nc" id="L122">		} catch (IOException e) {</span>
+<span class="fc" id="L123">		}</span>
+<span class="fc" id="L124">	}</span>
+
+<span class="fc" id="L126">	private static final String ERRORMSG = String</span>
+			.format(&quot;The resource %s has not been found. Please see &quot;
+					+ &quot;/org.jacoco.agent/README.TXT for details.&quot;, RESOURCE);
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

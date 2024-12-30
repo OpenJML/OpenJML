@@ -1,0 +1,9 @@
+#! /bin/bash
+
+cd $(dirname "$BASH_SOURCE[0]" )
+BIN=../../../OpenJML21
+
+rm -rf Run.class actual
+$BIN/openjml-compile Run.java > actual || exit 1
+$BIN/openjml-run Run >> actual
+diff actual expected

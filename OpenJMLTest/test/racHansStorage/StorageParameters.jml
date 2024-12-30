@@ -20,6 +20,6 @@ public final class StorageParameters {
 	//@ pure helper
 	/*@ spec_public @*/ long getBackingStoreSize();
 	
-	//@ pure helper
+	//@ spec_pure helper
 	/*@ spec_public @*/ long[] getConfigurationSizes();
 }

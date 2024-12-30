@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CoverageTask.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.ant</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.ant</a> &gt; <span class="el_source">CoverageTask.java</span></div><h1>CoverageTask.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - TestNG support
+ *    Brock Janiczak - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.ant;
+
+import static java.lang.String.format;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.RuntimeConfigurable;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.TaskContainer;
+import org.apache.tools.ant.UnknownElement;
+
+/**
+ * Container task to run Java/JUnit tasks with the JaCoCo agent jar. Coverage
+ * will only be applied if all of the following are true:
+ * &lt;ul&gt;
+ * &lt;li&gt;Exactly one sub task may be present&lt;/li&gt;
+ * &lt;li&gt;Task must be either Java or JUnit&lt;/li&gt;
+ * &lt;li&gt;Task must be using a forked VM (so vm args can be passed)&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public class CoverageTask extends AbstractCoverageTask
+		implements TaskContainer {
+
+<span class="fc" id="L40">	private final Collection&lt;TaskEnhancer&gt; taskEnhancers = new ArrayList&lt;TaskEnhancer&gt;();</span>
+	private Task childTask;
+
+	/**
+	 * Creates a new default coverage task
+	 */
+	public CoverageTask() {
+<span class="fc" id="L47">		super();</span>
+<span class="fc" id="L48">		taskEnhancers.add(new JavaLikeTaskEnhancer(&quot;java&quot;));</span>
+<span class="fc" id="L49">		taskEnhancers.add(new JavaLikeTaskEnhancer(&quot;junit&quot;));</span>
+<span class="fc" id="L50">		taskEnhancers.add(new TestNGTaskEnhancer(&quot;testng&quot;));</span>
+<span class="fc" id="L51">	}</span>
+
+	/**
+	 * Add child task to this container and reconfigure it to run with coverage
+	 * enabled
+	 */
+	public void addTask(final Task task) {
+<span class="fc bfc" id="L58" title="All 2 branches covered.">		if (childTask != null) {</span>
+<span class="fc" id="L59">			throw new BuildException(</span>
+					&quot;Only one child task can be supplied to the coverge task&quot;,
+					getLocation());
+		}
+
+<span class="fc" id="L64">		this.childTask = task;</span>
+
+<span class="fc" id="L66">		final String subTaskTypeName = task.getTaskType();</span>
+
+<span class="fc" id="L68">		final TaskEnhancer enhancer = findEnhancerForTask(subTaskTypeName);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">		if (enhancer == null) {</span>
+<span class="fc" id="L70">			throw new BuildException(</span>
+					format(&quot;%s is not a valid child of the coverage task&quot;,
+							subTaskTypeName),
+					getLocation());
+		}
+
+<span class="fc bfc" id="L76" title="All 2 branches covered.">		if (isEnabled()) {</span>
+<span class="fc" id="L77">			log(format(&quot;Enhancing %s with coverage&quot;, childTask.getTaskName()));</span>
+<span class="fc" id="L78">			enhancer.enhanceTask(task);</span>
+		}
+
+<span class="fc" id="L81">		task.maybeConfigure();</span>
+<span class="fc" id="L82">	}</span>
+
+	private TaskEnhancer findEnhancerForTask(final String taskName) {
+<span class="fc bfc" id="L85" title="All 2 branches covered.">		for (final TaskEnhancer enhancer : taskEnhancers) {</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">			if (enhancer.supportsTask(taskName)) {</span>
+<span class="fc" id="L87">				return enhancer;</span>
+			}
+		}
+
+<span class="fc" id="L91">		return null;</span>
+	}
+
+	/**
+	 * Executes subtask and performs any required cleanup
+	 */
+	@Override
+	public void execute() throws BuildException {
+<span class="fc bfc" id="L99" title="All 2 branches covered.">		if (childTask == null) {</span>
+<span class="fc" id="L100">			throw new BuildException(</span>
+					&quot;A child task must be supplied for the coverage task&quot;,
+					getLocation());
+		}
+
+<span class="fc" id="L105">		childTask.execute();</span>
+<span class="fc" id="L106">	}</span>
+
+	/**
+	 * Task enhancer for TestNG. TestNG task always run in a forked VM and has
+	 * nested jvmargs elements
+	 */
+	private class TestNGTaskEnhancer extends JavaLikeTaskEnhancer {
+
+<span class="fc" id="L114">		public TestNGTaskEnhancer(final String supportedTaskName) {</span>
+<span class="fc" id="L115">			super(supportedTaskName);</span>
+<span class="fc" id="L116">		}</span>
+
+		@Override
+		public void enhanceTask(final Task task) {
+<span class="nc" id="L120">			addJvmArgs(task);</span>
+<span class="nc" id="L121">		}</span>
+
+	}
+
+	/**
+	 * Basic task enhancer that can handle all 'java like' tasks. That is, tasks
+	 * that have a top level fork attribute and nested jvmargs elements
+	 */
+	private class JavaLikeTaskEnhancer implements TaskEnhancer {
+
+		private final String supportedTaskName;
+
+<span class="fc" id="L133">		public JavaLikeTaskEnhancer(final String supportedTaskName) {</span>
+<span class="fc" id="L134">			this.supportedTaskName = supportedTaskName;</span>
+<span class="fc" id="L135">		}</span>
+
+		public boolean supportsTask(final String taskname) {
+<span class="fc" id="L138">			return taskname.equals(supportedTaskName);</span>
+		}
+
+		public void enhanceTask(final Task task) {
+<span class="fc" id="L142">			final RuntimeConfigurable configurableWrapper = task</span>
+					.getRuntimeConfigurableWrapper();
+
+<span class="fc" id="L145">			final String forkValue = getProject().replaceProperties(</span>
+					(String) configurableWrapper.getAttributeMap().get(&quot;fork&quot;));
+
+<span class="fc bfc" id="L148" title="All 2 branches covered.">			if (!Project.toBoolean(forkValue)) {</span>
+<span class="fc" id="L149">				throw new BuildException(</span>
+						&quot;Coverage can only be applied on a forked VM&quot;,
+						getLocation());
+			}
+
+<span class="fc" id="L154">			addJvmArgs(task);</span>
+<span class="fc" id="L155">		}</span>
+
+		public void addJvmArgs(final Task task) {
+<span class="fc" id="L158">			final UnknownElement el = new UnknownElement(&quot;jvmarg&quot;);</span>
+<span class="fc" id="L159">			el.setTaskName(&quot;jvmarg&quot;);</span>
+<span class="fc" id="L160">			el.setQName(&quot;jvmarg&quot;);</span>
+
+<span class="fc" id="L162">			final RuntimeConfigurable runtimeConfigurableWrapper = el</span>
+					.getRuntimeConfigurableWrapper();
+<span class="fc" id="L164">			runtimeConfigurableWrapper.setAttribute(&quot;value&quot;,</span>
+					getLaunchingArgument());
+
+<span class="fc" id="L167">			task.getRuntimeConfigurableWrapper()</span>
+					.addChild(runtimeConfigurableWrapper);
+
+<span class="fc" id="L170">			((UnknownElement) task).addChild(el);</span>
+<span class="fc" id="L171">		}</span>
+	}
+
+	/**
+	 * The task enhancer is responsible for potentially reconfiguring a task to
+	 * support running with code coverage enabled
+	 */
+	private interface TaskEnhancer {
+		/**
+		 * @param taskname
+		 *            Task type to enhance
+		 * @return &lt;code&gt;true&lt;/code&gt; if this enhancer is capable of enhancing
+		 *         the requested task type
+		 */
+		boolean supportsTask(String taskname);
+
+		/**
+		 * Attempt to enhance the supplied task with coverage information. This
+		 * operation may fail if the task is being executed in the current VM
+		 *
+		 * @param task
+		 *            Task instance to enhance (usually an
+		 *            {@link UnknownElement})
+		 * @throws BuildException
+		 *             Thrown if this enhancer can handle this type of task, but
+		 *             this instance can not be enhanced for some reason.
+		 */
+		void enhanceTask(Task task) throws BuildException;
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

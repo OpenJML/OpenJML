@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClassInstrumenter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.instr</a> &gt; <span class="el_source">ClassInstrumenter.java</span></div><h1>ClassInstrumenter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.instr;
+
+import org.jacoco.core.internal.flow.ClassProbesVisitor;
+import org.jacoco.core.internal.flow.MethodProbesVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+
+/**
+ * Adapter that instruments a class for coverage tracing.
+ */
+public class ClassInstrumenter extends ClassProbesVisitor {
+
+	private final IProbeArrayStrategy probeArrayStrategy;
+
+	private String className;
+
+	/**
+	 * Emits a instrumented version of this class to the given class visitor.
+	 *
+	 * @param probeArrayStrategy
+	 *            this strategy will be used to access the probe array
+	 * @param cv
+	 *            next delegate in the visitor chain will receive the
+	 *            instrumented class
+	 */
+	public ClassInstrumenter(final IProbeArrayStrategy probeArrayStrategy,
+			final ClassVisitor cv) {
+<span class="fc" id="L41">		super(cv);</span>
+<span class="fc" id="L42">		this.probeArrayStrategy = probeArrayStrategy;</span>
+<span class="fc" id="L43">	}</span>
+
+	@Override
+	public void visit(final int version, final int access, final String name,
+			final String signature, final String superName,
+			final String[] interfaces) {
+<span class="fc" id="L49">		this.className = name;</span>
+<span class="fc" id="L50">		super.visit(version, access, name, signature, superName, interfaces);</span>
+<span class="fc" id="L51">	}</span>
+
+	@Override
+	public FieldVisitor visitField(final int access, final String name,
+			final String desc, final String signature, final Object value) {
+<span class="fc" id="L56">		InstrSupport.assertNotInstrumented(name, className);</span>
+<span class="fc" id="L57">		return super.visitField(access, name, desc, signature, value);</span>
+	}
+
+	@Override
+	public MethodProbesVisitor visitMethod(final int access, final String name,
+			final String desc, final String signature,
+			final String[] exceptions) {
+
+<span class="fc" id="L65">		InstrSupport.assertNotInstrumented(name, className);</span>
+
+<span class="fc" id="L67">		final MethodVisitor mv = cv.visitMethod(access, name, desc, signature,</span>
+				exceptions);
+
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		if (mv == null) {</span>
+<span class="fc" id="L71">			return null;</span>
+		}
+<span class="fc" id="L73">		final MethodVisitor frameEliminator = new DuplicateFrameEliminator(mv);</span>
+<span class="fc" id="L74">		final ProbeInserter probeVariableInserter = new ProbeInserter(access,</span>
+				name, desc, frameEliminator, probeArrayStrategy);
+<span class="fc" id="L76">		return new MethodInstrumenter(probeVariableInserter,</span>
+				probeVariableInserter);
+	}
+
+	@Override
+	public void visitTotalProbeCount(final int count) {
+<span class="fc" id="L82">		probeArrayStrategy.addMembers(cv, count);</span>
+<span class="fc" id="L83">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

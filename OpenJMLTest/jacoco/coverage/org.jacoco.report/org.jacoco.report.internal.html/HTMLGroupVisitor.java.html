@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HTMLGroupVisitor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.internal.html</a> &gt; <span class="el_source">HTMLGroupVisitor.java</span></div><h1>HTMLGroupVisitor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.internal.html;
+
+import java.io.IOException;
+
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.internal.AbstractGroupVisitor;
+import org.jacoco.report.internal.ReportOutputFolder;
+import org.jacoco.report.internal.html.page.BundlePage;
+import org.jacoco.report.internal.html.page.GroupPage;
+import org.jacoco.report.internal.html.page.NodePage;
+import org.jacoco.report.internal.html.page.ReportPage;
+
+/**
+ * Group visitor for HTML reports.
+ */
+public class HTMLGroupVisitor extends AbstractGroupVisitor {
+
+	private final ReportOutputFolder folder;
+
+	private final IHTMLReportContext context;
+
+	private final GroupPage page;
+
+	/**
+	 * Create a new group handler.
+	 *
+	 * @param parent
+	 *            optional hierarchical parent
+	 * @param folder
+	 *            base folder for this group
+	 * @param context
+	 *            settings context
+	 * @param name
+	 *            group name
+	 */
+	public HTMLGroupVisitor(final ReportPage parent,
+			final ReportOutputFolder folder, final IHTMLReportContext context,
+			final String name) {
+<span class="fc" id="L53">		super(name);</span>
+<span class="fc" id="L54">		this.folder = folder;</span>
+<span class="fc" id="L55">		this.context = context;</span>
+<span class="fc" id="L56">		page = new GroupPage(total, parent, folder, context);</span>
+<span class="fc" id="L57">	}</span>
+
+	/**
+	 * Returns the page rendered for this group.
+	 *
+	 * @return page for this group
+	 */
+	public NodePage&lt;ICoverageNode&gt; getPage() {
+<span class="fc" id="L65">		return page;</span>
+	}
+
+	@Override
+	protected void handleBundle(final IBundleCoverage bundle,
+			final ISourceFileLocator locator) throws IOException {
+<span class="fc" id="L71">		final BundlePage bundlepage = new BundlePage(bundle, page, locator,</span>
+				folder.subFolder(bundle.getName()), context);
+<span class="fc" id="L73">		bundlepage.render();</span>
+<span class="fc" id="L74">		page.addItem(bundlepage);</span>
+<span class="fc" id="L75">	}</span>
+
+	@Override
+	protected AbstractGroupVisitor handleGroup(final String name)
+			throws IOException {
+<span class="fc" id="L80">		final HTMLGroupVisitor handler = new HTMLGroupVisitor(page,</span>
+				folder.subFolder(name), context, name);
+<span class="fc" id="L82">		page.addItem(handler.getPage());</span>
+<span class="fc" id="L83">		return handler;</span>
+	}
+
+	@Override
+	protected void handleEnd() throws IOException {
+<span class="fc" id="L88">		page.render();</span>
+<span class="fc" id="L89">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

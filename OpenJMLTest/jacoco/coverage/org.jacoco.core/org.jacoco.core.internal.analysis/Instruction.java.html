@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Instruction.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis</a> &gt; <span class="el_source">Instruction.java</span></div><h1>Instruction.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis;
+
+import java.util.BitSet;
+import java.util.Collection;
+
+import org.jacoco.core.analysis.ICounter;
+
+/**
+ * Execution status of a single bytecode instruction internally used for
+ * coverage analysis. The execution status is recorded separately for each
+ * outgoing branch. Each instruction has at least one branch, for example in
+ * case of a simple sequence of instructions (by convention branch 0). Instances
+ * of this class are used in two steps:
+ *
+ * &lt;h2&gt;Step 1: Building the CFG&lt;/h2&gt;
+ *
+ * For each bytecode instruction of a method a {@link Instruction} instance is
+ * created. In correspondence with the CFG these instances are linked with each
+ * other with the &lt;code&gt;addBranch()&lt;/code&gt; methods. The executions status is
+ * either directly derived from a probe which has been inserted in the execution
+ * flow ({@link #addBranch(boolean, int)}) or indirectly propagated along the
+ * CFG edges ({@link #addBranch(Instruction, int)}).
+ *
+ * &lt;h2&gt;Step 2: Querying the Coverage Status&lt;/h2&gt;
+ *
+ * After all instructions have been created and linked each instruction knows
+ * its execution status and can be queried with:
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;{@link #getLine()}&lt;/li&gt;
+ * &lt;li&gt;{@link #getInstructionCounter()}&lt;/li&gt;
+ * &lt;li&gt;{@link #getBranchCounter()}&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * For the purpose of filtering instructions can be combined to new
+ * instructions. Note that these methods create new {@link Instruction}
+ * instances and do not modify the existing ones.
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;{@link #merge(Instruction)}&lt;/li&gt;
+ * &lt;li&gt;{@link #replaceBranches(Collection)}&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+public class Instruction {
+
+	private final int line;
+
+	private int branches;
+
+	private final BitSet coveredBranches;
+
+	private Instruction predecessor;
+
+	private int predecessorBranch;
+
+	/**
+	 * New instruction at the given line.
+	 *
+	 * @param line
+	 *            source line this instruction belongs to
+	 */
+<span class="fc" id="L74">	public Instruction(final int line) {</span>
+<span class="fc" id="L75">		this.line = line;</span>
+<span class="fc" id="L76">		this.branches = 0;</span>
+<span class="fc" id="L77">		this.coveredBranches = new BitSet();</span>
+<span class="fc" id="L78">	}</span>
+
+	/**
+	 * Adds a branch to this instruction which execution status is indirectly
+	 * derived from the execution status of the target instruction. In case the
+	 * branch is covered the status is propagated also to the predecessors of
+	 * this instruction.
+	 *
+	 * Note: This method is not idempotent and must be called exactly once for
+	 * every branch.
+	 *
+	 * @param target
+	 *            target instruction of this branch
+	 * @param branch
+	 *            branch identifier unique for this instruction
+	 */
+	public void addBranch(final Instruction target, final int branch) {
+<span class="fc" id="L95">		branches++;</span>
+<span class="fc" id="L96">		target.predecessor = this;</span>
+<span class="fc" id="L97">		target.predecessorBranch = branch;</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">		if (!target.coveredBranches.isEmpty()) {</span>
+<span class="fc" id="L99">			propagateExecutedBranch(this, branch);</span>
+		}
+<span class="fc" id="L101">	}</span>
+
+	/**
+	 * Adds a branch to this instruction which execution status is directly
+	 * derived from a probe. In case the branch is covered the status is
+	 * propagated also to the predecessors of this instruction.
+	 *
+	 * Note: This method is not idempotent and must be called exactly once for
+	 * every branch.
+	 *
+	 * @param executed
+	 *            whether the corresponding probe has been executed
+	 * @param branch
+	 *            branch identifier unique for this instruction
+	 */
+	public void addBranch(final boolean executed, final int branch) {
+<span class="fc" id="L117">		branches++;</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		if (executed) {</span>
+<span class="fc" id="L119">			propagateExecutedBranch(this, branch);</span>
+		}
+<span class="fc" id="L121">	}</span>
+
+	private static void propagateExecutedBranch(Instruction insn, int branch) {
+		// No recursion here, as there can be very long chains of instructions
+<span class="fc bfc" id="L125" title="All 2 branches covered.">		while (insn != null) {</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">			if (!insn.coveredBranches.isEmpty()) {</span>
+<span class="fc" id="L127">				insn.coveredBranches.set(branch);</span>
+<span class="fc" id="L128">				break;</span>
+			}
+<span class="fc" id="L130">			insn.coveredBranches.set(branch);</span>
+<span class="fc" id="L131">			branch = insn.predecessorBranch;</span>
+<span class="fc" id="L132">			insn = insn.predecessor;</span>
+		}
+<span class="fc" id="L134">	}</span>
+
+	/**
+	 * Returns the source line this instruction belongs to.
+	 *
+	 * @return corresponding source line
+	 */
+	public int getLine() {
+<span class="fc" id="L142">		return line;</span>
+	}
+
+	/**
+	 * Merges information about covered branches of this instruction with
+	 * another instruction.
+	 *
+	 * @param other
+	 *            instruction to merge with
+	 * @return new instance with merged branches
+	 */
+	public Instruction merge(final Instruction other) {
+<span class="fc" id="L154">		final Instruction result = new Instruction(this.line);</span>
+<span class="fc" id="L155">		result.branches = this.branches;</span>
+<span class="fc" id="L156">		result.coveredBranches.or(this.coveredBranches);</span>
+<span class="fc" id="L157">		result.coveredBranches.or(other.coveredBranches);</span>
+<span class="fc" id="L158">		return result;</span>
+	}
+
+	/**
+	 * Creates a copy of this instruction where all outgoing branches are
+	 * replaced with the given instructions. The coverage status of the new
+	 * instruction is derived from the status of the given instructions.
+	 *
+	 * @param newBranches
+	 *            new branches to consider
+	 * @return new instance with replaced branches
+	 */
+	public Instruction replaceBranches(
+			final Collection&lt;Instruction&gt; newBranches) {
+<span class="fc" id="L172">		final Instruction result = new Instruction(this.line);</span>
+<span class="fc" id="L173">		result.branches = newBranches.size();</span>
+<span class="fc" id="L174">		int idx = 0;</span>
+<span class="fc bfc" id="L175" title="All 2 branches covered.">		for (final Instruction b : newBranches) {</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">			if (!b.coveredBranches.isEmpty()) {</span>
+<span class="fc" id="L177">				result.coveredBranches.set(idx++);</span>
+			}
+		}
+<span class="fc" id="L180">		return result;</span>
+	}
+
+	/**
+	 * Returns the instruction coverage counter of this instruction. It is
+	 * always 1 instruction which is covered or not.
+	 *
+	 * @return the instruction coverage counter
+	 */
+	public ICounter getInstructionCounter() {
+<span class="fc bfc" id="L190" title="All 2 branches covered.">		return coveredBranches.isEmpty() ? CounterImpl.COUNTER_1_0</span>
+				: CounterImpl.COUNTER_0_1;
+	}
+
+	/**
+	 * Returns the branch coverage counter of this instruction. Only
+	 * instructions with at least 2 outgoing edges report branches.
+	 *
+	 * @return the branch coverage counter
+	 */
+	public ICounter getBranchCounter() {
+<span class="fc bfc" id="L201" title="All 2 branches covered.">		if (branches &lt; 2) {</span>
+<span class="fc" id="L202">			return CounterImpl.COUNTER_0_0;</span>
+		}
+<span class="fc" id="L204">		final int covered = coveredBranches.cardinality();</span>
+<span class="fc" id="L205">		return CounterImpl.getInstance(branches - covered, covered);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

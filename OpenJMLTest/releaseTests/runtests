@@ -1,7 +1,7 @@
 #! /bin/bash 
 
-# Go to OpenJMLTest
-cd $(dirname "$BASH_SOURCE")/..
+## Folder containing this script -- which is OpenJMLTest/releaseTests
+LOCAL=`cd $(dirname $BASH_SOURCE[0]) && pwd`
 
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
@@ -9,72 +9,63 @@ cd $(dirname "$BASH_SOURCE")/..
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
-## Name of folder holding releaseBuilds (within OpenJML)
-
-
 Z=:
 if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-cd ../OpenJMLTest
+## Source the file that sets AGENT and OJA, if requested because COV is set
+. $LOCAL/../setup-coverage releasetests
 
-rm -rf temp-release
-mkdir temp-release
-cd temp-release
-LOC=`pwd`/../../OpenJML21
-RLOC=../../OpenJML21
 
-if [ -z "${NOZIP+x}" ]; then
-## if NOZIP is not set, then test a release zip
+if [ -z "${ZIP+x}" ]; then
+  ## if ZIP is not set, then test the current build in development environment holding this file
+  export OJBIN="$LOCAL/../../OpenJML21"
+  OJ="$OJBIN"/openjml
+  JV="$OJBIN"/openjml-java
+  RT="$OJBIN"/jmlruntime.jar
+  echo "Testing current build at $OJ"
 
-  ZIP="$RLOC/release-temp/openjml.zip"
-  if [ -e "$ZIP" ]; then
-    cp $ZIP .
-  else
+else
+  if [ -z "${ZIP}" ]; then
+    ## ZIP is set to an empty string -- use default
+    ZIP=$LOCAL/../../OpenJML21/release-temp/openjml.zip
+  fi
+  ## ZIP is set -- presume it names an openjml.zip to be tested
+  if [ ! -e "$ZIP" ]; then
     echo "Zip file not found" $ZIP "cwd=" `pwd` 
     exit 1
   fi
   
-  unzip openjml.zip > /dev/null
-  OJ=`pwd`/openjml
-  JV=`pwd`/openjml-java
-  RT=`pwd`/jmlruntime.jar
+  rm -rf temp-release
+  mkdir temp-release
+  pushd temp-release > /dev/null
+  unzip ${ZIP} > /dev/null
+  export OJBIN=`pwd`
+  OJ="$OJBIN"/openjml
+  JV="$OJBIN"/openjml-java
+  RT="$OJBIN"/jmlruntime.jar
   echo Testing release build unzipped from $ZIP
-
-elif [ -z "$NOZIP" ]; then
-## NOZIP was set to a empty string; test the current build
-
-  OJ="$LOC"/openjml
-  JV="$LOC"/openjml-java
-  RT="$LOC"/jmlruntime.jar
-  echo "Testing current build at $OJ"
-
-else
-## NOZIP was set to something, use that as the openjml to test
-
-  OJ="$NOZIP"
-  JV="$NOZIP"-java
-  RT="$LOC/jmlruntime.jar"
-  echo "Testing executable at $OJ"
-
+  popd > /dev/null
 fi
 
-TESTLOC=../releaseTests
 
 if [ ! -e "$OJ" ]; then
    echo No openjml : $OJ
    exit 1
 fi
 
-export RTH=../releaseTests/releaseTestHelper
+cd $LOCAL
+
+## Currently in .../OpenJML/release-tests
+export RTH=$LOCAL/releaseTestHelper
 RES=0
 
 
 ## Checks the version
 echo Visually check that the version matches the zip file being tested
 $OJ -version
-echo "openjml" `cat ../../version.txt` > ${TESTLOC}/testJmlVersion/expected
+echo "openjml" `cat $LOCAL/../../version.txt` > ${LOCAL}/testJmlVersion/expected
 ${RTH} testJmlVersion "$OJ -version" || RES=$(($RES+1))
 
 
@@ -235,6 +226,9 @@ ${RTH} testPath10 "$OJ -jmltesting --no-purity-check ../testfiles/testPath/data/
 ## Checks an invalid file
 ${RTH} testCheck1 "$OJ -jmltesting --no-purity-check -specspath . A.java" || RES=$(($RES+1))
 
+echo Testing testAPI
+../releaseTests/testAPI/run &> ../releaseTests/testAPI/actual
+diff ../releaseTests/testAPI/actual ../releaseTests/testAPI/expected || RES=$(($RES+1))
 
 ## FIXME - jmldoc & prettyprinying
 if [[ "SKIP" == "" ]]; then

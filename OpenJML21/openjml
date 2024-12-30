@@ -1,18 +1,28 @@
 #!/bin/bash
 
-## This is for the development environment
-## It is a convenience executable to run openjml from the build within the OpenJML21 build structure
-## openjml is the embellished versino of javac
+## This script may be executed in either the development environment or in a release
+## openjml is the embellished version of javac
 
 ## The definition of BIN below presumes that only one development target has been built
 
-R1=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
-R2=$(dirname "$R1") # path of the folder containing this file
-R=$( cd "$R2/../.."  && pwd) ## absolute path, still might have spaces
+FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; R1 will be the path to this file
+LOCAL=$(dirname "$FILE") # path of the folder containing this file
 
-##OS=linux ## macosx linux windows aix
-ROOT="$R/OpenJML/OpenJML21"
-BIN=`echo $ROOT/build/*/jdk/bin/javac`
+# mac-setup is needed to fix Mac security complaints, though it is only
+# needed once
+if [ "$( uname )" = "Darwin" ] ; then
+  "${LOCAL}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
+fi
 
-OPENJML_ROOT="$R/Solvers" "$BIN" "$@"
+if [ -e "$LOCAL/version-info.txt" ]; then
+  ## In a release
+  SOLVERS="$LOCAL"
+  BIN="$LOCAL"/jdk/bin/javac
+else
+  ## In development environment
+  SOLVERS=$( cd "$LOCAL/../../Solvers"  && pwd) ## absolute path, still might have spaces
+  BIN=`echo "$LOCAL"/build/*/jdk/bin/javac`
+fi
+
+OPENJML_ROOT="$SOLVERS" "$BIN" "$@"
 

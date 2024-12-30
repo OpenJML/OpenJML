@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CoverageBuilder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.analysis</a> &gt; <span class="el_source">CoverageBuilder.java</span></div><h1>CoverageBuilder.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.analysis;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jacoco.core.internal.analysis.BundleCoverageImpl;
+import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
+
+/**
+ * Builder for hierarchical {@link ICoverageNode} structures from single
+ * {@link IClassCoverage} nodes. The nodes are feed into the builder through its
+ * {@link ICoverageVisitor} interface. Afterwards the aggregated data can be
+ * obtained with {@link #getClasses()}, {@link #getSourceFiles()} or
+ * {@link #getBundle(String)} in the following hierarchy:
+ *
+ * &lt;pre&gt;
+ * {@link IBundleCoverage}
+ * +-- {@link IPackageCoverage}*
+ *     +-- {@link IClassCoverage}*
+ *     +-- {@link ISourceFileCoverage}*
+ * &lt;/pre&gt;
+ */
+public class CoverageBuilder implements ICoverageVisitor {
+
+	private final Map&lt;String, IClassCoverage&gt; classes;
+
+	private final Map&lt;String, ISourceFileCoverage&gt; sourcefiles;
+
+	/**
+	 * Create a new builder.
+	 *
+	 */
+<span class="fc" id="L48">	public CoverageBuilder() {</span>
+<span class="fc" id="L49">		this.classes = new HashMap&lt;String, IClassCoverage&gt;();</span>
+<span class="fc" id="L50">		this.sourcefiles = new HashMap&lt;String, ISourceFileCoverage&gt;();</span>
+<span class="fc" id="L51">	}</span>
+
+	/**
+	 * Returns all class nodes currently contained in this builder.
+	 *
+	 * @return all class nodes
+	 */
+	public Collection&lt;IClassCoverage&gt; getClasses() {
+<span class="fc" id="L59">		return Collections.unmodifiableCollection(classes.values());</span>
+	}
+
+	/**
+	 * Returns all source file nodes currently contained in this builder.
+	 *
+	 * @return all source file nodes
+	 */
+	public Collection&lt;ISourceFileCoverage&gt; getSourceFiles() {
+<span class="fc" id="L68">		return Collections.unmodifiableCollection(sourcefiles.values());</span>
+	}
+
+	/**
+	 * Creates a bundle from all nodes currently contained in this bundle.
+	 *
+	 * @param name
+	 *            Name of the bundle
+	 * @return bundle containing all classes and source files
+	 */
+	public IBundleCoverage getBundle(final String name) {
+<span class="fc" id="L79">		return new BundleCoverageImpl(name, classes.values(),</span>
+				sourcefiles.values());
+	}
+
+	/**
+	 * Returns all classes for which execution data does not match.
+	 *
+	 * @see IClassCoverage#isNoMatch()
+	 * @return collection of classes with non-matching execution data
+	 */
+	public Collection&lt;IClassCoverage&gt; getNoMatchClasses() {
+<span class="fc" id="L90">		final Collection&lt;IClassCoverage&gt; result = new ArrayList&lt;IClassCoverage&gt;();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">		for (final IClassCoverage c : classes.values()) {</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">			if (c.isNoMatch()) {</span>
+<span class="fc" id="L93">				result.add(c);</span>
+			}
+		}
+<span class="fc" id="L96">		return result;</span>
+	}
+
+	// === ICoverageVisitor ===
+
+	public void visitCoverage(final IClassCoverage coverage) {
+<span class="fc" id="L102">		final String name = coverage.getName();</span>
+<span class="fc" id="L103">		final IClassCoverage dup = classes.put(name, coverage);</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">		if (dup != null) {</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">			if (dup.getId() != coverage.getId()) {</span>
+<span class="fc" id="L106">				throw new IllegalStateException(</span>
+						&quot;Can't add different class with same name: &quot; + name);
+			}
+		} else {
+<span class="fc" id="L110">			final String source = coverage.getSourceFileName();</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">			if (source != null) {</span>
+<span class="fc" id="L112">				final SourceFileCoverageImpl sourceFile = getSourceFile(source,</span>
+						coverage.getPackageName());
+<span class="fc" id="L114">				sourceFile.increment(coverage);</span>
+			}
+		}
+<span class="fc" id="L117">	}</span>
+
+	private SourceFileCoverageImpl getSourceFile(final String filename,
+			final String packagename) {
+<span class="fc" id="L121">		final String key = packagename + '/' + filename;</span>
+<span class="fc" id="L122">		SourceFileCoverageImpl sourcefile = (SourceFileCoverageImpl) sourcefiles</span>
+				.get(key);
+<span class="fc bfc" id="L124" title="All 2 branches covered.">		if (sourcefile == null) {</span>
+<span class="fc" id="L125">			sourcefile = new SourceFileCoverageImpl(filename, packagename);</span>
+<span class="fc" id="L126">			sourcefiles.put(key, sourcefile);</span>
+		}
+<span class="fc" id="L128">		return sourcefile;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

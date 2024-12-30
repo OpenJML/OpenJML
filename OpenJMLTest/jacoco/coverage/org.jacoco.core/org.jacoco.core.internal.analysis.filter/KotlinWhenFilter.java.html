@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KotlinWhenFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">KotlinWhenFilter.java</span></div><h1>KotlinWhenFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LookupSwitchInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TableSwitchInsnNode;
+
+/**
+ * Filters bytecode that Kotlin compiler generates for &lt;code&gt;when&lt;/code&gt;
+ * expressions which list all cases of &lt;code&gt;enum&lt;/code&gt; or
+ * &lt;code&gt;sealed class&lt;/code&gt;, i.e. which don't require explicit
+ * &lt;code&gt;else&lt;/code&gt;.
+ */
+<span class="fc" id="L33">public final class KotlinWhenFilter implements IFilter {</span>
+
+	private static final String EXCEPTION = &quot;kotlin/NoWhenBranchMatchedException&quot;;
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc" id="L39">		final Matcher matcher = new Matcher();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">		for (final AbstractInsnNode i : methodNode.instructions) {</span>
+<span class="fc" id="L41">			matcher.match(i, output);</span>
+		}
+<span class="fc" id="L43">	}</span>
+
+<span class="fc" id="L45">	private static class Matcher extends AbstractMatcher {</span>
+		void match(final AbstractInsnNode start, final IFilterOutput output) {
+<span class="fc bfc" id="L47" title="All 2 branches covered.">			if (start.getType() != AbstractInsnNode.LABEL) {</span>
+<span class="fc" id="L48">				return;</span>
+			}
+<span class="fc" id="L50">			cursor = start;</span>
+
+<span class="fc" id="L52">			nextIsType(Opcodes.NEW, EXCEPTION);</span>
+<span class="fc" id="L53">			nextIs(Opcodes.DUP);</span>
+<span class="fc" id="L54">			nextIsInvoke(Opcodes.INVOKESPECIAL, EXCEPTION, &quot;&lt;init&gt;&quot;, &quot;()V&quot;);</span>
+<span class="fc" id="L55">			nextIs(Opcodes.ATHROW);</span>
+
+<span class="fc bfc" id="L57" title="All 2 branches covered.">			for (AbstractInsnNode i = cursor; i != null; i = i.getPrevious()) {</span>
+<span class="pc bpc" id="L58" title="1 of 4 branches missed.">				if (i.getOpcode() == Opcodes.IFEQ</span>
+						&amp;&amp; ((JumpInsnNode) i).label == start) {
+<span class="fc" id="L60">					output.ignore(i, i);</span>
+<span class="fc" id="L61">					output.ignore(start, cursor);</span>
+<span class="fc" id="L62">					return;</span>
+
+<span class="fc bfc" id="L64" title="All 2 branches covered.">				} else if (getDefaultLabel(i) == start) {</span>
+<span class="fc" id="L65">					ignoreDefaultBranch(i, output);</span>
+<span class="fc" id="L66">					output.ignore(start, cursor);</span>
+<span class="fc" id="L67">					return;</span>
+
+				}
+			}
+<span class="fc" id="L71">		}</span>
+	}
+
+	private static LabelNode getDefaultLabel(final AbstractInsnNode i) {
+<span class="pc bpc" id="L75" title="1 of 3 branches missed.">		switch (i.getOpcode()) {</span>
+		case Opcodes.LOOKUPSWITCH:
+<span class="nc" id="L77">			return ((LookupSwitchInsnNode) i).dflt;</span>
+		case Opcodes.TABLESWITCH:
+<span class="fc" id="L79">			return ((TableSwitchInsnNode) i).dflt;</span>
+		default:
+<span class="fc" id="L81">			return null;</span>
+		}
+	}
+
+	private static void ignoreDefaultBranch(final AbstractInsnNode switchNode,
+			final IFilterOutput output) {
+		final List&lt;LabelNode&gt; labels;
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">		if (switchNode.getOpcode() == Opcodes.LOOKUPSWITCH) {</span>
+<span class="nc" id="L89">			labels = ((LookupSwitchInsnNode) switchNode).labels;</span>
+		} else {
+<span class="fc" id="L91">			labels = ((TableSwitchInsnNode) switchNode).labels;</span>
+		}
+<span class="fc" id="L93">		final Set&lt;AbstractInsnNode&gt; newTargets = new HashSet&lt;AbstractInsnNode&gt;();</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">		for (final LabelNode label : labels) {</span>
+<span class="fc" id="L95">			newTargets.add(AbstractMatcher.skipNonOpcodes(label));</span>
+		}
+<span class="fc" id="L97">		output.replaceBranches(switchNode, newTargets);</span>
+<span class="fc" id="L98">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

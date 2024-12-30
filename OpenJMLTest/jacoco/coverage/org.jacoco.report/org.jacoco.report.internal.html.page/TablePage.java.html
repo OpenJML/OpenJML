@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TablePage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.internal.html.page</a> &gt; <span class="el_source">TablePage.java</span></div><h1>TablePage.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.internal.html.page;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.report.internal.ReportOutputFolder;
+import org.jacoco.report.internal.html.HTMLElement;
+import org.jacoco.report.internal.html.IHTMLReportContext;
+import org.jacoco.report.internal.html.resources.Resources;
+import org.jacoco.report.internal.html.table.ITableItem;
+
+/**
+ * Report page that contains a table of items linked to other pages.
+ *
+ * @param &lt;NodeType&gt;
+ *            type of the node represented by this page
+ */
+public abstract class TablePage&lt;NodeType extends ICoverageNode&gt;
+		extends NodePage&lt;NodeType&gt; {
+
+<span class="fc" id="L35">	private final List&lt;ITableItem&gt; items = new ArrayList&lt;ITableItem&gt;();</span>
+
+	/**
+	 * Creates a new node page.
+	 *
+	 * @param node
+	 *            corresponding node
+	 * @param parent
+	 *            optional hierarchical parent
+	 * @param folder
+	 *            base folder to create this report in
+	 * @param context
+	 *            settings context
+	 */
+	protected TablePage(final NodeType node, final ReportPage parent,
+			final ReportOutputFolder folder, final IHTMLReportContext context) {
+<span class="fc" id="L51">		super(node, parent, folder, context);</span>
+<span class="fc" id="L52">	}</span>
+
+	/**
+	 * Adds the given item to the table. Method must be called before the page
+	 * is rendered.
+	 *
+	 * @param item
+	 *            table item to add
+	 */
+	public void addItem(final ITableItem item) {
+<span class="fc" id="L62">		items.add(item);</span>
+<span class="fc" id="L63">	}</span>
+
+	@Override
+	protected void head(final HTMLElement head) throws IOException {
+<span class="fc" id="L67">		super.head(head);</span>
+<span class="fc" id="L68">		head.script(</span>
+				context.getResources().getLink(folder, Resources.SORT_SCRIPT));
+<span class="fc" id="L70">	}</span>
+
+	@Override
+	protected void content(final HTMLElement body) throws IOException {
+<span class="fc" id="L74">		context.getTable().render(body, items, getNode(),</span>
+				context.getResources(), folder);
+		// free memory, otherwise we will keep the complete page tree:
+<span class="fc" id="L77">		items.clear();</span>
+<span class="fc" id="L78">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

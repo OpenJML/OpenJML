@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TryWithResourcesJavac11Filter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">TryWithResourcesJavac11Filter.java</span></div><h1>TryWithResourcesJavac11Filter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
+
+/**
+ * Filters code which is generated for try-with-resources statement by javac
+ * starting from version 11.
+ */
+<span class="fc" id="L25">public final class TryWithResourcesJavac11Filter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L29" title="All 2 branches covered.">		if (methodNode.tryCatchBlocks.isEmpty()) {</span>
+<span class="fc" id="L30">			return;</span>
+		}
+<span class="fc" id="L32">		final Matcher matcher = new Matcher();</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">		for (TryCatchBlockNode t : methodNode.tryCatchBlocks) {</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">			if (&quot;java/lang/Throwable&quot;.equals(t.type)) {</span>
+<span class="fc" id="L35">				matcher.match(t.handler, output, true);</span>
+<span class="fc" id="L36">				matcher.match(t.handler, output, false);</span>
+			}
+		}
+<span class="fc" id="L39">	}</span>
+
+	/**
+	 * &lt;pre&gt;
+	 *     r = ...;
+	 *     try {
+	 *         ...
+	 *     } body-only-finally {
+	 *         if (r != null)
+	 *             r.close();
+	 *     } catch (Throwable primaryExc) {
+	 *         if (r != null)
+	 *             try {
+	 *                 r.close();
+	 *             } catch (Throwable t) {
+	 *                 primaryExc.addSuppressed(t);
+	 *             }
+	 *         throw primaryExc;
+	 *     }
+	 * &lt;/pre&gt;
+	 *
+	 * &lt;code&gt;null&lt;/code&gt; check for resource is omitted when it is initialized
+	 * using &lt;code&gt;new&lt;/code&gt;
+	 */
+<span class="fc" id="L63">	private class Matcher extends AbstractMatcher {</span>
+		private boolean withNullCheck;
+
+		private String expectedOwner;
+
+		void match(final AbstractInsnNode start, final IFilterOutput output,
+				final boolean withNullCheck) {
+<span class="fc" id="L70">			this.withNullCheck = withNullCheck;</span>
+<span class="fc" id="L71">			vars.clear();</span>
+<span class="fc" id="L72">			expectedOwner = null;</span>
+
+<span class="fc" id="L74">			cursor = start.getPrevious();</span>
+<span class="fc" id="L75">			nextIsVar(Opcodes.ASTORE, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L76">			nextIsJavacClose();</span>
+<span class="fc" id="L77">			nextIs(Opcodes.GOTO);</span>
+<span class="fc" id="L78">			nextIsVar(Opcodes.ASTORE, &quot;t&quot;);</span>
+<span class="fc" id="L79">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L80">			nextIsVar(Opcodes.ALOAD, &quot;t&quot;);</span>
+<span class="fc" id="L81">			nextIsInvoke(Opcodes.INVOKEVIRTUAL, &quot;java/lang/Throwable&quot;,</span>
+					&quot;addSuppressed&quot;, &quot;(Ljava/lang/Throwable;)V&quot;); // primaryExc.addSuppressed(t)
+<span class="fc" id="L83">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L84">			nextIs(Opcodes.ATHROW);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L86">				return;</span>
+			}
+<span class="fc" id="L88">			final AbstractInsnNode end = cursor;</span>
+
+<span class="fc" id="L90">			AbstractInsnNode s = start.getPrevious();</span>
+<span class="fc" id="L91">			cursor = start.getPrevious();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">			while (!nextIsJavacClose()) {</span>
+<span class="fc" id="L93">				s = s.getPrevious();</span>
+<span class="fc" id="L94">				cursor = s;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">				if (cursor == null) {</span>
+<span class="nc" id="L96">					return;</span>
+				}
+			}
+<span class="fc" id="L99">			s = s.getNext();</span>
+
+<span class="fc" id="L101">			final AbstractInsnNode m = cursor;</span>
+<span class="fc" id="L102">			next();</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">			if (cursor.getOpcode() != Opcodes.GOTO) {</span>
+<span class="nc" id="L104">				cursor = m;</span>
+			}
+
+<span class="fc" id="L107">			output.ignore(s, cursor);</span>
+<span class="fc" id="L108">			output.ignore(start, end);</span>
+<span class="fc" id="L109">		}</span>
+
+		private boolean nextIsJavacClose() {
+<span class="fc bfc" id="L112" title="All 2 branches covered.">			if (withNullCheck) {</span>
+<span class="fc" id="L113">				nextIsVar(Opcodes.ALOAD, &quot;r&quot;);</span>
+<span class="fc" id="L114">				nextIs(Opcodes.IFNULL);</span>
+			}
+<span class="fc" id="L116">			nextIsClose();</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		private void nextIsClose() {
+<span class="fc" id="L121">			nextIsVar(Opcodes.ALOAD, &quot;r&quot;);</span>
+<span class="fc" id="L122">			next();</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L124">				return;</span>
+			}
+<span class="pc bpc" id="L126" title="1 of 4 branches missed.">			if (cursor.getOpcode() != Opcodes.INVOKEINTERFACE</span>
+					&amp;&amp; cursor.getOpcode() != Opcodes.INVOKEVIRTUAL) {
+<span class="fc" id="L128">				cursor = null;</span>
+<span class="fc" id="L129">				return;</span>
+			}
+<span class="fc" id="L131">			final MethodInsnNode m = (MethodInsnNode) cursor;</span>
+<span class="pc bpc" id="L132" title="2 of 4 branches missed.">			if (!&quot;close&quot;.equals(m.name) || !&quot;()V&quot;.equals(m.desc)) {</span>
+<span class="nc" id="L133">				cursor = null;</span>
+<span class="nc" id="L134">				return;</span>
+			}
+<span class="fc" id="L136">			final String actual = m.owner;</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">			if (expectedOwner == null) {</span>
+<span class="fc" id="L138">				expectedOwner = actual;</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">			} else if (!expectedOwner.equals(actual)) {</span>
+<span class="nc" id="L140">				cursor = null;</span>
+			}
+<span class="fc" id="L142">		}</span>
+
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClassCoverageImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis</a> &gt; <span class="el_source">ClassCoverageImpl.java</span></div><h1>ClassCoverageImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.IMethodCoverage;
+
+/**
+ * Implementation of {@link IClassCoverage}.
+ */
+public class ClassCoverageImpl extends SourceNodeImpl
+		implements IClassCoverage {
+
+	private final long id;
+	private final boolean noMatch;
+	private final Collection&lt;IMethodCoverage&gt; methods;
+	private String signature;
+	private String superName;
+	private String[] interfaces;
+	private String sourceFileName;
+
+	/**
+	 * Creates a class coverage data object with the given parameters.
+	 *
+	 * @param name
+	 *            VM name of the class
+	 * @param id
+	 *            class identifier
+	 * @param noMatch
+	 *            &lt;code&gt;true&lt;/code&gt;, if class id does not match with execution
+	 *            data
+	 */
+	public ClassCoverageImpl(final String name, final long id,
+			final boolean noMatch) {
+<span class="fc" id="L48">		super(ElementType.CLASS, name);</span>
+<span class="fc" id="L49">		this.id = id;</span>
+<span class="fc" id="L50">		this.noMatch = noMatch;</span>
+<span class="fc" id="L51">		this.methods = new ArrayList&lt;IMethodCoverage&gt;();</span>
+<span class="fc" id="L52">	}</span>
+
+	/**
+	 * Add a method to this class.
+	 *
+	 * @param method
+	 *            method data to add
+	 */
+	public void addMethod(final IMethodCoverage method) {
+<span class="fc" id="L61">		this.methods.add(method);</span>
+<span class="fc" id="L62">		increment(method);</span>
+		// Class is considered as covered when at least one method is covered:
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		if (methodCounter.getCoveredCount() &gt; 0) {</span>
+<span class="fc" id="L65">			this.classCounter = CounterImpl.COUNTER_0_1;</span>
+		} else {
+<span class="fc" id="L67">			this.classCounter = CounterImpl.COUNTER_1_0;</span>
+		}
+<span class="fc" id="L69">	}</span>
+
+	/**
+	 * Sets the VM signature of the class.
+	 *
+	 * @param signature
+	 *            VM signature of the class (may be &lt;code&gt;null&lt;/code&gt;)
+	 */
+	public void setSignature(final String signature) {
+<span class="fc" id="L78">		this.signature = signature;</span>
+<span class="fc" id="L79">	}</span>
+
+	/**
+	 * Sets the VM name of the superclass.
+	 *
+	 * @param superName
+	 *            VM name of the super class (may be &lt;code&gt;null&lt;/code&gt;, i.e.
+	 *            &lt;code&gt;java/lang/Object&lt;/code&gt;)
+	 */
+	public void setSuperName(final String superName) {
+<span class="fc" id="L89">		this.superName = superName;</span>
+<span class="fc" id="L90">	}</span>
+
+	/**
+	 * Sets the VM names of implemented/extended interfaces.
+	 *
+	 * @param interfaces
+	 *            VM names of implemented/extended interfaces
+	 */
+	public void setInterfaces(final String[] interfaces) {
+<span class="fc" id="L99">		this.interfaces = interfaces;</span>
+<span class="fc" id="L100">	}</span>
+
+	/**
+	 * Sets the name of the corresponding source file for this class.
+	 *
+	 * @param sourceFileName
+	 *            name of the source file
+	 */
+	public void setSourceFileName(final String sourceFileName) {
+<span class="fc" id="L109">		this.sourceFileName = sourceFileName;</span>
+<span class="fc" id="L110">	}</span>
+
+	// === IClassCoverage implementation ===
+
+	public long getId() {
+<span class="fc" id="L115">		return id;</span>
+	}
+
+	public boolean isNoMatch() {
+<span class="fc" id="L119">		return noMatch;</span>
+	}
+
+	public String getSignature() {
+<span class="fc" id="L123">		return signature;</span>
+	}
+
+	public String getSuperName() {
+<span class="fc" id="L127">		return superName;</span>
+	}
+
+	public String[] getInterfaceNames() {
+<span class="fc" id="L131">		return interfaces;</span>
+	}
+
+	public String getPackageName() {
+<span class="fc" id="L135">		final int pos = getName().lastIndexOf('/');</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">		return pos == -1 ? &quot;&quot; : getName().substring(0, pos);</span>
+	}
+
+	public String getSourceFileName() {
+<span class="fc" id="L140">		return sourceFileName;</span>
+	}
+
+	public Collection&lt;IMethodCoverage&gt; getMethods() {
+<span class="fc" id="L144">		return methods;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

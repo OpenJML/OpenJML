@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExecutionDataWriter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.data</a> &gt; <span class="el_source">ExecutionDataWriter.java</span></div><h1>ExecutionDataWriter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.data;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.jacoco.core.internal.data.CompactDataOutput;
+
+/**
+ * Serialization of execution data into binary streams.
+ */
+public class ExecutionDataWriter
+		implements ISessionInfoVisitor, IExecutionDataVisitor {
+
+	/**
+	 * File format version, will be incremented for each incompatible change.
+	 */
+	public static final char FORMAT_VERSION;
+
+	static {
+		// Runtime initialize to ensure javac does not inline the value.
+<span class="fc" id="L34">		FORMAT_VERSION = 0x1007;</span>
+<span class="fc" id="L35">	}</span>
+
+	/** Magic number in header for file format identification. */
+	public static final char MAGIC_NUMBER = 0xC0C0;
+
+	/** Block identifier for file headers. */
+	public static final byte BLOCK_HEADER = 0x01;
+
+	/** Block identifier for session information. */
+	public static final byte BLOCK_SESSIONINFO = 0x10;
+
+	/** Block identifier for execution data of a single class. */
+	public static final byte BLOCK_EXECUTIONDATA = 0x11;
+
+	/** Underlying data output */
+	protected final CompactDataOutput out;
+
+	/**
+	 * Creates a new writer based on the given output stream. Depending on the
+	 * nature of the underlying stream output should be buffered as most data is
+	 * written in single bytes.
+	 *
+	 * @param output
+	 *            binary stream to write execution data to
+	 * @throws IOException
+	 *             if the header can't be written
+	 */
+<span class="fc" id="L62">	public ExecutionDataWriter(final OutputStream output) throws IOException {</span>
+<span class="fc" id="L63">		this.out = new CompactDataOutput(output);</span>
+<span class="fc" id="L64">		writeHeader();</span>
+<span class="fc" id="L65">	}</span>
+
+	/**
+	 * Writes an file header to identify the stream and its protocol version.
+	 *
+	 * @throws IOException
+	 *             if the header can't be written
+	 */
+	private void writeHeader() throws IOException {
+<span class="fc" id="L74">		out.writeByte(BLOCK_HEADER);</span>
+<span class="fc" id="L75">		out.writeChar(MAGIC_NUMBER);</span>
+<span class="fc" id="L76">		out.writeChar(FORMAT_VERSION);</span>
+<span class="fc" id="L77">	}</span>
+
+	/**
+	 * Flushes the underlying stream.
+	 *
+	 * @throws IOException
+	 *             if the underlying stream can't be flushed
+	 */
+	public void flush() throws IOException {
+<span class="fc" id="L86">		out.flush();</span>
+<span class="fc" id="L87">	}</span>
+
+	public void visitSessionInfo(final SessionInfo info) {
+		try {
+<span class="fc" id="L91">			out.writeByte(BLOCK_SESSIONINFO);</span>
+<span class="fc" id="L92">			out.writeUTF(info.getId());</span>
+<span class="fc" id="L93">			out.writeLong(info.getStartTimeStamp());</span>
+<span class="fc" id="L94">			out.writeLong(info.getDumpTimeStamp());</span>
+<span class="fc" id="L95">		} catch (final IOException e) {</span>
+<span class="fc" id="L96">			throw new RuntimeException(e);</span>
+<span class="fc" id="L97">		}</span>
+<span class="fc" id="L98">	}</span>
+
+	public void visitClassExecution(final ExecutionData data) {
+<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (data.hasHits()) {</span>
+			try {
+<span class="fc" id="L103">				out.writeByte(BLOCK_EXECUTIONDATA);</span>
+<span class="fc" id="L104">				out.writeLong(data.getId());</span>
+<span class="fc" id="L105">				out.writeUTF(data.getName());</span>
+<span class="fc" id="L106">				out.writeBooleanArray(data.getProbes());</span>
+<span class="fc" id="L107">			} catch (final IOException e) {</span>
+<span class="fc" id="L108">				throw new RuntimeException(e);</span>
+<span class="fc" id="L109">			}</span>
+		}
+<span class="fc" id="L111">	}</span>
+
+	/**
+	 * Returns the first bytes of a file that represents a valid execution data
+	 * file. In any case every execution data file starts with the three bytes
+	 * &lt;code&gt;0x01 0xC0 0xC0&lt;/code&gt;.
+	 *
+	 * @return first bytes of a execution data file
+	 */
+	public static final byte[] getFileHeader() {
+<span class="fc" id="L121">		final ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+		try {
+<span class="fc" id="L123">			new ExecutionDataWriter(buffer);</span>
+<span class="nc" id="L124">		} catch (final IOException e) {</span>
+			// Must not happen with ByteArrayOutputStream
+<span class="nc" id="L126">			throw new AssertionError(e);</span>
+<span class="fc" id="L127">		}</span>
+<span class="fc" id="L128">		return buffer.toByteArray();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LocalProbeArrayStrategy.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.instr</a> &gt; <span class="el_source">LocalProbeArrayStrategy.java</span></div><h1>LocalProbeArrayStrategy.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.instr;
+
+import org.jacoco.core.runtime.IExecutionDataAccessorGenerator;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+/**
+ * The strategy for interfaces inlines the runtime access directly into the
+ * methods as this is the only method without keeping reference within this
+ * class. This is very inefficient as the runtime is contacted for every method
+ * invocation and therefore only used for static initializers in interfaces.
+ */
+class LocalProbeArrayStrategy implements IProbeArrayStrategy {
+
+	private final String className;
+	private final long classId;
+	private final int probeCount;
+	private final IExecutionDataAccessorGenerator accessorGenerator;
+
+	LocalProbeArrayStrategy(final String className, final long classId,
+			final int probeCount,
+<span class="fc" id="L35">			final IExecutionDataAccessorGenerator accessorGenerator) {</span>
+<span class="fc" id="L36">		this.className = className;</span>
+<span class="fc" id="L37">		this.classId = classId;</span>
+<span class="fc" id="L38">		this.probeCount = probeCount;</span>
+<span class="fc" id="L39">		this.accessorGenerator = accessorGenerator;</span>
+<span class="fc" id="L40">	}</span>
+
+	public int storeInstance(final MethodVisitor mv, final boolean clinit,
+			final int variable) {
+<span class="fc" id="L44">		final int maxStack = accessorGenerator.generateDataAccessor(classId,</span>
+				className, probeCount, mv);
+<span class="fc" id="L46">		mv.visitVarInsn(Opcodes.ASTORE, variable);</span>
+<span class="fc" id="L47">		return maxStack;</span>
+	}
+
+	public void addMembers(final ClassVisitor delegate, final int probeCount) {
+		// nothing to do
+<span class="fc" id="L52">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

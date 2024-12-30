@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AntResourcesLocator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.ant</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.ant</a> &gt; <span class="el_source">AntResourcesLocator.java</span></div><h1>AntResourcesLocator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *    Dominik Stadler - source folder support
+ *
+ *******************************************************************************/
+package org.jacoco.ant;
+
+import java.util.Iterator;
+
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.jacoco.report.DirectorySourceFileLocator;
+import org.jacoco.report.MultiSourceFileLocator;
+
+/**
+ * Source file locator based on Ant resources. The locator supports files as
+ * well as directories. The lookup is first performed on files (matching the
+ * local file name) and afterwards on directories, by the order the directory
+ * resources have been added. The directories are considered as source folders
+ * that are searched for source files with the fully qualified name (package and
+ * local name).
+ */
+class AntResourcesLocator extends MultiSourceFileLocator {
+
+	private final String encoding;
+	private final AntFilesLocator filesLocator;
+
+	private boolean empty;
+
+	AntResourcesLocator(final String encoding, final int tabWidth) {
+<span class="fc" id="L39">		super(tabWidth);</span>
+<span class="fc" id="L40">		this.encoding = encoding;</span>
+<span class="fc" id="L41">		this.filesLocator = new AntFilesLocator(encoding, tabWidth);</span>
+<span class="fc" id="L42">		this.empty = true;</span>
+<span class="fc" id="L43">		super.add(filesLocator);</span>
+<span class="fc" id="L44">	}</span>
+
+	/**
+	 * Adds the given file or directory resource to the locator.
+	 *
+	 * @param resource
+	 *            resource to add
+	 */
+	void add(final Resource resource) {
+<span class="fc" id="L53">		empty = false;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">		if (resource.isDirectory()) {</span>
+<span class="fc" id="L55">			final FileResource dir = (FileResource) resource;</span>
+<span class="fc" id="L56">			super.add(new DirectorySourceFileLocator(dir.getFile(), encoding,</span>
+					getTabWidth()));
+<span class="fc" id="L58">		} else {</span>
+<span class="fc" id="L59">			filesLocator.add(resource);</span>
+		}
+<span class="fc" id="L61">	}</span>
+
+	void addAll(final Iterator&lt;?&gt; iterator) {
+<span class="fc bfc" id="L64" title="All 2 branches covered.">		while (iterator.hasNext()) {</span>
+<span class="fc" id="L65">			add((Resource) iterator.next());</span>
+		}
+<span class="fc" id="L67">	}</span>
+
+	/**
+	 * Checks, whether resources have been added.
+	 *
+	 * @return &lt;code&gt;true&lt;/code&gt;, if no resources have been added
+	 */
+	boolean isEmpty() {
+<span class="fc" id="L75">		return empty;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

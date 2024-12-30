@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AbstractGroupVisitor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.internal</a> &gt; <span class="el_source">AbstractGroupVisitor.java</span></div><h1>AbstractGroupVisitor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.internal;
+
+import java.io.IOException;
+
+import org.jacoco.core.analysis.CoverageNodeImpl;
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.ICoverageNode.ElementType;
+import org.jacoco.report.IReportGroupVisitor;
+import org.jacoco.report.ISourceFileLocator;
+
+/**
+ * Internal base visitor to calculate group counter summaries for hierarchical
+ * reports.
+ */
+public abstract class AbstractGroupVisitor implements IReportGroupVisitor {
+
+	/** coverage node for this group to total counters */
+	protected final CoverageNodeImpl total;
+
+	private AbstractGroupVisitor lastChild;
+
+	/**
+	 * Creates a new group with the given name.
+	 *
+	 * @param name
+	 *            name for the coverage node created internally
+	 */
+<span class="fc" id="L40">	protected AbstractGroupVisitor(final String name) {</span>
+<span class="fc" id="L41">		total = new CoverageNodeImpl(ElementType.GROUP, name);</span>
+<span class="fc" id="L42">	}</span>
+
+	public final void visitBundle(final IBundleCoverage bundle,
+			final ISourceFileLocator locator) throws IOException {
+<span class="fc" id="L46">		finalizeLastChild();</span>
+<span class="fc" id="L47">		total.increment(bundle);</span>
+<span class="fc" id="L48">		handleBundle(bundle, locator);</span>
+<span class="fc" id="L49">	}</span>
+
+	/**
+	 * Called to handle the given bundle in a specific way.
+	 *
+	 * @param bundle
+	 *            analyzed bundle
+	 * @param locator
+	 *            source locator
+	 * @throws IOException
+	 *             if the report can't be written
+	 */
+	protected abstract void handleBundle(IBundleCoverage bundle,
+			ISourceFileLocator locator) throws IOException;
+
+	public final IReportGroupVisitor visitGroup(final String name)
+			throws IOException {
+<span class="fc" id="L66">		finalizeLastChild();</span>
+<span class="fc" id="L67">		lastChild = handleGroup(name);</span>
+<span class="fc" id="L68">		return lastChild;</span>
+	}
+
+	/**
+	 * Called to handle a group with the given name in a specific way.
+	 *
+	 * @param name
+	 *            name of the group
+	 * @return created child group
+	 * @throws IOException
+	 *             if the report can't be written
+	 */
+	protected abstract AbstractGroupVisitor handleGroup(final String name)
+			throws IOException;
+
+	/**
+	 * Must be called at the end of every group.
+	 *
+	 * @throws IOException
+	 *             if the report can't be written
+	 */
+	public final void visitEnd() throws IOException {
+<span class="fc" id="L90">		finalizeLastChild();</span>
+<span class="fc" id="L91">		handleEnd();</span>
+<span class="fc" id="L92">	}</span>
+
+	/**
+	 * Called to handle the end of this group in a specific way.
+	 *
+	 * @throws IOException
+	 *             if the report can't be written
+	 */
+	protected abstract void handleEnd() throws IOException;
+
+	private void finalizeLastChild() throws IOException {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">		if (lastChild != null) {</span>
+<span class="fc" id="L104">			lastChild.visitEnd();</span>
+<span class="fc" id="L105">			total.increment(lastChild.total);</span>
+<span class="fc" id="L106">			lastChild = null;</span>
+		}
+<span class="fc" id="L108">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

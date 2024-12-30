@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="resources/doc.css" charset="UTF-8" type="text/css" />
+        <link rel="shortcut icon" href="resources/report.gif" type="image/gif" />
+        <title>
+					JaCoCo -
+					jacoco:dump</title>
+    </head>
+    <body>
+        <div class="breadcrumb">
+            <a href="../index.html" class="el_report">JaCoCo</a>
+            					&gt;
+					
+            <a href="index.html" class="el_group">Documentation</a>
+            					&gt;
+					
+            <a href="maven.html" class="el_group">Maven</a>
+            					&gt;
+					
+            <span class="el_source">jacoco:dump</span>
+        </div>
+        <div id="content">
+                
+            <h1>jacoco:dump</h1>
+                  
+            <p>
+                <b>Full name</b>
+                :
+            </p>
+                  
+            <p>org.jacoco:jacoco-maven-plugin:0.8.11:dump</p>
+                  
+            <p>
+                <b>Description</b>
+                :
+            </p>
+                  
+            <div>
+                <p>
+                    Request a dump over TCP/IP from a JaCoCo agent running in
+
+                    <code>tcpserver</code>
+                     mode.
+                </p>
+                
+                <p>Note concerning parallel builds: While the dump goal as such is
+thread safe, it has to be considered that TCP/IP server ports of
+the agents are a shared resource.</p>
+            </div>
+                  
+            <p>
+                <b>Attributes</b>
+                :
+            </p>
+                  
+            <ul>
+                        
+                <li>Requires a Maven project to be executed.</li>
+                        
+                <li>
+                    Since version: 
+                    <code>0.6.4</code>
+                    .
+                </li>
+                        
+                <li>
+                    Binds by default to the 
+                    <a href="http://maven.apache.org/ref/current/maven-core/lifecycles.html">lifecycle phase</a>
+                    : 
+                    <code>post-integration-test</code>
+                    .
+                </li>
+                      
+            </ul>
+                  
+            <h2>Optional Parameters</h2>
+                    
+            <table class="coverage">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Type</td>
+                        <td>Since</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#address">&lt;address&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>String</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            IP address or hostname to connect to.
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.address</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#append">&lt;append&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>boolean</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            If set to true and the execution data file already exists, coverage
+data is appended to the existing file. If set to false, an existing
+execution data file will be replaced.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>true</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.append</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#destFile">&lt;destFile&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>File</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Path to the output file for execution data.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>${project.build.directory}/jacoco.exec</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.destFile</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#dump">&lt;dump&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>boolean</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Sets whether execution data should be downloaded from the remote
+host.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>true</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.dump</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#port">&lt;port&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>int</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Port number to connect to. If multiple JaCoCo agents should run on
+the same machine, different ports have to be specified for the
+agents.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>6300</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.port</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#reset">&lt;reset&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>boolean</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Sets whether a reset command should be sent after the execution
+data has been dumped.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>false</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.reset</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#retryCount">&lt;retryCount&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>int</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Number of retries which the goal will attempt to establish a
+connection. This can be used to wait until the target JVM is
+successfully launched.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>10</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.retryCount</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>
+                                <a href="#skip">&lt;skip&gt;</a>
+                            </code>
+                        </td>
+                        <td>
+                            <code>boolean</code>
+                        </td>
+                        <td>
+                            <code>0.6.4</code>
+                        </td>
+                        <td>
+                            Flag used to suppress execution.
+                            <br />
+                            <b>Default value is</b>
+                            : 
+                            <code>false</code>
+                            .
+                            <br />
+                            <b>User property is</b>
+                            : 
+                            <code>jacoco.skip</code>
+                            .
+                            <br />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+                  
+      
+            <h2>Parameter Details</h2>
+                    
+            <b>
+                <a name="address">&lt;address&gt;</a>
+            </b>
+                    
+            <div>IP address or hostname to connect to.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.lang.String</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.address</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="append">&lt;append&gt;</a>
+            </b>
+                    
+            <div>If set to true and the execution data file already exists, coverage
+data is appended to the existing file. If set to false, an existing
+execution data file will be replaced.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>boolean</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.append</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>true</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="destFile">&lt;destFile&gt;</a>
+            </b>
+                    
+            <div>Path to the output file for execution data.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>java.io.File</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.destFile</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>${project.build.directory}/jacoco.exec</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="dump">&lt;dump&gt;</a>
+            </b>
+                    
+            <div>Sets whether execution data should be downloaded from the remote
+host.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>boolean</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.dump</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>true</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="port">&lt;port&gt;</a>
+            </b>
+                    
+            <div>Port number to connect to. If multiple JaCoCo agents should run on
+the same machine, different ports have to be specified for the
+agents.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>int</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.port</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>6300</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="reset">&lt;reset&gt;</a>
+            </b>
+                    
+            <div>Sets whether a reset command should be sent after the execution
+data has been dumped.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>boolean</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.reset</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>false</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="retryCount">&lt;retryCount&gt;</a>
+            </b>
+                    
+            <div>Number of retries which the goal will attempt to establish a
+connection. This can be used to wait until the target JVM is
+successfully launched.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>int</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.retryCount</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>10</code>
+                </li>
+                        
+            </ul>
+            <b>
+                <a name="skip">&lt;skip&gt;</a>
+            </b>
+                    
+            <div>Flag used to suppress execution.</div>
+                    
+            <ul>
+                          
+                <li>
+                    <b>Type</b>
+                    : 
+                    <code>boolean</code>
+                </li>
+                          
+                <li>
+                    <b>Since</b>
+                    : 
+                    <code>0.6.4</code>
+                </li>
+                          
+                <li>
+                    <b>Required</b>
+                    : 
+                    <code>No</code>
+                </li>
+                          
+                <li>
+                    <b>User Property</b>
+                    : 
+                    <code>jacoco.skip</code>
+                </li>
+                          
+                <li>
+                    <b>Default</b>
+                    : 
+                    <code>false</code>
+                </li>
+                        
+            </ul>
+                  
+    
+  
+        </div>
+        <div class="footer">
+            <span class="right">
+                <a href="http://www.jacoco.org/jacoco">JaCoCo</a>
+                						 
+						0.8.11.202310140853
+            </span>
+            <a href="../doc/license.html">Copyright</a>
+            					©
+					2009, 2023
+					Mountainminds GmbH &amp; Co. KG and Contributors
+				
+        </div>
+    </body>
+</html>

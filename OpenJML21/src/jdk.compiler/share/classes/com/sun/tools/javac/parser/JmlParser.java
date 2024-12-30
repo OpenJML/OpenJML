@@ -287,7 +287,7 @@ public class JmlParser extends JavacParser {
     		}
     	} catch (Exception e) {
            	var S = getScanner();
-           	utils.unexpectedException(e, "Exception during parsing near " + ((JmlTokenizer)S.tokenizer).getCharacters(S.tokenizer.position()-10, S.tokenizer.position()+50));
+           	utils.unexpectedException(e, "Exception during parsing near " + S.tokenizer.getRawString(S.tokenizer.position()-10, S.tokenizer.position()+50));
         }
         return u; // Might be null if an error happens, though prefer a partial tree
     }

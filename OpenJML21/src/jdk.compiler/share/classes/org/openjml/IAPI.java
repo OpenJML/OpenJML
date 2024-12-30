@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.jmlspecs.openjml.*;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -29,13 +30,21 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.parser.*;
+import static com.sun.tools.javac.parser.Tokens.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Options;
 
 public interface IAPI {
     
-    public static IAPI make() { return new API(); }
+    public static IAPI make() { return make(null, null, null); }
+    public static IAPI make(PrintWriter out, DiagnosticListener<? extends JavaFileObject> diagListener) { return make(out, out, diagListener); }
+    public static IAPI make(PrintWriter out, PrintWriter err, DiagnosticListener<? extends JavaFileObject> diagListener) { return new API(out, err, diagListener); }
+
+    public ITokenIterator makeTokenIterator(String text);
+    
+//    public Context context();
      
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
 //
@@ -148,30 +157,31 @@ public interface IAPI {
      * @param args the command-line arguments
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
-//    public int execute(
-//            /*@non_null*/ PrintWriter writer, 
-//            /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, 
-//            /*@nullable*/ Options options, 
-//            /*@non_null*/ String ... args);
-
-    default int execute(
-            /*@non_null*/ String ... args) {
-        return execute(args);
-    }
-    
-    default int execute(
+    public int execute(
             /*@non_null*/ PrintWriter writer, 
+            /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, 
+            /*@non_null*/ String ... args);
+
+    default public int execute(
             /*@non_null*/ String ... args) {
-        return execute(writer, args);
+        return execute(System.out, args);
     }
     
-    default int execute(
+    default public int execute(
             /*@non_null*/ PrintStream writer, 
             /*@non_null*/ String ... args) {
-        try (var pw = new PrintWriter(writer); ) {
-            return execute(pw, args);
+        var pw = new PrintWriter(writer);
+        try {
+            return execute(pw, null, args);
         } finally {
+            pw.flush();
+            if (writer != System.out) pw.close();
         }
+    }
+    
+    static public int openjml(String ... args) {
+        //return make().execute(args);
+        return org.jmlspecs.openjml.Main.execute(args);
     }
             
 //    /** Executes the jmldoc tool on the given command-line arguments. This is 
@@ -279,8 +289,7 @@ public interface IAPI {
 //    //@ ensures files.length == \result.size();
 //    //@ ensures (* output elements are non-null *);
 //    public /*@ non_null */
-//    java.util.List<JmlCompilationUnit> parseFiles(
-//            /*@non_null*/ File... files);
+//    java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ File... files);
 //
 //    /** Parses each java file and its specs returning a list of the ASTs for corresponding
 //     * java files; the spec files are automatically found according to JML rules; 
@@ -320,8 +329,8 @@ public interface IAPI {
 //     */
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
-//    public /*@non_null*/
-//    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename);
+//    default public /*@non_null*/
+//    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) { return null; }
 //    
 //    /** Produces a parse tree for the given text; the text must represent a
 //     * compilation unit for a .java file or a specification file.  The name 
@@ -399,12 +408,15 @@ public interface IAPI {
 //     */ // FIXME - comment on whether the package path is needed
 //    public JavaFileObject makeJFOfromString(String name, String content) throws Exception;
 //    
-//    /** Creates a JavaFileObject instance from a real file, by name
-//     * @param filepath the path to the file, either absolute or relative to the current working directory
-//     * @return the resulting JavaFileObject
-//     */
-//    public JavaFileObject makeJFOfromFilename(String filepath);
-//    
+    /** Creates a JavaFileObject instance from a real file, by name
+     * @param filepath the path to the file, either absolute or relative to the current working directory
+     * @return the resulting JavaFileObject
+     */
+//    default public JavaFileObject makeJFOfromFilename(String filepath) {
+//        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
+//        return dfm.getFileForInput(filepath);
+//    }
+
 //    /** Creates a JavaFileObject instance from a File object
 //     * @param file the file to wrap
 //     * @return the resulting JavaFileObject
@@ -689,5 +701,22 @@ public interface IAPI {
 //    //@ assignable isOpen;
 //    //@ ensures !isOpen;
 //    public void close();
+    
+    @SuppressWarnings("exports")
+    public interface ITokenIterator extends java.util.Iterator<WrappedToken> {
+    }
+    
+    @SuppressWarnings("exports")
+    public static class WrappedToken {
+        private Tokens.Token token;
+        public WrappedToken(Tokens.Token t) { token = t; }
+        public int pos() { return token.pos; }
+        public int endPos() { return token.endPos; }
+        public TokenKind kind() { return token.kind; }
+        public IJmlClauseKind jmlKind() { return token instanceof JmlToken jt ? jt.jmlclausekind : null; }
+        public Class<?> getTokenClass() { return token.getClass(); }
+        public String toString() { return token.toString(); }
+        public String toStringDetail() { return token.toStringDetail(); }
+    }
 
 }

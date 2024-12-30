@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Rule.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.check</a> &gt; <span class="el_source">Rule.java</span></div><h1>Rule.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.check;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jacoco.core.analysis.ICoverageNode.ElementType;
+import org.jacoco.core.runtime.WildcardMatcher;
+
+/**
+ * A rule applies for a certain element type and can define any number of limits
+ * for all elements of this type.
+ */
+public final class Rule {
+
+	private ElementType element;
+	private String includes;
+	private String excludes;
+	private List&lt;Limit&gt; limits;
+
+	private WildcardMatcher includesMatcher;
+	private WildcardMatcher excludesMatcher;
+
+	/**
+	 * Creates a new Rule without limits.
+	 */
+<span class="fc" id="L38">	public Rule() {</span>
+<span class="fc" id="L39">		this.element = ElementType.BUNDLE;</span>
+<span class="fc" id="L40">		this.limits = new ArrayList&lt;Limit&gt;();</span>
+<span class="fc" id="L41">		this.setIncludes(&quot;*&quot;);</span>
+<span class="fc" id="L42">		this.setExcludes(&quot;&quot;);</span>
+<span class="fc" id="L43">	}</span>
+
+	/**
+	 * @return element type this rule applies to
+	 */
+	public ElementType getElement() {
+<span class="fc" id="L49">		return element;</span>
+	}
+
+	/**
+	 * @param elementType
+	 *            element type this rule applies to
+	 */
+	public void setElement(final ElementType elementType) {
+<span class="fc" id="L57">		this.element = elementType;</span>
+<span class="fc" id="L58">	}</span>
+
+	/**
+	 * @return includes pattern
+	 */
+	public String getIncludes() {
+<span class="fc" id="L64">		return includes;</span>
+	}
+
+	/**
+	 * @param includes
+	 *            includes pattern
+	 */
+	public void setIncludes(final String includes) {
+<span class="fc" id="L72">		this.includes = includes;</span>
+<span class="fc" id="L73">		this.includesMatcher = new WildcardMatcher(includes);</span>
+<span class="fc" id="L74">	}</span>
+
+	/**
+	 * @return excludes pattern
+	 */
+	public String getExcludes() {
+<span class="fc" id="L80">		return excludes;</span>
+	}
+
+	/**
+	 *
+	 * @param excludes
+	 *            excludes patterns
+	 */
+	public void setExcludes(final String excludes) {
+<span class="fc" id="L89">		this.excludes = excludes;</span>
+<span class="fc" id="L90">		this.excludesMatcher = new WildcardMatcher(excludes);</span>
+<span class="fc" id="L91">	}</span>
+
+	/**
+	 * @return list of {@link Limit}s configured for this rule
+	 */
+	public List&lt;Limit&gt; getLimits() {
+<span class="fc" id="L97">		return limits;</span>
+	}
+
+	/**
+	 * @param limits
+	 *            list of {@link Limit}s configured for this rule
+	 */
+	public void setLimits(final List&lt;Limit&gt; limits) {
+<span class="fc" id="L105">		this.limits = limits;</span>
+<span class="fc" id="L106">	}</span>
+
+	/**
+	 * Creates and adds a new {@link Limit}.
+	 *
+	 * @return creates {@link Limit}
+	 */
+	public Limit createLimit() {
+<span class="fc" id="L114">		final Limit limit = new Limit();</span>
+<span class="fc" id="L115">		this.limits.add(limit);</span>
+<span class="fc" id="L116">		return limit;</span>
+	}
+
+	boolean matches(final String name) {
+<span class="fc bfc" id="L120" title="All 4 branches covered.">		return includesMatcher.matches(name) &amp;&amp; !excludesMatcher.matches(name);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

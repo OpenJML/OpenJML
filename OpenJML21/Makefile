@@ -28,7 +28,7 @@
 ### It also performs some sanity checks on make.
 ###
 
-### OPENJML: This file is slightly modified to craete make targets for openjml
+### OPENJML: This file is slightly modified to create make targets for openjml
 ### See the material following the comment line below
 
 # The shell code below will be executed on /usr/bin/make on Solaris, but not in GNU Make.
@@ -73,30 +73,35 @@ include $(topdir)/make/Init.gmk
 ## I expect this Makefile and auxiliary scrip0ts to fail if there are spaces in folder and file paths
 
 ## A temporary folder (relative to the location of the Makefile) used to stage materials in assembling a release
+## May not contain whitespace
 TEMP=release-temp
 
 ## A temporary folder (relative to the location of the Makefile) used to stage materials in assembling jmlruntime.jar
-## Must be a simple name, not a multi-segment path
+## Must be a simple name, not a multi-segment path, and not contain whitespace
 TEMPLIB=templib
 
 ## A permanent folder that holds auxiliary material to be included in a release
 RELFILES=release-files
 
-## Used in the github build.yml action
+## Used in both the github build.yml action and the development environment
 
-## Builds a full release. Modify (and commit) ../version.txt to set the version number builtin to the release
+## Builds a full release. Modify (and commit) ../version.txt to set the version number that will be builtin to the release
 ## Note that the openjml.zip file produced by a release is specific to a particular machine architecture
 release: .FORCE
-	-make clean
 	make version-info
+	make annotation
 	make openjml
 	make jmlruntime.jar
 	make tutorial
 	make post
 
---version: .FORCE
-	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; else echo "Building version" `cat ../version.txt`; fi
-	@ ./version.sh
+## Cleans and makes release
+clean-release:
+	-make clean dist-clean
+	rm -rf $(makefile_path)/html
+	rm -rf $(TEMP)
+	bash ./configure
+	make release
 
 ## Creates the version-info.txt file, containing the public version number (from ../version.txt) and the commit shas
 ## of the commit points compiled into the release.
@@ -111,7 +116,12 @@ version-info: --version
 	@ cat version-info.txt
 	@ mv version-info.txt $(RELFILES)
 
-## Updates the tutorial files into the releasex`
+## Internal target
+--version: .FORCE
+	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
+	@ ./version.sh
+
+## Updates the tutorial files into the repo
 tutorial: .FORCE
 	rm -rf $(RELFILES)/tutorial
 	mkdir $(RELFILES)/tutorial
@@ -128,12 +138,13 @@ post: .FORCE
 	mkdir $(TEMP)
 	cp -pRL jmlruntime.jar $(TEMP)
 	cp -pRL build/*release/jdk $(TEMP)
+	(cd $(TEMP); rm -rf `find . -name .DS_Store`)
 	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
 	cp -pR ../../Solvers/Solvers-$$S $(TEMP)
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
-	chmod ugo+x $(TEMP)/openjml
-	chmod ugo+x $(TEMP)/openjml-java
+	cp setup-exports openjml openjml-* $(TEMP)
+	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); zip -qr ./openjml.zip * )
 
 ## Smoke test of a newly constructed release
@@ -143,7 +154,8 @@ trial: .FORCE
 
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE
-	@ $(topdir)/../OpenJMLTest/releaseTests/runtests
+	@ echo Running release tests on newly created trial release
+	@ ZIP="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 
 ## Development build targets
 
@@ -176,24 +188,4 @@ jmlruntime.jar: .FORCE
 	@(cd $(TEMPLIB); jar -cf ../jmlruntime.jar . ) || exit 1
 	@rm -rf $(TEMPLIB)
 	@echo "   " jmlruntime.jar created
-
-## Misc helpful targets
-
-clean-release:
-	make clean dist-clean
-	rm -rf $(makefile_path)/html
-	rm -rf $(TEMP)
-
-release-image:
-	make --version
-	bash ./configure > log-release
-	NOJML= make images > log-release-make 2>&1
-	make post
-
-release-quiet:
-	make --version
-	bash ./configure > log-release
-	NOJML= make > log-release-make 2>&1
-	make post
-
 

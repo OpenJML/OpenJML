@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InstructionsBuilder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis</a> &gt; <span class="el_source">InstructionsBuilder.java</span></div><h1>InstructionsBuilder.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jacoco.core.analysis.ISourceNode;
+import org.jacoco.core.internal.flow.LabelInfo;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.tree.AbstractInsnNode;
+
+/**
+ * Stateful builder for the {@link Instruction}s of a method. All instructions
+ * of a method must be added in their original sequence along with additional
+ * information like line numbers. Afterwards the instructions can be obtained
+ * with the &lt;code&gt;getInstructions()&lt;/code&gt; method.
+ */
+class InstructionsBuilder {
+
+	/** Probe array of the class the analyzed method belongs to. */
+	private final boolean[] probes;
+
+	/** The line which belong to subsequently added instructions. */
+	private int currentLine;
+
+	/** The last instruction which has been added. */
+	private Instruction currentInsn;
+
+	/**
+	 * All instructions of a method mapped from the ASM node to the
+	 * corresponding {@link Instruction} instance.
+	 */
+	private final Map&lt;AbstractInsnNode, Instruction&gt; instructions;
+
+	/**
+	 * The labels which mark the subsequent instructions.
+	 *
+	 * Due to ASM issue #315745 there can be more than one label per instruction
+	 */
+	private final List&lt;Label&gt; currentLabel;
+
+	/**
+	 * List of all jumps within the control flow. We need to store jumps
+	 * temporarily as the target {@link Instruction} may not been known yet.
+	 */
+	private final List&lt;Jump&gt; jumps;
+
+	/**
+	 * Creates a new builder instance which can be used to analyze a single
+	 * method.
+	 *
+	 * @param probes
+	 *            probe array of the corresponding class used to determine the
+	 *            coverage status of every instruction.
+	 */
+<span class="fc" id="L69">	InstructionsBuilder(final boolean[] probes) {</span>
+<span class="fc" id="L70">		this.probes = probes;</span>
+<span class="fc" id="L71">		this.currentLine = ISourceNode.UNKNOWN_LINE;</span>
+<span class="fc" id="L72">		this.currentInsn = null;</span>
+<span class="fc" id="L73">		this.instructions = new HashMap&lt;AbstractInsnNode, Instruction&gt;();</span>
+<span class="fc" id="L74">		this.currentLabel = new ArrayList&lt;Label&gt;(2);</span>
+<span class="fc" id="L75">		this.jumps = new ArrayList&lt;Jump&gt;();</span>
+<span class="fc" id="L76">	}</span>
+
+	/**
+	 * Sets the current source line. All subsequently added instructions will be
+	 * assigned to this line. If no line is set (e.g. for classes compiled
+	 * without debug information) {@link ISourceNode#UNKNOWN_LINE} is assigned
+	 * to the instructions.
+	 */
+	void setCurrentLine(final int line) {
+<span class="fc" id="L85">		currentLine = line;</span>
+<span class="fc" id="L86">	}</span>
+
+	/**
+	 * Adds a label which applies to the subsequently added instruction. Due to
+	 * ASM internals multiple {@link Label}s can be added to an instruction.
+	 */
+	void addLabel(final Label label) {
+<span class="fc" id="L93">		currentLabel.add(label);</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">		if (!LabelInfo.isSuccessor(label)) {</span>
+<span class="fc" id="L95">			noSuccessor();</span>
+		}
+<span class="fc" id="L97">	}</span>
+
+	/**
+	 * Adds a new instruction. Instructions are by default linked with the
+	 * previous instruction unless specified otherwise.
+	 */
+	void addInstruction(final AbstractInsnNode node) {
+<span class="fc" id="L104">		final Instruction insn = new Instruction(currentLine);</span>
+<span class="fc" id="L105">		final int labelCount = currentLabel.size();</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">		if (labelCount &gt; 0) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">			for (int i = labelCount; --i &gt;= 0;) {</span>
+<span class="fc" id="L108">				LabelInfo.setInstruction(currentLabel.get(i), insn);</span>
+			}
+<span class="fc" id="L110">			currentLabel.clear();</span>
+		}
+<span class="fc bfc" id="L112" title="All 2 branches covered.">		if (currentInsn != null) {</span>
+<span class="fc" id="L113">			currentInsn.addBranch(insn, 0);</span>
+		}
+<span class="fc" id="L115">		currentInsn = insn;</span>
+<span class="fc" id="L116">		instructions.put(node, insn);</span>
+<span class="fc" id="L117">	}</span>
+
+	/**
+	 * Declares that the next instruction will not be a successor of the current
+	 * instruction. This is the case with an unconditional jump or technically
+	 * when a probe was inserted before.
+	 */
+	void noSuccessor() {
+<span class="fc" id="L125">		currentInsn = null;</span>
+<span class="fc" id="L126">	}</span>
+
+	/**
+	 * Adds a jump from the last added instruction.
+	 *
+	 * @param target
+	 *            jump target
+	 * @param branch
+	 *            unique branch number
+	 */
+	void addJump(final Label target, final int branch) {
+<span class="fc" id="L137">		jumps.add(new Jump(currentInsn, target, branch));</span>
+<span class="fc" id="L138">	}</span>
+
+	/**
+	 * Adds a new probe for the last instruction.
+	 *
+	 * @param probeId
+	 *            index in the probe array
+	 * @param branch
+	 *            unique branch number for the last instruction
+	 */
+	void addProbe(final int probeId, final int branch) {
+<span class="fc bfc" id="L149" title="All 4 branches covered.">		final boolean executed = probes != null &amp;&amp; probes[probeId];</span>
+<span class="fc" id="L150">		currentInsn.addBranch(executed, branch);</span>
+<span class="fc" id="L151">	}</span>
+
+	/**
+	 * Returns the status for all instructions of this method. This method must
+	 * be called exactly once after the instructions have been added.
+	 *
+	 * @return map of ASM instruction nodes to corresponding {@link Instruction}
+	 *         instances
+	 */
+	Map&lt;AbstractInsnNode, Instruction&gt; getInstructions() {
+		// Wire jumps:
+<span class="fc bfc" id="L162" title="All 2 branches covered.">		for (final Jump j : jumps) {</span>
+<span class="fc" id="L163">			j.wire();</span>
+		}
+
+<span class="fc" id="L166">		return instructions;</span>
+	}
+
+	private static class Jump {
+
+		private final Instruction source;
+		private final Label target;
+		private final int branch;
+
+<span class="fc" id="L175">		Jump(final Instruction source, final Label target, final int branch) {</span>
+<span class="fc" id="L176">			this.source = source;</span>
+<span class="fc" id="L177">			this.target = target;</span>
+<span class="fc" id="L178">			this.branch = branch;</span>
+<span class="fc" id="L179">		}</span>
+
+		void wire() {
+<span class="fc" id="L182">			source.addBranch(LabelInfo.getInstruction(target), branch);</span>
+<span class="fc" id="L183">		}</span>
+
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

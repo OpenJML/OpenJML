@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EnumEmptyConstructorFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">EnumEmptyConstructorFilter.java</span></div><h1>EnumEmptyConstructorFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filters empty enum constructors.
+ *
+ * Constructor of enum is invoked from static initialization block to create
+ * instance of each enum constant. So it won't be executed if number of enum
+ * constants is zero. Such enums are sometimes used as alternative to classes
+ * with static utilities and private empty constructor. Implicit constructor of
+ * enum created by compiler doesn't have a synthetic flag and refers to a line
+ * of enum definition. Therefore in order to not have partial coverage of enum
+ * definition line in enums without enum constants and similarly to
+ * {@link PrivateEmptyNoArgConstructorFilter filter of private empty
+ * constructors} - empty constructor in enums without additional parameters
+ * should be filtered out even if it is not implicit.
+ */
+<span class="fc" id="L32">public final class EnumEmptyConstructorFilter implements IFilter {</span>
+
+	private static final String CONSTRUCTOR_NAME = &quot;&lt;init&gt;&quot;;
+	private static final String CONSTRUCTOR_DESC = &quot;(Ljava/lang/String;I)V&quot;;
+
+	private static final String ENUM_TYPE = &quot;java/lang/Enum&quot;;
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L41" title="All 8 branches covered.">		if (ENUM_TYPE.equals(context.getSuperClassName())</span>
+				&amp;&amp; CONSTRUCTOR_NAME.equals(methodNode.name)
+				&amp;&amp; CONSTRUCTOR_DESC.equals(methodNode.desc)
+				&amp;&amp; new Matcher().match(methodNode)) {
+<span class="fc" id="L45">			output.ignore(methodNode.instructions.getFirst(),</span>
+					methodNode.instructions.getLast());
+		}
+<span class="fc" id="L48">	}</span>
+
+<span class="fc" id="L50">	private static class Matcher extends AbstractMatcher {</span>
+		private boolean match(final MethodNode methodNode) {
+<span class="fc" id="L52">			firstIsALoad0(methodNode);</span>
+<span class="fc" id="L53">			nextIs(Opcodes.ALOAD);</span>
+<span class="fc" id="L54">			nextIs(Opcodes.ILOAD);</span>
+<span class="fc" id="L55">			nextIsInvoke(Opcodes.INVOKESPECIAL, ENUM_TYPE, CONSTRUCTOR_NAME,</span>
+					CONSTRUCTOR_DESC);
+<span class="fc" id="L57">			nextIs(Opcodes.RETURN);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

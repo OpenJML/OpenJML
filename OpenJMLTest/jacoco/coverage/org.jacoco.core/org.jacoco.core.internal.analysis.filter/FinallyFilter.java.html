@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FinallyFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">FinallyFilter.java</span></div><h1>FinallyFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
+import org.objectweb.asm.tree.VarInsnNode;
+
+/**
+ * Filters duplicates of finally blocks that compiler generates.
+ *
+ * To understand algorithm of filtering, consider following example:
+ *
+ * &lt;pre&gt;
+ * try {
+ * 	if (x) {
+ * 		a();
+ * 		return; // 1
+ * 	}
+ * 	b(); // 2
+ * } catch (Exception e) {
+ * 	c(); // 3
+ * } finally {
+ * 	d(); // 4
+ * }
+ * &lt;/pre&gt;
+ *
+ * There are 4 &lt;b&gt;distinct&lt;/b&gt; points of exit out of these &quot;try/catch/finally&quot;
+ * blocks - three without exception, and one with Throwable if it is thrown
+ * prior to reaching first three points of exit.
+ *
+ * &quot;finally&quot; block must be executed just before these points, so there must be 4
+ * copies of its bytecode instructions.
+ *
+ * One of them handles Throwable (&quot;catch-any&quot;) and must cover all instructions
+ * of &quot;try/catch&quot; blocks. But must not cover instructions of other duplicates,
+ * because instructions of &quot;finally&quot; block also can cause Throwable to be
+ * thrown.
+ *
+ * Therefore there will be multiple {@link MethodNode#tryCatchBlocks} with
+ * {@link TryCatchBlockNode#type} null with same
+ * {@link TryCatchBlockNode#handler} for different non-intersecting bytecode
+ * regions ({@link TryCatchBlockNode#start}, {@link TryCatchBlockNode#end}).
+ *
+ * And each exit out of these regions, except one that handles Throwable, will
+ * contain duplicate of &quot;finally&quot; block.
+ *
+ * To determine exits out of these regions, they all must be processed together
+ * at once, because execution can branch from one region to another (like it is
+ * in given example due to &quot;if&quot; statement).
+ */
+<span class="fc" id="L69">public final class FinallyFilter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		for (final TryCatchBlockNode tryCatchBlock : methodNode.tryCatchBlocks) {</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">			if (tryCatchBlock.type == null) {</span>
+<span class="fc" id="L75">				filter(output, methodNode.tryCatchBlocks, tryCatchBlock);</span>
+			}
+		}
+<span class="fc" id="L78">	}</span>
+
+	private static void filter(final IFilterOutput output,
+			final List&lt;TryCatchBlockNode&gt; tryCatchBlocks,
+			final TryCatchBlockNode catchAnyBlock) {
+<span class="fc" id="L83">		final AbstractInsnNode e = next(catchAnyBlock.handler);</span>
+<span class="fc" id="L84">		final int size = size(e);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">		if (size &lt;= 0) {</span>
+<span class="fc" id="L86">			return;</span>
+		}
+
+		// Determine instructions inside regions
+<span class="fc" id="L90">		final Set&lt;AbstractInsnNode&gt; inside = new HashSet&lt;AbstractInsnNode&gt;();</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">		for (final TryCatchBlockNode t : tryCatchBlocks) {</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">			if (t.handler == catchAnyBlock.handler) {</span>
+<span class="fc" id="L93">				AbstractInsnNode i = t.start;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">				while (i != t.end) {</span>
+<span class="fc" id="L95">					inside.add(i);</span>
+<span class="fc" id="L96">					i = i.getNext();</span>
+				}
+<span class="fc" id="L98">			}</span>
+		}
+
+		// Find and merge duplicates at exits of regions
+<span class="fc bfc" id="L102" title="All 2 branches covered.">		for (final TryCatchBlockNode t : tryCatchBlocks) {</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">			if (t.handler == catchAnyBlock.handler) {</span>
+<span class="fc" id="L104">				boolean continues = false;</span>
+<span class="fc" id="L105">				AbstractInsnNode i = t.start;</span>
+
+<span class="fc bfc" id="L107" title="All 2 branches covered.">				while (i != t.end) {</span>
+<span class="fc bfc" id="L108" title="All 3 branches covered.">					switch (i.getType()) {</span>
+					case AbstractInsnNode.FRAME:
+					case AbstractInsnNode.LINE:
+					case AbstractInsnNode.LABEL:
+<span class="fc" id="L112">						break;</span>
+					case AbstractInsnNode.JUMP_INSN:
+<span class="fc" id="L114">						final AbstractInsnNode jumpTarget = next(</span>
+								((JumpInsnNode) i).label);
+<span class="fc bfc" id="L116" title="All 2 branches covered.">						if (!inside.contains(jumpTarget)) {</span>
+<span class="fc" id="L117">							merge(output, size, e, jumpTarget);</span>
+						}
+<span class="fc bfc" id="L119" title="All 2 branches covered.">						continues = i.getOpcode() != Opcodes.GOTO;</span>
+<span class="fc" id="L120">						break;</span>
+					default:
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">						switch (i.getOpcode()) {</span>
+						case Opcodes.IRETURN:
+						case Opcodes.LRETURN:
+						case Opcodes.FRETURN:
+						case Opcodes.DRETURN:
+						case Opcodes.ARETURN:
+						case Opcodes.RETURN:
+						case Opcodes.ATHROW:
+<span class="nc" id="L130">							continues = false;</span>
+<span class="nc" id="L131">							break;</span>
+						default:
+<span class="fc" id="L133">							continues = true;</span>
+							break;
+						}
+						break;
+					}
+<span class="fc" id="L138">					i = i.getNext();</span>
+				}
+
+<span class="fc" id="L141">				i = next(i);</span>
+<span class="pc bpc" id="L142" title="2 of 4 branches missed.">				if (continues &amp;&amp; !inside.contains(i)) {</span>
+<span class="fc" id="L143">					merge(output, size, e, i);</span>
+				}
+			}
+
+<span class="fc bfc" id="L147" title="All 6 branches covered.">			if (t != catchAnyBlock &amp;&amp; t.start == catchAnyBlock.start</span>
+					&amp;&amp; t.end == catchAnyBlock.end) {
+<span class="fc" id="L149">				final AbstractInsnNode i = next(next(t.handler));</span>
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">				if (!inside.contains(i)) {</span>
+					// javac's empty catch - merge after ASTORE
+<span class="fc" id="L152">					merge(output, size, e, i);</span>
+				}
+<span class="fc" id="L154">			}</span>
+		}
+<span class="fc" id="L156">	}</span>
+
+	private static void merge(final IFilterOutput output, final int size,
+			AbstractInsnNode e, AbstractInsnNode n) {
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">		if (!isSame(size, e, n)) {</span>
+<span class="nc" id="L161">			return;</span>
+		}
+<span class="fc" id="L163">		output.ignore(e, e);</span>
+<span class="fc" id="L164">		e = next(e);</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">		for (int i = 0; i &lt; size; i++) {</span>
+<span class="fc" id="L166">			output.merge(e, n);</span>
+<span class="fc" id="L167">			e = next(e);</span>
+<span class="fc" id="L168">			n = next(n);</span>
+		}
+<span class="fc" id="L170">		output.ignore(e, next(e));</span>
+
+<span class="pc bpc" id="L172" title="1 of 4 branches missed.">		if (n != null &amp;&amp; n.getOpcode() == Opcodes.GOTO) {</span>
+			// goto instructions at the end of non-executed duplicates
+			// cause partial coverage of last line of finally block,
+			// so should be ignored
+<span class="fc" id="L176">			output.ignore(n, n);</span>
+		}
+<span class="fc" id="L178">	}</span>
+
+	private static boolean isSame(final int size, AbstractInsnNode e,
+			AbstractInsnNode n) {
+<span class="fc" id="L182">		e = next(e);</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">		for (int i = 0; i &lt; size; i++) {</span>
+<span class="pc bpc" id="L184" title="2 of 4 branches missed.">			if (n == null || e.getOpcode() != n.getOpcode()) {</span>
+<span class="nc" id="L185">				return false;</span>
+			}
+<span class="fc" id="L187">			e = next(e);</span>
+<span class="fc" id="L188">			n = next(n);</span>
+		}
+<span class="fc" id="L190">		return true;</span>
+	}
+
+	/**
+	 * @return number of instructions inside given &quot;catch-any&quot; handler
+	 */
+	private static int size(AbstractInsnNode i) {
+<span class="fc bfc" id="L197" title="All 2 branches covered.">		if (Opcodes.ASTORE != i.getOpcode()) {</span>
+			// when always completes abruptly
+<span class="fc" id="L199">			return 0;</span>
+		}
+<span class="fc" id="L201">		final int var = ((VarInsnNode) i).var;</span>
+<span class="fc" id="L202">		int size = -1;</span>
+		do {
+<span class="fc" id="L204">			size++;</span>
+<span class="fc" id="L205">			i = next(i);</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">			if (i == null) {</span>
+				// when always completes abruptly
+<span class="fc" id="L208">				return 0;</span>
+			}
+<span class="fc bfc" id="L210" title="All 4 branches covered.">		} while (!(Opcodes.ALOAD == i.getOpcode()</span>
+				&amp;&amp; var == ((VarInsnNode) i).var));
+<span class="fc" id="L212">		i = next(i);</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">		if (Opcodes.ATHROW != i.getOpcode()) {</span>
+<span class="nc" id="L214">			return 0;</span>
+		}
+<span class="fc" id="L216">		return size;</span>
+	}
+
+	private static AbstractInsnNode next(AbstractInsnNode i) {
+		do {
+<span class="fc" id="L221">			i = i.getNext();</span>
+<span class="pc bpc" id="L222" title="1 of 8 branches missed.">		} while (i != null &amp;&amp; (AbstractInsnNode.FRAME == i.getType()</span>
+				|| AbstractInsnNode.LABEL == i.getType()
+				|| AbstractInsnNode.LINE == i.getType()));
+<span class="fc" id="L225">		return i;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>
