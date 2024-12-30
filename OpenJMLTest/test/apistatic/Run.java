@@ -10,12 +10,14 @@ public class Run {
      IAPI api = IAPI.make();
      ex = api.execute("--esc", "A.java");
      System.out.println("EXIT: " + ex);
-     ex = api.execute(pw, "--esc", "B.java");
+     api = IAPI.make(pw, null);
+     ex = api.execute("--esc", "B.java");
      System.out.println("EXIT: " + ex);
-     ex = api.execute(System.out , "--esc", "B.java");
+     api = IAPI.make(null, null, null);
+     ex = api.execute("--esc", "B.java");
      System.out.println("EXIT: " + ex);
    } finally {
-     pw.close();
+     pw.flush();
    }
  }
 }

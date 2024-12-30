@@ -20,6 +20,7 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.Main.IProgressListener;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
+import org.jmlspecs.openjml.*;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
@@ -29,13 +30,19 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
+import com.sun.tools.javac.parser.*;
+import static com.sun.tools.javac.parser.Tokens.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Options;
 
 public interface IAPI {
     
-    public static IAPI make() { return new API(); }
+    public static IAPI make() { return make(null, null, null); }
+    public static IAPI make(PrintWriter out, DiagnosticListener<? extends JavaFileObject> diagListener) { return make(out, out, diagListener); }
+    public static IAPI make(PrintWriter out, PrintWriter err, DiagnosticListener<? extends JavaFileObject> diagListener) { return new API(out, err, diagListener); }
+
+    public ITokenIterator makeTokenIterator(String text);
     
 //    public Context context();
      
@@ -694,5 +701,22 @@ public interface IAPI {
 //    //@ assignable isOpen;
 //    //@ ensures !isOpen;
 //    public void close();
+    
+    @SuppressWarnings("exports")
+    public interface ITokenIterator extends java.util.Iterator<WrappedToken> {
+    }
+    
+    @SuppressWarnings("exports")
+    public static class WrappedToken {
+        private Tokens.Token token;
+        public WrappedToken(Tokens.Token t) { token = t; }
+        public int pos() { return token.pos; }
+        public int endPos() { return token.endPos; }
+        public TokenKind kind() { return token.kind; }
+        public IJmlClauseKind jmlKind() { return token instanceof JmlToken jt ? jt.jmlclausekind : null; }
+        public Class<?> getTokenClass() { return token.getClass(); }
+        public String toString() { return token.toString(); }
+        public String toStringDetail() { return token.toStringDetail(); }
+    }
 
 }
