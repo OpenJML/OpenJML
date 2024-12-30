@@ -5,7 +5,7 @@ if [ -z "$OJBIN" ] ; then
   OJBIN=../../../OpenJML21
 fi
 
-rm *.class
+rm -rf *.class
 "$OJBIN/openjml-compile" Run.java
 "$OJBIN/openjml-run" Run --esc A.java
 "$OJBIN/openjml-run" Run --rac A.java
