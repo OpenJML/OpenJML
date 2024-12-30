@@ -50,6 +50,11 @@ import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.comp.CompileStates;
 import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.parser.ScannerFactory;
+import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -91,6 +96,7 @@ public class API implements IAPI {
     
     /** The encapsulated org.jmlspecs.openjml.Main object */
     private Main main = null;
+    
 //    //@ initially main != null;
 //    
 //    /** The listener for diagnostic messages */
@@ -108,18 +114,21 @@ public class API implements IAPI {
      * to load the compilation environment
      */
     //@ ensures isOpen;
-    protected API()  {
+    protected API(PrintWriter out, PrintWriter err, DiagnosticListener<? extends JavaFileObject> diagListener)  {
         // CAUTION: Do not close pw, if it is wrapping System.out (as System.out will be closed and any writes to System.out will not work)
-        var pw = new PrintWriter(System.out);
         try {
-            main = new org.jmlspecs.openjml.Main("openjml", pw);
-            main.context = main.initialize(null);
+            main = new org.jmlspecs.openjml.Main(org.jmlspecs.openjml.Strings.applicationName,
+                    out != null ? out : new PrintWriter(System.out),
+                    err != null ? err : new PrintWriter(System.err));
+            main.context = main.initialize(diagListener);
         } catch (Exception e) {
-            System.out.println("API X " + e);
+            if (err == null) System.err.println("API X " + e);
+            else err.println("API X " + e);
            // FAILURE - FIXME - error message
             System.exit(4);
         }
-        pw.flush();
+        if (out != null) out.flush();
+        if (err != null) err.flush();
     }
     
 //    @Override
@@ -1109,4 +1118,31 @@ public class API implements IAPI {
 //            return super.hashCode();
 //        }
 //    }
+    
+    public TokenIterator makeTokenIterator(String text) { return new TokenIterator(text); } 
+
+    
+    @SuppressWarnings("exports")
+    public class TokenIterator implements IAPI.ITokenIterator {
+        
+        protected JmlTokenizer tokenizer;
+        
+        public TokenIterator(String text) {
+            ScannerFactory factory = main.context.get(ScannerFactory.scannerFactoryKey);
+            tokenizer = ((JmlScanner)factory.newScanner(text, true)).jmltokenizer;
+        }
+        
+        private boolean hasNext = true;
+        
+        public boolean hasNext() {
+            return hasNext;
+        }
+        
+        public WrappedToken next() {
+            Tokens.Token jt = tokenizer.readToken();
+            hasNext = (jt.kind != Tokens.TokenKind.EOF);
+            return new WrappedToken(jt);
+        }
+    }
+
 }
