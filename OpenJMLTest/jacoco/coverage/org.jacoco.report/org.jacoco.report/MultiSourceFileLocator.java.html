@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MultiSourceFileLocator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report</a> &gt; <span class="el_source">MultiSourceFileLocator.java</span></div><h1>MultiSourceFileLocator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Locator that searches source files in multiple {@link ISourceFileLocator}
+ * instances. For each lookup request the first locator that returns a
+ * {@link Reader} for source content is selected.
+ */
+public class MultiSourceFileLocator implements ISourceFileLocator {
+
+	private final int tabWidth;
+
+	private final List&lt;ISourceFileLocator&gt; delegates;
+
+	/**
+	 * Creates a new empty locator.
+	 *
+	 * @param tabWidth
+	 *            tab width in source files as number of blanks used for all
+	 *            source files
+	 */
+<span class="fc" id="L38">	public MultiSourceFileLocator(final int tabWidth) {</span>
+<span class="fc" id="L39">		this.tabWidth = tabWidth;</span>
+<span class="fc" id="L40">		this.delegates = new ArrayList&lt;ISourceFileLocator&gt;();</span>
+<span class="fc" id="L41">	}</span>
+
+	/**
+	 * Adds the given locator. Locators are queried in the sequence they have
+	 * been added.
+	 *
+	 * @param locator
+	 *            Additional locator to query
+	 */
+	public void add(final ISourceFileLocator locator) {
+<span class="fc" id="L51">		delegates.add(locator);</span>
+<span class="fc" id="L52">	}</span>
+
+	public Reader getSourceFile(final String packageName, final String fileName)
+			throws IOException {
+<span class="fc bfc" id="L56" title="All 2 branches covered.">		for (final ISourceFileLocator d : delegates) {</span>
+<span class="fc" id="L57">			final Reader reader = d.getSourceFile(packageName, fileName);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">			if (reader != null) {</span>
+<span class="fc" id="L59">				return reader;</span>
+			}
+<span class="fc" id="L61">		}</span>
+<span class="fc" id="L62">		return null;</span>
+	}
+
+	public int getTabWidth() {
+<span class="fc" id="L66">		return tabWidth;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

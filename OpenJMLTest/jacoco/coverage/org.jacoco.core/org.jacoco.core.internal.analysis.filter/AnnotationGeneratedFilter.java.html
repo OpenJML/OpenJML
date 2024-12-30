@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AnnotationGeneratedFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">AnnotationGeneratedFilter.java</span></div><h1>AnnotationGeneratedFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import java.util.List;
+
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filters classes and methods annotated with
+ * {@link java.lang.annotation.RetentionPolicy#RUNTIME runtime visible} and
+ * {@link java.lang.annotation.RetentionPolicy#CLASS invisible} annotation whose
+ * simple name contains &lt;code&gt;Generated&lt;/code&gt;.
+ */
+<span class="fc" id="L26">public final class AnnotationGeneratedFilter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+
+<span class="fc bfc" id="L31" title="All 2 branches covered.">		for (String annotation : context.getClassAnnotations()) {</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">			if (matches(annotation)) {</span>
+<span class="fc" id="L33">				output.ignore(methodNode.instructions.getFirst(),</span>
+						methodNode.instructions.getLast());
+<span class="fc" id="L35">				return;</span>
+			}
+		}
+
+<span class="fc bfc" id="L39" title="All 4 branches covered.">		if (presentIn(methodNode.invisibleAnnotations)</span>
+				|| presentIn(methodNode.visibleAnnotations)) {
+<span class="fc" id="L41">			output.ignore(methodNode.instructions.getFirst(),</span>
+					methodNode.instructions.getLast());
+		}
+
+<span class="fc" id="L45">	}</span>
+
+	private static boolean matches(final String annotation) {
+<span class="fc" id="L48">		final String name = annotation</span>
+				.substring(Math.max(annotation.lastIndexOf('/'),
+						annotation.lastIndexOf('$')) + 1);
+<span class="fc" id="L51">		return name.contains(&quot;Generated&quot;);</span>
+	}
+
+	private static boolean presentIn(final List&lt;AnnotationNode&gt; annotations) {
+<span class="fc bfc" id="L55" title="All 2 branches covered.">		if (annotations != null) {</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">			for (AnnotationNode annotation : annotations) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">				if (matches(annotation.desc)) {</span>
+<span class="fc" id="L58">					return true;</span>
+				}
+			}
+		}
+<span class="fc" id="L62">		return false;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

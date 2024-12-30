@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ReportTask.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.ant</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.ant</a> &gt; <span class="el_source">ReportTask.java</span></div><h1>ReportTask.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.ant;
+
+import static java.lang.String.format;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.StringTokenizer;
+
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.types.resources.Union;
+import org.apache.tools.ant.util.FileUtils;
+import org.jacoco.core.analysis.Analyzer;
+import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.data.SessionInfoStore;
+import org.jacoco.core.tools.ExecFileLoader;
+import org.jacoco.report.FileMultiReportOutput;
+import org.jacoco.report.IMultiReportOutput;
+import org.jacoco.report.IReportGroupVisitor;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.MultiReportVisitor;
+import org.jacoco.report.ZipMultiReportOutput;
+import org.jacoco.report.check.IViolationsOutput;
+import org.jacoco.report.check.Limit;
+import org.jacoco.report.check.Rule;
+import org.jacoco.report.check.RulesChecker;
+import org.jacoco.report.csv.CSVFormatter;
+import org.jacoco.report.html.HTMLFormatter;
+import org.jacoco.report.xml.XMLFormatter;
+
+/**
+ * Task for coverage report generation.
+ */
+<span class="fc" id="L60">public class ReportTask extends Task {</span>
+
+	/**
+	 * The source files are specified in a resource collection with additional
+	 * attributes.
+	 */
+<span class="fc" id="L66">	public static class SourceFilesElement extends Union {</span>
+
+<span class="fc" id="L68">		String encoding = null;</span>
+
+<span class="fc" id="L70">		int tabWidth = 4;</span>
+
+		/**
+		 * Defines the optional source file encoding. If not set the platform
+		 * default is used.
+		 *
+		 * @param encoding
+		 *            source file encoding
+		 */
+		public void setEncoding(final String encoding) {
+<span class="fc" id="L80">			this.encoding = encoding;</span>
+<span class="fc" id="L81">		}</span>
+
+		/**
+		 * Sets the tab stop width for the source pages. Default value is 4.
+		 *
+		 * @param tabWidth
+		 *            number of characters per tab stop
+		 */
+		public void setTabwidth(final int tabWidth) {
+<span class="fc bfc" id="L90" title="All 2 branches covered.">			if (tabWidth &lt;= 0) {</span>
+<span class="fc" id="L91">				throw new BuildException(&quot;Tab width must be greater than 0&quot;);</span>
+			}
+<span class="fc" id="L93">			this.tabWidth = tabWidth;</span>
+<span class="fc" id="L94">		}</span>
+
+	}
+
+	/**
+	 * Container element for class file groups.
+	 */
+<span class="fc" id="L101">	public static class GroupElement {</span>
+
+<span class="fc" id="L103">		private final List&lt;GroupElement&gt; children = new ArrayList&lt;GroupElement&gt;();</span>
+
+<span class="fc" id="L105">		private final Union classfiles = new Union();</span>
+
+<span class="fc" id="L107">		private final SourceFilesElement sourcefiles = new SourceFilesElement();</span>
+
+		private String name;
+
+		/**
+		 * Sets the name of the group.
+		 *
+		 * @param name
+		 *            name of the group
+		 */
+		public void setName(final String name) {
+<span class="fc" id="L118">			this.name = name;</span>
+<span class="fc" id="L119">		}</span>
+
+		/**
+		 * Creates a new child group.
+		 *
+		 * @return new child group
+		 */
+		public GroupElement createGroup() {
+<span class="fc" id="L127">			final GroupElement group = new GroupElement();</span>
+<span class="fc" id="L128">			children.add(group);</span>
+<span class="fc" id="L129">			return group;</span>
+		}
+
+		/**
+		 * Returns the nested resource collection for class files.
+		 *
+		 * @return resource collection for class files
+		 */
+		public Union createClassfiles() {
+<span class="fc" id="L138">			return classfiles;</span>
+		}
+
+		/**
+		 * Returns the nested resource collection for source files.
+		 *
+		 * @return resource collection for source files
+		 */
+		public SourceFilesElement createSourcefiles() {
+<span class="fc" id="L147">			return sourcefiles;</span>
+		}
+
+	}
+
+	/**
+	 * Interface for child elements that define formatters.
+	 */
+<span class="fc" id="L155">	private abstract class FormatterElement {</span>
+
+		abstract IReportVisitor createVisitor() throws IOException;
+
+		void finish() {
+<span class="fc" id="L160">		}</span>
+	}
+
+	/**
+	 * Formatter element for HTML reports.
+	 */
+<span class="fc" id="L166">	public class HTMLFormatterElement extends FormatterElement {</span>
+
+		private File destdir;
+
+		private File destfile;
+
+<span class="fc" id="L172">		private String footer = &quot;&quot;;</span>
+
+<span class="fc" id="L174">		private String encoding = &quot;UTF-8&quot;;</span>
+
+<span class="fc" id="L176">		private Locale locale = Locale.getDefault();</span>
+
+		/**
+		 * Sets the output directory for the report.
+		 *
+		 * @param destdir
+		 *            output directory
+		 */
+		public void setDestdir(final File destdir) {
+<span class="fc" id="L185">			this.destdir = destdir;</span>
+<span class="fc" id="L186">		}</span>
+
+		/**
+		 * Sets the Zip output file for the report.
+		 *
+		 * @param destfile
+		 *            Zip output file
+		 */
+		public void setDestfile(final File destfile) {
+<span class="fc" id="L195">			this.destfile = destfile;</span>
+<span class="fc" id="L196">		}</span>
+
+		/**
+		 * Sets an optional footer text that will be displayed on every report
+		 * page.
+		 *
+		 * @param text
+		 *            footer text
+		 */
+		public void setFooter(final String text) {
+<span class="fc" id="L206">			this.footer = text;</span>
+<span class="fc" id="L207">		}</span>
+
+		/**
+		 * Sets the output encoding for generated HTML files. Default is UTF-8.
+		 *
+		 * @param encoding
+		 *            output encoding
+		 */
+		public void setEncoding(final String encoding) {
+<span class="fc" id="L216">			this.encoding = encoding;</span>
+<span class="fc" id="L217">		}</span>
+
+		/**
+		 * Sets the locale for generated text output. By default the platform
+		 * locale is used.
+		 *
+		 * @param locale
+		 *            text locale
+		 */
+		public void setLocale(final String locale) {
+<span class="fc" id="L227">			this.locale = parseLocale(locale);</span>
+<span class="fc" id="L228">		}</span>
+
+		@Override
+		public IReportVisitor createVisitor() throws IOException {
+			final IMultiReportOutput output;
+<span class="fc bfc" id="L233" title="All 2 branches covered.">			if (destfile != null) {</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">				if (destdir != null) {</span>
+<span class="fc" id="L235">					throw new BuildException(</span>
+							&quot;Either destination directory or file must be supplied, not both&quot;,
+							getLocation());
+				}
+<span class="fc" id="L239">				final FileOutputStream stream = new FileOutputStream(destfile);</span>
+<span class="fc" id="L240">				output = new ZipMultiReportOutput(stream);</span>
+
+<span class="fc" id="L242">			} else {</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">				if (destdir == null) {</span>
+<span class="fc" id="L244">					throw new BuildException(</span>
+							&quot;Destination directory or file must be supplied for html report&quot;,
+							getLocation());
+				}
+<span class="fc" id="L248">				output = new FileMultiReportOutput(destdir);</span>
+			}
+<span class="fc" id="L250">			final HTMLFormatter formatter = new HTMLFormatter();</span>
+<span class="fc" id="L251">			formatter.setFooterText(footer);</span>
+<span class="fc" id="L252">			formatter.setOutputEncoding(encoding);</span>
+<span class="fc" id="L253">			formatter.setLocale(locale);</span>
+<span class="fc" id="L254">			return formatter.createVisitor(output);</span>
+		}
+
+	}
+
+	/**
+	 * Formatter element for CSV reports.
+	 */
+<span class="fc" id="L262">	public class CSVFormatterElement extends FormatterElement {</span>
+
+		private File destfile;
+
+<span class="fc" id="L266">		private String encoding = &quot;UTF-8&quot;;</span>
+
+		/**
+		 * Sets the output file for the report.
+		 *
+		 * @param destfile
+		 *            output file
+		 */
+		public void setDestfile(final File destfile) {
+<span class="fc" id="L275">			this.destfile = destfile;</span>
+<span class="fc" id="L276">		}</span>
+
+		@Override
+		public IReportVisitor createVisitor() throws IOException {
+<span class="fc bfc" id="L280" title="All 2 branches covered.">			if (destfile == null) {</span>
+<span class="fc" id="L281">				throw new BuildException(</span>
+						&quot;Destination file must be supplied for csv report&quot;,
+						getLocation());
+			}
+<span class="fc" id="L285">			final CSVFormatter formatter = new CSVFormatter();</span>
+<span class="fc" id="L286">			formatter.setOutputEncoding(encoding);</span>
+<span class="fc" id="L287">			return formatter.createVisitor(new FileOutputStream(destfile));</span>
+		}
+
+		/**
+		 * Sets the output encoding for generated XML file. Default is UTF-8.
+		 *
+		 * @param encoding
+		 *            output encoding
+		 */
+		public void setEncoding(final String encoding) {
+<span class="fc" id="L297">			this.encoding = encoding;</span>
+<span class="fc" id="L298">		}</span>
+
+	}
+
+	/**
+	 * Formatter element for XML reports.
+	 */
+<span class="fc" id="L305">	public class XMLFormatterElement extends FormatterElement {</span>
+
+		private File destfile;
+
+<span class="fc" id="L309">		private String encoding = &quot;UTF-8&quot;;</span>
+
+		/**
+		 * Sets the output file for the report.
+		 *
+		 * @param destfile
+		 *            output file
+		 */
+		public void setDestfile(final File destfile) {
+<span class="fc" id="L318">			this.destfile = destfile;</span>
+<span class="fc" id="L319">		}</span>
+
+		/**
+		 * Sets the output encoding for generated XML file. Default is UTF-8.
+		 *
+		 * @param encoding
+		 *            output encoding
+		 */
+		public void setEncoding(final String encoding) {
+<span class="fc" id="L328">			this.encoding = encoding;</span>
+<span class="fc" id="L329">		}</span>
+
+		@Override
+		public IReportVisitor createVisitor() throws IOException {
+<span class="fc bfc" id="L333" title="All 2 branches covered.">			if (destfile == null) {</span>
+<span class="fc" id="L334">				throw new BuildException(</span>
+						&quot;Destination file must be supplied for xml report&quot;,
+						getLocation());
+			}
+<span class="fc" id="L338">			final XMLFormatter formatter = new XMLFormatter();</span>
+<span class="fc" id="L339">			formatter.setOutputEncoding(encoding);</span>
+<span class="fc" id="L340">			return formatter.createVisitor(new FileOutputStream(destfile));</span>
+		}
+
+	}
+
+	/**
+	 * Formatter element for coverage checks.
+	 */
+<span class="fc" id="L348">	public class CheckFormatterElement extends FormatterElement</span>
+			implements IViolationsOutput {
+
+<span class="fc" id="L351">		private final List&lt;Rule&gt; rules = new ArrayList&lt;Rule&gt;();</span>
+<span class="fc" id="L352">		private boolean violations = false;</span>
+<span class="fc" id="L353">		private boolean failOnViolation = true;</span>
+<span class="fc" id="L354">		private String violationsPropery = null;</span>
+
+		/**
+		 * Creates and adds a new rule.
+		 *
+		 * @return new rule
+		 */
+		public Rule createRule() {
+<span class="fc" id="L362">			final Rule rule = new Rule();</span>
+<span class="fc" id="L363">			rules.add(rule);</span>
+<span class="fc" id="L364">			return rule;</span>
+		}
+
+		/**
+		 * Sets whether the build should fail in case of a violation. Default is
+		 * &lt;code&gt;true&lt;/code&gt;.
+		 *
+		 * @param flag
+		 *            if &lt;code&gt;true&lt;/code&gt; the build fails on violation
+		 */
+		public void setFailOnViolation(final boolean flag) {
+<span class="fc" id="L375">			this.failOnViolation = flag;</span>
+<span class="fc" id="L376">		}</span>
+
+		/**
+		 * Sets the name of a property to append the violation messages to.
+		 *
+		 * @param property
+		 *            name of a property
+		 */
+		public void setViolationsProperty(final String property) {
+<span class="fc" id="L385">			this.violationsPropery = property;</span>
+<span class="fc" id="L386">		}</span>
+
+		@Override
+		public IReportVisitor createVisitor() throws IOException {
+<span class="fc" id="L390">			final RulesChecker formatter = new RulesChecker();</span>
+<span class="fc" id="L391">			formatter.setRules(rules);</span>
+<span class="fc" id="L392">			return formatter.createVisitor(this);</span>
+		}
+
+		public void onViolation(final ICoverageNode node, final Rule rule,
+				final Limit limit, final String message) {
+<span class="fc" id="L397">			log(message, Project.MSG_ERR);</span>
+<span class="fc" id="L398">			violations = true;</span>
+<span class="fc bfc" id="L399" title="All 2 branches covered.">			if (violationsPropery != null) {</span>
+<span class="fc" id="L400">				final String old = getProject().getProperty(violationsPropery);</span>
+<span class="fc bfc" id="L401" title="All 2 branches covered.">				final String value = old == null ? message</span>
+						: String.format(&quot;%s\n%s&quot;, old, message);
+<span class="fc" id="L403">				getProject().setProperty(violationsPropery, value);</span>
+			}
+<span class="fc" id="L405">		}</span>
+
+		@Override
+		void finish() {
+<span class="fc bfc" id="L409" title="All 4 branches covered.">			if (violations &amp;&amp; failOnViolation) {</span>
+<span class="fc" id="L410">				throw new BuildException(</span>
+						&quot;Coverage check failed due to violated rules.&quot;,
+						getLocation());
+			}
+<span class="fc" id="L414">		}</span>
+	}
+
+<span class="fc" id="L417">	private final Union executiondataElement = new Union();</span>
+
+	private SessionInfoStore sessionInfoStore;
+
+	private ExecutionDataStore executionDataStore;
+
+<span class="fc" id="L423">	private final GroupElement structure = new GroupElement();</span>
+
+<span class="fc" id="L425">	private final List&lt;FormatterElement&gt; formatters = new ArrayList&lt;FormatterElement&gt;();</span>
+
+	/**
+	 * Returns the nested resource collection for execution data files.
+	 *
+	 * @return resource collection for execution files
+	 */
+	public Union createExecutiondata() {
+<span class="fc" id="L433">		return executiondataElement;</span>
+	}
+
+	/**
+	 * Returns the root group element that defines the report structure.
+	 *
+	 * @return root group element
+	 */
+	public GroupElement createStructure() {
+<span class="fc" id="L442">		return structure;</span>
+	}
+
+	/**
+	 * Creates a new HTML report element.
+	 *
+	 * @return HTML report element
+	 */
+	public HTMLFormatterElement createHtml() {
+<span class="fc" id="L451">		final HTMLFormatterElement element = new HTMLFormatterElement();</span>
+<span class="fc" id="L452">		formatters.add(element);</span>
+<span class="fc" id="L453">		return element;</span>
+	}
+
+	/**
+	 * Creates a new CSV report element.
+	 *
+	 * @return CSV report element
+	 */
+	public CSVFormatterElement createCsv() {
+<span class="fc" id="L462">		final CSVFormatterElement element = new CSVFormatterElement();</span>
+<span class="fc" id="L463">		formatters.add(element);</span>
+<span class="fc" id="L464">		return element;</span>
+	}
+
+	/**
+	 * Creates a new coverage check element.
+	 *
+	 * @return coverage check element
+	 */
+	public CheckFormatterElement createCheck() {
+<span class="fc" id="L473">		final CheckFormatterElement element = new CheckFormatterElement();</span>
+<span class="fc" id="L474">		formatters.add(element);</span>
+<span class="fc" id="L475">		return element;</span>
+	}
+
+	/**
+	 * Creates a new XML report element.
+	 *
+	 * @return CSV report element
+	 */
+	public XMLFormatterElement createXml() {
+<span class="fc" id="L484">		final XMLFormatterElement element = new XMLFormatterElement();</span>
+<span class="fc" id="L485">		formatters.add(element);</span>
+<span class="fc" id="L486">		return element;</span>
+	}
+
+	@Override
+	public void execute() throws BuildException {
+<span class="fc" id="L491">		loadExecutionData();</span>
+		try {
+<span class="fc" id="L493">			final IReportVisitor visitor = createVisitor();</span>
+<span class="fc" id="L494">			visitor.visitInfo(sessionInfoStore.getInfos(),</span>
+					executionDataStore.getContents());
+<span class="fc" id="L496">			createReport(visitor, structure);</span>
+<span class="fc" id="L497">			visitor.visitEnd();</span>
+<span class="fc bfc" id="L498" title="All 2 branches covered.">			for (final FormatterElement f : formatters) {</span>
+<span class="fc" id="L499">				f.finish();</span>
+			}
+<span class="fc" id="L501">		} catch (final IOException e) {</span>
+<span class="fc" id="L502">			throw new BuildException(&quot;Error while creating report&quot;, e,</span>
+					getLocation());
+<span class="fc" id="L504">		}</span>
+<span class="fc" id="L505">	}</span>
+
+	private void loadExecutionData() {
+<span class="fc" id="L508">		final ExecFileLoader loader = new ExecFileLoader();</span>
+<span class="fc" id="L509">		for (final Iterator&lt;?&gt; i = executiondataElement.iterator(); i</span>
+<span class="fc bfc" id="L510" title="All 2 branches covered.">				.hasNext();) {</span>
+<span class="fc" id="L511">			final Resource resource = (Resource) i.next();</span>
+<span class="fc" id="L512">			log(format(&quot;Loading execution data file %s&quot;, resource));</span>
+<span class="fc" id="L513">			InputStream in = null;</span>
+			try {
+<span class="fc" id="L515">				in = resource.getInputStream();</span>
+<span class="fc" id="L516">				loader.load(in);</span>
+<span class="fc" id="L517">			} catch (final IOException e) {</span>
+<span class="fc" id="L518">				throw new BuildException(</span>
+						format(&quot;Unable to read execution data file %s&quot;,
+								resource),
+						e, getLocation());
+			} finally {
+<span class="fc" id="L523">				FileUtils.close(in);</span>
+			}
+<span class="fc" id="L525">		}</span>
+<span class="fc" id="L526">		sessionInfoStore = loader.getSessionInfoStore();</span>
+<span class="fc" id="L527">		executionDataStore = loader.getExecutionDataStore();</span>
+<span class="fc" id="L528">	}</span>
+
+	private IReportVisitor createVisitor() throws IOException {
+<span class="fc" id="L531">		final List&lt;IReportVisitor&gt; visitors = new ArrayList&lt;IReportVisitor&gt;();</span>
+<span class="fc bfc" id="L532" title="All 2 branches covered.">		for (final FormatterElement f : formatters) {</span>
+<span class="fc" id="L533">			visitors.add(f.createVisitor());</span>
+		}
+<span class="fc" id="L535">		return new MultiReportVisitor(visitors);</span>
+	}
+
+	private void createReport(final IReportGroupVisitor visitor,
+			final GroupElement group) throws IOException {
+<span class="fc bfc" id="L540" title="All 2 branches covered.">		if (group.name == null) {</span>
+<span class="fc" id="L541">			throw new BuildException(&quot;Group name must be supplied&quot;,</span>
+					getLocation());
+		}
+<span class="fc bfc" id="L544" title="All 2 branches covered.">		if (group.children.isEmpty()) {</span>
+<span class="fc" id="L545">			final IBundleCoverage bundle = createBundle(group);</span>
+<span class="fc" id="L546">			final SourceFilesElement sourcefiles = group.sourcefiles;</span>
+<span class="fc" id="L547">			final AntResourcesLocator locator = new AntResourcesLocator(</span>
+					sourcefiles.encoding, sourcefiles.tabWidth);
+<span class="fc" id="L549">			locator.addAll(sourcefiles.iterator());</span>
+<span class="fc bfc" id="L550" title="All 2 branches covered.">			if (!locator.isEmpty()) {</span>
+<span class="fc" id="L551">				checkForMissingDebugInformation(bundle);</span>
+			}
+<span class="fc" id="L553">			visitor.visitBundle(bundle, locator);</span>
+<span class="fc" id="L554">		} else {</span>
+<span class="fc" id="L555">			final IReportGroupVisitor groupVisitor = visitor</span>
+					.visitGroup(group.name);
+<span class="fc bfc" id="L557" title="All 2 branches covered.">			for (final GroupElement child : group.children) {</span>
+<span class="fc" id="L558">				createReport(groupVisitor, child);</span>
+			}
+		}
+<span class="fc" id="L561">	}</span>
+
+	private IBundleCoverage createBundle(final GroupElement group)
+			throws IOException {
+<span class="fc" id="L565">		final CoverageBuilder builder = new CoverageBuilder();</span>
+<span class="fc" id="L566">		final Analyzer analyzer = new Analyzer(executionDataStore, builder);</span>
+<span class="fc bfc" id="L567" title="All 2 branches covered.">		for (final Iterator&lt;?&gt; i = group.classfiles.iterator(); i.hasNext();) {</span>
+<span class="fc" id="L568">			final Resource resource = (Resource) i.next();</span>
+<span class="pc bpc" id="L569" title="1 of 4 branches missed.">			if (resource.isDirectory() &amp;&amp; resource instanceof FileResource) {</span>
+<span class="fc" id="L570">				analyzer.analyzeAll(((FileResource) resource).getFile());</span>
+			} else {
+<span class="fc" id="L572">				final InputStream in = resource.getInputStream();</span>
+<span class="fc" id="L573">				analyzer.analyzeAll(in, resource.getName());</span>
+<span class="fc" id="L574">				in.close();</span>
+			}
+<span class="fc" id="L576">		}</span>
+<span class="fc" id="L577">		final IBundleCoverage bundle = builder.getBundle(group.name);</span>
+<span class="fc" id="L578">		logBundleInfo(bundle, builder.getNoMatchClasses());</span>
+<span class="fc" id="L579">		return bundle;</span>
+	}
+
+	private void logBundleInfo(final IBundleCoverage bundle,
+			final Collection&lt;IClassCoverage&gt; nomatch) {
+<span class="fc" id="L584">		log(format(&quot;Writing bundle '%s' with %s classes&quot;, bundle.getName(),</span>
+				Integer.valueOf(bundle.getClassCounter().getTotalCount())));
+<span class="fc bfc" id="L586" title="All 2 branches covered.">		if (!nomatch.isEmpty()) {</span>
+<span class="fc" id="L587">			log(format(</span>
+					&quot;Classes in bundle '%s' do not match with execution data. &quot;
+							+ &quot;For report generation the same class files must be used as at runtime.&quot;,
+					bundle.getName()), Project.MSG_WARN);
+<span class="fc bfc" id="L591" title="All 2 branches covered.">			for (final IClassCoverage c : nomatch) {</span>
+<span class="fc" id="L592">				log(format(&quot;Execution data for class %s does not match.&quot;,</span>
+						c.getName()), Project.MSG_WARN);
+			}
+		}
+<span class="fc" id="L596">	}</span>
+
+	private void checkForMissingDebugInformation(final ICoverageNode node) {
+<span class="fc bfc" id="L599" title="All 4 branches covered.">		if (node.containsCode() &amp;&amp; node.getLineCounter().getTotalCount() == 0) {</span>
+<span class="fc" id="L600">			log(format(</span>
+					&quot;To enable source code annotation class files for bundle '%s' have to be compiled with debug information.&quot;,
+					node.getName()), Project.MSG_WARN);
+		}
+<span class="fc" id="L604">	}</span>
+
+	/**
+	 * Splits a given underscore &quot;_&quot; separated string and creates a Locale. This
+	 * method is implemented as the method Locale.forLanguageTag() was not
+	 * available in Java 5.
+	 *
+	 * @param locale
+	 *            String representation of a Locate
+	 * @return Locale instance
+	 */
+	static Locale parseLocale(final String locale) {
+<span class="fc" id="L616">		final StringTokenizer st = new StringTokenizer(locale, &quot;_&quot;);</span>
+<span class="fc bfc" id="L617" title="All 2 branches covered.">		final String language = st.hasMoreTokens() ? st.nextToken() : &quot;&quot;;</span>
+<span class="fc bfc" id="L618" title="All 2 branches covered.">		final String country = st.hasMoreTokens() ? st.nextToken() : &quot;&quot;;</span>
+<span class="fc bfc" id="L619" title="All 2 branches covered.">		final String variant = st.hasMoreTokens() ? st.nextToken() : &quot;&quot;;</span>
+<span class="fc" id="L620">		return new Locale(language, country, variant);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

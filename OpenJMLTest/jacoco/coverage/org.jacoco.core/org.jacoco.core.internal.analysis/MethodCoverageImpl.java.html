@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MethodCoverageImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis</a> &gt; <span class="el_source">MethodCoverageImpl.java</span></div><h1>MethodCoverageImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis;
+
+import org.jacoco.core.analysis.ICounter;
+import org.jacoco.core.analysis.IMethodCoverage;
+
+/**
+ * Implementation of {@link IMethodCoverage}.
+ */
+public class MethodCoverageImpl extends SourceNodeImpl
+		implements IMethodCoverage {
+
+	private final String desc;
+
+	private final String signature;
+
+	/**
+	 * Creates a method coverage data object with the given parameters.
+	 *
+	 * @param name
+	 *            name of the method
+	 * @param desc
+	 *            method descriptor
+	 * @param signature
+	 *            generic signature or &lt;code&gt;null&lt;/code&gt;
+	 */
+	public MethodCoverageImpl(final String name, final String desc,
+			final String signature) {
+<span class="fc" id="L40">		super(ElementType.METHOD, name);</span>
+<span class="fc" id="L41">		this.desc = desc;</span>
+<span class="fc" id="L42">		this.signature = signature;</span>
+<span class="fc" id="L43">	}</span>
+
+	@Override
+	public void increment(final ICounter instructions, final ICounter branches,
+			final int line) {
+<span class="fc" id="L48">		super.increment(instructions, branches, line);</span>
+		// Additionally increment complexity counter:
+<span class="fc bfc" id="L50" title="All 2 branches covered.">		if (branches.getTotalCount() &gt; 1) {</span>
+<span class="fc" id="L51">			final int c = Math.max(0, branches.getCoveredCount() - 1);</span>
+<span class="fc" id="L52">			final int m = Math.max(0, branches.getTotalCount() - c - 1);</span>
+<span class="fc" id="L53">			this.complexityCounter = this.complexityCounter.increment(m, c);</span>
+		}
+<span class="fc" id="L55">	}</span>
+
+	/**
+	 * This method must be called exactly once after all instructions and
+	 * branches have been incremented for this method coverage node.
+	 */
+	public void incrementMethodCounter() {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">		final ICounter base = this.instructionCounter.getCoveredCount() == 0</span>
+				? CounterImpl.COUNTER_1_0
+				: CounterImpl.COUNTER_0_1;
+<span class="fc" id="L65">		this.methodCounter = this.methodCounter.increment(base);</span>
+<span class="fc" id="L66">		this.complexityCounter = this.complexityCounter.increment(base);</span>
+<span class="fc" id="L67">	}</span>
+
+	// === IMethodCoverage implementation ===
+
+	public String getDesc() {
+<span class="fc" id="L72">		return desc;</span>
+	}
+
+	public String getSignature() {
+<span class="fc" id="L76">		return signature;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

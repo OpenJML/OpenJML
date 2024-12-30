@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExecDumpClient.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.tools</a> &gt; <span class="el_source">ExecDumpClient.java</span></div><h1>ExecDumpClient.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.tools;
+
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.InetAddress;
+import java.net.Socket;
+
+import org.jacoco.core.runtime.RemoteControlReader;
+import org.jacoco.core.runtime.RemoteControlWriter;
+
+/**
+ * A client for remote execution data dumps.
+ */
+public class ExecDumpClient {
+
+	private boolean dump;
+	private boolean reset;
+	private int retryCount;
+	private long retryDelay;
+
+	/**
+	 * New instance with the defaults &lt;code&gt;dump==true&lt;/code&gt;,
+	 * &lt;code&gt;reset==false&lt;/code&gt;, &lt;code&gt;retryCount==0&lt;/code&gt; and
+	 * &lt;code&gt;retryDelay=1000&lt;/code&gt;.
+	 */
+<span class="fc" id="L38">	public ExecDumpClient() {</span>
+<span class="fc" id="L39">		this.dump = true;</span>
+<span class="fc" id="L40">		this.reset = false;</span>
+<span class="fc" id="L41">		this.retryCount = 0;</span>
+<span class="fc" id="L42">		this.setRetryDelay(1000);</span>
+<span class="fc" id="L43">	}</span>
+
+	/**
+	 * Specifies whether a dump should be requested
+	 *
+	 * @param dump
+	 *            &lt;code&gt;true&lt;/code&gt; if a dump should be requested
+	 */
+	public void setDump(final boolean dump) {
+<span class="fc" id="L52">		this.dump = dump;</span>
+<span class="fc" id="L53">	}</span>
+
+	/**
+	 * Specifies whether execution data should be reset.
+	 *
+	 * @param reset
+	 *            &lt;code&gt;true&lt;/code&gt; if execution data should be reset
+	 */
+	public void setReset(final boolean reset) {
+<span class="fc" id="L62">		this.reset = reset;</span>
+<span class="fc" id="L63">	}</span>
+
+	/**
+	 * Sets the number of retry attempts to connect to the target socket. This
+	 * allows to wait for a certain time until the target agent has initialized.
+	 *
+	 * @param retryCount
+	 *            number of retries
+	 */
+	public void setRetryCount(final int retryCount) {
+<span class="fc" id="L73">		this.retryCount = retryCount;</span>
+<span class="fc" id="L74">	}</span>
+
+	/**
+	 * Sets the delay time before between connection attempts.
+	 *
+	 * @param retryDelay
+	 *            delay in milliseconds
+	 */
+	public void setRetryDelay(final long retryDelay) {
+<span class="fc" id="L83">		this.retryDelay = retryDelay;</span>
+<span class="fc" id="L84">	}</span>
+
+	/**
+	 * Requests a dump from the given end-point.
+	 *
+	 * @param address
+	 *            IP-Address to connect to
+	 * @param port
+	 *            port to connect to
+	 * @return container for the dumped data
+	 * @throws IOException
+	 *             in case the dump can not be requested
+	 */
+	public ExecFileLoader dump(final String address, final int port)
+			throws IOException {
+<span class="fc" id="L99">		return dump(InetAddress.getByName(address), port);</span>
+	}
+
+	/**
+	 * Requests a dump from the given end-point.
+	 *
+	 * @param address
+	 *            host name or IP-Address to connect to
+	 * @param port
+	 *            port to connect to
+	 * @return container for the dumped data
+	 * @throws IOException
+	 *             in case the dump can not be requested
+	 */
+	public ExecFileLoader dump(final InetAddress address, final int port)
+			throws IOException {
+<span class="fc" id="L115">		final ExecFileLoader loader = new ExecFileLoader();</span>
+<span class="fc" id="L116">		final Socket socket = tryConnect(address, port);</span>
+		try {
+<span class="fc" id="L118">			final RemoteControlWriter remoteWriter = new RemoteControlWriter(</span>
+					socket.getOutputStream());
+<span class="fc" id="L120">			final RemoteControlReader remoteReader = new RemoteControlReader(</span>
+					socket.getInputStream());
+<span class="fc" id="L122">			remoteReader.setSessionInfoVisitor(loader.getSessionInfoStore());</span>
+<span class="fc" id="L123">			remoteReader</span>
+					.setExecutionDataVisitor(loader.getExecutionDataStore());
+
+<span class="fc" id="L126">			remoteWriter.visitDumpCommand(dump, reset);</span>
+
+<span class="fc bfc" id="L128" title="All 2 branches covered.">			if (!remoteReader.read()) {</span>
+<span class="fc" id="L129">				throw new IOException(&quot;Socket closed unexpectedly.&quot;);</span>
+			}
+
+		} finally {
+<span class="fc" id="L133">			socket.close();</span>
+		}
+<span class="fc" id="L135">		return loader;</span>
+	}
+
+	private Socket tryConnect(final InetAddress address, final int port)
+			throws IOException {
+<span class="fc" id="L140">		int count = 0;</span>
+		while (true) {
+			try {
+<span class="fc" id="L143">				onConnecting(address, port);</span>
+<span class="fc" id="L144">				return new Socket(address, port);</span>
+<span class="fc" id="L145">			} catch (final IOException e) {</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">				if (++count &gt; retryCount) {</span>
+<span class="fc" id="L147">					throw e;</span>
+				}
+<span class="fc" id="L149">				onConnectionFailure(e);</span>
+<span class="fc" id="L150">				sleep();</span>
+<span class="fc" id="L151">			}</span>
+		}
+	}
+
+	private void sleep() throws InterruptedIOException {
+		try {
+<span class="fc" id="L157">			Thread.sleep(retryDelay);</span>
+<span class="nc" id="L158">		} catch (final InterruptedException e) {</span>
+<span class="nc" id="L159">			throw new InterruptedIOException();</span>
+<span class="fc" id="L160">		}</span>
+<span class="fc" id="L161">	}</span>
+
+	/**
+	 * This method can be overwritten to get an event just before a connection
+	 * is made.
+	 *
+	 * @param address
+	 *            target address
+	 * @param port
+	 *            target port
+	 */
+	protected void onConnecting(
+			@SuppressWarnings(&quot;unused&quot;) final InetAddress address,
+			@SuppressWarnings(&quot;unused&quot;) final int port) {
+<span class="nc" id="L175">	}</span>
+
+	/**
+	 * This method can be overwritten to get an event for connection failures
+	 * when another retry will be attempted.
+	 *
+	 * @param exception
+	 *            connection error
+	 */
+	protected void onConnectionFailure(
+			@SuppressWarnings(&quot;unused&quot;) final IOException exception) {
+<span class="nc" id="L186">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

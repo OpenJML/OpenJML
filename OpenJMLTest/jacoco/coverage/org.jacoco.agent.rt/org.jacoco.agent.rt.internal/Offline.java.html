@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Offline.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.agent.rt</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.agent.rt.internal</a> &gt; <span class="el_source">Offline.java</span></div><h1>Offline.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.agent.rt.internal;
+
+import java.util.Properties;
+
+import org.jacoco.core.runtime.AgentOptions;
+import org.jacoco.core.runtime.RuntimeData;
+
+/**
+ * The API for classes instrumented in &quot;offline&quot; mode. The agent configuration
+ * is provided through system properties prefixed with &lt;code&gt;jacoco.&lt;/code&gt;.
+ */
+public final class Offline {
+
+	private static final String CONFIG_RESOURCE = &quot;/jacoco-agent.properties&quot;;
+
+	private Offline() {
+		// no instances
+	}
+
+	private static RuntimeData data;
+
+	private static synchronized RuntimeData getRuntimeData() {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">		if (data == null) {</span>
+<span class="nc" id="L36">			final Properties config = ConfigLoader.load(CONFIG_RESOURCE,</span>
+					System.getProperties());
+			try {
+<span class="nc" id="L39">				data = Agent.getInstance(new AgentOptions(config)).getData();</span>
+<span class="nc" id="L40">			} catch (final Exception e) {</span>
+<span class="nc" id="L41">				throw new RuntimeException(&quot;Failed to initialize JaCoCo.&quot;, e);</span>
+<span class="nc" id="L42">			}</span>
+		}
+<span class="nc" id="L44">		return data;</span>
+	}
+
+	/**
+	 * API for offline instrumented classes.
+	 *
+	 * @param classid
+	 *            class identifier
+	 * @param classname
+	 *            VM class name
+	 * @param probecount
+	 *            probe count for this class
+	 * @return probe array instance for this class
+	 */
+	public static boolean[] getProbes(final long classid,
+			final String classname, final int probecount) {
+<span class="nc" id="L60">		return getRuntimeData()</span>
+				.getExecutionData(Long.valueOf(classid), classname, probecount)
+				.getProbes();
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

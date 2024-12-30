@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>IncompatibleExecDataVersionException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.data</a> &gt; <span class="el_source">IncompatibleExecDataVersionException.java</span></div><h1>IncompatibleExecDataVersionException.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann, somechris - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.data;
+
+import java.io.IOException;
+
+/**
+ * Signals that execution data in an incompatible version was tried to read.
+ */
+public class IncompatibleExecDataVersionException extends IOException {
+
+	private static final long serialVersionUID = 1L;
+
+	private final int actualVersion;
+
+	/**
+	 * Creates a new exception to flag version mismatches in execution data.
+	 *
+	 * @param actualVersion
+	 *            version found in the exec data
+	 */
+	public IncompatibleExecDataVersionException(final int actualVersion) {
+<span class="fc" id="L33">		super(String.format(&quot;Cannot read execution data version 0x%x. &quot;</span>
+				+ &quot;This version of JaCoCo uses execution data version 0x%x.&quot;,
+				Integer.valueOf(actualVersion),
+				Integer.valueOf(ExecutionDataWriter.FORMAT_VERSION)));
+<span class="fc" id="L37">		this.actualVersion = actualVersion;</span>
+<span class="fc" id="L38">	}</span>
+
+	/**
+	 * Gets the version expected in the execution data which can be read by this
+	 * version of JaCoCo.
+	 *
+	 * @return expected version in execution data
+	 */
+	public int getExpectedVersion() {
+<span class="fc" id="L47">		return ExecutionDataWriter.FORMAT_VERSION;</span>
+	}
+
+	/**
+	 * Gets the actual version found in the execution data.
+	 *
+	 * @return actual version in execution data
+	 */
+	public int getActualVersion() {
+<span class="fc" id="L56">		return actualVersion;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

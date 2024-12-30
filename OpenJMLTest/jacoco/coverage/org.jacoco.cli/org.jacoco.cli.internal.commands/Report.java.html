@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Report.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.cli</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.cli.internal.commands</a> &gt; <span class="el_source">Report.java</span></div><h1>Report.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    John Keeping - initial implementation
+ *    Marc R. Hoffmann - rework
+ *
+ *******************************************************************************/
+package org.jacoco.cli.internal.commands;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jacoco.cli.internal.Command;
+import org.jacoco.core.analysis.Analyzer;
+import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.tools.ExecFileLoader;
+import org.jacoco.report.DirectorySourceFileLocator;
+import org.jacoco.report.FileMultiReportOutput;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.ISourceFileLocator;
+import org.jacoco.report.MultiReportVisitor;
+import org.jacoco.report.MultiSourceFileLocator;
+import org.jacoco.report.csv.CSVFormatter;
+import org.jacoco.report.html.HTMLFormatter;
+import org.jacoco.report.xml.XMLFormatter;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
+
+/**
+ * The &lt;code&gt;report&lt;/code&gt; command.
+ */
+<span class="fc" id="L46">public class Report extends Command {</span>
+
+	@Argument(usage = &quot;list of JaCoCo *.exec files to read&quot;, metaVar = &quot;&lt;execfiles&gt;&quot;)
+<span class="fc" id="L49">	List&lt;File&gt; execfiles = new ArrayList&lt;File&gt;();</span>
+
+	@Option(name = &quot;--classfiles&quot;, usage = &quot;location of Java class files&quot;, metaVar = &quot;&lt;path&gt;&quot;, required = true)
+<span class="fc" id="L52">	List&lt;File&gt; classfiles = new ArrayList&lt;File&gt;();</span>
+
+	@Option(name = &quot;--sourcefiles&quot;, usage = &quot;location of the source files&quot;, metaVar = &quot;&lt;path&gt;&quot;)
+<span class="fc" id="L55">	List&lt;File&gt; sourcefiles = new ArrayList&lt;File&gt;();</span>
+
+	@Option(name = &quot;--tabwith&quot;, usage = &quot;tab stop width for the source pages (default 4)&quot;, metaVar = &quot;&lt;n&gt;&quot;)
+<span class="fc" id="L58">	int tabwidth = 4;</span>
+
+	@Option(name = &quot;--name&quot;, usage = &quot;name used for this report&quot;, metaVar = &quot;&lt;name&gt;&quot;)
+<span class="fc" id="L61">	String name = &quot;JaCoCo Coverage Report&quot;;</span>
+
+	@Option(name = &quot;--encoding&quot;, usage = &quot;source file encoding (by default platform encoding is used)&quot;, metaVar = &quot;&lt;charset&gt;&quot;)
+	String encoding;
+
+	@Option(name = &quot;--xml&quot;, usage = &quot;output file for the XML report&quot;, metaVar = &quot;&lt;file&gt;&quot;)
+	File xml;
+
+	@Option(name = &quot;--csv&quot;, usage = &quot;output file for the CSV report&quot;, metaVar = &quot;&lt;file&gt;&quot;)
+	File csv;
+
+	@Option(name = &quot;--html&quot;, usage = &quot;output directory for the HTML report&quot;, metaVar = &quot;&lt;dir&gt;&quot;)
+	File html;
+
+	@Override
+	public String description() {
+<span class="fc" id="L77">		return &quot;Generate reports in different formats by reading exec and Java class files.&quot;;</span>
+	}
+
+	@Override
+	public int execute(final PrintWriter out, final PrintWriter err)
+			throws IOException {
+<span class="fc" id="L83">		final ExecFileLoader loader = loadExecutionData(out);</span>
+<span class="fc" id="L84">		final IBundleCoverage bundle = analyze(loader.getExecutionDataStore(),</span>
+				out);
+<span class="fc" id="L86">		writeReports(bundle, loader, out);</span>
+<span class="fc" id="L87">		return 0;</span>
+	}
+
+	private ExecFileLoader loadExecutionData(final PrintWriter out)
+			throws IOException {
+<span class="fc" id="L92">		final ExecFileLoader loader = new ExecFileLoader();</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">		if (execfiles.isEmpty()) {</span>
+<span class="fc" id="L94">			out.println(&quot;[WARN] No execution data files provided.&quot;);</span>
+		} else {
+<span class="fc bfc" id="L96" title="All 2 branches covered.">			for (final File file : execfiles) {</span>
+<span class="fc" id="L97">				out.printf(&quot;[INFO] Loading execution data file %s.%n&quot;,</span>
+						file.getAbsolutePath());
+<span class="fc" id="L99">				loader.load(file);</span>
+			}
+		}
+<span class="fc" id="L102">		return loader;</span>
+	}
+
+	private IBundleCoverage analyze(final ExecutionDataStore data,
+			final PrintWriter out) throws IOException {
+<span class="fc" id="L107">		final CoverageBuilder builder = new CoverageBuilder();</span>
+<span class="fc" id="L108">		final Analyzer analyzer = new Analyzer(data, builder);</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		for (final File f : classfiles) {</span>
+<span class="fc" id="L110">			analyzer.analyzeAll(f);</span>
+		}
+<span class="fc" id="L112">		printNoMatchWarning(builder.getNoMatchClasses(), out);</span>
+<span class="fc" id="L113">		return builder.getBundle(name);</span>
+	}
+
+	private void printNoMatchWarning(final Collection&lt;IClassCoverage&gt; nomatch,
+			final PrintWriter out) {
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		if (!nomatch.isEmpty()) {</span>
+<span class="fc" id="L119">			out.println(</span>
+					&quot;[WARN] Some classes do not match with execution data.&quot;);
+<span class="fc" id="L121">			out.println(</span>
+					&quot;[WARN] For report generation the same class files must be used as at runtime.&quot;);
+<span class="fc bfc" id="L123" title="All 2 branches covered.">			for (final IClassCoverage c : nomatch) {</span>
+<span class="fc" id="L124">				out.printf(</span>
+						&quot;[WARN] Execution data for class %s does not match.%n&quot;,
+						c.getName());
+			}
+		}
+<span class="fc" id="L129">	}</span>
+
+	private void writeReports(final IBundleCoverage bundle,
+			final ExecFileLoader loader, final PrintWriter out)
+			throws IOException {
+<span class="fc" id="L134">		out.printf(&quot;[INFO] Analyzing %s classes.%n&quot;,</span>
+				Integer.valueOf(bundle.getClassCounter().getTotalCount()));
+<span class="fc" id="L136">		final IReportVisitor visitor = createReportVisitor();</span>
+<span class="fc" id="L137">		visitor.visitInfo(loader.getSessionInfoStore().getInfos(),</span>
+				loader.getExecutionDataStore().getContents());
+<span class="fc" id="L139">		visitor.visitBundle(bundle, getSourceLocator());</span>
+<span class="fc" id="L140">		visitor.visitEnd();</span>
+<span class="fc" id="L141">	}</span>
+
+	private IReportVisitor createReportVisitor() throws IOException {
+<span class="fc" id="L144">		final List&lt;IReportVisitor&gt; visitors = new ArrayList&lt;IReportVisitor&gt;();</span>
+
+<span class="fc bfc" id="L146" title="All 2 branches covered.">		if (xml != null) {</span>
+<span class="fc" id="L147">			final XMLFormatter formatter = new XMLFormatter();</span>
+<span class="fc" id="L148">			visitors.add(formatter.createVisitor(new FileOutputStream(xml)));</span>
+		}
+
+<span class="fc bfc" id="L151" title="All 2 branches covered.">		if (csv != null) {</span>
+<span class="fc" id="L152">			final CSVFormatter formatter = new CSVFormatter();</span>
+<span class="fc" id="L153">			visitors.add(formatter.createVisitor(new FileOutputStream(csv)));</span>
+		}
+
+<span class="fc bfc" id="L156" title="All 2 branches covered.">		if (html != null) {</span>
+<span class="fc" id="L157">			final HTMLFormatter formatter = new HTMLFormatter();</span>
+<span class="fc" id="L158">			visitors.add(</span>
+					formatter.createVisitor(new FileMultiReportOutput(html)));
+		}
+
+<span class="fc" id="L162">		return new MultiReportVisitor(visitors);</span>
+	}
+
+	private ISourceFileLocator getSourceLocator() {
+<span class="fc" id="L166">		final MultiSourceFileLocator multi = new MultiSourceFileLocator(</span>
+				tabwidth);
+<span class="fc bfc" id="L168" title="All 2 branches covered.">		for (final File f : sourcefiles) {</span>
+<span class="fc" id="L169">			multi.add(new DirectorySourceFileLocator(f, encoding, tabwidth));</span>
+		}
+<span class="fc" id="L171">		return multi;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

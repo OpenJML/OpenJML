@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InjectedClassRuntime.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.runtime</a> &gt; <span class="el_source">InjectedClassRuntime.java</span></div><h1>InjectedClassRuntime.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.runtime;
+
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+/**
+ * {@link IRuntime} which defines a new class using
+ * {@code java.lang.invoke.MethodHandles.Lookup.defineClass} introduced in Java
+ * 9. Module where class will be defined must be opened to at least module of
+ * this class.
+ */
+public class InjectedClassRuntime extends AbstractRuntime {
+
+	private static final String FIELD_NAME = &quot;data&quot;;
+
+	private static final String FIELD_TYPE = &quot;Ljava/lang/Object;&quot;;
+
+	private final Class&lt;?&gt; locator;
+
+	private final String injectedClassName;
+
+	/**
+	 * Creates a new runtime which will define a class to the same class loader
+	 * and in the same package and protection domain as given class.
+	 *
+	 * @param locator
+	 *            class to identify the target class loader and package
+	 * @param simpleClassName
+	 *            simple name of the class to be defined
+	 */
+	public InjectedClassRuntime(final Class&lt;?&gt; locator,
+<span class="nc" id="L45">			final String simpleClassName) {</span>
+<span class="nc" id="L46">		this.locator = locator;</span>
+<span class="nc" id="L47">		this.injectedClassName = locator.getPackage().getName().replace('.',</span>
+				'/') + '/' + simpleClassName;
+<span class="nc" id="L49">	}</span>
+
+	@Override
+	public void startup(final RuntimeData data) throws Exception {
+<span class="nc" id="L53">		super.startup(data);</span>
+<span class="nc" id="L54">		Lookup //</span>
+				.privateLookupIn(locator, Lookup.lookup()) //
+				.defineClass(createClass(injectedClassName)) //
+				.getField(FIELD_NAME) //
+				.set(null, data);
+<span class="nc" id="L59">	}</span>
+
+	public void shutdown() {
+		// nothing to do
+<span class="nc" id="L63">	}</span>
+
+	public int generateDataAccessor(final long classid, final String classname,
+			final int probecount, final MethodVisitor mv) {
+<span class="nc" id="L67">		mv.visitFieldInsn(Opcodes.GETSTATIC, injectedClassName, FIELD_NAME,</span>
+				FIELD_TYPE);
+
+<span class="nc" id="L70">		RuntimeData.generateAccessCall(classid, classname, probecount, mv);</span>
+
+<span class="nc" id="L72">		return 6;</span>
+	}
+
+	private static byte[] createClass(final String name) {
+<span class="nc" id="L76">		final ClassWriter cw = new ClassWriter(0);</span>
+<span class="nc" id="L77">		cw.visit(Opcodes.V9, Opcodes.ACC_SYNTHETIC | Opcodes.ACC_PUBLIC,</span>
+				name.replace('.', '/'), null, &quot;java/lang/Object&quot;, null);
+<span class="nc" id="L79">		cw.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, FIELD_NAME,</span>
+				FIELD_TYPE, null, null);
+<span class="nc" id="L81">		cw.visitEnd();</span>
+<span class="nc" id="L82">		return cw.toByteArray();</span>
+	}
+
+	/**
+	 * Provides access to classes {@code java.lang.invoke.MethodHandles} and
+	 * {@code java.lang.invoke.MethodHandles.Lookup} introduced in Java 8.
+	 */
+	private static class Lookup {
+
+		private final Object instance;
+
+<span class="nc" id="L93">		private Lookup(final Object instance) {</span>
+<span class="nc" id="L94">			this.instance = instance;</span>
+<span class="nc" id="L95">		}</span>
+
+		/**
+		 * @return a lookup object for the caller of this method
+		 */
+		static Lookup lookup() throws Exception {
+<span class="nc" id="L101">			return new Lookup(Class //</span>
+					.forName(&quot;java.lang.invoke.MethodHandles&quot;) //
+					.getMethod(&quot;lookup&quot;) //
+					.invoke(null));
+		}
+
+		/**
+		 * See corresponding method introduced in Java 9.
+		 *
+		 * @param targetClass
+		 *            the target class
+		 * @param lookup
+		 *            the caller lookup object
+		 * @return a lookup object for the target class, with private access
+		 */
+		static Lookup privateLookupIn(final Class&lt;?&gt; targetClass,
+				final Lookup lookup) throws Exception {
+<span class="nc" id="L118">			return new Lookup(Class //</span>
+					.forName(&quot;java.lang.invoke.MethodHandles&quot;) //
+					.getMethod(&quot;privateLookupIn&quot;, Class.class,
+							Class.forName(
+									&quot;java.lang.invoke.MethodHandles$Lookup&quot;)) //
+					.invoke(null, targetClass, lookup.instance));
+		}
+
+		/**
+		 * See corresponding method introduced in Java 9.
+		 *
+		 * @param bytes
+		 *            the class bytes
+		 * @return class
+		 */
+		Class&lt;?&gt; defineClass(final byte[] bytes) throws Exception {
+<span class="nc" id="L134">			return (Class&lt;?&gt;) Class //</span>
+					.forName(&quot;java.lang.invoke.MethodHandles$Lookup&quot;)
+					.getMethod(&quot;defineClass&quot;, byte[].class)
+					.invoke(this.instance, new Object[] { bytes });
+		}
+
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

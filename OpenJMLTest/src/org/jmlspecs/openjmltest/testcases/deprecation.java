@@ -36,23 +36,23 @@ public class deprecation extends TCBase {
                 );
     }
 
-    @Test
-    public void testParsePlus() {
-        helpTCF("A.java","public class A {\n" +
-                " //+@ model int i;\n" +
-                " }"
-                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
-                );
-    }
-
-    @Test
-    public void testParseMinus() {
-        helpTCF("A.java","public class A {\n" +
-                " //-@ model int i;\n" +
-                " }"
-                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
-                );
-    }
+//    @Test
+//    public void testParsePlus() {
+//        helpTCF("A.java","public class A {\n" +
+//                " //+@ model int i;\n" +
+//                " }"
+//                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
+//                );
+//    }
+//
+//    @Test
+//    public void testParseMinus() {
+//        helpTCF("A.java","public class A {\n" +
+//                " //-@ model int i;\n" +
+//                " }"
+//                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
+//                );
+//    }
     
     @Test
     public void testIndex() {

@@ -207,7 +207,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         public PrintProgressReporter(Context context, PrintWriter w) {
-            pw = w;
+            pw = w != null ? w : new PrintWriter(System.out);
             this.context = context;
         }
         
@@ -239,11 +239,16 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     public Main(/*@ non_null */String applicationName, 
-                /*@ non_null */PrintWriter out) 
-        throws java.io.IOException {
-        super(applicationName,out);
-    }
-    
+            /*@ non_null */PrintWriter out, /*@ non_null */PrintWriter err) 
+            throws java.io.IOException {
+        super(applicationName,out,err);
+}
+
+    public Main(/*@ non_null */String applicationName, 
+            /*@ non_null */PrintWriter out) throws java.io.IOException {
+        super(applicationName,out,out);
+}
+
     public static Context.Key<Main> key = new Context.Key<Main>();
     
     public static Main instance(Context context) {

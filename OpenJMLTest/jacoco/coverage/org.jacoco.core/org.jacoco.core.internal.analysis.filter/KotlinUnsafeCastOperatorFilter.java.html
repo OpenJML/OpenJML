@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KotlinUnsafeCastOperatorFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">KotlinUnsafeCastOperatorFilter.java</span></div><h1>KotlinUnsafeCastOperatorFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filters branch in bytecode that Kotlin compiler generates for &quot;unsafe&quot; cast
+ * operator.
+ */
+<span class="fc" id="L25">public final class KotlinUnsafeCastOperatorFilter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L29" title="All 2 branches covered.">		if (!KotlinGeneratedFilter.isKotlinClass(context)) {</span>
+<span class="fc" id="L30">			return;</span>
+		}
+<span class="fc" id="L32">		final Matcher matcher = new Matcher();</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">		for (final AbstractInsnNode i : methodNode.instructions) {</span>
+<span class="fc" id="L34">			matcher.match(&quot;kotlin/TypeCastException&quot;, i, output);</span>
+			// Since Kotlin 1.4.0:
+<span class="fc" id="L36">			matcher.match(&quot;java/lang/NullPointerException&quot;, i, output);</span>
+		}
+<span class="fc" id="L38">	}</span>
+
+<span class="fc" id="L40">	private static class Matcher extends AbstractMatcher {</span>
+		public void match(final String exceptionType,
+				final AbstractInsnNode start, final IFilterOutput output) {
+
+<span class="fc bfc" id="L44" title="All 2 branches covered.">			if (Opcodes.IFNONNULL != start.getOpcode()) {</span>
+<span class="fc" id="L45">				return;</span>
+			}
+<span class="fc" id="L47">			cursor = start;</span>
+<span class="fc" id="L48">			final JumpInsnNode jumpInsnNode = (JumpInsnNode) cursor;</span>
+<span class="fc" id="L49">			final AbstractInsnNode next = cursor.getNext();</span>
+<span class="pc bpc" id="L50" title="1 of 4 branches missed.">			if (next != null &amp;&amp; next.getOpcode() == Opcodes.POP) {</span>
+				// Since Kotlin 1.6.0 - see
+				// https://github.com/JetBrains/kotlin/commit/041773fd2584bc279813361eb7fc11ae84c214fd
+<span class="fc" id="L53">				next();</span>
+			}
+<span class="fc" id="L55">			nextIsType(Opcodes.NEW, exceptionType);</span>
+<span class="fc" id="L56">			nextIs(Opcodes.DUP);</span>
+<span class="fc" id="L57">			nextIs(Opcodes.LDC);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L59">				return;</span>
+			}
+<span class="fc" id="L61">			final LdcInsnNode ldc = (LdcInsnNode) cursor;</span>
+<span class="pc bpc" id="L62" title="2 of 4 branches missed.">			if (!(ldc.cst instanceof String &amp;&amp; ((String) ldc.cst)</span>
+					.startsWith(&quot;null cannot be cast to non-null type&quot;))) {
+<span class="nc" id="L64">				return;</span>
+			}
+<span class="fc" id="L66">			nextIsInvoke(Opcodes.INVOKESPECIAL, exceptionType, &quot;&lt;init&gt;&quot;,</span>
+					&quot;(Ljava/lang/String;)V&quot;);
+<span class="fc" id="L68">			nextIs(Opcodes.ATHROW);</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">			if (cursor == null) {</span>
+<span class="nc" id="L70">				return;</span>
+			}
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">			if (cursor.getNext() != jumpInsnNode.label) {</span>
+<span class="nc" id="L73">				return;</span>
+			}
+
+<span class="fc" id="L76">			output.ignore(start, cursor);</span>
+<span class="fc" id="L77">		}</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

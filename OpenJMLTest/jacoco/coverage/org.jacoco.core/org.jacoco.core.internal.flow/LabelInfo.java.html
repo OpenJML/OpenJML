@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LabelInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.flow</a> &gt; <span class="el_source">LabelInfo.java</span></div><h1>LabelInfo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.flow;
+
+import org.jacoco.core.internal.analysis.Instruction;
+import org.objectweb.asm.Label;
+
+/**
+ * Data container that is attached to {@link Label#info} objects to store flow
+ * and instrumentation specific information. The information is only valid
+ * locally in specific contexts.
+ */
+public final class LabelInfo {
+
+	/**
+	 * Reserved ID for &quot;no probe&quot;.
+	 */
+	public static final int NO_PROBE = -1;
+
+<span class="fc" id="L30">	private boolean target = false;</span>
+
+<span class="fc" id="L32">	private boolean multiTarget = false;</span>
+
+<span class="fc" id="L34">	private boolean successor = false;</span>
+
+<span class="fc" id="L36">	private boolean methodInvocationLine = false;</span>
+
+<span class="fc" id="L38">	private boolean done = false;</span>
+
+<span class="fc" id="L40">	private int probeid = NO_PROBE;</span>
+
+<span class="fc" id="L42">	private Label intermediate = null;</span>
+
+<span class="fc" id="L44">	private Instruction instruction = null;</span>
+
+	// instances are only created within this class
+<span class="fc" id="L47">	private LabelInfo() {</span>
+<span class="fc" id="L48">	}</span>
+
+	/**
+	 * Defines that the given label is a jump target.
+	 *
+	 * @param label
+	 *            label to define
+	 */
+	public static void setTarget(final Label label) {
+<span class="fc" id="L57">		final LabelInfo info = create(label);</span>
+<span class="fc bfc" id="L58" title="All 4 branches covered.">		if (info.target || info.successor) {</span>
+<span class="fc" id="L59">			info.multiTarget = true;</span>
+		} else {
+<span class="fc" id="L61">			info.target = true;</span>
+		}
+<span class="fc" id="L63">	}</span>
+
+	/**
+	 * Defines that the given label is the possible successor of the previous
+	 * instruction in the method.
+	 *
+	 * @param label
+	 *            label to define
+	 */
+	public static void setSuccessor(final Label label) {
+<span class="fc" id="L73">		final LabelInfo info = create(label);</span>
+<span class="fc" id="L74">		info.successor = true;</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		if (info.target) {</span>
+<span class="fc" id="L76">			info.multiTarget = true;</span>
+		}
+<span class="fc" id="L78">	}</span>
+
+	/**
+	 * Checks whether multiple control paths lead to a label. Control flow path
+	 * to a certain label are: jump targets, exception handlers and normal
+	 * control flow from its predecessor instruction (unless this is an
+	 * unconditional jump or method exit).
+	 *
+	 * @param label
+	 *            label to check
+	 * @return &lt;code&gt;true&lt;/code&gt; if the given multiple control paths lead to the
+	 *         given label
+	 */
+	public static boolean isMultiTarget(final Label label) {
+<span class="fc" id="L92">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">		return info == null ? false : info.multiTarget;</span>
+	}
+
+	/**
+	 * Checks whether this label is the possible successor of the previous
+	 * instruction in the method. This is the case if the predecessor isn't a
+	 * unconditional jump or method exit instruction.
+	 *
+	 * @param label
+	 *            label to check
+	 * @return &lt;code&gt;true&lt;/code&gt; if the label is a possible instruction
+	 *         successor
+	 */
+	public static boolean isSuccessor(final Label label) {
+<span class="fc" id="L107">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">		return info == null ? false : info.successor;</span>
+	}
+
+	/**
+	 * Mark a given label as the beginning of a line with method invocations.
+	 *
+	 * @param label
+	 *            label to mark
+	 */
+	public static void setMethodInvocationLine(final Label label) {
+<span class="fc" id="L118">		create(label).methodInvocationLine = true;</span>
+<span class="fc" id="L119">	}</span>
+
+	/**
+	 * Checks whether the a given label has been marked as a line with method
+	 * invocations.
+	 *
+	 * @param label
+	 *            label to check
+	 * @return &lt;code&gt;true&lt;/code&gt; if the label represents a line with method
+	 *         invocations
+	 */
+	public static boolean isMethodInvocationLine(final Label label) {
+<span class="fc" id="L131">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">		return info == null ? false : info.methodInvocationLine;</span>
+	}
+
+	/**
+	 * Determines whether the given label needs a probe to be inserted before.
+	 *
+	 * @param label
+	 *            label to test
+	 * @return &lt;code&gt;true&lt;/code&gt; if a probe should be inserted before
+	 */
+	public static boolean needsProbe(final Label label) {
+<span class="fc" id="L143">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L144" title="All 8 branches covered.">		return info != null &amp;&amp; info.successor</span>
+				&amp;&amp; (info.multiTarget || info.methodInvocationLine);
+	}
+
+	/**
+	 * Mark a given label as done.
+	 *
+	 * @param label
+	 *            label to mark
+	 */
+	public static void setDone(final Label label) {
+<span class="fc" id="L155">		create(label).done = true;</span>
+<span class="fc" id="L156">	}</span>
+
+	/**
+	 * Resets the &quot;done&quot; status of a given label.
+	 *
+	 * @param label
+	 *            label to reset
+	 */
+	public static void resetDone(final Label label) {
+<span class="fc" id="L165">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">		if (info != null) {</span>
+<span class="fc" id="L167">			info.done = false;</span>
+		}
+<span class="fc" id="L169">	}</span>
+
+	/**
+	 * Resets the &quot;done&quot; status of all given labels.
+	 *
+	 * @param labels
+	 *            labels to reset
+	 */
+	public static void resetDone(final Label[] labels) {
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		for (final Label label : labels) {</span>
+<span class="fc" id="L179">			resetDone(label);</span>
+		}
+<span class="fc" id="L181">	}</span>
+
+	/**
+	 * Checks whether this label is marked as done.
+	 *
+	 * @param label
+	 *            label to check
+	 * @return &lt;code&gt;true&lt;/code&gt; if this label is marked as done
+	 */
+	public static boolean isDone(final Label label) {
+<span class="fc" id="L191">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">		return info == null ? false : info.done;</span>
+	}
+
+	/**
+	 * Sets the given probe id to the given label.
+	 *
+	 * @param label
+	 *            label to assign a probe to
+	 * @param id
+	 *            id of the probe
+	 */
+	public static void setProbeId(final Label label, final int id) {
+<span class="fc" id="L204">		create(label).probeid = id;</span>
+<span class="fc" id="L205">	}</span>
+
+	/**
+	 * Returns the assigned probe id.
+	 *
+	 * @param label
+	 *            label to check
+	 * @return probe id or {@link #NO_PROBE} if no probe is assigned to the
+	 *         label
+	 */
+	public static int getProbeId(final Label label) {
+<span class="fc" id="L216">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L217" title="All 2 branches covered.">		return info == null ? NO_PROBE : info.probeid;</span>
+	}
+
+	/**
+	 * Defines an intermediate label for the given label. Such intermediate
+	 * labels are required during instrumentation to add probes to jump targets.
+	 *
+	 * @param label
+	 *            label to define for
+	 * @param intermediate
+	 *            intermediate label
+	 */
+	public static void setIntermediateLabel(final Label label,
+			final Label intermediate) {
+<span class="fc" id="L231">		create(label).intermediate = intermediate;</span>
+<span class="fc" id="L232">	}</span>
+
+	/**
+	 * Returns the intermediate label for the given label if one has been
+	 * defined.
+	 *
+	 * @param label
+	 *            label to look for
+	 * @return intermediate label or &lt;code&gt;null&lt;/code&gt;
+	 */
+	public static Label getIntermediateLabel(final Label label) {
+<span class="fc" id="L243">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">		return info == null ? null : info.intermediate;</span>
+	}
+
+	/**
+	 * Sets the instruction corresponding to this label.
+	 *
+	 * @param label
+	 *            label to set the instruction for
+	 * @param instruction
+	 *            corresponding instruction
+	 */
+	public static void setInstruction(final Label label,
+			final Instruction instruction) {
+<span class="fc" id="L257">		create(label).instruction = instruction;</span>
+<span class="fc" id="L258">	}</span>
+
+	/**
+	 * Returns the corresponding instruction for the given label if one has been
+	 * defined.
+	 *
+	 * @param label
+	 *            label to look for
+	 * @return corresponding instruction or &lt;code&gt;null&lt;/code&gt;
+	 */
+	public static Instruction getInstruction(final Label label) {
+<span class="fc" id="L269">		final LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">		return info == null ? null : info.instruction;</span>
+	}
+
+	private static LabelInfo get(final Label label) {
+<span class="fc" id="L274">		final Object info = label.info;</span>
+<span class="fc bfc" id="L275" title="All 2 branches covered.">		return info instanceof LabelInfo ? (LabelInfo) info : null;</span>
+	}
+
+	private static LabelInfo create(final Label label) {
+<span class="fc" id="L279">		LabelInfo info = get(label);</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">		if (info == null) {</span>
+<span class="fc" id="L281">			info = new LabelInfo();</span>
+<span class="fc" id="L282">			label.info = info;</span>
+		}
+<span class="fc" id="L284">		return info;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

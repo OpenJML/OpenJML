@@ -3,6 +3,8 @@
 ## Might have trouble with symbolic links
 cd $(dirname "${BASH_SOURCE[0]}")
 
+. ../../setup-coverage json
+
 ERR=0
 DIRS=$@
 if [ ${#DIRS} == 0 ] ; then DIRS=* ; fi
@@ -10,7 +12,7 @@ if [ ${#DIRS} == 0 ] ; then DIRS=* ; fi
 for d in $DIRS ; do 
   if [ -d $d ]; then
   echo DIR $d
-  openjml --show=json $d/*.java
+  $OJA --show=json $d/*.java
   for j in $d/*.json; do
     ( diff $j $j.expected && rm $j ) || ERR=1
   done

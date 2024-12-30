@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Filters.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">Filters.java</span></div><h1>Filters.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filter that combines other filters.
+ */
+public final class Filters implements IFilter {
+
+	/**
+	 * Filter that does nothing.
+	 */
+<span class="fc" id="L25">	public static final IFilter NONE = new Filters();</span>
+
+	private final IFilter[] filters;
+
+	/**
+	 * Creates filter that combines all other filters.
+	 *
+	 * @return filter that combines all other filters
+	 */
+	public static IFilter all() {
+<span class="fc" id="L35">		return new Filters(new EnumFilter(), new SyntheticFilter(),</span>
+				new BridgeFilter(), new SynchronizedFilter(),
+				new TryWithResourcesJavac11Filter(),
+				new TryWithResourcesJavacFilter(),
+				new TryWithResourcesEcjFilter(), new FinallyFilter(),
+				new PrivateEmptyNoArgConstructorFilter(), new AssertFilter(),
+				new StringSwitchJavacFilter(), new StringSwitchFilter(),
+				new EnumEmptyConstructorFilter(), new RecordsFilter(),
+				new ExhaustiveSwitchFilter(), //
+				new RecordPatternFilter(), //
+				new AnnotationGeneratedFilter(), new KotlinGeneratedFilter(),
+				new KotlinLateinitFilter(), new KotlinWhenFilter(),
+				new KotlinWhenStringFilter(),
+				new KotlinUnsafeCastOperatorFilter(),
+				new KotlinNotNullOperatorFilter(),
+				new KotlinDefaultArgumentsFilter(), new KotlinInlineFilter(),
+				new KotlinCoroutineFilter(), new KotlinDefaultMethodsFilter());
+	}
+
+<span class="fc" id="L54">	private Filters(final IFilter... filters) {</span>
+<span class="fc" id="L55">		this.filters = filters;</span>
+<span class="fc" id="L56">	}</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L60" title="All 2 branches covered.">		for (final IFilter filter : filters) {</span>
+<span class="fc" id="L61">			filter.filter(methodNode, context, output);</span>
+		}
+<span class="fc" id="L63">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

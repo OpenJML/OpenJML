@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>XMLCoverageWriter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.report</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.report.internal.xml</a> &gt; <span class="el_source">XMLCoverageWriter.java</span></div><h1>XMLCoverageWriter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.report.internal.xml;
+
+import java.io.IOException;
+
+import org.jacoco.core.analysis.IBundleCoverage;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.ICounter;
+import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
+import org.jacoco.core.analysis.ILine;
+import org.jacoco.core.analysis.IMethodCoverage;
+import org.jacoco.core.analysis.IPackageCoverage;
+import org.jacoco.core.analysis.ISourceFileCoverage;
+import org.jacoco.core.analysis.ISourceNode;
+
+/**
+ * Serializes coverage data as XML fragments.
+ */
+public final class XMLCoverageWriter {
+
+	/**
+	 * Writes the structure of a given bundle.
+	 *
+	 * @param bundle
+	 *            bundle coverage data
+	 * @param element
+	 *            container element for the bundle data
+	 * @throws IOException
+	 *             if XML can't be written to the underlying output
+	 */
+	public static void writeBundle(final IBundleCoverage bundle,
+			final ReportElement element) throws IOException {
+<span class="fc bfc" id="L45" title="All 2 branches covered.">		for (final IPackageCoverage p : bundle.getPackages()) {</span>
+<span class="fc" id="L46">			writePackage(p, element);</span>
+		}
+<span class="fc" id="L48">		writeCounters(bundle, element);</span>
+<span class="fc" id="L49">	}</span>
+
+	private static void writePackage(final IPackageCoverage p,
+			final ReportElement parent) throws IOException {
+<span class="fc" id="L53">		final ReportElement element = parent.packageElement(p.getName());</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">		for (final IClassCoverage c : p.getClasses()) {</span>
+<span class="fc" id="L55">			writeClass(c, element);</span>
+		}
+<span class="fc bfc" id="L57" title="All 2 branches covered.">		for (final ISourceFileCoverage s : p.getSourceFiles()) {</span>
+<span class="fc" id="L58">			writeSourceFile(s, element);</span>
+		}
+<span class="fc" id="L60">		writeCounters(p, element);</span>
+<span class="fc" id="L61">	}</span>
+
+	private static void writeClass(final IClassCoverage c,
+			final ReportElement parent) throws IOException {
+<span class="fc" id="L65">		final ReportElement element = parent.classElement(c);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">		for (final IMethodCoverage m : c.getMethods()) {</span>
+<span class="fc" id="L67">			writeMethod(m, element);</span>
+		}
+<span class="fc" id="L69">		writeCounters(c, element);</span>
+<span class="fc" id="L70">	}</span>
+
+	private static void writeMethod(final IMethodCoverage m,
+			final ReportElement parent) throws IOException {
+<span class="fc" id="L74">		final ReportElement element = parent.method(m);</span>
+<span class="fc" id="L75">		writeCounters(m, element);</span>
+<span class="fc" id="L76">	}</span>
+
+	private static void writeSourceFile(final ISourceFileCoverage s,
+			final ReportElement parent) throws IOException {
+<span class="fc" id="L80">		final ReportElement element = parent.sourcefile(s.getName());</span>
+<span class="fc" id="L81">		writeLines(s, element);</span>
+<span class="fc" id="L82">		writeCounters(s, element);</span>
+<span class="fc" id="L83">	}</span>
+
+	/**
+	 * Writes all non-zero counters of the given node.
+	 *
+	 * @param node
+	 *            node to retrieve counters from
+	 * @param parent
+	 *            container for the counter elements
+	 * @throws IOException
+	 *             if XML can't be written to the underlying output
+	 */
+	public static void writeCounters(final ICoverageNode node,
+			final ReportElement parent) throws IOException {
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		for (final CounterEntity counterEntity : CounterEntity.values()) {</span>
+<span class="fc" id="L98">			final ICounter counter = node.getCounter(counterEntity);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">			if (counter.getTotalCount() &gt; 0) {</span>
+<span class="fc" id="L100">				parent.counter(counterEntity, counter);</span>
+			}
+		}
+<span class="fc" id="L103">	}</span>
+
+	private static void writeLines(final ISourceNode source,
+			final ReportElement parent) throws IOException {
+<span class="fc" id="L107">		final int last = source.getLastLine();</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">		for (int nr = source.getFirstLine(); nr &lt;= last; nr++) {</span>
+<span class="fc" id="L109">			final ILine line = source.getLine(nr);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">			if (line.getStatus() != ICounter.EMPTY) {</span>
+<span class="fc" id="L111">				parent.line(nr, line);</span>
+			}
+		}
+<span class="fc" id="L114">	}</span>
+
+	private XMLCoverageWriter() {
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

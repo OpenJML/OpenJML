@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AgentMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">AgentMojo.java</span></div><h1>AgentMojo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import java.io.File;
+
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+
+/**
+ * &lt;p&gt;
+ * Prepares a property pointing to the JaCoCo runtime agent that can be passed
+ * as a VM argument to the application under test. Depending on the project
+ * packaging type by default a property with the following name is set:
+ * &lt;/p&gt;
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;tycho.testArgLine for packaging type eclipse-test-plugin and&lt;/li&gt;
+ * &lt;li&gt;argLine otherwise.&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;
+ * If your project already defines VM arguments for test execution, be sure that
+ * they will include property defined by JaCoCo.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * One of the ways to do this in case of maven-surefire-plugin - is to use
+ * syntax for &lt;a href=
+ * &quot;http://maven.apache.org/surefire/maven-surefire-plugin/faq.html#late-property-evaluation&quot;&gt;late
+ * property evaluation&lt;/a&gt;:
+ * &lt;/p&gt;
+ *
+ * &lt;pre&gt;
+ *   &amp;lt;plugin&amp;gt;
+ *     &amp;lt;groupId&amp;gt;org.apache.maven.plugins&amp;lt;/groupId&amp;gt;
+ *     &amp;lt;artifactId&amp;gt;maven-surefire-plugin&amp;lt;/artifactId&amp;gt;
+ *     &amp;lt;configuration&amp;gt;
+ *       &amp;lt;argLine&amp;gt;@{argLine} -your -extra -arguments&amp;lt;/argLine&amp;gt;
+ *     &amp;lt;/configuration&amp;gt;
+ *   &amp;lt;/plugin&amp;gt;
+ * &lt;/pre&gt;
+ *
+ * &lt;p&gt;
+ * You can define empty property to avoid JVM startup error
+ * &lt;code&gt;Could not find or load main class @{argLine}&lt;/code&gt; when using late
+ * property evaluation and jacoco-maven-plugin not executed.
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * Another way is to define &quot;argLine&quot; as a Maven property rather than as part of
+ * the configuration of maven-surefire-plugin:
+ * &lt;/p&gt;
+ *
+ * &lt;pre&gt;
+ *   &amp;lt;properties&amp;gt;
+ *     &amp;lt;argLine&amp;gt;-your -extra -arguments&amp;lt;/argLine&amp;gt;
+ *   &amp;lt;/properties&amp;gt;
+ *   ...
+ *   &amp;lt;plugin&amp;gt;
+ *     &amp;lt;groupId&amp;gt;org.apache.maven.plugins&amp;lt;/groupId&amp;gt;
+ *     &amp;lt;artifactId&amp;gt;maven-surefire-plugin&amp;lt;/artifactId&amp;gt;
+ *     &amp;lt;configuration&amp;gt;
+ *       &amp;lt;!-- no argLine here --&amp;gt;
+ *     &amp;lt;/configuration&amp;gt;
+ *   &amp;lt;/plugin&amp;gt;
+ * &lt;/pre&gt;
+ *
+ * &lt;p&gt;
+ * Resulting coverage information is collected during execution and by default
+ * written to a file when the process terminates.
+ * &lt;/p&gt;
+ *
+ * @since 0.5.3
+ */
+@Mojo(name = &quot;prepare-agent&quot;, defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
+<span class="fc" id="L89">public class AgentMojo extends AbstractAgentMojo {</span>
+
+	/**
+	 * Path to the output file for execution data.
+	 */
+	@Parameter(property = &quot;jacoco.destFile&quot;, defaultValue = &quot;${project.build.directory}/jacoco.exec&quot;)
+	private File destFile;
+
+	/**
+	 * @return the destFile
+	 */
+	@Override
+	File getDestFile() {
+<span class="fc" id="L102">		return destFile;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FileFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">FileFilter.java</span></div><h1>FileFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *    Kyle Lieber - implementation of CheckMojo
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
+
+/**
+ * A file filter using includes/excludes patterns.
+ */
+public class FileFilter {
+
+	private static final String DEFAULT_INCLUDES = &quot;**&quot;;
+	private static final String DEFAULT_EXCLUDES = &quot;&quot;;
+
+	private final List&lt;String&gt; includes;
+	private final List&lt;String&gt; excludes;
+
+	/**
+	 * Construct a new FileFilter
+	 *
+	 * @param includes
+	 *            list of includes patterns
+	 * @param excludes
+	 *            list of excludes patterns
+	 */
+	public FileFilter(final List&lt;String&gt; includes,
+<span class="fc" id="L43">			final List&lt;String&gt; excludes) {</span>
+<span class="fc" id="L44">		this.includes = includes;</span>
+<span class="fc" id="L45">		this.excludes = excludes;</span>
+<span class="fc" id="L46">	}</span>
+
+	/**
+	 * Returns a list of file names.
+	 *
+	 * @param directory
+	 *            the directory to scan
+	 * @return a list of files
+	 * @throws IOException
+	 *             if file system access fails
+	 */
+	public List&lt;String&gt; getFileNames(final File directory) throws IOException {
+<span class="fc" id="L58">		return FileUtils.getFileNames(directory, getIncludes(), getExcludes(),</span>
+				false);
+	}
+
+	/**
+	 * Returns a list of files.
+	 *
+	 * @param directory
+	 *            the directory to scan
+	 * @return a list of files
+	 * @throws IOException
+	 *             if file system access fails
+	 */
+	public List&lt;File&gt; getFiles(final File directory) throws IOException {
+<span class="fc" id="L72">		return FileUtils.getFiles(directory, getIncludes(), getExcludes());</span>
+	}
+
+	/**
+	 * Get the includes pattern
+	 *
+	 * @return the pattern
+	 */
+	public String getIncludes() {
+<span class="fc" id="L81">		return this.buildPattern(this.includes, DEFAULT_INCLUDES);</span>
+	}
+
+	/**
+	 * Get the excludes pattern
+	 *
+	 * @return the pattern
+	 */
+	public String getExcludes() {
+<span class="fc" id="L90">		return this.buildPattern(this.excludes, DEFAULT_EXCLUDES);</span>
+	}
+
+	private String buildPattern(final List&lt;String&gt; patterns,
+			final String defaultPattern) {
+<span class="fc" id="L95">		String pattern = defaultPattern;</span>
+<span class="pc bpc" id="L96" title="1 of 4 branches missed.">		if (patterns != null &amp;&amp; !patterns.isEmpty()) {</span>
+<span class="fc" id="L97">			pattern = StringUtils.join(patterns.iterator(), &quot;,&quot;);</span>
+		}
+<span class="fc" id="L99">		return pattern;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>
