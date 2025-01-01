@@ -2545,6 +2545,46 @@ public class esc1 extends EscBase {
                         seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopDecreases) in method instc",
                                 84)));
     }
+    
+    @Test
+    public void testShift() {
+        addOptions("--code-math=safe");
+        helpTCX("tt.TestJava", """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class TestJava {
+                    //@ ensures k == 1 ==> \\result == 256;
+                    public int inst1(int k) { return k << 40; }
+                    //@ ensures k == 1 ==> \\result == 0x8000_0000L; // CAUTION: No negative int value
+                    public int inst2(int k) { return k << -1; }
+                    //@ ensures k == 1 ==> \\result == 64;
+                    public long inst3(long k) { return k << 6; }
+                    //@ ensures k == 1 ==> \\result == 64;
+                    public long inst3a(long k) { return k << 70; }
+                    //@ ensures k == 1 ==> \\result == 65; // ERROR
+                    public long inst3b(long k) { return k << 6; }
+                    //@ ensures k == 1 ==> \\result == 65; // ERROR
+                    public long inst3c(long k) { return k << 70; }
+                    //@ ensures k == 1 ==> \\result == 2 * 0x4000_0000_0000_0000L; // CAUTION: Avoid negative value
+                    public long inst4(long k) { return k << -1; }
+                    public void inst5(long k) { /*@ assert 0 == (\\bigint)27 << -1; */} // ERROR
+                    public void inst6(long k) { /*@ assert 13 == (\\bigint)27 << -1; */} // OK
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst1",40
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst2",40
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst3a",43
+                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method inst3b",34
+                ,"/tt/TestJava.java:12: warning: Associated declaration",9
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst3c",43
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Postcondition) in method inst3c",34
+                ,"/tt/TestJava.java:14: warning: Associated declaration",9
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst4",42
+                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method inst5",37
+                );
+    }
+
+
 
     @Test
     public void testAssignOp() {

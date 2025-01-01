@@ -13589,25 +13589,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// So any rhs value is legal, but may be unexpected.
 
 		if (op == JCTree.Tag.SL || op == JCTree.Tag.SR || op == JCTree.Tag.USR) {
-			int mask = (lhs.type.getTag() == TypeTag.LONG) ? 63 : 31;
-			JCTree.JCBinary bin = (JCBinary) that;
-			if (bin.rhs instanceof JCLiteral) {
-				long bits = ((Number) ((JCLiteral) bin.rhs).getValue()).longValue();
-				if (currentEnv.arithmeticMode instanceof Arithmetic.Safe) {
-					if (bits < 0 || bits > mask) {
-						addAssert(that, Label.POSSIBLY_LARGESHIFT, treeutils.trueLit);
-					}
-				}
-				if (!(currentEnv.arithmeticMode instanceof Arithmetic.Math))
-					bits &= mask;
-			} else {
-				JCExpression expr = treeutils.makeBinary(that.pos, JCTree.Tag.BITAND,
-						mask == 31 ? treeutils.intbitandSymbol : treeutils.longbitandSymbol, rhs,
-						treeutils.makeIntLiteral(that.pos, mask));
-				expr = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rhs, expr);
-				addAssert(that, Label.POSSIBLY_LARGESHIFT, expr);
-			}
-			// FIXME - need to export the adjusted rhs
+		    if (currentEnv.arithmeticMode instanceof Arithmetic.Safe) {
+		        int mask = (lhs.type.getTag() == TypeTag.LONG) ? 63 : 31;
+		        JCTree.JCBinary bin = (JCBinary) that;
+		        if (bin.rhs instanceof JCLiteral literal) {
+		            long bits = ((Number) literal.getValue()).longValue();
+		            if (bits < 0 || bits > mask) {
+		                addCheck(that, Label.POSSIBLY_LARGESHIFT, treeutils.falseLit);
+		            }
+		        } else {
+		            JCExpression expr = treeutils.makeBinary(that.pos, JCTree.Tag.BITAND,
+		                    mask == 31 ? treeutils.intbitandSymbol : treeutils.longbitandSymbol, rhs,
+		                            treeutils.makeIntLiteral(that.pos, mask));
+		            expr = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, rhs, expr);
+		            addCheck(that, Label.POSSIBLY_LARGESHIFT, expr);
+		        }
+		    }
+		    // FIXME - need to export the adjusted rhs
 		}
 		// FIXME - add a command-line switch to enable the above?
 		// FIXME - add checks for numeric overflow
