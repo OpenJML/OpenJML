@@ -5,7 +5,7 @@
 ## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
 
 ## $R is the location of the directory containing this script, with
-## $R/../.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
 
 R=$( cd $(dirname "$BASH_SOURCE") && pwd)
 ROOT=$R/../../OpenJML21
@@ -17,6 +17,8 @@ NJAVA=$ROOT/build/*/jdk/bin/java
 
 . $TEST/setup-coverage unit-$1
 
+. $ROOT/setup-exports
+
 
 cd $R
 rm -f *.class
@@ -24,8 +26,6 @@ CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
 CP=".:../src:$JUNIT:$CL"
 
 OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
-
-. $ROOT/setup-exports
 
 while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/macosx-x86_64-server-release/jdk/modules $EXPORTS Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
 
