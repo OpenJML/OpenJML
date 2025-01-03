@@ -14708,9 +14708,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             boolean check = !(currentEnv.arithmeticMode instanceof Arithmetic.Java);
             int changePrecision = comparePrecision(oldtype.getTag(), newtype.getTag());
             //System.out.println("PRIMPRIM " + oldtype + " " + newtype + " " + changePrecision);
-            if (useBV) {
-                // skip
-            } else if (changePrecision == 1) {
+//            if (useBV) {
+//                // skip
+//            } else 
+            if (changePrecision == 1) {
                 TypeTag ntag = newtype.getTag();
                 // change precision == 1 means that a higher precision value is being cast to a
                 // lower precision so we check the range of the argument
