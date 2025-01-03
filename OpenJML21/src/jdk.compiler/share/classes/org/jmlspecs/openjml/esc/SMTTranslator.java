@@ -2258,8 +2258,8 @@ public class SMTTranslator extends JmlTreeScanner {
                         arg = rhs;
                         num = literal;
                     }
-                    if (num.getValue() instanceof Number) {
-                        long v = ((Number)num.getValue()).longValue();
+                    if (num.getValue() instanceof Number numb) {
+                        long v = numb.longValue();
                         if (v > 0 && Long.bitCount(v+1) == 1) {
                             result = F.fcn(F.symbol("mod"), arg, F.numeral(v+1));
                         }
