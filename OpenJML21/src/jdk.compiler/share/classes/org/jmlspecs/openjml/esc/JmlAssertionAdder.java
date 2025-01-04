@@ -3188,11 +3188,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression saved = currentEnv.currentReceiver;
 		currentEnv.currentReceiver = currentThis;
 		boolean staticOnly = utils.isJMLStatic(d.sym);
+		pushBlock();
 		for (ClassSymbol csym : utils.parents(d.type.tsym, false)) {
 			// if (esc) addNullnessAndTypeConditionsForFields(csym,false);
 			// The following call adds in the nullness and type conditions of all fields
 			addInvariants(assume, d, staticOnly, false, false, csym, currentThis);
 		}
+		JCBlock bl = popBlock(d);
+		var cond = treeutils.makeNotNull(currentThis, currentThis); // FIXME - could check that the receiver is nullable // FIXME even if null we need static invariants
+		addStat(M.at(d).If(cond, bl, null));
 		currentEnv.currentReceiver = saved;
 	}
 
