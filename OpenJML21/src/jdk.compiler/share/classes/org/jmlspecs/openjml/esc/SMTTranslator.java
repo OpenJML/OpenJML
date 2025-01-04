@@ -1623,7 +1623,7 @@ public class SMTTranslator extends JmlTreeScanner {
             if (t.tsym == JmlPrimitiveTypes.stringTypeKind.getSymbol(context)) {
                 return stringSort;
             } else if (t.tsym == BIGINT) {
-                return intSort;
+                return useBV ? bv32Sort : intSort;
             } else if (t.tsym == REAL) { // FIXME - settle on which
                 addReal();
                 return realSort;
@@ -2402,8 +2402,7 @@ public class SMTTranslator extends JmlTreeScanner {
         boolean treeIsPrim = utils.isJavaOrJmlPrimitiveType(tree.type);
         //System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
         Number value = null;
-        if (tree.expr instanceof JCLiteral) {
-            JCLiteral lit = (JCLiteral)tree.expr;
+        if (tree.expr instanceof JCLiteral lit) {
             if (lit.getValue() instanceof Number) {
                 if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && tree.type.tsym == REAL)) {
                     double d = ((Number)lit.getValue()).doubleValue();
@@ -2413,7 +2412,7 @@ public class SMTTranslator extends JmlTreeScanner {
             }
             if (tree.type.tsym == BIGINT) {
                 var k = ((Number)lit.getValue()).longValue();
-                result = numeral(k);
+                result = useBV ? F.hex("00000000") : numeral(k);
                 return;
             }
         }
