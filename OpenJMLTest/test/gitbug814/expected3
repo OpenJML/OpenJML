@@ -19,25 +19,25 @@ Starting proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!!
 test/gitbug814/BinaryTree.java:22: warning: The prover cannot establish an assertion (Precondition) in method ks
             r.addAll(ks(n.left));
                     ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/TreeSet.jml:49: warning: Associated declaration
+$SPECS/java/util/TreeSet.jml:49: warning: Associated declaration
   public boolean addAll(java.util.Collection<? extends E> c);
                  ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
+$SPECS/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
       @   requires !\key("RAC") ==> !containsNull ==> !c.containsNull;
                                 ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
+$SPECS/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
       @  requires c == null;
                     ^
 test/gitbug814/BinaryTree.java:23: warning: The prover cannot establish an assertion (Precondition) in method ks
             r.addAll(ks(n.right));
                     ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/TreeSet.jml:49: warning: Associated declaration
+$SPECS/java/util/TreeSet.jml:49: warning: Associated declaration
   public boolean addAll(java.util.Collection<? extends E> c);
                  ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
+$SPECS/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
       @   requires !\key("RAC") ==> !containsNull ==> !c.containsNull;
                                 ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
+$SPECS/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
       @  requires c == null;
                     ^
 Completed proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!! - with warnings
@@ -110,7 +110,7 @@ Starting proof of BinaryTree.between(int,int) with prover !!!!
 test/gitbug814/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method between: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814/BinaryTree.java:141: warning: Associated method exit
@@ -131,7 +131,7 @@ Starting proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!!
 test/gitbug814/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814/BinaryTree.java:162: warning: Associated method exit
@@ -140,7 +140,7 @@ test/gitbug814/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814/BinaryTree.java:162: warning: Associated method exit
@@ -149,7 +149,7 @@ test/gitbug814/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814/BinaryTree.java:162: warning: Associated method exit
@@ -158,7 +158,7 @@ test/gitbug814/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814/BinaryTree.java:162: warning: Associated method exit
@@ -179,10 +179,10 @@ test/gitbug814/BinaryTree.java:157: warning: The prover cannot establish an asse
 test/gitbug814/BinaryTree.java:157: warning: The prover cannot establish an assertion (Precondition) in method btw
         int[] r = Arrays.copyOf(r1, r1.length + 1 + r2.length);
                                ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Arrays.jml:1944: warning: Associated declaration
+$SPECS/java/util/Arrays.jml:1944: warning: Associated declaration
     public static int[] copyOf(int /*@ nullable @*/ [] original, int newLength);
                         ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Arrays.jml:1934: warning: Precondition conjunct is false: newLength >= 0
+$SPECS/java/util/Arrays.jml:1934: warning: Precondition conjunct is false: newLength >= 0
     //@   requires newLength >= 0;
                              ^
 test/gitbug814/BinaryTree.java:160: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method btw
