@@ -1,3 +1,0 @@
-COMMAND: ../../OpenJML21/openjml-compile github786/MainApp.java -cp github786 -d github786
-
-Has a problem with modules

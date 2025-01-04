@@ -38,7 +38,7 @@ import com.sun.tools.javac.util.Options;
 
 public interface IAPI {
     
-    public static IAPI make() { return make(null, null, null); }
+    public static IAPI make() { return make(new PrintWriter(System.out, true), new PrintWriter(System.out, true), null); }
     public static IAPI make(PrintWriter out, DiagnosticListener<? extends JavaFileObject> diagListener) { return make(out, out, diagListener); }
     public static IAPI make(PrintWriter out, PrintWriter err, DiagnosticListener<? extends JavaFileObject> diagListener) { return new API(out, err, diagListener); }
 
@@ -170,12 +170,12 @@ public interface IAPI {
     default public int execute(
             /*@non_null*/ PrintStream writer, 
             /*@non_null*/ String ... args) {
-        var pw = new PrintWriter(writer);
+        var pw = new PrintWriter(writer, true);
         try {
             return execute(pw, null, args);
         } finally {
             pw.flush();
-            if (writer != System.out) pw.close();
+            if (writer != System.out && writer != System.err) pw.close();
         }
     }
     
