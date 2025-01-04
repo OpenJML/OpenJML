@@ -1,0 +1,5 @@
+START
+error: file not found: ./MaxBad.java
+Usage: openjml <options> <source files>
+use --help for a list of possible options
+END 2

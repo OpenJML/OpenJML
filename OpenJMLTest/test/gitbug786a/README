@@ -1,0 +1,2 @@
+gitbug786 works using IAPI.openjml
+But gitbug786a uses api.execute and does not output stuff, at least coammdn-line errors
