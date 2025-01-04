@@ -1,0 +1,61 @@
+Proving methods in BinaryTree
+Proving methods in BinaryTree.Node
+Starting proof of BinaryTree.Node.Node() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinaryTree.Node.Node() with prover !!!! - no warnings
+Starting proof of BinaryTree.Node.size(BinaryTree.Node) with prover !!!!
+test/gitbug814/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+            return(size(n.left)+1+size(n.right));
+                               ^
+test/gitbug814/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: underflow in int sum
+            return(size(n.left)+1+size(n.right));
+                                 ^
+test/gitbug814/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+            return(size(n.left)+1+size(n.right));
+                                 ^
+Completed proof of BinaryTree.Node.size(BinaryTree.Node) with prover !!!! - with warnings
+Starting proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!!
+test/gitbug814/BinaryTree.java:23: warning: The prover cannot establish an assertion (Precondition) in method ks
+            r.addAll(ks(n.right));
+                    ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/TreeSet.jml:49: warning: Associated declaration
+  public boolean addAll(java.util.Collection<? extends E> c);
+                 ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
+      @   requires !\key("RAC") ==> !containsNull ==> !c.containsNull;
+                                ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
+      @  requires c == null;
+                    ^
+test/gitbug814/BinaryTree.java:22: warning: The prover cannot establish an assertion (Precondition) in method ks
+            r.addAll(ks(n.left));
+                    ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/TreeSet.jml:49: warning: Associated declaration
+  public boolean addAll(java.util.Collection<? extends E> c);
+                 ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
+      @   requires !\key("RAC") ==> !containsNull ==> !c.containsNull;
+                                ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
+      @  requires c == null;
+                    ^
+Completed proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!! - with warnings
+Completed proving methods in BinaryTree.Node
+Starting proof of BinaryTree.keySet() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinaryTree.keySet() with prover !!!! - no warnings
+Starting proof of BinaryTree.BinaryTree() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinaryTree.BinaryTree() with prover !!!! - no warnings
+Starting proof of BinaryTree.BinaryTree(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinaryTree.BinaryTree(int) with prover !!!! - no warnings
+Starting proof of BinaryTree.BinaryTree(@NonNull BinaryTree,@NonNull BinaryTree,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinaryTree.BinaryTree(@NonNull BinaryTree,@NonNull BinaryTree,int) with prover !!!! - no warnings
+Starting proof of BinaryTree.allNullAtOrPred(BinaryTree.Node,int) with prover !!!!
