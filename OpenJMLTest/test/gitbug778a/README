@@ -1,0 +1,3 @@
+The original problem, in gitbug778, was a simple syntax problem, which caused a crash that is now fixed.
+However, with the correct syntax, the test case provoked some problems with the interaction of bitvectors and SMT Ints,
+which are now fixed in this testcase.
