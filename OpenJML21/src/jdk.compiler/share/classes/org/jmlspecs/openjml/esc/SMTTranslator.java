@@ -311,6 +311,9 @@ public class SMTTranslator extends JmlTreeScanner {
             c = new C_declare_sort(F.symbol(JAVATYPESORT),zero);
             commands.add(c);
         }
+        c = new C_declare_sort(F.symbol("T_void"),zero);
+        commands.add(c);
+        
         String q = JmlOption.value(context, JmlOption.QUANTS_FOR_TYPES);
         boolean quants = false;
         if ("true".equals(q)) quants = true;
