@@ -93,11 +93,11 @@ cov-clean:
 
 cov-test:
 	cd ${TEST}
+	COV= time make jsontests
 	COV= time ./unittests/runpar | tee log-unittests | sort
 	COV= time ./scripttests/escfiles-sort
-	COV= time make jsontests
-	##COV= time make tutorial-tests ## Not yet working and one does not complete
-	## COV= make release-tests ## Not yet working
+	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
+	## COV= make release-tests ## FIXME: Not yet working
 
 cov-report:
 	@rm -rf ${TEST}/cov/html
