@@ -1218,7 +1218,7 @@ public class SMTTranslator extends JmlTreeScanner {
             return F.fcn(F.symbol("_makeArrayType"),e);
         }
         if (t.getTag() == TypeTag.BOT) t = syms.objectType;
-        else if (!t.isPrimitive()) t = t.tsym.erasure(jmltypes);
+        else if (!t.isPrimitiveOrVoid()) t = t.tsym.erasure(jmltypes);
         
         String s = "T_" + typeString(t);
         return F.symbol(s);
