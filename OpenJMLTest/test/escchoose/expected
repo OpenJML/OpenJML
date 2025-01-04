@@ -33,4 +33,4 @@ test/escchoose/T.java:26: warning: The prover cannot establish an assertion (Cho
                 ^
 Completed proof of T.bad2() with prover !!!! - with warnings
 Completed proving methods in T
-5 warnings
+6 warnings
