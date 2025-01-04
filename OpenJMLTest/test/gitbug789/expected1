@@ -39,15 +39,15 @@ Starting proof of CircleOperations.main(String[]) with prover !!!!
 test/gitbug789/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.id(79));
                           ^
-$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
-    //-RAC@ public invariant outputText != null && \invariant_for(outputText);
-                   ^
-test/gitbug789/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
-        System.out.println(cops.id(79));
-                          ^
 $SPECS/java/io/PrintStream.jml:35: warning: Associated declaration
     //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
                           ^
+test/gitbug789/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
+        System.out.println(cops.id(79));
+                          ^
+$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
+    //-RAC@ public invariant outputText != null && \invariant_for(outputText);
+                   ^
 Completed proof of CircleOperations.main(String[]) with prover !!!! - with warnings
 Starting proof of CircleOperations.mn(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
