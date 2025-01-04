@@ -12,7 +12,7 @@ public class Run {
        combined = (String[])list.toArray(new String[list.size()]);
        System.out.println(String.join(" ", combined));
     }
-    int x = org.jmlspecs.openjml.Main.execute(combined);
+    int x = org.openjml.IAPI.openjml(combined);
     System.exit(x);
   }
 }
