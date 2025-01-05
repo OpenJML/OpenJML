@@ -458,7 +458,7 @@ public class JmlParser extends JavacParser {
                     utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + fa);
                     // Do not add the annotation -  not permitted on a primitive type
                 } else {
-                    System.out.println("UNKNOWN KIND OF TYPE " + vartype.getClass() + " " + vartype);
+                    utils.error(mod.pos, "jml.internal", "Unknown type syntax: " + vartype.getClass() + " " + vartype);
                 }
 //            } else {
 //                //utils.warning(mod.pos, mod.endPos, "jml.message", "inserting a modifier as an annotation: " + ck); Utils.dumpStack();
@@ -520,8 +520,8 @@ public class JmlParser extends JavacParser {
                 		errs.head.pos = s.pos;
                 	}
                 }
-            } else {
-                if (inJmlDeclaration && token.kind == IDENTIFIER) {
+            } else { // presumes inJmlDeclaration is true
+                if (token.kind == IDENTIFIER) {
                     IJmlClauseKind cl = Extensions.findKeyword(token);
                     if (cl instanceof IJmlClauseKind.ClassLikeKind) {
                         s = (JmlDatatypeDecl)cl.parse(mods,token.name().toString(),cl,this);
@@ -537,7 +537,7 @@ public class JmlParser extends JavacParser {
                         mods = modifiersOpt(mods);
                     	continue; // ignore token and try again
                     }
-                } else if (inJmlDeclaration && token.kind == IMPORT) {
+                } else if (token.kind == IMPORT) {
 //                	pushBackModifiers = mods;
                 	importDeclaration((JmlModifiers)mods);
                 	mods = null;
@@ -725,8 +725,7 @@ public class JmlParser extends JavacParser {
 
  
     protected void insertReplacementType(Object tree, JCExpression replacementType) {
-        if (replacementType != null && tree instanceof JmlVariableDecl) {
-            JmlVariableDecl d = (JmlVariableDecl) tree;
+        if (replacementType != null && tree instanceof JmlVariableDecl d) {
             d.originalVartype = d.vartype;
             d.jmltype = true;
             if (d.vartype instanceof JCAnnotatedType at) {
@@ -829,7 +828,7 @@ public class JmlParser extends JavacParser {
             		JCExpression replacementType = parseOptionalReplacementType(); // Needed for local variable declarations -- removes leading jml comment or left bracket
             		boolean inJml = S.jml();
             		List<JCStatement> stats = super.blockStatement();
-            		if (replacementType != null) {
+            		{
             			for (JCStatement s: stats)  insertReplacementType(s,replacementType);
             			replacementType = null;
             		}
@@ -1333,7 +1332,7 @@ public class JmlParser extends JavacParser {
                                 utils.error(tr.pos, "jml.message", "Method specs may not precede a variable declaration");
                                 currentMethodSpecs = null;
                             }
-                            if (replacementType != null) {
+                            {
                                 insertReplacementType(vd,replacementType);
                                 replacementType = null;
                             }
@@ -1517,15 +1516,15 @@ public class JmlParser extends JavacParser {
     
     JCExpression lambdaStatement(List<JCVariableDecl> args, int pos, int pos2) {
         var e = super.lambdaStatement(args,  pos,  pos2);
-        if (e instanceof JmlLambda) ((JmlLambda)e).sourceLocation = log.currentSourceFile();
-        else System.out.println("EXPECTED JMLLAMBDA"); // FIXME
+        if (e instanceof JmlLambda lam) lam.sourceLocation = log.currentSourceFile();
+        else utils.error(pos, "jml.internal", "Expression did not parse as a lambda statement");
         return e;
     }
 
     JCExpression lambdaExpression(List<JCVariableDecl> args, int pos) {
         var e = super.lambdaExpression(args,  pos);
-        if (e instanceof JmlLambda) ((JmlLambda)e).sourceLocation = log.currentSourceFile();
-        else System.out.println("EXPECTED JMLLAMBDA");  // FIXME
+        if (e instanceof JmlLambda lam) lam.sourceLocation = log.currentSourceFile();
+        else utils.error(pos, "jml.internal", "Expression did not parse as a lambda expression");
         return e;
     }
 
@@ -1614,7 +1613,7 @@ public class JmlParser extends JavacParser {
         		nextToken();
         		this.replacementType = super.unannotatedType(allowVar);
         	} finally {
-        		if (isBrace) accept(TokenKind.RBRACKET);
+        		accept(TokenKind.RBRACKET);
         		if (!isEndJml()) {
         			utils.error(token.pos,"jml.bad.construct","JML construct");
         		}
@@ -2782,7 +2781,6 @@ public class JmlParser extends JavacParser {
                         if ("match".equals(id)) {
                             return null; // FIXME new MatchExt(context).parse(this, typeArgs);
                         } else {
-                            System.out.println("TOKEN " + id + " " + token);
                             utils.error(p, endPos(), "jml.bad.type.expression",
                                     "( token " + token
                                     + " in JmlParser.term3())");
@@ -3187,7 +3185,7 @@ public class JmlParser extends JavacParser {
 //            pushBackModifiers = null;
 //        }
         T list = super.variableDeclarators(mods,type,vdefs,localDecl);
-        if (replacementType != null) {
+        {
             for (Object decl: list) insertReplacementType(decl,replacementType);
             replacementType = null;
         }

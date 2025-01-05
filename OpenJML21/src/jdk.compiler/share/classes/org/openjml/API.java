@@ -237,19 +237,11 @@ public class API implements IAPI {
 //       if (main != null) JmlEsc.instance(main.context()).abort();
 //    }
 //    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#execute(Options, String[])
-//     */
-//    @Override
-//    public int execute(/*@nullable*/ Options options, /*@non_null*/ String ... args) {
-//        int ret = main.executeNS(main.out(), diagListener, prl, options, args);
-//        return ret;
-//    }
-//    
+   
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
-    public int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@non_null*/ String ... args) {
+    public int execute(/*@ non_null*/ String ... args) {
         int x = main.compile(args, main.context).exitCode;
         return x;
     }

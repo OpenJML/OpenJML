@@ -160,7 +160,7 @@ public abstract class JmlTestCase {
             if (print) System.out.println(diagnostic.toString());
             //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
             //if (print) System.out.println(diagnostic.toString());
-           if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
+            if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
             		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated"))
                 diagnostics.add(diagnostic);
         }
@@ -325,7 +325,6 @@ public abstract class JmlTestCase {
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
     	synchronized (System.out) {
-    		System.out.println("DIAGNOSTICS " + collector.getDiagnostics().size() + " " + name.getMethodName());
     		for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
     			long line = dd.getLineNumber();
     			long start = dd.getStartPosition();
@@ -336,22 +335,47 @@ public abstract class JmlTestCase {
     		}
     	}
     }
+    
+    /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
+     * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
+     * If there is just one number, it is the column */
+    public void checkDiagnostics(Object[] list) {
+        try {
+            int i = 0;
+            int k = 0;
+            Object p1,p2,p3,p4;
+            for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
+                if (k >= list.length) break;
+                String expected = doReplacements(((String)list[k++]));
+                assertEquals("Message " + i + " mismatch",expected,noSource(dd));
+                p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                p4 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                if (p4 != null) {
+                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
+                    assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
+                    assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
+                    assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
+                } else if (p1 != null) {
+                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
+                } else {
+                    fail("No positions given for message " + i);
+                }
+                i++;
+            }
+            if (k < list.length) {
+                fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected");
+            }
+            if (i < collector.getDiagnostics().size()) {
+                fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected");
+            }
+        } catch (AssertionError e) {
+            printDiagnostics();
+            throw e;
+        }
 
-//    /** Checks that all of the collected diagnostic messages match the data supplied
-//     * in the arguments.
-//     * @param messages an array of expected messages that are checked against the actual messages
-//     * @param cols an array of expected column numbers that are checked against the actual diagnostics
-//     */ // TODO - not used
-//    public void checkMessages(/*@ non_null */String[] messages, /*@ non_null */int[] cols) {
-//        List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
-//        if (print || (!noExtraPrinting && messages.length != diags.size())) printDiagnostics();
-//        assertEquals("Saw wrong number of errors ",messages.length,diags.size());
-//        assertEquals("Saw wrong number of columns ",cols.length,diags.size());
-//        for (int i = 0; i<diags.size(); ++i) {
-//            assertEquals("Message for item " + i,messages[i],noSource(diags.get(i)));
-//            assertEquals("Column number for item " + i,cols[i],diags.get(i).getColumnNumber()); // Column number is 1-based
-//        }
-//    }
+    }
 
     /** Checks that all of the collected messages match the data supplied
      * in the arguments.
