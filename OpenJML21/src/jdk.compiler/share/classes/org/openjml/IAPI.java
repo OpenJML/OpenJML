@@ -148,37 +148,20 @@ public interface IAPI {
 //    //@ ensures isOpen;
 //    public int execute(/*@nullable*/ Options options, /*@non_null*/ String ... args);
     
-    /** Executes the command-line version of OpenJML, in a newly initialized
-     * Main, with a new compilation context, returning the exit code.
+    /** Executes the command-line version of OpenJML, in the current context, returning the exit code.
      * The arguments are used to initialize the options and files just as
      * described for initOptions() and the constructor for Main().
-     * @param writer the PrintWriter to receive general output
-     * @param diagListener a listener to receive reports of diagnostics (e.g. parse or typechecking errors and warnings)
-     * @param args the command-line arguments
+     * @param args the command-line arguments - the strings may not be null
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
-    public int execute(
-            /*@non_null*/ PrintWriter writer, 
-            /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, 
-            /*@non_null*/ String ... args);
-
-    default public int execute(
-            /*@non_null*/ String ... args) {
-        return execute(System.out, args);
-    }
+    public int execute(/*@non_null*/ String ... args);
     
-    default public int execute(
-            /*@non_null*/ PrintStream writer, 
-            /*@non_null*/ String ... args) {
-        var pw = new PrintWriter(writer, true);
-        try {
-            return execute(pw, null, args);
-        } finally {
-            pw.flush();
-            if (writer != System.out && writer != System.err) pw.close();
-        }
-    }
-    
+    /** Executes the command-line version of openjml, in a new context, returning the exit code.
+     * The arguments are used to initialize the options and files just as
+     * described for initOptions() and the constructor for Main().
+     * @param args the command-line arguments - the strings may not be null
+     * @return the exit code (0 is success; other values are various kinds of errors)
+     */
     static public int openjml(String ... args) {
         //return make().execute(args);
         return org.jmlspecs.openjml.Main.execute(args);

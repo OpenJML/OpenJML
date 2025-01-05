@@ -92,31 +92,8 @@ public abstract class TCBase extends JmlTestCase {
             // If additional Java options are wanted (e.g. -verbose), add them here
             int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
             
-            int i = 0;
-            int k = 0;
-            Object p1,p2,p3,p4;
-            for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                if (k >= list.length) break;
-                String expected = doReplacements(((String)list[k++]));
-                assertEquals("Message " + i + " mismatch",expected,noSource(dd));
-                p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p4 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                if (p4 != null) {
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
-                    assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
-                    assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
-                    assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
-                } else if (p1 != null) {
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
-                } else {
-                    fail("No positions given for message " + i);
-                }
-                i++;
-            }
-            if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected (" + (list.length/2) + ")");
-            if (i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
+            checkDiagnostics(list);
+            
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {

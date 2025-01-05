@@ -118,6 +118,22 @@ public class typechecking extends TCBase {
                 ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (A.toString() overrides java.lang.Object.toString())",28
                 );
     }
+    
+    @Test public void missingAlso() {
+        addOptions("--lang=jml");
+        helpTC("class A extends B { /*@ normal_behavior requires true; */ public void m() { } } class B { /*@ requires true; */ void m(){} } "
+                ,"/TEST.java:1: error: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())", 25, 24, 24, 54
+                );
+    }
+
+    @Test public void extraAlso() {
+        addOptions("--lang=jml");
+        helpTC("class A { /*@ also normal_behavior requires true; */ public void m() {  } }  "
+                ,"/TEST.java:1: error: Method m does not override parent class methods and so its specification may not begin with 'also'", 15, 14, 14, 14
+                );
+    }
+
+
 
     @Test public void testOld1() {
         helpTC(" class A { int k; boolean b; void m() { \n//@ assert \\old;\n}}",

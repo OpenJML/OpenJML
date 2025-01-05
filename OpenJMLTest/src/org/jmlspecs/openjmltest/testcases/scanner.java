@@ -111,13 +111,22 @@ public class scanner extends JmlTestCase {
                 Token e = sc.token();
                 Object o = e.kind;
                 if (e instanceof JmlToken jmlt) o = jmlt.jmlclausekind;
-                if (o != list[i]) {
-                    fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + o 
-                            + (" " + e.pos + " " + e.endPos));
-                }
-                if (positions != null && 2*i+1 < positions.length) {
-                    assertEquals("pos for token " + i, positions[2*i], e.pos);
-                    assertEquals("endpos for token " + i, positions[2*i+1], e.endPos);
+                try {
+                    if (o != list[i]) {
+                        fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + o 
+                                + (" " + e.pos + " " + e.endPos));
+                    }
+                    if (positions != null && 2*i+1 < positions.length) {
+                        assertEquals("pos for token " + i, positions[2*i], e.pos);
+                        assertEquals("endpos for token " + i, positions[2*i+1], e.endPos);
+                    }
+                } catch (AssertionError ex) {
+                    do {
+                        sc.nextToken();
+                        e = sc.token();
+                        System.out.println((++i) + " : " + e.kind + (" " + e.pos + " " + e.endPos));
+                    } while (e.kind != EOF);
+                    throw ex;
                 }
                 i++;
             }
@@ -434,7 +443,6 @@ public class scanner extends JmlTestCase {
                 0);
     }
     
-    /** Test for unclosed character literal */
     @Test public void testIllegalUnderscore() {
         helpScanner("0__5",
                 new Object[]{INTLITERAL,EOF},
@@ -442,6 +450,24 @@ public class scanner extends JmlTestCase {
                 0);
 //        checkMessages("/TEST.java:1: error: illegal underscore",2,
 //                "/TEST.java:1: error: illegal underscore",2);
+    }
+    
+    // Intended to trigger JvaTokenizerL617 -- put that line is never executed because
+    // illegal leading underscores are caught elsewhere before calling scanDigits
+    @Test public void testIllegalLeadingUnderscore() {
+        helpScanner("0x_05",
+                new Object[]{INTLITERAL,EOF},
+                new int[] {0,5, 5,5},
+                1);
+        checkMessages("/TEST.java:1: error: illegal underscore",3);
+    }
+    
+    @Test public void testIllegalTrailingUnderscore() {
+        helpScanner("0x05_",
+                new Object[]{INTLITERAL,EOF},
+                new int[] {0,5, 5,5},
+                1);
+        checkMessages("/TEST.java:1: error: illegal underscore",5);
     }
     
 
@@ -1054,6 +1080,76 @@ public class scanner extends JmlTestCase {
                 new int[] {0,3, 4,12, 21,23, 23,23},
                 1);
         checkMessages("/TEST.java:1: error: A sequence of @ symbols followed by a * is expected to be followed by a / to end the JML comment", 15); // FIXME expected 14 instead of 15
+    }
+    
+    @Test public void testBadSymbol() {
+        helpScanner("#",
+                new Object[]{ERROR, EOF},
+                new int[] {0,1, 1,1},
+                1);
+        checkMessages("/TEST.java:1: error: illegal character: '#'", 1);
+    }
+    
+    @Test public void testOctalEscape() {
+        helpScanner("'\\77' '\\100'",
+                new Object[]{CHARLITERAL,CHARLITERAL,EOF},
+                new int[] {0,5, 6,12, 12,12},
+                0);
+    }
+    
+    @Test public void testOctalEscape1() {
+        helpScanner("'\\39'",
+                new Object[]{ERROR,INTLITERAL,ERROR,EOF},
+                new int[] {0,3, 3,4, 4,5, 5,5},
+                2);
+        checkMessages("/TEST.java:1: error: unclosed character literal", 1
+                ,"/TEST.java:1: error: unclosed character literal",5);
+    }
+    @Test public void testOctalEscape2() {
+        helpScanner("'\\109'",
+                new Object[]{ERROR,INTLITERAL,ERROR,EOF},
+                new int[] {0,4, 4,5, 5,6, 6,6},
+                2);
+        checkMessages("/TEST.java:1: error: unclosed character literal", 1
+                ,"/TEST.java:1: error: unclosed character literal",6);
+    }
+    
+    @Test public void testWSEscape() {
+        helpScanner("'\\s'",
+                new Object[]{CHARLITERAL,EOF},
+                new int[] {0,4, 4,4},
+                0);
+    }
+    
+    @Test public void testIllegalEscapeChar() {
+        helpScanner("'\\z'",
+                new Object[]{ERROR,IDENTIFIER,ERROR,EOF},
+                new int[] {0,2, 2,3, 3,4, 4,4},
+                3);
+        checkMessages("/TEST.java:1: error: illegal escape character",3
+                ,"/TEST.java:1: error: unclosed character literal",1
+                ,"/TEST.java:1: error: unclosed character literal",4);
+    }
+    
+    // FIXME - this was intended to exercize the '\n' and '\r' block in JavaTokenizer L473 -- but it does not
+    @Test public void testIllegalLineEnd() {
+        helpScanner("'\\\\n'",
+                new Object[]{ERROR,IDENTIFIER,ERROR,EOF},
+                new int[] {0,3, 3,4, 4,5, 5,5},
+                2);
+        checkMessages(
+                 "/TEST.java:1: error: unclosed character literal",1
+                ,"/TEST.java:1: error: unclosed character literal",5);
+    }
+    
+    @Test public void testOpenTextBlock() {
+        helpScanner("\"\"\"   sd\n \"\"\"",
+                new Object[]{ERROR,IDENTIFIER,ERROR,EOF},
+                new int[] {0,6, 6,8, 10,13, 13, 13},
+                2);
+        checkMessages(
+                 "/TEST.java:1: error: illegal text block open delimiter sequence, missing line terminator",7
+                ,"/TEST.java:2: error: illegal text block open delimiter sequence, missing line terminator",5);
     }
     
 }

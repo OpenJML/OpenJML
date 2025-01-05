@@ -27,7 +27,7 @@ CP=".:../src:$JUNIT:$CL"
 
 OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
-while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/macosx-x86_64-server-release/jdk/modules $EXPORTS Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
+while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/*-release/jdk/modules $EXPORTS Test.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
 
    # Build can fail because of race conditions between compiles if so then multiple runtests are started at once
    echo Build failed for $@

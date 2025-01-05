@@ -303,10 +303,6 @@ public class JmlScanner extends Scanner {
 //        return token;
 //    }
 
-    public void setToken(Token token) {
-        this.token = token;
-    }
-
     public String chars() {
         return jmltokenizer.chars();
     }

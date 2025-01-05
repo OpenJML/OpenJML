@@ -4936,9 +4936,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return null;
         } else {
             Name label = ((JCTree.JCIdent)tr).getName();
+            assert label != null;
             if (labelEnvs.get(label) == null) {
             	String s = label.toString();
-            	boolean bs = !s.isEmpty() && s.charAt(0) == '\\';
+            	assert !s.isEmpty();
+            	boolean bs = s.charAt(0) == '\\';
             	final String sf = bs ? s.substring(1) : s;
             	if (!Arrays.stream(predefinedLabels).anyMatch(ss->ss.equals(sf))) {
             		utils.error(tr,  "jml.message", "Unknown label: " + label);
@@ -7516,6 +7518,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (JCExpression st: that.storerefs) attribExpr(st,env);
     }
 
+    // This is the model program choose, not the quanitifier
     public void visitJmlChoose(JmlChoose that) {
         // FIXME - fill in
     }
@@ -8460,7 +8463,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    	var base = parents.get(0); // Expected to be the top of the override chain
     	                    	String s = msym.owner + "." + msym + " overrides " + base.owner + "." + base;
     	                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
-    	                            utils.warning(spec.source(), spec,  
+    	                            utils.error(spec.source(), spec,  
     	                            		"jml.missing.also", specDecl.name.toString(), s);
     	                        } else {
     	                            utils.warning(spec.source(), spec, 

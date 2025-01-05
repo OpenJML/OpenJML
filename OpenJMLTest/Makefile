@@ -60,7 +60,7 @@ unittests-par: Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
 
 scripttests: .FORCE Run.class
-	( cd ${TEST}/scripttests; ./escfiles-sort)
+	( cd ${TEST}/scripttests; ./runtests-sort)
 
 jsontests: .FORCE Run.class
 	${TEST}/scripttests/json/run
@@ -95,7 +95,7 @@ cov-test:
 	cd ${TEST}
 	COV= time make jsontests
 	COV= time ./unittests/runpar | tee log-unittests | sort
-	COV= time ./scripttests/escfiles-sort
+	COV= time ./scripttests/runtests-sort
 	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
 	## COV= make release-tests ## FIXME: Not yet working
 
