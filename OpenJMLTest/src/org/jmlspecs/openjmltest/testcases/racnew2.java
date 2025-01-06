@@ -292,6 +292,7 @@ public class racnew2 extends RacBase {
 
     /** Tests binary operators */
     @Test public void testShift() {
+        addOptions("--code-math=safe");
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=6,c=100;  \n" +
                 "  int d = a << b; \n" +

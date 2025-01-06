@@ -35,8 +35,8 @@ public class TCWithJml {
     
     public static Object p(Integer i, @Nullable Integer j, Integer k, @Nullable  Integer l);
 
-    public static Object q(@NonNull @Nullable Integer j);    // Error - duplicate annotation
-    public static Object qa(/*@ non_null nullable */ Integer j);   // Error - duplicate annotation
+    public static Object q(@NonNull @Nullable Integer j);    // Error - conflicting annotation
+    public static Object qa(/*@ non_null nullable */ Integer j);   // Error - conflicting annotation
 
     public static Object r(@Pure Integer j);  // Error - annotation not allowed
     public static Object ra(/*@ pure */ Integer j);  // Error - annotation not allowed

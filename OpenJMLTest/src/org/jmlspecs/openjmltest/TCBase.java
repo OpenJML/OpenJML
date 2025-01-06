@@ -99,9 +99,6 @@ public abstract class TCBase extends JmlTestCase {
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printDiagnostics();
-            throw e;
         }
     }
 

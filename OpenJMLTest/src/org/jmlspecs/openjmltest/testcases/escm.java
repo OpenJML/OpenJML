@@ -19,41 +19,40 @@ public class escm extends EscBase {
     /** This test checks that nested, local and anonymous classes are handled */
     @Test
     public void testNestedClass() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m1(TestJava o) {\n"
-                +"       class C { void m() { /*@ assert false; */ }};\n"
-                +"       C x;\n"
-                +"       C y = new C() { void m() {/*@ assert false; */}};\n"
-                +"       //@ assert false;\n"
-                +"  }\n"
-                
-                +"  public static class A {\n"
-                +"     public void m2() {\n"
-                +"       //@ assert false;\n"
-                +"     }\n"
-                +"  }\n"
-                
-                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
-                
-                +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",33
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",38
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m1",12
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",12
+        helpTCX("tt.TestJava",
+        """
+        package tt;
+        import org.jmlspecs.annotation.*;
+        @NonNullByDefault public class TestJava {
+            public TestJava t;
+            public int a;
+            public static int b;
+            public void m1(TestJava o) {
+                class C { void m() { /*@ assert false; */ }};
+                C x;
+                C y = new C() { void m() {/*@ assert false; */}};
+                //@ assert false;
+            }
+            public static class A {
+                public void m2() {
+                    //@ assert false;
+                }
+            }
+            /*@ pure */ public TestJava() { t = new TestJava(); }
+        }
+        """
+                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",34
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method m",39
+                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m1",13
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method m2",17
                 );
     }
    
     /** This test checks that the specs of methods in nested, local and anonymous classes are used */
     @Test
     public void testNestedMethodSpecs() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpTCX("tt.TestJava",
+                "package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
