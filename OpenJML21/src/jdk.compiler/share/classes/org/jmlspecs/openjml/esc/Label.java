@@ -311,7 +311,7 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential divide by 0 */
     /*@ non_null*/ public final static Label UNDEFINED_DIV0 = new Label("UndefinedDivideByZero");
     
-    /** Used to designate a possible exception because of a potential large shift value */
+    /** Used to designate a potentially large shift value */
     /*@ non_null*/ public final static Label POSSIBLY_LARGESHIFT = new Label("PossiblyLargeShift");
 
     /** Used to designate a possible exception because of a bad cast */

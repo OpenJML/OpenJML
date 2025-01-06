@@ -662,8 +662,10 @@ public class modifiers extends TCBase {
     
     @Test public void testField1() {
         helpTCF("A.java","public class A{ /*@non_null nullable*/ Object o;}"
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",20
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",29
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable",29  // FIXME - duplicate messages
-                ,"/A.java:1: error: A type may not be declared both non_null and nullable",40
+//                ,"/A.java:1: error: A type may not be declared both non_null and nullable",40
                 );
     }
     
@@ -690,8 +692,10 @@ public class modifiers extends TCBase {
     
     @Test public void testGhostField1() {
         helpTCF("A.java","public class A{ /*@ghost non_null nullable Object o; */}"
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",26// FIXME - duplicate
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",35
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable", 35
-                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44 // FIXME - duplicate
+//                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44 // FIXME - duplicate
                 );
     }
     
@@ -728,8 +732,10 @@ public class modifiers extends TCBase {
     
     @Test public void testModelField1() {
         helpTCF("A.java","public class A{ /*@model non_null nullable Object o; */}"
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",26// FIXME - duplicate
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",35
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable", 35
-                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44
+//                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44
                 );
     }
     
@@ -798,6 +804,8 @@ public class modifiers extends TCBase {
      
     @Test public void testMethod5() {
         helpTCF("A.java","public class A{ /*@ non_null nullable */ Object m(){return null;} }"
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",21// FIXME - duplicate
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",30
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable",30
                 );
     }
@@ -873,6 +881,8 @@ public class modifiers extends TCBase {
      
     @Test public void testModelMethod3() {
         helpTCF("A.java","public class A{ /*@ model non_null nullable  Object m(){ return null; }*/ }"
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",27// FIXME - duplicate
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",36
                 ,"/A.java:1: error: A declaration may not be both non_null and nullable",36
                 );
     }
@@ -924,15 +934,17 @@ public class modifiers extends TCBase {
     @Test public void testFormal() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m(\n" +
-        		"/*@ non_null */ Object o, \n" +
-        		"/*@ nullable */ Object oo, \n" +
-        		"/*@ ghost non_null nullable */ Object ooo, \n" +
-        		"/*@ non_null non_null */ Object ooob, \n" +
-        		"/*@ spec_public */ Object oooo) {} }"
+                "/*@ non_null */ Object o, \n" +
+                "/*@ nullable */ Object oo, \n" +
+                "/*@ ghost non_null nullable */ Object ooo, \n" +
+                "/*@ non_null non_null */ Object ooob, \n" +
+                "/*@ spec_public */ Object oooo) {} }"
+                ,"/A.java:5: error: Entity has conflicting nullity annotations",11// FIXME - duplicate
+                ,"/A.java:5: error: Associated declaration: /A.java:5:",20
                 ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation interface", 14
                 ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
-                ,"/A.java:5: error: A declaration may not be both non_null and nullable",20
-                ,"/A.java:5: error: A type may not be declared both non_null and nullable", 32 // FIXME - duplicate
+                ,"/A.java:5: error: A declaration may not be both non_null and nullable",20// FIXME - duplicate
+//                ,"/A.java:5: error: A type may not be declared both non_null and nullable", 32 // FIXME - duplicate
                 ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",5
                 );
     }
@@ -973,8 +985,10 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar5() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null nullable */ Object o; } }"
+                ,"/A.java:3: error: Entity has conflicting nullity annotations",6// FIXME - duplicate
+                ,"/A.java:3: error: Associated declaration: /A.java:3:",15
                 ,"/A.java:3: error: A declaration may not be both non_null and nullable", 15
-                ,"/A.java:3: error: A type may not be declared both non_null and nullable", 27 // FIXME - duplicate
+//                ,"/A.java:3: error: A type may not be declared both non_null and nullable", 27 // FIXME - duplicate
                 );
     }
      
@@ -1480,6 +1494,36 @@ public class modifiers extends TCBase {
     }
      
     
+    @Test public void testAnnotatedCast() {
+        String s = "import org.jmlspecs.annotation.*; class A { void m() { var z = (@Nullable Object)null; }}";
+        helpTCF("A.java",s);
+    }
+
+    @Test public void testAnnotatedCast1() {  // FIXME: No warning on duplicate annotations -- would think that JDK itself would do that
+        String s = "import org.jmlspecs.annotation.*; class A { void m() { var z = (@Nullable @Nullable Object)null; }}";
+        helpTCF("A.java",s);
+    }
+
+    @Test public void testAnnotatedCast2() {
+        String s = "import org.jmlspecs.annotation.*; class A { void m() {\n var z = (@NonNull @Nullable Object)null; }}";
+        helpTCF("A.java",s
+                ,"/A.java:2: error: Entity has conflicting nullity annotations",11
+                ,"/A.java:2: error: Associated declaration: /A.java:2:",20
+                ,"/A.java:2: error: Entity has conflicting nullity annotations",11
+                ,"/A.java:2: error: Associated declaration: /A.java:2:",20
+                );
+    }
+    // FIXME - here and above, solve the duplicate error messages (cf. JmlAttr.visitTypeCast)
+    @Test public void testAnnotatedCast3() {
+        String s = "import org.jmlspecs.annotation.*; class A { void m() {\n var z = (/*@ non_null*/  @Nullable Object)null; }}";
+        helpTCF("A.java",s
+                ,"/A.java:2: error: Entity has conflicting nullity annotations",15
+                ,"/A.java:2: error: Associated declaration: /A.java:2:",27
+                ,"/A.java:2: error: Entity has conflicting nullity annotations",15
+                ,"/A.java:2: error: Associated declaration: /A.java:2:",27
+                );
+    }
+
 
     // FIXME - also need to test this for when a .class file has a JML annotation that the spec file does not - is that tested for Java m
     // FIXME - these need implementing - error for the different in annotations

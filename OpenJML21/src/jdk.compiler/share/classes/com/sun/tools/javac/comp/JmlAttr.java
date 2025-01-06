@@ -1769,7 +1769,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         allAllowed(mods,allowedMethodAnnotations,"method declaration");
                     }
                 }
-                checkForConflict(mods,NON_NULL,NULLABLE);
+                checkForConflictingNullity(mods);
                 checkForConflict(mods,PURE,SPEC_PURE,STRICTLY_PURE,NO_STATE,QUERY);
                 var selfPurity = specs.determinePurity(msym);
                 var loc = selfPurity != null ? selfPurity.pos() : javaMethodTree;
@@ -2997,7 +2997,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             annotationsToModifiers(javaField.mods);
         }
         checkVarMods(javaField);
-        checkTypeMods(javaField);
+        // Type modifiers are checked when the type itself is attributed
     }
     
     public void checkJavaFlags(long javaFlags, JmlSource javaTree, long specflags, JmlSource specTree, Symbol symForFlags) {
@@ -3190,7 +3190,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		//                a = utils.findMod(tree.mods,MODEL);
         		//                utils.error(a.sourcefile,a.pos(),"jml.conflicting.modifiers","model","final");
         		//            }
-        		checkForConflict(specmods,NON_NULL,NULLABLE);
+        		checkForConflictingNullity(specmods);
         	} else if ((tree.mods.flags & Flags.PARAMETER) != 0) { // formal parameters
         		kind = "parameter";
         		if (tree.specsDecl != null) {
@@ -3198,7 +3198,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			attribAnnotationTypes(specmods.annotations,env);
         		}
         		allAllowed(specmods, allowedFormalParameterModifiers, "formal parameter");
-        		checkForConflict(specmods,NON_NULL,NULLABLE);
+        		checkForConflictingNullity(specmods);
 
         	} else if (jmlenv.currentClauseKind == MethodDeclClauseExtension.oldClause) {
                 allAllowed(specmods, allowedMethodSpecDeclModifiers, "old clause declaration");
@@ -3216,7 +3216,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		} else if (modelOrGhostX && jmlenv.inExpressionScope) {
         			utils.error(log.currentSourceFile(),treeForMods.pos,"jml.message","ghost or model modifiers not permitted on an expression-local declaration");
         		} 
-        		checkForConflict(mods,NON_NULL,NULLABLE);
+        		checkForConflictingNullity(mods);
         	}
             checkForDuplicateModifiers((JmlModifiers)mods);
 //            if (tree.specsDecl != null) {
@@ -4981,6 +4981,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	    else if (cs.kind != Kinds.Kind.ERR) utils.error("jml.internal","Unexpected kind of class symbol: " + cs + " " + cs.kind);
     	    // We don't have a position for the error message above -- tree is a good position but we aren't sure if the sourcefile is correct
     	}
+    	if (tree instanceof JCAnnotatedType atype) {
+    	    checkForConflictingNullity(atype.annotations);
+    	}
     	return t;
     }
     
@@ -6439,11 +6442,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitTypeCast(JCTypeCast tree) {
         boolean prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
+//        super.visitTypeCast(tree);
+//        Type clazztype = tree.clazz.type;
+
         Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
         chk.validate(tree.clazz, env);
         result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
         jmlresolve.setAllowJML(prev);
-        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + (tree.clazz instanceof JmlPrimitiveTypeTree) + " " + tree.clazz.getClass());
+        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + tree.clazz.getClass());
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
@@ -6686,6 +6692,69 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return error;
     }
     
+    public boolean checkForConflictingNullity(JCModifiers mods) {
+        boolean b = checkForConflict(mods,NON_NULL,NULLABLE);
+        if (b) return b;
+        var hasNonNull = findAnnotation(mods.annotations,NON_NULL);
+        var hasNullable = findAnnotation(mods.annotations,NULLABLE);
+        var hasNonNullMod = utils.findModifier(mods,NON_NULL);
+        var hasNullableMod = utils.findModifier(mods,NULLABLE);
+        if (hasNonNull != null && hasNullable != null) {
+            utils.errorAndAssociatedDeclaration(log.currentSourceFile(), hasNonNull,log.currentSourceFile(), hasNullable, 
+                    "jml.message", "Entity has conflicting nullity annotations");
+            b = true;
+        }
+        if (hasNonNull != null && hasNullableMod != null) {
+            utils.errorAndAssociatedDeclaration(log.currentSourceFile(), hasNonNull,log.currentSourceFile(), hasNullableMod, 
+                    "jml.message", "Entity has both @NonNull annotation and nullable modifier");
+            b = true;
+        }
+        if (hasNullable != null && hasNonNullMod != null) {
+            utils.errorAndAssociatedDeclaration(log.currentSourceFile(), hasNullable,log.currentSourceFile(), hasNonNullMod, 
+                    "jml.message", "Entity has both @Nullable annotationand non_null modifier");
+            b = true;
+        }
+//        if (hasNullable != null && hasNullableMod != null) {
+//            utils.warning(hasNullableMod, "jml.message", "Entity has both @Nullable annotation and nullable modifier");
+//            b = true;
+//        }
+//        if (hasNonNull  != null && hasNonNullMod != null) {
+//            utils.warning(hasNonNullMod, "jml.message", "Entity has both @NonNull annotation and non_null modifier");
+//            b = true;
+//        }
+        return b;
+    }
+    
+    public boolean checkForConflictingNullity(List<JCAnnotation> annotations) {
+        boolean b = false;
+        var hasNonNull = findAnnotation(annotations,NON_NULL);
+        var hasNullable = findAnnotation(annotations,NULLABLE);
+//        var hasNonNullMod = utils.findModifier(mods,NON_NULL);
+//        var hasNullableMod = utils.findModifier(mods,NULLABLE);
+        if (hasNonNull != null && hasNullable != null) {
+            utils.errorAndAssociatedDeclaration(log.currentSourceFile(), hasNonNull,log.currentSourceFile(), hasNullable, 
+                    "jml.message", "Entity has conflicting nullity annotations");
+            b = true;
+        }
+//        if (hasNonNull != null && hasNullableMod != null) {
+//            utils.error(hasNullableMod, "jml.message", "Entity has both @NonNull annotation and nullable modifier");
+//            b = true;
+//        }
+//        if (hasNullable != null && hasNonNullMod != null) {
+//            utils.error(hasNonNullMod, "jml.message", "Entity has both @Nullable annotationand non_null modifier");
+//            b = true;
+//        }
+//        if (hasNullable != null && hasNullableMod != null) {
+//            utils.warning(hasNullableMod, "jml.message", "Entity has both @Nullable annotation and nullable modifier");
+//            b = true;
+//        }
+//        if (hasNonNull  != null && hasNonNullMod != null) {
+//            utils.warning(hasNonNullMod, "jml.message", "Entity has both @NonNull annotation and non_null modifier");
+//            b = true;
+//        }
+        return b;
+    }
+    
     public boolean checkForConflict(JCModifiers mods, ModifierKind ta, ModifierKind tb) {
         var a = utils.findModifier(mods,ta);
         if (a == null) return false;
@@ -6833,10 +6902,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public boolean hasAnnotation(List<JCAnnotation> list, ModifierKind t) {
-    	for (var a: list) {
-    		if (((JmlAnnotation)a).kind == t) return true;
-    	}
+        for (var a: list) {
+            if (((JmlAnnotation)a).kind == t) return true;
+        }
         return false;
+    }
+    
+    public JCAnnotation findAnnotation(List<JCAnnotation> list, ModifierKind t) {
+        for (var a: list) {
+            if (((JmlAnnotation)a).kind == t) return a;
+        }
+        return null;
     }
     
     /** Returns true if the given symbol has a Immutable annotation */

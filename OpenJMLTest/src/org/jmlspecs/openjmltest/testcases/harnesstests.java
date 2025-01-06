@@ -18,14 +18,14 @@ public class harnesstests extends TCBase {
     /** Test that harness reports a missing error */
     @Test
     public void testHarness() {
-        helpFailure("Fewer errors observed (0) than expected (1)",
+        helpFailure("Fewer errors observed (0) than expected",
                 " class A {}","X",1);
     }
 
     /** Test that harness reports an unexpected error */
     @Test
     public void testHarness1() {
-        helpFailure("More errors observed (1) than expected (0)",
+        helpFailure("More errors observed (1) than expected",
         " class A { QQ }");
     }
 
