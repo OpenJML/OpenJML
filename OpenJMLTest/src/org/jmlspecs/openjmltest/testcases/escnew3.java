@@ -367,42 +367,42 @@ public class escnew3 extends EscBase {
                 +"  //@ modifies \\everything;\n"
                 +"  public void m0() {\n"
                 +"    {/*@ nullable */ Short s = null;\n"
-                +"    short ss = (short)s;\n"  
+                +"    short ss = (short)s;\n"  // ERROR
                 +"    //@ assert 0 == (short)s;\n}"  
                 +"  }\n"
                                   
                 +"  //@ modifies \\everything;\n"
                 +"  public void m1() {\n"
                 +"    {/*@ nullable */ Integer s = null;\n"
-                +"    int ss = (int)s;\n"  
+                +"    int ss = (int)s;\n"  // ERROR
                 +"    //@ assert 0 == (int)s;\n}"  
                 +"  }\n"
                                   
                 +"  //@ modifies \\everything;\n"
                 +"  public void m2() {\n"
                 +"    {/*@ nullable */ Long s = null;\n"
-                +"    long ss = (long)s;\n"  
+                +"    long ss = (long)s;\n"  // ERROR - line 18
                 +"    //@ assert 0L == (long)s;\n}"  
                 +"  }\n"
                                   
                 +"  //@ modifies \\everything;\n"
                 +"  public void m3() {\n"
                 +"    {/*@ nullable */ Byte s = null;\n"
-                +"    byte ss = (byte)s;\n"  
+                +"    byte ss = (byte)s;\n"  // ERROR
                 +"    //@ assert 0 == (byte)s;\n}"  
                 +"  }\n"
                                   
                 +"  //@ modifies \\everything;\n"
                 +"  public void m4() {\n"
                 +"    {/*@ nullable */ Character s = null;\n"
-                +"    char ss = (char)s;\n"  
+                +"    char ss = (char)s;\n"  // ERROR - line 30
                 +"    //@ assert 0 == (char)s;\n}"  
                 +"  }\n"
                                   
                 +"  //@ modifies \\everything;\n"
                 +"  public void m7() {\n"
                 +"    {/*@ nullable */ Boolean s = null;\n"
-                +"    boolean ss = (boolean)s;\n"  
+                +"    boolean ss = (boolean)s;\n"  // ERROR
                 +"    //@ assert (boolean)s;\n}"  
                 +"  }\n"
                                   

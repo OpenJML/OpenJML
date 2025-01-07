@@ -196,6 +196,30 @@ public class FunctionLikeExpressions extends JmlExtension {
         }        
     };
 
+    public static class NArgExpression extends IJmlClauseKind.FunctionLikeExpressionKind {
+        protected int numargs;
+        public NArgExpression(String name, int numargs) { super(name); this.numargs = numargs; }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
+            JmlMethodInvocation tree = (JmlMethodInvocation)expr;
+            int n = tree.args.size();
+            if (n != numargs) {
+                error(tree.pos(),"jml.message","a " + keyword() + " expression expects " + this.numargs + " arguments, not " + n); // FIXME - wrong message
+            }
+            if (!typecheckHelper(attr, tree.args, localEnv)) {
+                expr.type = attr.syms.errType;
+                return expr.type;
+            }
+            return tree.args.head.type;
+        }
+
+        @Override
+        public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+            checkNumberArgs(parser,e, (n)->(n==numargs), "jml.message", "a " + keyword() + "expression expectts " + numargs + " arguments");
+        }        
+    };
+
     public static class AnyArgExpression extends IJmlClauseKind.FunctionLikeExpressionKind {
         public AnyArgExpression(String name) { super(name); }
         
@@ -309,23 +333,74 @@ public class FunctionLikeExpressions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
-        	super.typecheck(attr, expr, localEnv);
-            JmlMethodInvocation tree = (JmlMethodInvocation)expr;
+            super.typecheck(attr, expr, localEnv);
+            JmlMethodInvocation meth = (JmlMethodInvocation)expr;
             
             // The argument expression may contain JML constructs
             Type t = attr.syms.errType;
-            int n = tree.args.size();
+            int n = meth.args.size();
             if (n > 0) {
-                JCExpression e = tree.args.get(0);
-                if (e instanceof JmlMethodInvocation && ((JmlMethodInvocation)e).kind == MiscExpressions.typelcKind) {
+                JCExpression e = meth.args.get(0);
+                if (meth.kind == MiscExpressions.typelcKind) {
                     ((JmlMethodInvocation)e).javaType = true;
                     ((JmlMethodInvocation)e).type = attr.syms.classType;
                 }
-                Type tt = tree.args.get(0).type;
+                Type tt = meth.args.get(0).type;
                 var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
                 if (tt == TYPE || tt == attr.syms.classType) t = attr.syms.classType; 
             }
             return t;
+        }
+    };
+    
+    public static final String typeargID = "\\typearg";
+    public static final IJmlClauseKind typeargKind = new NArgExpression(typeargID, 2) {
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
+            Type err = attr.syms.errType;
+            if (super.typecheck(attr, expr, localEnv) == err) {
+                return err;
+            }
+            JmlMethodInvocation meth = (JmlMethodInvocation)expr;
+            meth.type = err;
+            
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
+            var arg1 = meth.args.head;
+            if (!Types.instance(attr.context).isSameType(arg1.type, TYPE)) {
+                utils.error(arg1, "jml.message", "first argument must have type \\TYPE, not " +arg1.type);
+                return err;
+            }
+            var arg2 = meth.args.tail.head;
+            if (!Types.instance(attr.context).isSameType(arg2.type, attr.syms.intType)) {
+                utils.error(arg2, "jml.message", "second argument muat have type int, not " + arg2.type);
+                return err;
+            }
+            meth.type = TYPE;
+            return TYPE;
+        }
+    };
+    
+    public static final String typearg0ID = "\\typearg0";
+    public static final IJmlClauseKind typearg0Kind = new OneArgExpression(typearg0ID) {
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
+            Type err = attr.syms.errType;
+            if (super.typecheck(attr, expr, localEnv) == err) {
+                return err;
+            }
+            JmlMethodInvocation meth = (JmlMethodInvocation)expr;
+            meth.type = err;
+            
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
+            var arg1 = meth.args.head;
+            if (!Types.instance(attr.context).isSameType(arg1.type, TYPE)) {
+                utils.error(arg1, "jml.message", "the argument must have type \\TYPE, not " +arg1.type);
+                return err;
+            }
+            meth.type = TYPE;
+            return TYPE;
         }
     };
     
