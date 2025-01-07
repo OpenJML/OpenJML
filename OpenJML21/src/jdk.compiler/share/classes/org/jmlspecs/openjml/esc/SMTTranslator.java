@@ -320,7 +320,7 @@ public class SMTTranslator extends JmlTreeScanner {
         else if ("false".equals(q)) quants = false;
         else {
             //boolean b = true; // JmlOption.isOption(context, JmlOption.MINIMIZE_QUANTIFICATIONS);
-            quants = false; // FIXME - set true if there are any type variables
+            quants = true; // FIXME - set true if there are any type variables
         }
         // (declare-sort JMLTypeSort 0)
         c = new C_declare_sort(F.symbol(JMLTYPESORT),zero);
@@ -1974,14 +1974,26 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (that.kind == sameKind || that.kind == oldKind) { // old has already been translated
             result = newargs.get(0);
         } else if (that.kind == erasureKind) {
-        	if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).syms.classType) {
-        		result = F.fcn(F.symbol("erasure_java"), newargs);
-        	} else if (that.args.get(0).type.tsym == TYPE) {
-        		result = F.fcn(F.symbol("erasure"), newargs);
-        	} else {
-        		log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
-        		result = null;
-        	}
+            if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).syms.classType) {
+                result = F.fcn(F.symbol("erasure_java"), newargs);
+            } else if (that.args.get(0).type.tsym == TYPE) {
+                result = F.fcn(F.symbol("erasure"), newargs);
+            } else {
+                log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
+                result = null;
+            }
+        } else if (that.kind == typearg0Kind) {
+            if (that.args.get(0).type == com.sun.tools.javac.comp.JmlAttr.instance(context).syms.classType) {
+                result = F.fcn(F.symbol("erasure_java"), newargs);
+            } else if (that.args.get(0).type.tsym == TYPE) {
+                result = F.fcn(F.symbol("typearg1_1"), newargs);
+            } else {
+                log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
+                result = null;
+            }
+        } else if (that.kind == typeargKind) {
+            // NEEDS WORK
+            result = null;
         } else if (that.kind == distinctKind) {
             result = F.fcn(distinctSym, newargs);
         } else if (that.kind == concatKind) {

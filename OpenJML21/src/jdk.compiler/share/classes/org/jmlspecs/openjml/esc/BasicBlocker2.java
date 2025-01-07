@@ -1139,6 +1139,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case erasureID:
+                case typearg0ID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);

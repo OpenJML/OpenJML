@@ -4715,14 +4715,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						for (JmlMethodClause clause : scase.clauses) {
 							IJmlClauseKind ct = clause.clauseKind;
 							if (ct == MethodDeclClauseExtension.oldClause) {
-								// NOTE: The name of the variable in the old clause is not changed or
-								// unique-ified.
-								// If the same name is used if different behaviors, as in this test, the names
-								// will be the same,
-								// though the symbol values will be different. The declarations will be in the
-								// same scope in a
-								// RAC translation, but this does not seem to cause any problem in RAC
-								// code-generation.
 								if (clauseIds.containsKey(clause))
 									continue; // Don't reevaluate if we have nested specs
 								for (JCVariableDecl decl : ((JmlMethodClauseDecl) clause).decls) {
@@ -4730,7 +4722,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     JCVariableDecl newdecl;
                                     if (rac) {
                                         // If the spec case has multiple behaviors, one can have old declarations with the
-                                        // same name in different variables. In this translaation, those declarations end up
+                                        // same name in different variables. In this translation, those declarations end up
                                         // in the same scope, so we have to rename them for rac. For esc, they get different
                                         // names when creating the SSA translation. cf. also convertSymbol in visitIdent.
                                         Name name = names.fromString(
@@ -18558,22 +18550,54 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				break;
 			}
-			case erasureID: {
-				JCExpression arg = that.args.get(0);
-				if (arg.type == syms.classType) {
-					// no-op
-					result = eresult = convertExpr(arg);
-				} else if (rac) {
-					arg = convertJML(arg);
-					result = eresult = treeutils.makeMethodInvocation(that, arg, "erasure");
-				} else if (esc) {
-					JCExpression t = translateType(arg);
-					result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, t);
-					t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit);
-					addAssume(t, Label.IMPLICIT_ASSUME, t);
-				}
-				break;
-			}
+            case erasureID: {
+                JCExpression arg = that.args.get(0);
+                if (arg.type == syms.classType) {
+                    // no-op
+                    result = eresult = convertExpr(arg);
+                } else if (rac) {
+                    arg = convertJML(arg);
+                    result = eresult = treeutils.makeMethodInvocation(that, arg, "erasure");
+                } else if (esc) {
+                    JCExpression t = translateType(arg);
+                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, t);
+                    t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit);
+                    addAssume(t, Label.IMPLICIT_ASSUME, t);
+                }
+                break;
+            }
+            case typeargID: {
+                JCExpression arg0 = that.args.get(0);
+                JCExpression arg1 = that.args.get(1);
+                if (rac) {
+                    arg0 = convertJML(arg0);
+                    arg1 = convertJML(arg1);
+                    result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg", arg1);
+                } else {
+                    // FIXME - needs work
+                    JCExpression t = translateType(arg0);
+                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, t);
+                    t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit);
+                    addAssume(t, Label.IMPLICIT_ASSUME, t);
+                }
+                break;
+            }
+
+            case typearg0ID: {
+                JCExpression arg0 = that.args.get(0);
+                if (rac) {
+                    arg0 = convertJML(arg0);
+                    var arg1 = treeutils.makeIntLiteral(that, 0);
+                    result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg", arg1);
+                } else {
+                    // FIXME - needs work
+                    JCExpression t = convertJML(arg0);
+                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, t);
+                    //t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit);
+                    //addAssume(t, Label.IMPLICIT_ASSUME, t);
+                }
+                break;
+            }
 
 			case Functional.bsrequiresID:
 			case Functional.bsensuresID:

@@ -166,21 +166,21 @@ public class escfiles extends EscBase {
     public void escDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=true","--method=types1","--show","--check-feasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","--typeQuants=true","--check-feasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types
     public void escDemoTypesAuto() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=auto","--check-feasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","--typeQuants=auto","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void escDemoTypesDef() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypes","-typeQuants=false","--check-feasibility=precondition,exit");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Types.java","test/escDemoTypesNoQuants","--typeQuants=false","--check-feasibility=precondition,exit");
     }
 
     @Test // FIXME - Problem with int / short conversions
