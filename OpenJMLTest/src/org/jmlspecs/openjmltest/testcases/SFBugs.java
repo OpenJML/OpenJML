@@ -589,7 +589,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug578() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--show","--method=mm");
     }
     
     @Ignore // FIXME -  Needs more double specs

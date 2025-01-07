@@ -6,8 +6,8 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     
     public String bsName() { return "\\TYPE"; }
 
-    final private Class<?> base;
-    final private TYPE[] args;
+    final private Class<?> head;
+    final private TYPE[] typeargs;
     final static public TYPE[] noargs = new TYPE[] {};
     final private static Map<TYPE,TYPE> internSet = new HashMap<TYPE,TYPE>();
     
@@ -22,12 +22,12 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     }
     
     public String toString() {
-        if (base == null) return "?"; // FIXME - really this is just unknown, not a wildcard
-        String s = base.toString();
-        if (args != null && args.length > 0) {
+        if (head == null) return "?"; // FIXME - really this is just unknown, not a wildcard
+        String s = head.toString();
+        if (typeargs != null && typeargs.length > 0) {
             s = s + "<";
             boolean first = true;
-            for (TYPE t: args) {
+            for (TYPE t: typeargs) {
                 if (first) first = false; else s = s + ",";
                 s = s + t.toString();
             }
@@ -45,30 +45,34 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return tt;
     }
     
-    private TYPE(Class<?> base, TYPE... args) {
-        this.base = base;
-        this.args = args;
+    private TYPE(Class<?> head, TYPE... typeargs) {
+        this.head = head;
+        this.typeargs = typeargs;
     }
 
     public TYPE[] typeargs() {
-        return args;
+        return typeargs;
     }
     
+//    public TYPE typearg(int i) {
+//        return typeargs[i];
+//    }
+    
     public boolean eq(TYPE t) {
-        if (!base.equals(t.base)) return false;
-        if (args.length != t.args.length) {
-            if (args.length == 0) {
+        if (!head.equals(t.head)) return false;
+        if (typeargs.length != t.typeargs.length) {
+            if (typeargs.length == 0) {
                 System.out.println("Warning: runtime type information has no type arguments: " + this);
                 return true;
-            } else if (t.args.length == 0) {
+            } else if (t.typeargs.length == 0) {
                 System.out.println("Warning: runtime type information has no type arguments: " + t);
                 return true;
             }
             return false;
         }
         int k = 0;
-        for (var a: args) {
-            if (!a.eq(t.args[k])) return false;
+        for (var a: typeargs) {
+            if (!a.eq(t.typeargs[k])) return false;
             ++k;
         }
         return true;
@@ -85,29 +89,33 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     
     @Override
     public int hashCode() {
-        if (base == null) return 0;
-        int i = base.hashCode();
+        if (head == null) return 0;
+        int i = head.hashCode();
         int k = 0;
-        for (TYPE t: args) i = i + (t.hashCode()<< (++k));
+        for (TYPE t: typeargs) i = i + (t.hashCode()<< (++k));
         return i;
     }
 
     public Class<?> erasure() {
-        return base;
+        return head;
+    }
+
+    public int numargs() {
+        return typeargs.length;
     }
 
     public boolean isArray() {
-        return base.isArray();
+        return head.isArray();
     }
 
     public boolean isSubtypeOf(TYPE t) {
-        return t.erasure().isAssignableFrom(this.base);
+        return t.erasure().isAssignableFrom(this.head);
     }
     
     // FIXME - does not work for arrays of JML types with type arguments.
     public TYPE getComponentType() {
-        if (!base.isArray()) return null;
-        return TYPE.of(base.getComponentType());
+        if (!head.isArray()) return null;
+        return TYPE.of(head.getComponentType());
     }
 
 //    @Override
