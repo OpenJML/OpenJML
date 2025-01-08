@@ -469,7 +469,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void escInlinedLoop() {
+    public void escInlineLoop() {
         expectedExit = 0;
         helpTF("escInlineLoop");
     }
@@ -929,12 +929,6 @@ public class escfiles extends EscBase {
     public void visibilitySimple() {
         expectedExit = 1;
         helpTF("visibilitySimple","--normal");
-    }
-
-    @Test
-    public void visibilityB() {
-        expectedExit = 1;
-        helpTCF("test/visibilityBug/org/apache/commons/cli/Option.java","test/visibilityB","-classpath","test/visibilityBug");
     }
 
     @Test

@@ -94,7 +94,7 @@ public class OutputCompare {
         diagListPos = 0;
         if (!compareResults(list)) {
             if (collector.getDiagnostics().size() <= failureLocation) {
-                Assert.fail("Too little actual output");
+                Assert.fail("Too little actual output: " + collector.getDiagnostics().size() + " diagnostics");
             } else {
                 Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(failureLocation);
                 String act = JmlTestCase.noSource(d);

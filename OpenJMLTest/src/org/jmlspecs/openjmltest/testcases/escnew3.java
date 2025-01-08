@@ -360,7 +360,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testCast1() {
-        main.addOptions("-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        main.addOptions("--esc-max-warnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

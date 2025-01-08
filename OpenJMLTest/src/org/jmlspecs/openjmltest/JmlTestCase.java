@@ -324,18 +324,22 @@ public abstract class JmlTestCase {
     
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
-    	synchronized (System.out) {
-    		for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-    			long line = dd.getLineNumber();
-    			long start = dd.getStartPosition();
-    			long pos = dd.getPosition();
-    			long end = dd.getEndPosition();
-    			long col = dd.getColumnNumber();
-    			System.out.println(noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end);
-    		}
-    	}
+        printDiagnostics(collector.getDiagnostics());
     }
     
+    public static void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
+        synchronized (System.out) {
+            for (Diagnostic<? extends JavaFileObject> dd: diagnostics) {
+                long line = dd.getLineNumber();
+                long start = dd.getStartPosition();
+                long pos = dd.getPosition();
+                long end = dd.getEndPosition();
+                long col = dd.getColumnNumber();
+                System.out.println(noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end);
+            }
+        }
+    }
+
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
