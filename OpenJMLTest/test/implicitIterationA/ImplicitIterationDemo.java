@@ -6,7 +6,7 @@ public class ImplicitIterationDemo {
 
    //@ assignable allTrue;
    //@ ensures allTrue == (\old(allTrue) && v);
-   void check(boolean v) { allTrue =  allTrue && v; }
+   void check(boolean v) { allTrue =  allTrue && v; } // FIXME - problem is the implicit unboxing
 
    void test() {
 	  allTrue = true;

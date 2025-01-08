@@ -25,4 +25,9 @@ public class T {
   public static void bad2() {
     //@ assert (\choose int x; x < 0; x > 0) == 0; // Not well-defined
   }
+
+  public static void mok() {
+      //@ assert (\choose int x; x >= 0) != -1; // OK
+   }
+
 }
