@@ -42,6 +42,7 @@ escDemoTypesNoQuants
 escDmz2Trace
 escDoubleArith
 escFeatures
+escInlineLoop
 escJML
 escJml1
 escJml1a
@@ -82,6 +83,8 @@ escTraceWhile2
 escwebexamples
 firstTest
 hans
+implicitIteration
+implicitIterationA
 jmldoc1
 jmldoc2
 jmldoc3
