@@ -1715,22 +1715,28 @@ public class JmlEnter extends Enter {
 		return b;
 	}
 
-	public int nestingLevel = 0;
+    public int nestingLevel = 0;
 
-	public void hold() {
-		nestingLevel++;
-	}
+    public void hold() {
+        nestingLevel++;
+        if (debugSpecs) System.out.println("specs: hold level=" + nestingLevel);
+    }
 
-	public void release() {
-		nestingLevel--;
-	}
+    public void release() {
+        nestingLevel--;
+        if (debugSpecs) System.out.println("specs: release level=" + nestingLevel);
+    }
 
-	public void flush() {
-		if (nestingLevel == 0)
-			completeBinaryEnterTodo();
-	}
-	
-	final static boolean debugSpecs = org.jmlspecs.openjml.Utils.debug("specs");
+    public boolean flush() {
+        if (nestingLevel == 0) {
+            var any = !binaryEnterTodo.isEmpty();
+            completeBinaryEnterTodo();
+            return any;
+        }
+        return false;
+    }
+
+    final static boolean debugSpecs = org.jmlspecs.openjml.Utils.debug("specs");
 
 	/**
 	 * Queues a class for loading specs. Once loaded, JmlSpecs contains the specs
@@ -1754,7 +1760,11 @@ public class JmlEnter extends Enter {
 		if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
 		    if (tsp == JmlSpecs.SpecsStatus.QUEUED) {
 		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already in progress");
-		        return false;
+	            if (nestingLevel == 0) {
+	                completeBinaryEnterTodo();
+	                return JmlSpecs.SpecsStatus.QUEUED.less(JmlSpecs.instance(context).status(csymbol));
+	            }
+	            return false;
 		    } else {
 		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already loaded or attributed");
 		        return true;
@@ -1792,6 +1802,7 @@ public class JmlEnter extends Enter {
 					        requestSpecs((ClassSymbol) csymbol.getSuperclass().tsym);
 					    }
 					}
+					if (debugSpecs) System.out.println("specs: Finished queueing supers for " + csymbol);
 
 				} finally {
 					nestingLevel--;
@@ -1815,6 +1826,7 @@ public class JmlEnter extends Enter {
 	 * Anything with a source file should go through Enter.main
 	 */
 	public void completeBinaryEnterTodo() {
+        if (debugSpecs) System.out.println("specs: Starting completeBinaryEnterTodo " + binaryEnterTodo.size());
 		JmlSpecs specs = JmlSpecs.instance(context);
 		while (!binaryEnterTodo.isEmpty()) {
 			ClassSymbol csymbol = binaryEnterTodo.remove();

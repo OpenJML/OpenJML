@@ -469,33 +469,73 @@ public class esclambdas extends EscBase {
 
                 +"  //@ public behavior requires true; pure\n"   // Line 10
                 +"  public static /*@ nullable */ Boolean m(java.util.function.Supplier<Boolean> s) {\n"
-                +"      return s.get();\n"
+                +"      return s.get();\n" // ERROR - Supplier.get is not pure
                 +"  }\n"
                 
                 +"  //@ public normal_behavior requires true; pure\n"
                 +"  public static boolean mm(PureSupplier<Boolean> s) {\n"
-                +"      return s.get();\n"
+                +"      return s.get();\n" // OK - PureSupplier.get is pure
                 +"  }\n"
 
                 +"  //@ public normal_behavior requires true; pure\n"
                 +"  public static boolean  mmm(/*@ [java.util.function.Supplier.Pure<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
-                +"      return s.get();\n"   // Line 20
+                +"      return s.get();\n"   // Line 20 // ERROR - Supplier.Pure.get is pure but might be null
                 +"  }\n"
                 
                 +"  //@ public normal_behavior requires true; pure\n"
                 +"  public static boolean  mmmm(/*@ [java.util.function.Supplier.PureNonNull<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
-                +"      return s.get();\n"
+                +"      return s.get();\n" // OK - PureNonNull.get is nonnull and pure
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assignable) in method m:  \\everything",19
-                ,"/tt/TestJava.java:10: warning: Associated declaration",14
-                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",7
+                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assignable) in method m: \\everything",19
+                ,"/tt/TestJava.java:10: warning: Associated declaration",38
+                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
+                
+                );
+    }
+    
+    @Test
+    public void testCast1() {
+        helpTCX("tt.TestJava","package tt; import java.util.function.Supplier; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean  mmm(/*@ [java.util.function.Supplier.Pure<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n"   // Line 20 // ERROR - Supplier.Pure.get is pure but might be null
+                +"  }\n"
+                
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean  mmmm(/*@ [Supplier.PureNonNull<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n" // OK - PureNonNull.get is nonnull and pure
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
                 
                 );
     }
     
     @Test
     public void testCast2() {
+        helpTCX("tt.TestJava","package tt; import static java.util.function.Supplier.*; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean  mmm(/*@ [Pure<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n"   // Line 20 // ERROR - Supplier.Pure.get is pure but might be null
+                +"  }\n"
+                
+                +"  //@ public normal_behavior requires true; pure\n"
+                +"  public static boolean  mmmm(/*@ [PureNonNull<Boolean>]*/ java.util.function.Supplier<Boolean> s) {\n"
+                +"      return s.get();\n" // OK - PureNonNull.get is nonnull and pure
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
+                
+                );
+    }
+    
+    @Test
+    public void testCast3() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

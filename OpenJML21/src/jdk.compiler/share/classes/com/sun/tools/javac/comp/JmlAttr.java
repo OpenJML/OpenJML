@@ -3358,6 +3358,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             tree.type = result;
             id.sym = tree.type.tsym;
         } else {
+            if (jmlresolve.allowJML && tree instanceof JCFieldAccess fa) {
+                if (fa.selected instanceof JCFieldAccess faa && faa.sym instanceof ClassSymbol cs) JmlEnter.instance(context).requestSpecs(cs);
+                if (fa.selected instanceof JCIdent id && id.sym instanceof ClassSymbol cs) JmlEnter.instance(context).requestSpecs(cs);
+            }
             result = super.attribType(tree,env);
         }
         if (result.getTag() != TypeTag.VOID && !result.isErroneous() && 
@@ -4975,7 +4979,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { 
     	//if (JmlMemberEnter.attrdebug) System.out.println("ATTR " + tree.getClass() + " " + tree);
     	var t = super.attribTree(tree, env, resultInfo);
-    	if (t instanceof Type.ClassType ct && !t.isErroneous() && ct.tsym instanceof ClassSymbol cs) {
+    	if (t instanceof Type.ClassType ct && !t.isErroneous() && ct.tsym instanceof ClassSymbol cs && TypeEnter.instance(context).completionEnabled) {
     	    // If we have just attributed a valid class type, enter a request for the specs for that class
     	    if (cs.kind == Kinds.Kind.TYP) JmlEnter.instance(context).requestSpecs(cs);
     	    else if (cs.kind != Kinds.Kind.ERR) utils.error("jml.internal","Unexpected kind of class symbol: " + cs + " " + cs.kind);
