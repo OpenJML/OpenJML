@@ -77,18 +77,6 @@ public class escfiles extends EscBase {
         helpTCF(d,"test/" + outdir,newopts);
     }
 
-//    public void helpTCA(String sourceDirname, String outDir, String ... opts) {
-//        int extraOpts = 5;
-//        String[] newopts = new String[opts.length+extraOpts];
-//        // Fill in exactly 'extraOpts' initial elements
-//        newopts[0] = "-classpath";
-//        newopts[1] = sourceDirname;
-//        newopts[2] = "-checkFeasibility=precondition,reachable,exit,spec";
-//        newopts[3] = "-code-math=bigint"; // Just to avoid overflow errors in these tests
-//        newopts[4] = "-spec-math=bigint"; // Just to avoid overflow errors in these tests
-//        System.arraycopy(opts,0,newopts,extraOpts,opts.length);
-//        escOnFiles(sourceDirname,outDir,newopts);
-//    }
     /** Runs an --esc test on the files in folder 'sourceDirName', putting the actual output
      * in folder 'outDir' and comparing with expected files also in 'outDir'.
      * Default options are setup in EscBase.setupForFiles().  The options in 'opts' are appended to them. 
@@ -215,7 +203,7 @@ public class escfiles extends EscBase {
         helpTCF("test/loopExercises","test/loopExercises","--method=gauss");
     }
 
-    @Test @Ignore  // FIXME - not yet working
+    @Test @Ignore // FIXME - not yet working
     public void testPurseCard() {
         if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
@@ -514,13 +502,6 @@ public class escfiles extends EscBase {
     public void escSimpleString3() {
         helpTF("escSimpleString3","--nonnull-by-default");
     }
-
-
-    @Test @Ignore // FIXME - implement diverges
-    public void testEscDiverges() {
-        helpTF("escDiverges","--nonnull-by-default");
-    }
-
 
     @Test
     public void testEscDiverges2() {
