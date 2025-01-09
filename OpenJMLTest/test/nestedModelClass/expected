@@ -1,0 +1,38 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m(Test.A) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m(Test.A) with prover !!!! - no warnings
+Starting proof of Test.q(p.B) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.q(p.B) with prover !!!! - no warnings
+Proving methods in Test.A
+Starting proof of Test.A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A.A() with prover !!!! - no warnings
+Proving methods in Test.A.AA
+Starting proof of Test.A.AA.AA() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.A.AA.AA() with prover !!!! - no warnings
+Completed proving methods in Test.A.AA
+Completed proving methods in Test.A
+Completed proving methods in Test
+Proving methods in p.B
+Starting proof of p.B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of p.B.B() with prover !!!! - no warnings
+Proving methods in p.B.BB
+Starting proof of p.B.BB.BB() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of p.B.BB.BB() with prover !!!! - no warnings
+Completed proving methods in p.B.BB
+Completed proving methods in p.B
