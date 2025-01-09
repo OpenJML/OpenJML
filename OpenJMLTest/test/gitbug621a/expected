@@ -1,12 +1,12 @@
 Proving methods in Test
-Skipping proof of Test.Test() (excluded by -method)
+Skipping proof of Test.Test() (Skipping Test.Test because it does not match testMethod)
 Starting proof of Test.testMethod() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.testMethod() with prover !!!! - no warnings
-Skipping proof of Test.workerMethod() (excluded by -method)
+Skipping proof of Test.workerMethod() (Skipping Test.workerMethod because it does not match testMethod)
 Completed proving methods in Test
 Proving methods in AnotherClass
-Skipping proof of AnotherClass.AnotherClass() (excluded by -method)
-Skipping proof of AnotherClass.zero() (excluded by -method)
+Skipping proof of AnotherClass.AnotherClass() (Skipping AnotherClass.AnotherClass because it does not match testMethod)
+Skipping proof of AnotherClass.zero() (Skipping AnotherClass.zero because it does not match testMethod)
 Completed proving methods in AnotherClass

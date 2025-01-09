@@ -762,37 +762,37 @@ public class escfiles extends EscBase {
     // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
     @Test
     public void testEscSF420() {
-        helpTF("sfbug420","-exclude=count;itemAt;main;isEmpty;push;top");
+        helpTF("sfbug420","--exclude=count;itemAt;main;isEmpty;push;top");
     }
     
     @Test
     public void testEscSF420a() {
-        helpTF("sfbug420a","-method=count");
+        helpTF("sfbug420a","--method=count");
     }
     
     @Test
     public void testEscSF420b() {
-        helpTF("sfbug420b","-method=itemAt");
+        helpTF("sfbug420b","--method=itemAt");
     }
     
     @Test
     public void testEscSF420c() {
-        helpTF("sfbug420c","-method=main");
+        helpTF("sfbug420c","--method=main");
     }
     
     @Test
     public void testEscSF420d() {
-        helpTF("sfbug420d","-method=isEmpty");
+        helpTF("sfbug420d","--method=isEmpty");
     }
     
     @Test
     public void testEscSF420e() {
-        helpTF("sfbug420e","-method=push");
+        helpTF("sfbug420e","--method=push");
     }
     
     @Test
     public void testEscSF420f() {
-        helpTF("sfbug420f","-method=top");
+        helpTF("sfbug420f","--method=top");
     }
     
     @Test
@@ -802,7 +802,7 @@ public class escfiles extends EscBase {
     
     @Test  // TODO - could use some additional investigation as to what this submitted file set is supposed to do
     public void testRmLoop() {
-        helpTF("escrmloop","-checkFeasibility=none","-timeout=60");
+        helpTF("escrmloop","--check-feasibility=none","--timeout=60");
     }
     
     @Test

@@ -1,5 +1,5 @@
 Proving methods in ESCTest
-Skipping proof of ESCTest.ESCTest() (excluded by -method)
+Skipping proof of ESCTest.ESCTest() (Skipping ESCTest.ESCTest because it does not match findMax)
 Starting proof of ESCTest.findMax(int[]) with prover !!!!
 test/escDMZLoop/ESCTest.java:25: warning: The prover cannot establish an assertion (LoopInvariant) in method findMax
     //@ loop_invariant i > 0 ==> (\exists int j; 0 <= j && j < i; the_array[j] == result);

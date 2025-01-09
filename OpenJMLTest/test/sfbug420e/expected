@@ -1,10 +1,10 @@
 Proving methods in stack.Stack
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
-Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
-Skipping proof of stack.StackImpl.count() (excluded by -method)
-Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
-Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
+Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match push)
+Skipping proof of stack.StackImpl.count() (Skipping stack.StackImpl.count because it does not match push)
+Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt because it does not match push)
+Skipping proof of stack.StackImpl.isEmpty() (Skipping stack.StackImpl.isEmpty because it does not match push)
 Starting proof of stack.StackImpl.push(int) with prover !!!!
 test/sfbug420e/StackImpl.java:34: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method push
 		internalStack[stackCounter] = item;
@@ -22,8 +22,8 @@ test/sfbug420e/Stack.java:26: warning: Associated declaration
 	//@ ensures \result ==> item==(top());
 	    ^
 Completed proof of stack.StackImpl.push(int) with prover !!!! - with warnings
-Skipping proof of stack.StackImpl.top() (excluded by -method)
-Skipping proof of stack.StackImpl.remove() (excluded by -method)
-Skipping proof of stack.StackImpl.main(String[]) (excluded by -method)
+Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it does not match push)
+Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match push)
+Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match push)
 Completed proving methods in stack.StackImpl
 5 warnings

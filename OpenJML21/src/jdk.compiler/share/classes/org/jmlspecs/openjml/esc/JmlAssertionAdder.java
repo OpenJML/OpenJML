@@ -17954,7 +17954,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Checks whether there is a Skip annotation
 		if (esc && JmlEsc.instance(context).skip(that))
 			return;
-		if (esc && !utils.filter(that, false))
+		if (esc && utils.filter(that) != null)
 			return;
 		if (rac && (JmlEsc.instance(context).skipRac(that) || that.body == null)) {
 			if (that.body == null && that.sym.owner.isInterface() && (that.mods.flags & Flags.DEFAULT) != 0) {

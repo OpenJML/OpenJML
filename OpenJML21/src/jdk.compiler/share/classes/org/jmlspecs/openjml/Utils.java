@@ -1774,11 +1774,9 @@ public class Utils {
         }
     }
     
-    /** Return true if the method is to be checked, false if it is to be skipped.
-     * A warning that the method is being skipped is issued if it is being skipped
-     * and the verbosity is high enough.
-     * */
-    public boolean filter(JCMethodDecl methodDecl, boolean emitWarning) {
+    /** Return null if the method is to be checked, a reason string if it is to be skipped.
+     */
+    public String filter(JCMethodDecl methodDecl) {
         String fullyQualifiedName = this.qualifiedName(methodDecl.sym);
         String simpleName = methodDecl.name.toString();
         if (methodDecl.sym.isConstructor()) {
@@ -1795,15 +1793,11 @@ public class Utils {
                 if (fullyQualifiedName.equals(exclude) ||
                         fullyQualifiedSig.equals(exclude) ||
                         simpleName.equals(exclude)) {
-                    if (emitWarning && this.jmlverbose > Utils.PROGRESS)
-                        log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    return false;
+                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 try {
                     if (Pattern.matches(exclude,fullyQualifiedName)) {
-                        if (emitWarning && this.jmlverbose > Utils.PROGRESS)
-                            log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                        return false;
+                        return ("Skipping " + fullyQualifiedName + " because it matches the exclusion pattern " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     }
                 } catch(PatternSyntaxException e) {
                     // The methodToDo can be a regular string and does not
@@ -1843,14 +1837,11 @@ public class Utils {
                         int x = 0;
                     }
                 }
-                if (emitWarning && this.jmlverbose > Utils.PROGRESS) {
-                    log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
-                }
-                return false;
+                return ("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
             }
         }
         
-        return true;
+        return null;
     }
     
     /** Returns true if the JDK -deprecation option is set */

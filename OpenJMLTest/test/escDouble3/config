@@ -1,1 +1,1 @@
-ARGS+=" -method=remainderBy -escMaxWarnings=1"
+ARGS+=" --method=remainderBy --no-show-skipped -escMaxWarnings=1"

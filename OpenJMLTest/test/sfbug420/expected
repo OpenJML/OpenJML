@@ -5,14 +5,14 @@ Starting proof of stack.StackImpl.StackImpl() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of stack.StackImpl.StackImpl() with prover !!!! - no warnings
-Skipping proof of stack.StackImpl.count() (excluded by -method)
-Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
-Skipping proof of stack.StackImpl.isEmpty() (excluded by -method)
-Skipping proof of stack.StackImpl.push(int) (excluded by -method)
-Skipping proof of stack.StackImpl.top() (excluded by -method)
+Skipping proof of stack.StackImpl.count() (Skipping stack.StackImpl.count because it matches the exclusion count)
+Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt because it matches the exclusion itemAt)
+Skipping proof of stack.StackImpl.isEmpty() (Skipping stack.StackImpl.isEmpty because it matches the exclusion isEmpty)
+Skipping proof of stack.StackImpl.push(int) (Skipping stack.StackImpl.push because it matches the exclusion push)
+Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it matches the exclusion top)
 Starting proof of stack.StackImpl.remove() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of stack.StackImpl.remove() with prover !!!! - no warnings
-Skipping proof of stack.StackImpl.main(String[]) (excluded by -method)
+Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it matches the exclusion main)
 Completed proving methods in stack.StackImpl
