@@ -1,0 +1,13 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.p() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.p() with prover !!!! - no warnings
+Skipping proof of Test.q() (Skipping Test.q because it matches the exclusion q)
+Skipping proof of Test.r1() (Skipping Test.r1 because it matches the exclusion pattern Test.r.*)
+Skipping proof of Test.r2() (Skipping Test.r2 because it matches the exclusion pattern Test.r.*)
+Completed proving methods in Test

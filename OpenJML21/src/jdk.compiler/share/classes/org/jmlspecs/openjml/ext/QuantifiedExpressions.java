@@ -47,6 +47,7 @@ public class QuantifiedExpressions extends JmlExtension {
             int pos = parser.pos();
             parser.nextToken();
             mods = parser.modifiersOpt();
+            utils.setJML(mods);
             JCExpression t = parser.parseType(mods.annotations.isEmpty(), mods.annotations);
             if (t.getTag() == JCTree.Tag.ERRONEOUS) return t;
             if (mods.pos == -1) {

@@ -189,11 +189,11 @@ public class escoption extends EscBase {
         String out = output();
         org.junit.Assert.assertEquals(
                 "Proving methods in tt.TestJava" + eol +
-        		"Skipping proof of tt.TestJava.TestJava() (excluded by -method)" + eol +
-                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (excluded by -method)" + eol + 
+                "Skipping proof of tt.TestJava.TestJava() (Skipping tt.TestJava.TestJava because it does not match bassert)" + eol +
+                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (Skipping tt.TestJava.bassert because it matches the exclusion tt.TestJava.bassert(boolean,boolean))" + eol + 
                 "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
-                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (excluded by -method)" + eol + 
+                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (Skipping tt.TestJava.bassert2 because it does not match bassert)" + eol + 
                 "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
                 "Completed proving methods in tt.TestJava" + eol 
               ,out) ;
@@ -254,11 +254,11 @@ public class escoption extends EscBase {
         String out = output();
         org.junit.Assert.assertEquals(
                 "Proving methods in tt.TestJava" + eol +
-        		"Skipping proof of tt.TestJava.TestJava() (excluded by -method)" + eol +
-                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (excluded by -method)" + eol + 
+                "Skipping proof of tt.TestJava.TestJava() (Skipping tt.TestJava.TestJava because it does not match bassert)" + eol +
+                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (Skipping tt.TestJava.bassert because it matches the exclusion tt.TestJava.bassert(boolean,boolean))" + eol + 
                 "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
-                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (excluded by -method)" + eol + 
+                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (Skipping tt.TestJava.bassert2 because it does not match bassert)" + eol + 
                 "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
                 "Completed proving methods in tt.TestJava" + eol 
               ,out) ;

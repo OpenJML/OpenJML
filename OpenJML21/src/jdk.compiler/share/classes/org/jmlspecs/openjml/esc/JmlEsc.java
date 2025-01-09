@@ -214,8 +214,9 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        if (!utils.filter(methodDecl,true)) {
-            markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
+        var reason = utils.filter(methodDecl);
+        if (reason != null) {
+            markMethodSkipped(methodDecl," (" + reason + ")"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
             return;
         }
 

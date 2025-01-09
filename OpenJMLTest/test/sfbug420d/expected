@@ -1,9 +1,9 @@
 Proving methods in stack.Stack
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
-Skipping proof of stack.StackImpl.StackImpl() (excluded by -method)
-Skipping proof of stack.StackImpl.count() (excluded by -method)
-Skipping proof of stack.StackImpl.itemAt(int) (excluded by -method)
+Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match isEmpty)
+Skipping proof of stack.StackImpl.count() (Skipping stack.StackImpl.count because it does not match isEmpty)
+Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt because it does not match isEmpty)
 Starting proof of stack.StackImpl.isEmpty() with prover !!!!
 test/sfbug420d/StackImpl.java:29: warning: The prover cannot establish an assertion (Postcondition) in method isEmpty
 		return internalStack.length == 0;
@@ -12,9 +12,9 @@ test/sfbug420d/Stack.java:20: warning: Associated declaration
 	//@ ensures \result==(count()==0);
 	    ^
 Completed proof of stack.StackImpl.isEmpty() with prover !!!! - with warnings
-Skipping proof of stack.StackImpl.push(int) (excluded by -method)
-Skipping proof of stack.StackImpl.top() (excluded by -method)
-Skipping proof of stack.StackImpl.remove() (excluded by -method)
-Skipping proof of stack.StackImpl.main(String[]) (excluded by -method)
+Skipping proof of stack.StackImpl.push(int) (Skipping stack.StackImpl.push because it does not match isEmpty)
+Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it does not match isEmpty)
+Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match isEmpty)
+Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match isEmpty)
 Completed proving methods in stack.StackImpl
 2 warnings
