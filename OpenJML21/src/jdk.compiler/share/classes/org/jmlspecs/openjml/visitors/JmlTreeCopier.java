@@ -1129,7 +1129,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitLetExpr(LetExpr that, Void p) {
-        LetExpr let = (that instanceof JmlLetExpr) ?  M.JmlLetExpr(copy(that.defs,p), copy(that.expr,p), ((JmlLetExpr)that).explicit): M.LetExpr(copy(that.defs,p), copy(that.expr,p));
+        LetExpr let = (that instanceof JmlLetExpr letexpr) ?  M.JmlLetExpr(copy(that.defs,p), copy(that.expr,p), letexpr.explicit): M.LetExpr(copy(that.defs,p), copy(that.expr,p));
         let.pos = that.pos;
         let.type = that.type;
         return let;

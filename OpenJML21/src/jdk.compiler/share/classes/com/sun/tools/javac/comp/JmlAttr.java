@@ -4670,7 +4670,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void visitLetExpr(LetExpr tree) { 
-    	if (tree instanceof JmlLetExpr && ((JmlLetExpr)tree).explicit) {
+    	if (tree instanceof JmlLetExpr letexpr && letexpr.explicit) {
         	jmlenv.pushCopy();
         	jmlenv.inExpressionScope = true;
         	Env<AttrContext> localEnv;

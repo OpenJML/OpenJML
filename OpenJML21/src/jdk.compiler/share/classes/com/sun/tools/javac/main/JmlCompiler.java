@@ -375,8 +375,8 @@ public class JmlCompiler extends JavaCompiler {
                 javaCU.sourceCU = javaCU;
         	}
         	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
-            if (debugParse && filename.toString().contains("Object")) { System.out.println(specCU.toString()); }
-            org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
+            
+        	org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
             if (specCU != null) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
             if (javaCU != null && JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
                 String ss = JmlOption.value(context, JmlOption.SHOW);
