@@ -8116,7 +8116,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
-		if (that.meth.type.isErroneous()) {
+	    if (that.meth.type == null) {
+	        System.out.println("APPLY " + that);
+	    } else if (that.meth.type.isErroneous()) {
 			System.out.println("ERRONEOUS TYPE " + that);
 			if (that.meth instanceof JCFieldAccess fa) System.out.println("  RECV " + fa + " " + fa.type);
 			that.args.forEach(a-> System.out.println("  ARG " + a + " " + a.type));
@@ -13906,11 +13908,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             return;
         }
-        if ((optag == JCTree.Tag.EQ || optag == JCTree.Tag.NE) && (utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))) {
+        if (equality && (utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))) {
+            //System.out.println("EQUALITY " + that);
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
+            //System.out.println("EQUALITY ARGS " + lhs + " " + lhs.type + " " + lhs.type.hashCode() + " " + rhs + " " + rhs.type + " " + rhs.type.hashCode());
+            //System.out.println("EQUALITY CHECK " + (lhs.type == rhs.type) + " " + (lhs.type == JmlPrimitiveTypes.rangeTypeKind.getType(context)) + " " + JmlPrimitiveTypes.rangeTypeKind.getType(context).hashCode());
+            // FIXME - lhs.type differs from rangeTypeKind.getType when it shouldn't
             JCExpression e;
-            if (lhs.type == rhs.type && lhs.type == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
+            if (utils.rac) {
+                var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
+                e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
+            } else if (lhs.type == rhs.type && lhs.type == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
                 if (lhs instanceof JCParens p) lhs = p.expr;
                 if (rhs instanceof JCParens p) rhs = p.expr;
                 if (lhs instanceof JmlRange rlhs && rhs instanceof JmlRange rrhs ) {
@@ -13921,11 +13930,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else {
                     throw new JmlNotImplementedException(that, "equality of non-explicit range expressions");
                 }
-            } else if (!utils.rac) {
-                e = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
             } else {
-                var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
-                e = treeutils.makeMethodInvocation(that, lhs, nm, rhs);
+                e = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
             }
             result = eresult = e;
             return;
@@ -14590,7 +14596,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         JCExpression eqnull = treeutils.makeEqObject(pos, expr, treeutils.makeNullLiteral(pos));
         JCExpression notnull = treeutils.makeNot(pos, eqnull);
 
-        if (types.isSameType(newtype, oldtype)) {
+        if (newtype == oldtype || types.isSameType(newtype, oldtype)) {
             // redundant - remove the cast in both rac and esc
 
         } else if (utils.isExtensionValueType(oldtype)) {
@@ -15339,19 +15345,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (condition != null) expr = treeutils.makeImpliesSimp(p, condition, expr);
 		return expr;
 	}
+	
+	// These are the names of the fields in a range
+    public Name lo = Names.instance(context).fromString("lo");
+    public Name hi = Names.instance(context).fromString("hi");
 
-	// OK
-	@Override
-	public void visitSelect(JCFieldAccess that) {
-	    boolean print = false; // that.toString().endsWith(".balance");
+    // OK
+    @Override
+    public void visitSelect(JCFieldAccess that) {
+        boolean print = false; // that.toString().endsWith(".balance");
         if (print) System.out.println("VISITSELECT-A " + that );
-		JCExpression selected;
-		Symbol s = convertSymbol(that.sym);
-		JCExpression trexpr = that.getExpression();
+        JCExpression selected;
 
-		//System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + s + " " + trexpr);
-		if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
-        if (print) System.out.println("VISITSELECT " + that + " " + trexpr);
+        Symbol s = convertSymbol(that.sym);
+        JCExpression trexpr = that.getExpression();
+        if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
+        //System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + that.type + " " + that.selected.type + " " + s + " " + trexpr  + " " + trexpr.type);
+        if (!utils.rac && utils.isExtensionValueType(trexpr.type)) {
+            // This case is for immutable fields of built-in primitive JML types that are translated into
+            // built-in SMT functions. Being a primitive value, the argument is guaranteed non-null, and is not
+            // subject to readability rules.
+            // Right now, the only cases are the fields of \range and the length of collection types
+            Name n = that.name;
+            String f = null;
+            if (n == lo) f = SMTTranslator.rangelo;
+            else if (n == hi) f = SMTTranslator.rangehi;
+            if (f != null) {
+                JCExpression e = M.at(that).Apply(List.<JCExpression>nil(), M.at(that).Ident(f), List.<JCExpression>of(trexpr));
+                e.type = that.type;
+                result = eresult = e;
+                return;
+            }
+        }
+
+	    if (print) System.out.println("VISITSELECT " + that + " " + trexpr);
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
 		JCExpression eee = null;
@@ -19676,10 +19703,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// return;
 	}
 
-	@Override
-	public void visitJmlRange(JmlRange that) {
-		result = eresult = M.at(that.pos).JmlRange(convert(that.lo), convert(that.hi)).setType(that.type);
-	}
+    @Override
+    public void visitJmlRange(JmlRange that) {
+        var lo = convert(that.lo);
+        lo = addImplicitConversion(that.lo, BIGINT, lo);
+        var hi = convert(that.hi);
+        hi = addImplicitConversion(that.hi, BIGINT, hi);
+        if (rac) {
+            var ex = M.at(that.pos).Apply(List.<JCExpression>nil(), 
+                    M.at(that.pos).QualIdent("org","jmlspecs","lang","range","of"),
+                    List.<JCExpression>of(lo, hi));
+            var ty = attr.attribExpr(ex, Enter.instance(context).getTopLevelEnv(classDecl.toplevel));
+            ex.setType(ty);
+            result = eresult = ex;
+        } else {
+            result = eresult = M.at(that.pos).JmlRange(lo, hi).setType(that.type);
+        }
+    }
 
 	// OK
 	@Override

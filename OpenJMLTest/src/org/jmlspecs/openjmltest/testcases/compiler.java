@@ -1031,18 +1031,7 @@ public class compiler {
     			);
     }
     
-//    // Testing typechecking with source files for org.jmlspecs.annotation.*
-//    @Test
-//    public void release_testRuntime3() throws Exception {
-//    	expectedFile = "releaseTests/testRuntime3/expected";
-//    	helper(new String[]
-//    			{ "temp-release/C.java",  "-classpath", "../../JMLAnnotations/src"+z+"../OpenJML21/runtime", "--no-purity-check", "-no-internalRuntime"
-//    			},0,0
-//    			,""
-//    			);
-//    }
-    
-    // Testing typechecking with normal internal libaries
+    // Testing typechecking with normal internal libraries
     @Test
     public void release_testRuntime4() throws Exception {
     	expectedFile = "releaseTests/testRuntime4/expected";

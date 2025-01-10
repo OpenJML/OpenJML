@@ -285,18 +285,24 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    String rangeTypeName = "|RANGE|";
-    String rangefcn = "|range:cons|";
-    String lofcn = "|range:lo|";
-    String hifcn = "|range:hi|";
+    final public static String rangeTypeName = "|RANGE|";
+    final public static String rangefcn = "|range:of|";
+    final public static String rangelo = "|range:lo|";
+    final public static String rangehi = "|range:hi|";
+    final public static String rangeeq = "|range:eq|";
     
     protected void addRange(SMT smt) {
         addCommand(smt,"(declare-sort "+rangeTypeName+" 0)");
         addCommand(smt,"(declare-fun "+rangefcn+" (Int Int) "+rangeTypeName+")");
-        addCommand(smt,"(declare-fun "+lofcn+" ("+rangeTypeName+") Int)");
-        addCommand(smt,"(declare-fun "+hifcn+" ("+rangeTypeName+") Int)");
-        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+lofcn+" ("+rangefcn+" i j))))) ");
-        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+hifcn+" ("+rangefcn+" i j))))) ");
+        addCommand(smt,"(declare-fun "+rangelo+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(declare-fun "+rangehi+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(define-fun "+rangeeq+" (( p "+rangeTypeName+") (q "+rangeTypeName+")) "+boolSort+" (and (= ("+rangelo+" p) ("+rangelo+" q)) (= ("+rangehi+" p) ("+rangehi+" q))))");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+rangelo+" ("+rangefcn+" i j))))) ");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+rangehi+" ("+rangefcn+" i j))))) ");
+        recordFcn(rangefcn);
+        recordFcn(rangelo);
+        recordFcn(rangehi);
+        recordFcn(rangeeq);
         rangeSort = F.createSortExpression(F.symbol(rangeTypeName));
     }
     
@@ -1807,6 +1813,11 @@ public class SMTTranslator extends JmlTreeScanner {
      */
     protected Set<String> fcnsDefined = new HashSet<String>();
     
+    protected void recordFcn(String newname) {
+        String bnewname = makeBarEnclosedString(newname);
+        fcnsDefined.add(bnewname);
+    }
+    
     /** Adds a function with the given name and a definition if it is not already added. */
     protected void addFcn(String newname, JCMethodInvocation tree) {
         //System.out.println("ADDING FCN " + newname + " " + tree + " " + tree.type + " " + tree.meth.type + " " + TreeInfo.symbolFor(tree.meth));
@@ -2128,10 +2139,18 @@ public class SMTTranslator extends JmlTreeScanner {
         args.add(rhs);
         switch (op) {
             case EQ:
-                result = F.fcn(eqSym, args);
+                if (tree.lhs.type.toString().equals("\\range")) { // FIXME - do better than a string match
+                    result = F.fcn(F.symbol(rangeeq), args);
+                } else {
+                    result = F.fcn(eqSym, args);
+                }
                 break;
             case NE:
-                result = F.fcn(distinctSym, args);
+                if (tree.lhs.type.toString().equals("\\range")) {// FIXME - do better than a string match
+                    result = F.fcn(notSym,F.fcn(F.symbol(rangeeq), args));
+                } else {
+                    result = F.fcn(distinctSym, args);
+                }
                 break;
             case AND:
                 result = F.fcn(andSym, args);
@@ -2748,9 +2767,9 @@ public class SMTTranslator extends JmlTreeScanner {
             if (object.type.toString().startsWith("org.jmlspecs.lang.range")) {
             	IExpr sel = convertExpr(object);
             	if (field.name.toString().contains("lo")) {
-            		result = F.fcn(F.symbol(lofcn),sel);
+            		result = F.fcn(F.symbol(rangelo),sel);
             	} else {
-            		result = F.fcn(F.symbol(hifcn),sel);
+            		result = F.fcn(F.symbol(rangehi),sel);
             	}
             	// FIXME - why do arrays use this branch instead of the one at the bottom
             //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
