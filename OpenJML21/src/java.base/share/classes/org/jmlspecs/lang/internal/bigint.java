@@ -6,7 +6,7 @@ import org.jmlspecs.lang.IJmlPrimitiveType;
 
 public class bigint implements IJmlPrimitiveType {
     
-    private BigInteger value;
+    final private BigInteger value;
     
     private bigint(BigInteger v) {
         value = v;
@@ -153,6 +153,5 @@ public class bigint implements IJmlPrimitiveType {
     public org.jmlspecs.lang.real realValue() {
         return org.jmlspecs.lang.real.of(value);
     }
-
 
 }

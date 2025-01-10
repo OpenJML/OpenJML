@@ -6386,6 +6386,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else {
             	// <package>.array, or something illegal or the normal case
                 super.visitSelect(tree);
+
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
                 // so we fill it in

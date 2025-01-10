@@ -553,6 +553,8 @@ public class racfiles extends RacBase {
     
     @Test
     public void rangeTest1() {
+        expectedExit=1;
+        runrac = false;
         helpTCF("test/rangeTest1","test/rangeTest1","R");
     }
     

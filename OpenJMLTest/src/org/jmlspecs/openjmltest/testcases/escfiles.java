@@ -742,42 +742,42 @@ public class escfiles extends EscBase {
 
     // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
     @Test
-    public void testEscSF420() {
+    public void sfbug420() {
         helpTF("sfbug420","--exclude=count;itemAt;main;isEmpty;push;top");
     }
     
     @Test
-    public void testEscSF420a() {
+    public void sfbug420a() {
         helpTF("sfbug420a","--method=count");
     }
     
     @Test
-    public void testEscSF420b() {
+    public void sfbug420b() {
         helpTF("sfbug420b","--method=itemAt");
     }
     
     @Test
-    public void testEscSF420c() {
+    public void sfbug420c() {
         helpTF("sfbug420c","--method=main");
     }
     
     @Test
-    public void testEscSF420d() {
+    public void sfbug420d() {
         helpTF("sfbug420d","--method=isEmpty");
     }
     
     @Test
-    public void testEscSF420e() {
+    public void sfbug420e() {
         helpTF("sfbug420e","--method=push");
     }
     
     @Test
-    public void testEscSF420f() {
+    public void sfbug420f() {
         helpTF("sfbug420f","--method=top");
     }
     
     @Test
-    public void testEscSF420X() {
+    public void sfbug420X() {
         helpTF("sfbug420X");
     }
     
