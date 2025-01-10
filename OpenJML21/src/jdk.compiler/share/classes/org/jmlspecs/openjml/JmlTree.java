@@ -300,11 +300,6 @@ public class JmlTree {
         	return Modifiers(flags, annotations, new java.util.LinkedList<JmlToken>());
         }
  
-        // @Override // TODO - used to have Override
-        public JCModifiers Modifiers(JCModifiers mods, long flags, List<JCAnnotation> annotations) {
-        	return Modifiers(flags, annotations, mods == null ? new java.util.LinkedList<JmlToken>() : ((JmlModifiers)mods).jmlmods);
-        }
-        
         public JmlModifiers Modifiers(long flags, List<JCAnnotation> annotations, java.util.List<JmlToken> jmlmods) {
         	JmlModifiers m = new JmlModifiers(flags, annotations, jmlmods);
         	m.pos = pos;

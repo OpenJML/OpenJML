@@ -1,0 +1,38 @@
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test
+    JmlMethodDecl: m
+      JmlVariableDecl: b
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: b
+      JCIdent: i
+      JCIdent: i
+      JCIdent: b
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test
+    JmlMethodDecl: m
+      JmlVariableDecl: b
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: b
+      JCIdent: i
+      JCIdent: i
+      JCIdent: b
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+

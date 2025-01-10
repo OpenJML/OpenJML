@@ -8,7 +8,7 @@ package org.jmlspecs.openjml;
 /** This class holds (almost) all explicit strings or other constant data used in OpenJML,
  * particularly that data that is customer visible. */
 public class Strings {
-
+    private Strings() {} // all static members -- do not instantiate
     // All explicit strings should be here
     
     // The following are stored here globally (i.e., for all compilation

@@ -21,7 +21,7 @@ public class escoption extends EscBase {
         super.setUp();
         main.addOptions("--nullable-by-default"); // Because the tests were written this way
         main.addOptions("--quiet");
-        main.addOptions("--check-feasibility=none","-no-require-white-space");
+        main.addOptions("--check-feasibility=none","--no-require-white-space");
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -253,16 +253,46 @@ public class escoption extends EscBase {
         );
         String out = output();
         org.junit.Assert.assertEquals(
-                "Proving methods in tt.TestJava" + eol +
-                "Skipping proof of tt.TestJava.TestJava() (Skipping tt.TestJava.TestJava because it does not match bassert)" + eol +
-                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (Skipping tt.TestJava.bassert because it matches the exclusion tt.TestJava.bassert(boolean,boolean))" + eol + 
-                "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
-                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (Skipping tt.TestJava.bassert2 because it does not match bassert)" + eol + 
-                "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
-                "Completed proving methods in tt.TestJava" + eol 
+                """
+                Proving methods in tt.TestJava
+                Skipping proof of tt.TestJava.TestJava() (Skipping tt.TestJava.TestJava because it does not match bassert)
+                Skipping proof of tt.TestJava.bassert(boolean,boolean) (Skipping tt.TestJava.bassert because it matches the exclusion tt.TestJava.bassert(boolean,boolean))
+                Starting proof of tt.TestJava.bassert() with prover !!!!
+                Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings
+                Skipping proof of tt.TestJava.bassert2(boolean,boolean) (Skipping tt.TestJava.bassert2 because it does not match bassert)
+                Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)
+                Completed proving methods in tt.TestJava
+                """
               ,out) ;
 
+    }
+    
+    @Test
+    public void testBadFeasibility() {
+        expectedExit = 2;
+        addOptions("--check-feasibility=xyz");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        ,"error: Unexpected value as argument for --check-feasibility: xyz",-1
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void testDebugFeasibility() {
+        expectedExit = 0;
+        addOptions("--check-feasibility=debug:100");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+    
+    @Test
+    public void testAllFeasibility() {
+        expectedExit = 0;
+        addOptions("--check-feasibility=all");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("",output());
     }
     
     

@@ -609,7 +609,6 @@ public class JmlJson {
     }
     
 
-    // TODO: JCSkip
     class JCSkipAdapter implements JsonSerializer<JCSkip> {
         @Override
         public JsonElement serialize(JCSkip src, java.lang.reflect.Type type, JsonSerializationContext context) {

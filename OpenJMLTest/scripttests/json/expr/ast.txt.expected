@@ -1,0 +1,73 @@
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test
+    JmlVariableDecl: i1
+    JmlVariableDecl: i2
+    JmlVariableDecl: i3
+    JmlVariableDecl: i4
+      JCIdent: String
+    JmlVariableDecl: i5
+    JmlVariableDecl: i6
+    JmlVariableDecl: i7
+    JmlVariableDecl: i8
+    JmlVariableDecl: i9
+    JmlVariableDecl: i10
+    JmlVariableDecl: i11
+    JmlVariableDecl: b
+    JmlVariableDecl: s
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test
+    JmlVariableDecl: i1
+    JmlVariableDecl: i2
+    JmlVariableDecl: i3
+    JmlVariableDecl: i4
+      JCIdent: String
+    JmlVariableDecl: i5
+    JmlVariableDecl: i6
+    JmlVariableDecl: i7
+    JmlVariableDecl: i8
+    JmlVariableDecl: i9
+    JmlVariableDecl: i10
+    JmlVariableDecl: i11
+    JmlVariableDecl: b
+    JmlVariableDecl: s
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test1
+    JmlVariableDecl: x1
+    JmlVariableDecl: x2
+      JCIdent: x1
+    JmlVariableDecl: x3
+      JCIdent: x1
+      JCIdent: x2
+    JmlVariableDecl: x4
+      JCFieldAccess: abs java.lang.Math.abs
+        JCFieldAccess: Math java.lang.Math
+          JCFieldAccess: lang java.lang
+            JCIdent: java
+      JCIdent: x3
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test2
+    JmlMethodDecl: m
+

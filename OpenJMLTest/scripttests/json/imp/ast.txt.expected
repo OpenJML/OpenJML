@@ -1,0 +1,58 @@
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlImport
+    JCFieldAccess: File java.io.File
+      JCFieldAccess: io java.io
+        JCIdent: java
+  JmlImport
+    JCFieldAccess: * java.util.*
+      JCFieldAccess: util java.util
+        JCIdent: java
+  JmlImport static
+    JCFieldAccess: * java.math.BigInteger.*
+      JCFieldAccess: BigInteger java.math.BigInteger
+        JCFieldAccess: math java.math
+          JCIdent: java
+  JmlImport static
+    JCFieldAccess: isNaN java.lang.Double.isNaN
+      JCFieldAccess: Double java.lang.Double
+        JCFieldAccess: lang java.lang
+          JCIdent: java
+  JmlImport model
+    JCFieldAccess: File java.io.File
+      JCFieldAccess: io java.io
+        JCIdent: java
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlImport
+    JCFieldAccess: File java.io.File
+      JCFieldAccess: io java.io
+        JCIdent: java
+  JmlImport
+    JCFieldAccess: * java.util.*
+      JCFieldAccess: util java.util
+        JCIdent: java
+  JmlImport static
+    JCFieldAccess: * java.math.BigInteger.*
+      JCFieldAccess: BigInteger java.math.BigInteger
+        JCFieldAccess: math java.math
+          JCIdent: java
+  JmlImport static
+    JCFieldAccess: isNaN java.lang.Double.isNaN
+      JCFieldAccess: Double java.lang.Double
+        JCFieldAccess: lang java.lang
+          JCIdent: java
+  JmlImport model
+    JCFieldAccess: File java.io.File
+      JCFieldAccess: io java.io
+        JCIdent: java
+
