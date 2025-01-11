@@ -42,23 +42,27 @@ public class racsystem extends RacBase {
     }
 
     /** Testing with getting a stack trace */
-    @Test @Ignore    // FIXME - not testing rac-compiled JDK files
+    @Test // FIXME - should this say what exception violated the signals clause
     public void testFile2() {
-        expectedRACExit = 1; 
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +"org.jmlspecs.runtime.Utils.useExceptions = true; \n"
-                +"try { m(); } catch (Exception e) { e.printStackTrace(System.out); } \n"
-                +"System.out.println(\"END\"); org.jmlspecs.runtime.Utils.useExceptions = false;} \n"
-                +"static void m() {\n"
-                +"  int i = (new java.io.File(\"A\")).compareTo((java.io.File)null);\n"
-                +"}"
-                +"}"
-                
-                ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: File.refines-spec:77: JML precondition is false"
-                ,"\tat org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:63)"
-                ,"\tat java.io.File.compareTo(File.java:2093)"
-                ,"\tat tt.TestJava.m(TestJava.java:6)"
-                ,"\tat tt.TestJava.main(TestJava.java:3)"
+        expectedRACExit = 0; 
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        org.jmlspecs.runtime.Utils.useExceptions = true;
+                        try { m(); } catch (Throwable e) { System.out.println("Catching an AssertionError: " + e.getClass() + " " + e.getMessage()); }
+                        System.out.println("END");
+                        org.jmlspecs.runtime.Utils.useExceptions = false;
+                    }
+                    static void m() {
+                        int i = (new java.io.File("A")).compareTo((java.io.File)null);
+                    }
+                }
+                """
+                ,"Catching an AssertionError: class org.jmlspecs.runtime.JmlAssertionError /tt/TestJava.java:10: verify: JML signals condition is false"
+                ,"/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/File.jml:100: verify: Associated declaration: /tt/TestJava.java:10:"
+                ,"END"
                 );
     }
    

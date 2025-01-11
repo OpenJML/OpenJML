@@ -1888,17 +1888,62 @@ public class racnew extends RacBase {
         );
     }
     
-    /** Numof quantifier */
-    @Ignore // FIXME - not yet working -- should it be suppoorted?
+    /** Possible implementation of the \num_of quantifier */
     @Test public void testCountQuantifierExtA() {
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"public static int m = 2;\n"
-                +"public static void main(String[] argv) { \n "
-                +"//@ ghost int nnn = new org.jmlspecs.runtime.Utils.ValueInt() { public int value(final Object[] args) { int count = 0; int lo = (Integer)(args[0]); int hi = (Integer)(args[1]); int i = lo; while (i <= hi) { if (i>=lo && i<=hi) count++; i++; } return count; }}.value(new Object[]{0,5});\n"
-                +"//@ set System.out.println(\"A \" + nn ); \n"
-                +"System.out.println(\"END\"); "
-                +"}}"
-                ,"A 3 5"
+        helpTCX("tt.A",
+                """
+                package tt; public class A {
+                    public static int m = 2;
+                    public static void main(String[] argv) {
+                    /*@ ghost var v = new org.jmlspecs.runtime.Utils.ValueInt() {
+                            public int value(final Object[] args) {
+                                int count = 0;
+                                int lo = (Integer)(args[0]);
+                                int hi = (Integer)(args[1]);
+                                int i = lo;
+                                while (i <= hi) {
+                                    if (i>=lo && i<=hi) count++; i++;
+                                }
+                                return count;
+                            }
+                        };
+                        ghost int nnn = v.value(new Object[]{0,5});
+                        set System.out.println(\"A \" + nnn );
+                    @*/
+                    System.out.println(\"END\");
+                }}
+                """
+                ,"A 6"
+                ,"END"
+        );
+    }
+    
+    /** Possible implementation of the \num_of quantifier */
+    //  FIXME - crashes, despite its similarity to the test above
+    @Test public void testCountQuantifierExtB() {
+        helpTCX("tt.A",
+                """
+                package tt; public class A {
+                    public static int m = 2;
+                    public static void main(String[] argv) {
+                    /*@ ghost var nnn = new org.jmlspecs.runtime.Utils.ValueInt() {
+                            public int value(final Object[] args) {
+                                int count = 0;
+                                int lo = (Integer)(args[0]);
+                                int hi = (Integer)(args[1]);
+                                int i = lo;
+                                while (i <= hi) {
+                                    if (i>=lo && i<=hi) count++; i++;
+                                }
+                                return count;
+                            }
+                        }.value(new Object[]{0,5});
+                        set System.out.println(\"A \" + nnn );
+                    @*/
+                    System.out.println(\"END\");
+                }}
+                """
+                ,"A 6"
                 ,"END"
         );
     }
