@@ -69,21 +69,25 @@ abstract public class Arithmetic extends JmlExtension {
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         Utils utils = Utils.instance(context);
         if (!jml) {
-            if (utils.hasModifier(sym, Modifiers.CODE_BIGINT_MATH)) return Math.instance(context);
-            if (utils.hasModifier(sym, Modifiers.CODE_SAFE_MATH)) return Safe.instance(context);
-            if (utils.hasModifier(sym, Modifiers.CODE_JAVA_MATH)) return Java.instance(context);
-            sym = sym.owner;
-            if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
+            if (sym != null) {
+                if (utils.hasModifier(sym, Modifiers.CODE_BIGINT_MATH)) return Math.instance(context);
+                if (utils.hasModifier(sym, Modifiers.CODE_SAFE_MATH)) return Safe.instance(context);
+                if (utils.hasModifier(sym, Modifiers.CODE_JAVA_MATH)) return Java.instance(context);
+                sym = sym.owner;
+                if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
+            }
             String v = JmlOption.value(context,JmlOption.CODE_MATH);
             if ("java".equals(v)) return Java.instance(context);
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
         } else {
-            if (utils.hasModifier(sym, Modifiers.SPEC_BIGINT_MATH)) return Math.instance(context);
-            if (utils.hasModifier(sym, Modifiers.SPEC_SAFE_MATH)) return Safe.instance(context);
-            if (utils.hasModifier(sym, Modifiers.SPEC_JAVA_MATH)) return Java.instance(context);
-            sym = sym.owner;
-            Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
+            if (sym != null) {
+                if (utils.hasModifier(sym, Modifiers.SPEC_BIGINT_MATH)) return Math.instance(context);
+                if (utils.hasModifier(sym, Modifiers.SPEC_SAFE_MATH)) return Safe.instance(context);
+                if (utils.hasModifier(sym, Modifiers.SPEC_JAVA_MATH)) return Java.instance(context);
+                sym = sym.owner;
+                Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
+            }
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
             String v = JmlOption.value(context,JmlOption.SPEC_MATH);
             if ("java".equals(v)) return Java.instance(context);

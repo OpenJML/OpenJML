@@ -384,6 +384,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return env;
     }
 
+    public Type coerce(Type etype, Type ttype, com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition pos) { // OPENJML _ added
+        // FIXME - need to get current arithmetic mode and whether we are currently in JML or not
+        var isSafe = Arithmetic.Math.instance(context).defaultArithmeticMode(null, false).mode() == Arithmetic.Mode.SAFE ;
+        return isSafe ? super.coerce(etype, ttype, pos) : super.coerce(etype, ttype);
+     }
 
     
     /** Overrides the super class call in order to perform JML checks on class

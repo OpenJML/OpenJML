@@ -384,6 +384,10 @@ public class Attr extends JCTree.Visitor {
         return cfolder.coerce(etype, ttype);
     }
 
+    public Type coerce(Type etype, Type ttype, JCDiagnostic.DiagnosticPosition pos) { // OPENJML _ added
+        return cfolder.coerce(etype, ttype, pos);
+     }
+
     public Type attribType(JCTree node, TypeSymbol sym) {
         Env<AttrContext> env = typeEnvs.get(sym);
         Env<AttrContext> localEnv = env.dup(node, env.info.dup());
@@ -851,7 +855,7 @@ public class Attr extends JCTree.Visitor {
                 type = variable.type = variable.sym.type = chk.checkLocalVarType(variable, itype, variable.name);
             }
             if (itype.constValue() != null) {
-                return coerce(itype, type).constValue();
+                return coerce(itype, type, variable.init).constValue(); // OPENJML _ added variable.init
             } else {
                 return null;
             }
@@ -4035,7 +4039,7 @@ public class Attr extends JCTree.Visitor {
             if (argtype.constValue() != null) {
                 Type ctype = cfolder.fold1(opc, argtype);
                 if (ctype != null) {
-                    owntype = cfolder.coerce(ctype, owntype);
+                    owntype = cfolder.coerce(ctype, owntype, tree); // OPENJML - added last argument
                 }
             }
         }
@@ -4090,7 +4094,7 @@ public class Attr extends JCTree.Visitor {
             if (left.constValue() != null && right.constValue() != null) {
                 Type ctype = cfolder.fold2(opc, left, right);
                 if (ctype != null) {
-                    owntype = cfolder.coerce(ctype, owntype);
+                    owntype = cfolder.coerce(ctype, owntype, tree); // OPENJML - added last argument
                 }
             }
 
@@ -4134,7 +4138,7 @@ public class Attr extends JCTree.Visitor {
         Type exprtype = attribTree(tree.expr, localEnv, castInfo);
         Type owntype = isPoly ? clazztype : chk.checkCastable(tree.expr.pos(), exprtype, clazztype);
         if (exprtype.constValue() != null)
-            owntype = cfolder.coerce(exprtype, owntype);
+            owntype = cfolder.coerce(exprtype, owntype, tree); // OPENJML - added last argument
         result = check(tree, capture(owntype), KindSelector.VAL, resultInfo);
         if (!isPoly)
             chk.checkRedundantCast(localEnv, tree);

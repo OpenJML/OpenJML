@@ -689,6 +689,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         JmlResolve.preRegister(context);
         JmlFlow.preRegister(context);
         JmlMemberEnter.preRegister(context);
+        JmlConstFold.preRegister(context);
         JmlAttr.preRegister(context);  // registering a JML-aware type checker
         JmlCheck.preRegister(context);
         JmlPretty.preRegister(context);
