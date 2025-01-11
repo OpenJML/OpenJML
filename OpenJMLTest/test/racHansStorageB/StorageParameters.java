@@ -1,4 +1,3 @@
-
 public final class StorageParameters 
 {
 	private long totalBackingStore;
