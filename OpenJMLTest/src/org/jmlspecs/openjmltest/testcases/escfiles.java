@@ -360,13 +360,13 @@ public class escfiles extends EscBase {
     @Test @Ignore // FIXME - Specs need improvement
     public void testVT20191() {
         expectedExit = 0;
-        helpTF("verifythis-2019-1","-checkFeasibility=none"); // FIXME - feasibility check times out
+        helpTF("verifythis-2019-1","--check-feasibility=none"); // FIXME - feasibility check times out
     }
 
     @Test
     public void testVT20192() {
         expectedExit = 0;
-        helpTF("verifythis-2019-2","-solver-seed=42");
+        helpTF("verifythis-2019-2","--solver-seed=42");
     }
 
     @Test 
