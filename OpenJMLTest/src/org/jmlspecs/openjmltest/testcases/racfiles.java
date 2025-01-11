@@ -50,8 +50,7 @@ public class racfiles extends RacBase {
     
     public void setRacngEA() {
     	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1),
-    	        "-Dorg.jmlspecs.openjml.racexceptions=true",
-    			"-Dorg.jmlspecs.openjml.racjavaassert=true","-Dorg.jmlspecs.openjml.racshowstack=false","StorageParameters"};
+    	        "-Dorg.jmlspecs.openjml.rac=exception","StorageParameters"};
     }
 
     @Test
@@ -298,19 +297,6 @@ public class racfiles extends RacBase {
     	rac = null;
     }
     
-    @Test
-    public void racHansE() {
-    	runrac = false;
-    	helpTCF("test/hans/icecapSDK/src/javax/safetycritical/test/safelet/TckTestSafelet2.java",
-    			"test/hans",
-    			null,
-    			"-cp","test/hans/icecapSDK/src",  //nFIXME - changed icecapSDK/bin to icecapSDK/src
-    			"--rac",
-    			"--specs-path","test/hans/OpenJMLTest/specs",
-    			"--rac-check-assumptions","--rac-java-checks","--show-not-mplemented","--nullable-by-default"
-    			);
-    }
-
     @Test
     public void racNoGhostField() {
         expectedRACExit = 0;

@@ -49,7 +49,7 @@ public class Utils {
      */
     public static boolean useJavaException = "assertionerror".equals(racpropertyvalue);
 
-    public static boolean useJavaAssert= "javaassert".equals(racpropertyvalue);
+    public static boolean useJavaAssert = "javaassert".equals(racpropertyvalue);
 
     /** If true, then error messages reporting assertion failures are 
      * accompanied with a stack trace to log.errorWriter.
@@ -90,14 +90,14 @@ public class Utils {
     // This one is declared first to minimize changes to its location 
     public static void assertionFailureL(String message, /*@ nullable */String label) {
         countVerificationErrors(); 
-        if (useExceptions) {
+        if (Utils.useExceptions) {
             throw createException(message,label); // locB in RacBase
-        } else if (showStack) { 
+        } else if (Utils.showStack) { 
         	Error e = createException(message,label); // locC in RacBase
         	e.printStackTrace(System.out);
-        } else if (useJavaException) {
+        } else if (Utils.useJavaException) {
             throw new java.lang.AssertionError(message);
-        } else if (useJavaAssert) {
+        } else if (Utils.useJavaAssert) {
             assert false: message;
         } else {
     	   System.out.println(message); System.out.flush();
