@@ -381,7 +381,6 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
-        boolean print = param.name.toString().equals("stackTrace");
         insertReplacementType(param,replacementType);
         param.vartype = normalizeAnnotations((JmlModifiers)param.mods, param.vartype);
         var typeAnnotations = extractTypeAnnotations(param.mods);
@@ -1605,8 +1604,8 @@ public class JmlParser extends JavacParser {
     @Override
     public JCExpression unannotatedType(boolean allowVar) {
         while (isStartJml(token)) nextToken();
-        boolean isBrace = S.jml() && token.kind == TokenKind.LBRACKET;
-        if (isBrace) {
+        boolean isBracket = S.jml() && token.kind == TokenKind.LBRACKET;
+        if (isBracket) {
         	this.replacementType = null;
         	try {
         		// We need to be in non-JML mode so that we don't interpret

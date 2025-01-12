@@ -280,7 +280,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             reset(endPos);
             return super.processComment(pos, endPos, style);
         }
-        if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
+        if (!(isOneOf(' ','\t','{','[') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{','[')))
                 && JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
             // Not a valid JML comment if there is not whitespace after the @.
             // This is to avoid processing commented out Annotations, like //@Injected or //@line
