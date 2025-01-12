@@ -527,7 +527,7 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug560() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=none");
+        helpTCG("--check-feasibility=none","--show","--method=mm");
     }
     
     @Test public void gitbug567() {

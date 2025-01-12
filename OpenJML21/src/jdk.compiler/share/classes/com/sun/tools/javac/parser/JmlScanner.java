@@ -275,7 +275,7 @@ public class JmlScanner extends Scanner {
     		}
     	}
     	if (scannerDebug) {
-    		System.out.println("TOKEN " + jmlForCurrentToken + " " + token.toStringDetail());
+    		System.out.println("TOKEN " + Utils.isJML() + " " + jmlForCurrentToken + " " + token.toStringDetail());
     	}
     }
 
