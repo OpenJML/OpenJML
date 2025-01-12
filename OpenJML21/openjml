@@ -24,5 +24,9 @@ else
   BIN=`echo "$LOCAL"/build/*/jdk/bin/javac`
 fi
 
-OPENJML_ROOT="$SOLVERS" "$BIN" "$@"
+export PR=
+if [ -n "${PROF+set}" ]; then
+  export PR=-J-agentpath:/Users/davidcok/Desktop/profiler/lib/libasyncProfiler.dylib=start,event=cpu,file=profile.html
+fi
+OPENJML_ROOT="$SOLVERS" "$BIN" $PR "$@"
 

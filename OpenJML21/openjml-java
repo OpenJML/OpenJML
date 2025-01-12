@@ -24,6 +24,12 @@ else
   BIN=`echo $LOCAL/build/*/jdk/bin/java`
 fi
 
-##echo "$BIN" $AGENT "$@"
-OPENJML_ROOT="$SOLVERS" "$BIN" $AGENT "$@"
+export PR=
+if [ -n "${PROF+set}" ]; then
+  echo SETTING $PR :
+  export PR=-agentpath:/Users/davidcok/Desktop/profiler/lib/libasyncProfiler.dylib=start,event=cpu,file=profile.html
+fi
+
+##echo "$BIN" $PR $AGENT "$@"
+OPENJML_ROOT="$SOLVERS" "$BIN" $PR $AGENT "$@"
 
