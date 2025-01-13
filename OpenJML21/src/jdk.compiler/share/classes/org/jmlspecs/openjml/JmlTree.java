@@ -1034,7 +1034,7 @@ public class JmlTree {
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
     public static class JmlCompilationUnit extends JCTree.JCCompilationUnit implements JmlSource {
         
-        /** This list contains the parse tree of the specification file, if any, for this compilation unit. 
+        /** This field contains the parse tree of the specification file, if any, for this compilation unit. 
          *  This field may point to 'this' if the compilation unit is its own specs file. */
     	/*@ nullable */
     	public JmlCompilationUnit specsCompilationUnit = null;
@@ -1062,7 +1062,7 @@ public class JmlTree {
         public Env<AttrContext> topLevelEnv;
         
         public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
-        public boolean forBinary() { return sourceCU == null; }
+        //public boolean forBinary() { return sourceCU == null; }
         public JavaFileObject source() { return sourcefile; }
         public void setSource(JavaFileObject s) { sourcefile = s; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file

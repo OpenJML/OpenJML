@@ -547,14 +547,15 @@ public class JmlEnter extends Enter {
 	// and specEnv is the Env for the specification CU or class of the container
 	public Type classEnter(JCTree tree, Env<AttrContext> env) {
 		if (debugEnter && tree instanceof JCCompilationUnit cu) System.out.println("enter: Entering CU " + cu.sourcefile);
-		if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entering class " + d.name);
+        if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entering class " + d.name);
 		if (tree instanceof JmlClassDecl cd && cd.specsDecl.name != cd.name) throw new AssertionError("wrong specsDecl-A: " + cd.name + " " + cd.specsDecl.name);
-
+		Env<AttrContext> savedEnv = env;
 		var prevSpecEnv = specEnv;
+		if (tree instanceof JmlClassDecl cd && cd.toplevel.isSpecs()) env = specEnv;
 		try {
 			Type t = super.classEnter(tree, env); // eventually calls tree.accept, assigning env to this.env
 			if (debugEnter && tree instanceof JCCompilationUnit cu) System.out.println("enter: Entered CU " + cu.sourcefile + " " + t);
-			if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entered class " + d.sym + " " + t);
+			if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entered class " + d.sym + " " + t + " " + env);
 			return t;
 		} catch (Exception e) {
             if (tree instanceof JCCompilationUnit cu) utils.error(cu.sourcefile, cu, "jml.internal", "Unexpected exception: " + e.getMessage());
@@ -563,6 +564,7 @@ public class JmlEnter extends Enter {
 	        throw e;
 		} finally {
 			specEnv = prevSpecEnv;
+			env = savedEnv;
 		}
 	}
 	

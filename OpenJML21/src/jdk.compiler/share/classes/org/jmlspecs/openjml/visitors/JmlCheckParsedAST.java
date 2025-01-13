@@ -92,7 +92,8 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
     @Override
     public void visitTopLevel(JCCompilationUnit cu) {
         JmlCompilationUnit jcu = (JmlCompilationUnit)cu;
-        if (jcu.forBinary()) {
+        // FIXME - need to review the distinctions of these three cases
+        if (jcu.sourceCU == null) {
             // A spec AST for a binary file
             //System.out.println("Checking a binary AST " + jcu.sourcefile);
             var specCU = jcu;

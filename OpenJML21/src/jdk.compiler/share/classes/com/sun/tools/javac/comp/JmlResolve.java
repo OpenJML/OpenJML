@@ -126,12 +126,21 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
-//        if (e.toString().equals("B")) {
+//        if (e.toString().equals("NonNull")) {
 //            System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field) + " " + e.owner);
-//            //org.jmlspecs.openjml.Utils.dumpStack();
+//            org.jmlspecs.openjml.Utils.dumpStack();
 //        }
         return allowJML || !utils.isJML(e.flags_field);
     }
+    
+    Symbol findGlobalType(Env<AttrContext> env, Scope scope, Name name, RecoveryLoadClass recoveryLoadClass) {
+//        if (name.toString().equals("NonNull")) {
+//            System.out.println("Searching for " + name + " " + env);
+//            org.jmlspecs.openjml.Utils.dumpStack();
+//        }
+        return super.findGlobalType(env, scope, name, recoveryLoadClass);
+    }
+
     
     public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
             Symbol location, Type site, Name name, List<Type> argtypes,
