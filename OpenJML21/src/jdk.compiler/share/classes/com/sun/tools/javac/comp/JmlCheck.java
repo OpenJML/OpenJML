@@ -59,21 +59,6 @@ public class JmlCheck extends Check {
         });
     }
     
-    /** Returns the instance for the given context
-     * 
-     * @param context the context in which we are working
-     * @return the non-null instance of JmlCheck for this context
-     */
-    public static JmlCheck instance(Context context) {
-        Check instance = context.get(checkKey); 
-        if (instance == null) throw new IllegalStateException("No Factory registered for JmlCheck");
-//            instance = new JmlCheck(context); // Registers itself in the super constructor
-        return (JmlCheck)instance; // If the registered instance is only a Check, something is catastrophically wrong
-    }
-    
-    /** Set externally in order to control errors about old variables needing to be static. */
-//    public boolean staticOldEnv = false;
-    
     /** Set by setInJml in order to avoid errors about generic casts.*/
     protected boolean isInJml = false;
     
@@ -186,12 +171,4 @@ public class JmlCheck extends Check {
     void varargsDuplicateError(DiagnosticPosition pos, Symbol sym1, Symbol sym2) {
         if (!noDuplicateWarn) super.varargsDuplicateError(pos, sym1, sym2);
     }
-    
-//    void checkAllDefined(DiagnosticPosition pos, Symbol.ClassSymbol c) {
-//    	if (c.toString().equals("java.lang.Character")) {
-//    		System.out.println("CAD " + c + " " + c.sourcefile.getKind() + " " + Enter.instance(context).getEnv(c).toplevel.sourcefile.getKind());
-//    	} else {
-//    		super.checkAllDefined(pos, c);
-//    	}
-//    }
 }
