@@ -203,6 +203,7 @@ public class JmlCompiler extends JavaCompiler {
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
         	// TODO - what output writer to use?
+            System.out.println("classpath:  " + Utils.join(":",JmlSpecs.instance(context).getClassPath()));
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }

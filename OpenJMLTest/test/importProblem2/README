@@ -1,0 +1,2 @@
+In this test, openjml fails to find NonNull when the classpath is specified.
+The test succeeds with the import in Test.java but not if it is only in Test.jml
