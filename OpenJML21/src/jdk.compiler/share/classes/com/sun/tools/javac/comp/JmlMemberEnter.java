@@ -735,8 +735,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
         MethodSymbol msym = tree.sym;
         MethodSymbol mtemp = msym;
-        Type computedResultType = null;
         Env<AttrContext> localEnv = null;
+        Env<AttrContext> localEnvSpec = null;
+        Type computedResultType = null;
+        Env<AttrContext> savedEnv = null;
         if (msym != null) {
             localEnv = methodEnv(tree, env); // FIXME - or getMethodEnv?
             computedResultType = msym.getReturnType();
@@ -747,11 +749,27 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             //m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
             tree.sym = mtemp;
             localEnv = methodEnv(tree, env);
+            localEnvSpec = localEnv;
 
+            var speccu = ((JmlCompilationUnit)env.toplevel).specsCompilationUnit;
+            if (speccu != null) {
+                // FIXME - the spec environment has all the imports from any .jml file
+                // However, I'm not sure it has locally defined classes
+                savedEnv = env;
+                env = speccu.topLevelEnv;
+                localEnvSpec = methodEnv(tree, env);
+                //if (specMethod.name.toString().equals("m")) System.out.println("SIGNATURE FOR " + specMethod + " " + env + " " + localEnvSpec+ " " + localEnvSpec.outer );
+                //if (specMethod.name.toString().equals("m")) System.out.println("LOCALENV " + localEnv + " " + localEnv.outer );
+            }
             // Compute the method type
             mtemp.type = signature(msym, tree.typarams, tree.params,
                                tree.restype, tree.recvparam, tree.thrown,
-                               localEnv);
+                               localEnvSpec);
+            if (savedEnv != null) {
+                env = savedEnv;
+                localEnvSpec.info.scope.leave();
+            }
+            
             computedResultType = mtemp.type.getReturnType();
             
             // Set m.params
