@@ -100,8 +100,15 @@ public class purity extends TCBase {
     }
 
     @Test
+    public void testModelMethodIncDec() {
+        helpTC(" class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
+                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
+                );
+    }
+
+    @Test
     public void testPureIncrement() {
-        helpTC(" class A {  int b,bb;  \n //@ invariant 0==(++b); \n}"
+        helpTC(" class A {  int b;  \n //@ invariant 0==(++b); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
                 );
     }

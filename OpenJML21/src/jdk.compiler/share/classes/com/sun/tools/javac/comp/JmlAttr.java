@@ -957,32 +957,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> specEnv = specsDecl.specEnv;
             Type sup = classSymbol.getSuperclass();
             if (!classSymbol.isInterface() && sup.getKind() != TypeKind.ERROR) {
-                boolean specIsEnum = (specsDecl.mods.flags & Flags.ENUM) != 0;
                 boolean specIsRecord = (specsDecl.mods.flags & Flags.RECORD) != 0;
-                if (classSymbol.isEnum()) {
-                    if (!specIsEnum) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration must be an enum, because the source/binary is");
-                    }
-                    if (specsDecl.extending != null) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "An enum may not declare any superclass");
-                    }
-                } else if (specIsEnum) {
-                    utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration may not be an enum, because the source/binary is not");
-                   
-                } else if ((classSymbol.flags() & Flags.RECORD) != 0) {
+                if ((classSymbol.flags() & Flags.RECORD) != 0) {
                     if (!specIsRecord) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration must be a record, because the source/binary is");
+                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl,
+                                "jml.message",  "The specification declaration must be a record, because the source/binary is");
                     }
-                    if (specsDecl.extending != null) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "A record may not declare any superclass");
-                    }
-                    // FIXME - any other checks for records?
                 } else if (specIsRecord) {
-                    utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration may not be a record, because the source/binary is not");
+                    utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl,
+                            "jml.message",  "The specification declaration may not be a record, because the source/binary is not");
                } else if (specsDecl.extending != null) {
                     attribType(specsDecl.extending, specEnv);
                     if (classSymbol == syms.objectType.tsym || !jmltypes.isSameType(specsDecl.extending.type, sup)) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " 
+                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl.extending, javaDecl.sourcefile, (javaDecl.extending != null ? javaDecl.extending : javaDecl),
+                                "jml.message", "The specification declaration must declare the same supertype as the source declaration: " 
                                                 + specsDecl.extending.type + " vs. " + sup);
                     }
                 } else {
@@ -991,7 +979,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     } else if (classSymbol.toString().contains("java.util.stream.Collector")) {
                         // OK - FIXME - why do we need this
                     } else if (sup.tsym != syms.objectType.tsym) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
+                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl.extending,
+                                "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
                     }
                 }
             }
@@ -1035,11 +1024,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (!isImmutable(classSymbol)) {
         	var sc = classSymbol.getSuperclass();
-        	if (sc != null && sc.tsym != null && isImmutable(sc.tsym)) {
+        	if (sc != null && sc.tsym instanceof ClassSymbol cs && isImmutable(cs)) {
                 utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A class with an immutable superclass must itself be immutable: " + classSymbol);
         	}
         	for (var ity: classSymbol.getInterfaces()) {
-            	if (ity.tsym != null && isImmutable(ity.tsym)) {
+            	if (ity.tsym instanceof ClassSymbol cs && isImmutable(cs)) {
                     utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A type with an immutable interface must itself be immutable: " + classSymbol);
             	}
         	}
@@ -4190,8 +4179,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribExpr(e, env, Type.noType);
             if (!isRefining && e instanceof JCIdent) checkIfParameter((JCIdent)e);
             if (jmlenv.currentClauseKind == assignableClauseKind) {
-                if (e instanceof JCFieldAccess) {
-                    if (isImmutable(((JCFieldAccess)e).selected.type.tsym)) {
+                if (e instanceof JCFieldAccess fa  && fa.selected.type.tsym instanceof ClassSymbol cs) {
+                    if (isImmutable(cs)) {
                         log.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified");
                     }
                 }
@@ -6921,7 +6910,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** Returns true if the given symbol has a Immutable annotation */
-    public boolean isImmutable(Symbol symbol) {
+    public boolean HasImmutableAnnotation(Symbol symbol) {
         return symbol.attribute(modToAnnotationSymbol.get(Modifiers.IMMUTABLE))!=null; // FIXME - need to get this from the spec
     }
 
