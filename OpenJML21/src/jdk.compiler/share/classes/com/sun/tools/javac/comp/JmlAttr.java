@@ -6439,58 +6439,60 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        super.visitTypeCast(tree);
 //        Type clazztype = tree.clazz.type;
 
-        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
-        chk.validate(tree.clazz, env);
-        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
-        jmlresolve.setAllowJML(prev);
-        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + tree.clazz.getClass());
-        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
-        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
-        if (utils.isExtensionValueType(clazztype)) {
-            prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
-            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-            jmlresolve.setAllowJML(prev);
-            result = tree.type = clazztype; // Even if there is an error or the cast is not allowed, set the result to the new type to avoid cascading errors
-            if (clazztype.tsym == tree.expr.type.tsym) return;
-            if (clazztype.tsym == BIGINT) {
-                if (tree.expr.type.isNumeric()) return;
-                if (tree.expr.type.tsym == REAL.tsym) return;
-                if (tree.expr.type.toString().contains("BigInteger")) return;
-                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\bigint, not " + tree.expr.type);
-                return;
-            }
-            if (clazztype.tsym == REAL.tsym) {
-                if (tree.expr.type.tsym == BIGINT) return;
-                if (tree.expr.type.isNumeric()) return;
-                if (tree.expr.type.toString().contains("BigInteger")) return;
-                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\real, not " + tree.expr.type);
-                return;
-            }
-            if (clazztype == TYPE) {
-                if (exprtype.tsym == syms.classType.tsym) return;
-                utils.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
-                return;
-            }
-            if (clazztype == STRING) {
-                if (jmltypes.isSameType(tree.expr.type, syms.stringType)) return;
-                utils.error(tree.expr, "jml.message", "Only String may be cast to \\string, not " + tree.expr.type);
-                return;
-            }
-            utils.error(tree.expr, "jml.message", "A " + tree.expr.type + " may not be cast to " + clazztype);
-            return;
-        }
-        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
-            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-            if (utils.isExtensionValueType(exprtype)) {
-                if (exprtype.tsym == BIGINT && clazztype.isIntegral()) return;
-                if (exprtype == REAL && clazztype.isNumeric()) return;
-                utils.error(tree, "jml.message", "May not cast a " + exprtype + " to " + clazztype);
-                return;
-            }
-        }
+//        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
+//        chk.validate(tree.clazz, env);
+//        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
+//        jmlresolve.setAllowJML(prev);
+//        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + tree.clazz.getClass());
+//        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+//        var REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
+//        var STRING = JmlPrimitiveTypes.stringTypeKind.getSymbol(context);
+//        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
+//        if (utils.isExtensionValueType(clazztype)) {
+//            // FIXME - this duplicates material in JmlCheck
+//            prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
+//            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
+//            jmlresolve.setAllowJML(prev);
+//            result = tree.type = clazztype; // Even if there is an error or the cast is not allowed, set the result to the new type to avoid cascading errors
+//            if (clazztype.tsym == tree.expr.type.tsym) return;
+//            if (clazztype.tsym == BIGINT) {
+//                if (tree.expr.type.isNumeric()) return;
+//                if (tree.expr.type.tsym == REAL) return;
+//                if (tree.expr.type.toString().contains("BigInteger")) return;
+//                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\bigint, not " + tree.expr.type);
+//                return;
+//            }
+//            if (clazztype.tsym == REAL) {
+//                if (tree.expr.type.tsym == BIGINT) return;
+//                if (tree.expr.type.isNumeric()) return;
+//                if (tree.expr.type.toString().contains("BigInteger")) return; // FIXME - this has changed
+//                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\real, not " + tree.expr.type);
+//                return;
+//            }
+//            if (clazztype.tsym == TYPE) {
+//                if (exprtype.tsym == syms.classType.tsym) return;
+//                utils.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
+//                return;
+//            }
+//            if (clazztype.tsym == STRING) {
+//                if (jmltypes.isSameType(tree.expr.type, syms.stringType)) return;
+//                utils.error(tree.expr, "jml.message", "Only String may be cast to \\string, not " + tree.expr.type);
+//                return;
+//            }
+//            utils.error(tree.expr, "jml.message", "A " + tree.expr.type + " may not be cast to " + clazztype);
+//            return;
+//        }
+//        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
+//            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
+//            if (utils.isExtensionValueType(exprtype)) {
+//                if (exprtype.tsym == BIGINT && clazztype.isIntegral()) return;
+//                if (exprtype.tsym == REAL && clazztype.isNumeric()) return;
+//                utils.error(tree, "jml.message", "May not cast a " + exprtype + " to " + clazztype);
+//                return;
+//            }
+//        }
         super.visitTypeCast(tree);
+        jmlresolve.setAllowJML(prev);
     }
     
     @Override

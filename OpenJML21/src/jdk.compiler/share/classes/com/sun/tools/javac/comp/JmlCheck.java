@@ -82,6 +82,7 @@ public class JmlCheck extends Check {
         } else if (utils.isExtensionValueType(req) || utils.isExtensionValueType(found)) {
             // Checks legality of explicit casts
             if (types.isSameType(found,req)) return req;
+            System.out.println("CAST TYPES " + found + " " + req);
             if (types.isSameType(req, utils.extensionValueType("string"))
                     && types.isSameType(found, Symtab.instance(context).stringType)) {
                 return req;
