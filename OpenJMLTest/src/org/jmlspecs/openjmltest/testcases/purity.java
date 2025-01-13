@@ -134,6 +134,22 @@ public class purity extends TCBase {
                 );
     }
 
+    @Test
+    public void testPureArrayAllocation() {
+        helpTC(" class A {  /*@ strictly_pure */ void m() { var a = new int[5]; }}"
+                ,"/TEST.java:1: error: Array allocations are not permitted in strictly_pure methods",53
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:",17
+                );
+    }
+
+    @Test
+    public void testPureObjectAllocation() {
+        helpTC(" class A {  /*@ strictly_pure */ void m() { var a = new Object(); }}"
+                ,"/TEST.java:1: error: Object allocations are not permitted in strictly_pure methods",53
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:",17
+                );
+    }
+
     /** Test a method in a pure class */
     @Test
     public void testPureClass() {

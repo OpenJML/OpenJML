@@ -1600,6 +1600,36 @@ public class typechecking extends TCBase {
                 );
     }
 
+    /** Declarations in quantifiers may not have same names as other in-scope declarations */
+    // TODO - would be nice if these pointed to associated declaration
+    @Test public void testQuantifierIdents() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  public void m(int i) {
+                    int j = 0;
+                    //@ assert (\\forall int i; \\forall int j; i != j);
+                  }
+                }
+                """
+                ,"/A.java:4: error: variable i is already defined in method m(int)", 29
+                ,"/A.java:4: error: variable j is already defined in method m(int)", 44
+                );
+    }
+    // TODO: Not sure if this testcase or the one above add any coverage
+    @Test public void testQuantifierIdents2() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  public void m() {
+                    //@ assert (\\forall int i; \\forall int i; i == i);
+                  }
+                }
+                """
+                ,"/A.java:3: error: variable i is already defined in method m()", 44
+                );
+    }
+
     @Test public void testSpecCaseVisibility() {
         expectedExit = 0; // Only warnings
         helpTCF("TestJava.java","package tt; \n"
