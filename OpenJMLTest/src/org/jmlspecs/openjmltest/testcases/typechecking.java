@@ -1438,6 +1438,168 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testBadEnum1() {
+        addMockFile("$A/A.jml","public class A extends Enum<A> {}");
+        helpTCF("A.java",
+                """
+                public enum A { X, Y, Z }
+                """
+                ,"/$A/A.jml:1: error: The type A in the specification matches a Java type with different modifiers: enum", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Test public void testBadEnum2() {
+        addMockFile("$A/A.jml","public enum A { }");
+        helpTCF("A.java",
+                """
+                public class A { }
+                """
+                ,"/$A/A.jml:1: error: The type A in the specification matches a Java type with different modifiers: enum", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+    // FIXME - need tests that record has same fields and methods
+    @Test public void testOKRecord1() {
+        addMockFile("$A/A.jml","public record A() {}");
+        helpTCF("A.java",
+                """
+                public record A() { }
+                """
+                );
+    }
+
+    @Test public void testBadRecord1() {
+        addMockFile("$A/A.jml","public class A {}");
+        helpTCF("A.java",
+                """
+                public record A() { }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must be a record, because the source/binary is", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Test public void testBadRecord2() {
+        addMockFile("$A/A.jml","public record A() {}");
+        helpTCF("A.java",
+                """
+                public class A { }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration may not be a record, because the source/binary is not", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Ignore // crashes
+    @Test public void testOKSuper1() {
+        addMockFile("$A/A.jml","package java.lang; public class Object extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                package java.lang;
+                public class Object{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.util.LinkedList<java.lang.Object>", 43
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                );
+    }
+
+    @Test public void testOKSuper2() {
+        addMockFile("$A/A.jml","public class A extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                public class A extends java.util.ArrayList<Object>{ }
+                """
+                );
+    }
+
+    @Test public void testBadSuper1() {
+        addMockFile("$A/A.jml","public class A extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                public class A extends java.util.LinkedList<Object>{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.util.LinkedList<java.lang.Object>", 43
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                );
+    }
+
+    @Test public void testBadSuper2() {
+        addMockFile("$A/A.jml","public class A extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                public class A{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.lang.Object", 43
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Test public void testBadSuper3() {
+        addMockFile("$A/A.jml","public class A {}");
+        helpTCF("A.java",
+                """
+                public class A extends java.util.LinkedList<Object>{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.LinkedList<java.lang.Object>", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                );
+    }
+
+    @Test public void testBadImmutable1() {
+        helpTCF("A.java",
+                """
+                /*@ immutable */ class B {}
+                public class A extends B {}
+                """
+                ,"/A.java:2: error: A class with an immutable superclass must itself be immutable: A", 8
+                );
+    }
+
+    @Test public void testBadImmutable2() {
+        helpTCF("A.java",
+                """
+                /*@ immutable */ interface B {}
+                public class A implements B {}
+                """
+                ,"/A.java:2: error: A type with an immutable interface must itself be immutable: A", 8
+                );
+    }
+
+    @Test public void testBadNestedModel() {
+        helpTCF("A.java",
+                """
+                //@ model public class A { model public static class B {}}
+                """
+                ,"/A.java:1: error: A model type may not contain model declarations: B in A", 48
+                );
+    }
+
+    @Test public void testOKNestedModel1() {
+        helpTCF("A.java",
+                """
+                //@ model public class A {  public static class B {}}
+                """
+                );
+    }
+
+    @Test public void testOKNestedModel2() {
+        helpTCF("A.java",
+                """
+                public class A { /*@ model public static class B {} */ }
+                """
+                );
+    }
+
+    @Test public void testMissingModel() {
+        helpTCF("A.java",
+                """
+                //@  public class A { }
+                """
+                ,"/A.java:1: error: A method or type declaration within a JML annotation must be model: A", 13
+                );
+    }
+
     @Test public void testSpecCaseVisibility() {
         expectedExit = 0; // Only warnings
         helpTCF("TestJava.java","package tt; \n"
