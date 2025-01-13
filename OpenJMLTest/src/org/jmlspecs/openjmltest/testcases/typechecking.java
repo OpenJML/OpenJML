@@ -1790,5 +1790,33 @@ public class typechecking extends TCBase {
        
     }
 
+    @Test public void testCasting() {
+        helpTCF("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ ghost \\string s = (\\string)""; // OK
+                  //@ ghost String ss = (String)s; // ERROR - FIXME - really?
+                  //@ ghost \\real r = 0.0;        // OK numeric -> \\real
+                  //@ ghost double d = (double)r;  // OK \\real -> numeric
+                  //@ ghost \\real rr = (\\real)0.0; // OK numeric -> \\real
+                  //@ ghost \\bigint k = 0L;   // OK integral -> \\bigint
+                  //@ ghost long kk = (\\bigint)k; // OK \\bigint -> integral
+                  //@ ghost \\real rrr = (\\real)"abc"; // ERROR String -> \\real
+                  //@ ghost String sss = (String)rr; // ERROR \\real -> String
+                  //@ ghost \\bigint kkk = (\\bigint)"xyz"; // ERROR String -> \\bigint
+                  //@ ghost \\bigint kkkk = (\\bigint)rr; // OK \\real -> \\bigint
+                  //@ ghost \\real rrrr = (\\bigint)k; // OK \\bigint -> \\real
+                }
+                """
+                ,"/TestJava.java:4: error: A \\string may not be cast to a java.lang.String",33
+                ,"/TestJava.java:9: error: Only numeric types may be cast to \\real, not java.lang.String",32
+                ,"/TestJava.java:10: error: A java.lang.String may not be cast to a \\real",32
+                ,"/TestJava.java:11: error: A \\real may not be cast to a java.lang.String",34
+                ,"/TestJava.java:12: error: Only numeric types may be cast to \\bigint, not java.lang.String",36
+                ,""
+                );
+    }
+
     
 }
