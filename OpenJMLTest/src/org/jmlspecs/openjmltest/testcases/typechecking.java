@@ -1438,6 +1438,198 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testBadEnum1() {
+        addMockFile("$A/A.jml","public class A extends Enum<A> {}");
+        helpTCF("A.java",
+                """
+                public enum A { X, Y, Z }
+                """
+                ,"/$A/A.jml:1: error: The type A in the specification matches a Java type with different modifiers: enum", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Test public void testBadEnum2() {
+        addMockFile("$A/A.jml","public enum A { }");
+        helpTCF("A.java",
+                """
+                public class A { }
+                """
+                ,"/$A/A.jml:1: error: The type A in the specification matches a Java type with different modifiers: enum", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+    // FIXME - need tests that record has same fields and methods
+    @Test public void testOKRecord1() {
+        addMockFile("$A/A.jml","public record A() {}");
+        helpTCF("A.java",
+                """
+                public record A() { }
+                """
+                );
+    }
+
+    @Test public void testBadRecord1() {
+        addMockFile("$A/A.jml","public class A {}");
+        helpTCF("A.java",
+                """
+                public record A() { }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must be a record, because the source/binary is", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Test public void testBadRecord2() {
+        addMockFile("$A/A.jml","public record A() {}");
+        helpTCF("A.java",
+                """
+                public class A { }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration may not be a record, because the source/binary is not", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Ignore // crashes
+    @Test public void testOKSuper1() {
+        addMockFile("$A/A.jml","package java.lang; public class Object extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                package java.lang;
+                public class Object{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.util.LinkedList<java.lang.Object>", 43
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                );
+    }
+
+    @Test public void testOKSuper2() {
+        addMockFile("$A/A.jml","public class A extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                public class A extends java.util.ArrayList<Object>{ }
+                """
+                );
+    }
+
+    @Test public void testBadSuper1() {
+        addMockFile("$A/A.jml","public class A extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                public class A extends java.util.LinkedList<Object>{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.util.LinkedList<java.lang.Object>", 43
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                );
+    }
+
+    @Test public void testBadSuper2() {
+        addMockFile("$A/A.jml","public class A extends java.util.ArrayList<Object> {}");
+        helpTCF("A.java",
+                """
+                public class A{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.lang.Object", 43
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 8
+                );
+    }
+
+    @Test public void testBadSuper3() {
+        addMockFile("$A/A.jml","public class A {}");
+        helpTCF("A.java",
+                """
+                public class A extends java.util.LinkedList<Object>{ }
+                """
+                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.LinkedList<java.lang.Object>", 8
+                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                );
+    }
+
+    @Test public void testBadImmutable1() {
+        helpTCF("A.java",
+                """
+                /*@ immutable */ class B {}
+                public class A extends B {}
+                """
+                ,"/A.java:2: error: A class with an immutable superclass must itself be immutable: A", 8
+                );
+    }
+
+    @Test public void testBadImmutable2() {
+        helpTCF("A.java",
+                """
+                /*@ immutable */ interface B {}
+                public class A implements B {}
+                """
+                ,"/A.java:2: error: A type with an immutable interface must itself be immutable: A", 8
+                );
+    }
+
+    @Test public void testBadNestedModel() {
+        helpTCF("A.java",
+                """
+                //@ model public class A { model public static class B {}}
+                """
+                ,"/A.java:1: error: A model type may not contain model declarations: B in A", 48
+                );
+    }
+
+    @Test public void testOKNestedModel1() {
+        helpTCF("A.java",
+                """
+                //@ model public class A {  public static class B {}}
+                """
+                );
+    }
+
+    @Test public void testOKNestedModel2() {
+        helpTCF("A.java",
+                """
+                public class A { /*@ model public static class B {} */ }
+                """
+                );
+    }
+
+    @Test public void testMissingModel() {
+        helpTCF("A.java",
+                """
+                //@  public class A { }
+                """
+                ,"/A.java:1: error: A method or type declaration within a JML annotation must be model: A", 13
+                );
+    }
+
+    /** Declarations in quantifiers may not have same names as other in-scope declarations */
+    // TODO - would be nice if these pointed to associated declaration
+    @Test public void testQuantifierIdents() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  public void m(int i) {
+                    int j = 0;
+                    //@ assert (\\forall int i; \\forall int j; i != j);
+                  }
+                }
+                """
+                ,"/A.java:4: error: variable i is already defined in method m(int)", 29
+                ,"/A.java:4: error: variable j is already defined in method m(int)", 44
+                );
+    }
+    // TODO: Not sure if this testcase or the one above add any coverage
+    @Test public void testQuantifierIdents2() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  public void m() {
+                    //@ assert (\\forall int i; \\forall int i; i == i);
+                  }
+                }
+                """
+                ,"/A.java:3: error: variable i is already defined in method m()", 44
+                );
+    }
+
     @Test public void testSpecCaseVisibility() {
         expectedExit = 0; // Only warnings
         helpTCF("TestJava.java","package tt; \n"
@@ -1596,6 +1788,74 @@ public class typechecking extends TCBase {
                         // FIXME - additional kinds of clauses in block contracts
         );
        
+    }
+
+    @Test public void testCastingExplicit() {
+        helpTCF("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ ghost \\string s = (\\string)""; // OK String -> \\string
+                  //@ ghost String ss = (String)s; // OK \\string -> String
+                  //@ ghost \\real r = 0.0;        // OK numeric -> \\real
+                  //@ ghost double d = (double)r;  // OK \\real -> numeric
+                  //@ ghost \\real rr = (\\real)0.0; // OK numeric -> \\real
+                  //@ ghost \\bigint k = 0L;   // OK integral -> \\bigint
+                  //@ ghost long kk = (long)k; // OK \\bigint -> integral
+                  //@ ghost \\real rrr = (\\real)"abc"; // ERROR String -> \\real
+                  //@ ghost String sss = (String)rr; // ERROR \\real -> String
+                  //@ ghost \\bigint kkk = (\\bigint)"xyz"; // ERROR String -> \\bigint
+                  //@ ghost \\bigint kkkk = (\\bigint)rr; // OK \\real -> \\bigint
+                  //@ ghost \\bigint k3 = (\\bigint)0; // OK integral -> \\bigint
+                  //@ ghost \\real rrrr = (\\real)k; // OK \\bigint -> \\real
+                  //@ ghost \\string s3 = (\\string)k; // ERROR \\bigint -> \\string
+                  //@ ghost \\bigint k4 = (\\bigint)s; // ERROR \\string -> \\bigint
+                }
+                """
+                ,"/TestJava.java:10: error: A java.lang.String may not be cast to a \\real",32
+                ,"/TestJava.java:11: error: A \\real may not be cast to a java.lang.String",34
+                ,"/TestJava.java:12: error: A java.lang.String may not be cast to a \\bigint",36
+                ,"/TestJava.java:16: error: A \\bigint may not be cast to a \\string",35
+                ,"/TestJava.java:17: error: A \\string may not be cast to a \\bigint",35
+                );
+    }
+
+    @Test public void testCastingImplicit() {
+        helpTCF("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ ghost \\string s = "";            // OK    String -> \string
+                  //@ ghost String ss = s;              // ERROR \\string -> String
+                  //@ ghost \\real r = 0.0;             // OK numeric -> \\real
+                  //@ ghost double d = r;               // ERROR \\real -> numeric
+                  //@ ghost \\bigint k = 0L;            // OK integral -> \\bigint
+                  //@ ghost long jj = k;                // ERROR \\bigint -> integral
+                  //@ ghost \\real rrr = "abc";         // ERROR String -> \\real
+                  //@ ghost \\bigint kk = "abc";        // ERROR String -> \\bigint
+                  //@ ghost \\real rra = s;             // ERROR \\string -> \\real
+                  //@ ghost \\bigint ka = s;            // ERROR \\string -> \\bigint
+                  //@ ghost String sss = r;             // ERROR \\real -> String
+                  //@ ghost \\string ssss = r;          // ERROR \\real -> \\string
+                  //@ ghost \\bigint kkkk = r;          // ERROR \\real -> \\bigint
+                  //@ ghost \\real rrrr = k;            // OK \\bigint -> \\real
+                  //@ ghost \\real rrra = "";           // ERROR String -> \\real
+                  //@ ghost \\real rrrb = s;            // ERROR \\string -> \\real
+                }  // FIXME -  make all messages use backslash names
+                """
+                ,"/TestJava.java:4: error: incompatible types: org.jmlspecs.lang.string cannot be converted to java.lang.String",25
+                ,"/TestJava.java:6: error: incompatible types: org.jmlspecs.lang.real cannot be converted to double",24
+                ,"/TestJava.java:8: error: incompatible types: \\bigint cannot be converted to long",23
+                ,"/TestJava.java:9: error: incompatible types: java.lang.String cannot be converted to org.jmlspecs.lang.real", 25
+                ,"/TestJava.java:10: error: incompatible types: java.lang.String cannot be converted to \\bigint",26
+                ,"/TestJava.java:11: error: incompatible types: org.jmlspecs.lang.string cannot be converted to org.jmlspecs.lang.real",25
+                ,"/TestJava.java:12: error: incompatible types: org.jmlspecs.lang.string cannot be converted to \\bigint",26
+                ,"/TestJava.java:13: error: incompatible types: org.jmlspecs.lang.real cannot be converted to java.lang.String",26
+                ,"/TestJava.java:14: error: incompatible types: org.jmlspecs.lang.real cannot be converted to org.jmlspecs.lang.string",28
+                ,"/TestJava.java:15: error: incompatible types: org.jmlspecs.lang.real cannot be converted to \\bigint",28
+                ,"/TestJava.java:17: error: incompatible types: java.lang.String cannot be converted to org.jmlspecs.lang.real",26
+                ,"/TestJava.java:18: error: incompatible types: org.jmlspecs.lang.string cannot be converted to org.jmlspecs.lang.real",26
+                );
     }
 
     

@@ -12,87 +12,77 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlOperators extends Operators {
 
-	Context context;
-	
-	protected JmlOperators(Context context) {
-		super(context);
-		this.context = context;
-		syms = Symtab.instance(context);
-	}
-	
-	public static void preRegister(Context context) {
+    Context context;
+    public final Symtab syms; // Cached instance of Symtab for the given context
+
+    protected JmlOperators(Context context) {
+        super(context);
+        this.context = context;
+        syms = Symtab.instance(context);
+    }
+
+    public static void preRegister(Context context) {
         context.put(Operators.operatorsKey, new Context.Factory<Operators>() {
             @Override
             public JmlOperators make(Context context) { 
                 return new JmlOperators(context);
             }
         });
-	}
-	
-	public final Symtab syms;
+    }
 
     public OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) {
-    	JmlTypes jtype = JmlTypes.instance(context);
-    	boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
-    	boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
+        JmlTypes jtype = JmlTypes.instance(context);
+        boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
+        boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
         Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
 
-    	if (b1 && !b2) {
-    	    if (jtype.isSameType(op1, REAL)) {
-    	        if (jtype.isNumeric(op2)) op2 = op1; // allow conversion
-    	    }
-    	        
-    	} else if (b2 && !b1) {
-            if (jtype.isSameType(op2, REAL)) {
-                if (jtype.isNumeric(op1)) op1 = op2; // allow conversion
+        if (b1 && !b2) {
+            if (jtype.isSameType(op1, REAL)) {
+                if (jtype.isAnyNumeric(op2)) op2 = op1; // allow conversion
             }
-    	}
-    	if ((b1 || jtype.isJmlType(op1)) || (b2 || jtype.isJmlType(op2))) {
-    		Name opName = operatorName(tag);
-    		Type eop1 = jtype.erasure(op1);
-    		Type eop2 = jtype.erasure(op2);
-    		for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
-    			OperatorSymbol op = (OperatorSymbol)s;
-    			var args = op.type.getParameterTypes();
-    			if (args.tail != null && jtype.isSameType(jtype.erasure(args.head),eop1) 
-    			        && jtype.isSameType(jtype.erasure(args.tail.head), eop2)) {
-    				return op;
-    			}
-    		}
-    		if (op1 == REAL || op2 == REAL) {
-    			// This allows for implicit conversions
-    		    for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
-    				OperatorSymbol op = (OperatorSymbol)s;
-        			var args = op.type.getParameterTypes();
-        			if (args.head == REAL && args.tail.head == REAL) {
-        				return op;
-        			}
-    			} // FIXME - do we need to insert explicit conversions
-    		}
-    		if (op1.tsym == BIGINT || op2.tsym == BIGINT) {
-    			// This allows for implicit conversions
-    			for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
-    				OperatorSymbol op = (OperatorSymbol)s;
-        			var args = op.type.getParameterTypes();
+
+        } else if (b2 && !b1) {
+            if (jtype.isSameType(op2, REAL)) {
+                if (jtype.isAnyNumeric(op1)) op1 = op2; // allow conversion
+            }
+        }
+        if ((b1 || jtype.isJmlType(op1)) || (b2 || jtype.isJmlType(op2))) {
+            Name opName = operatorName(tag);
+            Type eop1 = jtype.erasure(op1);
+            Type eop2 = jtype.erasure(op2);
+            for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+                OperatorSymbol op = (OperatorSymbol)s;
+                var args = op.type.getParameterTypes();
+                if (args.tail != null && jtype.isSameType(jtype.erasure(args.head),eop1) 
+                        && jtype.isSameType(jtype.erasure(args.tail.head), eop2)) {
+                    return op;
+                }
+            }
+            if (op1 == REAL || op2 == REAL) {
+                // This allows for implicit conversions
+                for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+                    OperatorSymbol op = (OperatorSymbol)s;
+                    var args = op.type.getParameterTypes();
+                    if (args.head == REAL && args.tail.head == REAL) {
+                        return op;
+                    }
+                } // FIXME - do we need to insert explicit conversions
+            }
+            if (op1.tsym == BIGINT || op2.tsym == BIGINT) {
+                // This allows for implicit conversions
+                for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
+                    OperatorSymbol op = (OperatorSymbol)s;
+                    var args = op.type.getParameterTypes();
                     if (args.head.tsym == BIGINT && args.tail.head.tsym == BIGINT) {
                         return op;
                     } // FIXME - do we need to insert explicit conversions
-    			}
-    		}
-    		//System.out.println("NOOP " + op1 + " " + op2 + " " + b1 + " " + b2);
-//            for (var s: syms.predefClass.members().getSymbolsByName(opName, s -> s instanceof OperatorSymbol)) {
-//                OperatorSymbol op = (OperatorSymbol)s;
-//                var args = op.type.getParameterTypes();
-//                if (args.tail == null) continue;
-//                System.out.println("COMP1 " + op1 + " " + args.head + " " + jtype.isSameType(op1,  args.head));
-//                System.out.println("COMP2 " + op2 + " " + args.tail.head + " " + jtype.isSameType(op2,  args.tail.head));
-//            }
-    		//System.out.println("OPS " + op1.getClass() + " " + op1);
-    		org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
-			return noOpSymbol;
-    	}
-    	return super.resolveBinary(pos,  tag,  op1, op2);
+                }
+            }
+            org.jmlspecs.openjml.Utils.instance(context).error(pos, "jml.message", "No operator for " + op1 + " " + opName + " " + op2);
+            return noOpSymbol;
+        }
+        return super.resolveBinary(pos,  tag,  op1, op2);
     }
     
     public OperatorSymbol resolveUnary(DiagnosticPosition pos, JCTree.Tag tag, Type op) {

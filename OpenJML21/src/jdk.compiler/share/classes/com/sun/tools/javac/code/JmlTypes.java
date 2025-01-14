@@ -126,8 +126,17 @@ public class JmlTypes extends Types {
     
     /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(Type t) {
-        int i = t.getTag().ordinal();
+        int i = t.getTag().ordinal();  // FIXME - should not have bigint here -- those calls should use isAnyNumeric
         return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context) || t.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context);
+    }
+    
+    /** True if the type is an integral type including boxed and JML types. */
+    public boolean isAnyNumeric(Type t) {
+        if (isAnyIntegral(t)) return true;
+        if (t.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) return true;
+        if (t instanceof Type.TypeVar) return false;
+        t = unboxedTypeOrType(t);
+        return isNumeric(t);
     }
     
     /** True if the Java tag is an integral type (not for JML types). */
@@ -137,8 +146,9 @@ public class JmlTypes extends Types {
     
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyIntegral(Type t) {
-        if (t == JmlPrimitiveTypes.bigintTypeKind.getType(context)) return true;
+        if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) return true;
         if (t instanceof Type.TypeVar) return false;
+        if (t.toString().equals("java.math.BigInteger")) return true;
         t = unboxedTypeOrType(t);
         return isIntegral(t);
     }

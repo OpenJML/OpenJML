@@ -957,32 +957,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Env<AttrContext> specEnv = specsDecl.specEnv;
             Type sup = classSymbol.getSuperclass();
             if (!classSymbol.isInterface() && sup.getKind() != TypeKind.ERROR) {
-                boolean specIsEnum = (specsDecl.mods.flags & Flags.ENUM) != 0;
                 boolean specIsRecord = (specsDecl.mods.flags & Flags.RECORD) != 0;
-                if (classSymbol.isEnum()) {
-                    if (!specIsEnum) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration must be an enum, because the source/binary is");
-                    }
-                    if (specsDecl.extending != null) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "An enum may not declare any superclass");
-                    }
-                } else if (specIsEnum) {
-                    utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration may not be an enum, because the source/binary is not");
-                   
-                } else if ((classSymbol.flags() & Flags.RECORD) != 0) {
+                if ((classSymbol.flags() & Flags.RECORD) != 0) {
                     if (!specIsRecord) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration must be a record, because the source/binary is");
+                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl,
+                                "jml.message",  "The specification declaration must be a record, because the source/binary is");
                     }
-                    if (specsDecl.extending != null) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "A record may not declare any superclass");
-                    }
-                    // FIXME - any other checks for records?
                 } else if (specIsRecord) {
-                    utils.error(specsDecl.sourcefile, specsDecl, "jml.message",  "The specification declaration may not be a record, because the source/binary is not");
+                    utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl,
+                            "jml.message",  "The specification declaration may not be a record, because the source/binary is not");
                } else if (specsDecl.extending != null) {
                     attribType(specsDecl.extending, specEnv);
                     if (classSymbol == syms.objectType.tsym || !jmltypes.isSameType(specsDecl.extending.type, sup)) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " 
+                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl.extending, javaDecl.sourcefile, (javaDecl.extending != null ? javaDecl.extending : javaDecl),
+                                "jml.message", "The specification declaration must declare the same supertype as the source declaration: " 
                                                 + specsDecl.extending.type + " vs. " + sup);
                     }
                 } else {
@@ -991,7 +979,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     } else if (classSymbol.toString().contains("java.util.stream.Collector")) {
                         // OK - FIXME - why do we need this
                     } else if (sup.tsym != syms.objectType.tsym) {
-                        utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
+                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl.extending,
+                                "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
                     }
                 }
             }
@@ -1035,11 +1024,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         if (!isImmutable(classSymbol)) {
         	var sc = classSymbol.getSuperclass();
-        	if (sc != null && sc.tsym != null && isImmutable(sc.tsym)) {
+        	if (sc != null && sc.tsym instanceof ClassSymbol cs && isImmutable(cs)) {
                 utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A class with an immutable superclass must itself be immutable: " + classSymbol);
         	}
         	for (var ity: classSymbol.getInterfaces()) {
-            	if (ity.tsym != null && isImmutable(ity.tsym)) {
+            	if (ity.tsym instanceof ClassSymbol cs && isImmutable(cs)) {
                     utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A type with an immutable interface must itself be immutable: " + classSymbol);
             	}
         	}
@@ -4190,8 +4179,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             attribExpr(e, env, Type.noType);
             if (!isRefining && e instanceof JCIdent) checkIfParameter((JCIdent)e);
             if (jmlenv.currentClauseKind == assignableClauseKind) {
-                if (e instanceof JCFieldAccess) {
-                    if (isImmutable(((JCFieldAccess)e).selected.type.tsym)) {
+                if (e instanceof JCFieldAccess fa  && fa.selected.type.tsym instanceof ClassSymbol cs) {
+                    if (isImmutable(cs)) {
                         log.error(tree.pos, "jml.message", "Fields of an object with immutable type may not be modified");
                     }
                 }
@@ -6444,65 +6433,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        }
 //    }
     
-    @Override
-    public void visitTypeCast(JCTypeCast tree) {
-        boolean prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
+//    @Override
+//    public void visitTypeCast(JCTypeCast tree) {
+//        boolean prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
+//
+//        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
+//        chk.validate(tree.clazz, env);
+//        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
+//        jmlresolve.setAllowJML(prev);
 //        super.visitTypeCast(tree);
-//        Type clazztype = tree.clazz.type;
-
-        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
-        chk.validate(tree.clazz, env);
-        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
-        jmlresolve.setAllowJML(prev);
-        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + tree.clazz.getClass());
-        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
-        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
-        if (utils.isExtensionValueType(clazztype)) {
-            prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
-            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-            jmlresolve.setAllowJML(prev);
-            result = tree.type = clazztype; // Even if there is an error or the cast is not allowed, set the result to the new type to avoid cascading errors
-            if (clazztype.tsym == tree.expr.type.tsym) return;
-            if (clazztype.tsym == BIGINT) {
-                if (tree.expr.type.isNumeric()) return;
-                if (tree.expr.type.tsym == REAL.tsym) return;
-                if (tree.expr.type.toString().contains("BigInteger")) return;
-                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\bigint, not " + tree.expr.type);
-                return;
-            }
-            if (clazztype.tsym == REAL.tsym) {
-                if (tree.expr.type.tsym == BIGINT) return;
-                if (tree.expr.type.isNumeric()) return;
-                if (tree.expr.type.toString().contains("BigInteger")) return;
-                utils.error(tree.expr, "jml.message", "Only numeric types may be cast to \\real, not " + tree.expr.type);
-                return;
-            }
-            if (clazztype == TYPE) {
-                if (exprtype.tsym == syms.classType.tsym) return;
-                utils.error(tree.expr.pos,"jml.only.class.cast.to.type",exprtype);
-                return;
-            }
-            if (clazztype == STRING) {
-                if (jmltypes.isSameType(tree.expr.type, syms.stringType)) return;
-                utils.error(tree.expr, "jml.message", "Only String may be cast to \\string, not " + tree.expr.type);
-                return;
-            }
-            utils.error(tree.expr, "jml.message", "A " + tree.expr.type + " may not be cast to " + clazztype);
-            return;
-        }
-        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
-            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-            if (utils.isExtensionValueType(exprtype)) {
-                if (exprtype.tsym == BIGINT && clazztype.isIntegral()) return;
-                if (exprtype == REAL && clazztype.isNumeric()) return;
-                utils.error(tree, "jml.message", "May not cast a " + exprtype + " to " + clazztype);
-                return;
-            }
-        }
-        super.visitTypeCast(tree);
-    }
+//        result = tree.type;
+//    }
     
     @Override
     public void visitTypeApply(JCTypeApply tree) {
@@ -6921,7 +6862,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     /** Returns true if the given symbol has a Immutable annotation */
-    public boolean isImmutable(Symbol symbol) {
+    public boolean HasImmutableAnnotation(Symbol symbol) {
         return symbol.attribute(modToAnnotationSymbol.get(Modifiers.IMMUTABLE))!=null; // FIXME - need to get this from the spec
     }
 
@@ -8388,14 +8329,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
         if (utils.isExtensionValueType(resultInfo.pt)) {
-        	// We should check for conversions from found to resultInfo.pt,
-        	// but currently no such implicit conversions are allowed
-            if (types.isSameType(resultInfo.pt, utils.extensionValueType("string"))
+            // These allow implicit casts
+            
+            // java.lang.String -> \string
+            var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
+            if (types.isSameType(resultInfo.pt, STRING)
                     && types.isSameType(found, syms.stringType)) {
                 return found; // FIXME - explain why this test for strings
             }
             if (types.isSameType(resultInfo.pt, found)) return found;
 
+            // integral, BigInteger -> \bigint
             var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
             if (resultInfo.pt.tsym == BIGINT.tsym) {
                 if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
@@ -8404,6 +8348,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
                 }
             }
+            
+            // numeric -> \real
             var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
             if (resultInfo.pt.tsym == REAL.tsym) {
                 if (jmltypes.isNumeric(found)) return resultInfo.pt;
@@ -8419,10 +8365,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	}
             }
             
-            utils.error(tree.pos(), "jml.message",
-            		"illegal conversion: " + found +
-            		" to " + resultInfo.pt.toString().replace("org.jmlspecs.lang.","\\")); // FIXME - use a stored name somewhere
-            return (tree.type = types.createErrorType(found));
+//            utils.error(tree.pos(), "jml.message",
+//            		"illegal conversion: " + found +
+//            		" to " + resultInfo.pt.toString().replace("org.jmlspecs.lang.","\\")); // FIXME - use a stored name somewhere
+//            return (tree.type = types.createErrorType(found));
         }
         return super.check(tree, found, ownkind, resultInfo);
     } 
