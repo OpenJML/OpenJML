@@ -1,13 +1,10 @@
-test/valuestringsBad/JMLStringTestBad.java:5: error: illegal conversion: java.lang.Object to \string
+test/valuestringsBad/JMLStringTestBad.java:5: error: incompatible types: java.lang.Object cannot be converted to org.jmlspecs.lang.string
     //@   ghost \string s4 = o; // error
                              ^
-test/valuestringsBad/JMLStringTestBad.java:9: error: Only String may be cast to \string, not java.lang.Object
+test/valuestringsBad/JMLStringTestBad.java:9: error: A java.lang.Object may not be cast to a \string
     //@   ghost \string s4 = (\string)o; // error
                                       ^
-test/valuestringsBad/JMLStringTestBad.java:13: error: illegal conversion: <nulltype> to \string
-    //@   ghost \string s5 = null; // error
-                             ^
-test/valuestringsBad/JMLStringTestBad.java:17: error: Only String may be cast to \string, not <nulltype>
+test/valuestringsBad/JMLStringTestBad.java:17: error: A <nulltype> may not be cast to a \string
     //@   ghost \string s6 = (\string)null; // error
                                       ^
 test/valuestringsBad/JMLStringTestBad.java:21: error: A JML primitive type may not be assigned or cast to a non-JML type
@@ -17,4 +14,4 @@ test/valuestringsBad/JMLStringTestBad.java:25: error: A \string may not be cast 
     //@   ghost Object o1 = (Object)s1; // error
                                     ^
 Operation not performed because of parse or type errors
-6 errors
+5 errors
