@@ -1509,16 +1509,12 @@ public class modifiers extends TCBase {
         helpTCF("A.java",s
                 ,"/A.java:2: error: Entity has conflicting nullity annotations",11
                 ,"/A.java:2: error: Associated declaration: /A.java:2:",20
-                ,"/A.java:2: error: Entity has conflicting nullity annotations",11
-                ,"/A.java:2: error: Associated declaration: /A.java:2:",20
                 );
     }
-    // FIXME - here and above, solve the duplicate error messages (cf. JmlAttr.visitTypeCast)
+
     @Test public void testAnnotatedCast3() {
         String s = "import org.jmlspecs.annotation.*; class A { void m() {\n var z = (/*@ non_null*/  @Nullable Object)null; }}";
         helpTCF("A.java",s
-                ,"/A.java:2: error: Entity has conflicting nullity annotations",15
-                ,"/A.java:2: error: Associated declaration: /A.java:2:",27
                 ,"/A.java:2: error: Entity has conflicting nullity annotations",15
                 ,"/A.java:2: error: Associated declaration: /A.java:2:",27
                 );
