@@ -1790,31 +1790,71 @@ public class typechecking extends TCBase {
        
     }
 
-    @Test public void testCasting() {
+    @Test public void testCastingExplicit() {
         helpTCF("TestJava.java",
                 """
                 package tt;
                 public class TestJava {
-                  //@ ghost \\string s = (\\string)""; // OK
-                  //@ ghost String ss = (String)s; // ERROR - FIXME - really?
+                  //@ ghost \\string s = (\\string)""; // OK String -> \\string
+                  //@ ghost String ss = (String)s; // OK \\string -> String
                   //@ ghost \\real r = 0.0;        // OK numeric -> \\real
                   //@ ghost double d = (double)r;  // OK \\real -> numeric
                   //@ ghost \\real rr = (\\real)0.0; // OK numeric -> \\real
                   //@ ghost \\bigint k = 0L;   // OK integral -> \\bigint
-                  //@ ghost long kk = (\\bigint)k; // OK \\bigint -> integral
+                  //@ ghost long kk = (long)k; // OK \\bigint -> integral
                   //@ ghost \\real rrr = (\\real)"abc"; // ERROR String -> \\real
                   //@ ghost String sss = (String)rr; // ERROR \\real -> String
                   //@ ghost \\bigint kkk = (\\bigint)"xyz"; // ERROR String -> \\bigint
                   //@ ghost \\bigint kkkk = (\\bigint)rr; // OK \\real -> \\bigint
-                  //@ ghost \\real rrrr = (\\bigint)k; // OK \\bigint -> \\real
+                  //@ ghost \\bigint k3 = (\\bigint)0; // OK integral -> \\bigint
+                  //@ ghost \\real rrrr = (\\real)k; // OK \\bigint -> \\real
+                  //@ ghost \\string s3 = (\\string)k; // ERROR \\bigint -> \\string
+                  //@ ghost \\bigint k4 = (\\bigint)s; // ERROR \\string -> \\bigint
                 }
                 """
-                ,"/TestJava.java:4: error: A \\string may not be cast to a java.lang.String",33
-                ,"/TestJava.java:9: error: Only numeric types may be cast to \\real, not java.lang.String",32
                 ,"/TestJava.java:10: error: A java.lang.String may not be cast to a \\real",32
                 ,"/TestJava.java:11: error: A \\real may not be cast to a java.lang.String",34
-                ,"/TestJava.java:12: error: Only numeric types may be cast to \\bigint, not java.lang.String",36
-                ,""
+                ,"/TestJava.java:12: error: A java.lang.String may not be cast to a \\bigint",36
+                ,"/TestJava.java:16: error: A \\bigint may not be cast to a \\string",35
+                ,"/TestJava.java:17: error: A \\string may not be cast to a \\bigint",35
+                );
+    }
+
+    @Test public void testCastingImplicit() {
+        helpTCF("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ ghost \\string s = "";            // OK    String -> \string
+                  //@ ghost String ss = s;              // ERROR \\string -> String
+                  //@ ghost \\real r = 0.0;             // OK numeric -> \\real
+                  //@ ghost double d = r;               // ERROR \\real -> numeric
+                  //@ ghost \\bigint k = 0L;            // OK integral -> \\bigint
+                  //@ ghost long jj = k;                // ERROR \\bigint -> integral
+                  //@ ghost \\real rrr = "abc";         // ERROR String -> \\real
+                  //@ ghost \\bigint kk = "abc";        // ERROR String -> \\bigint
+                  //@ ghost \\real rra = s;             // ERROR \\string -> \\real
+                  //@ ghost \\bigint ka = s;            // ERROR \\string -> \\bigint
+                  //@ ghost String sss = r;             // ERROR \\real -> String
+                  //@ ghost \\string ssss = r;          // ERROR \\real -> \\string
+                  //@ ghost \\bigint kkkk = r;          // ERROR \\real -> \\bigint
+                  //@ ghost \\real rrrr = k;            // OK \\bigint -> \\real
+                  //@ ghost \\real rrra = "";           // ERROR String -> \\real
+                  //@ ghost \\real rrrb = s;            // ERROR \\string -> \\real
+                }  // FIXME -  make all messages use backslash names
+                """
+                ,"/TestJava.java:4: error: incompatible types: org.jmlspecs.lang.string cannot be converted to java.lang.String",25
+                ,"/TestJava.java:6: error: incompatible types: org.jmlspecs.lang.real cannot be converted to double",24
+                ,"/TestJava.java:8: error: incompatible types: \\bigint cannot be converted to long",23
+                ,"/TestJava.java:9: error: incompatible types: java.lang.String cannot be converted to org.jmlspecs.lang.real", 25
+                ,"/TestJava.java:10: error: incompatible types: java.lang.String cannot be converted to \\bigint",26
+                ,"/TestJava.java:11: error: incompatible types: org.jmlspecs.lang.string cannot be converted to org.jmlspecs.lang.real",25
+                ,"/TestJava.java:12: error: incompatible types: org.jmlspecs.lang.string cannot be converted to \\bigint",26
+                ,"/TestJava.java:13: error: incompatible types: org.jmlspecs.lang.real cannot be converted to java.lang.String",26
+                ,"/TestJava.java:14: error: incompatible types: org.jmlspecs.lang.real cannot be converted to org.jmlspecs.lang.string",28
+                ,"/TestJava.java:15: error: incompatible types: org.jmlspecs.lang.real cannot be converted to \\bigint",28
+                ,"/TestJava.java:17: error: incompatible types: java.lang.String cannot be converted to org.jmlspecs.lang.real",26
+                ,"/TestJava.java:18: error: incompatible types: org.jmlspecs.lang.string cannot be converted to org.jmlspecs.lang.real",26
                 );
     }
 
