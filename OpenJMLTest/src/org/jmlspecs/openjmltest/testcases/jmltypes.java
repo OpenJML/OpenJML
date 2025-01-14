@@ -160,7 +160,7 @@ public class jmltypes extends TCBase {
                 "  //@ set t = (\\TYPE)0;\n" + // No casts of ints
                 "  //@ set t = (\\TYPE)o;\n" + // No casts of Object
                 "}}\n"
-                ,"/A.java:4: error: illegal conversion: java.lang.Class<java.lang.Object> to \\TYPE",29
+                ,"/A.java:4: error: incompatible types: java.lang.Class<java.lang.Object> cannot be converted to \\TYPE",29
                 ,"/A.java:5: error: incompatible types: \\TYPE cannot be converted to java.lang.Class<?>",27
                 ,"/A.java:6: error: No operator for \\TYPE == java.lang.Class<java.lang.Object>",39
                 ,"/A.java:7: error: A JML primitive type may not be assigned or cast to a non-JML type", 20
@@ -168,8 +168,8 @@ public class jmltypes extends TCBase {
                 ,"/A.java:9: error: The arguments to <: must both be \\TYPE or both be Class",31
                 ,"/A.java:10: error: unexpected type\n  required: class\n  found:    value",33
                 ,"/A.java:11: error: A \\TYPE may not be cast to a java.lang.Object",15
-                ,"/A.java:12: error: A cast to \\TYPE may be applied only to expressions of type Class, not int",22
-                ,"/A.java:13: error: A cast to \\TYPE may be applied only to expressions of type Class, not java.lang.Object",22
+                ,"/A.java:12: error: A int may not be cast to a \\TYPE",22
+                ,"/A.java:13: error: A java.lang.Object may not be cast to a \\TYPE",22
 
         );
                 

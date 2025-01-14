@@ -6439,15 +6439,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        super.visitTypeCast(tree);
 //        Type clazztype = tree.clazz.type;
 
-//        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
-//        chk.validate(tree.clazz, env);
-//        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
-//        jmlresolve.setAllowJML(prev);
-//        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + tree.clazz.getClass());
-//        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
-//        var REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
-//        var STRING = JmlPrimitiveTypes.stringTypeKind.getSymbol(context);
-//        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
+        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
+        chk.validate(tree.clazz, env);
+        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
+        jmlresolve.setAllowJML(prev);
+        //System.out.println("JMLATTR " + tree.clazz + " " + tree.clazz.type + " " + tree.clazz.getClass());
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
+        var STRING = JmlPrimitiveTypes.stringTypeKind.getSymbol(context);
+        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
 //        if (utils.isExtensionValueType(clazztype)) {
 //            // FIXME - this duplicates material in JmlCheck
 //            prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
@@ -6482,17 +6482,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            utils.error(tree.expr, "jml.message", "A " + tree.expr.type + " may not be cast to " + clazztype);
 //            return;
 //        }
-//        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
-//            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
-//            if (utils.isExtensionValueType(exprtype)) {
-//                if (exprtype.tsym == BIGINT && clazztype.isIntegral()) return;
-//                if (exprtype.tsym == REAL && clazztype.isNumeric()) return;
-//                utils.error(tree, "jml.message", "May not cast a " + exprtype + " to " + clazztype);
-//                return;
-//            }
-//        }
-        super.visitTypeCast(tree);
+        if (tree.clazz instanceof JmlPrimitiveTypeTree) {
+            Type exprtype = attribExpr(tree.expr, env, Infer.anyPoly);
+            if (utils.isExtensionValueType(exprtype)) {
+                if (exprtype.tsym == BIGINT && clazztype.isIntegral()) return;
+                if (exprtype.tsym == REAL && clazztype.isNumeric()) return;
+                utils.error(tree, "jml.message", "May not cast a " + exprtype + " to " + clazztype);
+                return;
+            }
+        }
         jmlresolve.setAllowJML(prev);
+        super.visitTypeCast(tree);
     }
     
     @Override
@@ -8379,14 +8379,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
         if (utils.isExtensionValueType(resultInfo.pt)) {
-        	// We should check for conversions from found to resultInfo.pt,
-        	// but currently no such implicit conversions are allowed
-            if (types.isSameType(resultInfo.pt, utils.extensionValueType("string"))
+            // These allow implicit casts
+            
+            // java.lang.String -> \string
+            var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
+            if (types.isSameType(resultInfo.pt, STRING)
                     && types.isSameType(found, syms.stringType)) {
                 return found; // FIXME - explain why this test for strings
             }
             if (types.isSameType(resultInfo.pt, found)) return found;
 
+            // integral, BigInteger -> \bigint
             var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
             if (resultInfo.pt.tsym == BIGINT.tsym) {
                 if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
@@ -8395,6 +8398,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
                 }
             }
+            
+            // numeric -> \real
             var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
             if (resultInfo.pt.tsym == REAL.tsym) {
                 if (jmltypes.isNumeric(found)) return resultInfo.pt;
@@ -8410,10 +8415,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             	}
             }
             
-            utils.error(tree.pos(), "jml.message",
-            		"illegal conversion: " + found +
-            		" to " + resultInfo.pt.toString().replace("org.jmlspecs.lang.","\\")); // FIXME - use a stored name somewhere
-            return (tree.type = types.createErrorType(found));
+//            utils.error(tree.pos(), "jml.message",
+//            		"illegal conversion: " + found +
+//            		" to " + resultInfo.pt.toString().replace("org.jmlspecs.lang.","\\")); // FIXME - use a stored name somewhere
+//            return (tree.type = types.createErrorType(found));
         }
         return super.check(tree, found, ownkind, resultInfo);
     } 

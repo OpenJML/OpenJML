@@ -248,7 +248,7 @@ public class escfiles extends EscBase {
     }
 
     @Test
-    public void testValueTypesErr() {
+    public void valueTypesErr() {
         expectedExit = 1;
         helpTF("valuetypesErr");
     }

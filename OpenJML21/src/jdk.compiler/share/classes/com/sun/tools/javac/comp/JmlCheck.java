@@ -69,34 +69,50 @@ public class JmlCheck extends Check {
         return b;
     }
     
-    /** Overridden to avoid generic cast warnings in JML.
+    /** Overridden to allow some explicit casts involving JML primitive types
      */
     @Override
     protected Type checkCastable(DiagnosticPosition pos, Type found, Type req) {
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         
         Utils utils = Utils.instance(context);
         if (found.isErroneous()) {
             // continue
         } else if (utils.isExtensionValueType(req) || utils.isExtensionValueType(found)) {
+            var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+            var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+            var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+            var javaString = Symtab.instance(context).stringType;
+            var javaClass = types.erasure(Symtab.instance(context).classType);
+            JmlTypes jtypes = (JmlTypes)types;
             // Checks legality of explicit casts
             if (types.isSameType(found,req)) return req;
-            System.out.println("CAST TYPES " + found + " " + req);
-            if (types.isSameType(req, utils.extensionValueType("string"))
-                    && types.isSameType(found, Symtab.instance(context).stringType)) {
+            if (types.isSameType(found, STRING) && types.isSameType(req, javaString)) {
+                // \string -> String
                 return req;
             }
-            if (types.isSameType(req, REAL) && ((JmlTypes)types).isNumeric(found)) {
+            if (types.isSameType(req, STRING) && types.isSameType(found, javaString)) {
+                // String -> \string 
+                return req;
+            }
+            if (types.isSameType(req, REAL) && jtypes.isAnyNumeric(found)) {
+                // numeric -> \real
                 return req;                
             }
-            if (types.isSameType(found, REAL) && ((JmlTypes)types).isNumeric(req)) {
+            if (types.isSameType(found, REAL) && jtypes.isAnyNumeric(req)) {
+                // \real -> numeric
                 return req;                
             }
-            if (types.isSameType(found, BIGINT) && ((JmlTypes)types).isIntegral(req)) {
+            if (types.isSameType(found, BIGINT) && jtypes.isAnyIntegral(req)) {
+                // \bigint -> integral
                 return req;                
             }
-            if (types.isSameType(req, BIGINT) && ((JmlTypes)types).isIntegral(found)) {
+            if (types.isSameType(req, BIGINT) && jtypes.isAnyIntegral(found)) {
+                // integral -> \bigint
+                return req;                
+            }
+            if (types.isSameType(req, TYPE) && types.isSameType(types.erasure(found), javaClass)) {
+                // Class<> -> \TYPE
                 return req;                
             }
             utils.error(pos, "jml.message", "A " + found + " may not be cast to a " + req);
