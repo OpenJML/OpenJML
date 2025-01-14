@@ -100,8 +100,15 @@ public class purity extends TCBase {
     }
 
     @Test
+    public void testModelMethodIncDec() {
+        helpTC(" class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
+                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
+                );
+    }
+
+    @Test
     public void testPureIncrement() {
-        helpTC(" class A {  int b,bb;  \n //@ invariant 0==(++b); \n}"
+        helpTC(" class A {  int b;  \n //@ invariant 0==(++b); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
                 );
     }
@@ -124,6 +131,22 @@ public class purity extends TCBase {
     public void testPureDecrement2() {
         helpTC(" class A {  int b,bb;  \n //@ invariant 0==(b--); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",21
+                );
+    }
+
+    @Test
+    public void testPureArrayAllocation() {
+        helpTC(" class A {  /*@ strictly_pure */ void m() { var a = new int[5]; }}"
+                ,"/TEST.java:1: error: Array allocations are not permitted in strictly_pure methods",53
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:",17
+                );
+    }
+
+    @Test
+    public void testPureObjectAllocation() {
+        helpTC(" class A {  /*@ strictly_pure */ void m() { var a = new Object(); }}"
+                ,"/TEST.java:1: error: Object allocations are not permitted in strictly_pure methods",53
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:",17
                 );
     }
 
