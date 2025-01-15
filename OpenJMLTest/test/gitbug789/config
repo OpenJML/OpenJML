@@ -1,1 +1,1 @@
-ARGS+=" --warn=implicit-everything "
+ARGS+=" --warn=implicit-everything --exclude=main,me,mee "
