@@ -184,7 +184,6 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
         check(classDecl.sym == null);
         check(classDecl.sourcefile == this.sourcefile);
         check(classDecl.specsDecl == null);
-        check(classDecl.specEnv == null);
         check(classDecl.env == null);
         //check(classDecl.typeSpecs != null); // FIXME - what about this?
  //       check(classDecl.toplevel == this.toplevel);   FIXME

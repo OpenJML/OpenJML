@@ -183,11 +183,11 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlClassDecl specsDecl = sourceDecl.specsDecl;
         if (specsDecl == null) throw new AssertionError("UNEXPECTED NULL SPECSDECL");
         
-        TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(sourceDecl.sym, specsDecl.specEnv);
+        TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(sourceDecl.sym, env);
 		
     	// It would be easier if we could match all the members, and then give a resolved list to super.memberEnter
     	// However, we need attributed methods in order to match them (fields can be done solely by name).
-    	super.memberEnter(trees, sourceDecl == specsDecl ? specsDecl.specEnv : env);
+    	super.memberEnter(trees, env);
     	if (specsDecl == sourceDecl) {
     	    // Simple case: source and spec file are the same (both are the .java file)
     		// Any duplicates have already been reported
@@ -230,7 +230,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 		boolean hasStaticInit = false;
 		boolean hasInstanceInit = false;
 		var prev = log.useSource(specsDecl.source());
-		var specEnv = specs.getLoadedSpecs(specsDecl.sym).specsEnv;
     	for (var t: specsDecl.defs) {
     		//System.out.println("MATCHING " + t);
     		boolean ok = true;
@@ -240,7 +239,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				// Specification field is ghost or model
     				if (match.isEmpty()) {
     					// OK: A ghost/model field declaration with no matching name
-    					super.memberEnter(specVarDecl, specEnv);
+    					super.memberEnter(specVarDecl, env);
     					specVarDecl.type = specVarDecl.sym.type;
     					if (specVarDecl.fieldSpecs == null) specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
     					specs.putSpecs(specVarDecl.sym, specVarDecl.fieldSpecs);
@@ -261,7 +260,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				    // There is a matching declaration in the .java file
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
     					if (javaVarDecl.specsDecl == null) {
-                        	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, specEnv) : specVarDecl.vartype.type;
+    				        boolean prevcu = JmlResolve.instance(context).setInJMLCU(specVarDecl.isInJMLCU());
+                        	Type specType = (specVarDecl.vartype.type == null) ? attr.attribType(specVarDecl.vartype, env) : specVarDecl.vartype.type;
+                        	JmlResolve.instance(context).setInJMLCU(prevcu);
                         	if (!types.isSameType(javaVarDecl.vartype.type, specType)) {
     							String msg = "Type of field " + sourceDecl.sym + "." + specVarDecl.name + " in specification differs from type in source/binary: " + specType + " vs. " + javaVarDecl.sym.type;
     							if (javaVarDecl != null) {
@@ -736,9 +737,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         MethodSymbol msym = tree.sym;
         MethodSymbol mtemp = msym;
         Env<AttrContext> localEnv = null;
-        Env<AttrContext> localEnvSpec = null;
+//        Env<AttrContext> localEnvSpec = null;
         Type computedResultType = null;
-        Env<AttrContext> savedEnv = null;
+//        Env<AttrContext> savedEnv = null;
         if (msym != null) {
             localEnv = methodEnv(tree, env); // FIXME - or getMethodEnv?
             computedResultType = msym.getReturnType();
@@ -749,27 +750,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             //m.flags_field = chk.checkFlags(tree.pos(), tree.mods.flags, m, tree);
             tree.sym = mtemp;
             localEnv = methodEnv(tree, env);
-            localEnvSpec = localEnv;
 
             var speccu = ((JmlCompilationUnit)env.toplevel).specsCompilationUnit;
             if (speccu != null) {
-                // FIXME - the spec environment has all the imports from any .jml file
-                // However, I'm not sure it has locally defined classes
-                savedEnv = env;
                 env = speccu.topLevelEnv;
-                localEnvSpec = methodEnv(tree, env);
-                //if (specMethod.name.toString().equals("m")) System.out.println("SIGNATURE FOR " + specMethod + " " + env + " " + localEnvSpec+ " " + localEnvSpec.outer );
-                //if (specMethod.name.toString().equals("m")) System.out.println("LOCALENV " + localEnv + " " + localEnv.outer );
             }
             // Compute the method type
+            boolean prevallow = resolve.addAllowJML(utils.isJML(tree.mods));
+            boolean prevcu = resolve.setInJMLCU(specMethod.isInJMLCU());
             mtemp.type = signature(msym, tree.typarams, tree.params,
                                tree.restype, tree.recvparam, tree.thrown,
-                               localEnvSpec);
-            if (savedEnv != null) {
-                env = savedEnv;
-                localEnvSpec.info.scope.leave();
-            }
-            
+                               localEnv);
+            resolve.setInJMLCU(prevcu);
+            resolve.setAllowJML(prevallow);
             computedResultType = mtemp.type.getReturnType();
             
             // Set m.params
@@ -806,7 +799,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JCVariableDecl lastParam = null;
         for (List<JCVariableDecl> l = tree.params; l.nonEmpty(); l = l.tail) {
             JCVariableDecl param = lastParam = l.head;
-            paramTypes.append(param.vartype.type);
+            JmlVariableDecl jparam = (JmlVariableDecl)param;
+            if (jparam.originalType != null) paramTypes.append(jparam.originalType);
+            else paramTypes.append(param.vartype.type);
         }
 
         // JmlResolve.findMethod is designed for matching a method call to some
@@ -1176,31 +1171,32 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
-    	boolean prev = JmlResolve.instance(context).setAllowJML(utils.isJML(tree.mods));
-    	if (tree.name.toString().equals("accept")) {
-    		attrdebug = true;
-    		//System.out.println("VMD " + tree.mods + " " + utils.isJML(tree.mods) + " " + tree);
-    	}
-    	try {
-    		super.visitMethodDef(tree);
-    	} finally {
-    		JmlResolve.instance(context).setAllowJML(prev);
-    	}
+        boolean prev = resolve.setAllowJML(utils.isJML(tree.mods));
+        boolean prevcu = resolve.setInJMLCU(((JmlSource)tree).isInJMLCU());
+        try {
+            super.visitMethodDef(tree);
+        } finally {
+            resolve.setAllowJML(prev);
+            resolve.setInJMLCU(prevcu);
+        }
     }
-    
-    public static boolean attrdebug = false;
 
     @Override
     public void visitVarDef(JCVariableDecl tree) {
-        // FIXME - just because there is a substitute type does not mean everything should be resolved with allowJML???
-        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(tree.mods) || ((JmlVariableDecl)tree).jmltype);
-    	//if (tree.name.toString().equals("t")) System.out.println("VVD " + tree.mods + " " + utils.isJML(tree.mods) + " " + tree);
-    	//if (tree.name.toString().equals("T")) System.out.println("VVD " + tree.mods + " " + utils.isJML(tree.mods) + " " + tree);
-    	try {
-    		super.visitVarDef(tree);
-    	} finally {
-    		if (JmlEnter.debugEnter) System.out.println("enter: Entered field " + tree.sym.owner + " " + tree.name);
-    		JmlResolve.instance(context).setAllowJML(prev);
+        var jtree = (JmlVariableDecl)tree;
+        // FIXME - should we be using allowJML for both types?
+        // We use add... rather than set...  in the statement below because these might be formals within a model method
+        boolean prev = resolve.addAllowJML(utils.isJML(tree.mods) || jtree.jmltype);
+        boolean prevcu = resolve.setInJMLCU(((JmlSource)tree).isInJMLCU());
+        try {
+            super.visitVarDef(tree);
+            if (jtree.originalVartype != null) {
+                jtree.originalType = attr.attribType(jtree.originalVartype, env); // FIXME - not correct if static
+            }
+            if (JmlEnter.debugEnter) System.out.println("enter: Entered field " + tree.sym.owner + " " + tree.name);
+        } finally {
+            resolve.setAllowJML(prev);
+            resolve.setInJMLCU(prevcu);
     	}
     }
 
@@ -1209,7 +1205,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         boolean b = super.visitVarDefIsStatic(tree,env);
         if (!utils.isJML(tree.mods)) return b;
         if ((env.info.scope.owner.flags() & INTERFACE) != 0 &&
-        		utils.hasMod(tree.mods,Modifiers.INSTANCE)) return false;
+                utils.hasMod(tree.mods,Modifiers.INSTANCE)) return false;
         if ((tree.mods.flags & STATIC) != 0) return true;
         return b;
     }

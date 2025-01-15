@@ -206,6 +206,21 @@ public class typechecking extends TCBase {
         helpTCF("A.java"," class A { boolean b; void m() { \n k: {};\n //@ assert \\old(b,k);\n}}"
                 );
     }
+    
+    @Test public void replacement() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  public static class B extends A {}
+                  public static class X {}
+                  void p(/*@[A]@*/ A a) {}
+                  void q(/*@[B]@*/ A a) {}
+                  void r(/*@[X]@*/ A a) {} // ERROR
+                }
+                """
+                ,"/A.java:6: error: a replacement type must be a subtype of the source type: A.X A", 14
+                );
+    }
 
     @Test public void testMax() {
         helpTCF("A.java"," class A { int k; boolean b; void m() { \n//@ assert \\max(\\lockset);\n}}",

@@ -325,9 +325,9 @@ public class TypeEnter implements Completer {
             if (sym.owner.kind == PCK) {
                 resolveImports(env.toplevel, env.enclosing(TOPLEVEL));
                 todo.append(env);
-            }
-            if (env.toplevel instanceof org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jcu && jcu.specsCompilationUnit != null) { // OPENJML
-                resolveImports(jcu.specsCompilationUnit, jcu.specsCompilationUnit.topLevelEnv);
+                if (env.toplevel instanceof org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jcu && jcu.specsCompilationUnit != null) { // OPENJML
+                    resolveImports(jcu.specsCompilationUnit, jcu.specsCompilationUnit.topLevelEnv.enclosing(TOPLEVEL));
+                }
             }
 
             if (sym.owner.kind == TYP)

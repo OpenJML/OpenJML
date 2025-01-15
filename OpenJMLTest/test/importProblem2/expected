@@ -8,3 +8,9 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m(Object) with prover !!!! - no warnings
 Completed proving methods in Test
+Proving methods in BBBB
+Starting proof of BBBB.BBBB() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BBBB.BBBB() with prover !!!! - no warnings
+Completed proving methods in BBBB

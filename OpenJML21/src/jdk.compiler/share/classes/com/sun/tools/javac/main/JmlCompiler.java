@@ -43,6 +43,7 @@ import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.visitors.JmlUseSubstitutions;
+import org.jmlspecs.openjml.JmlTree.JmlSource;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -536,7 +537,8 @@ public class JmlCompiler extends JavaCompiler {
         	var results = new java.util.LinkedList<Env<AttrContext>>();
         	for (var env: envs) {
         		var t = env.tree;
-        		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;
+        		// FIXME - .jml files did not used to be in the env list -- why are they now?
+                if (utils.isSpecFile(((JmlSource)t).source())) continue;
         		env = rac(env);
         		if (env == null) continue;
         		results.add(env);

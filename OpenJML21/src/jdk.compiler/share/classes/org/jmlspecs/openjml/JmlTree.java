@@ -1029,6 +1029,10 @@ public class JmlTree {
         /*@nullable*/ JavaFileObject source();
         /*@nullable*/ void setSource(JavaFileObject jfo);
         DiagnosticPosition pos();
+        default public boolean isInJMLCU() {
+            return source().getKind() != JavaFileObject.Kind.SOURCE;
+        }
+
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
@@ -1042,6 +1046,12 @@ public class JmlTree {
         /** The tree representing the package clause. */
         /*@ nullable */
         public JCPackageDecl pid;
+        
+        /** A scope for all named and named model imports. */
+        public NamedImportScope namedModelImportScope;
+        
+        /** A scope for all import-on-demands, including model imports. */
+        public StarImportScope starModelImportScope;
 
 //        /** This list contains the top-level model types declared in this compilation unit; this
 //         * is not necessarily all or even part of the top-level model types that the CUs specifications
@@ -1059,6 +1069,9 @@ public class JmlTree {
 //        /** The use to be made of this parse tree - one of the int constants below. */
 //        public int mode = 0; // init to an unknown value
         
+        /** We need to distinguish the env of the source cu from the env of the spec cu. This field is added so that
+         *  the two different cus can each hold their own env. In particular each env points back to its own toplevel instance.
+         */
         public Env<AttrContext> topLevelEnv;
         
         public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
@@ -1252,7 +1265,7 @@ public class JmlTree {
         public /*@Nullable*/ JmlClassDecl specsDecl;
         
         /** The Env<> to use for process the specsDecl */
-        public Env<AttrContext> specEnv;
+        //public Env<AttrContext> specEnv;
 
         /** This field holds the class-level specifications for the type corresponding
          * to this declaration; it is an alias for the specs that are found in the JmlSpecs database

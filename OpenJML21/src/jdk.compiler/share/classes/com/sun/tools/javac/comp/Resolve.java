@@ -166,7 +166,7 @@ public class Resolve {
         return instance;
     }
 
-    private static Symbol bestOf(Symbol s1,
+    protected static Symbol bestOf(Symbol s1,  // OPENJML - private to protected
                                  Symbol s2) {
         return s1.kind.betterThan(s2.kind) ? s1 : s2;
     }
@@ -2092,7 +2092,7 @@ public class Resolve {
         Symbol loadClass(Env<AttrContext> env, Name name);
     }
 
-    private final RecoveryLoadClass noRecovery = (env, name) -> null;
+    protected final RecoveryLoadClass noRecovery = (env, name) -> null; // OPENJML private->protected
 
     private final RecoveryLoadClass doRecoveryLoadClass = new RecoveryLoadClass() {
         @Override public Symbol loadClass(Env<AttrContext> env, Name name) {
@@ -2114,7 +2114,7 @@ public class Resolve {
         }
     };
 
-    private final RecoveryLoadClass namedImportScopeRecovery = (env, name) -> {
+    protected final RecoveryLoadClass namedImportScopeRecovery = (env, name) -> {  // OPENJML private->protected
         Scope importScope = env.toplevel.namedImportScope;
         Symbol existing = importScope.findFirst(Convert.shortName(name),
                                                 sym -> sym.kind == TYP && sym.flatName() == name);
@@ -2125,7 +2125,7 @@ public class Resolve {
         return null;
     };
 
-    private final RecoveryLoadClass starImportScopeRecovery = (env, name) -> {
+    protected final RecoveryLoadClass starImportScopeRecovery = (env, name) -> { // OPENJML private -> protected
         Scope importScope = env.toplevel.starImportScope;
         Symbol existing = importScope.findFirst(Convert.shortName(name),
                                                 sym -> sym.kind == TYP && sym.flatName() == name);
@@ -2360,22 +2360,15 @@ public class Resolve {
      *  @param name      The type's name.
      */
     Symbol findType(Env<AttrContext> env, Name name) {
-
-        boolean deb =  false && org.jmlspecs.openjml.Utils.isJML() && name.toString().contains("BBBB"); // OPENJML - for debugging
-        if (deb) System.out.println("FINDTYPE " + name + " " + env + " " + env.outer + " " + (env.outer!=null));
         if (name == names.empty)
             return typeNotFound; // do not allow inadvertent "lookup" of anonymous types
         Symbol bestSoFar = typeNotFound;
         Symbol sym;
         boolean staticOnly = false;
-        if (deb) System.out.println("FINDTYPE-BEFORELOOP " + env + " " + (env.outer!= null));
         for (Env<AttrContext> env1 = env; env1.outer != null; env1 = env1.outer) {
-            if (deb) System.out.println("FINDTYPE-LOOP " + env1);
             // First, look for a type variable and the first member type
             final Symbol tyvar = findTypeVar(env1, name, staticOnly);
-            if (deb) System.out.println("FINDTYPE-TYVAR " + tyvar);
             if (isStatic(env1)) staticOnly = true;
-            if (deb) System.out.println("FINDTYPE-A " + tyvar + " " + staticOnly + " " + env1.info.staticLevel + " " +  env1.outer.info.staticLevel + " " + env1); // OPENJML - for debugging
             sym = findImmediateMemberType(env1, env1.enclClass.sym.type,
                                           name, env1.enclClass.sym);
 
@@ -2395,7 +2388,6 @@ public class Resolve {
                 sym = findInheritedMemberType(env1, env1.enclClass.sym.type,
                                               name, env1.enclClass.sym);
 
-            if (deb) System.out.println("FINDTYPE-AA " + sym + " " + sym.exists());
             if (staticOnly && sym.kind == TYP &&
                 sym.type.hasTag(CLASS) &&
                 sym.type.getEnclosingType().hasTag(CLASS) &&
@@ -2406,14 +2398,16 @@ public class Resolve {
             else bestSoFar = bestOf(bestSoFar, sym);
 
             JCClassDecl encl = env1.baseClause ? (JCClassDecl)env1.tree : env1.enclClass;
-            if (deb) System.out.println("FINDTYPE-B " + encl.sym + " " + encl.sym.flags() + " " + ((encl.sym.flags() & STATIC) != 0));
             if ((encl.sym.flags() & STATIC) != 0)
                 staticOnly = true;
         }
-        if (deb) System.out.println("FINDTYPE-C");
         
+        return findTypeGlobalDetails(env, name, bestSoFar); // OPENJML - extracted from findType to allow overriding
+    }
+    
+    Symbol findTypeGlobalDetails(Env<AttrContext> env, Name name, Symbol bestSoFar) { // OPENJML - extracted from findType to allow overriding
         if (!env.tree.hasTag(IMPORT)) {
-            sym = findGlobalType(env, env.toplevel.namedImportScope, name, namedImportScopeRecovery);
+            Symbol sym = findGlobalType(env, env.toplevel.namedImportScope, name, namedImportScopeRecovery);
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
@@ -2733,7 +2727,6 @@ public class Resolve {
      */
     public Symbol resolveIdent(DiagnosticPosition pos, Env<AttrContext> env,  // OPENJML - package to public
                         Name name, KindSelector kind) {
-        if (false && org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("BBBB")) System.out.println("RESOLVE IDENT " + name + " " + env);
         return accessBase(
             findIdent(pos, env, name, kind),
             pos, env.enclClass.sym.type, name, false);

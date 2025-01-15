@@ -743,7 +743,7 @@ public class esclambdas extends EscBase {
                 +"      //this.aaaaaaaaaaa = aaaaaaaaaaa;\n"
                 +"      set(()->this.aaaaaaaaaaa = aaaaaaaaaaa);\n"
                 +"  }\n"
-                +"  //@ public model static interface NoException { public normal_behavior ensures true; void run(); } \n"
+                +"  //@ public model static interface NoException extends Runnable { also public normal_behavior ensures true; void run(); } \n"
                 +"  //@ public normal_behavior requires true; { r.run(); } ensures true; \n"
                 +"  public void set(/*@[NoException] @*/ Runnable r) {\n"
                 +"       r.run();"
