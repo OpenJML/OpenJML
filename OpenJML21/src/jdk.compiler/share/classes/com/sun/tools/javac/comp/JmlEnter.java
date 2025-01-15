@@ -681,6 +681,7 @@ public class JmlEnter extends Enter {
 					//csym.complete();
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 
+					localEnv = classEnv(specDecl, specsEnv);
 					// Put this, super and type parameters in the Spec environment
                     if (csym.type instanceof ClassType ct && ct.supertype_field != null) TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(csym,  localEnv);
                     ((ClassType)csym.type).typarams_field = classEnter(specDecl.typarams, localEnv); // FIXME - was classTPEnter
