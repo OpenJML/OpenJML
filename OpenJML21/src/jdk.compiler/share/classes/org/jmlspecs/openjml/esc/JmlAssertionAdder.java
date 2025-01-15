@@ -3542,7 +3542,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// consequently no implementations of model fields
 				// FIXME - need some tests for these options - not sure the binary ones have any
 				// effect here???
-				if (env != null && env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.JML) { // FIXME - double check whether .jml files have Kind JML or OTHER?? 
+				if (env != null && !utils.isSpecFile(env.toplevel.sourcefile)) {
 					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
 					if ("skip".equals(opt)) {
 						throw new NoModelMethod("No represents clause for model field " + varsym);

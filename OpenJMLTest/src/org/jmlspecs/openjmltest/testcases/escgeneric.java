@@ -22,9 +22,9 @@ public class escgeneric extends EscBase {
         //print = true;
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written this way
+        addOptions("--nullable-by-default"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
-        addOptions("-timeout=30");
+        addOptions("--timeout=30");
         addOptions("-jmltesting");
     }
     
@@ -53,7 +53,7 @@ public class escgeneric extends EscBase {
     /** Tests that we can reason about the result of \\typeof */
     @Test
     public void testTypeOf() {
-    	addOptions("-checkFeasibility=all");  // Part of test
+    	addOptions("--check-feasibility=all");  // Part of test
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -432,7 +432,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testUnboxing() {
-        addOptions("-method=m");  // Just test method m
+        addOptions("--method=m");  // Just test method m
         helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
                 +"int sum = 0; \n"
                 +"{ /*@ assume ooo >= 0; */ sum += ooo; }  \n"
@@ -529,7 +529,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericThrow() {
-        addOptions("-method=rt"); // Just test method rt
+        addOptions("--method=rt"); // Just test method rt
         helpTCX("tt.TestJava",
         		 "public class TestJava { \n"
         	    +" //@ public exceptional_behavior \n"

@@ -932,7 +932,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public ModifierKind[] typeModifiers = new ModifierKind[]{NULLABLE,NON_NULL,BSREADONLY};
 
     /** Checks the JML modifiers so that only permitted combinations are present. */
-    public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, JmlClassDecl specsDecl, TypeSpecs tspecs, Env<AttrContext> env) { // env should be specsEnv
+    public void checkClassMods(ClassSymbol classSymbol, /*@ nullable */ JmlClassDecl javaDecl, JmlClassDecl specsDecl, TypeSpecs tspecs, Env<AttrContext> env) {
         //System.out.println("Checking " + javaDecl.name + " in " + javaDecl.sym.owner);
         JavaFileObject prev = log.useSource(tspecs.file);
         checkTypeMatch(classSymbol, tspecs.specDecl);
@@ -954,7 +954,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         
         if (specsDecl != javaDecl && specsDecl != null) {
-            Env<AttrContext> specEnv = specsDecl.specEnv;
+            Env<AttrContext> specEnv = env;
             Type sup = classSymbol.getSuperclass();
             if (!classSymbol.isInterface() && sup.getKind() != TypeKind.ERROR) {
                 boolean specIsRecord = (specsDecl.mods.flags & Flags.RECORD) != 0;
@@ -5856,7 +5856,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-        boolean print = false; // tree.toString().contains("tring") && !tree.toString().contains("String");
+        boolean print = false; // && tree.toString().equals("java");
         if (print) System.out.println("JML-VISITIDENT " + tree + " # " + tree.name + " # " + Utils.join(" ", quantifiedExprs) + " # " + tree.sym);
     	// Attributing an ident can instigate loading of new classes
     	// Every routine is responsible for saving and restoring state
@@ -7582,18 +7582,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // But JML has the case of an anonymous class that occurs in a class
         // specification (e.g. an invariant), or in a method clause (so it is
         // owned by the method)
-    	var prevSpecEnv = ((JmlEnter)enter).specEnv;
-    	try {
-    		((JmlEnter)enter).specEnv = env;
-    		if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
-    			enter.classEnter(tree, env);
-    		}
-    		super.visitClassDef(tree);
-    	} finally {
-    		((JmlEnter)enter).specEnv = prevSpecEnv;
-    	}
+        try {
+            if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
+                enter.classEnter(tree, env);
+            }
+            super.visitClassDef(tree);
+        } finally {
+        }
     }
-    
+
     public void addClassInferredSpecs(ClassSymbol csym) { // FIXME - should this really be in JmlAttr?
         // Add inferred/default clauses
         var cspec = specs.get(csym);
@@ -7901,6 +7898,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 //if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
                 //if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
+            }
+            if (that.originalType != null) {
+                var ok = types.isSubtype(that.type, that.originalType);
+                if (!ok) utils.error(that.vartype, "jml.message", "a replacement type must be a subtype of the source type: "
+                        + that.type + " " + that.originalType);
             }
         } catch (PropagatedException e) {
         	throw e;

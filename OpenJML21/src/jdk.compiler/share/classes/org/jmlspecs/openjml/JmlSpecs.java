@@ -1648,10 +1648,6 @@ public class JmlSpecs {
         	if (specdecl == null) throw new AssertionError("Unexpected null specdecl");
         	if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
         	if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
-        	//if (specenv == null) throw new AssertionError("null specenv"); // specenv is null in rac
-        	if (specenv != null && specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree: " + specdecl.name + " " + specenv.tree);
-        	//if (javadecl != null && javadecl != Enter.instance(context).getEnv(javadecl.sym).tree) throw new AssertionError("Mismatched java trees");
-        	if (specenv != specdecl.specEnv) throw new AssertionError("Mismatched env");
         	this.specDecl = specdecl;
         	this.javaDecl = javadecl;
         	this.csymbol = specdecl.sym;
