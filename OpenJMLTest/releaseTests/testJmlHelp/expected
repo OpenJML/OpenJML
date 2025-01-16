@@ -137,8 +137,7 @@ JML options:
   --rac-java-checks          RAC: Enables explicit checking of Java language checks
   --rac-compile-to-java-assert RAC: Compiles JML checks as Java asserts
   --rac-precondition-entry   RAC: Distinguishes Precondition failures on entry calls
-  --rac-missing-model-field-rep-source RAC: action when a model field has no representation (zero,warn,skip)
-  --rac-missing-model-field-rep-binary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
+  --rac-missing-model-field-rep RAC: action when a model field has no representation (zero,zero-quiet,skip,skip-quiet,fail)
   --properties               Specifies the path to the properties file
   --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses

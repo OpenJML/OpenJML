@@ -3517,11 +3517,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				Name mmName = names.fromString(Strings.modelFieldMethodPrefix + varsym.toString());
 				java.util.List<Type> p = parents(staticBasetype, false);
 				ListIterator<Type> iter = p.listIterator(p.size());
-				while (iter.hasPrevious()) {
+				outer: while (iter.hasPrevious()) {
 					JmlSpecs.TypeSpecs tyspecs = specs.getAttrSpecs((ClassSymbol) iter.previous().tsym);
 					for (JmlTypeClauseDecl x : tyspecs.modelFieldMethods) {
-						if (x.decl instanceof JmlMethodDecl) {
-							JmlMethodDecl md = (JmlMethodDecl) x.decl;
+						if (x.decl instanceof JmlMethodDecl md) {
 							// THe DEFAULT Flag is used to indicate that the method is just the place-holder
 							// method
 							// created in JmlMemberEnter. It should be ignored as it is not a user supplied
@@ -3531,37 +3530,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										md.sym);
 								result = eresult = app;
 								treeutils.copyEndPosition(eresult, that);
-								return;
+				                if ((md.mods.flags & Utils.JMLADDED) == 0) return; // model field has a real rep
+								break outer;
 							}
 						}
 					}
 				}
-				result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
-				Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
+				// The current model method has no representation
+				
+				//result = eresult = treeutils.makeSelect(that.pos, translatedSelector, varsym);
+				//Env<AttrContext> env = JmlEnter.instance(context).getEnv(clsym);
 				// We don't warn if the problem is that we just have a binary class and
 				// consequently no implementations of model fields
 				// FIXME - need some tests for these options - not sure the binary ones have any
 				// effect here???
 				// FIXME - get failures when this test is corrected
-				if (env != null && true /*!utils.isSpecFile(env.toplevel.sourcefile)*/) {
-					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP_SOURCE);
-					if ("skip".equals(opt)) {
-						throw new NoModelMethod("No represents clause for model field " + varsym);
-					} else {
-						// already set the eresult
-						if ("warn".equals(opt))
-							utils.warning(that.pos, "jml.no.model.method.ignore",
-									varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
-					}
-				} else {
-					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP_BINARY);
-					if ("skip".equals(opt)) {
-						throw new NoModelMethod("No represents clause for model field " + varsym);
-					} else {
-						// already set the eresult
-						if ("warn".equals(opt))
-							utils.warning(that.pos, "jml.no.model.method.ignore",
-									varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+				{
+					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
+                    if ("skip".equals(opt)) {
+                        utils.warning(that.pos, "jml.no.model.method.ignore",
+                                varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
+                        throw new NoModelMethod("No represents clause for model field " + varsym);
+                    } else if ("skip-quiet".equals(opt)) {
+                        throw new NoModelMethod("No represents clause for model field " + varsym);
 					}
 				}
 				return;
@@ -16734,9 +16725,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							// We are presuming that all represents clauses are processed
 							// (as part of scanning the specs defs in visitJmlClassDecl)
 							// before we handle all the model field methods.
-							utils.warning(jdef.source(), jdef.pos, "jml.no.model.method.implementation",
-									nm.substring(Strings.modelFieldMethodPrefix.length())); // FIXME - extract name of
-																							// model field
+		                    String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
+		                    String fieldName = nm.substring(Strings.modelFieldMethodPrefix.length());
+		                    if ("skip".equals(opt)) {
+		                        utils.warning(jdef.source(), jdef, "jml.no.model.method.implementation", fieldName);
+		                    } else if ("skip-quiet".equals(opt)) {
+		                    } else if ("fail".equals(opt)) {
+		                        utils.error(jdef.source(), jdef, "jml.no.model.method.implementation", fieldName);
+		                    } else if ("zero-quiet".equals(opt)) {
+		                    } else if ("zero".equals(opt)) {
+                                utils.warning(jdef.source(), jdef, "jml.no.model.method.default", fieldName);
+		                    } else {
+		                        utils.error(jdef.source(), jdef, "jml.internal", "Missing case for a value of " + JmlOption.RAC_MISSING_MODEL_FIELD_REP + ": " + opt);
+		                    }
 						}
 					}
 				}
@@ -20591,6 +20592,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} finally {
 					msdecl.body.stats = popBlock(msdecl.body, check).stats;
 				}
+                System.out.println("CREATING MODEL METHOD " + msdecl);
 				classDefs.add(msdecl);
 				JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
 				tcd.modifiers = msdecl.mods;
