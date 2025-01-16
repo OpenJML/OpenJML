@@ -300,8 +300,18 @@ public class JmlOption {
     public static final JmlOption RAC_JAVA_CHECKS = new JmlOption("--rac-java-checks",false,false,"RAC: Enables explicit checking of Java language checks",null);
     public static final JmlOption RAC_COMPILE_TO_JAVA_ASSERT = new JmlOption("--rac-compile-to-java-assert",false,false,"RAC: Compiles JML checks as Java asserts",null);
     public static final JmlOption RAC_PRECONDITION_ENTRY = new JmlOption("--rac-precondition-entry",false,false,"RAC: Distinguishes Precondition failures on entry calls",null);
-    public static final JmlOption RAC_MISSING_MODEL_FIELD_REP_SOURCE = new JmlOption("--rac-missing-model-field-rep-source",true,"zero","RAC: action when a model field has no representation (zero,warn,skip)",null);
-    public static final JmlOption RAC_MISSING_MODEL_FIELD_REP_BINARY = new JmlOption("--rac-missing-model-field-rep-binary",true,"skip","RAC: action when a model field for a binary class has no representation (zero,warn,skip)",null);
+    public static final JmlOption RAC_MISSING_MODEL_FIELD_REP = new JmlOption("--rac-missing-model-field-rep",true,"skip","RAC: action when a model field has no representation (zero,zero-quiet,skip,skip-quiet,fail)",null) {
+        public final static String[] values = new String[] { "zero", "zero-quiet", "skip", "skip-quiet", "fail" };
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            String val = options.get(optionName());
+            if (val.isEmpty()) val = (String)defaultValue();
+            for (var s: values) if (s.equals(val)) return true;
+            Utils.instance(context).error("jml.message","Command-line argument error: Expected one of " + String.join(" ",values) + " for " + optionName() + " : " + val);
+            options.put(optionName(),(String)defaultValue());
+            return false;
+        }
+    };
 
     public static final JmlOption PROPERTIES = new JmlOption("--properties",true,null,"Specifies the path to the properties file",null);
 

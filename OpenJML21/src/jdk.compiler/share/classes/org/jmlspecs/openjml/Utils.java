@@ -273,6 +273,10 @@ public class Utils {
         mods.flags |= JMLBIT;
     }
 
+    public long setJML(long flags) {
+        return flags | JMLBIT;
+    }
+
     public void setJMLTop(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBITTOP;
     }

@@ -214,10 +214,54 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void racNoModel() {
-    	setRacng();
+    public void racNoModel1() {
+        setRacng();
         expectedExit = 0;
-        helpTCF("test/racNoModel","test/racNoModel","NoModelTest","--rac-missing-model-field-rep-source=skip");
+        helpTCF("test/racNoModel","test/racNoModel/test1","NoModelTest","--rac-missing-model-field-rep=skip");
+    }
+
+    @Test
+    public void racNoModel2() {
+        setRacng();
+        expectedExit = 1;
+        helpTCF("test/racNoModel","test/racNoModel/test2","NoModelTest","--rac-missing-model-field-rep=fail");
+    }
+
+    @Test
+    public void racNoModel3() {
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModel","test/racNoModel/test3","NoModelTest","--rac-missing-model-field-rep=zero");
+    }
+
+    @Test
+    public void racNoModel4() {
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModel","test/racNoModel/test4","NoModelTest","--rac-missing-model-field-rep=skip-quiet");
+    }
+
+    @Test
+    public void racNoModel5() {
+        setRacng();
+        expectedExit = 0;
+        runrac = true;
+        helpTCF("test/racNoModel","test/racNoModel/test5","NoModelTest","--rac-missing-model-field-rep=zero-quiet");
+    }
+
+    @Test
+    public void racNoModel6() {
+        setRacng();
+        expectedExit = 2;
+        runrac=false;
+        helpTCF("test/racNoModel","test/racNoModel/test6","NoModelTest","--rac-missing-model-field-rep=zzz");
+    }
+
+    @Test
+    public void racNoModel7() { // Same result as test1
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModel","test/racNoModel/test1","NoModelTest","--rac-missing-model-field-rep=");
     }
 
     @Test
@@ -486,7 +530,7 @@ public class racfiles extends RacBase {
     public void sfbug402() {
         expectedRACExit = 0;
         runrac = false;
-        helpTCF("test/sfbug402","test/sfbug402","Main");
+        helpTCF("test/sfbug402","test/sfbug402","Main","--rac-missing-model-field-rep=zero");
     }
 
     @Test

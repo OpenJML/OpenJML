@@ -648,6 +648,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JCStatement stat = jmlF.Exec(expr);
                     JCStatement stat2 = jmlF.Return(treeutils.makeZeroEquivalentLit(decl,md.sym.getReturnType()));
                     md.body = jmlF.Block(0L, List.<JCStatement>of(stat,stat2));
+                    md.body.flags = utils.setJML(md.body.flags);
                 } 
                 continue;
             }
@@ -661,6 +662,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
+            mr.mods.flags |= Utils.JMLADDED; // Marks this as pure default (zero-equivalent)
             
             newdefs.add(mr);
             
@@ -679,10 +681,10 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     continue;
                 }
                 returnStatement.expr = rep.expression;
-                mr.body.stats = List.<JCStatement>of(returnStatement);
-                mr.mods.flags &= ~Utils.JMLADDED;
                 found = rep;
+                mr.mods.flags &= ~Utils.JMLADDED; // Has a representation
             }
+            mr.body.stats = List.<JCStatement>of(returnStatement);
         }
 
         List<JCTree> nd = newdefs.toList();
@@ -706,7 +708,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);
         JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
                 List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
-        mr.mods.flags |= Utils.JMLADDED;   // FIXME - why?
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
         JavaFileObject p = log.useSource(modelVarDecl.sourcefile);

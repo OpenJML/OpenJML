@@ -47,8 +47,7 @@
 # org.openjml.option.rac-java-checks=
 # org.openjml.option.rac-compile-to-java-assert=
 # org.openjml.option.rac-precondition-entry=
-# org.openjml.option.rac-missing-model-field-rep-binary=
-# org.openjml.option.rac-missing-model-field-rep-source=
+# org.openjml.option.rac-missing-model-field-rep=
 # org.openjml.option.defaults=
 # org.openjml.option.os-name=
 # org.openjml.option.require-white-space=

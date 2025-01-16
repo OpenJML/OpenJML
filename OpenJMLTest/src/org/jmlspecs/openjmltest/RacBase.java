@@ -370,9 +370,9 @@ public abstract class RacBase extends JmlTestCase {
                     //  fail("Files differ: " + compdiffs);
                 }
             }
-            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+            if (ex != expectedExit) fail("Compile ended with exit code " + ex + " expected: " + expectedExit);
 
-            if (runrac) {
+            if (runrac && ex == 0) {
                 if (rac == null) rac = defrac;
                 rac[rac.length-1] = mainClassname;
                 Process p = Runtime.getRuntime().exec(rac);
@@ -407,6 +407,12 @@ public abstract class RacBase extends JmlTestCase {
                         //System.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
                         System.out.println(diffs);
                         fail("Unexpected output: " + diffs);
+                    }
+                }
+            } else {
+                for (String file: new File(outputdir).list()) {
+                    if (file.contains("expected-run")) {
+                        fail("Test has an expected-run file even though the RACed program is not executed");
                     }
                 }
             }

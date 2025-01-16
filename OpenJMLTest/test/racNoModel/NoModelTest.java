@@ -1,18 +1,12 @@
 
 public class NoModelTest {
-  public boolean equals(final Object the_other) {
-    return true;
-  }
+    //@ model int zzz;
+    //@ model int yyy;
+    //@ represents yyy = 9;
   
-  public int hashCode() {
-    return 0;
-  }
-  
-  // FIXME - this test no longer tests error messages for no model field implementation
   public static void main(String... args) {
       NoModelTest t = new NoModelTest();
-      int i = t.hashCode();
-      boolean b = t.equals(t);
-      System.out.println("RESULT: " + i + " " + b);
+      //@ set System.out.println("RESULT-ZZZ: " + t.zzz);
+      //@ set System.out.println("RESULT-YYY: " + t.yyy);
   }
 }
