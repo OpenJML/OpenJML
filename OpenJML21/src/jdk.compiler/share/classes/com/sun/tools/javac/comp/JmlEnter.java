@@ -624,7 +624,7 @@ public class JmlEnter extends Enter {
 					var ok = specsClassEnter(owner, specsDecl, specsEnv);
 					if (ok) {
 						newdefs.add(specsDecl);
-						Todo.instance(context).add(specsEnv);
+						Todo.instance(context).add(specsDecl.env);
 					}
 				}
 			} else {
@@ -673,6 +673,8 @@ public class JmlEnter extends Enter {
 				// FIXME - not positive this is entered in a way that RAC will work or is even correct for attribution
 				if (owner instanceof PackageSymbol powner) {
 					specDecl.specsDecl = specDecl;
+//					if (this.env != null) System.out.println("ENV IS ALREADY SET");
+//					else this.env = specsEnv;
 					allowRecursion = false;
 					classEnter(specDecl, specsEnv);
 					allowRecursion = true;
@@ -703,6 +705,8 @@ public class JmlEnter extends Enter {
 				} else { // owner is a ClassSymbol
 					ClassSymbol cowner = (ClassSymbol)owner;
 					specDecl.specsDecl = specDecl;
+//	                if (this.env != null) System.out.println("ENV IS ALREADY SET");
+//	                else this.env = specsEnv;
 					if (specDecl.specsDecl != specDecl) throw new AssertionError("wrong specsDecl: " + cowner + " " + specDecl.name);
                     allowRecursion = false; // FIXME - should allow recursion, and not do nested defs at end of this method
 					classEnter(specDecl, specsEnv);
@@ -776,6 +780,7 @@ public class JmlEnter extends Enter {
 //				}
 //			}
 			specDecl.sym = csym;
+			specDecl.env = localEnv;
 			var tspecs = new JmlSpecs.TypeSpecs(specDecl, null, localEnv);
 			JmlSpecs.instance(context).putSpecs(csym, tspecs);
 			// Do all nested classes, recursively
