@@ -133,16 +133,16 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
-    	// init must be called before the trees are entered because entering trees invokes
-    	// type resolution, which requires the init() call
-    	// (If we do this initialization during tool registration, we get circular instantiation)
-    	init();
-//    	JmlEnter.instance(context).hold();
-    	var list = super.enterTrees(roots);
-//    	JmlEnter.instance(context).release();
-    	var any = JmlEnter.instance(context).flush(); // FIXME - not sure this is needed
-    	//if (any) System.out.println("JmlCompiler - flush is needed");
-    	return list;
+        // init must be called before the trees are entered because entering trees invokes
+        // type resolution, which requires the init() call
+        // (If we do this initialization during tool registration, we get circular instantiation)
+        init();
+        //    	JmlEnter.instance(context).hold();
+        var list = super.enterTrees(roots);
+        //    	JmlEnter.instance(context).release();
+        var any = JmlEnter.instance(context).flush(); // FIXME - not sure this is needed
+        //if (any) System.out.println("JmlCompiler - flush is needed");
+        return list;
     }
     
     static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
@@ -250,8 +250,8 @@ public class JmlCompiler extends JavaCompiler {
         var json = new org.jmlspecs.openjml.JmlJson(context);
         for (var env: results) {
             var cu = (JmlClassDecl)env.tree;
-            if (!cu.sourcefile.getName().endsWith(".java")) continue; // TODO - for now, because too much of Java/JML is not yet implemented
-            //System.out.println("JSON FOR " + cu.sourcefile);
+            if (utils.isSpecFile(cu.source())) continue; // TODO - for now, because too much of Java/JML is not yet implemented
+            //System.out.println("JSON FOR " + cu.name + " " + cu.sourcefile);
             writeJson(dest, json, cu, cu.name.toString());
         }
     }
@@ -490,6 +490,7 @@ public class JmlCompiler extends JavaCompiler {
             }
 
         }
+        
 
         return stopIfError(CompileState.ATTR, results);
     }
@@ -537,8 +538,7 @@ public class JmlCompiler extends JavaCompiler {
         	var results = new java.util.LinkedList<Env<AttrContext>>();
         	for (var env: envs) {
         		var t = env.tree;
-        		// FIXME - .jml files did not used to be in the env list -- why are they now?
-                if (utils.isSpecFile(((JmlSource)t).source())) continue;
+                if (utils.isSpecFile(((JmlTree.JmlSource)t).source())) continue;
         		env = rac(env);
         		if (env == null) continue;
         		results.add(env);
@@ -567,6 +567,7 @@ public class JmlCompiler extends JavaCompiler {
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+        //System.out.println("RACING " + env.tree.getClass() + " " + env.toplevel.sourcefile);
         
         // TODO - will sourcefile always exist? -- JLS
         String currentFile = env.toplevel.sourcefile.getName();
