@@ -802,8 +802,8 @@ public abstract class Scope {
             return appendScope(new FilterImportScope(types, origin, name, filter, imp, cfHandler), name);
         }
 
-        public Scope importType(Scope delegate, Scope origin, Symbol sym) {
-            return appendScope(new SingleEntryScope(delegate.owner, sym, origin), sym.name);
+        public Scope importType(Scope delegate, Scope origin, Symbol sym, boolean modelImport, Context context) { // OPENJML
+            return appendScope(new SingleEntryScope(delegate.owner, sym, origin, modelImport, context), sym.name); // OPENJML
         }
 
         private Scope appendScope(Scope newScope, Name name) {
@@ -843,12 +843,16 @@ public abstract class Scope {
             private final Symbol sym;
             private final List<Symbol> content;
             private final Scope origin;
+            public boolean isModelImport; // OPENJML
+            public Context context; // OPENJML
 
-            public SingleEntryScope(Symbol owner, Symbol sym, Scope origin) {
+            public SingleEntryScope(Symbol owner, Symbol sym, Scope origin, boolean modelImport, Context context) { // OPENJML - added arguments
                 super(owner);
                 this.sym = sym;
                 this.content = List.of(sym);
                 this.origin = origin;
+                this.isModelImport = modelImport; // OPENJML
+                this.context = context; // OPENJML
             }
 
             @Override
@@ -860,6 +864,7 @@ public abstract class Scope {
             public Iterable<Symbol> getSymbolsByName(Name name,
                                                      Predicate<Symbol> sf,
                                                      LookupKind lookupKind) {
+                if (org.jmlspecs.openjml.Utils.isJML() && isModelImport && !com.sun.tools.javac.comp.JmlResolve.instance(context).allowJML()) return Collections.emptyList(); // OPENJML
                 return sym.name == name &&
                        (sf == null || sf.test(sym)) ? content : Collections.emptyList();
             }

@@ -126,13 +126,9 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
-//        if (e.toString().equals("B")) {
-//            System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field) + " " + e.owner);
-//            //org.jmlspecs.openjml.Utils.dumpStack();
-//        }
         return allowJML || !utils.isJML(e.flags_field);
     }
-    
+
     public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
             Symbol location, Type site, Name name, List<Type> argtypes,
             List<Type> typeargtypes) {
