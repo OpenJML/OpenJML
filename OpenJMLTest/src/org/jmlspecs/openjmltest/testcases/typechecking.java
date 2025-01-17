@@ -1606,6 +1606,60 @@ public class typechecking extends TCBase {
                 );
     }
 
+    @Test public void testAbstractModel() {
+        addOptions("--check"); // FIXME - these messages should apply to --esc as well
+        helpTCF("A.java",
+                """
+                public class A {
+                  //@ abstract static model int z;
+                  //@ abstract final model int x = 9;
+                  //@ abstract model int y;
+                  //@ represents y = 100;
+                }
+                """
+                ,"/A.java:5: error: An abstract model field may not have a represents clause", 18
+                //   ,"/A.java:4: error: Associated declaration: /A.java:5:", 26
+                ,"/A.java:2: error: a model field may not be both abstract and static", 33
+                ,"/A.java:3: error: an abstract model field may not have an initializer", 36
+                );
+    }
+
+    @Test public void testAbstractModel_esc() {
+        addOptions("--esc"); // FIXME - these messages should apply to --esc as well
+        helpTCF("A.java",
+                """
+                public class A {
+                  //@ abstract static model int z;
+                  //@ abstract final model int x = 9;
+                  //@ abstract model int y;
+                  //@ represents y = 100;
+                }
+                """
+                ,"/A.java:5: error: An abstract model field may not have a represents clause", 18
+                //  ,"/A.java:4: error: Associated declaration: /A.java:5:", 26
+                ,"/A.java:2: error: a model field may not be both abstract and static", 33
+                ,"/A.java:3: error: an abstract model field may not have an initializer", 36
+                );
+    }
+
+    @Test public void testAbstractModel_rac() {
+        addOptions("--rac"); // FIXME - these messages should apply to --esc as well
+        helpTCF("A.java",
+                """
+                public class A {
+                  //@ abstract static model int z;
+                  //@ abstract final model int x = 9;
+                  //@ abstract model int y;
+                  //@ represents y = 100;
+                }
+                """
+                ,"/A.java:5: error: An abstract model field may not have a represents clause", 18
+                //   ,"/A.java:4: error: Associated declaration: /A.java:5:", 26
+                ,"/A.java:2: error: a model field may not be both abstract and static", 33
+                ,"/A.java:3: error: an abstract model field may not have an initializer", 36
+                );
+    }
+
     @Test public void testMissingModel() {
         helpTCF("A.java",
                 """

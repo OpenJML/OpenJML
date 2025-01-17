@@ -1,0 +1,10 @@
+test/racNoModelInh/NoModelTest.java:3: warning: JML model field does not have a representation: z
+    //@ model int z;              // ERROR: No rep in Parent
+                  ^
+test/racNoModelInh/NoModelTest.java:18: warning: JML ignoring statement because model field does not have a representation: Parent.z
+        //@ set System.out.println("Z: " + t.z); // No rep
+                                            ^
+test/racNoModelInh/NoModelTest.java:22: warning: JML ignoring statement because model field does not have a representation: Parent.q
+        //@ set System.out.println("Q: " + t.q); // No rep
+                                            ^
+3 warnings

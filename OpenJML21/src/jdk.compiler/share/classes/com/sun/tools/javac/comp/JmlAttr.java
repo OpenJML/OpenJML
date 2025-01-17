@@ -3152,6 +3152,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			allAllowed(specmods, allowedGhostFieldModifiers, "ghost field declaration");
         		} else if (model) {
         			allAllowed(specmods, allowedModelFieldModifiers, "model field declaration");
+        			boolean isAbstract = (specmods.flags & ABSTRACT) != 0;
+        			// FIXME - sym.isAbstract() and isAbstract as above are not the same.
+                    if ((specmods.flags & (ABSTRACT|STATIC)) == (ABSTRACT|STATIC)) {
+                        utils.error(tree.source(), tree, "jml.message", "a model field may not be both abstract and static");
+                    };
+                    if (isAbstract && tree.init != null) {
+                        utils.error(tree.source(),tree.init,"jml.message","an abstract model field may not have an initializer");
+                    }
+
         		} else {
         			allAllowed(specmods, allowedFieldModifiers, "field declaration");
         		}
@@ -3734,6 +3743,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else {
                 utils.error(tree.ident, "jml.message", "Unknown kind of represents target: " + tree.ident + " (" + tree.ident.getClass() + ")");
                 return;
+            }
+            if (sym.isAbstract() && ((JmlClassDecl)enclosingClassEnv.tree).sym == sym.owner) {
+                // FIXME - need the location of the model field declaration
+                utils.error(tree.ident, "jml.message", "An abstract model field may not have a represents clause");
             }
             
             // FIXME check that sym and represents are both secret or both not

@@ -263,6 +263,57 @@ public class racfiles extends RacBase {
         expectedExit = 0;
         helpTCF("test/racNoModel","test/racNoModel/test1","NoModelTest","--rac-missing-model-field-rep=");
     }
+    
+    @Test
+    public void racNoModelInh1() {
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test1","NoModelTest","--rac-missing-model-field-rep=skip");
+    }
+
+    @Test
+    public void racNoModelInh2() {
+        setRacng();
+        expectedExit = 1;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test2","NoModelTest","--rac-missing-model-field-rep=fail");
+    }
+
+    @Test
+    public void racNoModelInh3() {
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test3","NoModelTest","--rac-missing-model-field-rep=zero");
+    }
+
+    @Test
+    public void racNoModelInh4() {
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test4","NoModelTest","--rac-missing-model-field-rep=skip-quiet");
+    }
+
+    @Test
+    public void racNoModelInh5() {
+        setRacng();
+        expectedExit = 0;
+        runrac = true;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test5","NoModelTest","--rac-missing-model-field-rep=zero-quiet");
+    }
+
+    @Test
+    public void racNoModelInh6() {
+        setRacng();
+        expectedExit = 2;
+        runrac=false;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test6","NoModelTest","--rac-missing-model-field-rep=zzz");
+    }
+
+    @Test
+    public void racNoModelInh7() { // Same result as test1
+        setRacng();
+        expectedExit = 0;
+        helpTCF("test/racNoModelInh","test/racNoModelInh/test1","NoModelTest","--rac-missing-model-field-rep=");
+    }
 
     @Test
     public void racMainActivity() {

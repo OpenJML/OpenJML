@@ -4,6 +4,7 @@
  */
 package com.sun.tools.javac.comp;
 
+import static com.sun.tools.javac.code.Flags.ABSTRACT;
 import static com.sun.tools.javac.code.Flags.DEFAULT;
 import static com.sun.tools.javac.code.Flags.FINAL;
 import static com.sun.tools.javac.code.Flags.HASINIT;
@@ -22,6 +23,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
@@ -635,9 +637,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         Map<Name,JmlVariableDecl> modelMethodNames = new HashMap<>();
         //Symbol modelSym = attr.modToAnnotationSymbol.get(Modifiers.MODEL);
         if (specstree != null) for (JCTree decl: specstree.defs) {  // FIXME - should specstree ever be null
-            if (decl instanceof JmlMethodDecl) {
+            if (decl instanceof JmlMethodDecl md) {
                 if (!utils.rac) continue;
-                JmlMethodDecl md = (JmlMethodDecl)decl;
                 if (!md.isJML() || md.body != null) continue;
                 boolean isModel = utils.hasModifier(md.mods,Modifiers.MODEL);
                 if (!isModel) continue;
@@ -652,24 +653,26 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 } 
                 continue;
             }
-            if (!(decl instanceof JmlVariableDecl)) continue;
-            JmlVariableDecl vdecl = (JmlVariableDecl)decl;
+            if (!(decl instanceof JmlVariableDecl vdecl)) continue;
+
             if (!utils.hasModifier(vdecl.mods, Modifiers.MODEL)) continue;
             VarSymbol vsym = vdecl.sym;
             
-            JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl,vdecl.sym.type));
+            JCExpression init = vdecl.init;
+            if (init == null) init = JmlTreeUtils.instance(context).makeZeroEquivalentLit(vdecl,vdecl.sym.type);
+            
+            JCTree.JCReturn returnStatement = jmlF.Return(init);
             JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,-1,Strings.jmlSpecsPackage + ".NoModelFieldMethod",null), List.<JCExpression>nil(), null));
+            boolean isAbstract = (vdecl.mods.flags & ABSTRACT) != 0;
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
-            mr.mods.flags |= Utils.JMLADDED; // Marks this as pure default (zero-equivalent)
-            
             newdefs.add(mr);
+            if (vdecl.init == null) mr.mods.flags |= Utils.JMLADDED; // Marks this as needing a representation
             
-            JmlTypeClauseRepresents found = null;
+            JCTree found = vdecl.init;
             for (JCTree ddecl: tsp.clauses) {
-                if (!(ddecl instanceof JmlTypeClauseRepresents)) continue;
-                JmlTypeClauseRepresents rep = (JmlTypeClauseRepresents)ddecl;
+                if (!(ddecl instanceof JmlTypeClauseRepresents rep)) continue;
                 if (((JCTree.JCIdent)rep.ident).name != vdecl.name) continue;
                 if (utils.isJMLStatic(vdecl.sym) != utils.isJMLStatic(rep.modifiers,sym)) continue;
                 if (rep.suchThat) {
@@ -685,8 +688,29 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 mr.mods.flags &= ~Utils.JMLADDED; // Has a representation
             }
             mr.body.stats = List.<JCStatement>of(returnStatement);
-        }
+            
+            // NOTE: Various conditions on model fields and represents clauses are checked later during attribution
+            //if (vdecl.name.toString().equals("theFloat")) System.out.println("theFloat rep = " + (found != null) + " " + isAbstract + " " + ((mr.mods.flags & Utils.JMLADDED) == 0));
+            if (found == null) {
+                String fieldName = vdecl.name.toString();
+                String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
+                if  (isAbstract) {
+                    // no complaint if model field is abstract
+                } else if ("skip".equals(opt)) {
+                    utils.warning(vdecl.source(), vdecl, "jml.no.model.method.implementation", fieldName);
+                } else if ("skip-quiet".equals(opt)) {
+                } else if ("fail".equals(opt)) {
+                    utils.error(vdecl.source(), vdecl, "jml.no.model.method.implementation", fieldName);
+                } else if ("zero-quiet".equals(opt)) {
+                } else if ("zero".equals(opt)) {
+                    utils.warning(vdecl.source(), vdecl, "jml.no.model.method.default", fieldName);
+                } else {
+                    utils.error(vdecl.source(), vdecl, "jml.internal", "Missing case for a value of " + JmlOption.RAC_MISSING_MODEL_FIELD_REP + ": " + opt);
+                }
+            }
 
+        }
+        
         List<JCTree> nd = newdefs.toList();
         var saved = this.env;
         this.env= env;

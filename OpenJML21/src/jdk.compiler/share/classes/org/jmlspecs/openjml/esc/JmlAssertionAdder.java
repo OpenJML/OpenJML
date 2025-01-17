@@ -16717,32 +16717,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			List<JCTree> defs = this.classDefs.toList();
 			// if (print) System.out.println("JAA-visitJmlClassDecl-K " + defs);
 
-			for (JCTree def : defs) {
-				if (def instanceof JmlMethodDecl jdef) {
-					String nm = jdef.name.toString();
-					if (utils.isSynthetic(jdef.mods) && attr.isModel(jdef.mods) && nm.startsWith(Strings.modelFieldMethodPrefix)) {
-						if ((jdef.mods.flags & Utils.JMLADDED) != 0) {
-							// We are presuming that all represents clauses are processed
-							// (as part of scanning the specs defs in visitJmlClassDecl)
-							// before we handle all the model field methods.
-		                    String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
-		                    String fieldName = nm.substring(Strings.modelFieldMethodPrefix.length());
-		                    if ("skip".equals(opt)) {
-		                        utils.warning(jdef.source(), jdef, "jml.no.model.method.implementation", fieldName);
-		                    } else if ("skip-quiet".equals(opt)) {
-		                    } else if ("fail".equals(opt)) {
-		                        utils.error(jdef.source(), jdef, "jml.no.model.method.implementation", fieldName);
-		                    } else if ("zero-quiet".equals(opt)) {
-		                    } else if ("zero".equals(opt)) {
-                                utils.warning(jdef.source(), jdef, "jml.no.model.method.default", fieldName);
-		                    } else {
-		                        utils.error(jdef.source(), jdef, "jml.internal", "Missing case for a value of " + JmlOption.RAC_MISSING_MODEL_FIELD_REP + ": " + opt);
-		                    }
-						}
-					}
-				}
-			}
-
 			// FIXME - replicate all the other AST nodes
 			List<JCTypeParameter> typarams = that.typarams;
 			if (fullTranslation)
@@ -20517,7 +20491,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// The class we are in has a represents clause.
 		// It may not have a corresponding model field; that field might be in a super
 		// class.
-		// If so, we need to construct the synthetic model metehod to hold it.
+		// If so, we need to construct the synthetic model method to hold the representation.
 		JmlSpecs.TypeSpecs typeSpecs = specs.getAttrSpecs(classDecl.sym);
 		if (sym != null && rac) {
 			String str = Strings.modelFieldMethodPrefix + sym.name.toString();
@@ -20592,7 +20566,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} finally {
 					msdecl.body.stats = popBlock(msdecl.body, check).stats;
 				}
-                System.out.println("CREATING MODEL METHOD " + msdecl);
 				classDefs.add(msdecl);
 				JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
 				tcd.modifiers = msdecl.mods;

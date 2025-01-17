@@ -1,0 +1,4 @@
+test/racNoModelInh/NoModelTest.java:3: warning: JML substituting zero-equivalent representation because model field does not have a representation: z
+    //@ model int z;              // ERROR: No rep in Parent
+                  ^
+1 warning
