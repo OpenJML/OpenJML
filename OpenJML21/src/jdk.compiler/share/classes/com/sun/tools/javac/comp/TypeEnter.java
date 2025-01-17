@@ -543,8 +543,9 @@ public class TypeEnter implements Completer {
          *                  scope to add to.
          */
         private void importNamed(DiagnosticPosition pos, final Symbol tsym, Env<AttrContext> env, JCImport imp) {
+            boolean modelImport = org.jmlspecs.openjml.Utils.isJML() && imp instanceof org.jmlspecs.openjml.JmlTree.JmlImport jimp && jimp.isModel; // OPENJML
             if (tsym.kind == TYP)
-                imp.importScope = env.toplevel.namedImportScope.importType(tsym.owner.members(), tsym.owner.members(), tsym);
+                imp.importScope = env.toplevel.namedImportScope.importType(tsym.owner.members(), tsym.owner.members(), tsym, modelImport, context); // OPENJML
         }
 
     }
