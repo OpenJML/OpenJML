@@ -1567,8 +1567,8 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:4: warning: JML model field does not have a representation: i",26
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: relational represents clauses (\\such_that)",16 // FIXME -point to the \such_that token instead?
-                ,"/tt/A.java:4: warning: JML model field is not implemented: i",26
                 ,"END"
                 );
 
@@ -1660,7 +1660,7 @@ public class racnew extends RacBase {
                 +"System.out.println(\"END\");\n"
                 +"}}\n"
                 +"class PB { //@ model  int i;  \n}"
-                ,"/tt/PA.java:13: warning: JML model field is not implemented: i",27
+                ,"/tt/PA.java:13: warning: JML model field does not have a representation: i",27
                 ,"A 6"
                 ,"B 0"
                 ,"B 6"
@@ -1702,7 +1702,7 @@ public class racnew extends RacBase {
                 +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); \n"
                 +"}} class PB { //@ model protected int i; }\n"
-                ,"/tt/PA.java:10: warning: JML model field is not implemented: i",39
+                ,"/tt/PA.java:10: warning: JML model field does not have a representation: i",39
                 ,"A 6"
                 ,"B 6"
                 ,"END"
@@ -1738,18 +1738,26 @@ public class racnew extends RacBase {
 
     /** Represents with super model field */
     @Test public void testModelField4() {
-        helpTCX("tt.QA","package tt; public class QA extends QB { \n"
-                +" int j = 5; \n "
-                +"public static void main(String[] args) { \n"
-                +"QA a = new QA();\n"
-                +"QB b = new QB();\n"
-                +"//@ set System.out.println(\"A \" + a.i); \n"
-                +"//@ set System.out.println(\"B \" + b.i); \n"
-                +"b = new QA();\n"
-                +"//@ set System.out.println(\"B \" + b.i); \n"
-                +"System.out.println(\"END\"); \n"
-                +"}} class QB { //@ model  int i; \n}"
-                ,"/tt/QA.java:11: warning: JML model field is not implemented: i",30
+        addOptions("--rac-missing-model-field-rep=zero");
+        helpTCX("tt.QA",
+                """
+                package tt;
+                public class QA extends QB {
+                  int j = 5;
+                  public static void main(String[] args) {
+                    QA a = new QA();
+                    QB b = new QB();
+                    //@ set System.out.println(\"A \" + a.i);
+                    //@ set System.out.println(\"B \" + b.i);
+                    b = new QA();
+                    //@ set System.out.println(\"B \" + b.i);
+                    System.out.println(\"END\");
+                  }
+                }
+                class QB { //@ model  int i;
+                }
+                """
+                ,"/tt/QA.java:14: warning: JML substituting zero-equivalent representation because model field does not have a representation: i",27
                 ,"A 0"
                 ,"B 0"
                 ,"B 0"
@@ -1760,16 +1768,43 @@ public class racnew extends RacBase {
 
     /** Model field with no represents */
     @Test public void testModelField2() {
+        addOptions("--rac-missing-model-field-rep=skip");
         expectedExit = 0;
         continueAnyway = true;
-        helpTCX("tt.A","package tt; public class A { \n"
-                +"static int j = 5; \n"
-                +"//@ static model int i; \n"
-                +"public static void main(String[] args) { \n"
-                +"//@ set System.out.println(\"A \" + i); \n"
-                +"System.out.println(\"END\"); "
-                +"}}"
-                ,"/tt/A.java:3: warning: JML model field is not implemented: i",22
+        helpTCX("tt.A",
+                """
+                package tt; public class A {
+                  static int j = 5;
+                  //@ static model int i;
+                  public static void main(String[] args) {
+                    //@ set System.out.println(\"A \" + i);
+                    System.out.println(\"END\");
+                  }
+                }
+                """
+                ,"/tt/A.java:3: warning: JML model field does not have a representation: i", 24
+                ,"/tt/A.java:5: warning: JML ignoring statement because model field does not have a representation: tt.A.i",39
+                ,"END"
+        );
+    }
+
+    /** Model field with no represents */
+    @Test public void testModelField2x() {
+        addOptions("--rac-missing-model-field-rep=zero");
+        expectedExit = 0;
+        continueAnyway = true;
+        helpTCX("tt.A",
+                """
+                package tt; public class A {
+                  static int j = 5;
+                  //@ static model int i;
+                  public static void main(String[] args) {
+                    //@ set System.out.println(\"A \" + i);
+                    System.out.println(\"END\");
+                  }
+                }
+                """
+                ,"/tt/A.java:3: warning: JML substituting zero-equivalent representation because model field does not have a representation: i", 24
                 ,"A 0"
                 ,"END"
         );
@@ -2300,7 +2335,7 @@ public class racnew extends RacBase {
                 +"// @ debug System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/B.java:1: warning: JML model field is not implemented: i",36
+                ,"/$A/tt/B.java:1: warning: JML model field does not have a representation: i",36
                 ,"END"
                 );
 
@@ -2308,6 +2343,7 @@ public class racnew extends RacBase {
 
     /** Represents with super model field */
     @Test public void testModelField5() {
+        addOptions("--rac-missing-model-field-rep=zero");
         continueAnyway = true;
         addMockFile("$A/tt/B.java","package tt; class B{ //@ model int i; \n}");
         helpTCX("tt.A","package tt; public class A extends tt.B { \n"
@@ -2321,7 +2357,7 @@ public class racnew extends RacBase {
                 +"//@ set System.out.println(\"B \" + b.i); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/$A/tt/B.java:1: warning: JML model field is not implemented: i",36
+                ,"/$A/tt/B.java:1: warning: JML substituting zero-equivalent representation because model field does not have a representation: i",36
                 ,"A 0"  //FIXME - check this
                 ,"B 0"
                 ,"B 0"

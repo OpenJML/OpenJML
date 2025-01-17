@@ -127,9 +127,12 @@ public class JmlCheck extends Check {
     @Override
     long checkFlags(DiagnosticPosition pos, long flags, Symbol sym, JCTree tree) {
         if (sym.kind == Kinds.Kind.ERR) return flags;
+        boolean isModelField = sym.kind == Kinds.Kind.VAR && org.jmlspecs.openjml.Utils.instance(context).hasModifier(((JCTree.JCVariableDecl)tree).mods, Modifiers.MODEL);
+        boolean isAbstractField =  isModelField && (((JCTree.JCVariableDecl)tree).mods.flags & Flags.ABSTRACT) != 0;
         //if (staticOldEnv) flags &= ~Flags.STATIC;
         long wasFinal = flags & Flags.FINAL;
-        long k = super.checkFlags(pos,flags,sym,tree);
+        long k = super.checkFlags(pos,flags & ~(isModelField?Flags.ABSTRACT:0),sym,tree);
+        if (isAbstractField) k |= Flags.ABSTRACT;
         //if (staticOldEnv) { k |= Flags.STATIC; }
         if (sym.kind == Kinds.Kind.VAR) {
             JCTree.JCVariableDecl d =(JCTree.JCVariableDecl) tree;
