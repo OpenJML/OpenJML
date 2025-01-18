@@ -1,0 +1,10 @@
+test/modelImports/Test4.java:7: error: cannot find symbol
+  Y z;                   // ERROR
+  ^
+  symbol:   class Y
+  location: class Test4
+test/modelImports/Test4.java:8: error: reference to X is ambiguous
+  //@ ghost X y;         // ERROR - ambiguous
+            ^
+  both class q.X in q and class p.X in p match
+2 errors

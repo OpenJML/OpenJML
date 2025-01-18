@@ -970,6 +970,34 @@ public class escfiles extends EscBase {
     public void binarySearch() {
         helpTF("binarySearch");
     }
+    
+    @Test
+    public void modelImport1() {
+        expectedExit = 1;
+        helpTCF("test/modelImports/Test1.java","test/modelImports/test1","--check","-cp","test/modelImports");
+    }
+    
+    @Test
+    public void modelImport2() {
+        helpTCF("test/modelImports/Test2.java","test/modelImports/test2","--check","-cp","test/modelImports");
+    }
+    
+    @Test
+    public void modelImport3() {
+        expectedExit = 1;
+        helpTCF("test/modelImports/Test3.java","test/modelImports/test3","--check","-cp","test/modelImports");
+    }
+    
+    @Test
+    public void modelImport4() {
+        expectedExit = 1;
+        helpTCF("test/modelImports/Test4.java","test/modelImports/test4","--check","-cp","test/modelImports");
+    }
+    
+    @Test
+    public void modelImport5() {
+        helpTCF("test/modelImports/Test5.java","test/modelImports/test5","--check","-cp","test/modelImports");
+    }
 
 
 }

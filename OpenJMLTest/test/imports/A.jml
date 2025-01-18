@@ -1,0 +1,17 @@
+import p.C;
+import q.K;
+
+//@ model class M {}
+
+public class A extends K {
+  C c;
+  F f; // ERROR
+  //@ ghost C cc;
+  //@ ghost F ff; // ERROR
+  //@ ghost M mm;
+  void m(C c, F f); // ERROR on F
+  //@ model void mm(C cc, F ff, M mm) {} // ERROR on F
+  void p(B b); // OK on B
+  K ccc; // ERROR - wrong type
+}  
+

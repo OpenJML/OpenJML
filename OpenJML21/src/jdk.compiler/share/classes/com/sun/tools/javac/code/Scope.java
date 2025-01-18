@@ -798,8 +798,8 @@ public abstract class Scope {
             super(owner);
         }
 
-        public Scope importByName(Types types, Scope origin, Name name, ImportFilter filter, JCImport imp, BiConsumer<JCImport, CompletionFailure> cfHandler) {
-            return appendScope(new FilterImportScope(types, origin, name, filter, imp, cfHandler), name);
+        public Scope importByName(Types types, Scope origin, Name name, ImportFilter filter, JCImport imp, BiConsumer<JCImport, CompletionFailure> cfHandler, Context context) {
+            return appendScope(new FilterImportScope(types, origin, name, filter, imp, cfHandler, context), name);
         }
 
         public Scope importType(Scope delegate, Scope origin, Symbol sym, boolean modelImport, Context context) { // OPENJML
@@ -823,6 +823,11 @@ public abstract class Scope {
             Scope[] scopes = name2Scopes.get(name);
             if (scopes == null)
                 return Collections.emptyList();
+//            if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q")) {
+//                System.out.println("LOOKING-AA " + name  );
+//                for (var s: scopes) System.out.println("    " + s.getClass());
+//            }
+
             return () -> Iterators.createCompoundIterator(Arrays.asList(scopes),
                                                           scope -> scope.getSymbolsByName(name,
                                                                                           sf,
@@ -838,7 +843,7 @@ public abstract class Scope {
             }
         }
 
-        private static class SingleEntryScope extends Scope {
+        public static class SingleEntryScope extends Scope { // OPENJML private -> public
 
             private final Symbol sym;
             private final List<Symbol> content;
@@ -864,6 +869,8 @@ public abstract class Scope {
             public Iterable<Symbol> getSymbolsByName(Name name,
                                                      Predicate<Symbol> sf,
                                                      LookupKind lookupKind) {
+                //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("X")) System.out.println("LOOKING-SE " + name + " " + sym + " " + isModelImport + " " + com.sun.tools.javac.comp.JmlResolve.instance(context).allowJML());
+                //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q")) System.out.println("LOOKING-SE " + name + " " + sym + " " + isModelImport + " " + com.sun.tools.javac.comp.JmlResolve.instance(context).allowJML());
                 if (org.jmlspecs.openjml.Utils.isJML() && isModelImport && !com.sun.tools.javac.comp.JmlResolve.instance(context).allowJML()) return Collections.emptyList(); // OPENJML
                 return sym.name == name &&
                        (sf == null || sf.test(sym)) ? content : Collections.emptyList();
@@ -891,7 +898,9 @@ public abstract class Scope {
         public void importAll(Types types, Scope origin,
                               ImportFilter filter,
                               JCImport imp,
-                              BiConsumer<JCImport, CompletionFailure> cfHandler) {
+                              BiConsumer<JCImport, CompletionFailure> cfHandler,
+                              Context context) {
+            //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("STAR IMPORT ALL " + imp + " " + ((org.jmlspecs.openjml.JmlTree.JmlImport)imp).isModel);
             for (Scope existing : subScopes) {
                 Assert.check(existing instanceof FilterImportScope);
                 FilterImportScope fis = (FilterImportScope) existing;
@@ -899,7 +908,7 @@ public abstract class Scope {
                     fis.imp.staticImport == imp.staticImport)
                     return ; //avoid entering the same scope twice
             }
-            prependSubScope(new FilterImportScope(types, origin, null, filter, imp, cfHandler));
+            prependSubScope(new FilterImportScope(types, origin, null, filter, imp, cfHandler, context));
         }
 
         public boolean isFilled() {
@@ -912,28 +921,42 @@ public abstract class Scope {
         public boolean accepts(Scope origin, Symbol sym);
     }
 
-    private static class FilterImportScope extends Scope {
+    public static class FilterImportScope extends Scope { // OPENJML Private -> public
 
         private final Types types;
         private final Scope origin;
         private final Name  filterName;
         private final ImportFilter filter;
-        private final JCImport imp;
+        public final JCImport imp; // OPENJML private -> public
         private final BiConsumer<JCImport, CompletionFailure> cfHandler;
+        public Context context;
+        public boolean isModelImport;
 
+//        public FilterImportScope(Types types,
+//                Scope origin,
+//                Name  filterName,
+//                ImportFilter filter,
+//                JCImport imp,
+//                BiConsumer<JCImport, CompletionFailure> cfHandlert) {
+//            this(types, origin, filterName, filter, imp, cfHandlert, null);
+//        }
         public FilterImportScope(Types types,
-                                 Scope origin,
-                                 Name  filterName,
-                                 ImportFilter filter,
-                                 JCImport imp,
-                                 BiConsumer<JCImport, CompletionFailure> cfHandler) {
-            super(origin.owner);
+                    Scope origin,
+                    Name  filterName,
+                    ImportFilter filter,
+                    JCImport imp,
+                    BiConsumer<JCImport, CompletionFailure> cfHandler,
+                    Context context) {
+           super(origin.owner);
             this.types = types;
             this.origin = origin;
             this.filterName = filterName;
             this.filter = filter;
             this.imp = imp;
             this.cfHandler = cfHandler;
+            this.isModelImport = imp instanceof org.jmlspecs.openjml.JmlTree.JmlImport jimp ? jimp.isModel : false;
+            this.context = context;
+            //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("NEW FILTER QSCOPE " + imp + " " + isModelImport);
         }
 
         @Override
@@ -962,8 +985,11 @@ public abstract class Scope {
         public Iterable<Symbol> getSymbolsByName(final Name name,
                                                  final Predicate<Symbol> sf,
                                                  final LookupKind lookupKind) {
+            //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q")) System.out.println("LOOKING-FILT " + name + " " + imp + " " + isModelImport + " " + com.sun.tools.javac.comp.JmlResolve.instance(context).allowJML());
+            //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q"))org.jmlspecs.openjml.Utils.dumpStack();
             if (filterName != null && filterName != name)
                 return Collections.emptyList();
+            if (org.jmlspecs.openjml.Utils.isJML() && isModelImport && !com.sun.tools.javac.comp.JmlResolve.instance(context).allowJML()) return Collections.emptyList(); // OPENJML
             try {
                 SymbolImporter si = new SymbolImporter(imp.staticImport) {
                     @Override
