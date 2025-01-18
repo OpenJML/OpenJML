@@ -1522,14 +1522,21 @@ public class Resolve {
             env1 = env1.outer;
         }
 
+        //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q")) System.out.println("FINDING FIELD " + name + " " + ((JmlResolve)this).allowJML());
         Symbol sym = findField(env, syms.predefClass.type, name, syms.predefClass);
         if (sym.exists())
             return sym;
         if (bestSoFar.exists())
             return bestSoFar;
 
+        //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q")) System.out.println("FINDING VAR IN TOPLEVELS " + name + " " + ((JmlResolve)this).allowJML());
         Symbol origin = null;
         for (Scope sc : new Scope[] { env.toplevel.namedImportScope, env.toplevel.starImportScope }) {
+            boolean isModelImport = false;
+            if (sc instanceof Scope.NamedImportScope.SingleEntryScope sec) isModelImport = sec.isModelImport;
+            else if (sc instanceof Scope.FilterImportScope fis) isModelImport = ((org.jmlspecs.openjml.JmlTree.JmlImport)fis.imp).isModel;
+            //if (org.jmlspecs.openjml.Utils.isJML() && name.toString().equals("Q")) System.out.println("SC " + isModelImport + " " + ((JmlResolve)this).allowJML() + " " + sc.getClass());
+            if (isModelImport && !((JmlResolve)this).allowJML()) continue;
             for (Symbol currentSymbol : sc.getSymbolsByName(name)) {
                 if (!symbolOK(currentSymbol)) continue;  // OPENJML
                 if (currentSymbol.kind != VAR)

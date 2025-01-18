@@ -1,0 +1,6 @@
+test/modelImports/Test3.java:6: error: cannot find symbol
+  Y y; // ERROR
+  ^
+  symbol:   class Y
+  location: class Test3
+1 error

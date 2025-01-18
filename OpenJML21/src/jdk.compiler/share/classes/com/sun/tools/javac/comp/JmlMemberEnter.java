@@ -1211,6 +1211,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         var jtree = (JmlVariableDecl)tree;
         // FIXME - should we be using allowJML for both types?
         // We use add... rather than set...  in the statement below because these might be formals within a model method
+        //System.out.println("VVD " + tree + " " + utils.isJML(tree.mods) + " " + jtree.jmltype);
         boolean prev = resolve.addAllowJML(utils.isJML(tree.mods) || jtree.jmltype);
         boolean prevcu = resolve.setInJMLCU(((JmlSource)tree).isInJMLCU());
         try {

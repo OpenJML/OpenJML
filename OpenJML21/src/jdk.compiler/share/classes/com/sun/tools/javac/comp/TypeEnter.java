@@ -497,7 +497,7 @@ public class TypeEnter implements Completer {
         public void importAll(JCImport imp, // OPENJML - private to public
                                final TypeSymbol tsym,
                                Env<AttrContext> env) {
-            env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler);
+            env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler, context);
         }
 
         /** Import all static members of a class or package on demand.
@@ -511,7 +511,7 @@ public class TypeEnter implements Completer {
             final StarImportScope toScope = env.toplevel.starImportScope;
             final TypeSymbol origin = tsym;
 
-            toScope.importAll(types, origin.members(), staticImportFilter, imp, cfHandler);
+            toScope.importAll(types, origin.members(), staticImportFilter, imp, cfHandler, context);
         }
 
         /** Import statics types of a given name.  Non-types are handled in Attr.
@@ -533,7 +533,7 @@ public class TypeEnter implements Completer {
             final NamedImportScope toScope = env.toplevel.namedImportScope;
             final Scope originMembers = tsym.members();
 
-            imp.importScope = toScope.importByName(types, originMembers, name, staticImportFilter, imp, cfHandler);
+            imp.importScope = toScope.importByName(types, originMembers, name, staticImportFilter, imp, cfHandler, context);
         }
 
         /** Import given class.

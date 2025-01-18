@@ -118,6 +118,7 @@ public class JmlResolve extends Resolve {
      * @return the old value
      */
     public boolean setAllowJML(boolean allowJML) {
+        //System.out.println("SETTING ALLOWJML TO " + allowJML); Utils.dumpStack();
         boolean b = this.allowJML;
         this.allowJML = allowJML;
         return b;
@@ -149,7 +150,7 @@ public class JmlResolve extends Resolve {
             var cu = (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit)env.toplevel;
             var speccu = cu.specsCompilationUnit;
             
-            boolean deb2 = false && name.toString().equals("java") && org.jmlspecs.openjml.Utils.isJML();
+            boolean deb2 = false; // name.toString().equals("X") || name.toString().equals("Q");
             if (deb2) System.out.println("SEARCHING FOR GLOBAL: " + name + "  allowJML=" + allowJML + "  inJMLCU=" + inJMLCU + " " + (speccu == null) + " " + (speccu == cu));
 
             if (inJMLCU) {
@@ -184,7 +185,12 @@ public class JmlResolve extends Resolve {
 
         return bestSoFar;
     }
-
+    
+    Symbol findIdent(DiagnosticPosition pos, Env<AttrContext> env, Name name, KindSelector kind) {
+        //if (name.toString().equals("Q")) System.out.println("FINDIDENT " + name + " " + allowJML);
+        var s = super.findIdent(pos, env, name, kind);
+        return s;
+    }
     
     public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
             Symbol location, Type site, Name name, List<Type> argtypes,
