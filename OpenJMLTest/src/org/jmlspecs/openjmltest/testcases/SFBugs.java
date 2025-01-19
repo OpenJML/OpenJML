@@ -821,11 +821,11 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
     
-    @Test
-    public void gitbug631() {
-        expectedExit = 0;
-        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
-    }
+//    @Test // Moved to scripttests
+//    public void gitbug631() {
+//        expectedExit = 0;
+//        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+//    }
     
     @Test @Ignore  // Needs specs about double
     public void gitbug633() {
