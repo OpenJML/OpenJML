@@ -76,7 +76,7 @@ public class racfiles extends RacBase {
     }
 
     @Test // Originally a Stack overflow because of recursive check of invariant
-    public void testBugStackTrace() {
+    public void racStackTrace() {
         expectedExit = 0;
         helpTCF("test/racStackTrace","test/racStackTrace","CantCompileRAC");
     }
