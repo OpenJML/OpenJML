@@ -15294,8 +15294,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			} else if (that.indexed.type instanceof Type.ArrayType) { // Don't do these tests for JML types
 				index = convertExpr(that.index);
-				if (that.indexed.type instanceof Type.ArrayType)
-					index = addImplicitConversion(index, syms.intType, index);
+				index = addImplicitConversion(index, syms.intType, index);
 				Number n = treeutils.integralLiteral(index);
 				if (n != null && n.longValue() >= 0) {
 					addStat(comment(index, "Constant index is non-negative: " + n.longValue(),
