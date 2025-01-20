@@ -1038,6 +1038,33 @@ public class JmlTreeUtils {
 //    }
 
 
+    public JCExpression invMethodCall(JCExpression receiver, JmlTree.JmlTypeClauseExpr clause) {
+        Name n;
+        if (clause.clauseType == org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantClause) {
+            n = names.fromString(Strings.makeInvariantMethodName(clause));
+        } else if (clause.clauseType == org.jmlspecs.openjml.ext.TypeExprClauseExtension.initiallyClause) {
+            n = names.fromString(Strings.makeInitiallyMethodName(clause));
+        } else {
+            return null;
+        }
+        boolean isStatic = (clause.modifiers.flags & Flags.STATIC) != 0;
+        JCExpression call;
+        if (isStatic) {
+            var callident = factory.at(clause).Ident(n);
+            callident.type = clause.racmethod.type;
+            callident.sym = clause.racmethod.sym;
+            call = callident;
+            
+        } else {
+            var callsel = factory.at(clause).Select(receiver, n);
+            callsel.type = clause.racmethod.type;
+            callsel.sym = clause.racmethod.sym;
+            call = callsel;
+        }
+        JCTree.JCMethodInvocation app = factory.at(clause).Apply(List.<JCExpression>nil(), call, List.<JCExpression>nil());
+        app.setType(syms.booleanType);
+        return app;
+    }
     /** Produces an Equality AST node; presumes that the lhs and rhs have the 
      * same type.
      * @param pos the position of the node

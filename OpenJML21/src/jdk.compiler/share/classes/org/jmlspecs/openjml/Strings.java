@@ -343,4 +343,23 @@ public class Strings {
         }
         return false;
     }
+    
+    public static final String invariantMethodPrefix = "JML$INV$$";
+    public static final String initiallyMethodPrefix = "JML$INIT$$";
+    
+    public static final String makeInvariantMethodName(JmlTree.JmlTypeClauseExpr clause) {
+        return invariantMethodPrefix + clause.pos;
+    }
+    
+    public static final boolean isInvariantMethodName(String s) {
+        return s.startsWith(invariantMethodPrefix);
+    }
+    
+    public static final String makeInitiallyMethodName(JmlTree.JmlTypeClauseExpr clause) {
+        return initiallyMethodPrefix + clause.pos;
+    }
+    
+    public static final boolean isInitiallyMethodName(String s) {
+        return s.startsWith(initiallyMethodPrefix);
+    }
 }

@@ -3958,6 +3958,7 @@ public class JmlTree {
     public static class JmlTypeClauseExpr extends JmlTypeClause {
         /** The expression that is part of the clause */
         public JCTree.JCExpression expression;
+        public JCMethodDecl racmethod;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlTypeClauseExpr(int pos, JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression expression) {

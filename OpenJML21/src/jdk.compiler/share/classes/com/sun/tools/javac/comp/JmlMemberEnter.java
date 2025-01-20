@@ -585,6 +585,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         
         if (sym.isAnonymous()) return;
         if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
+        
+        var newdefs = addInvariantInitiallyMethods(sym, env);
+        
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).getLoadedSpecs(sym);
         JCExpression vd = jmlF.Type(syms.voidType);
         JmlClassDecl jtree = (JmlClassDecl)env.tree;
@@ -626,7 +629,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         specs.addModifier(Position.NOPOS, Modifiers.PURE, (JmlModifiers)ms.mods);
         specs.addModifier(Position.NOPOS, Modifiers.MODEL, (JmlModifiers)ms.mods);
         
-        ListBuffer<JCTree> newdefs = new ListBuffer<>();
         newdefs.add(m);
         newdefs.add(ms);
                 
@@ -714,13 +716,56 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         List<JCTree> nd = newdefs.toList();
         var saved = this.env;
         this.env= env;
-        for (var mem: nd) visitMethodDef((JCMethodDecl)mem);
+        for (var mem: nd) visitMethodDef((JCMethodDecl)mem); // FIXME - what happends here?
         this.env = saved;
-        jtree.defs = jtree.defs.appendList(nd);
+        jtree.defs = jtree.defs.appendList(nd); // FIXME - why are these added here instead of to the specstree
         // The call to set the specs must come after the the method symbol is set, so after memberEnter
 //        for (JCTree md: nd) {  setDefaultCombinedMethodSpecs((JmlMethodDecl)md); }
+    }
+    
+    public ListBuffer<JCTree> addInvariantInitiallyMethods(ClassSymbol sym, Env<AttrContext> env) {
+        ListBuffer<JCTree> newdefs = new ListBuffer<>();
+        if (!utils.rac) return newdefs;
+        if (sym.isAnonymous()) return newdefs;
+        if (sym.isInterface()) return newdefs;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
 
+        JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).getLoadedSpecs(sym);
+        JmlClassDecl jtree = (JmlClassDecl)env.tree;
+        JmlClassDecl specstree = jtree.specsDecl;
+        
+        for (JmlTree.JmlTypeClause clause: tsp.clauses.toList()) {
+            if (clause instanceof JmlTree.JmlTypeClauseExpr inv) {
+                Name n;
+                if (inv.clauseType == org.jmlspecs.openjml.ext.TypeExprClauseExtension.invariantClause) {
+                    n = names.fromString(Strings.makeInvariantMethodName(inv));
+                } else if (inv.clauseType == org.jmlspecs.openjml.ext.TypeExprClauseExtension.initiallyClause) {
+                    n = names.fromString(Strings.makeInitiallyMethodName(inv));
+                } else {
+                    continue;
+                }
+                var ret = jmlF.at(inv).Return(inv.expression);
+                JmlTree.JmlMethodDecl m = jmlF.MethodDef(
+                        jmlF.Modifiers(inv.modifiers.flags|Flags.SYNTHETIC),
+                        n,
+                        jmlF.Type(syms.booleanType),
+                        List.<JCTypeParameter>nil(),
+                        null,
+                        List.<JCVariableDecl>nil(),
+                        List.<JCExpression>nil(),
+                        jmlF.Block(0,List.<JCStatement>of(ret)), 
+                        null);
+                m.specsDecl = m;
+                m.setSource(inv.source());
+                inv.racmethod = m;
 
+                utils.setJML(m.mods);
+                specs.addModifier(Position.NOPOS, Modifiers.HELPER, (JmlModifiers)m.mods);
+                specs.addModifier(Position.NOPOS, Modifiers.SPEC_PURE, (JmlModifiers)m.mods);
+                specs.addModifier(Position.NOPOS, Modifiers.MODEL, (JmlModifiers)m.mods);
+                newdefs.add(m);
+           }
+        }
+        return newdefs;
     }
     
     public java.util.Map<Symbol, JmlMethodDecl> modelMethods = new java.util.HashMap<>();

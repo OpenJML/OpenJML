@@ -346,12 +346,12 @@ public abstract class RacBase extends JmlTestCase {
             pw.close();
             
             String compdiffs = "";
-            if (new File(outputdir + "/" + expected_compile).exists()) {
-            	compdiffs = outputCompare.compareFiles(outputdir + "/" + expected_compile, actCompile);
-        		if (compdiffs == null) {
-        			new File(actCompile).delete();
-        		} 
-        	} else {
+//            if (new File(outputdir + "/" + expected_compile).exists()) {
+//            	compdiffs = outputCompare.compareFiles(outputdir + "/" + expected_compile, actCompile);
+//        		if (compdiffs == null) {
+//        			new File(actCompile).delete();
+//        		} 
+//        	} else {
             	for (String file: new File(outputdir).list()) {
             		if (!file.contains("expected-compile")) continue;
             		compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
@@ -360,7 +360,7 @@ public abstract class RacBase extends JmlTestCase {
             			break;
             		}
             	}
-            }
+//            }
             if (compdiffs != null) {
                 if (compdiffs.isEmpty()) {
                     compdiffs = ("No expected output file for compiler output");
