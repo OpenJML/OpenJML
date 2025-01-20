@@ -1376,49 +1376,76 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean isConstructor = methodDecl.sym.isConstructor();
 		oldStatements = initialStatements;
 		currentStatements = initialStatements;
+		boolean savedt = translatingJML;
+		translatingJML = true;
+		currentEnv = currentEnv.pushEnvCopy();
+		if (Strings.isInvariantMethodName(pmethodDecl.name.toString())) {
+		    currentEnv.enclosingClauseKind = invariantClause;
+		} else if (Strings.isInitiallyMethodName(pmethodDecl.name.toString())) {
+            currentEnv.enclosingClauseKind = initiallyClause;
+        }
+		
+		try {
 
-		if (methodDecl.restype.type.getTag() != TypeTag.VOID) {
-			// The compiler complains that the result variable might not be
-			// initialized on every path, even in programs in which it appears
-			// obvious that it is. So we initialize it here to a null-like value.
-			JCVariableDecl d = treeutils.makeVarDef(methodDecl.restype.type, resultName, methodDecl.sym,
-					treeutils.makeZeroEquivalentLit(methodDecl, methodDecl.restype.type));
-			resultSym = d.sym;
-			initialStatements.add(d);
-		}
-		resultExpr = resultSym == null ? null : treeutils.makeIdent(methodDecl.pos, resultSym);
+		    if (methodDecl.restype.type.getTag() != TypeTag.VOID) {
+		        // The compiler complains that the result variable might not be
+		        // initialized on every path, even in programs in which it appears
+		        // obvious that it is. So we initialize it here to a null-like value.
+		        JCVariableDecl d = treeutils.makeVarDef(methodDecl.restype.type, resultName, methodDecl.sym,
+		                treeutils.makeZeroEquivalentLit(methodDecl, methodDecl.restype.type));
+		        resultSym = d.sym;
+		        initialStatements.add(d);
+		    }
+		    resultExpr = resultSym == null ? null : treeutils.makeIdent(methodDecl.pos, resultSym);
 
-		initialize2(0L);
+		    initialize2(0L);
 
-		ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block
+		    ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block
 
-		addStat(comment(methodDecl, "Method Body", null));
-		if (methodDecl.body != null) {
-			Iterator<JCStatement> iter = methodDecl.body.stats.iterator();
-			while (iter.hasNext()) {
-				scan(iter.next());
-			}
-            // FIXME - don't know whether execution is still alive here
-			// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-		}
-		JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
+		    addStat(comment(methodDecl, "Method Body", null));
+		    if (methodDecl.body != null) {
+		        Iterator<JCStatement> iter = methodDecl.body.stats.iterator();
+		        while (iter.hasNext()) {
+		            scan(iter.next());
+		        }
+		        // FIXME - don't know whether execution is still alive here
+		        // addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
+		    }
+		    JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
-		JCCatch c;
-		{
-			// global catch block
-			JCVariableDecl ex = treeutils.makeVarDef(syms.exceptionType, names.fromString("_JML__ex"), methodDecl.sym,
-					methodDecl.pos);
-			ListBuffer<JCStatement> check6 = pushBlock();
-			addStat(treeutils.makeAssignStat(methodDecl.pos, treeutils.makeIdent(methodDecl.pos, exceptionSym),
-					treeutils.makeIdent(methodDecl.pos, ex.sym)));
-			addStat(M.at(methodDecl.pos).Throw(treeutils.makeIdent(methodDecl.pos, ex.sym)));
-			JCBlock bl = popBlock(methodDecl, check6);
-			c = M.at(methodDecl.pos).Catch(ex, bl);
-		}
-		JCTry outerTryStatement = M.at(methodDecl).Try(newMainBody, esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
-				M.Block(0, outerFinalizeStats.toList()));
+		    JCCatch c;
+		    {
+		        // global catch block
+		        JCVariableDecl ex = treeutils.makeVarDef(syms.exceptionType, names.fromString("_JML__ex"), methodDecl.sym,
+		                methodDecl.pos);
+		        ListBuffer<JCStatement> check6 = pushBlock();
+		        addStat(treeutils.makeAssignStat(methodDecl.pos, treeutils.makeIdent(methodDecl.pos, exceptionSym),
+		                treeutils.makeIdent(methodDecl.pos, ex.sym)));
+		        addStat(M.at(methodDecl.pos).Throw(treeutils.makeIdent(methodDecl.pos, ex.sym)));
+		        JCBlock bl = popBlock(methodDecl, check6);
+		        c = M.at(methodDecl.pos).Catch(ex, bl);
+		    }
+		    JCTry outerTryStatement = M.at(methodDecl).Try(newMainBody, esc ? List.<JCCatch>nil() : List.<JCCatch>of(c),
+		            M.Block(0, outerFinalizeStats.toList()));
 
-		initialStatements.add(outerTryStatement);
+		    initialStatements.add(outerTryStatement);
+	    
+        } catch (JmlNotImplementedException e) {
+            if (Strings.isInvariantMethodName(pmethodDecl.name.toString())) {
+                notImplemented("invariant" + " clause containing ", e,
+                        pmethodDecl.source());
+            } else if (Strings.isInitiallyMethodName(pmethodDecl.name.toString())) {
+                notImplemented("initially" + " clause containing ", e,
+                        pmethodDecl.source());
+            } else {
+                throw e;
+            }
+        } finally {
+            translatingJML = savedt;
+            currentEnv = currentEnv.popEnv();
+
+        }
+	    
 		return M.at(methodDecl).Block(0, initialStatements.toList());
 	}
 
@@ -3024,9 +3051,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								if (doit) {
 									// JavaFileObject prevSource = log.useSource(clause.source());
 									try {
+									    var cl = (JmlTypeClauseExpr)clause;
 										t = (JmlTypeClauseExpr) copy(clause); // FIXME - why copy the clause
 										addTraceableComment(t.expression, clause.toString());
-										JCExpression e = convertJML(t.expression, treeutils.trueLit, isPost);
+										JCExpression e = !rac || cl.racmethod == null || csym != basecsym
+										                      ? convertJML(t.expression, treeutils.trueLit, isPost)
+										                      : treeutils.invMethodCall(currentEnv.currentReceiver, cl);
 		                                addStat(comment(pos, (assume?"Assume":"Assert") + " invariant " + e, null));
 										if (assume)
 											addAssume(pos, invariantLabel, e, cpos, clause.source,
@@ -3393,7 +3423,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									try {
 										t = (JmlTypeClauseExpr) clause;
 										addTraceableComment(t.expression, clause.toString());
-										JCExpression e = convertJML(t.expression);
+                                        JCExpression e = !rac || t.racmethod == null || csym != basecsym
+                                                ? convertJML(t.expression)
+                                                : treeutils.invMethodCall(currentEnv.currentReceiver, t);
                                         if (assume)
                                             addAssume(pos, Label.INITIALLY, e, cpos, clause.source);
                                         else
@@ -18080,7 +18112,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				notImplemented("method (or represents clause) containing ", e);
 			}
 			utils.error(e.pos, "jml.unrecoverable",
-					"Unimplemented construct in a method or model method or represents clause");
+					"Unimplemented construct in a method or model method or invariant or represents clause");
 		} catch (PropagatedException e) {
 			throw e;
 		} catch (Exception | AssertionError e) {
@@ -18251,6 +18283,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlMethodInvocation(JmlMethodInvocation that) {
 		IJmlClauseKind k = that.kind;
+		//System.out.println("VISITING " + that);
 
 		if (k != null)
 			switch (k.keyword()) {

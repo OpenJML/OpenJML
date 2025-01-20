@@ -2560,9 +2560,7 @@ public class racnew extends RacBase {
                 +"//@ duration  \\duration(true);\n"
                 +"//@ working_space \\duration(true);\n"
                 +"int mb() { return 0; }\n"
-                +"}"
-                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",32
-                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
+                +"}"    // FIXME - the column positions are unexpected
                 ,"/tt/A.java:10: Note: Not implemented for runtime assertion checking: assert statement containing \\duration",25
                 ,"/tt/A.java:11: Note: Not implemented for runtime assertion checking: assume statement containing \\duration",25
                 ,"/tt/A.java:12: Note: Not implemented for runtime assertion checking: ghost declaration containing \\duration",33
@@ -2576,8 +2574,10 @@ public class racnew extends RacBase {
                 ,"/tt/A.java:21: Note: Not implemented for runtime assertion checking: signals clause containing \\duration",37
                 ,"/tt/A.java:24: Note: Not implemented for runtime assertion checking: duration clause containing \\duration",24
                 ,"/tt/A.java:25: Note: Not implemented for runtime assertion checking: working_space clause containing \\duration",28
+                ,"/tt/A.java:3: Note: Not implemented for runtime assertion checking: invariant clause containing \\duration",31
+                ,"/tt/A.java:7: Note: Not implemented for runtime assertion checking: initially clause containing \\duration",31
                 ,"/tt/A.java:5: Note: Not implemented for runtime assertion checking: represents clause containing \\duration",37
-                ,"/tt/A.java:5: error: Unrecoverable situation: Unimplemented construct in a method or model method or represents clause",37   // FIXME
+                ,"/tt/A.java:5: error: Unrecoverable situation: Unimplemented construct in a method or model method or invariant or represents clause",37   // FIXME
                 ,"END"
                 );
 

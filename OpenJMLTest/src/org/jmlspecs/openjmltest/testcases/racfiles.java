@@ -69,7 +69,7 @@ public class racfiles extends RacBase {
     }
 
     @Test // Originally a Stack overflow because of recursive check of invariant
-    public void racBug1() {
+    public void racbug1() {
         expectedExit = 0;
         expectedRACExit = 1;
         helpTCF("test/racbug1","test/racbug1","Add");
@@ -147,6 +147,12 @@ public class racfiles extends RacBase {
     public void racreal() {
         expectedExit = 0;
         helpTCF("test/racreal","test/racreal","real");
+    }
+
+    @Test
+    public void racWithMethods() {
+        expectedExit = 0;
+        helpTCF("test/racWithMethods","test/racWithMethods","TestInv");
     }
 
     @Test
