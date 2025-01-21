@@ -584,7 +584,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        if (((JmlCompilationUnit)env.toplevel).mode == JmlCompilationUnit.SPEC_FOR_BINARY) return;
         
         if (sym.isAnonymous()) return;
-        if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
+        //if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         
         var newdefs = addInvariantInitiallyMethods(sym, env);
         
@@ -593,9 +593,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlClassDecl jtree = (JmlClassDecl)env.tree;
 //        JmlClassDecl specstree = jtree.toplevel.mode == JmlCompilationUnit.SPEC_FOR_BINARY ? jtree : jtree.specsDecl;
         JmlClassDecl specstree = jtree.specsDecl;
-        
+        long defflag = sym.isInterface() ? Flags.DEFAULT : 0L;
         JmlTree.JmlMethodDecl m = jmlF.MethodDef(
-                jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC),
+                jmlF.Modifiers(Flags.PUBLIC|Flags.SYNTHETIC|defflag),
                 names.fromString("_JML$$$checkInvariant"),
                 vd,
                 List.<JCTypeParameter>nil(),
@@ -669,6 +669,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
+            boolean print = vdecl.name.toString().equals("size");
+            //if (print) System.out.println("MM " + vdecl + " " + mr);
             newdefs.add(mr);
             if (vdecl.init == null) mr.mods.flags |= Utils.JMLADDED; // Marks this as needing a representation
             
@@ -732,6 +734,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlSpecs.TypeSpecs tsp = JmlSpecs.instance(context).getLoadedSpecs(sym);
         JmlClassDecl jtree = (JmlClassDecl)env.tree;
         JmlClassDecl specstree = jtree.specsDecl;
+        long defflag = sym.isInterface() ? Flags.DEFAULT : 0L;
         
         for (JmlTree.JmlTypeClause clause: tsp.clauses.toList()) {
             if (clause instanceof JmlTree.JmlTypeClauseExpr inv) {
@@ -745,7 +748,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 }
                 var ret = jmlF.at(inv).Return(inv.expression);
                 JmlTree.JmlMethodDecl m = jmlF.MethodDef(
-                        jmlF.Modifiers(inv.modifiers.flags|Flags.SYNTHETIC),
+                        jmlF.Modifiers(inv.modifiers.flags|Flags.SYNTHETIC|(utils.isJMLStatic(inv.modifiers,sym)?0L:defflag)),
                         n,
                         jmlF.Type(syms.booleanType),
                         List.<JCTypeParameter>nil(),
@@ -771,7 +774,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public java.util.Map<Symbol, JmlMethodDecl> modelMethods = new java.util.HashMap<>();
             
     public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
-        long flags = Flags.SYNTHETIC;
+        long defflag = modelVarDecl.sym.owner.isInterface() && !utils.isJMLStatic(modelVarDecl.sym) ? Flags.DEFAULT : 0L;
+        long flags = Flags.SYNTHETIC | defflag;
         flags |= (modelVarDecl.sym.flags() & (Flags.STATIC|Flags.AccessFlags));
         JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl,modelVarDecl.sym.type));
         Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);

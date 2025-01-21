@@ -322,7 +322,7 @@ public class SFBugs extends EscBase {
     }
 
     @Test public void gitbug500d() {
-        helpTCF("test/gitbug500c", "test/gitbug500d", "-rac","--rac-missing-model-field-rep=zero-quiet");  // Just RAC compilation - RAC compile crash
+        helpTCF("test/gitbug500c", "test/gitbug500d", "--rac","--rac-missing-model-field-rep=zero-quiet");  // Just RAC compilation - RAC compile crash
     }
 
     @Test public void gitbug502() {
