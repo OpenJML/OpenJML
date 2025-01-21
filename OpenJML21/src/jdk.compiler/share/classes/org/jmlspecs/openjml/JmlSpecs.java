@@ -1923,8 +1923,14 @@ public class JmlSpecs {
 	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
     	if (utils.isExtensionValueType(type)) return false;
+    	{
+    	    var s = type.toString();
+    	    // FIXME - there must be a better way
+            if (s.contains("org.jmlspecs.annotation.NonNull")) return true;
+            if (s.contains("org.jmlspecs.annotation.Nullable")) return false;
+    	}
+        if (isNonNull(type)) return true; // FIXME - does this duplicate the above
     	if (isNonNullReturn(msym)) return true;
-    	if (isNonNull(type)) return true;
     	return false;
     }
 		

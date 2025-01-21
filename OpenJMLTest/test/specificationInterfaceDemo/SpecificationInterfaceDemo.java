@@ -20,7 +20,7 @@ public class SpecificationInterfaceDemo {
   }
 
   //@   requires z > 0;
-  //@   ensures \result != null && \result > 0; // FAILS becuse no specs give info about postcondition
+  //@   ensures \result != null ==> \result > 0; // FAILS becuse no specs give info about postcondition
   public /*@ nullable */ Integer mbad2(Function<Integer,Integer> f, Integer z) {
     return f.apply(z);
   }
@@ -36,7 +36,7 @@ public class SpecificationInterfaceDemo {
 
   public void mbad3(Function<Integer,/*@ nullable */ Integer> f, Integer z) {
     zz = 0;
-    Integer k = f.apply(z); // ERROR - result of apply is nullable
+    Integer kkkk = f.apply(z); // ERROR - result of apply is nullable
     //@ assert zz == 0;
   }
 

@@ -10728,7 +10728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					ListBuffer<JCStatement> check6 = pushBlock();
 					if (esc && !utils.isJavaOrJmlPrimitiveType(retType)) {
 						boolean nnull = specs.isCheckNonNullReturn(retType, calleeMethodSym);
-						//System.out.println("RET TYPE " + calleeMethodSym + " " + calleeMethodSym.type
+						//System.out.println("RET TYPE " + calleeMethodSym + " " + calleeMethodSym.type 
 						//+ " " + calleeMethodSym.getReturnType() + " " + retType + " " + nnull);
 						addStat(comment(that, "Return is " + (nnull?"non-null":"nullable") + ": " + calleeMethodSym, null));
 						if (nnull) {
@@ -10906,10 +10906,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					exsuresStatsOuter.add(comment(methodDecl,
 							"Assuming exceptional postconditions for " + utils.qualifiedMethodSig(mpsym), null));
 
+					//System.out.println("PNR " + that.type + " " + calleeMethodSym + " " + specs.isCheckNonNullReturn(that.type, calleeMethodSym));
 					if (apply != null && calleeMethodSym.getReturnType() != null
 							&& !utils.isJavaOrJmlPrimitiveOrVoidType(calleeMethodSym.getReturnType())
 							&& resultExpr != null && meth != null && 
-							(specs.isNonNullReturn(calleeMethodSym) || specs.isNonNull(that.type))) {
+							specs.isCheckNonNullReturn(that.type, calleeMethodSym)) {
 						JCExpression nn = treeutils.makeNotNull(that.pos, resultExpr);
 						var p = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases
 																								// where specDecl is
