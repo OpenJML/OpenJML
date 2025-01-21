@@ -1840,7 +1840,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			e.printStackTrace(System.out);
 			throw e;
 		} finally {
-			return popBlock(pos, check);
+		    try {
+		        return popBlock(pos, check);
+		    } catch (RuntimeException ee) {
+			    System.out.println("STAT CAUSING PROBLEM " + stat);
+			    throw ee;
+			}
 		}
 	}
 
@@ -3052,7 +3057,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									// JavaFileObject prevSource = log.useSource(clause.source());
 									try {
 									    var cl = (JmlTypeClauseExpr)clause;
-										t = (JmlTypeClauseExpr) copy(clause); // FIXME - why copy the clause
+										t = copy(cl); // FIXME - why copy the clause
 										addTraceableComment(t.expression, clause.toString());
 										JCExpression e = !rac || cl.racmethod == null || csym != basecsym
 										                      ? convertJML(t.expression, treeutils.trueLit, isPost)
@@ -14089,6 +14094,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            applyingLambda = false;
 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
+			if (lhs == null) { System.out.println("BINARY " + that + " " + that.lhs + " " + that.rhs + " " + lhs + " " + rhs); }
 //            applyingLambda = savedApplyingLambda;
 			Number n = treeutils.integralLiteral(lhs);
 			Number nn = treeutils.integralLiteral(rhs);
@@ -15681,8 +15687,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		
-		boolean print = false; // that.name.toString().equals("k");
-		if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type); Utils.dumpStack(); }
+		boolean print = false;//that.name.toString().equals("size");
+		if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type);  }
 
 		//if (localVariables.containsKey(that.sym)) System.out.println("VISIT-IDENT " + that + " " + rac + " " + currentEnv.stateLabel + " " + localVariables.containsKey(that.sym) + " " + localVariables); 
 		if (utils.rac && currentEnv.localsForbidden && localVariables.containsKey(that.sym)) {
@@ -15751,6 +15757,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
+		if (print) System.out.println("VISITIDENT-NEWFA " + newfa);
 		if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
 			if (utils.isJMLStatic(sym) && isFinal(sym)) {
 				if (newfa != null) {
@@ -15797,7 +15804,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						return;
 					}
 				}
-				//System.out.println("VISITIDENT-F " + that + " " + oldenv + " " + isPostcondition);
+				//if (print) System.out.println("VISITIDENT-F " + that + " " + oldenv + " " + isPostcondition);
 				if (esc && (that.name == names._this || that.name == names._super)) {
 					result = eresult = currentEnv.currentReceiver != null ? copy(currentEnv.currentReceiver) : copy(that);
 					return;
@@ -15819,7 +15826,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					return;
 				}
 				if (rac && isPostcondition && isFormal(sym, methodDecl.sym)) {
-					//System.out.println("VISITIDENT-RAC-POST " + that + " " + currentEnv.label + " " + isPostcondition + " " + eresult);
+					//if (print) System.out.println("VISITIDENT-RAC-POST " + that + " " + currentEnv.label + " " + isPostcondition + " " + eresult);
 					JCExpression e = treeutils.makeOld(that, treeutils.makeIdent(that.pos, sym), labelPropertiesStore.get(currentOldLabel));
 					isPostcondition = false;
 					result = eresult = convertExpr(e);
@@ -15835,12 +15842,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// instead of just inlining the represents clause expression because
 			// the model field/method may be overridden in derived classes.
 			// FIXME - this is needed for ESC as well, not sure why
-			if (utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable && !reps.contains(sym)) {
+			if (!rac && utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
+			    if (!reps.contains(sym)) {
 				translateModelField(currentEnv.currentReceiver, that, sym, newfa);
-//	            System.out.println("VISITIDENT-F " + that + " " + eresult);
+	            if (print) System.out.println("VISITIDENT-MODEL " + that + " " + eresult + " " + newfa + " " + !rac);
 				// FIXME - if this is translated, then the tranlation below is not needed
 				// FIXME - if this is not trznslated, then why the return
 				return;
+			    }
 			}
 
 //            System.out.println("VISITIDENT-G " + that + " " + oldenv);
@@ -15921,10 +15930,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (rac && utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
 			    JCExpression recv = currentEnv.currentReceiver != null ? copy(currentEnv.currentReceiver) : copy(that);
                 JCFieldAccess fcn = M.at(that.pos).Select(recv, names.fromString(Strings.modelFieldMethodPrefix + that.name.toString()));
-                fcn.sym = JmlMemberEnter.instance(context).modelMethods.get(sym).sym;
-                fcn.type = fcn.sym.type;
-                result = eresult = M.at(that.pos).Apply(null, fcn, List.<JCExpression>nil());
-                eresult.type = that.type;
+                var mm = JmlMemberEnter.instance(context).modelMethods.get(sym);
+                if (mm != null) {
+                    fcn.sym = mm.sym;
+                    fcn.type = mm.type;
+                    result = eresult = M.at(that.pos).Apply(null, fcn, List.<JCExpression>nil());
+                    eresult.type = that.type;
+                } else {
+                    utils.error(that, "jml.internal", "Unexpectedly found no generated model method for field " + sym.owner + "." + sym);
+                    eresult = treeutils.makeZeroEquivalentLit(that, that.type); // FIXME - write a warning? or a skip exception?
+                }
 			    
 			} else if (sym instanceof Symbol.TypeSymbol) {
 				Type t = typevarValue(that.type, typevarMapping);
