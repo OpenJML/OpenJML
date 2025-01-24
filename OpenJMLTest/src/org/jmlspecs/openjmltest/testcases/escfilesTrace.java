@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.EscBaseFiles;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Ignore;
@@ -38,11 +39,9 @@ import org.openjml.runners.ParameterizedWithNames;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 @Ignore // FIXME - improve and stabilize trace output
-public class escfilesTrace extends EscBase {
+public class escfilesTrace extends EscBaseFiles {
 
     boolean enableSubexpressions = false;
-    
-    String[] rac = null;
     
     /** The command-line to use to run ESC on a program */
     String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime",null};
@@ -53,6 +52,7 @@ public class escfilesTrace extends EscBase {
         super.setUp();
     }
 
+    // FIXME _ just use EscBaseFiles.setupForFiles ?
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
     	ignoreNotes = true;
         new File(outDir).mkdirs();
@@ -68,12 +68,7 @@ public class escfilesTrace extends EscBase {
         return args;
     }
 
-    public void helpTCF(String sourceDirname, String outDir, String ... opts) {
- //   	Assert.fail();
-    	escOnFiles(sourceDirname,outDir,opts);
-    }
-
-    String OpenJMLDemoNonPublicPath = "../OpenJMLDemo";
+    String OpenJMLDemoNonPublicPath = "../OpenJMLDemo"; // FIXME - get rid of this - wrong anyway
 
     @Test 
     public void testDMZCashTrace() {
@@ -251,6 +246,4 @@ public class escfilesTrace extends EscBase {
         expectedExit = 0;
         helpTCF("test/escTraceBS","test/escTraceBS","-subexpressions","-progress");
     }
-
-
 }

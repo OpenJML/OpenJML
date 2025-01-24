@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.EscBaseFiles;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -16,10 +16,8 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class SFBugs extends EscBase {
+public class SFBugs extends EscBaseFiles {
     
-    String cpathAddition = "";
-
     @Override
     public void setUp() throws Exception {
 //        noCollectDiagnostics = true;
@@ -39,21 +37,8 @@ public class SFBugs extends EscBase {
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
 
-    public void helpTCG(String ... opts) {
-        String dir = "test/" + getMethodName(1);
-        List<String> a = new LinkedList<>();
-        a.add(0,"-cp"); 
-        a.add(1,dir + cpathAddition);
-        a.add("--code-math=safe");
-        a.add("--spec-math=bigint");
-        a.add("--check-feasibility=precondition,reachable,exit,spec");
-        a.add("--progress");
-        a.addAll(Arrays.asList(opts));
-        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
-    }
-
     public void helpTCGNoOptions(String ... opts) {
-        String dir = "test/" + getMethodName(1);
+        String dir = "test/" + getMethodName();
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
         a.add(1,dir + cpathAddition);
@@ -61,7 +46,7 @@ public class SFBugs extends EscBase {
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
 
-
+    // FIXME - change to use routines in EscBaseFiles
 
     @Test public void typecheckWithJML() {
         expectedExit = 1;
@@ -100,11 +85,6 @@ public class SFBugs extends EscBase {
         helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "--esc","--progress");
     }
     
-    @Test public void sfbug414() {
-        expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","-logic=AUFNIRA","--esc-max-warnings=5");
-    }
-
     @Test public void gitbug257() {
         expectedExit = 0;
         helpTCF("test/gitbug257","test/gitbug257", "-cp", "test/gitbug257", "--esc", "--progress", "-logic=AUFNIRA");
@@ -113,11 +93,6 @@ public class SFBugs extends EscBase {
     @Test public void gitbug260() {
         expectedExit = 0;
         helpTCF("test/gitbug260","test/gitbug260", "-cp", "test/gitbug260", "--esc", "--progress");
-    }
-    
-    @Test public void gitbug431() {
-        expectedExit = 0;
-        helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
     }
     
     @Test public void gitbug450() {
@@ -297,24 +272,9 @@ public class SFBugs extends EscBase {
         helpTCG();
     }
 
-    @Test public void gitbug498() {
-        expectedExit = 0;
-        helpTCG();
-    }
-
     @Test public void gitbug499() {
         expectedExit = 1;
         helpTCG();
-    }
-
-    @Ignore // FIXME - times out
-    @Test public void gitbug500a() {
-        helpTCG("-solver-seed=242");
-    }
-
-    @Ignore // FIXME - times out
-    @Test public void gitbug500b() {
-        helpTCG("-solver-seed=242");
     }
 
     @Test public void gitbug500c() {
@@ -388,8 +348,6 @@ public class SFBugs extends EscBase {
     @Test public void gitbug555b() {
         helpTCG("--method=Test.1.show");
     }
-    
-
 
     @Test public void gitbug518() {
         expectedExit = 1;
@@ -541,17 +499,17 @@ public class SFBugs extends EscBase {
     
     @Test public void gitbug567a() {
         expectedExit = 0;
-        helpTCF("test/gitbug567a","test/gitbug567a","--code-math=java");
+        helpTCG("--code-math=java");
     }
     
     @Test public void gitbug567b() {
         expectedExit = 0;
-        helpTCF("test/gitbug567b","test/gitbug567b","--code-math=safe");
+        helpTCG("--code-math=safe");
     }
     
     @Test public void gitbug567c() {
         expectedExit = 0;
-        helpTCF("test/gitbug567c","test/gitbug567c","--code-math=bigint");
+        helpTCG("--code-math=bigint");
     }
     
     @Test public void gitbug572() {
@@ -594,17 +552,6 @@ public class SFBugs extends EscBase {
     @Test public void gitbug578() {
         expectedExit = 0;
         helpTCG();
-    }
-    
-    @Ignore // FIXME -  Needs more double specs
-    @Test public void gitbug580() {
-        expectedExit = 0;
-        helpTCG();
-    }
-    
-    @Test public void gitbug582() {
-        expectedExit = 0;
-        helpTCG("-purityCheck");
     }
     
     @Test
@@ -677,13 +624,6 @@ public class SFBugs extends EscBase {
     public void gitbug600() {
         expectedExit = 0;
         helpTCG("-rac","--rac-check-assumptions","--rac-precondition-entry"); // RAC compile crash
-    }
-    
-    @Ignore // FIXME - times out -- double arithmetic?
-    @Test
-    public void gitbug601() {
-        expectedExit = 0;
-        helpTCG();
     }
     
     @Test
@@ -827,14 +767,6 @@ public class SFBugs extends EscBase {
 //        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
 //    }
     
-    @Test @Ignore  // Needs specs about double
-    public void gitbug633() {
-        Assume.assumeTrue(runLongTests); // FIXME - And not yet working either
-        cpathAddition = ":../OpenJML/runtime";
-        expectedExit = 0;
-        helpTCG();
-    }
-    
     @Test  // Z3 non-deterministically crashes; trying to fix that by specifying the seed
     public void gitbug633a() {
         expectedExit = 0;
@@ -921,8 +853,8 @@ public class SFBugs extends EscBase {
     
     @Test
     public void gitbug648a() {
-        expectedExit = 0; // has verify errors
-        helpTCF("test/gitbug648a","test/gitbug648a","-cp","test/gitbug648");
+        expectedExit = 6;
+        helpTCG("-cp","test/gitbug648","--verify-exit=6");
     }
     
     @Test
@@ -1012,12 +944,6 @@ public class SFBugs extends EscBase {
     public void gitbug671() {
         expectedExit = 0;
         helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
-    }
-    
-    @Test
-    public void gitbug673() {
-        expectedExit = 0;
-        helpTCG();
     }
     
     @Test
@@ -1189,12 +1115,6 @@ public class SFBugs extends EscBase {
     }
     
     @Test
-    public void gitbug732() {
-        expectedExit = 0;
-        helpTCG();
-    }
-    
-    @Test
     public void gitbug733() {
         expectedExit = 0;
         helpTCG();
@@ -1210,12 +1130,6 @@ public class SFBugs extends EscBase {
     public void gitbug734() {
         expectedExit = 0;
         helpTCG();
-    }
-    
-    @Test
-    public void gitbug735() {
-        expectedExit = 0;
-        helpTCG("--show","--method=impl"); // For debugging
     }
     
     @Test

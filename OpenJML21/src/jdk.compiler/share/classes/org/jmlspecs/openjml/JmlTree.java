@@ -1018,6 +1018,7 @@ public class JmlTree {
     static public final String eol = System.getProperty("line.separator");
 
     static public void unexpectedVisitor(JCTree t, Object visitor) {
+        if (visitor instanceof com.sun.tools.javac.code.TypeAnnotations.TypeAnnotationPositions) return;
         // FIXME - a better error
         System.out.println("A " + t.getClass() + " expects an IJmlVisitor, not a " + visitor.getClass());
     }

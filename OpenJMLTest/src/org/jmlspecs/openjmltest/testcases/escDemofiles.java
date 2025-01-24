@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.EscBaseFiles;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,20 +37,9 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class escDemofiles extends EscBase {
+public class escDemofiles extends EscBaseFiles {
 
     boolean enableSubexpressions = false;
-    
-    String[] rac = null;
-    
-    /** The command-line to use to run ESC on a program */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime",null};
-
-    @Override
-    public void setUp() throws Exception {
-        rac = sysrac;
-        super.setUp();
-    }
 
     /** This method does the running of a RAC test.  No output is
      * expected from running openjml to produce the RACed program;
@@ -64,6 +53,7 @@ public class escDemofiles extends EscBase {
     	escOnFiles(sourceDirname,outDir,opts);
     }
 
+    // FIXME - try just using the version in EscBaseFiles
     public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
@@ -80,7 +70,8 @@ public class escDemofiles extends EscBase {
     }
     
 
-
+// FIXME - use helpDemo?
+    
     @Test
     public void testInvertInjection() {
         expectedExit = 0;

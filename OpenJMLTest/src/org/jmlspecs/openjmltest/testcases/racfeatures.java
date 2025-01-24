@@ -36,7 +36,7 @@ public class racfeatures extends RacBase {
     }
     
     public void helpFeature() {
-        helpFeature(getMethodName(1));
+        helpFeature(getTestName());
     }
 
     

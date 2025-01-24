@@ -15842,13 +15842,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// instead of just inlining the represents clause expression because
 			// the model field/method may be overridden in derived classes.
 			// FIXME - this is needed for ESC as well, not sure why
-			if (!rac && utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
+			if (utils.isModel(sym) && sym instanceof VarSymbol && !convertingAssignable) {
 			    if (!reps.contains(sym)) {
-				translateModelField(currentEnv.currentReceiver, that, sym, newfa);
-	            if (print) System.out.println("VISITIDENT-MODEL " + that + " " + eresult + " " + newfa + " " + !rac);
-				// FIXME - if this is translated, then the tranlation below is not needed
-				// FIXME - if this is not trznslated, then why the return
-				return;
+			        translateModelField(currentEnv.currentReceiver, that, sym, newfa);
+			        if (print) System.out.println("VISITIDENT-MODEL " + that + " " + eresult + " " + newfa + " " + !rac);
+			        // FIXME - if this is translated, then the tranlation below is not needed
+			        // FIXME - if this is not trznslated, then why the return
+			        if (!rac) return;
 			    }
 			}
 

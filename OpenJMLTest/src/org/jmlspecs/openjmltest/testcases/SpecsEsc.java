@@ -17,7 +17,7 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class SpecsEsc extends EscBase {
+public class SpecsEsc extends EscBaseFiles {
 
     /** Enables or disables this suite of tests */
     static private boolean dotests = true;  // Change this to enable/disable dynamic tests
@@ -72,7 +72,7 @@ public class SpecsEsc extends EscBase {
         expectedExit = 0;
         String subdir = JmlTestCase.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + classname;
         System.out.println("    ... " + classname.replace('_', '.'));
-    	escOnFiles(subdir,subdir,"-method=esc","-checkFeasibility=exit");
+        escOnFiles(subdir,subdir,"--method=esc","--check-feasibility=exit");
     }
     
     static public java.util.List<File> findAllFiles() {
@@ -86,6 +86,4 @@ public class SpecsEsc extends EscBase {
         System.out.println(classes.size() + " system specification classes found for esc testing");
         return classes;
     }
-    
-
 }

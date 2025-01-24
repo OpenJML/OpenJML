@@ -20,12 +20,12 @@ import javax.tools.JavaFileObject;
  * as a JDK Token.
  * 
  * A Token can be one of a number of subclasses (or a Token):
- * <ul>Token                tag=DEFAULT   kind=(some TokenKind)  ikind=kind                             toString()              -- Java keyword, operator, punctuation
- * <li>Token.NamedToken     tag=NAMED     kind=IDENTIFIER        ikind=kind                             toString(), name()      -- Java identifier
- * <li>Token.NamedToken     tag=NAMED     kind=(some TokenKind)  ikind=kind                             toString(), name()      -- Java primitive type, enum, true, false, null, assert
- * <li>Token.StringToken    tag=STRING    kind=(some TokenKind)  ikind=kind                             toString(), stringVal() -- Java string, string fragment
- * <li>Token.NumericToken   tag=NUMERIC   kind=(some TokenKind)  ikind=kind                             toString(), stringVal() -- Java numeric literal
- * <li>JmlToken             tag=DEFAULT   kind=CUSTOM            ikind=JmlTokenKind jmlclauseKind=...   toString()              -- JML tokens, distinguished by JmlTokenKind    
+ * <ul>Token                tag=DEFAULT   kind=(some TokenKind)                               toString()              -- Java keyword, operator, punctuation
+ * <li>Token.NamedToken     tag=NAMED     kind=IDENTIFIER                                     toString(), name()      -- Java identifier
+ * <li>Token.NamedToken     tag=NAMED     kind=(some TokenKind)                               toString(), name()      -- Java primitive type, enum, true, false, null, assert
+ * <li>Token.StringToken    tag=STRING    kind=(some TokenKind)                               toString(), stringVal() -- Java string, string fragment
+ * <li>Token.NumericToken   tag=NUMERIC   kind=(some TokenKind)                               toString(), stringVal() -- Java numeric literal
+ * <li>JmlToken             tag=DEFAULT   kind=CUSTOM            jmlclauseKind=...            toString()              -- JML tokens, distinguished by jmlClauseKind  
  * </ul>
  * Note that some identifiers may either be simple identifiers or may be (unreserved) JML keywords,
  * when in specific grammatical locations.

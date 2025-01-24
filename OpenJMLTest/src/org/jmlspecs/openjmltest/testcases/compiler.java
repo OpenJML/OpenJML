@@ -14,12 +14,13 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 
 // FIXME - compare to release tests!!!!!!
+// FIXME - these tests set various static stuff (System.out, System.err, Main.useJML) -- how is this thread safe?
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
  * of class, source, and specs paths. */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-public class compiler {
+public class compiler extends JmlTestCase{
     
     @Rule
     public TestName name = new TestName();
@@ -116,7 +117,7 @@ public class compiler {
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (capture) try {
             String tail = "";
-            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + errOutput);
+            if (print) System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + errOutput);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
@@ -128,7 +129,7 @@ public class compiler {
                 expected = output[1].replace("${PROJ}",projHome).replaceAll("\r", "");
                 int k = actualOutput.indexOf("Note:");
                 String actual = k>=0 ? actualOutput.substring(0,k) : actualOutput; 
-                if (print) System.out.println("TEST: " + name.getMethodName() + " STANDARD OUT: " + eol + actual);
+                if (print) System.out.println("TEST: " + getTestName() + " STANDARD OUT: " + eol + actual);
                 if (all == 0) {
                     assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
@@ -140,7 +141,7 @@ public class compiler {
             assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
             if (!print) {
-                System.out.println("TEST: " + name.getMethodName() + " exit=" + exitCode + eol + berr.toString());
+                System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + berr.toString());
                 System.out.println("ACTUAL OUT: " + actualOutput);
                 System.out.println("ACTUAL ERR: " + errOutput);
             }

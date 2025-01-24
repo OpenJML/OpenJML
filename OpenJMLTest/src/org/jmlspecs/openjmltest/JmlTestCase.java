@@ -67,39 +67,52 @@ public abstract class JmlTestCase {
     // This value is needed because some tests emit a full absolute path name in error messages
     static final public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
     {
-    	if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
-    		System.out.println("The current working directory for tests is incorrect");
-    		System.exit(1);
-    	}
+        if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
+            System.out.println("The current working directory for tests is incorrect");
+            System.exit(1);
+        }
     }
     static final public String bruntime = "../" + root + "/OpenJML/OpenJML21/bin-runtime";
     static final public String  runtime = "../" + root + "/OpenJML/OpenJML21/runtime";
 
     public final static String specsdir;
     static {
-    	String s = System.getenv("OPENJML_ROOT") + "../../Specs/specs";
-    	try { s = new File(s).getCanonicalPath(); } catch (Exception e) {}
-    	specsdir = s;
+        String s = System.getenv("OPENJML_ROOT") + "../../Specs/specs";
+        try { 
+            s = new File(s).getCanonicalPath();
+        } catch (Exception e) {
+        }
+        specsdir = s;
     }
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {
         return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine)
-        		.replaceAll("#DEMO", RacBase.OpenJMLDemoPath);
+                .replaceAll("#DEMO", RacBase.OpenJMLDemoPath);
     }
+
+//    // FIXME - do not rely on eclipse
+//    static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
     
-    // FIXME - do not rely on eclipse
-    static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
-    
-    // An object holding routines for comparing output with oracle output
+    /** An object holding routines for comparing actual output with expected output */
     public OutputCompare outputCompare = new OutputCompare();
 
-    /** This is here so we can get the name of a test, using name.getMethodName() */
-    @Rule public TestName name = new TestName();
+    public String testname; // name is injected by the initiating unit test structure
     
+    /** This is here so we can get the name of a test, using name.getMethodName(); however it actually returns the 
+     * name of the immediately containing method, not the one labeled with @Test
+     **/
+//    @Rule public TestName testname = new TestName();
+    
+    /** Returns the name of the method 'i' steps up in the call stack */
     public String getMethodName(int i) {
     	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
     }
+    
+    public String getMethodName() { return getMethodName(0); }
+
+    
+    public String getTestName() { return testname; }
     
 
     /** The java executable */
@@ -121,10 +134,12 @@ public abstract class JmlTestCase {
         public List<Diagnostic<? extends S>> getDiagnostics();
     }
     
-    // Set in some testcase classes to ignore Notes reported by the tool. Set the value
-    // before calling super.setUp()
+    /** Set in some testcase classes to ignore Notes reported by the tool. 
+     *  Set the value before calling super.setUp()
+     *  */
     public boolean ignoreNotes = true;
     
+    /** Adds arguments to the sequence of command-line arguments */
     public void addOptions(String ... options) {
     	main.addOptions(options);
     }
@@ -141,18 +156,21 @@ public abstract class JmlTestCase {
             this.print = print;
         }
         
-        /** If true, no notes are collected; some test output contains notes, so this mut generally be false */
-        boolean noNotes;
-        /** If true, diagnostics are printed (as well as being collected) */
-        boolean print;
+        /** If true, no notes are collected; some test output contains notes, so this must generally be false */
+        boolean noNotes = false;
+        /** Generally false, but if true, diagnostics are printed (as well as being collected) -- helpful for seeing diagnostic messages
+         * in the context of debugging output. */
+        boolean print = false;
         
+        // FIXME - comment
         Context context;
         
         /** The collection (in order) of diagnostics heard so far. */
         private java.util.List<Diagnostic<? extends S>> diagnostics =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends S>>());
 
-        /** The method called by the system when there is a diagnostic to report. */
+        /** The method called by the system when there is a diagnostic to report,
+         * implemented here to collect the diagnstic. */
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
         	//if (System.getenv("NOJML")==null) System.out.println("LOG-VDH " + Log.instance(context).getDiagnosticFormatter().getClass() + " " + Log.instance(context).getDiagnosticFormatter().hashCode());
@@ -161,7 +179,7 @@ public abstract class JmlTestCase {
             //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
             //if (print) System.out.println(diagnostic.toString());
             if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
-            		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated"))
+            		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated")) // FIXME - what 'kind' are associated declaration messages?
                 diagnostics.add(diagnostic);
         }
 
@@ -193,6 +211,7 @@ public abstract class JmlTestCase {
         public void run() {
             try {
                 char[] cbuf = new char[10000];
+                // FIXME - should we close these Readers?
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
                 int n;
@@ -219,7 +238,7 @@ public abstract class JmlTestCase {
         }
     }
     
-    /** Used to set a timeout on a RAC process */
+    /** Used to set a timeout on a RAC process; returns true is the process was interrupted by the timeout */
     public static boolean timeout(Process p, long milliseconds) {
         // Set a timer to interrupt the process if it does not return within the timeout period
         Timer timer = new Timer();
