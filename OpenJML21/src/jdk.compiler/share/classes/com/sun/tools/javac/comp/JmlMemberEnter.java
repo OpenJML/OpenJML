@@ -583,8 +583,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         // We can't add methods to a binary class, can we?
 //        if (((JmlCompilationUnit)env.toplevel).mode == JmlCompilationUnit.SPEC_FOR_BINARY) return;
         
+        if (sym.isAnnotationType()) return;
         if (sym.isAnonymous()) return;
-        //if (sym.isInterface()) return;  // FIXME - deal with interfaces.  ALso, no methods added to annotations
         
         var newdefs = addInvariantInitiallyMethods(sym, env);
         
@@ -658,6 +658,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (!(decl instanceof JmlVariableDecl vdecl)) continue;
 
             if (!utils.hasModifier(vdecl.mods, Modifiers.MODEL)) continue;
+            if (vdecl.sym.type.toString().equals("\\datagroup")) continue; // FIXME - use a better way to test this
             VarSymbol vsym = vdecl.sym;
             
             JCExpression init = vdecl.init;
@@ -669,8 +670,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
-            boolean print = vdecl.name.toString().equals("size");
-            //if (print) System.out.println("MM " + vdecl + " " + mr);
+            boolean print = false;//vdecl.name.toString().equals("i");
+            if (print) System.out.println("MM " + vdecl + " " + mr);
             newdefs.add(mr);
             if (vdecl.init == null) mr.mods.flags |= Utils.JMLADDED; // Marks this as needing a representation
             
@@ -691,8 +692,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 found = rep;
                 mr.mods.flags &= ~Utils.JMLADDED; // Has a representation
             }
+            if (mr.body == null) mr.body = jmlF.Block(0,null);
             mr.body.stats = List.<JCStatement>of(returnStatement);
-            
+
             // NOTE: Various conditions on model fields and represents clauses are checked later during attribution
             //if (vdecl.name.toString().equals("theFloat")) System.out.println("theFloat rep = " + (found != null) + " " + isAbstract + " " + ((mr.mods.flags & Utils.JMLADDED) == 0));
             if (found == null) {
@@ -774,13 +776,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     public java.util.Map<Symbol, JmlMethodDecl> modelMethods = new java.util.HashMap<>();
             
     public JmlMethodDecl makeModelFieldMethod(JmlVariableDecl modelVarDecl, JmlSpecs.TypeSpecs tsp) {
-        long defflag = modelVarDecl.sym.owner.isInterface() && !utils.isJMLStatic(modelVarDecl.sym) ? Flags.DEFAULT : 0L;
+        boolean nobody = (modelVarDecl.mods.flags & Flags.ABSTRACT) != 0;
+        long defflag = modelVarDecl.sym.owner.isInterface() && !utils.isJMLStatic(modelVarDecl.sym) && !nobody ? Flags.DEFAULT : 0L;
         long flags = Flags.SYNTHETIC | defflag;
         flags |= (modelVarDecl.sym.flags() & (Flags.STATIC|Flags.AccessFlags));
         JCTree.JCReturn returnStatement = jmlF.Return(JmlTreeUtils.instance(context).makeZeroEquivalentLit(modelVarDecl,modelVarDecl.sym.type));
         Name name = names.fromString(Strings.modelFieldMethodPrefix + modelVarDecl.name);
         JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
-                List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
+                List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), nobody ? null : jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
         mr.pos = modelVarDecl.pos;
         utils.setJML(mr.mods);
         JavaFileObject p = log.useSource(modelVarDecl.sourcefile);

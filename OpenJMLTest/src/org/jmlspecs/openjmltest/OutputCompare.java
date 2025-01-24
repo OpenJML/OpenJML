@@ -290,7 +290,7 @@ public class OutputCompare {
                     }
                     if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                     if (sexp != null && sact == null) {
-                        diff += ("Less actual output than expected: " + actual + JmlTestCase.eol);
+                        diff += ("Less actual output than expected: " + sexp + JmlTestCase.eol);
                         return diff;
                     }
                     if (sact != null && !sact.equals(sexp)) {
@@ -310,7 +310,7 @@ public class OutputCompare {
                                     + ("EXP: " + sexp + JmlTestCase.eol)
                                     + ("ACT: " + sact + JmlTestCase.eol);
                         }
-                    }
+                    } 
                     break;
                 }
             }

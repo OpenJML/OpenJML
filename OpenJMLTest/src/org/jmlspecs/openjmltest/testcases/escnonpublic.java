@@ -13,7 +13,7 @@ import java.util.List;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.EscBaseFiles;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,7 +41,7 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class escnonpublic extends EscBase {
+public class escnonpublic extends EscBaseFiles {
     
     String dir = "../../OpenJMLDemo/";
 

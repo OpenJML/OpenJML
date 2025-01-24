@@ -419,6 +419,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             uninitializedLog().error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
             errorcode = com.sun.tools.javac.main.Main.Result.SYSERR.exitCode; // 3
+        } finally {
+            writer.flush();
         }
         return errorcode;
     }
@@ -553,27 +555,28 @@ public class Main extends com.sun.tools.javac.main.Main {
         // but the register call has to happen before compile is called.
         canceled = false;
         Main.Result exit = super.compile(args,context);
-    	int n = Utils.instance(context).verifyWarnings;
-    	if (n != 0) {
-    	    if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
-    		if (exit.exitCode == 0 && !Utils.testingMode) {
-    		    // Use the verification failure exit code if there are verification warnings
-    			exit = Result.VERIFY;
-    			String v = JmlOption.value(context, JmlOption.EXITVERIFY); // User specified exit code for verification failures
-    			if (v != null) {
-    				try {
-    					int z = Integer.valueOf(v);
-    					for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
-    					if (exit.exitCode != z) throw new RuntimeException();
-    		            if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
-    				} catch (Exception e) {
-    					// FIXME - why would this be an uninitialized log
-    	                uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
-    					exit = Result.CMDERR;
-    				}
-    			}
-    		}
-    	}
+        int n = Utils.instance(context).verifyWarnings;
+        //System.out.println("VWARN " + n + " " + exit.exitCode + " " + Utils.testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY));
+        if (n != 0) {
+            if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
+            if (exit.exitCode == 0) {
+                // Use the verification failure exit code if there are verification warnings
+                if (!Utils.testingMode) exit = Result.VERIFY;
+                String v = JmlOption.value(context, JmlOption.EXITVERIFY); // User specified exit code for verification failures
+                if (v != null) {
+                    try {
+                        int z = Integer.valueOf(v);
+                        for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
+                        if (exit.exitCode != z) throw new RuntimeException();
+                        if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
+                    } catch (Exception e) {
+                        // FIXME - why would this be an uninitialized log -- and why not detected when the command-line is parsed
+                        uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
+                        exit = Result.CMDERR;
+                    }
+                }
+            }
+        }
         return exit;
     }
     

@@ -52,20 +52,25 @@ public class Test {
         var dir = new File(JmlTestCase.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases");
         var lst = args.length == 0 ? dir.list() : args;
         java.util.Arrays.sort(lst);
-        int k = args[0].indexOf('#');
-        if (k < 0) k = args[0].indexOf('.');
-        if (k > 0) lst = new String[] { args[0].substring(0,k) };
-        for (var d : lst) {
-            if (args.length == 0 && !d.endsWith(".java")) continue;
-            if (d.endsWith(".java")) d = d.substring(0,d.length()-5);
+        for (var item : lst) {
+            if (args.length == 0 && !item.endsWith(".java")) continue;
+            if (item.endsWith(".java")) item = item.substring(0,item.length()-5);
+
+            String tail = null;
+            int k = item.indexOf('#');
+            if (k < 0) k = item.indexOf('.');
+            if (k > 0) {
+                tail = item.substring(k+1);
+                item = item.substring(0,k);
+            }
             Class<JmlTestCase> clazz;
             try {
-                clazz = (Class<JmlTestCase>)Class.forName("org.jmlspecs.openjmltest.testcases." + d);
+                clazz = (Class<JmlTestCase>)Class.forName("org.jmlspecs.openjmltest.testcases." + item);
             } catch (ClassNotFoundException e) {
-                System.out.println("Error: There is no unit test named " + d);
+                System.out.println("Error: There is no unit test named " + item);
                 continue;
             }
-            if ((d.contains("Specs") || java.util.Arrays.binarySearch(skips,d) >= 0) && args.length == 0 ) {
+            if ((item.contains("Specs") || java.util.Arrays.binarySearch(skips,item) >= 0) && args.length == 0 ) {
                 System.out.println("Skipping " + clazz);
                 continue;
             }
@@ -80,9 +85,9 @@ public class Test {
             var allmethods = clazz.getDeclaredMethods();
             var methods = allmethods;
             java.util.Arrays.sort(methods, (a,b)->a.toString().compareTo(b.toString()));
-            if (k > 0) {
+            if (tail != null) {
                 methods = new Method[]{};
-                String nm = args[0].substring(k+1,args[0].length());
+                String nm = tail;
                 for (var m: allmethods) {
                     if (m.getName().equals(nm)) {
                         methods = new Method[] { m };
@@ -170,21 +175,23 @@ public class Test {
         }
     }
 
-    static  public void doMethod(Class<? extends JmlTestCase> clazz, Method method, Constructor constr, Object[] params) {
+    /** This method is run in the thread doing the testcase and constitutes running the test */
+    static public void doMethod(Class<? extends JmlTestCase> clazz, Method method, Constructor constr, Object[] params) {
         synchronized(stests) { tests++; }
         try {
             System.out.println("Testing " + clazz + "." + method.getName() + " using " + Thread.currentThread().getName());
             JmlTestCase t = null;
             try {
-                var n = constr.newInstance(params);
-                if (n instanceof JmlTestCase) {
-                    t = (JmlTestCase)n;
+                // Essentially, we are creating our own JUnit test runner here -- I think to control the output and metrics
+                // but we ignore some JUnit features such as @Before annotations
+                var n = constr.newInstance(params); // constructs an instance of the JmlTestCase
+                if (n instanceof JmlTestCase tt) {
+                    t = tt;
+                    t.testname = method.getName();
                     t.setUp();
-                    method.invoke(t);
-                } else if (n instanceof compiler) {
-                    compiler tt = (compiler)n;
-                    tt.setUp();
-                    method.invoke(tt);
+                    method.invoke(t); // invokes the specific test within the testcase
+                } else {
+                    throw new RuntimeException("Testcase " + n.getClass() + " does not extend JmlTestCase");
                 }
             } catch (Throwable e) {
                 if (e.getCause() != null) e = e.getCause();
@@ -197,7 +204,7 @@ public class Test {
                 //System.out.println("  Post teardown " + method);
             }
         } catch (Exception e) {
-            System.out.println("Failed to construct or execute test: " + method + " " + e);
+            System.out.println("Failed to construct or execute or teardown test: " + method + " " + e);
             if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
         }
     }

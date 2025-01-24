@@ -248,7 +248,7 @@ public class SpecsBase extends TCBase {
      */
     static Set<String> donttest = new HashSet<String>();
     static {
-        donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test coes not find the junit library 
+        donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test does not find the junit library 
         donttest.add("java.lang.AbstractStringBuilder"); // FIXME - not public
         donttest.add("java.lang.StringCoding");
     }
@@ -326,7 +326,7 @@ public class SpecsBase extends TCBase {
      */
     public void checkClass(String className, int n) {
         String program = "public class AJDK { "+ className + typeargs[n] + " o; }";
-        // Do these  because the classes are not public
+        // Do these because the classes are not public
         if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
         if (className.equals("java.lang.StringCoding")) program = "package java.lang; " + program;
         helpTCFile("AJDK.java",program,className);

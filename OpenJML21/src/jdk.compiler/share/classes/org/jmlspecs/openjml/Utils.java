@@ -1957,7 +1957,7 @@ public class Utils {
     	if (verifyDiagnosticFormatter == null) 
     		verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
     	    public String formatKind(JCDiagnostic d, Locale l) {
-    	    	return Utils.testingMode?"warning: ":"verify: ";
+    	    	return Utils.testingMode?"warning: ":"verify: "; // TODO: IF we use 'verify' in tests, too many tests will fail
     	    }
     	};
     	log().setDiagnosticFormatter(verifyDiagnosticFormatter);
@@ -1965,7 +1965,7 @@ public class Utils {
         log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     	log().setDiagnosticFormatter(df);
     	JCDiagnostic.Factory.instance(context).setFormatter(df2);
-    	if (!Utils.testingMode) {
+    	if (!Utils.testingMode || JmlOption.value(context, JmlOption.EXITVERIFY) != null) {
     		verifyWarnings++;
         	log().nwarnings--;
     	}

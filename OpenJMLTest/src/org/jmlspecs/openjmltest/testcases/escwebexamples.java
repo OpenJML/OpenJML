@@ -2,7 +2,7 @@ package org.jmlspecs.openjmltest.testcases;
 
 import java.io.File;
 
-import org.jmlspecs.openjmltest.EscBase;
+import org.jmlspecs.openjmltest.EscBaseFiles;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
@@ -17,7 +17,7 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class escwebexamples extends EscBase {
+public class escwebexamples extends EscBaseFiles {
     
     final String sources = "../../openjml.github.io/examples/";
     final String expected = "test/escwebexamples/";
@@ -29,7 +29,7 @@ public class escwebexamples extends EscBase {
     }
     
     public void helpTG() {
-        String testFileroot = getMethodName(1);
+        String testFileroot = getTestName();
         Assert.assertTrue("Web example sources not found", new File(sources).exists() && new File(sources).isDirectory());
         Assert.assertTrue("Expected location not found", new File(expected).exists() && new File(expected).isDirectory());
         escOnFiles(sources + testFileroot + ".java", expected + testFileroot, "--progress", "--solver-seed=42");

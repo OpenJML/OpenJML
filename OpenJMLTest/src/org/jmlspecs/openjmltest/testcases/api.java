@@ -114,20 +114,20 @@ public class api extends JmlTestCase {
         	actualOut = actualOut.substring(0, k) + actualOut.substring(p+1);
         }
         if (print) {
-            System.out.println("TEST: " + name.getMethodName());
+            System.out.println("TEST: " + getTestName());
             System.out.println("ERR: " + actualErr);
             System.out.println("OUT: " + actualOut);
         }
         if (cap && errOutput != null) try {
             compareStrings(errOutput,actualErr);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualErr);
+            if (!print) System.out.println("TEST: " + getTestName() + eol + actualErr);
             throw ex;
         }
         if (cap && output != null) try {
             compareStrings(output,actualOut.replace( "No such file or directory)","The system cannot find the file specified)"));
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + eol + actualOut);
+            if (!print) System.out.println("TEST: " + getTestName() + eol + actualOut);
             throw ex;
         }
     }

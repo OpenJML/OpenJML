@@ -45,11 +45,11 @@ public class racfiles extends RacBase {
     // No longer trying to test NG 
     // Must be called within a test method (not in setup) in order to get the test method name correctly
     public void setRacng() {
-        rac = new String[]{jdk, "-classpath","testcompiles/"+getMethodName(1)+z+"test/"+getMethodName(1),null};
+        rac = new String[]{jdk, "-classpath","testcompiles/"+getTestName()+z+"test/"+getTestName(),null};
     }
     
     public void setRacngEA() {
-    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(1),
+    	rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getTestName(),
     	        "-Dorg.jmlspecs.openjml.rac=exception","StorageParameters"};
     }
 
@@ -345,7 +345,7 @@ public class racfiles extends RacBase {
     
     @Test
     public void racHans2() {
-        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getMethodName(0)+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
+        rac = new String[]{jdk, "-ea", "-classpath","../OpenJML/bin"+z+"../OpenJML/bin-runtime"+z+"testcompiles/"+getTestName()+z+"test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src",null};
 
         runrac = true;
         helpTCF("test/racHans2/account",
@@ -404,12 +404,6 @@ public class racfiles extends RacBase {
         helpTCF("test/racNoGhostField","test/racNoGhostField","Magic","-jmltesting");
     }
 
-    @Test @Ignore // model files
-    public void gitbug524() {
-        expectedRACExit = 0;
-        helpTCF("test/gitbug524","test/gitbug524","Test"); 
-    }
-
     @Test
     public void gitbug532() {
         expectedRACExit = 0;
@@ -434,6 +428,7 @@ public class racfiles extends RacBase {
         helpTCF("test/gitbug533a","test/gitbug533a","TestSum");
     }
 
+    @Test
     public void gitbug534() {
     	runrac = true;
         expectedRACExit = 0;
@@ -508,26 +503,6 @@ public class racfiles extends RacBase {
         helpTCF("test/gitbug578","test/gitbug578","Test");
     }
 
-    @Test @Ignore // model files
-    public void gitbug584() {
-        helpTCF("test/gitbug584","test/gitbug584","AClass");
-    }
-
-    @Test @Ignore // model files
-    public void gitbug590() {
-        runrac = false; // Expected compile error
-        expectedExit = 1;
-        helpTCF("test/gitbug590","test/gitbug590","Sequence");
-    }
-
-    @Test @Ignore // model files
-    public void gitbug590a() {
-        runrac = true;
-        expectedRACExit = 0;
-        expectedExit = 0;
-        helpTCF("test/gitbug590a","test/gitbug590a","Sequence");
-    }
-
     @Test
     public void gitbug599() {
         runrac = true;
@@ -587,7 +562,7 @@ public class racfiles extends RacBase {
     public void sfbug402() {
         expectedRACExit = 0;
         runrac = false;
-        helpTCF("test/sfbug402","test/sfbug402","Main","--rac-missing-model-field-rep=zero");
+        helpTCF("test/sfbug402","test/sfbug402","Main","--rac-missing-model-field-rep=zero-quiet");
     }
 
     @Test

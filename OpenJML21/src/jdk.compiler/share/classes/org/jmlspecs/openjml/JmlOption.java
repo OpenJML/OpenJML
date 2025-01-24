@@ -196,6 +196,7 @@ public class JmlOption {
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Controls output information during testing",null) {
         public boolean check(Context context, boolean negate) {
         	Utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName()); // value is already negated if need be
+            if (Utils.testingMode) JmlOptions.instance(context).put(JmlOption.EXITVERIFY.optionName(),null);
             return true;
         }
     };

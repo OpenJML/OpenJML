@@ -31,7 +31,6 @@ import static org.junit.Assert.*;
  */
 abstract public class ParseBase extends JmlTestCase {
 
-    protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath = "$A"+z+"$B";
 
     protected ParserFactory fac;
@@ -162,7 +161,7 @@ abstract public class ParseBase extends JmlTestCase {
     
     /** Prints out the nodes of the tree */
     public void printTree(List<JCTree> list) {
-        System.out.println("NODES FOR " + name.getMethodName());
+        System.out.println("NODES FOR " + getTestName()); // FIXME - test that this actually puts out the correct name
         for (JCTree t: list) {
             System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
         }

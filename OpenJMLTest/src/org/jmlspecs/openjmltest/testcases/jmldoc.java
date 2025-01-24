@@ -9,13 +9,14 @@ import org.junit.rules.TestName;
 
 import static org.junit.Assert.*;
 
+import org.jmlspecs.openjmltest.JmlTestCase;
 
 /** This class contains tests of the jmldoc functionality.  It calls the actual
  * jmldoc entry point on external java files.
  * @author David Cok
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-public class jmldoc {
+public class jmldoc extends JmlTestCase {
     @Rule
     public TestName name = new TestName();
 
@@ -67,7 +68,7 @@ public class jmldoc {
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = ""; //exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
-            if (print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + errOutput);
+            if (print) System.out.println("TEST: " + getTestName() + " exit=" + e + eol + errOutput);
             String expected = output[0];
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
@@ -78,7 +79,7 @@ public class jmldoc {
             }
             if (output.length > 1) {
                 expected = output[1];
-                if (print) System.out.println("TEST: " + name.getMethodName() + " STANDARD OUT: " + eol + actualOutput);
+                if (print) System.out.println("TEST: " + getTestName() + " STANDARD OUT: " + eol + actualOutput);
                 if (all == 0) {
                     assertEquals("The standard out is wrong",expected+tail,actualOutput);
                 } else if (all == -1) {
@@ -89,7 +90,7 @@ public class jmldoc {
             }
             assertEquals("The exit code is wrong",exitcode,e);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + name.getMethodName() + " exit=" + e + eol + actualOutput);
+            if (!print) System.out.println("TEST: " + getTestName() + " exit=" + e + eol + actualOutput);
             throw ex;
         }
     }
