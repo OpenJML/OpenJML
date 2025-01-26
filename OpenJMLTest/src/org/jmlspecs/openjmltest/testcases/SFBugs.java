@@ -38,7 +38,7 @@ public class SFBugs extends EscBaseFiles {
     }
 
     public void helpTCGNoOptions(String ... opts) {
-        String dir = "test/" + getMethodName();
+        String dir = "test/" + getTestName();
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
         a.add(1,dir + cpathAddition);

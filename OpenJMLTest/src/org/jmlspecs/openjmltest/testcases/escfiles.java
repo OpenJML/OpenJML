@@ -49,19 +49,6 @@ public class escfiles extends EscBaseFiles {
         ignoreNotes = true;
     }
     
-//    public void helpTF(String testDirname, String ... opts) {
-//        String d = "test/" + testDirname;
-//        int extraOpts = 5;
-//        String[] newopts = new String[opts.length+extraOpts];
-//        // Fill in exactly 'extraOpts' initial elements
-//        newopts[0] = "-classpath";
-//        newopts[1] = d;
-//        newopts[2] = "--check-feasibility=precondition,reachable,exit,spec";
-//        newopts[3] = "--code-math=bigint"; // Just to avoid overflow errors in these tests
-//        newopts[4] = "--spec-math=bigint"; // Just to avoid overflow errors in these tests
-//        System.arraycopy(opts,0,newopts,extraOpts,opts.length);
-//        helpTCF(d,d,newopts);
-//    }
 
     // FIXME - use helpDemo?
 

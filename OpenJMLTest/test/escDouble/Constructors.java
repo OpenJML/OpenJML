@@ -13,8 +13,8 @@ public class Constructors
   public static void double_constructor(double d)
   {
     Double wrapper = new Double(d);
-    //@ assert wrapper.equals(new Double(d));
-    //@ assert wrapper.equals(new Double(wrapper.doubleValue()));
+    //@ assert wrapper.equals(Double.valueOf(d));
+    //@ assert wrapper.equals(Double.valueOf(wrapper.doubleValue()));
     //@ assert !Double.isNaN(d) ==> d == wrapper.doubleValue();
     //@ assert Double.isNaN(d) ==> Double.isNaN(wrapper.doubleValue());
     //@ assert Double.isNaN(d) ==> wrapper.isNaN();
@@ -26,6 +26,6 @@ public class Constructors
     //@ assert s.equals("NaN") ==> Double.isNaN(wrapper.doubleValue());
     //@ assert s.equals("Infinity") ==> wrapper.doubleValue() == Double.POSITIVE_INFINITY;
     //@ assert s.equals("-Infinity") ==> wrapper.doubleValue() == Double.NEGATIVE_INFINITY;
-    //@ assert wrapper.equals(new Double(wrapper.toString()));
+    //@ assert wrapper.equals(Double.valueOf(wrapper.toString()));
   }
 }
