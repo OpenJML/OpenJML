@@ -5295,6 +5295,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
 		assumingPostConditions = false;
 		JCMethodDecl methodDecl = this.methodDecl;
+		JCExpression savedCondition = condition;
 		boolean isConstructor = methodDecl.sym.isConstructor();
 		ListBuffer<JCStatement> savedCurrentStatements = currentStatements;
 
@@ -5917,6 +5918,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		currentStatements = savedCurrentStatements;
 		axiomBlock = null;
 		assumingPostConditions = true;
+		condition = savedCondition;
 	}
 
 	protected void addInstanceInitialization(Symbol methodSym) {
@@ -11996,8 +11998,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - need to check definedness by testing preconditions when
 		// translatingJML
 
-//        JCExpression savedCondition = condition;
-//        condition = treeutils.trueLit;
+        JCExpression savedCondition = condition;
 
 		// FIXME - need to call the constructor; need an assertion about the type of the
 		// result; about allocation time
@@ -12014,7 +12015,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			expr.varargsElement = that.varargsElement;
 			expr.setType(that.type);
 			result = eresult = expr;
-//            condition = savedCondition;
+            condition = savedCondition;
 			return;
 		}
 		Map<Symbol, Symbol> saved = pushMapSymbols();
@@ -15687,8 +15688,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		
-		boolean print = false;//that.name.toString().equals("size");
-		if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type);  }
+		boolean print = false;//that.name.toString().equals("args");
+		if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + condition);  }
 
 		//if (localVariables.containsKey(that.sym)) System.out.println("VISIT-IDENT " + that + " " + rac + " " + currentEnv.stateLabel + " " + localVariables.containsKey(that.sym) + " " + localVariables); 
 		if (utils.rac && currentEnv.localsForbidden && localVariables.containsKey(that.sym)) {
@@ -15701,7 +15702,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		if (sym.type.tsym != that.sym.type.tsym && esc) {
 //            addRangeConstraints(that, false, that.sym.type, that);
 //		}
-        if (print) { System.out.println("VISIT IDENT-A " + that + " " + that.type + " " + sym + " " + sym.type); }
+        if (print) { System.out.println("VISIT IDENT-A " + that + " " + that.type + " " + sym + " " + sym.type + " " + condition); }
 
 		// FIXME - what about super when esc? or when we have a different
 		// currentEnv.currentReceiver?
@@ -15789,7 +15790,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (translatingJML) {
 			    //boolean print = false;//(that.toString().equals("s1") || that.toString().equals("s2")) && sym.owner.toString().contains("equals");
 				if (print) System.out.println("VISITIDENT-E " + that + " " + isPostcondition + " "
-						+ sym + " " + sym.owner + " " + sym.owner.getClass() + " " + isFormal(sym, methodDecl.sym) + " " + paramActuals_);
+						+ sym + " " + sym.owner + " " + sym.owner.getClass() + " " + isFormal(sym, methodDecl.sym) + " " + paramActuals_ + " " + condition);
 				if (!isPostcondition) {
 					JCExpression actual = paramActuals_ == null ? null : paramActuals_.get(sym);
 					//if (sym.toString().equals("dxyz")) System.out.println("VISIT-IDENT-DD " + sym + " " + sym.hashCode() + " " + actual + " " + System.identityHashCode(actual) + " " + paramActuals_);
@@ -15804,7 +15805,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						return;
 					}
 				}
-				//if (print) System.out.println("VISITIDENT-F " + that + " " + oldenv + " " + isPostcondition);
+				//if (print) System.out.println("VISITIDENT-F " + that + " " + isPostcondition + " " + condition);
 				if (esc && (that.name == names._this || that.name == names._super)) {
 					result = eresult = currentEnv.currentReceiver != null ? copy(currentEnv.currentReceiver) : copy(that);
 					return;
@@ -15902,7 +15903,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (!attr.isCaptured(vd)) continue;
 						result = eresult = M.at(vd.pos).Select(currentEnv.currentReceiver, vd.sym);
 						eresult.type = vd.type;
-			            if (print) System.out.println("VISITIDENT-K " + that + " " + eresult + " " + eresult.type);
+			            if (print) System.out.println("VISITIDENT-K " + that + " " + eresult + " " + eresult.type + " " + condition);
 						break;
 					}
 				}
@@ -16020,7 +16021,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    addAssume(that,Label.NULL_FIELD,e);
 //                }
 				result = eresult = fa;
-				if (print)System.out.println("VISITIDENT-PP " + that + " " + eresult + " " + eresult.type);
+				if (print) System.out.println("VISITIDENT-PP " + that + " " + eresult + " " + eresult.type + " " + condition);
 
 			} else {
 //               System.out.println("VISITIDENT-Q " + that + " " + oldenv);
@@ -16060,7 +16061,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				else
 					result = eresult = copy(eresult);
 			}
-//            System.out.println("VISITIDENT-W " + that + " " + eresult);
+            if (print) System.out.println("VISITIDENT-W " + that + " " + eresult);
 
 		} finally {
 			// Note that since 'this' is a ClassSymbol, not a VarSymbol, no check for
@@ -16069,11 +16070,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (translatingJML && !utils.isJavaOrJmlPrimitiveType(that.type) && sym instanceof VarSymbol
 					&& specs.isNonNull(sym) && eresult != null && !(eresult instanceof JCLambda)
 					&& !(eresult instanceof JCMemberReference)) {
-//				System.out.println("VISIT-IDENT-Z " + that + " " + eresult);
+				//System.out.println("VISIT-IDENT-Z " + that + " " + eresult + " " + condition);
 				JCExpression nn = treeutils.makeNotNull(that.pos, eresult);
 				addToCondition(that.pos, nn);
+				// FIXME - not sure what situation this is for -- seems the condition should be added by the caller
 			}
-//            System.out.println("VISITIDENT-Z " + that + " " + oldenv);
+            if (print) System.out.println("VISITIDENT-Z " + that + " " + eresult + " " + condition);
 
 		}
 	}
