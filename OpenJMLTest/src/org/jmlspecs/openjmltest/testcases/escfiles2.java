@@ -13,7 +13,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.EscBaseFiles;
 import org.junit.Assume;
 import org.junit.FixMethodOrder;
@@ -24,7 +23,11 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
-/** These tests check running ESC on files in the file system for tests needing reasoning about floating point values.
+/** These tests check running ESC on files in the file system, comparing the
+ * output against expected files. These tests are a bit easier to create, since 
+ * the file and output do not have to be converted into Strings; however, they
+ * are not as easily read, since the content is tucked away in files, rather 
+ * than immediately there in the test class.
  * <P>
  * To add a new test:
  * <UL>
@@ -37,74 +40,72 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class escfpfiles extends EscBaseFiles {
+public class escfiles2 extends EscBaseFiles {
 
-    @Test
-    public void gitbug732() {
-        helpTCG();
-    }
-
-    @Test
-    public void gitbug735() {
-        expectedExit = 0;
-        helpTCG("--show","--method=impl"); // For debugging
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        ignoreNotes = true;
     }
     
     @Test
-    public void escDouble() {
-        helpTCG();
-    }
-
-    @Test
-    public void escDouble1() {
-        helpTCG();
-    }
-
-    @Test @Ignore // timesout
-    public void escDouble2() {
-        helpTF("escDouble2","--exclude=clone,remainderBy,toString");
-    }
-
-    @Test @Ignore
-    public void escDouble2a() {
-        helpTF("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
-    }
-    
-    @Test
-    public void escDouble3() {
-        helpTF("escDouble3","--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
-    }
-    
-    @Test
-    public void escFloat() {
-        helpTCG();
-    }
-
-    @Test
-    public void escfpMath() {
-        helpTCG();
-    }
-
-    @Test
-    public void escfpPrimitiveOps() {
-        helpTCG();
-    }
-
-
-    
-    @Ignore // FIXME -  Needs more double specs
-    @Test public void gitbug580() {
-        expectedExit = 0;
+    public void gitbug362() {
+        expectedExit = 1;
         helpTCG();
     }
     
-    @Ignore // FIXME - times out -- double arithmetic?
     @Test
-    public void gitbug601() {
-        expectedExit = 0;
+    public void gitbug450a() {
+        expectedExit = 1;
         helpTCG();
     }
     
-
-
+    @Test
+    public void gitbug450b() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug455a() {
+        helpTCG();
+    }
+    
+    @Test
+    public void importProblem() {
+        helpTCG();
+    }
+    
+    @Test
+    public void importProblem2() {
+        helpTCG();
+    }
+    
+    @Test
+    public void imports() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
+    public void recommends() {
+        helpTCG("--show=program","--code-math=bigint");
+    }
+    
+    @Test
+    public void recommendsA() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
+    public void recommendsB() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
+    public void recommendsC() {
+        helpTCG();
+    }
 }

@@ -41,8 +41,6 @@ public abstract class RacBase extends JmlTestCase {
     public static final String locC = "(Utils.java:96)";
     public static final String locD = "(Utils.java:127)";
 
-	public final static String OpenJMLDemoPath = "../../OpenJMLDemo";
-	
     protected String testspecpath1 = "$A"+z+"$B";
     protected String testspecpath;
     protected int expectedExit = 0; // Expected result of compiler
@@ -51,7 +49,9 @@ public abstract class RacBase extends JmlTestCase {
     protected boolean jdkrac = false; // Set to true to do external system tests of RAC (emulating outside of JUnit)
     protected boolean continueAnyway = false; // If true, attempt to run the program despite compiler warnings or errors
     
+    /** File name of the expected output of compilation */
     protected String expected_compile = "expected-compile";
+    /** File name of the expected output of running the RACed program */
     protected String expected_run = "expected-run";
 
     /** These are the default command-line arguments for running the RACed
@@ -65,6 +65,9 @@ public abstract class RacBase extends JmlTestCase {
      */
     protected String[] rac = null; // initialized in subclasses
     
+    /** Holds the path to the folder in which expected outputs are present and actual outputs are placed;
+     * the path is relative to OpenJMLTest
+     */
     protected String outdir;
 
     @BeforeClass
@@ -118,7 +121,7 @@ public abstract class RacBase extends JmlTestCase {
     public static String macstring = "Exception in thread \"main\" ";
 
     public String setupOutdir() {
-        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testcompiles/" + getMethodName();
+        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testcompiles/" + getTestName();
         var d = new java.io.File(outdir);
         d.mkdirs();
         defrac[3] = outdir;

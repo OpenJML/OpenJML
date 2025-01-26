@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.io.*;
 
-public class Test {
+public class OpenJMLTestRunner {
 
     static int numThreads = 10;
     static int seconds = 600;

@@ -1968,7 +1968,8 @@ public class racnew extends RacBase {
                                 int hi = (Integer)(args[1]);
                                 int i = lo;
                                 while (i <= hi) {
-                                    if (i>=lo && i<=hi) count++; i++;
+                                    if (i>=lo && i<=hi) count++;
+                                    i++;
                                 }
                                 return count;
                             }

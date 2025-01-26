@@ -47,6 +47,8 @@ import com.sun.tools.javac.util.Position;
 /** This class provides basic functionality for the JUnit tests for OpenJML.
  * It is expected that actual JUnit test suites will derive from this class.
  * <P>
+ * It is also expected that the unit tests have 'OpenJMLTest' as the working directory (at least initially)
+ * <P>
  * It creates a DiagnosticListener that collects all of the error and warning
  * messages from executing the test.  This class does not capture other messages
  * (e.g. straight to std out), but some subclasses do.  The captured error and 
@@ -60,11 +62,15 @@ import com.sun.tools.javac.util.Position;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestCase {
 
+    /** The relative path from OpenJMLTest to the OpenJMLDemo repo */
+    public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
+
     // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
 
     // In a 'standard' local OpenJML github working environment, root will be the container for
     // OpenJML/OpenJML21, OpenJML/OpenJMLTest, Specs, etc.
     // This value is needed because some tests emit a full absolute path name in error messages
+    // The code to set this value presumes the initial working directory of the test runner is 'OpenJMLTest'
     static final public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
     {
         if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
@@ -72,9 +78,12 @@ public abstract class JmlTestCase {
             System.exit(1);
         }
     }
+    
+    // FIXME - not sure about these -- 'root' is an absolute path
     static final public String bruntime = "../" + root + "/OpenJML/OpenJML21/bin-runtime";
     static final public String  runtime = "../" + root + "/OpenJML/OpenJML21/runtime";
 
+    /** Holds an absolute path to the location of system library spec files, that is the folder holding java/lang/*.jml etc. */
     public final static String specsdir;
     static {
         String s = System.getenv("OPENJML_ROOT") + "../../Specs/specs";
@@ -84,25 +93,25 @@ public abstract class JmlTestCase {
         }
         specsdir = s;
     }
+    
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
+
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {
         return s.replace("$ROOT",JmlTestCase.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestCase.streamLine)
-                .replaceAll("#DEMO", RacBase.OpenJMLDemoPath);
+                .replaceAll("#DEMO", OpenJMLDemoPath);
     }
 
-//    // FIXME - do not rely on eclipse
-//    static protected String projLocation = System.getProperty("openjml.eclipseProjectLocation");
-    
     /** An object holding routines for comparing actual output with expected output */
     public OutputCompare outputCompare = new OutputCompare();
 
+    /** The name of the current test, injected by the initiating unit test structure (not used if a conventional JUnit test runner is used). */
     public String testname; // name is injected by the initiating unit test structure
     
-    /** This is here so we can get the name of a test, using name.getMethodName(); however it actually returns the 
-     * name of the immediately containing method, not the one labeled with @Test
+    /** This is here so we can get the name of a test, using name.getMethodName(), but this is valid only when
+     * a conventional JUnit runner is used.
      **/
-//    @Rule public TestName testname = new TestName();
+    @Rule public TestName testnameRule = new TestName();
     
     /** Returns the name of the method 'i' steps up in the call stack */
     public String getMethodName(int i) {

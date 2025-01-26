@@ -11,10 +11,10 @@ public class Equals
   public static void literal_equals()
   {
     Double a = new Double(0.0);
-    //@ assert a.equals(new Double(0.0));
-    //@ assert ! a.equals(new Double(1.0));
-    //@ assert (new Double(0.0)).equals(new Double(0.0));
-    //@ assert ! (new Double(0.0)).equals(new Double(1.0));
+    //@ assert a.equals(Double.valueOf(0.0));
+    //@ assert ! a.equals(Double.valueOf(1.0));
+    //@ assert (Double.valueOf(0.0)).equals(Double.valueOf(0.0));
+    //@ assert ! (Double.valueOf(0.0)).equals(Double.valueOf(1.0));
   }
 
   //@ requires !Double.isNaN(d1) && !Double.isNaN(d2);
@@ -32,8 +32,8 @@ public class Equals
   {
     Double nan = new Double(Double.NaN);
     //@ assert nan.equals(nan);
-    //@ assert nan.equals(new Double(Double.NaN));
-    //@ assert nan.equals(new Double(nan.doubleValue()));
+    //@ assert nan.equals(Double.valueOf(Double.NaN));
+    //@ assert nan.equals(Double.valueOf(nan.doubleValue()));
   }
 
   public static void zero_equals()
