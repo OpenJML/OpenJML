@@ -6,18 +6,26 @@
 ## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
 
 ## If the environmental variable COV is set, then coverage measurements are reported, and
-## are stored in the one coverage data file 'unit-$1' where $1 is the name of the first testcase listed in the command-line
+## are stored in the one coverage data file 'unit-$1' where $1 is the name of the first testsuite listed in the command-line
 
 ## $R is the location of the directory containing this script, with
 ## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
 
+trap ctrl_c INT
+
+function ctrl_c() {
+    rm -f the.jml.lock unittestframework
+    echo Aborted
+    exit 1
+}
+
 R=$( cd $(dirname "$BASH_SOURCE") && pwd)
-ROOT=$R/../../OpenJML21
+export ROOT=$R/../../OpenJML21
 TEST=$R/../../OpenJMLTest
 SOLVERS=$ROOT/../../Solvers
 JROOT=$R/../libs
-JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
-NJAVAC=$ROOT/build/*/jdk/bin/javac
+export JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
+export NJAVAC=$ROOT/build/*/jdk/bin/javac
 NJAVA=$ROOT/build/*/jdk/bin/java
 
 . $TEST/setup-coverage unit-$1
@@ -27,16 +35,23 @@ NJAVA=$ROOT/build/*/jdk/bin/java
 cd $R
 rm -f *.class
 CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
-CP=".:../src:$JUNIT:$CL"
+export CP=".:../src:$JUNIT:$CL"
 
-OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
+export OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
-while ! NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/*-release/jdk/modules $EXPORTS OpenJMLTestRunner.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testcases/*.java ; do
+while ! ((set -o noclobber;echo x > the.jml.lock) &>/dev/null) ; do echo "Waiting for the.jml.lock" ; sleep 3; done ## Wait until the temp file does not exist
 
-   # Build can fail because of race conditions between compiles if multiple runtests are started at once -- just retry
-   echo Build failed for $@
-   sleep 10
+while true; do
+
+make unittestframework
+#NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/*-release/jdk/modules $EXPORTS OpenJMLTestRunner.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testcases/*.java
+
+if [ -e OpenJMLTestRunner.class ]; then break; fi
+#echo Retrying compile for $@
 done
 
+rm -f the.jml.lock ## Release the lock
+
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
+## echo Running $@
 ( cd ..; OPENJML_ROOT="$SOLVERS" $NJAVA $AGENT -cp unittests:src:$JUNIT $EXPORTS OpenJMLTestRunner $@ 2>&1 )

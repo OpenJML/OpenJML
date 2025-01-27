@@ -7,21 +7,4 @@
 
 ## If the environmental variable COV is set, then coverage measurements are reported
 
-shopt -s expand_aliases
-
-p=$(dirname "$BASH_SOURCE")
-cd "$p"
-
-if [ -z "$*" ]; then
-    testlist=`(cd ../src/org/jmlspecs/openjmltest/testcases ; ls *.java | sed -e 's/.java//')`
-    rm -rf log-*
-else
-    testlist=$@
-    for d in $testlist; do rm -f log-$d; done
-fi
-
-for d in $testlist; do
-   ./run-summary log-$d $d 
-done
-
-echo Completed
+JOBS=0 ./runpar $@

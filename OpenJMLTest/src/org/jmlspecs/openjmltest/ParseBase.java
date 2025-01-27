@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
  * @author David Cok
  *
  */
-abstract public class ParseBase extends JmlTestCase {
+abstract public class ParseBase extends JmlTestSuite {
 
     protected static String testspecpath = "$A"+z+"$B";
 

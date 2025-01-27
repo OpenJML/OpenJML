@@ -14,7 +14,7 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjmltest.JmlTestCase.DiagnosticListenerX;
+import org.jmlspecs.openjmltest.JmlTestSuite.DiagnosticListenerX;
 import org.junit.Assert;
 
 public class OutputCompare {
@@ -97,7 +97,7 @@ public class OutputCompare {
                 Assert.fail("Too little actual output: " + collector.getDiagnostics().size() + " diagnostics");
             } else {
                 Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(failureLocation);
-                String act = JmlTestCase.noSource(d);
+                String act = JmlTestSuite.noSource(d);
                 long actualColumn = d.getColumnNumber();
                 if (failureString != null) {
                     assertEquals("Error " + failureLocation, failureString, act);
@@ -172,17 +172,17 @@ public class OutputCompare {
             failureString = null;
             return false;
         }
-        String act = JmlTestCase.noSource(collector.getDiagnostics().get(j)).replace('\\','/');
+        String act = JmlTestSuite.noSource(collector.getDiagnostics().get(j)).replace('\\','/');
         String exp = null;
         if (list[i] != null) {
-            exp = JmlTestCase.doReplacements(list[i].toString()).replace('\\','/');
+            exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/');
         }
         long actualColumn = -1;
         if (!exp.equals(act)) {
             failureLocation = j;
             failureString = list[i].toString();
             failureCol = -1;
-            if (issueErrors) assertEquals("Error " + j, list[i], JmlTestCase.noSource(collector.getDiagnostics().get(j)));
+            if (issueErrors) assertEquals("Error " + j, list[i], JmlTestSuite.noSource(collector.getDiagnostics().get(j)));
             return false;
         } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
             failureLocation = j;
@@ -277,7 +277,7 @@ public class OutputCompare {
                 String sexp = exp.readLine();
                 if (sexp != null) {
                     sexp = sexp.replace("\r\n", "\n");
-                    sexp = JmlTestCase.doReplacements(sexp);
+                    sexp = JmlTestSuite.doReplacements(sexp);
                     sexp = sexp.replace('\\','/');
                     hasVerify = sexp.contains("verify: ");
                 }
@@ -290,14 +290,14 @@ public class OutputCompare {
                     }
                     if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                     if (sexp != null && sact == null) {
-                        diff += ("Less actual output than expected: " + sexp + JmlTestCase.eol);
+                        diff += ("Less actual output than expected: " + sexp + JmlTestSuite.eol);
                         return diff;
                     }
                     if (sact != null && !sact.equals(sexp)) {
                         if (sact.startsWith("Note: ") && ignoreNotes) continue;
                     }
                     if (sexp == null && sact != null) {
-                        diff += ("More actual output than expected: " + actual + JmlTestCase.eol);
+                        diff += ("More actual output than expected: " + actual + JmlTestSuite.eol);
                         return diff;
                     }
                     if (!sexp.equals(sact)) {
@@ -306,18 +306,18 @@ public class OutputCompare {
                             // OK
                         } else {         
                             if (sact.startsWith("Note: ") && ignoreNotes) continue;
-                            diff += ("Lines differ at " + line + JmlTestCase.eol)
-                                    + ("EXP: " + sexp + JmlTestCase.eol)
-                                    + ("ACT: " + sact + JmlTestCase.eol);
+                            diff += ("Lines differ at " + line + JmlTestSuite.eol)
+                                    + ("EXP: " + sexp + JmlTestSuite.eol)
+                                    + ("ACT: " + sact + JmlTestSuite.eol);
                         }
                     } 
                     break;
                 }
             }
         } catch (FileNotFoundException e) {
-            diff += ("No expected file found: " + expected + JmlTestCase.eol);
+            diff += ("No expected file found: " + expected + JmlTestSuite.eol);
         } catch (Exception e) {
-            diff += ("Exception on file comparison" + JmlTestCase.eol);
+            diff += ("Exception on file comparison" + JmlTestSuite.eol);
         } finally {
             try {
                 if (exp != null) exp.close();
@@ -395,15 +395,15 @@ public class OutputCompare {
                     if (line == lines.length) return diff.isEmpty() ? null : diff;
 
                     else {
-                        diff += ("More actual input than expected" + JmlTestCase.eol);
+                        diff += ("More actual input than expected" + JmlTestSuite.eol);
                         return diff;
                     }
                 }
                 if (line > lines.length) {
-                    diff += ("Less actual input than expected" + JmlTestCase.eol);
+                    diff += ("Less actual input than expected" + JmlTestSuite.eol);
                     return diff;
                 }
-                sexp = JmlTestCase.doReplacements(sexp);
+                sexp = JmlTestSuite.doReplacements(sexp);
                 String sact = lines[line-1];
                 if (sexp.equals(sact)) {
                     // OK
@@ -414,16 +414,16 @@ public class OutputCompare {
                     if (k != -1 && sexp.contains("at ") && sexp.substring(0,k).equals(sact.substring(0,k))) {
                         // OK
                     } else {         
-                        diff += ("Lines differ at " + line + JmlTestCase.eol)
-                            + ("EXP: " + sexp + JmlTestCase.eol)
-                            + ("ACT: " + sact + JmlTestCase.eol);
+                        diff += ("Lines differ at " + line + JmlTestSuite.eol)
+                            + ("EXP: " + sexp + JmlTestSuite.eol)
+                            + ("ACT: " + sact + JmlTestSuite.eol);
                     }
                 }
             }
         } catch (FileNotFoundException e) {
-            diff += ("No expected file found: " + expectedFile + JmlTestCase.eol);
+            diff += ("No expected file found: " + expectedFile + JmlTestSuite.eol);
         } catch (Exception e) {
-            diff += ("Exception on file comparison" + JmlTestCase.eol);
+            diff += ("Exception on file comparison" + JmlTestSuite.eol);
         } finally {
             try {
                 if (exp != null) exp.close();
