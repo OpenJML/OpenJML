@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.junit.launchconfig">
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-        <listEntry value="/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/escfiles.java"/>
+        <listEntry value="/OpenJMLTest/src/org/jmlspecs/openjmltest/testsuites/escfiles.java"/>
     </listAttribute>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>
@@ -20,7 +20,7 @@
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_SHOW_CODEDETAILS_IN_EXCEPTION_MESSAGES" value="true"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
-    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.jmlspecs.openjmltest.testcases.escfiles"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.jmlspecs.openjmltest.testsuites.escfiles"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="OpenJMLTest"/>
     <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dopenjml.eclipseSpecsProjectLocation=${project_loc:Specs} -DSKIPLONGTESTS"/>
 </launchConfiguration>

@@ -26,7 +26,7 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 
-public abstract class EscBase extends JmlTestCase {
+public abstract class EscBase extends JmlTestSuite {
 
     /** This JUnit rule sets a timeout on the whole test */
     @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt

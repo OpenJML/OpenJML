@@ -3,14 +3,14 @@
 // except for rac tests, Specs tests, and those things listed in 'skips'
 //
 // Some parallelism is implemented -- cf. 'numThreads'
-// but currently the tests are run sequentially
+// but the default is that tests are run sequentially
 // A timeout is enforced -- cf. 'seconds'
 // There are some command-line options: -seq -par -t= -s= -v
 
 
 
 import org.jmlspecs.openjmltest.*;
-import org.jmlspecs.openjmltest.testcases.*;
+import org.jmlspecs.openjmltest.testsuites.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -19,7 +19,7 @@ import java.io.*;
 
 public class OpenJMLTestRunner {
 
-    static int numThreads = 10;
+    static int numThreads = 0;
     static int seconds = 600;
     static ExecutorService eservice;
     static boolean sequential = true;
@@ -34,8 +34,10 @@ public class OpenJMLTestRunner {
         while (args.length > 0) {
             if (args[0].equals("-seq")) {
                 sequential = true;
+                numThreads = 0;
             } else if (args[0].equals("-par")) {
                 sequential = false;
+                numThreads = 10;
             } else if (args[0].startsWith("-t=")) {
                 numThreads = Integer.valueOf(args[0].substring(3));
             } else if (args[0].startsWith("-s=")) {
@@ -47,9 +49,27 @@ public class OpenJMLTestRunner {
             }
             args = Arrays.copyOfRange(args,1,args.length);
         }
+        String th = System.getenv("THREADS");
+        if (th != null && !th.isEmpty()) {
+            try {
+                numThreads = Integer.valueOf(th);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+        sequential = numThreads == 0;
+        if (!sequential) {
+            System.out.println("Concurrent processing of test cases is not implemented fully");
+            System.exit(1);
+        }
 
-        eservice = Executors.newFixedThreadPool(numThreads);
-        var dir = new File(JmlTestCase.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases");
+        try {
+            eservice = Executors.newFixedThreadPool(numThreads==0?1:numThreads); // argument required to be positive
+        } catch (Exception e) {
+            System.out.println("Failed to create thread pool for " + numThreads + " threads: " + e);
+            System.exit(1);
+        }
+        var dir = new File(JmlTestSuite.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases");
         var lst = args.length == 0 ? dir.list() : args;
         java.util.Arrays.sort(lst);
         for (var item : lst) {
@@ -63,9 +83,9 @@ public class OpenJMLTestRunner {
                 tail = item.substring(k+1);
                 item = item.substring(0,k);
             }
-            Class<JmlTestCase> clazz;
+            Class<JmlTestSuite> clazz;
             try {
-                clazz = (Class<JmlTestCase>)Class.forName("org.jmlspecs.openjmltest.testcases." + item);
+                clazz = (Class<JmlTestSuite>)Class.forName("org.jmlspecs.openjmltest.testsuites." + item);
             } catch (ClassNotFoundException e) {
                 System.out.println("Error: There is no unit test named " + item);
                 continue;
@@ -101,11 +121,11 @@ public class OpenJMLTestRunner {
                 Method pmethod = null;
                 x: while (c != null) {
                     for (var m: c.getDeclaredMethods()) {
-                        for (var a: m.getDeclaredAnnotations()) {
-                            if (a.toString().contains("org.junit.runners.Parameterized$Parameters")) {
-                                pmethod = m;
-                                break x;
-                            }
+                        
+                        var a = m.getAnnotationsByType(org.junit.runners.Parameterized.Parameters.class);
+                        if (a.length != 0) {
+                            pmethod = m;
+                            break x;
                         }
                     }
                     c = c.getSuperclass();
@@ -113,6 +133,7 @@ public class OpenJMLTestRunner {
                 if (pmethod == null) {
                     System.out.println("No @Parameters found for " + clazz);
                     continue;
+                } else {
                 }
                 if (verbose) System.out.println("Found @Parameter: " + pmethod);
                 params = (java.util.Collection<Object[]>)pmethod.invoke(null);
@@ -161,61 +182,64 @@ public class OpenJMLTestRunner {
     static List<UnitTest> tasks = java.util.Collections.synchronizedList(new LinkedList<UnitTest>());
 
     static public void threadTask() {
-        if (verbose) System.out.println("Launching " + Thread.currentThread().getName());
+        if (verbose) synchronized (System.out) { System.out.println("Launching " + Thread.currentThread().getName()); }
         UnitTest t;
         while (true) {
             synchronized(tasks) { t = tasks.size() == 0 ? null : tasks.remove(0); }
             if (t == null) {
-                if (verbose) System.out.println("Thread " + Thread.currentThread().getName() + " exiting");
+                if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " exiting"); }
                 return;
             }
-            if (verbose) System.out.println("Thread " + Thread.currentThread().getName() + " has task " + t.method);
-            t.run();
-            if (verbose) System.out.println("Thread " + Thread.currentThread().getName() + " completed task " + t.method);
+            if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " has task " + t.method); }
+            t.run(); // Output from the task itself is not synchronized
+            if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " completed task " + t.method); }
         }
     }
 
     /** This method is run in the thread doing the testcase and constitutes running the test */
-    static public void doMethod(Class<? extends JmlTestCase> clazz, Method method, Constructor constr, Object[] params) {
+    static public void doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
         synchronized(stests) { tests++; }
         try {
-            System.out.println("Testing " + clazz + "." + method.getName() + " using " + Thread.currentThread().getName());
-            JmlTestCase t = null;
+            synchronized (System.out) { System.out.println("Testing " + clazz + "." + method.getName() + (params==null?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
+            JmlTestSuite t = null;
             try {
                 // Essentially, we are creating our own JUnit test runner here -- I think to control the output and metrics
                 // but we ignore some JUnit features such as @Before annotations
-                var n = constr.newInstance(params); // constructs an instance of the JmlTestCase
-                if (n instanceof JmlTestCase tt) {
+                var n = constr.newInstance(params); // constructs an instance of the JmlTestSuite
+                if (n instanceof JmlTestSuite tt) {
                     t = tt;
                     t.testname = method.getName();
                     t.setUp();
-                    method.invoke(t); // invokes the specific test within the testcase
+                    method.invoke(t); // invokes the specific test within the testcase -- output directly to System.out is not synchronized
                 } else {
-                    throw new RuntimeException("Testcase " + n.getClass() + " does not extend JmlTestCase");
+                    throw new RuntimeException("Test suite " + n.getClass() + " does not extend JmlTestSuite");
                 }
             } catch (Throwable e) {
                 if (e.getCause() != null) e = e.getCause();
                 synchronized(sfailures) { failures++; }
-                System.out.println("Test FAILED: " + clazz + "." + method.getName());
-                System.out.println(e);
-                if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+                synchronized (System.out) { 
+                    System.out.println("Test FAILED: " + clazz + "." + method.getName() + (params==null?"":Arrays.toString(params)));
+                    System.out.println(e);
+                    if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+                }
             } finally {
                 if (t != null) t.tearDown();
-                //System.out.println("  Post teardown " + method);
             }
         } catch (Exception e) {
-            System.out.println("Failed to construct or execute or teardown test: " + method + " " + e);
-            if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+            synchronized (System.out) {
+                System.out.println("Failed to construct or execute or teardown test: " + method + " " + e);
+                if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+            }
         }
     }
 
     static class UnitTest implements Runnable {
-        final Class<? extends JmlTestCase> clazz;
+        final Class<? extends JmlTestSuite> clazz;
         final Method method;
         final Constructor constr;
         final Object[] params;
 
-        public UnitTest(final Class<? extends JmlTestCase> clazz, final Method method, final Constructor constr, final Object[] params) {
+        public UnitTest(final Class<? extends JmlTestSuite> clazz, final Method method, final Constructor constr, final Object[] params) {
             this.clazz = clazz;
             this.method = method;
             this.constr = constr;
@@ -228,19 +252,18 @@ public class OpenJMLTestRunner {
                 future = eservice.submit(()->doMethod(clazz, method, constr, params));
                 future.get(seconds, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
-                System.out.println("TIMEOUT: " + method + " in thread " + Thread.currentThread().getName());
+                synchronized (System.out) { System.out.println("TIMEOUT: " + method + " in thread " + Thread.currentThread().getName()); }
                 synchronized(stimeouts) { timeouts++; }
                 future.cancel(true);
-                System.out.println("timeout cancelled " + future.isCancelled());
+                synchronized (System.out) { System.out.println("timeout cancelled " + future.isCancelled()); }
             } catch (Exception e) {
-                System.out.println("EXCEPTION: " + method + " " + e);
+                synchronized (System.out) { System.out.println("EXCEPTION: " + method + " " + e); }
                 synchronized(sfailures) { failures++; }
             } finally {
                 if (future != null && !future.isDone()) {
-                    System.out.println("PROBLEM: " + method + " not reported as done");
+                    synchronized (System.out) { System.out.println("PROBLEM: " + method + " not reported as done"); }
                     future.cancel(true);
                 }
-                //System.out.println("  Completed " + method);
             }
         }
     }

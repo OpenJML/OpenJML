@@ -26,7 +26,7 @@ import static org.junit.Assert.*;
  * @author David R. Cok
  *
  */
-public abstract class TCBase extends JmlTestCase {
+public abstract class TCBase extends JmlTestSuite {
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B"+z+root+"/Specs/specs";

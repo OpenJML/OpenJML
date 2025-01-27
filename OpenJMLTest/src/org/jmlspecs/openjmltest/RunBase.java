@@ -15,7 +15,7 @@ import org.junit.Assert;
  * @author David R. Cok
  *
  */
-public abstract class RunBase extends JmlTestCase {
+public abstract class RunBase extends JmlTestSuite {
 
     public static final String[] args = new String[] { "./run" };
     

@@ -25,7 +25,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 
 /** This is a base class for unit test files that exercise the RAC.
- * It inherits from JmlTestCase the diagnostic collector implementation
+ * It inherits from JmlTestSuite the diagnostic collector implementation
  * and the (optional) collection of System.out and System.err.  It 
  * implements as well the mechanisms for running RAC via programmatic
  * calls to openjml and then executing the resulting program.
@@ -33,7 +33,7 @@ import com.sun.tools.javac.util.Options;
  * @author David R. Cok
  *
  */
-public abstract class RacBase extends JmlTestCase {
+public abstract class RacBase extends JmlTestSuite {
 	
 	// These are common strings for parts of expected output that can frequently change
     public static final String locA = "(Utils.java:143)";
