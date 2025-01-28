@@ -24,7 +24,7 @@ export ROOT=$R/../../OpenJML21
 TEST=$R/../../OpenJMLTest
 SOLVERS=$ROOT/../../Solvers
 JROOT=$R/../libs
-export JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
+export JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"
 export NJAVAC=$ROOT/build/*/jdk/bin/javac
 NJAVA=$ROOT/build/*/jdk/bin/java
 
