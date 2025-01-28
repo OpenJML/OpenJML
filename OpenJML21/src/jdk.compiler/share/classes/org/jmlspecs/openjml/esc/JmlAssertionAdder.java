@@ -885,7 +885,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		findActiveExceptions(pmethodDecl);
 
 		this.currentEnv = this.currentEnv.pushEnvCopy(); // FIXME - or pushCopyInit?
-        currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym, false);
+        currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym, isModel(pmethodDecl.sym));
 
 		var savedDivergesExpressions = divergesExpressions;
 		divergesExpressions = new ListBuffer<>();
@@ -1032,6 +1032,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				initialStatements.add(d);
 			} else {
 				addStat(comment(methodDecl, "No result declaration - method is void", null));
+				if (methodDecl.body != null) {
+				    var emptyStat = M.at(methodDecl.body.getEndPosition(log.currentSource().getEndPosTable())).Skip();
+	                addStat(emptyStat);
+	                addFeasibilityCheck(emptyStat, currentStatements, Strings.feas_return, "at implicit return");
+				}
 				resultSym = null;
 			}
 			resultExpr = resultSym == null ? null : treeutils.makeIdent(methodDecl.pos, resultSym);

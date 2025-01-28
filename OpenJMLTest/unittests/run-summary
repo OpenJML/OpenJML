@@ -2,28 +2,32 @@
 
 ## This script is intended for internal use.
 
-## Arguments ./run-summary <name of log file> <names of testcases>
-## This script runs all the tests in the given testcase, counting successes, failures and skipped tests
-## More than one testcase may be listed, with all the results combined into the one log file.
+## Arguments ./run-summary <name of log file> <names of testsuites>
+## This script runs all the tests in the given testsuite, counting successes, failures and skipped tests
+## More than one testsuite may be listed, with all the results combined into the one log file.
 
 ## The first argument is (usually) the name of the log-file
 if [ $# -eq 0 ]; then
-    echo "error: run-summary <path-to-log-file> <testcase names>"
+    echo "error: run-summary <path-to-log-file> <testsuite names>"
     exit 1
 elif [ $# -eq 1 ]; then
     f=log-$1
-    #echo Using $f as the log file for testcase $1
+    #echo Using $f as the log file for testsuite $1
 else
     f=$1; shift
 fi
 
-# The rest of the arguments are testcase names to be run sequentially,
+# The rest of the arguments are testsuite names to be run sequentially,
 # with output captured in the log file and a single summary line after all cases are complete
 
+count=0
 while true; do
-r=`./runtests $* 2>&1 | tee $f | grep failures`
-if [ -n "$r" ]; then break; fi
-echo Retrying summary for $@
+  r=`./runtests $* 2>&1 | tee $f | grep failures`
+  if [ -n "$r" ]; then break; fi
+  sleep 5
+  echo "Retrying (# $count) summary for $@"
+  count=$(( $count + 1 ))
+  if [ $count -ge 3 ]; then echo Giving up on $@ ; exit 1; fi
 done
 
 actfailures=`echo $r | sed -e 's/^.*timeouts,//' | sed -e 's/failures,.*$//' | tr -d ' ' `

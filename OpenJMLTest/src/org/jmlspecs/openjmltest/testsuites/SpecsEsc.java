@@ -27,28 +27,28 @@ public class SpecsEsc extends EscBaseFiles {
 
     @Parameters
     static public  Collection<String[]> datax() {
-    	System.out.println("CALLING PARAMETERS");
         if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
         for (File f: findAllFiles()) {
             data.add(new String[]{ f.getName()});
         }
+//        data.add(new String[]{ "java-lang-Object"});
         return data;
     }
 
-    /** The name of the class to be tested (which is also the name of the test)
-     * when the suite mode is used. This is defined simply to enable debugging.
+    /** The name of the folder to be tested (which is also the name of the test)
+     * when the suite mode is used. The foldername is the classname with '.' replaced by '-'.
      */
     /*@ non_null*/
-    private String classname;
+    private String foldername;
     
     /** We use SpecsBase as a test case, with a name and its own runTest, to
      * execute the test on a given class name.
      * @param classname the fully qualified class to test
      */
-    public SpecsEsc(String classname) {
+    public SpecsEsc(String foldername) {
         super("", "z3_4_3");  // FIXME - allow solvers
-        this.classname = classname;
+        this.foldername = foldername;
     }
 
 
@@ -56,8 +56,6 @@ public class SpecsEsc extends EscBaseFiles {
     public void setUp() throws Exception {
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
-        JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
-        JmlOption.putOption(context,JmlOption.FEASIBILITY,Strings.feas_exit);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output
@@ -70,17 +68,17 @@ public class SpecsEsc extends EscBaseFiles {
     @Test
     public void testSpecificationFile() {
         expectedExit = 0;
-        String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + classname;
-        System.out.println("    ... " + classname.replace('_', '.'));
-        escOnFiles(subdir,subdir,"--method=esc","--check-feasibility=exit");
+        String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + foldername;
+        //System.out.println("    ... " + classname.replace('-','.'));
+        escOnFiles(subdir,subdir,"--method=esc","--no-show-skipped","--check-feasibility=return","-Xlint:unchecked");
     }
     
     static public java.util.List<File> findAllFiles() {
         File dir = new File("testspecs");
         java.util.List<File> classes = new ArrayList<>();
         for (File f: dir.listFiles()) {
-            if (f.getName().endsWith("HashSet")) continue;
-            if (f.getName().endsWith("ArrayList")) continue;
+            //if (f.getName().endsWith("HashSet")) continue;
+            //if (f.getName().endsWith("ArrayList")) continue;
             if (f.isDirectory()) classes.add(f);
         }
         System.out.println(classes.size() + " system specification classes found for esc testing");

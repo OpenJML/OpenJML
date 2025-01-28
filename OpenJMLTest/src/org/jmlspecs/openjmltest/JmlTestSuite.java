@@ -357,15 +357,21 @@ public abstract class JmlTestSuite {
     
     public static void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
         synchronized (System.out) {
-            for (Diagnostic<? extends JavaFileObject> dd: diagnostics) {
-                long line = dd.getLineNumber();
-                long start = dd.getStartPosition();
-                long pos = dd.getPosition();
-                long end = dd.getEndPosition();
-                long col = dd.getColumnNumber();
-                System.out.println(noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end);
-            }
+            System.out.println(diagnosticsToString(diagnostics));
         }
+    }
+
+    public static String diagnosticsToString(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
+        String r = "";
+        for (Diagnostic<? extends JavaFileObject> dd: diagnostics) {
+            long line = dd.getLineNumber();
+            long start = dd.getStartPosition();
+            long pos = dd.getPosition();
+            long end = dd.getEndPosition();
+            long col = dd.getColumnNumber();
+            r += (noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end + "\n");
+        }
+        return r;
     }
 
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.

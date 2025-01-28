@@ -200,7 +200,7 @@ public class OpenJMLTestRunner {
     static public void doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
         synchronized(stests) { tests++; }
         try {
-            synchronized (System.out) { System.out.println("Testing " + clazz + "." + method.getName() + (params==null?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
+            synchronized (System.out) { System.out.println("Testing " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
             JmlTestSuite t = null;
             try {
                 // Essentially, we are creating our own JUnit test runner here -- I think to control the output and metrics
@@ -218,7 +218,7 @@ public class OpenJMLTestRunner {
                 if (e.getCause() != null) e = e.getCause();
                 synchronized(sfailures) { failures++; }
                 synchronized (System.out) { 
-                    System.out.println("Test FAILED: " + clazz + "." + method.getName() + (params==null?"":Arrays.toString(params)));
+                    System.out.println("Test FAILED: " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)));
                     System.out.println(e);
                     if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
                 }
