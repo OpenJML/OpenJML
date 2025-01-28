@@ -40,8 +40,8 @@ public class TestArrayList {
 	i1 = a.remove(1);
 	//@ assert i1 == 3;
 	//@ assert a.size() == 1;
-	
-	ArrayList<Integer> aa = (ArrayList<Integer>)a.clone();
+	//@ assert a instanceof Cloneable;
+    ArrayList<Integer> aa = (ArrayList<Integer>)a.clone();
 	
 	
 	
@@ -56,6 +56,7 @@ public class TestArrayList {
 	// AbstractCollection: toArray(2 version), containsAll, removeAll, retainAll, toString
 
 	// anything inherited from  Iterable, RandomAccess, Cloneable, Serializable, 
+    System.out.println("DONE");
 }
 
 }

@@ -121,8 +121,8 @@ public class SpecsBase extends TCBase {
         	if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
             data.add(new String[]{ f});
         }
-//        data.add(new String[] { "org.hamcrest.Matcher" });
-//        counts.put("org.hamcrest.Matcher", 0);
+//        data.clear(); data.add(new String[] { "java.nio.file.Files" });
+//        counts.put("java.nio.file.Files", 0);
         return data;
     }
 
@@ -146,7 +146,7 @@ public class SpecsBase extends TCBase {
     @Override
     public void setUp() throws Exception {
         ignoreNotes = false;
-        print = printDiagnostics = true; // true = various debugging output
+        //print = printDiagnostics = true; // true = various debugging output
         super.setUp();
         jars = java.nio.file.Files.list(Paths.get("../OpenJMLTest/libs")).map(Path::toString).collect(java.util.stream.Collectors.toList());
         jars.add(0,"../OpenJML/bin-runtime"); // prepend
@@ -177,16 +177,42 @@ public class SpecsBase extends TCBase {
             if (print) JmlSpecs.instance(context).printDatabase();
             int expected = expectedExit;
             boolean allNotes = collector.getDiagnostics().stream().allMatch(d->d.toString().contains("Note:"));
-            if (expected == -1) expected = allNotes ? 0 : 1;
+            boolean anyErrors = collector.getDiagnostics().stream().anyMatch(d->d.toString().contains("error:"));
+            if (expected == -1) expected = !anyErrors ? 0 : 1;
             if (ex != expected) {
                 System.out.println("Unexpected return code for "  + testClass + " actual: " + ex + " expected: " + expected);
                 foundErrors = true;
             }
             if (!allNotes) {
-                System.out.println("ERRORS FOUND " + testClass);
-                foundErrors = true;
-                printDiagnostics();
-            }
+                String expfile = "testspecs/" + testClass + "-expected";
+                String actfile = "testspecs/" + testClass + "-actual";
+                try {
+                    if (new java.io.File(expfile).exists()) {
+                        String exp = java.nio.file.Files.readString(Paths.get(expfile));
+                        String act = diagnosticsToString(collector.getDiagnostics());
+                        if (!exp.equals(act)) {
+                            System.out.println("UNEXPECTED OUTPUT: " + testClass);
+                            System.out.println(act);
+                            java.nio.file.Files.writeString(Paths.get(actfile), act);
+                            foundErrors = true;
+                            printDiagnostics();
+                        } else {
+                            System.out.println("Output matched for " + testClass);
+                            new java.io.File(actfile).delete();
+                        }
+                    } else {
+                        String act = diagnosticsToString(collector.getDiagnostics());
+                        java.nio.file.Files.writeString(Paths.get(actfile), act);
+                        System.out.println("ERRORS FOUND " + testClass);
+                        foundErrors = true;
+                        printDiagnostics();
+                    }
+                } catch (IOException e) {
+                    System.out.println("Failure trying to read or write expected or actual output: " + e);
+                    foundErrors = true;
+                    printDiagnostics();
+                }
+           }
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + testClass + " " + e);

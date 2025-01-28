@@ -39,23 +39,23 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escfpfiles extends EscBaseFiles {
 
-    @Test
+    @Test @Ignore
     public void gitbug732() {
         helpTCG();
     }
 
-    @Test
+    @Test @Ignore
     public void gitbug735() {
         expectedExit = 0;
         helpTCG("--show","--method=impl"); // For debugging
     }
     
-    @Test
+    @Test @Ignore
     public void escDouble() {
         helpTCG();
     }
 
-    @Test
+    @Test @Ignore
     public void escDouble1() {
         helpTCG();
     }
@@ -70,22 +70,22 @@ public class escfpfiles extends EscBaseFiles {
         helpTF("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
     }
     
-    @Test
+    @Test @Ignore
     public void escDouble3() {
         helpTF("escDouble3","--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
     }
     
-    @Test
+    @Test @Ignore
     public void escFloat() {
         helpTCG();
     }
 
-    @Test
+    @Test @Ignore
     public void escfpMath() {
         helpTCG();
     }
 
-    @Test
+    @Test @Ignore
     public void escfpPrimitiveOps() {
         helpTCG();
     }

@@ -484,12 +484,12 @@ public class FunctionLikeExpressions extends JmlExtension {
                 } else if (JmlTypes.instance(attr.context).isSubtype(argtype, attr.syms.iterableType)) {
                     // OK - is a Java collection
                 } else {
-                    String s = argtype.toString();
+                    String s = argtype.toString(); // FIXME - check that elemtype is actually nullable
                     // FIXME - find a better way to do these tests
-                    if (s.startsWith("org.jmlspecs.lang.seq")) {
-                    } else if (s.startsWith("org.jmlspecs.lang.array")) { // FIXME - are we keeping array?
-                    } else if (s.startsWith("org.jmlspecs.lang.set")) {
-                    } else if (s.startsWith("org.jmlspecs.lang.map")) {
+                    if (s.startsWith("\\seq")) {
+                    } else if (s.startsWith("\\array")) { // FIXME - are we keeping array?
+                    } else if (s.startsWith("\\set")) {
+                    } else if (s.startsWith("\\map")) {
                     } else {
                         error(arg,"jml.arraytype.required",keyword(),argtype.toString(),arg.toString());
                     }

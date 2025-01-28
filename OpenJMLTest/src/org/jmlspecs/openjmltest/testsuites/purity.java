@@ -14,8 +14,8 @@ public class purity extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        main.addOptions("-no-require-white-space");
-        main.addOptions("-purityCheck=false");  // Do not warn about library calls -- everything else is warned about
+        main.addOptions("--no-require-white-space");
+       // main.addOptions("--no-purity-check");  // Do not warn about library calls -- everything else is warned about
     }
 
     /** Test scanning something very simple */
@@ -101,8 +101,25 @@ public class purity extends TCBase {
 
     @Test
     public void testModelMethodIncDec() {
+        expectedExit = 6;
+        addOptions("--esc", "--spec-math=java"); // FIXME - shouldn't this set spec-math
         helpTC(" class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
-                ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
+                ,"/TEST.java:2: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",46
+                ,"/TEST.java:2: verify: Associated declaration: /TEST.java:2:",6
+                ,"/TEST.java:2: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",40
+                ,"/TEST.java:2: verify: Associated declaration: /TEST.java:2:",6
+                );
+    }
+
+    @Test
+    public void testMethodIncDec() {
+        expectedExit = 6;
+        addOptions("--esc", "--code-math=java");
+        helpTC(" class A {  int b;  \n //@ pure \n boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
+                ,"/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",31
+                ,"/TEST.java:2: verify: Associated declaration: /TEST.java:3:",6
+                ,"/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",25
+                ,"/TEST.java:2: verify: Associated declaration: /TEST.java:3:",6
                 );
     }
 

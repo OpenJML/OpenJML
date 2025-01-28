@@ -39,18 +39,24 @@ export CP=".:../src:$JUNIT:$CL"
 
 export OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
-while ! ((set -o noclobber;echo x > the.jml.lock) &>/dev/null) ; do echo "Waiting for the.jml.lock" ; sleep 3; done ## Wait until the temp file does not exist
-
 while true; do
+  if make -q unittestframework ; then break; fi  ## make is up to date so go on to execute the compiled program
 
-make unittestframework
-#NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/*-release/jdk/modules $EXPORTS OpenJMLTestRunner.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testcases/*.java
+  if ! ((set -o noclobber;echo x > the.jml.lock) &>/dev/null) ; then echo "Waiting for the.jml.lock" ; sleep 3; continue; fi ## Check until the temp file does not exist
 
-if [ -e OpenJMLTestRunner.class ]; then break; fi
-#echo Retrying compile for $@
+  ## Have the lock and last I checked the make was not up to date, so do the compile
+
+  ## Use make instead of the explicit compile to use make's up-to-date-ness checking
+  echo Compiling for $@
+  make unittestframework
+  #NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/*-release/jdk/modules $EXPORTS OpenJMLTestRunner.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testcases/*.java
+
+  rm -f the.jml.lock ## Release the lock
+  if [ ! -e OpenJMLTestRunner.class ]; then echo Missing OpenJMLTestRunner.class $@; continue; fi ## Unexpectedly missing the compile result, so try all over again 
+
+  echo Compilation complete
+  break
 done
-
-rm -f the.jml.lock ## Release the lock
 
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
 ## echo Running $@

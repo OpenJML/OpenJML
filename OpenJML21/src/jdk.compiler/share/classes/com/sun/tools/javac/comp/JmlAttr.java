@@ -966,7 +966,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 } else if (specIsRecord) {
                     utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl,
                             "jml.message",  "The specification declaration may not be a record, because the source/binary is not");
-               } else if (specsDecl.extending != null) {
+                } else if (specsDecl.sym.isEnum()) {
+                    // FIXME - check that java is enum, even if javaDecl == null
+                } else if (specsDecl.extending != null) {
                     attribType(specsDecl.extending, specEnv);
                     if (classSymbol == syms.objectType.tsym || !jmltypes.isSameType(specsDecl.extending.type, sup)) {
                         utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl.extending, javaDecl.sourcefile, (javaDecl.extending != null ? javaDecl.extending : javaDecl),
@@ -979,7 +981,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     } else if (classSymbol.toString().contains("java.util.stream.Collector")) {
                         // OK - FIXME - why do we need this
                     } else if (sup.tsym != syms.objectType.tsym) {
-                        utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl.extending,
+                        if (javaDecl != null)
+                            utils.errorAndAssociatedDeclaration(specsDecl.sourcefile, specsDecl, javaDecl.sourcefile, javaDecl.extending,
+                                    "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
+                        else 
+                            utils.error(specsDecl.sourcefile, specsDecl,
                                 "jml.message", "The specification declaration must declare the same supertype as the source declaration: " + sup);
                     }
                 }
