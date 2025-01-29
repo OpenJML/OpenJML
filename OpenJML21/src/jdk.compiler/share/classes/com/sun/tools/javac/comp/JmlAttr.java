@@ -3382,27 +3382,31 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Type saved = result = attribExpr(nm,env,Type.noType);
         Symbol sym = null;
         if (nm.type.getTag() == TypeTag.ERROR) return;
-        else if (nm instanceof JCIdent) sym = ((JCIdent)nm).sym;
-        else if (nm instanceof JCFieldAccess) sym = ((JCFieldAccess)nm).sym;
+        else if (nm instanceof JCIdent id) sym = id.sym;
+        else if (nm instanceof JCFieldAccess fa) sym = fa.sym;
         else if (nm instanceof JCErroneous) return;
 
         if (sym == null) {
             utils.error(tree,"jml.message","Unexpectedly did not find a resolution for this data group expression");
             return;
         }
-        if (!(sym instanceof VarSymbol)) {
+        
+        if (!(sym instanceof VarSymbol vsym)|| !(sym.owner instanceof ClassSymbol)) {
             utils.error(tree,"jml.message","data group expression incorrectly resolved as something other than a field: " + sym);
             return;
         }
-        tree.sym = (VarSymbol)sym;
+        tree.sym = vsym;
         
-        JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs((VarSymbol)sym);
+        JmlSpecs.FieldSpecs fspecs = specs.getAttrSpecs(vsym);
         boolean isSpecPublic = utils.hasMod(fspecs.mods,Modifiers.SPEC_PUBLIC);
         boolean isSpecProtected = utils.hasMod(fspecs.mods,Modifiers.SPEC_PROTECTED);
-        
+
+        // FIXME - what restrictions are there on what can be a datagroup?
         if (!isModel(fspecs.mods) && !isSpecPublic && !isSpecProtected) {
             log.error(tree.pos,"jml.datagroup.must.be.model.in.maps");
         }
+        
+        // FIXME - the model field must be visible at the location of the containing clause
         if (inVarDecl != null && utils.isJMLStatic(sym) && !utils.isJMLStatic(inVarDecl.sym)) {
             log.error(tree.pos,"jml.instance.in.static.datagroup");
         }
@@ -3721,21 +3725,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 type = attribExpr(id, env, Type.noType);
                 sym = id.sym;
             } else if (tree.ident instanceof JCArrayAccess aa) {
-            	Type t = tree.ident.type = attribExpr(aa.indexed,env,Type.noType);
-            	if (aa.index instanceof JmlRange range) {
-                	if (range.hi != null || range.lo != null) {
+                Type t = tree.ident.type = attribExpr(aa.indexed,env,Type.noType);
+                if (aa.index instanceof JmlRange range) {
+                    if (range.hi != null || range.lo != null) {
                         utils.error(tree.ident, "jml.message", "Array ranges are not permitted in a represents clause");
-                	}
-                	if (!(t instanceof ArrayType)) {
-                		// FIXME - I don't understand this message  or why it is here
-                		utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
-                		type = types.createErrorType(t);
-                	} else {
-                		type = ((ArrayType)t).elemtype;
-                	}
-            	} else {
-            		utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
-            	}
+                    }
+                    if (!(t instanceof ArrayType)) {
+                        // FIXME - I don't understand this message  or why it is here
+                        utils.error(aa, "jml.message", "Represents target with wild-card index must be an array: " + tree.ident);
+                        type = types.createErrorType(t);
+                    } else {
+                        type = ((ArrayType)t).elemtype;
+                    }
+                } else {
+                    utils.error(tree.ident, "jml.message", "Array elements are not permitted in a represents clause");
+                }
                 return;
             } else if (tree.ident instanceof JCFieldAccess fa) {
                 if (fa.selected instanceof JCIdent idd && idd.name == names._super) {

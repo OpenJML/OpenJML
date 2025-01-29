@@ -1,5 +1,6 @@
 
 api
+api2
 apiA
 apiB
 apiC
@@ -7,7 +8,6 @@ apiD
 apiE
 apiToken
 apistatic
-api2
 arrayNullity
 bag
 bagModified
@@ -48,15 +48,13 @@ escDemoTypes
 escDemoTypesNoQuants
 escDmz2Trace
 escDouble
-escDoubleArith
 escDouble1
 escDouble2
 escDouble2a
 escDouble3
+escDoubleArith
 escFeatures
 escFloat
-escfpMath
-escfpPrimitiveOps
 escInlineLoop
 escJML
 escJml1
@@ -95,13 +93,15 @@ escTraceTests
 escTraceWhile
 escTraceWhile1
 escTraceWhile2
+escfpMath
+escfpPrimitiveOps
 escwebexamples
 findSpecs
 firstTest
 gitbug444
-gitbug44a
 gitbug445
 gitbug445a
+gitbug44a
 gitbug450
 gitbug450a
 gitbug450b

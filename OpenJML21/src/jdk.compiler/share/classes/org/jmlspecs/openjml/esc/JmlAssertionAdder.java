@@ -2074,8 +2074,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * args are arguments for the resource key giving the error message
 	 * corresponding to the given Label. Returns null if no assertion was added
 	 */
-	public /* @nullable */ JmlStatementExpr addAssert(boolean trace, DiagnosticPosition codepos, // FIXME _ document
-																									// whether nullable
+    public /* @nullable */ JmlStatementExpr addAssert(boolean trace, DiagnosticPosition codepos, 
+	            Label label, JCExpression translatedExpr, /* @nullable */ DiagnosticPosition associatedPos,
+	            /* @nullable */ JavaFileObject associatedSource, /* @nullable */ JCExpression info, Object... args) {
+        return addAssertZ(trace, codepos, null, label, translatedExpr, associatedPos, associatedSource, info, args);
+    }
+	public /* @nullable */ JmlStatementExpr addAssertZ(boolean trace, DiagnosticPosition codepos, // FIXME _ document
+	        JavaFileObject primarySource, 													// whether nullable
 																									// and behavior
 			Label label, JCExpression translatedExpr, /* @nullable */ DiagnosticPosition associatedPos,
 			/* @nullable */ JavaFileObject associatedSource, /* @nullable */ JCExpression info, Object... args) {
@@ -2097,9 +2102,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				return null;
 		}
 		String assertID = Strings.assertPrefix + (++assertCount);
-		if (assertCount == assertCountCheck) Utils.dumpStack("Assertion " + assertID);
+		if (assertCount == assertCountCheck) {
+            System.out.println("LOC: " + log.currentSourceFile() + " " + codepos + " " + codepos.getPreferredPosition());
+            if (associatedPos != null) System.out.println("ALOC: " + associatedSource + " " + associatedPos + " " + associatedPos.getPreferredPosition());
+		    Utils.dumpStack("Assertion " + assertID);
+		}
+
 		Name assertname = names.fromString(assertID);
-		JavaFileObject dsource = log.currentSourceFile();
+		if (primarySource == null) primarySource = log.currentSourceFile(); // FIXME - get rid of this
 		JCVariableDecl assertDecl = treeutils.makeVarDef(syms.booleanType, assertname,
 				methodDecl == null ? (classDecl == null ? null : classDecl.sym) : methodDecl.sym, translatedExpr);
 		assertDecl.mods.flags |= Flags.FINAL;
@@ -2113,7 +2123,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			JmlStatementExpr st = treeutils.makeAssert(codepos, label,
 					treeutils.makeIdent(translatedExpr.pos, assertDecl.sym));
-			st.source = dsource;
+			st.source = primarySource;
 			st.associatedPos = associatedPos == null ? Position.NOPOS : associatedPos.getPreferredPosition();
 			st.associatedSource = associatedSource;
 			st.optionalExpression = info;
@@ -2124,7 +2134,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of
 															// the associatedPos, not of the original assert, if there
 															// even is one
-
+			
 			if ((label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION)
 					&& callStack.size() > 1) {
 				String cat = String.join("\n", callStack);
@@ -2156,7 +2166,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCDiagnostic diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
 					methodEnv.showRacSource == 2 ? log.currentSource() : DiagnosticSource.NO_SOURCE, codepos, "rac." + label,
 					args);
-			String msg = diag.toString().replace("warning: ", "verify: ").trim();
+			String msg;
+			    try { msg = diag.toString().replace("warning: ", "verify: ").trim(); }
+			    catch (Exception e) {
+			        System.out.println("RXC " + java.util.Arrays.toString(args));
+			        throw e;
+			    }
 			// With showRacSource = true, The diag above both the line information and the
 			// position within the source line.
 			// With sho9wRacSource = false, it includes neight
@@ -2225,7 +2240,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * corresponding to the given Label.
 	 */
 	public JmlStatementExpr addAssert(DiagnosticPosition codepos, Label label, JCExpression expr, Object... args) {
-		return addAssert(true, codepos, label, expr, null, null, null, args);
+		return addAssertZ(true, codepos, null, label, expr, null, null, null, args);
 	}
 
     public JmlStatementExpr addCheck(DiagnosticPosition codepos, Label label, JCExpression translatedExpr, Object... args) {
@@ -2236,7 +2251,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             /* @nullable */ DiagnosticPosition associatedPosition, /* @nullable */ JavaFileObject associatedSource,
             /* @nullable */ JCExpression info, Object... args) {
         translatedExpr = addCheck(translatedExpr);
-        JmlStatementExpr s = addAssert(true, pos, label, translatedExpr, associatedPosition, associatedSource, info, args);
+        JmlStatementExpr s = addAssertZ(true, pos, null, label, translatedExpr, associatedPosition, associatedSource, info, args);
         if (s != null) s.clauseType = checkClause;
         return s;
     }
@@ -2327,10 +2342,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * The args are arguments for the resource key giving the error message
 	 * corresponding to the given Label.
 	 */
-	public JmlStatementExpr addAssert(DiagnosticPosition codepos, Label label, JCExpression expr,
-			DiagnosticPosition associatedPos, JavaFileObject associatedSource, Object... args) {
-		return addAssert(true, codepos, label, expr, associatedPos, associatedSource, null, args);
-	}
+    public JmlStatementExpr addAssert(DiagnosticPosition codepos, Label label, JCExpression expr,
+            DiagnosticPosition associatedPos, JavaFileObject associatedSource, Object... args) {
+        return addAssertZ(true, codepos, null, label, expr, associatedPos, associatedSource, null, args);
+    }
+
+    public JmlStatementExpr addAssert(JavaFileObject primarySource, DiagnosticPosition codepos, Label label, JCExpression expr,
+            DiagnosticPosition associatedPos, JavaFileObject associatedSource, Object... args) {
+        return addAssertZ(true, codepos, primarySource, label, expr, associatedPos, associatedSource, null, args);
+    }
 
 	/**
 	 * Creates a call of org.jmlspecs.runtime.Utils.assertionFailure(s), where s is
@@ -12908,6 +12928,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		//System.out.println("CHECKACCESS@ " + lhsUnconverted + " " + lhs + " " + guard + " " + emitAsserts + " " + targetEnv);
 		JCExpression okCondition = emitAsserts ? null : treeutils.makeBooleanLiteral(pos, true);
 		if (rac) return okCondition;
+		var primarySource = log.currentSourceFile();
 		TranslationEnv callerEnv = currentEnv.pushEnvCopy();
 		callerEnv.currentReceiver = explicitThisId;
 		callerEnv.stateLabel = attr.preLabel;
@@ -12984,7 +13005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											convertedCondition = makeAssertionOptional(convertedCondition);
 											//System.out.println("Assertion checking if " + lhsUnconverted + " is in " + clause + " : " + convertedCondition);
 											addStat(comment(pos, "Assertion checking if " + lhsUnconverted + " is in " + clause, clause.sourcefile));
-											var sst = addAssert(pos, kindLabel, convertedCondition, clause, clause.sourcefile, lhsUnconverted);
+											var sst = addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, clause, clause.sourcefile, null, lhsUnconverted);
 											var bl = popBlock(clause);
 											addStat(M.at(clause).If(precondition, bl, null));
                                         } else {
