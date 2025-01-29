@@ -102,7 +102,7 @@ public class purity extends TCBase {
     @Test
     public void testModelMethodIncDec() {
         expectedExit = 6;
-        addOptions("--esc", "--spec-math=java"); // FIXME - shouldn't this set spec-math
+        addOptions("--esc", "--spec-math=java"); // FIXME - : `THIS.b should be a non-translated expression
         helpTC(" class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
                 ,"/TEST.java:2: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",46
                 ,"/TEST.java:2: verify: Associated declaration: /TEST.java:2:",6

@@ -1,6 +1,6 @@
 public abstract class FindMaxElem
   {
-     public int maxIndex;
+     //@ model public int maxIndex;
 
      //@ requires 0 < a.length;
      // @ assignable maxIndex;
