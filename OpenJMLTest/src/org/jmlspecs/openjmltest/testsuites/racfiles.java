@@ -62,7 +62,15 @@ public class racfiles extends RacBase {
 
     /** Testing using system specs */
     @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
-    public void test1a() {
+    public void rac1() {
+        expectedExit = 0;
+        expectedRACExit = 0;
+        helpTCF("test/rac1","test/rac1","Bug1");
+    }
+
+    /** Testing using system specs */
+    @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
+    public void rac1a() {
         expectedExit = 0;
         expectedRACExit = 0;
         helpTCF("test/rac1a","test/rac1a","Bug1");
@@ -94,7 +102,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void testFirstTest() {
+    public void firstTest() {
         expectedExit = 0;
         helpTCF("test/firstTest","test/firstTest","FirstTest","--rac-java-checks","--rac-check-assumptions");
     }
@@ -377,7 +385,8 @@ public class racfiles extends RacBase {
     }
 
     @Test public void gitbug529() {
-        helpCompileOnly();  // Just RAC compilation  // FIXME - try running also
+        //helpCompileOnly();  // Just RAC compilation  // FIXME - try running also
+        helpTCF("test/gitbug529","test/gitbug529","T");
     }
 
     @Test
