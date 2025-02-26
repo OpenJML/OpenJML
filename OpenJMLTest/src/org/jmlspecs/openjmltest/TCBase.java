@@ -53,19 +53,6 @@ public abstract class TCBase extends JmlTestSuite {
         super.tearDown();
     }
 
-    // Used to check the test system itself
-    public void helpFailure(String failureMessage, String s, Object ... list) {
-        noExtraPrinting = true;
-        boolean failed = false;
-        try {
-            helpTC(s,list);
-        } catch (AssertionError a) {
-            failed = true;
-            assertEquals("Failure report wrong",failureMessage,a.getMessage());
-        }
-        if (!failed) fail("Test Harness failed to report an error");
-    }
-
     // Helper method for tests: content is the test text; list are the expected messages and column numbers
     public void helpTC(String content, Object ... list) {
         helpTCX(null,content,list);

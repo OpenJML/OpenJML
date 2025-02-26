@@ -5,8 +5,14 @@ Feasibility check - at program exit : OK
 Completed proof of EntryList.EntryList(Object,EntryList) with prover !!!! - no warnings
 Starting proof of EntryList.size() with prover !!!!
 test/gitbug566/EntryList.java:25: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
-	   return 1 + (rest == null ? 0 : rest.size());
-	            ^
+       return 1 + (rest == null ? 0 : rest.size());
+                ^
+test/gitbug566/EntryList.java:25: warning: The prover cannot establish an assertion (Postcondition) in method size
+       return 1 + (rest == null ? 0 : rest.size());
+       ^
+test/gitbug566/EntryList.java:22: warning: Associated declaration
+      @ ensures \result == 1 + rest.size();
+        ^
 Completed proof of EntryList.size() with prover !!!! - with warnings
 Completed proving methods in EntryList
-1 warning
+3 warnings

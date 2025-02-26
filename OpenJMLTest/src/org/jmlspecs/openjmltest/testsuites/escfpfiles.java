@@ -105,6 +105,20 @@ public class escfpfiles extends EscBaseFiles {
         helpTCG();
     }
     
+    @Ignore // FIXME -  double arithmetic?
+    @Test
+    public void gitbug633() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Ignore // FIXME 
+    @Test
+    public void gitbug751() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
 
 
 }

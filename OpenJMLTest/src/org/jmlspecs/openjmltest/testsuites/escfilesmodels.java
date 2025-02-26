@@ -61,6 +61,11 @@ public class escfilesmodels extends EscBaseFiles {
         helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
     }
         
+    @Test public void gitbug461() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
     @Test public void gitbug498() {
         expectedExit = 0;
         helpTCG();

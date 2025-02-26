@@ -257,7 +257,7 @@ public class JmlOptions extends Options {
                     res = def == null ? null : def.toString();
 
                 } else  {
-                    if (o.hasArg()) {}
+                    if (o.hasArg()) { }
                     else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
                     else {

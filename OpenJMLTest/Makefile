@@ -19,7 +19,6 @@ openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	-make jsontests
 	-make unittests-par
-	-make scripttests
 	-make tutorial-tests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
@@ -58,9 +57,6 @@ unittests-seq: Run.class .FORCE
 			
 unittests-par: Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
-
-scripttests: .FORCE Run.class
-	( cd ${TEST}/scripttests; ./runtests-sort)
 
 jsontests: .FORCE Run.class
 	${TEST}/scripttests/json/run

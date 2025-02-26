@@ -1,13 +1,13 @@
-// This Test file launches JUnit tests runs for the OpenJML tests,
-// running everything in OpenJMLTest/src/testcases...
-// except for rac tests, Specs tests, and those things listed in 'skips'
-//
-// Some parallelism is implemented -- cf. 'numThreads'
-// but the default is that tests are run sequentially
-// A timeout is enforced -- cf. 'seconds'
-// There are some command-line options: -seq -par -t= -s= -v
+// This Java program is a custom JUnit command-line runner for OpenJML's unit tests.
+// Its arguments are a few options and then the names of OpenJML test suites.
+// If no test suites are listed, then all the test suites are run.
 
+// Any suites listed in the String array 'skips' below are not run.
 
+// The options allow choosing sequantial or parallel running,
+// with a given number of threads, given timeout, and verbosity level.
+
+// FIXME -- running with more than one thread doe snot work because not all of OpenJDK/OpenJML is thread-safe.
 
 import org.jmlspecs.openjmltest.*;
 import org.jmlspecs.openjmltest.testsuites.*;
@@ -25,19 +25,27 @@ public class OpenJMLTestRunner {
     static boolean sequential = true;
     static boolean verbose = false;
 
-    public static String[] skips = new String[]{"api","misctests","scanner"};
+    public static String[] skips = new String[]{};
     {
         Arrays.sort(skips);
     }
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
+        String th = System.getenv("THREADS");
+        if (th != null && !th.isEmpty()) {
+            try {
+                numThreads = Integer.valueOf(th);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
         while (args.length > 0) {
             if (args[0].equals("-seq")) {
                 sequential = true;
                 numThreads = 0;
             } else if (args[0].equals("-par")) {
                 sequential = false;
-                numThreads = 10;
+                if (numThreads == 0) numThreads = 1;
             } else if (args[0].startsWith("-t=")) {
                 numThreads = Integer.valueOf(args[0].substring(3));
             } else if (args[0].startsWith("-s=")) {
@@ -48,14 +56,6 @@ public class OpenJMLTestRunner {
                 break;
             }
             args = Arrays.copyOfRange(args,1,args.length);
-        }
-        String th = System.getenv("THREADS");
-        if (th != null && !th.isEmpty()) {
-            try {
-                numThreads = Integer.valueOf(th);
-            } catch (Exception e) {
-                System.out.println(e);
-            }
         }
         sequential = numThreads == 0;
         if (!sequential) {
@@ -69,7 +69,7 @@ public class OpenJMLTestRunner {
             System.out.println("Failed to create thread pool for " + numThreads + " threads: " + e);
             System.exit(1);
         }
-        var dir = new File(JmlTestSuite.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testcases");
+        var dir = new File(JmlTestSuite.root + "/OpenJML/OpenJMLTest/src/org/jmlspecs/openjmltest/testsuites");
         var lst = args.length == 0 ? dir.list() : args;
         java.util.Arrays.sort(lst);
         for (var item : lst) {
@@ -90,7 +90,7 @@ public class OpenJMLTestRunner {
                 System.out.println("Error: There is no unit test named " + item);
                 continue;
             }
-            if ((item.contains("Specs") || java.util.Arrays.binarySearch(skips,item) >= 0) && args.length == 0 ) {
+            if (args.length == 0 && java.util.Arrays.binarySearch(skips,item) >= 0) {
                 System.out.println("Skipping " + clazz);
                 continue;
             }
@@ -181,10 +181,14 @@ public class OpenJMLTestRunner {
 
     static List<UnitTest> tasks = java.util.Collections.synchronizedList(new LinkedList<UnitTest>());
 
+    // Previous code will have created a queue of UnitTest objects. This method takes the front object
+    // off the queue and then executes it, repeating that action until the queue is empty.
+    // Note that more than one threadTask may be executing, so access to the queue is synchTest fileronized.
     static public void threadTask() {
         if (verbose) synchronized (System.out) { System.out.println("Launching " + Thread.currentThread().getName()); }
         UnitTest t;
         while (true) {
+            // Synchronize here even though we are using a synchronized list, so the size() and remove() calls are in one critical block
             synchronized(tasks) { t = tasks.size() == 0 ? null : tasks.remove(0); }
             if (t == null) {
                 if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " exiting"); }
