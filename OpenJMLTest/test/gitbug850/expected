@@ -16,24 +16,6 @@ test/gitbug850/FindMaxElemImpl.java:17: warning: The prover cannot establish an 
 test/gitbug850/FindMaxElem.java:6: warning: Associated declaration
      //@ assignable maxIndex;
          ^
-test/gitbug850/FindMaxElemImpl.java:25: warning: The prover cannot establish an assertion (Assignable) in method maxElem: maxIndex
-                  maxIndex = k;
-                           ^
-test/gitbug850/FindMaxElem.java:6: warning: Associated declaration
-     //@ assignable maxIndex;
-         ^
-test/gitbug850/FindMaxElemImpl.java:15: warning: The prover cannot establish an assertion (Postcondition) in method maxElem
-     public void maxElem(int a[])
-                 ^
-test/gitbug850/FindMaxElem.java:8: warning: Associated declaration
-     /*@ ensures (\forall int i; 0 <= i && i < a.length;
-         ^
-test/gitbug850/FindMaxElemImpl.java:15: warning: The prover cannot establish an assertion (Postcondition) in method maxElem
-     public void maxElem(int a[])
-                 ^
-test/gitbug850/FindMaxElem.java:7: warning: Associated declaration
-     //@ ensures 0 <= maxIndex && maxIndex < a.length;
-         ^
 Completed proof of FindMaxElemImpl.maxElem(int[]) with prover !!!! - with warnings
 Completed proving methods in FindMaxElemImpl
-8 warnings
+2 warnings

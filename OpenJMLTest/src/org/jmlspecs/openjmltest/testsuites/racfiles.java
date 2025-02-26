@@ -41,7 +41,7 @@ public class racfiles extends RacBase {
         super.setUp();
         ignoreNotes = true;
     }
-
+    
     // No longer trying to test NG 
     // Must be called within a test method (not in setup) in order to get the test method name correctly
     public void setRacng() {
@@ -153,42 +153,6 @@ public class racfiles extends RacBase {
     public void racWithMethods() {
         expectedExit = 0;
         helpTCF("test/racWithMethods","test/racWithMethods","TestInv");
-    }
-
-    @Test
-    public void demoStudent() {
-        expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/student","test/demoStudent","ExecuteCStudent2","--rac-java-checks","--rac-check-assumptions");
-    }
-
-    @Test
-    public void ecurac() {
-        expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/ecudemo","test/ecurac","Test","--rac-java-checks","--rac-check-assumptions");
-    }
-
-    @Test
-    public void purseCardTest() {
-        expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/purse","test/purse","CardTest");
-    }
-
-    @Test
-    public void purseModTest() {
-        expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/purseMod","test/purseMod","CardTest");
-    }
-
-    @Test
-    public void racTime() {
-        expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java","test/racTime","Time");
-    }
-
-    @Test
-    public void racQueue() {
-        expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java","test/racQueue","Queue");
     }
 
     @Test @Ignore // FIXME
@@ -403,7 +367,31 @@ public class racfiles extends RacBase {
         expectedRACExit = 0;
         helpTCF("test/racNoGhostField","test/racNoGhostField","Magic","-jmltesting");
     }
+    
+    @Test public void gitbug500c() {
+        helpCompileOnly("--rac-missing-model-field-rep=skip-quiet");  // Just RAC compilation - did have a RAC compile crash
+    }
 
+    @Test public void gitbug500d() {
+        helpTCF("test/gitbug500c", "test/gitbug500d", null, "--rac-missing-model-field-rep=zero-quiet");  // Just RAC compilation - RAC compile crash
+    }
+
+    @Test public void gitbug529() {
+        helpCompileOnly();  // Just RAC compilation  // FIXME - try running also
+    }
+
+    @Test
+    public void gitbug600() {
+        expectedExit = 0;
+        helpCompileOnly("--rac-check-assumptions","--rac-precondition-entry");
+    }
+    
+    @Test @Ignore // FIXME - needs to be RAC and to be fixed
+    public void gitbug645() {
+        expectedExit = 0;
+        helpCompileOnly();
+    }
+    
     @Test
     public void gitbug532() {
         expectedRACExit = 0;

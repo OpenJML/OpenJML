@@ -22,7 +22,7 @@ fi
 
 count=0
 while true; do
-  r=`./runtests $* 2>&1 | tee $f | grep failures`
+  r=`( time ./runtests $* ) 2>&1 | tee $f | grep failures`
   if [ -n "$r" ]; then break; fi
   sleep 5
   echo "Retrying (# $count) summary for $@"

@@ -7,15 +7,21 @@ test/behaviors/T.java:20: warning: Inserting missing semicolon at the end of a b
 test/behaviors/T.java:24: error: illegal start of expression
   //@ behaviors ;
                 ^
+test/behaviors/T.java:24: error: the content of a behaviors clause must be a simple identifier
+  //@ behaviors ;
+                ^
 test/behaviors/T.java:24: warning: Inserting missing semicolon at the end of a behaviors statement
   //@ behaviors ;
                  ^
 test/behaviors/T.java:28: error: Token @*/ does not introduce an expression
   //@ behaviors 
                 ^
+test/behaviors/T.java:28: error: the content of a behaviors clause must be a simple identifier
+  //@ behaviors 
+                ^
 test/behaviors/T.java:28: warning: Inserting missing semicolon at the end of a behaviors statement
   //@ behaviors 
                 ^
 Operation not performed because of parse or type errors
-3 errors
+5 errors
 3 warnings

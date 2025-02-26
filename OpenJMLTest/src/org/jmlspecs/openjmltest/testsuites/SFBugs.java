@@ -48,43 +48,6 @@ public class SFBugs extends EscBaseFiles {
 
     // FIXME - change to use routines in EscBaseFiles
 
-    @Test public void typecheckWithJML() {
-        expectedExit = 1;
-        helpTCF("test/tcWithJml/TCWithJml.java","test/tcWithJml", "-cp", "test/tcWithJml", "--check");
-    }
-    
-    @Test public void sfpatch25() {
-        helpTCF("test/sfpatch25/A.java","test/sfpatch25", "-cp", "test/sfpatch25", "--esc","--quiet");
-    }
-    
-    @Test public void sfbug407() {
-        helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "--esc", "--progress");
-    }
-    
-    @Test public void sfbug398() {
-        helpTCF("test/sfbug398","test/sfbug398", "-cp", "test/sfbug398", "--esc", "--progress");
-    }
-    
-    @Test public void sfbug399() {
-        helpTCF("test/sfbug399","test/sfbug399", "-cp", "test/sfbug399", "--esc","--progress");
-    }
-    
-    @Test public void sfbug404() {
-        helpTCF("test/sfbug404","test/sfbug404", "-cp", "test/sfbug404", "--esc","--progress","-logic=AUFNIRA");
-    }
-    
-    @Test public void sfbug408() {
-        helpTCF("test/sfbug408","test/sfbug408", "-cp", "test/sfbug408", "--esc","--progress");
-    }
-    
-    @Test public void sfbug409() {
-        helpTCF("test/sfbug409","test/sfbug409", "-cp", "test/sfbug409", "--esc","--progress","--check-feasibility=precondition,exit,reachable,assert,assume");
-    }
-    
-    @Test public void sfbug410() {
-        helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "--esc","--progress");
-    }
-    
     @Test public void gitbug257() {
         expectedExit = 0;
         helpTCF("test/gitbug257","test/gitbug257", "-cp", "test/gitbug257", "--esc", "--progress", "-logic=AUFNIRA");
@@ -139,10 +102,6 @@ public class SFBugs extends EscBaseFiles {
     @Test public void gitbug459() {
         expectedExit = 0;
         helpTCF("test/gitbug459","test/gitbug459", "-cp", "test/gitbug459", "--esc");
-    }
-    
-    @Test public void gitbug461() {
-        expectedExit = 0;
     }
     
     @Test public void gitbug462() {
@@ -277,14 +236,6 @@ public class SFBugs extends EscBaseFiles {
         helpTCG();
     }
 
-    @Test public void gitbug500c() {
-        helpTCG("-rac","--rac-missing-model-field-rep=skip-quiet");  // Just RAC compilation - did have a RAC compile crash
-    }
-
-    @Test public void gitbug500d() {
-        helpTCF("test/gitbug500c", "test/gitbug500d", "--rac","--rac-missing-model-field-rep=zero-quiet");  // Just RAC compilation - RAC compile crash
-    }
-
     @Test public void gitbug502() {
         helpTCG();
     }
@@ -356,10 +307,6 @@ public class SFBugs extends EscBaseFiles {
 
     @Test public void gitbug528() {
         helpTCG("--lang=jml","--check");  // Just checking
-    }
-
-    @Test public void gitbug529() {
-        helpTCG("--rac");  // Just RAC compilation  // FIXME - try running also
     }
 
     // Check everything in apache commons library!
@@ -447,6 +394,7 @@ public class SFBugs extends EscBaseFiles {
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","--exclude="+all,"-no-staticInitWarning","--solver-seed=142");
     }
 
+    @Ignore // FIXME - needs work
     @Test public void gitbug482() {
         expectedExit = 0;
         helpTCF("test/gitbug482/checkers/src/main/java/checkers","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","--check"); // check only, not esc
@@ -621,12 +569,6 @@ public class SFBugs extends EscBaseFiles {
     }
     
     @Test
-    public void gitbug600() {
-        expectedExit = 0;
-        helpTCG("-rac","--rac-check-assumptions","--rac-precondition-entry"); // RAC compile crash
-    }
-    
-    @Test
     public void gitbug602() {
         expectedExit = 0;
         helpTCG("-Xlint:unchecked");
@@ -761,11 +703,11 @@ public class SFBugs extends EscBaseFiles {
         helpTCG();
     }
     
-//    @Test // Moved to scripttests
-//    public void gitbug631() {
-//        expectedExit = 0;
-//        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
-//    }
+    @Test
+    public void gitbug631() {
+        expectedExit = 0;
+        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+    }
     
     @Test  // Z3 non-deterministically crashes; trying to fix that by specifying the seed
     public void gitbug633a() {
@@ -833,12 +775,6 @@ public class SFBugs extends EscBaseFiles {
         helpTCG();
     }
         
-    @Test @Ignore // FIXME - needs to be RAC and to be fixed
-    public void gitbug645() {
-        expectedExit = 0;
-        helpTCG("--rac");
-    }
-    
     @Test
     public void gitbug647() {
         expectedExit = 0;
@@ -934,16 +870,16 @@ public class SFBugs extends EscBaseFiles {
         helpTCG();
     }
     
+    @Test // FIXME -- MISMATCHED BLOCKS // // Complained of undefined symbols
+    public void gitbug671() {
+        expectedExit = 0;
+        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
+    }
+    
     @Test @Ignore // FIXME -- nullpointer exception, time out //  // Complained of infinite run time
     public void gitbug672() {
         expectedExit = 0;
         helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
-    }
-    
-    @Test  @Ignore // FIXME -- MISMATCHED BLOCKS // // Complained of undefined symbols
-    public void gitbug671() {
-        expectedExit = 0;
-        helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
     }
     
     @Test

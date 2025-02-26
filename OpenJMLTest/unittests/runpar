@@ -52,6 +52,7 @@ fi
 
 if [ $numjobs -eq 0 ]; then
     echo Running $(echo $testlist | wc -w) testcases sequentially
+    sync
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
@@ -59,6 +60,7 @@ if [ $numjobs -eq 0 ]; then
     done
 else
     echo Running $(echo $testlist | wc -w) testcases with $numjobs concurrent jobs
+    sync
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
@@ -66,7 +68,7 @@ else
         sleep 1
         wt
     done
-wait
+    wait
 
 fi
 echo Completed

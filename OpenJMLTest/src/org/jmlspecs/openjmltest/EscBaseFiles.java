@@ -78,8 +78,16 @@ public abstract class EscBaseFiles extends EscBase {
         System.arraycopy(opts,0,newopts,firstopts.length,opts.length);
         helpTCF(d,d,newopts);
     }
+    
+    public void helpTFM(String ... opts) {
+        helpTF(getTestName(), opts);
+    }
 
     public void helpTCG(String ... opts) {
+        helpTG(opts);
+    }
+    
+    public void helpTG(String ... opts) {
         String dir = "test/" + getTestName();
         var a = new LinkedList<String>();
         a.add(0,"-cp"); 
@@ -90,6 +98,18 @@ public abstract class EscBaseFiles extends EscBase {
         a.add("--progress");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
+
+    /** runs a test whose source material is in the JMLDemo repo */ 
+    public void helpDemoFile(String testFilename, String outdir, String ... opts) {
+        int k = testFilename.lastIndexOf('/');
+        String file = OpenJMLDemoPath + "/src/openjml/" + testFilename;
+        String dir = OpenJMLDemoPath + "/src/openjml/" + testFilename.substring(0,k);
+        String[] newopts = new String[opts.length+2];
+        newopts[0] = "-classpath";
+        newopts[1] = dir;
+        System.arraycopy(opts,0,newopts,2,opts.length);
+        helpTCF(file,"test/" + outdir,newopts);
     }
 
     /** runs a test whose source material is in the JMLDemo repo */ 

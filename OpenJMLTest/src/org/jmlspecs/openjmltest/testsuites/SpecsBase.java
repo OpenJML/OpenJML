@@ -277,6 +277,7 @@ public class SpecsBase extends TCBase {
         donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test does not find the junit library 
         donttest.add("java.lang.AbstractStringBuilder"); // FIXME - not public
         donttest.add("java.lang.StringCoding");
+        donttest.add("org.jmlspecs.lang.range"); // See specialized test below
     }
     
     static java.util.HashMap<String,Integer> counts = new java.util.HashMap<>();
@@ -355,9 +356,11 @@ public class SpecsBase extends TCBase {
         // Do these because the classes are not public
         if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
         if (className.equals("java.lang.StringCoding")) program = "package java.lang; " + program;
+        if (className.equals("org.jmlspecs.lang.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.range o) {} }"; // FIXME - needs better specs and tests
+        if (className.equals("org.jmlspecs.lang.internal.datagroup")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.datagroup o) {} }"; // FIXME - needs better specs and tests
         helpTCFile("AJDK.java",program,className);
     }
-        
+
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
 
@@ -365,8 +368,8 @@ public class SpecsBase extends TCBase {
      * adding an @Test as an annotation. */
     
     // @Test
-    public void testFileTemp() {
-        checkClass("java.util.LinkedList", 1);
+    public void testSingle() {
+        checkClass("org.jmlspecs.lang.range", 0);
     }
 
 }

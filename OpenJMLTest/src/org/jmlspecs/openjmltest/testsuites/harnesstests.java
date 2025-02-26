@@ -1,5 +1,8 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
@@ -14,7 +17,28 @@ public class harnesstests extends TCBase {
         super.setUp();
     }
 
+    // Used to check the test system itself
+    public void helpFailure(String failureMessage, String s, Object ... list) {
+        noExtraPrinting = true;
+        boolean failed = false;
+        try {
+            helpTC(s,list);
+        } catch (AssertionError a) {
+            failed = true;
+            assertEquals("Failure report wrong",failureMessage,a.getMessage());
+        }
+        if (!failed) fail("Test Harness failed to report an error");
+    }
+
+    // When a test fails because there is unexpected error output, the test infrastructure
+    // will dump the actual errors. for convenience. For these harness tests we override the
+    // printing of diagnostics on failure to avoid expected output on stadout
+    @Override
+    public void printDiagnostics() {
+    }
+
     // These test that the harness fails gracefully
+    
     /** Test that harness reports a missing error */
     @Test
     public void testHarness() {

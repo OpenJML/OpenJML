@@ -182,12 +182,15 @@ public abstract class EscBase extends JmlTestSuite {
         //MethodProverSMT.benchmarkName = null;
     }
 
-    protected void helpTCX2(String classname, String s, String classname2, String s2, Object... list) {
+    /** Applies ESC to the case where there are two input .java synthesized files, each consisting of a class name and the input source text;
+     * the expecgtedResults array is a line-by-line list of the expected output.
+     */
+    protected void helpTCX2(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/")+".java";
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new TestJavaFileObject(filename,inputSource);
             String filename2 = classname2.replace(".","/")+".java";
-            JavaFileObject f2 = new TestJavaFileObject(filename2,s2);
+            JavaFileObject f2 = new TestJavaFileObject(filename2,inputSource2);
             Log.instance(context).useSource(f);
 //            helpTCXB(List.of(f,f2),list);
         } catch (Exception e) {
@@ -196,10 +199,13 @@ public abstract class EscBase extends JmlTestSuite {
         }
     }
 
-    protected void helpTCX(String classname, String s, Object... expectedResults) {
+    /** Applies ESC to a synthesized file, with the given classname and input contents;
+     * the expected results array is a line by line list of the expected output.
+     */
+    protected void helpTCX(String classname, String inputSource, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/") +".java"; 
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new TestJavaFileObject(filename,inputSource);
             Log.instance(context).useSource(f);
             helpTCXB(args,f, expectedResults);
         } catch (Exception e) {

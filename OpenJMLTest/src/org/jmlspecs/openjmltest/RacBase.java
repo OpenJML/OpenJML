@@ -308,18 +308,27 @@ public abstract class RacBase extends JmlTestSuite {
         runrac = true;
     }
 
+    public void helpCompileOnly(String ... opts) {
+        String dir = "test/" + getTestName();
+        helpTCF(dir, dir, null, opts);
+    }
 
-    /** This method does the running of a RAC test that is based in an external file.  No output is
-     * expected from running openjml to produce the RACed program;
+    /** This method does compiles a test with RAC whose source is in a given directory,
+     * and then runs the compiled program.  The compilation is expected to have no errors.
      * the number of expected diagnostics is set by 'expectedErrors'.
-     * @param dirname The directory containing the test sources, a relative path
+     * 
+     * 'sourcedir' is the directory containing the source files or the path to a single java file
+     * 
+     * The expected output files are contained in the given 'outputdir'
+     * The working directory when the program is compiled and run is 'sourcedir' (or the containing directory if sourcedir is a file)
+     * 
+     * @param sourcedir The directory containing the test sources, a relative path
      * from the project folder
      * @param mainClassname The fully-qualified classname for the test class (where main is)
-     * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCF(String dirname, String outputdir, String mainClassname, String ... opts) {
-    	String destDir = setupOutdir();
-//    	System.out.println("SOURCEDIR " + dirname);
+    public void helpTCF(String sourcedir, String outputdir, String mainClassname, String ... opts) {
+    	String destDir = setupOutdir(); // This is the location for compiled .class files
+//    	System.out.println("SOURCEDIR " + sourcedir);
 //    	System.out.println("DESTDIR " + destDir);
 //    	System.out.println("OUTDIR " + outputdir);
         boolean print = false;
@@ -331,17 +340,16 @@ public abstract class RacBase extends JmlTestSuite {
             new File(actCompile).delete();
             new File(actRun).delete();
             List<String> args = new LinkedList<String>();
-            //args.add("-no-jml");
             args.add("-d");
-            args.add(outdir);
+            args.add(outdir); // Location of .class files
             //args.add("-classpath");
             //args.add(cp);
             args.add("--rac");
             args.add("--no-purity-check");
             args.add("--code-math=java");
             args.add("--spec-math=bigint");
-            if (new File(dirname).isDirectory()) args.add("--dir");
-            args.add(dirname);
+            if (new File(sourcedir).isDirectory()) args.add("--dir");
+            args.add(sourcedir);
             args.addAll(Arrays.asList(opts));
             
             PrintWriter pw = new PrintWriter(actCompile);
@@ -349,33 +357,26 @@ public abstract class RacBase extends JmlTestSuite {
             pw.close();
             
             String compdiffs = "";
-//            if (new File(outputdir + "/" + expected_compile).exists()) {
-//            	compdiffs = outputCompare.compareFiles(outputdir + "/" + expected_compile, actCompile);
-//        		if (compdiffs == null) {
-//        			new File(actCompile).delete();
-//        		} 
-//        	} else {
-            	for (String file: new File(outputdir).list()) {
-            		if (!file.contains("expected-compile")) continue;
-            		compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
-            		if (compdiffs == null) {
-            			new File(actCompile).delete();
-            			break;
-            		}
-            	}
-//            }
+            for (String file: new File(outputdir).list()) {
+                if (!file.contains("expected-compile")) continue;
+                compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
+                if (compdiffs == null) {
+                    new File(actCompile).delete();
+                    break;
+                }
+            }
             if (compdiffs != null) {
                 if (compdiffs.isEmpty()) {
                     compdiffs = ("No expected output file for compiler output");
                     System.out.println(compdiffs);
                 } else {
                     System.out.println(compdiffs);
-                    //  fail("Files differ: " + compdiffs);
+                    // Delay failing on file differences until after an attempt to run the file
                 }
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex + " expected: " + expectedExit);
 
-            if (runrac && ex == 0) {
+            if (runrac && ex == 0 && mainClassname != null) {
                 if (rac == null) rac = defrac;
                 rac[rac.length-1] = mainClassname;
                 Process p = Runtime.getRuntime().exec(rac);
