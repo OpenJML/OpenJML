@@ -607,14 +607,13 @@ public class racfiles extends RacBase {
 
     @Test
     public void rangeTest() {
-        helpTCF("test/rangeTest","test/rangeTest","R");
+        helpCompileRun("test/rangeTest","test/rangeTest","R");
     }
     
     @Test
     public void rangeTest1() {
         expectedExit=1;
-        runrac = false;
-        helpTCF("test/rangeTest1","test/rangeTest1","R");
+        helpCompileOnly();
     }
     
     @Test
@@ -622,13 +621,15 @@ public class racfiles extends RacBase {
         helpTCF("test/record1","test/record1","RR");
     }
     
+    // Only these two textBlock tests have main methods (FIXME - is that OK?)
     @Test
     public void textBlock4() {
-        helpTCF("test/textBlock4","test/textBlock4","Test");
+        helpCompileRun("Test");
     }
     
     @Test
     public void textBlock4b() {
-        helpTCF("test/textBlock4b","test/textBlock4b","Test");
+        helpCompileRun("Test");
     }
+    
 }

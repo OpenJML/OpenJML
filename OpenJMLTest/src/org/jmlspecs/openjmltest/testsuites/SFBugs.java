@@ -949,6 +949,12 @@ public class SFBugs extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug688err() {
+        expectedExit = 1;
+        helpTCG("--subexpressions");
+    }
+    
+    @Test
     public void gitbug695() {
         expectedExit = 0;
         helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
@@ -962,6 +968,12 @@ public class SFBugs extends EscBaseFiles {
     
     @Test
     public void gitbug698() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug698A() {
         expectedExit = 0;
         helpTCG();
     }
@@ -1082,6 +1094,12 @@ public class SFBugs extends EscBaseFiles {
     
     @Test
     public void gitbug738() {
+        expectedExit = 0;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug738a() {
         expectedExit = 0;
         helpTCG();
     }

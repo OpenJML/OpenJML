@@ -1,0 +1,9 @@
+OUT:
+#DEMO/src/features/NegativeIndex.java:15: verify: JML the array index is negative
+        return array[i];
+                    ^
+
+ERR:
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index -1 out of bounds for length 10
+	at features.NegativeIndex.test(NegativeIndex.java:16)
+	at features.NegativeIndex.main(NegativeIndex.java:9)

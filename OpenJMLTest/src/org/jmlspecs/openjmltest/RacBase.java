@@ -313,6 +313,11 @@ public abstract class RacBase extends JmlTestSuite {
         helpTCF(dir, dir, null, opts);
     }
 
+    public void helpCompileRun(String mainClassname, String ... opts) {
+        String dir = "test/" + getTestName();
+        helpTCF(dir, dir, mainClassname, opts);
+    }
+
     /** This method does compiles a test with RAC whose source is in a given directory,
      * and then runs the compiled program.  The compilation is expected to have no errors.
      * the number of expected diagnostics is set by 'expectedErrors'.

@@ -91,7 +91,6 @@ cov-test:
 	cd ${TEST}
 	COV= time make jsontests
 	COV= time ./unittests/runpar | tee log-unittests | sort
-	COV= time ./scripttests/runtests-sort
 	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
 	## COV= make release-tests ## FIXME: Not yet working
 

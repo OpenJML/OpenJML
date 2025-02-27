@@ -43,6 +43,12 @@ public class racfileslist extends RacBase {
         ignoreNotes = true;
     }
     
+    public static String[] testsuites = new String[]{
+            "org.jmlspecs.openjmltest.testsuites.racfiles",
+            "org.jmlspecs.openjmltest.testsuites.racfilesmodels"
+    };
+
+    
     @Parameters
     static public Collection<String[]> data() {
         try {
@@ -56,15 +62,12 @@ public class racfileslist extends RacBase {
             for (var f: dir.list((f,s)->s.startsWith("rac"))) {
                 allfiles.add(f);
             }
-            var racfiles = Class.forName("org.jmlspecs.openjmltest.testsuites.racfiles");
-            var racmethods = java.util.Arrays.stream(racfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
+            for (var suite: testsuites) {
+                var racfiles = Class.forName(suite);
+                var racmethods = java.util.Arrays.stream(racfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
                     .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-            var racfiles2 = Class.forName("org.jmlspecs.openjmltest.testsuites.racfilesmodels");
-            var racmethods2 = java.util.Arrays.stream(racfiles2.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
-                    .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-            System.out.println("RCMETHODS " + racmethods + " " + racmethods2);
-            allfiles.removeAll(racmethods);
-            allfiles.removeAll(racmethods2);
+                allfiles.removeAll(racmethods);
+            }
             System.out.println("REMAINING " + allfiles);
             var tests = allfiles.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
             return tests;

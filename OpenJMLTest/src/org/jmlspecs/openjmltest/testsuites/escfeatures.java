@@ -54,15 +54,27 @@ public class escfeatures extends EscBaseFiles {
         ignoreNotes = true;
     }
     
-//    public void helpFeatures(String n) {
-//        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress");
-//    }
-
     public void helpFeatures() {
+        expectedExit = 6;
         String n = getTestName();
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress");
+        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress","-verify-exit=6");
     }
 
+
+    @Test
+    public void IndexOutOfRange() {
+        helpFeatures();
+    }
+
+    @Test
+    public void NegativeIndex() {
+        helpFeatures();
+    }
+
+    @Test
+    public void NullDereference() {
+        helpFeatures();
+    }
 
     @Test
     public void NegativeArraySize() {
@@ -76,6 +88,11 @@ public class escfeatures extends EscBaseFiles {
 
     @Test
     public void JavaAssertion() {
+        helpFeatures();
+    }
+
+    @Test
+    public void DivideByZero() {
         helpFeatures();
     }
 
