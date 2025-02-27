@@ -64,6 +64,30 @@ public class racfeatures extends RacBase {
     }
 
     @Test
+    public void DivideByZero() {
+        expectedRACExit = 1;
+        helpFeature();
+    }
+
+    @Test
+    public void NullDereference() {
+        expectedRACExit = 1;
+        helpFeature();
+    }
+
+    @Test
+    public void IndexOutOfRange() {
+        expectedRACExit = 1;
+        helpFeature();
+    }
+
+    @Test
+    public void NegativeIndex() {
+        expectedRACExit = 1;
+        helpFeature();
+    }
+
+    @Test
     public void ArrayStore() {
         expectedRACExit = 0;
         helpFeature();

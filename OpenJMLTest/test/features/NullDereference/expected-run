@@ -1,0 +1,6 @@
+OUT:
+
+ERR:
+Exception in thread "main" java.lang.NullPointerException: Cannot read field "i" because "<parameter1>" is null
+	at features.NullDereference.test(NullDereference.java:13)
+	at features.NullDereference.main(NullDereference.java:9)

@@ -1,0 +1,6 @@
+OUT:
+
+ERR:
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index -1 out of bounds for length 10
+	at features.NegativeIndex.test(NegativeIndex.java:16)
+	at features.NegativeIndex.main(NegativeIndex.java:9)

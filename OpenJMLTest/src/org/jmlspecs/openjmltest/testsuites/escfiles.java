@@ -378,6 +378,11 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
+    public void escInvariants1() {
+        helpTG();
+    }
+
+    @Test
     public void escInvariants2() {
         helpTG();
     }
@@ -424,6 +429,11 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void preconditionDetail() {  // FIXME - why multiple conjuncts reported
+        helpTG();
+    }
+
+    @Test
+    public void preconditionDetail2() {  // FIXME - why multiple conjuncts reported
         helpTG();
     }
 
