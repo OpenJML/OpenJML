@@ -86,12 +86,10 @@ public class JmlOption {
     public static final JmlOption LANG = new JmlOption("--lang",true,langOpenJML,"Set the language variant to use (default 'openjml'): " + Utils.join(" ",jmlVariants),null) {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
+            // The default has been filled in before check is called
             String val = options.get(JmlOption.LANG.optionName());
-            if (val == null || val.isEmpty()) {
-                options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
-            } else if(JmlOption.langOpenJML.equals(val) || JmlOption.langJML.equals(val)) {
-            } else {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langOpenJML + "', '" + JmlOption.langJML + "' for --lang: " + val);
+            if (!jmlVariants.contains(val)) {
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected one of " + jmlVariants + " for --lang: " + val);
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
                 return false;
             }
@@ -126,9 +124,6 @@ public class JmlOption {
                   JmlOption.putOption(context, JmlOption.ARITHMETIC, JmlOption.ARITHMETIC.defaultValue().toString());
                   return false;
               }
-              if (negate) {
-                  JmlOption.putOption(context, JmlOption.ARITHMETIC, JmlOption.ARITHMETIC.defaultValue().toString());
-              }
               return true;
           }
     };
@@ -153,7 +148,7 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             String n = JmlOption.VERBOSENESS.optionName().trim();
             String levelstring = JmlOptions.instance(context).get(n);
-            if (levelstring != null) {
+            if (Utils.instance(context).ojcheck(levelstring != null, "null value in JmlOption.VERBOSENESS.check")) {
                 levelstring = levelstring.trim();
                 if (!levelstring.isEmpty()) try {
                     Utils.instance(context).jmlverbose = Integer.parseInt(levelstring);
@@ -170,13 +165,14 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
             String val = options.get(JmlOption.WARN.optionName());
-            // CAUTION: check is called with an empty-string argument as part of initialization (because loadDefault() calls check for each option).
-            // Consequently the warning will fail because "jml.message" is not yet loaded.
-            if (val != null && !val.isEmpty()) {
-                String[] keys = val.split(",");
-                for (var k: keys) {
-                    if (options.warningKeys.containsKey(k)) options.warningKeys.put(k,!negate);
-                    else Utils.instance(context).warning("jml.message", "In --(no)-warn, '" + k + "' is not a valid warning key; see --help=warn");
+           // CAUTION: check is called with an empty-string argument as part of initialization, when error messages are not yet read in.
+            if (Utils.instance(context).ojcheck(val != null, "null option value in JmlOption.WARN.check")) {
+                if (!val.isEmpty()) {
+                    String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
+                    for (var k: keys) {
+                        if (options.warningKeys.containsKey(k)) options.warningKeys.put(k,!negate);
+                        else Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
+                    }
                 }
             }
             return true;
@@ -204,17 +200,17 @@ public class JmlOption {
     public static final JmlOption SHOW = new JmlOption("--show",true,"","Show intermediate programs",null,false,"all");
     public static final JmlOption SPLIT = new JmlOption("--split",true,"","Split proof into sections",null);
     public static final JmlOption ESC_BV = new JmlOption("--esc-bv",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null) {
-    	public boolean check(Context context, boolean negate) {
-    		JmlOptions options = JmlOptions.instance(context);
-    		var nm = JmlOption.ESC_BV.optionName();
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            var nm = JmlOption.ESC_BV.optionName();
             String val = options.get(nm);
-            if (val == null || val.isEmpty()) {
-                options.put(nm,(String)JmlOption.ESC_BV.defaultValue());
-            } else if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
-            } else {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
-                options.put(nm,(String)JmlOption.ESC_BV.defaultValue());
-            	return false;
+            if (Utils.instance(context).ojcheck(val != null, "null value in JmlOption.ESC_BC.check")) {
+                if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
+                } else {
+                    Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
+                    options.put(nm,(String)JmlOption.ESC_BV.defaultValue());
+                    return false;
+                }
             }
             return true;
     	}
@@ -225,16 +221,18 @@ public class JmlOption {
     	public boolean check(Context context, boolean negate) {
             Utils utils = Utils.instance(context);
             String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
-            if (limit == null || limit.isEmpty() || limit.equals("all")) {
-                utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
-            } else {
-                try {
-                    int k = Integer.parseInt(limit);
-                    utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
-                } catch (NumberFormatException e) {
-                    utils.error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
-                    utils.maxWarnings = Integer.MAX_VALUE;
-                    return false;
+            if (Utils.instance(context).ojcheck(limit != null, "null value in JmlOption.ESC_MAX_WARNINGS.check")) {
+                if (limit.equals("all")) {
+                    utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
+                } else {
+                    try {
+                        int k = Integer.parseInt(limit);
+                        utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
+                    } catch (NumberFormatException e) {
+                        utils.error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
+                        utils.maxWarnings = Integer.MAX_VALUE;
+                        return false;
+                    }
                 }
             }
             return true;
@@ -285,9 +283,7 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
             String val = options.get(optionName());
-            if (val == null || val.isEmpty()) {
-                options.put(optionName(),negate? "line" : (String)defaultValue());
-            } else if ("none".equals(val) || "line".equals(val) || "source".equals(val)) {
+            if ("none".equals(val) || "line".equals(val) || "source".equals(val)) {
                 // OK
             } else {
                 Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : " + val);
@@ -306,8 +302,9 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
             String val = options.get(optionName());
-            if (val.isEmpty()) val = (String)defaultValue();
-            for (var s: values) if (s.equals(val)) return true;
+            for (var s: values) {
+                if (s.equals(val)) return true;
+            }
             Utils.instance(context).error("jml.message","Command-line argument error: Expected one of " + String.join(" ",values) + " for " + optionName() + " : " + val);
             options.put(optionName(),(String)defaultValue());
             return false;
