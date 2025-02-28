@@ -852,13 +852,41 @@ public class compiler extends JmlTestSuite{
         helper(new String[] {"--lang=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
                 "",
                 """
-                warning: Command-line argument error: Expected 'openjml', 'jml' for --lang: zzz
+                warning: Command-line argument error: Expected one of [jml, openjml] for --lang: zzz
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionLang0() {
+        helper(new String[] {"--lang=\"\"","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: Command-line argument error: Expected one of [jml, openjml] for --lang: ""
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionLang1() {
+        helper(new String[] {"--lang=\" \"","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: Command-line argument error: Expected one of [jml, openjml] for --lang: " "
                 1 warning
                 """);
     }
 
     @Test
     public void testOptionLang2() {
+        helper(new String[] {"\"--lang= \"","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                "warning: Command-line argument error: Expected one of [jml, openjml] for --lang:  \n1 warning\n"
+                );
+    }
+
+    @Test
+    public void testOptionLang3() {
         helper(new String[] {"--lang=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
                 "",
                 """
@@ -876,6 +904,50 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
+    public void testOptionArithHard() {
+        helper(new String[] {"--arithmetic-failure=hard","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionArithSoft() {
+        helper(new String[] {"--arithmetic-failure=soft","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionArithQuiet() {
+        helper(new String[] {"--arithmetic-failure=quiet","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionArithNo() {
+        helper(new String[] {"--no-arithmetic-failure=hard","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: no- is only permitted for boolean options (and --warn)
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionArithNoDef() {
+        helper(new String[] {"--no-arithmetic-failure=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: no- is not permitted with set-to-default (empty string after = character)
+                1 warning
+                """);
+    }
+
+    @Test
     public void testOptionBV() {
         helper(new String[] {"--esc-bv=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
                 "",
@@ -884,11 +956,45 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
+    public void testOptionBVAuto() {
+        helper(new String[] {"--esc-bv=auto","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionBVTrue() {
+        helper(new String[] {"--esc-bv=true","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionBVFalse() {
+        helper(new String[] {"--esc-bv=false","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionBVBad() {
+        helper(new String[] {"--esc-bv=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: Command-line argument error: Expected 'auto', 'true' or 'false' for --esc-bv: zzz
+                1 warning
+                """);
+    }
+
+    @Test
     public void testOptionWarn() {
         helper(new String[] {"--warn=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
                 "",
                 """
-                warning: In --(no)-warn, 'zzz' is not a valid warning key; see --help=warn
+                warning: In --(no-)warn, 'zzz' is not a valid warning key; see --help=warn
                 1 warning
                 """);
     }
@@ -902,8 +1008,36 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
+    public void testOptionWarnEmpty() {
+        helper(new String[] {"--warn=,","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionWarnWS() {
+        helper(new String[] {"--warn= ,,\t","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: In --(no-)warn, ' ' is not a valid warning key; see --help=warn
+                warning: In --(no-)warn, '' is not a valid warning key; see --help=warn
+                warning: In --(no-)warn, '\t' is not a valid warning key; see --help=warn
+                3 warnings
+                """);
+    }
+
+    @Test
     public void testOptionWarnOK() {
         helper(new String[] {"--warn=implicit-everything","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionWarnNeg() {
+        helper(new String[] {"--no-warn=implicit-everything","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
                 "",
                 """
                 """);
@@ -916,6 +1050,22 @@ public class compiler extends JmlTestSuite{
                 """
                 warning: The value of the --verboseness option or the org.openjml.option.verboseness property should be the string representation of an integer: "zzz"
                 1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionVerbosenessDef() {
+        helper(new String[] {"--verboseness=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionVerbosenessWS() {
+        helper(new String[] {"--verboseness= ","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
                 """);
     }
 
@@ -979,10 +1129,85 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
-    public void testOptionMaxWarningsDefault() {
-        helper(new String[] {"--esc-max-warnings=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+    public void testOptionMaxWarningsEmpty() {
+        helper(new String[] {"--esc-max-warnings= ","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 2, 0,
+                "",
+                "error: Expected a number or 'all' as argument for --esc-max-warnings:  \n"
+                );
+    }
+
+    @Test
+    public void testOptionMaxWarningsNegative() {
+        helper(new String[] {"--esc-max-warnings=-10","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
                 "",
                 """
+                """);
+    }
+
+    @Test
+    public void testOptionMaxWarningsPositive() {
+        helper(new String[] {"--esc-max-warnings=1","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSourceBad() {
+        helper(new String[] {"--rac-show-source=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : zzz
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSourceLine() {
+        helper(new String[] {"--rac-show-source=line","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSourceNone() {
+        helper(new String[] {"--rac-show-source=none","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSourceSource() {
+        helper(new String[] {"--rac-show-source=source","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSourceWS() {
+        helper(new String[] {"--rac-show-source= ","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                "warning: Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source :  \n1 warning\n"
+                );
+    }
+
+    @Test
+    public void testOptionRacShowSourceDef() {
+        helper(new String[] {"--rac-show-source=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionMissingModelRep() {
+        helper(new String[] {"--rac-missing-model-field-rep=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 2, 0,
+                "",
+                """
+                error: Command-line argument error: Expected one of zero zero-quiet skip skip-quiet fail for --rac-missing-model-field-rep : zzz
                 """);
     }
 

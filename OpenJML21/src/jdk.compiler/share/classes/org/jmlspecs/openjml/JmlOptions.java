@@ -252,12 +252,20 @@ public class JmlOptions extends Options {
                     return;
                 } else if (res.isEmpty()) {
                     // JML option with a naked = sign
-                	// which means to reset the option to its default value
+                    // which means to reset the option to its default value
                     Object def = o.defaultValue();
                     res = def == null ? null : def.toString();
-
+                    if (negate && !s.equals("warn")) {
+                        Utils.instance(context).warning("jml.message","no- is not permitted with set-to-default (empty string after = character)");
+                        negate = false;
+                    }
                 } else  {
-                    if (o.hasArg()) { }
+                    if (o.hasArg()) { 
+                        if (negate && !s.equals("--warn")) {
+                            Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)");
+                            negate = false;
+                        }
+                    }
                     else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
                     else {
@@ -336,11 +344,11 @@ public class JmlOptions extends Options {
             }
         } else {
             if (o.defaultValue() instanceof Boolean) {
-        		JmlOption.setOption(context, o, !negate);
-        	} else {
-        		options.put(o.optionName(),res);
-        		// Use negate with call of check later on
-        	}
+                JmlOption.setOption(context, o, !negate);
+            } else {
+                options.put(o.optionName(),res);
+                // Use negate with call of check later on
+            }
             o.check(context, negate);
         }
     }
