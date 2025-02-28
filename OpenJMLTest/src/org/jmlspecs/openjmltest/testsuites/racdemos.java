@@ -36,44 +36,59 @@ import org.openjml.runners.Ignorable;
 
 // @RunWith(Ignorable.class)
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-public class racnonpublic extends RacBase {
+public class racdemos extends RacBase {
 
-	boolean nonpublicPresent;
-	
     @Override
     @Before
     public void setUp() throws Exception {
         setUpForFiles();
         super.setUp();
-//        Assert.fail();
         Assume.assumeTrue( new File(OpenJMLDemoPath).exists() );
+    }
+    
+    public void helpCompileRunDemo(String dir, String mainClassname, String ... opts) {
+        String adir = OpenJMLDemoPath + dir;
+        if (opts.length == 0) helpTCF(adir, adir, mainClassname, "-cp", adir);
+        else helpTCF(adir, adir, mainClassname, org.jmlspecs.openjml.Utils.concat(new String[] { "-cp", adir}, opts));
+    }
+
+    
+    @Test
+    public void demoPurseMod() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpCompileRunDemo("/src/openjml/purseMod","CardTest");
+    }
+    
+    @Test
+    public void demoPurse() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpCompileRunDemo("/src/openjml/purse","CardTest");
     }
 
 
     @Test @Ignore // not working yet
     public void racSokoban() {
-        String dir = OpenJMLDemoPath + "/src/sokoban/src";
         expectedExit = 0;
         expectedRACExit = 1;
-        helpTCF(dir,dir,"Game","-cp",dir,"-progress");
+        helpCompileRunDemo("/src/sokoban/src","Game","-progress");
     }
 
     @Test @Ignore // not working yet
     public void racSokoban2() {
-        String dir = OpenJMLDemoPath + "/src/sokoban2/src";
         expectedExit = 0;
         expectedRACExit = 1;
         ignoreNotes = true;
-        helpTCF(dir,dir,"Game","-cp",dir,"-progress");
+        helpCompileRunDemo("/src/sokoban2/src","Game","-progress");
     }
 
     @Test @Ignore // not working yet
     public void racSokoban3() {
-        String dir = OpenJMLDemoPath + "/src/sokoban3/src";
         expectedExit = 0;
         expectedRACExit = 1;
         ignoreNotes = true;
-        helpTCF(dir,dir,"Game","-cp",dir,"-progress");
+        helpCompileRunDemo("/src/sokoban3/src","Game","-progress");
     }
 
     @Test @Ignore // not working yet

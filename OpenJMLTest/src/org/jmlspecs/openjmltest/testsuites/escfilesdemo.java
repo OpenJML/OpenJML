@@ -50,6 +50,7 @@ public class escfilesdemo extends EscBaseFiles {
     
 
     // FIXME - use helpDemo?
+    // FIXME - which of the demos should be tested with rac as well
 
     @Test
     public void escDemo() {
@@ -126,7 +127,7 @@ public class escfilesdemo extends EscBaseFiles {
     }
 
     @Test
-    public void escDemoTypesDef() { // FIXME - does this need typeQuants?
+    public void escDemoTypesNoQuants() { // FIXME - does this need typeQuants?
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemoFile("demo/Types.java","escDemoTypesNoQuants","--typeQuants=false","--check-feasibility=precondition,exit");
@@ -213,6 +214,12 @@ public class escfilesdemo extends EscBaseFiles {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemo("settableClock","demoSettableClock","--check-feasibility=precondition,exit");
+    }
+
+    @Test @Ignore // FIXME - needs some fixing
+    public void demoStudent() {
+        expectedExit = 0;
+        helpDemoFile("student","demoStudent","--check-feasibility=basic");
     }
     
     @Test

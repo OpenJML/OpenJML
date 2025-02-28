@@ -795,6 +795,22 @@ public class Utils {
     public boolean hasJavaSuffix(String filename) {
         return (filename.endsWith(".java"));
     }
+    
+    @SafeVarargs
+    public static <T> T[] concat(T[] array1, T[] ... arrays) {
+        int n = array1.length;
+        for (var a: arrays) n += a.length;
+        T[] res = java.util.Arrays.copyOf(array1, n);
+        int k = array1.length;
+        for (var a: arrays) { System.arraycopy(a, 0, res, k, a.length); k += a.length; }
+        return res;
+    }
+
+    public static <T> T[] concat2(T[] array1, T[] array2) {
+        T[] res = java.util.Arrays.copyOf(array1, array1.length + array2.length);
+        System.arraycopy(array2, 0, res, array1.length, array2.length);
+        return res;
+    }
 
 
     /** A little class to encapsulate elapsed wall-clock time */

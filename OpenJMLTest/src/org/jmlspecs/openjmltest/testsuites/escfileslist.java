@@ -51,6 +51,17 @@ public class escfileslist extends EscBaseFiles {
             "org.jmlspecs.openjmltest.testsuites.SFBugs"
     };
     
+    static boolean hasJavaFile(File d) {
+        for (var f: d.listFiles()) {
+            if (f.isDirectory()) {
+                if (hasJavaFile(f)) return true;
+            } else {
+                if (f.getName().endsWith(".java")) return true;
+            }
+        }
+        return false;
+    }
+    
     public static java.util.List<String[]> alldata() { 
         var tests = new java.util.LinkedList<String>();
         var namedTests = System.getenv("NAMEDTEST");
@@ -80,6 +91,11 @@ public class escfileslist extends EscBaseFiles {
                 }
             }
             tests.sort((e1,e2)->e1.compareTo(e2));
+            for (var nn: tests) {
+                if (!hasJavaFile(new File(dir,nn))) {
+                    System.out.println("No source files " + nn);
+                }
+            }
             System.out.println("REMAINING " + tests);
         }
         var params = tests.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());

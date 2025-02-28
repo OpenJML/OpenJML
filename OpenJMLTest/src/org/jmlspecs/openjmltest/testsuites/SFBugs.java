@@ -389,7 +389,7 @@ public class SFBugs extends EscBaseFiles {
     }
 
     @Ignore // FIXME - timeout
-    @Test public void gitbug481arest() {
+    @Test public void gitbug481a() { // The rest
         expectedExit = 1;
         helpTCF("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","--exclude="+all,"-no-staticInitWarning","--solver-seed=142");
     }
