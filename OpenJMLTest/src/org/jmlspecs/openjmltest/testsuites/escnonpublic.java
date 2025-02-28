@@ -134,25 +134,25 @@ public class escnonpublic extends EscBaseFiles {
 
 
     @Test
-    public void testEscStaticModel() {
+    public void escStaticModel() {
         expectedExit = 0;
         helpTCF(dir + "src/escStaticModel",dir + "src/escStaticModel","--progress");
     }
 
     @Test @Ignore // Sometimes times out
-    public void testDMZ() {
+    public void dmz() {
         expectedExit = 0;
         helpTCF(dir + "src/dmz",dir + "src/dmz","--progress");
     }
 
     @Test
-    public void testDMZ2() {
+    public void dmz2() {
         expectedExit = 0;
         helpTCF(dir + "src/dmz2",dir + "src/dmz2","--progress");
     }
 
     @Test
-    public void testDMZ3() {
+    public void dmz3() {
         expectedExit = 0;
         helpTCF(dir + "src/dmz3",dir + "src/dmz3","--progress");
     }

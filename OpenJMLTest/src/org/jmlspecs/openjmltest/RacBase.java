@@ -362,8 +362,10 @@ public abstract class RacBase extends JmlTestSuite {
             pw.close();
             
             String compdiffs = "";
+            boolean hasExpected = false;
             for (String file: new File(outputdir).list()) {
                 if (!file.contains("expected-compile")) continue;
+                hasExpected = true;
                 compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
                 if (compdiffs == null) {
                     new File(actCompile).delete();
@@ -371,7 +373,11 @@ public abstract class RacBase extends JmlTestSuite {
                 }
             }
             if (compdiffs != null) {
-                if (compdiffs.isEmpty()) {
+                // No match found
+                if (!hasExpected && java.nio.file.Files.readAllLines(java.nio.file.Paths.get(actCompile)).isEmpty()) {
+                    // having no expected-compile file is equivalent to having an empty expected-compile file
+                    new File(actCompile).delete();
+                } else if (compdiffs.isEmpty()) {
                     compdiffs = ("No expected output file for compiler output");
                     System.out.println(compdiffs);
                 } else {

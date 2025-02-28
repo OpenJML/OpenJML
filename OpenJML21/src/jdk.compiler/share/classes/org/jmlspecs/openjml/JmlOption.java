@@ -91,7 +91,7 @@ public class JmlOption {
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
             } else if(JmlOption.langOpenJML.equals(val) || JmlOption.langJML.equals(val)) {
             } else {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langOpenJML + "', '" + JmlOption.langJML + "' for -lang: " + val);
+                Utils.instance(context).warning("jml.message","Command-line argument error: Expected '" + JmlOption.langOpenJML + "', '" + JmlOption.langJML + "' for --lang: " + val);
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
                 return false;
             }
@@ -122,7 +122,7 @@ public class JmlOption {
               String mode = JmlOptions.instance(context).get(n);
               if (!(mode.equals("hard") || mode.equals("soft") || mode.equals("quiet"))) {
                   Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) 
-                  + " property should be one of 'hard', 'soft', or 'quiet'");
+                  + " property should be one of 'hard', 'soft', or 'quiet': " + mode);
                   JmlOption.putOption(context, JmlOption.ARITHMETIC, JmlOption.ARITHMETIC.defaultValue().toString());
                   return false;
               }
@@ -501,7 +501,8 @@ public class JmlOption {
      */
     public static boolean includes(Context context, JmlOption option, String value) {
         String v = JmlOption.value(context, option);
-        return "all".equals(v) || ( v.equals(value) || v.startsWith(value + ",") || v.endsWith("," + value) || v.contains("," + value +","));
+        return "all".equals(v) || java.util.Arrays.stream(v.split(",")).anyMatch(s->value.equals(s));
+        //return "all".equals(v) || ( v.equals(value) || v.startsWith(value + ",") || v.endsWith("," + value) || v.contains("," + value +","));
     }
 
     /** Return the value of an option with an argument

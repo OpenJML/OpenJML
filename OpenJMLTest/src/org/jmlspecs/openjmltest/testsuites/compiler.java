@@ -846,6 +846,145 @@ public class compiler extends JmlTestSuite{
                            "4 errors" + eol
                           );
     }
+    
+    @Test
+    public void testOptionLang() {
+        helper(new String[] {"--lang=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: Command-line argument error: Expected 'openjml', 'jml' for --lang: zzz
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionLang2() {
+        helper(new String[] {"--lang=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionArith() {
+        helper(new String[] {"--arithmetic-failure=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: The value of the --arithmetic-failure option or the org.openjml.option.arithmetic-failure property should be one of 'hard', 'soft', or 'quiet': zzz
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionBV() {
+        helper(new String[] {"--esc-bv=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionWarn() {
+        helper(new String[] {"--warn=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: In --(no)-warn, 'zzz' is not a valid warning key; see --help=warn
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionWarnNone() {
+        helper(new String[] {"--warn=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionWarnOK() {
+        helper(new String[] {"--warn=implicit-everything","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionVerboseness() {
+        helper(new String[] {"--verboseness=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: The value of the --verboseness option or the org.openjml.option.verboseness property should be the string representation of an integer: "zzz"
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionFeas() {
+        helper(new String[] {"--check-feasibility=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionFeasDebug() {
+        helper(new String[] {"--check-feasibility=debug:x","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSource() {
+        helper(new String[] {"--rac-show-source=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionRacShowSource1() {
+        helper(new String[] {"--rac-show-source=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : zzz
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionMaxWarnings() {
+        helper(new String[] {"--esc-max-warnings=zzz","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 2, 0,
+                "",
+                """
+                error: Expected a number or 'all' as argument for --esc-max-warnings: zzz
+                """);
+    }
+
+    @Test
+    public void testOptionMaxWarnings0() {
+        helper(new String[] {"--esc-max-warnings=0","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionMaxWarningsAll() {
+        helper(new String[] {"--esc-max-warnings=all","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionMaxWarningsDefault() {
+        helper(new String[] {"--esc-max-warnings=","-sourcepath","test/testNoErrors","test/testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
 
     @Test
     public void testModelBug2() throws Exception {
