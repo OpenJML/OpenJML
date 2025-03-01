@@ -1540,10 +1540,10 @@ public class compiler extends JmlTestSuite{
     
     @Test
     public void release_testCheck1() throws Exception {
-        expectedFile = "releaseTests/testCheck1a/expected";
+        expectedFile = "releaseTests/testCheck1/expected";
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", "--specs-path", relsrc + "/..", relsrc + "/../A.java"
-                },6,0
+                { "-jmltesting", "--no-purity-check", "--specs-path", relsrc, relsrc + "/A.java"
+                },1,0
                 ,""
                 );
     }
