@@ -22,6 +22,8 @@ import org.junit.rules.TestName;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class compiler extends JmlTestSuite{
     
+    public static final String relsrc = "releaseTests/src";
+    
     @Rule
     public TestName name = new TestName();
 
@@ -36,7 +38,7 @@ public class compiler extends JmlTestSuite{
     String projHome;
     {
     String h = System.getProperty("openjml.eclipseProjectLocation");
-    if (h == null) h = JmlTestSuite.root + "/OpenJML21B/OpenJMLTest";
+    if (h == null) h = JmlTestSuite.root + "/OpenJML21/OpenJMLTest";
     projHome = h.replace("C:","").replace("\\","/");
     }
     String specsHome;
@@ -96,7 +98,7 @@ public class compiler extends JmlTestSuite{
         if (expectedFile != null) {
         	try {
         		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile)));
-        		expected = JmlTestSuite.doReplacements(expected.replace("./src","testfiles"));
+        		expected = JmlTestSuite.doReplacements(expected.replace("./src",relsrc));
         	} catch (Exception ee) {
         		expected = null;
         		org.junit.Assert.fail(ee.toString());
@@ -1422,7 +1424,7 @@ public class compiler extends JmlTestSuite{
     public void release_testEsc1() throws Exception {
     	expectedFile = "releaseTests/testEsc1/expected";
     	helper(new String[]
-    			{ "--no-purity-check", "-esc", "testfiles/testEsc/A.java", "-classpath", "testfiles/testEsc",
+    			{ "--no-purity-check", "-esc", "releaseTests/src/testEsc/A.java", "-classpath", relsrc + "/testEsc",
     					"-exec=" + JmlTestSuite.root + "/Solvers/Solvers-macos/z3-4.3.1"
     			},6,0
     			,""
@@ -1433,7 +1435,7 @@ public class compiler extends JmlTestSuite{
     public void release_testEsc2() throws Exception {
     	expectedFile = "releaseTests/testEsc2/expected";
     	helper(new String[]
-    			{ "--no-purity-check", "-esc", "testfiles/testEsc/B.java", "-classpath", "testfiles/testEsc",
+    			{ "--no-purity-check", "-esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc",
     					"-exec=" + JmlTestSuite.root + "/Solvers/Solvers-macos/z3-4.3.1"
     			},0,0
     			,""
@@ -1444,7 +1446,7 @@ public class compiler extends JmlTestSuite{
     public void release_testPath1() throws Exception {
     	expectedFile = "releaseTests/testPath1/expected";
     	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", 
+    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", 
     			},1,0
     			,""
     			);
@@ -1454,7 +1456,7 @@ public class compiler extends JmlTestSuite{
     public void release_testPath2() throws Exception {
     	expectedFile = "releaseTests/testPath2/expected";
     	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", "-classpath", "testfiles/testPath/data"
+    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data"
     			},1,1
     			,""
     			);
@@ -1464,7 +1466,7 @@ public class compiler extends JmlTestSuite{
     public void release_testPath3() throws Exception {
     	expectedFile = "releaseTests/testPath3/expected";
     	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", "-specspath", "testfiles/testPath/data-specs"
+    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-specspath", relsrc + "/testPath/data-specs"
     			},1,1
     			,""
     			);
@@ -1474,7 +1476,7 @@ public class compiler extends JmlTestSuite{
     public void release_testPath4() throws Exception {
     	expectedFile = "releaseTests/testPath4/expected";
     	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", "testfiles/testPath/data/TestPath.java", "-sourcepath", "testfiles/testPath/data-specs" 
+    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" 
     			},1,0
     			,""
     			);
