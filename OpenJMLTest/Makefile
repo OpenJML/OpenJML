@@ -23,8 +23,13 @@ openjml-test: prep
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
 openjml-test-git:
-	${TEST}/unittests/runpar
-	grep FAILED ${TEST}/unittests/log-* | grep -v Trace | grep -v Query
+    JOBS=4 time ${TEST}/unittests/runpar
+    JOBS=6 time ${TEST}/unittests/runpar
+    JOBS=8 time ${TEST}/unittests/runpar
+    JOBS=10 time ${TEST}/unittests/runpar
+    JOBS=0 time ${TEST}/unittests/runpar
+    JOBS=1 time ${TEST}/unittests/runpar
+	#grep FAILED ${TEST}/unittests/log-* | grep -v Trace | grep -v Query
 
 openjml-clean: .FORCE
 	make -C ${SRC} clean; make openjml
