@@ -72,17 +72,29 @@ ${RTH} testJmlVersion "$OJ -version" || RES=$(($RES+1))
 ## Checks the help message (when there are no arguments)
 ${RTH} testJmlHelpSimp "$OJ" || RES=$(($RES+1))
 
-## Checks the help message (when there is a -help option)
+## Checks the help message (when there is a -? option)
 ${RTH} testJmlHelp "$OJ -?" || RES=$(($RES+1))
+
+## Checks the help message (when there is a -help option)
+${RTH} testJmlHelp "$OJ --help" || RES=$(($RES+1))
 
 ## Checks the help message (when there is a -help option)
 ${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 
-## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
-##${RTH} testJmlBad "$OJ -verboseness \"\"" || RES=$(($RES+1))
+## Checks when there is a default verboseness argument
+${RTH} testJmlBad "$OJ --verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
-${RTH} testJmlBad "$OJ -verboseness=" || RES=$(($RES+1))
+${RTH} testJmlBadW "$OJ --verboseness" || RES=$(($RES+1))
+
+## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
+##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))
+
+## Checks when there is a default verboseness argument
+${RTH} testJmlBad "$OJ --verboseness= " || RES=$(($RES+1))
+
+## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
+#${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness property
 export OPENJML_verboseness=x
@@ -97,9 +109,6 @@ rm openjml.properties
 ## Checks when there is a bad use of -java
 ${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
 
-## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
-#${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
-
 
 echo "public class A { /*@ invariant 0; */ }" > A.java
 echo "public class B { /*@ invariant true; */ }" > B.java
@@ -107,12 +116,19 @@ echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { retu
 echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
 
 ## Checks a valid file using java -jar
-${RTH} testOK1 "$OJ --no-purity-check -specspath . B.java" || RES=$(($RES+1))
+${RTH} testOK1 "$OJ --no-purity-check --specs-path . B.java" || RES=$(($RES+1))
+
+## This checks verbose output - which changes too often to put in the 
+## regular test suite
+if [[ "$COKENV" != "" ]] ; then
+## Checks a valid file with jmlverbose
+${RTH} testOK3 "$OJ --no-purity-check --specs-path . B.java -jmlverbose" || RES=$(($RES+1))
+fi
 
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath ./src/testRac -specspath ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
 ${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath . D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
@@ -152,7 +168,7 @@ ${JV} -classpath "rac" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 
-${RTH} testRac "$OJ -rac --rac-show-source=source --no-purity-check -d rac -classpath ./src/testRac -specspath ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=source --no-purity-check -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }
@@ -162,22 +178,12 @@ echo RAC java with annotations
 java -cp rac D > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-annotations || { RES=$(($RES+1)); }
 
-## This checks verbose output - which changes too often to put in the 
-## regular test suite
-if [[ "$COKENV" != "" ]] ; then
-## Checks a valid file with jmlverbose
-${RTH} testOK3 "$OJ --no-purity-check -specspath . B.java -jmlverbose" || RES=$(($RES+1))
-fi
-
 ## ANNOTATIONS might be an absolute or relative path.  We are currently in
 ## OpenJML/temp-release so if absolute we want ${ANNOTATIONS}, if relative we want ../${ANNOTATIONS}
 
 #if [ ! -e ${ANNOTATIONS} ]; then
 ANNOTATIONS=../../../JMLAnnotations
 #fi
-
-## Checks a valid file with an external source runtime library - should be OK -- FIXME - can we actually turn off the internal runtime
-${RTH} testRuntime3 "$OJ C.java --no-purity-check -classpath ../../OpenJML21/src/java.base/share/classes${Z}${ANNOTATIONS}/src" || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
 ${RTH} testRuntime4 "$OJ C.java --no-purity-check " || RES=$(($RES+1))
@@ -186,10 +192,14 @@ ${RTH} testRuntime4 "$OJ C.java --no-purity-check " || RES=$(($RES+1))
 ${RTH} testRuntime5 "$OJ D.java --no-purity-check " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "$OJ --no-purity-check -esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "$OJ --no-purity-check --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$OJ --no-purity-check -esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc2 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
+
+## FIXME - is not platform-independent
+## Checks using classpath - ok, uses specs in java file
+${RTH} testEsc2 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=../../../Solvers/Solvers-macos/z3-4.3.1 || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
@@ -199,7 +209,7 @@ ${RTH} testPath1 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath
 ${RTH} testPath2 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data" || RES=$(($RES+1))
 
 ## Checks using specs path - finds specs but not super class
-${RTH} testPath3 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -specspath ./src/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath3 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java --specs-path ./src/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path - finds specs but not super class
 ${RTH} testPath4 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs " || RES=$(($RES+1))
@@ -211,7 +221,7 @@ ${RTH} testPath5 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath
 ${RTH} testPath6 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
-${RTH} testPath7 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data -specspath ./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath7 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path (specs and java) - finds specs and super class
 ${RTH} testPath8 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
@@ -220,11 +230,11 @@ ${RTH} testPath8 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath
 ${RTH} testPath9 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class
-${RTH} testPath10 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data -specspath ./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath10 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
 
 
 ## Checks an invalid file
-${RTH} testCheck1 "$OJ -jmltesting --no-purity-check -specspath . A.java" || RES=$(($RES+1))
+${RTH} testCheck1 "$OJ -jmltesting --no-purity-check --specs-path . A.java" || RES=$(($RES+1))
 
 echo Testing testAPI
 ../releaseTests/testAPI/run &> ../releaseTests/testAPI/actual
