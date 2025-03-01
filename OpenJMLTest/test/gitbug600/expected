@@ -1,5 +1,10 @@
-RAC-Compiling IntDiv
-RAC-Compiling     IntDiv()
-RAC-Compiling     IntDiv(int,int)
-RAC-Compiling     _JML$$$checkInvariant()
-RAC-Compiling     _JML$$$checkStaticInvariant()
+Proving methods in IntDiv
+Starting proof of IntDiv.IntDiv() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntDiv.IntDiv() with prover !!!! - no warnings
+Starting proof of IntDiv.IntDiv(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntDiv.IntDiv(int,int) with prover !!!! - no warnings
+Completed proving methods in IntDiv

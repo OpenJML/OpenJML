@@ -67,6 +67,20 @@ public class racdemos extends RacBase {
         helpCompileRunDemo("/src/openjml/purse","CardTest");
     }
 
+    @Test
+    public void demoecu() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpCompileRunDemo("/src/openjml/ecu",null);
+    }
+
+    @Test
+    public void demoecu2() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpCompileRunDemo("/src/openjml/ecu2",null);
+    }
+
 
     @Test @Ignore // not working yet
     public void racSokoban() {

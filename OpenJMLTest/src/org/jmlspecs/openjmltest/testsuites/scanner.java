@@ -545,6 +545,24 @@ public class scanner extends JmlTestSuite {
         checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
     }
 
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment5R() {
+        helpScanner("//@requires /*@ requires\r public    */ public ",
+                new Object[]{SJML,IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
+                new int[] {0,3,3,11,24,25,26,32,36,37,37,38,39,45,46,46},
+                1);
+        checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
+    }
+
+    /** Test an embedded JML comment */
+    @Test public void testEmbeddedJMLComment5RN() {
+        helpScanner("//@requires /*@ requires\r\npublic    */ public ",
+                new Object[]{SJML,IDENTIFIER,EJML,PUBLIC,STAR, SLASH,PUBLIC,EOF},
+                new int[] {0,3, 3,11, 24,26, 26,32, 36,37, 37,38, 39,45, 46,46},
+                1);
+        checkMessages("/TEST.java:1: error: Embedded block comment must terminate within the JML line comment",13);
+    }
+
     /** Test an embedded Java comment */
     @Test public void testEmbeddedJavaComment() {
         helpScanner("//@requires // requires",
