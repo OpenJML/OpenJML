@@ -22,6 +22,9 @@ openjml-test: prep
 	-make tutorial-tests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
+openjml-test-git:
+	${TEST}/unittests/runpar
+
 openjml-clean: .FORCE
 	make -C ${SRC} clean; make openjml
 
