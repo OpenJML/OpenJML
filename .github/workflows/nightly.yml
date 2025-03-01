@@ -82,4 +82,4 @@ jobs:
 
     - name: Run full tests
       run: |
-        make -C OpenJML/OpenJMLTest openjml-test
+        make -C OpenJML/OpenJMLTest openjml-test-git
