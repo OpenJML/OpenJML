@@ -96,7 +96,7 @@ public class compiler extends JmlTestSuite{
         if (expectedFile != null) {
         	try {
         		expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile)));
-        		expected = JmlTestSuite.doReplacements(expected.replace("../testfiles","testfiles"));
+        		expected = JmlTestSuite.doReplacements(expected.replace("./src","testfiles"));
         	} catch (Exception ee) {
         		expected = null;
         		org.junit.Assert.fail(ee.toString());
