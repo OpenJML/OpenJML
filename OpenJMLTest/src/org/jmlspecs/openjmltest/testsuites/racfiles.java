@@ -128,13 +128,13 @@ public class racfiles extends RacBase {
     @Test
     public void testDecimal() {
         expectedExit = 0;
-        helpTCF("test/sv_rac","test/sv_rac","sv_rac.Decimal");
+        helpTCF("test/testDecimal","test/testDecimal","sv_rac.Decimal");
     }
 
     @Test
     public void testDecimal2() {
         expectedExit = 0;
-        helpTCF("test/sv_rac_mod","test/sv_rac_mod","sv_rac/Decimal");
+        helpTCF("test/testDecimal2","test/testDecimal2","sv_rac/Decimal");
     }
     
     @Test
@@ -144,6 +144,12 @@ public class racfiles extends RacBase {
     }
 
 
+
+    @Test
+    public void jmlbigint() {
+        expectedExit = 0;
+        helpTCF("test/jmlbigint","test/jmlbigint","Test");
+    }
 
     @Test
     public void racbigint() {
@@ -309,7 +315,7 @@ public class racfiles extends RacBase {
     }
 
     @Test // FIXME - should we allow and compensate for \result in an \old environment
-    public void racOld() {
+    public void racold() {
         expectedExit = 1;
         runrac = false;
         helpTCF("test/racold","test/racold","ArrayExample");

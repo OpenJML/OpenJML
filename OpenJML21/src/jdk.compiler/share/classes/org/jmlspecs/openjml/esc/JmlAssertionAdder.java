@@ -13605,15 +13605,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			if (splitExpressions)
 				result = eresult = newTemp(eresult);
-		} else if (tag == JCTree.Tag.COMPL || tag == JCTree.Tag.POS) {
-		    if (utils.rac && that.type == BIGINT) {
+        } else if (tag == JCTree.Tag.COMPL) {
+            if (utils.rac && that.type == BIGINT) {
                 JCExpression arg = convertExpr(that.getExpression());
-		        result = eresult = treeutils.makeMethodInvocation(that, arg, names.fromString("comp"));
-		    } else {
-		        result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
-		        if (splitExpressions)
-		            result = eresult = newTemp(eresult);
-		    }
+                result = eresult = treeutils.makeMethodInvocation(that, arg, names.fromString("comp"));
+            } else {
+                result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
+                if (splitExpressions)
+                    result = eresult = newTemp(eresult);
+            }
+        } else if (tag == JCTree.Tag.POS) {
+            if (utils.rac && that.type == BIGINT) {
+                JCExpression arg = convertExpr(that.getExpression());
+                result = eresult = arg;
+            } else {
+                result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
+                if (splitExpressions)
+                    result = eresult = newTemp(eresult);
+            }
 		} else {
 			JCExpression arg = convertExpr(that.getExpression());
 			if (tag == JCTree.Tag.NOT && arg instanceof JCLiteral) {

@@ -2226,7 +2226,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testRefactoring2() {
-    	expectedExit = 1;
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mbad2(int i) {\n" 
@@ -2242,6 +2242,26 @@ public class escnew extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:6: warning: //#- block is not closed at the end of file",10
                 ,"/tt/TestJava.java:5: error: reached end of file while parsing",8
+                );
+    }
+
+    @Test 
+    public void testRefactoringNotAComment() {
+        expectedExit = 0;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  public void mbad2(int i) {\n" 
+                +"      int a = 2;\n" 
+                +"      {\n" 
+                +"      //@#Q\n"
+                +"      a++;\n" 
+                +"      //@#Q\n"
+                +"      }\n" 
+                +"      //@ assert a == 3;\n" 
+                +"  }\n"
+                
+               
+                +"}"
                 );
     }
 

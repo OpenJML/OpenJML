@@ -59,15 +59,15 @@ public class Test {
     }
     model public static void divzero1() {
       var a = (\bigint)10;
-      var b = a/\bigint.zero;
+      var b = a/\bigint.zero; // ERROR
     }
     model public static void divzero2() {
       var a = (\bigint)10;
-      var c = a/0;
+      var c = a/0; // ERROR
     }
     model public static void divzero3() {
       var a = (\bigint)10;
-      var e = a % 0;
+      var e = a % 0; // ERROR
     }
     
     requires b != 0;

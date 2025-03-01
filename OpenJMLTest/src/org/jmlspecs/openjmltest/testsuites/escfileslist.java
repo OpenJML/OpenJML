@@ -103,7 +103,6 @@ public class escfileslist extends EscBaseFiles {
     }
 
     String testName;
-    int expectedExit = 0;
     
     public escfileslist(String testName) {
         this.testName = testName;
