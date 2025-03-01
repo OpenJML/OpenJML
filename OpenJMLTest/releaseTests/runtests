@@ -85,7 +85,7 @@ ${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 ${RTH} testJmlBad "$OJ --verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
-${RTH} testJmlBadW "$OJ --verboseness" || RES=$(($RES+1))
+${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
 ##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))

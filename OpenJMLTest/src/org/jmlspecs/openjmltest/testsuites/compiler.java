@@ -1322,7 +1322,7 @@ public class compiler extends JmlTestSuite{
 
     @Test
     public void release_testJmlBadb() throws Exception {
-        expectedFile = "releaseTests/testJmlBadW/expected";
+        expectedFile = "releaseTests/testJmlBadWarn/expected";
         helper(new String[]
                 { "--verboseness"
                 },2,0
