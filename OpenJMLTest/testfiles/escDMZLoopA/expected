@@ -1,8 +1,0 @@
-Proving methods in ESCTest
-Skipping proof of ESCTest.ESCTest() (excluded by -method)
-Starting proof of ESCTest.findMax(int[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - after explicit assume statement : OK
-Feasibility check - at program exit : OK
-Completed proof of ESCTest.findMax(int[]) with prover !!!! - no warnings
-Completed proving methods in ESCTest
