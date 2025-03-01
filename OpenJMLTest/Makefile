@@ -24,6 +24,7 @@ openjml-test: prep
 
 openjml-test-git:
 	${TEST}/unittests/runpar
+	grep FAILED ${TEST}/unittests/log-* | grep -v Trace | grep -v Query
 
 openjml-clean: .FORCE
 	make -C ${SRC} clean; make openjml

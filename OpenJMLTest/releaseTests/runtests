@@ -57,7 +57,7 @@ fi
 
 cd $LOCAL
 
-## Currently in .../OpenJML/release-tests
+## Currently in .../OpenJMLTest/release-tests
 export RTH=$LOCAL/releaseTestHelper
 RES=0
 
