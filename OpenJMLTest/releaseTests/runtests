@@ -110,26 +110,26 @@ rm openjml.properties
 ${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
 
 
-echo "public class A { /*@ invariant 0; */ }" > A.java
-echo "public class B { /*@ invariant true; */ }" > B.java
-echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > C.java
-echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
+#echo "public class A { /*@ invariant 0; */ }" > A.java
+#echo "public class B { /*@ invariant true; */ }" > B.java
+#echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > C.java
+#echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
 
 ## Checks a valid file using java -jar
-${RTH} testOK1 "$OJ --no-purity-check --specs-path . B.java" || RES=$(($RES+1))
+${RTH} testOK1 "$OJ --no-purity-check --specs-path src src/B.java" || RES=$(($RES+1))
 
 ## This checks verbose output - which changes too often to put in the 
 ## regular test suite
 if [[ "$COKENV" != "" ]] ; then
 ## Checks a valid file with jmlverbose
-${RTH} testOK3 "$OJ --no-purity-check --specs-path . B.java -jmlverbose" || RES=$(($RES+1))
+${RTH} testOK3 "$OJ --no-purity-check --specs-path src src/B.java -jmlverbose" || RES=$(($RES+1))
 fi
 
 ## rac
 rm -rf rac
 mkdir -p rac
 ${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
-${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath . D.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath src src/D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual  2> racstderr
@@ -186,10 +186,10 @@ ANNOTATIONS=../../../JMLAnnotations
 #fi
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime4 "$OJ C.java --no-purity-check " || RES=$(($RES+1))
+${RTH} testRuntime4 "$OJ src/C.java --no-purity-check " || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime5 "$OJ D.java --no-purity-check " || RES=$(($RES+1))
+${RTH} testRuntime5 "$OJ src/D.java --no-purity-check " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
 ${RTH} testEsc1 "$OJ --no-purity-check --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
@@ -234,7 +234,7 @@ ${RTH} testPath10 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPat
 
 
 ## Checks an invalid file
-${RTH} testCheck1 "$OJ -jmltesting --no-purity-check --specs-path . A.java" || RES=$(($RES+1))
+${RTH} testCheck1 "$OJ -jmltesting --no-purity-check --specs-path src ./src/A.java" || RES=$(($RES+1))
 
 echo Testing testAPI
 ../releaseTests/testAPI/run &> ../releaseTests/testAPI/actual
