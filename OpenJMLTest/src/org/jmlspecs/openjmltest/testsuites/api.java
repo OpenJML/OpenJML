@@ -65,6 +65,8 @@ import com.sun.tools.javac.util.Name;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class api extends JmlTestSuite {
     
+    public final String apisrc = "teset/api/";
+    
     @Rule
     public TestName name = new TestName();
 
@@ -209,13 +211,13 @@ public class api extends JmlTestSuite {
     		;
         
     String parseAndPrettyPrintFromJavaFileObject() throws Exception {
-        java.io.File f = new java.io.File("test/testNoErrors/A.java");
+        java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
         IAPI m = Factory.makeAPI(new String[]{});
         return m.prettyPrint(m.parseFiles(m.makeJFOfromFile(f)).get(0));
     }
     
     String parseAndPrettyPrintFromFile() throws Exception {
-        java.io.File f = new java.io.File("test/testNoErrors/A.java");
+        java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseFiles(f).get(0));
     }
@@ -227,16 +229,16 @@ public class api extends JmlTestSuite {
     }
     
     String parseAndPrettyPrintFromMultipleFiles() throws Exception {
-        java.io.File fa = new java.io.File("test/testNoErrors/A.java");
-        java.io.File fb = new java.io.File("test/testNoErrors/B.java");
+        java.io.File fa = new java.io.File(apisrc + "testNoErrors/A.java");
+        java.io.File fb = new java.io.File(apisrc + "testNoErrors/B.java");
         IAPI m = Factory.makeAPI();
         java.util.List<org.jmlspecs.openjml.JmlTree.JmlCompilationUnit> asts = m.parseFiles(fa,fb);
         return m.prettyPrint(asts,"NEXT AST"); // Pretty prints a list of asts
     }
 
     String parseAndPrettyPrintFromFileArray() throws Exception {
-        java.io.File fa = new java.io.File("test/testNoErrors/A.java");
-        java.io.File fb = new java.io.File("test/testNoErrors/B.java");
+        java.io.File fa = new java.io.File(apisrc + "testNoErrors/A.java");
+        java.io.File fb = new java.io.File(apisrc + "testNoErrors/B.java");
         File[] files = new File[]{fa,fb};
         IAPI m = Factory.makeAPI();
         java.util.List<org.jmlspecs.openjml.JmlTree.JmlCompilationUnit> asts = m.parseFiles(files);
@@ -282,10 +284,10 @@ public class api extends JmlTestSuite {
     public void testParseAndPrettyPrintEverything() {
         start(true);
         try {
-            String s = parseAndPrettyPrintFromFile("test/testPP/A.java");
+            String s = parseAndPrettyPrintFromFile(apisrc + "testPP/A.java");
             check("","");
             s = s.replace('\\','/');
-            Path path = FileSystems.getDefault().getPath("test/testPP/A.java");
+            Path path = FileSystems.getDefault().getPath(apisrc + "testPP/A.java");
             String expect = new String(Files.readAllBytes(path)).replace("\n",Strings.eol);
             compareStrings(expect,s);
         } catch (Exception e) {
@@ -328,14 +330,14 @@ public class api extends JmlTestSuite {
     }
     
     String parseAndPrettyPrintSingleFile() throws Exception {
-        String f = "test/testNoErrors/A.java";
+        String f = apisrc + "testNoErrors/A.java";
         IAPI m = Factory.makeAPI();
         return m.prettyPrint(m.parseSingleFile(f));
     }
     
     String parseAndPrettyPrintSingleFile2() throws Exception {
         IAPI m = Factory.makeAPI();
-        JavaFileObject f = m.makeJFOfromFilename("test/testNoErrors/A.java");
+        JavaFileObject f = m.makeJFOfromFilename(apisrc + "testNoErrors/A.java");
         return m.prettyPrint(m.parseSingleFile(f));
     }
     
@@ -708,7 +710,7 @@ public class api extends JmlTestSuite {
         try {
             Set<JavaFileObject> set = new HashSet<JavaFileObject>();
             IAPI m = Factory.makeAPI("-v");
-            set.add(m.makeJFOfromFilename("test/testNoErrors/A.java"));
+            set.add(m.makeJFOfromFilename(apisrc + "testNoErrors/A.java"));
             //String s = m.prettyPrint(m.parseFiles(set).get(0),true);
             check(output,"");
             //s = s.replace('\\','/');
@@ -915,11 +917,11 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             IAPI m = Factory.makeAPI();
-            int exitcode = m.execute(null,"-cp","test/api","test/api/A.java");
+            int exitcode = m.execute(null,"-cp",apisrc + "api1",apisrc + "api1/A.java");
             assertTrue(exitcode == 0);
             assertTrue(m.isTypechecked("A"));
             assertTrue(!m.isTypechecked("B"));
-            m.parseAndCheck(new File("test/api/B.java"));
+            m.parseAndCheck(new File(apisrc + "api1/B.java"));
             assertTrue(m.isTypechecked("B"));
             ClassSymbol sym = m.getClassSymbol("B");
             m.doESC(sym);
@@ -937,11 +939,11 @@ public class api extends JmlTestSuite {
         start(true); // Collect but ignore the verbose output
         try {
             IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
-            int exitcode = m.execute(null,"-cp","test/api","test/api/A.java");
+            int exitcode = m.execute(null,"-cp",apisrc + "api1",apisrc + "api1/A.java");
             assertTrue(exitcode == 0);
             assertTrue(m.isTypechecked("A"));
             assertTrue(!m.isTypechecked("B"));
-            m.typecheck(m.parseFiles(new File("test/api/B.java")));
+            m.typecheck(m.parseFiles(new File(apisrc + "api1/B.java")));
             assertTrue(m.isTypechecked("B"));
             m.doESC(m.getClassSymbol("B"));
         } catch (Exception e) {
@@ -959,11 +961,11 @@ public class api extends JmlTestSuite {
         start(true); // Collect but ignore the verbose output
         try {
             IAPI m = Factory.makeAPI("-verbose","-noInternalSpecs");
-            int exitcode = m.execute(null,"-cp","test/api2","test/api2/p1/A.java");
+            int exitcode = m.execute(null,"-cp",apisrc + "api2",apisrc + "api2/p1/A.java");
             assertTrue(exitcode == 0);
             assertTrue(m.isTypechecked("p1.A"));
             assertTrue(!m.isTypechecked("p2.B"));
-            m.typecheck(m.parseFiles(new File("test/api2/p2/B.java")));
+            m.typecheck(m.parseFiles(new File(apisrc + "api2/p2/B.java")));
             assertTrue(m.isTypechecked("p2.B"));
             ClassSymbol sym = m.getClassSymbol("p2.B");
             sym = m.getClassSymbol("p2.B");
@@ -1014,7 +1016,7 @@ public class api extends JmlTestSuite {
 //            assertTrue(b);
 //        }
 //        try {
-//            int exitcode = API.jmldoc(new String[]{"-d","tempdoc","-notimestamp","-no-purityCheck","-dir","test/jmldoc1/data"});
+//            int exitcode = API.jmldoc(new String[]{"-d","tempdoc","-notimestamp","-no-purityCheck","-dir",apisrc + "jmldoc1/data"});
 //            assertEquals("Mismatched exit code",0,exitcode);
 //            // FIXME - run the diff program successfully, or do it programmatically
 ////            Process p = Runtime.getRuntime().exec("/usr/bin/diff",new String[]{"-r","-x",".svn","-x","package-tree.html","doc","../test/jmldoc1/expected"});
@@ -1167,7 +1169,7 @@ public class api extends JmlTestSuite {
     public void testParseAndCheck() {
         start(true);
         try {
-            java.io.File f = new java.io.File("test/testNoErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(f);
@@ -1187,8 +1189,8 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testNoErrors/A.java");
-            java.io.File ff = new java.io.File("test/testNoErrors2/A.java");
+            java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
+            java.io.File ff = new java.io.File(apisrc + "testNoErrors2/A.java");
             IAPI m = Factory.makeAPI(new PrintWriter(System.out),dcoll,null);
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(f,ff);  // FIXME - expect errors - check for them
@@ -1202,7 +1204,7 @@ public class api extends JmlTestSuite {
             assertEquals(7,dlist.get(0).getPosition());
             assertEquals(0,dlist.get(0).getStartPosition());
             assertEquals(56,dlist.get(0).getEndPosition());
-            assertEquals("test/testNoErrors2/A.java",dlist.get(0).getSource().getName().toString().replace('\\','/'));
+            assertEquals(apisrc + "testNoErrors2/A.java",dlist.get(0).getSource().getName().toString().replace('\\','/'));
         } catch (Exception e) {
             check("","");
             System.out.println(e);
@@ -1218,7 +1220,7 @@ public class api extends JmlTestSuite {
         start(true);
         String out = "error: A class is not defined in the expected file: test\\testNoErrors\\A.java" + eol;
         try {
-            java.io.File f = new java.io.File("test/testNoErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(f,f); 
@@ -1237,8 +1239,8 @@ public class api extends JmlTestSuite {
         start(true);
         String out = "error: A class is not defined in the expected file: test\\testNoErrors\\A.java" + eol;
         try {
-            java.io.File f = new java.io.File("test/testNoErrors/A.java");
-            java.io.File ff = new java.io.File("test/testNoErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
+            java.io.File ff = new java.io.File(apisrc + "testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(f,ff); 
@@ -1257,7 +1259,7 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testSyntaxError/A.java");
+            java.io.File f = new java.io.File(apisrc + "testSyntaxError/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
             m.addOptions("-no-purityCheck");
@@ -1286,10 +1288,10 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testJavaErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testJavaErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null,
-                    "-specspath","test/testJavaErrors");
+                    "-specspath",apisrc + "testJavaErrors");
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(f); 
             check("",""); // FIXME - this does not capture errors
@@ -1312,7 +1314,7 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testJavaErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testJavaErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
             m.addOptions("-no-purityCheck");
@@ -1336,11 +1338,11 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testSpecErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
             m.addOptions("-no-purityCheck");
-            //m.addOptions("-specspath","test/testSpecErrors");
+            //m.addOptions("-specspath",apisrc + "testSpecErrors");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1359,9 +1361,9 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testSpecErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
-                    new PrintWriter(System.out),dcoll,null,"-specspath","test/testSpecErrors");
+                    new PrintWriter(System.out),dcoll,null,"-specspath",apisrc + "testSpecErrors");
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(f); 
             check("","");
@@ -1381,11 +1383,11 @@ public class api extends JmlTestSuite {
         start(true);
         try {
             DiagnosticCollector<JavaFileObject> dcoll = new DiagnosticCollector<JavaFileObject>();
-            java.io.File f = new java.io.File("test/testSpecErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testSpecErrors/A.java");
             IAPI m = Factory.makeAPI(
                     new PrintWriter(System.out),dcoll,null);
             m.addOptions("-no-purityCheck");
-            m.addOptions("-specspath","test/testSpecErrors");
+            m.addOptions("-specspath",apisrc + "testSpecErrors");
             m.parseAndCheck(f); 
             check("","");
             java.util.List<Diagnostic<? extends JavaFileObject>> dlist = dcoll.getDiagnostics();
@@ -1405,7 +1407,7 @@ public class api extends JmlTestSuite {
     public void testParseAndCheck2() {
         start(true);
         try {
-            java.io.File f = new java.io.File("test/testNoErrors/A.java");
+            java.io.File f = new java.io.File(apisrc + "testNoErrors/A.java");
             IAPI m = Factory.makeAPI();
             m.addOptions("-no-purityCheck");
             m.parseAndCheck(new File[]{f});
@@ -1494,13 +1496,13 @@ public class api extends JmlTestSuite {
         try {
             IAPI api = Factory.makeAPI();
             char[] cb = new char[10000];
-            FileReader fr = new FileReader(new File("test/testNoErrors/A.java"));
+            FileReader fr = new FileReader(new File(apisrc + "testNoErrors/A.java"));
             int n = fr.read(cb,0,cb.length);
             fr.close();
             if (n == -1) fail("Failed to read A.java");
             if (n == cb.length) fail("Buffer not large enough");
             String fc = new String(cb,0,n);
-            JavaFileObject jfo = api.makeJFOfromFilename("test/testNoErrors/A.java");
+            JavaFileObject jfo = api.makeJFOfromFilename(apisrc + "testNoErrors/A.java");
             assertEquals(JavaFileObject.Kind.SOURCE,jfo.getKind());
             assertEquals(fc,jfo.getCharContent(true).toString());
             jfo = api.makeJFOfromString("A.java","public class A{}");
@@ -1509,7 +1511,7 @@ public class api extends JmlTestSuite {
             jfo = api.makeJFOfromString("A.jml","public class A{}");
             assertEquals(JavaFileObject.Kind.OTHER,jfo.getKind());
             assertEquals("public class A{}",jfo.getCharContent(true).toString());
-            jfo = api.makeJFOfromFile(new File("test/testNoErrors/A.java"));
+            jfo = api.makeJFOfromFile(new File(apisrc + "testNoErrors/A.java"));
             assertEquals(JavaFileObject.Kind.SOURCE,jfo.getKind());
             assertEquals(fc,jfo.getCharContent(true).toString());
         } catch(AssertionError e) {
