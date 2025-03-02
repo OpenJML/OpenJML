@@ -831,21 +831,21 @@ public class compiler extends JmlTestSuite{
     public void testModelBug() throws Exception {
         helper(new String[]
                           { "--no-purity-check",  //"-Xlint:unchecked",
-                            "test/testModelBug/ModelClassExampleBug.java",
-                            "test/testModelBug/ModelClassExampleBugSub.java",
-                            "test/testModelBug/ModelClassExampleBugSub2.java"
+                            src+"testModelBug/ModelClassExampleBug.java",
+                            src+"testModelBug/ModelClassExampleBugSub.java",
+                            src+"testModelBug/ModelClassExampleBugSub2.java"
                           },1,0
                           ,""
-                          ,"test/testModelBug/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                          ,src+"testModelBug/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
                            "                                                                      ^" + eol +
-                           "test/testModelBug/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                           src+"testModelBug/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                 ^" + eol +
-                           "test/testModelBug/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
+                           src+"testModelBug/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
                            "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
                            "                                                                        ^" + eol +
-                           "test/testModelBug/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
+                           src+"testModelBug/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                   ^" + eol +
                            "4 errors" + eol
@@ -1220,8 +1220,8 @@ public class compiler extends JmlTestSuite{
     public void testModelBug2() throws Exception {
         helper(new String[]
                           { "--no-purity-check",  //"-Xlint:unchecked",
-                            "test/testModelBug2/NonGenericModelClassExampleBug.java",
-                            "test/testModelBug2/NonGenericModelClassExampleBugSub.java",
+                            src+"testModelBug2/NonGenericModelClassExampleBug.java",
+                            src+"testModelBug2/NonGenericModelClassExampleBugSub.java",
                           },0,0
                           ,""
                           ,""
