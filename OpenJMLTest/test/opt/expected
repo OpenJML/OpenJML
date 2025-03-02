@@ -1,0 +1,22 @@
+Proving methods in Opt
+Starting proof of Opt.Opt() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Opt.Opt() with prover !!!! - no warnings
+Starting proof of Opt.n(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Opt.n(int) with prover !!!! - no warnings
+Starting proof of Opt.m(int) with prover !!!!
+test/opt/Opt.java:10: warning: The prover cannot establish an assertion (Precondition) in method m
+   return n(i);
+           ^
+test/opt/Opt.java:6: warning: Associated declaration
+public int n(int i) { return 420; }
+           ^
+test/opt/Opt.java:4: warning: Precondition conjunct is false: i >= 42
+//@   requires i >= 42;
+                 ^
+Completed proof of Opt.m(int) with prover !!!! - with warnings
+Completed proving methods in Opt
+3 warnings
