@@ -15,8 +15,6 @@ jacoco - the Jacoco release for doing coverage measurement
 unittests - scripts for running all the JUnit unittests
 scripttests - convenience scripts for running individual file-based tests
 
-testfiles - FIXME - not sure in what way these are different from corresponding files in 'test'
-
 Makefile - the Makefile for the tests, including some convenience targets that call make in the OpenJML source folder
 
 setup-coverage - a script used to setup for coverage measurement during testing (cf. make cov-test )
@@ -29,6 +27,5 @@ smt - a folder holding (temporary) smt files generated during ESC
 temp-release - a temp folder that holds an expanded release for testing
 cov - a folder holding (intermediate) results of coverage testing
 
-tests-external -- FIXME - I think this is obsolete 
 build_OpenJMLTest.xml -- FIXME likely obsolete
 launchConfigs - FIXME obsolete
