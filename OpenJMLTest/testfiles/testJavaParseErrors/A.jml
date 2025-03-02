@@ -1,5 +1,0 @@
-
-
-public class A {
-    //@ ghost int ii = 0; // No errors
-}
