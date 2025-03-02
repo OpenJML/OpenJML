@@ -147,7 +147,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test public void typecheckWithJML() {
         expectedExit = 1;
-        helpTCF("test/tcWithJml/TCWithJml.java","test/tcWithJml", "-cp", "test/tcWithJml", "--check");
+        helpTCF("test/typecheckWithJML/TCWithJml.java","test/typecheckWithJML", "-cp", "test/typecheckWithJML", "--check");
     }
     
     @Test public void sfpatch25() {

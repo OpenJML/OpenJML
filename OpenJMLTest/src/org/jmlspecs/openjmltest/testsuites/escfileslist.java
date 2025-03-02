@@ -48,6 +48,7 @@ public class escfileslist extends EscBaseFiles {
             "org.jmlspecs.openjmltest.testsuites.escfilesdemo",
             "org.jmlspecs.openjmltest.testsuites.escfilesmodels",
             "org.jmlspecs.openjmltest.testsuites.escfilesTrace",
+            "org.jmlspecs.openjmltest.testsuites.compiler",
             "org.jmlspecs.openjmltest.testsuites.SFBugs"
     };
     

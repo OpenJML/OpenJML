@@ -9,18 +9,18 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class escfileslist2 extends escfileslist {
+public class escfileslist3 extends escfileslist {
 
     @Parameters
     public static java.util.Collection<String[]> data() { 
         var data = escfileslist.alldata();
         var n = data.size();
         java.util.Collection<String[]> ndata = new java.util.LinkedList<>();
-        for (int i=(int)(.45*n); i<(int)(.85*n); i++)  ndata.add(data.get(i));
+        for (int i=(int)(.85*n); i<n; i++) ndata.add(data.get(i));
         return ndata;
     }
 
-    public escfileslist2(String testName) {
+    public escfileslist3(String testName) {
         super(testName);
     }
     

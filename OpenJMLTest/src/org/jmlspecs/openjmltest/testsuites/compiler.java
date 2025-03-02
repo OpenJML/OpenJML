@@ -387,7 +387,7 @@ public class compiler extends JmlTestSuite{
      * @throws Exception
      */ 
     @Test
-    public void testJML2() throws Exception {
+    public void testNoSource() throws Exception {
         helper(new String[]
                           { "-classpath",JmlTestSuite.runtime,
                             "-sourcepath","test/testNoSource",
@@ -405,7 +405,7 @@ public class compiler extends JmlTestSuite{
      * @throws Exception
      */ 
     @Test
-    public void testJML3() throws Exception {
+    public void testNoErrors() throws Exception {
         helper(new String[]
                           { "-classpath",JmlTestSuite.runtime,
                             "-sourcepath"," ",
@@ -420,7 +420,7 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
-    public void testJML4() throws Exception {
+    public void testNoSourceParseError() throws Exception {
         helper(new String[]
                           { "-classpath",JmlTestSuite.runtime,
                             "-sourcepath"," ",
@@ -438,7 +438,7 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
-    public void testJML5() throws Exception {
+    public void testNoSourceTypeError() throws Exception {
         helper(new String[]
                           { "-classpath",JmlTestSuite.runtime,
                             "-sourcepath"," ",
@@ -454,7 +454,7 @@ public class compiler extends JmlTestSuite{
     // FIXME - the jml and class files do not match - we should get type errors
     // FIXME - jml files on command-line are ignored
     @Test
-    public void testJML6() throws Exception {
+    public void testNoSourceWithClass() throws Exception {
         helper(new String[]
                           { "-classpath", JmlTestSuite.runtime +z+"test/testNoSourceWithClass",
                             "-sourcepath"," ",
@@ -469,7 +469,7 @@ public class compiler extends JmlTestSuite{
 
     /** Checks that -nowarn turns off warnings. */
     @Test
-    public void testJML6nowarn() throws Exception {
+    public void testWarnings() throws Exception {
         helper(new String[]
                                 { "-nowarn", 
                                   "test/testWarnings/A.java"
@@ -514,6 +514,7 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                                 { "-Werror",
                                   "-sourcepath","test/testNoErrors", // is also the spec path, so protects against spec errors in A.java
+                                  "--specs-path","",
                                   "test/testWarnings/A.java"
                                 },0,0
                                 ,""
@@ -686,7 +687,7 @@ public class compiler extends JmlTestSuite{
     
     /** Tests an invalid use of key */
     @Test
-    public void testKeys0() {
+    public void testKeys() {
         helper(new String[]
                           { "-classpath","bin", 
                             "-sourcepath","test",
@@ -828,21 +829,21 @@ public class compiler extends JmlTestSuite{
     public void testModelBug() throws Exception {
         helper(new String[]
                           { "--no-purity-check",  //"-Xlint:unchecked",
-                            "test/model1/ModelClassExampleBug.java",
-                            "test/model1/ModelClassExampleBugSub.java",
-                            "test/model1/ModelClassExampleBugSub2.java"
+                            "test/testModelBug/ModelClassExampleBug.java",
+                            "test/testModelBug/ModelClassExampleBugSub.java",
+                            "test/testModelBug/ModelClassExampleBugSub2.java"
                           },1,0
                           ,""
-                          ,"test/model1/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                          ,"test/testModelBug/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
                            "                                                                      ^" + eol +
-                           "test/model1/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                           "test/testModelBug/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                 ^" + eol +
-                           "test/model1/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
+                           "test/testModelBug/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
                            "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
                            "                                                                        ^" + eol +
-                           "test/model1/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
+                           "test/testModelBug/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
                            "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
                            "                                                                                   ^" + eol +
                            "4 errors" + eol
@@ -1217,8 +1218,8 @@ public class compiler extends JmlTestSuite{
     public void testModelBug2() throws Exception {
         helper(new String[]
                           { "--no-purity-check",  //"-Xlint:unchecked",
-                            "test/model2/NonGenericModelClassExampleBug.java",
-                            "test/model2/NonGenericModelClassExampleBugSub.java",
+                            "test/testModelBug2/NonGenericModelClassExampleBug.java",
+                            "test/testModelBug2/NonGenericModelClassExampleBugSub.java",
                           },0,0
                           ,""
                           ,""
@@ -1254,12 +1255,12 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test @Ignore // FIXME - have not yet fixed how extensions are found
-    public void testExtension3() throws Exception {
+    public void testExtension() throws Exception {
         helper(new String[]
                 { "-classpath","../OpenJML21/runtime",
-                  "-sourcepath","test/testext",
+                  "-sourcepath","test/testExtension",
                   "-extensions=ext",
-                  "test/testext/A.java"
+                  "test/testExtension/A.java"
                 },0,0
                 ,""
                 );

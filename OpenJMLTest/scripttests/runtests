@@ -7,7 +7,7 @@ cd $(dirname "${BASH_SOURCE[0]}")
 . ./config-filelist
 
 ## Select the files to do
-files="$( ls ../test | grep -v '^rac' | comm -23 - skips | sort | sed -e 'sx^x../test/x' )"
+files="$( ls ../test | grep -v '^rac' | sort | sed -e 'sx^x../test/x' )"
 
 ## Get any options
 threads=3
