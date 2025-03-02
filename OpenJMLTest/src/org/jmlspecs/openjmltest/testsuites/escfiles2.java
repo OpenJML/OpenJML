@@ -145,41 +145,66 @@ public class escfiles2 extends EscBaseFiles {
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
     
+    public void helpTCN(String ... opts) {
+        String n = "test/" + getTestName();
+        helpTCF(n, n, Utils.concat(new String[] {"-cp", n}, opts));
+    }
+    
     @Test public void typecheckWithJML() {
         expectedExit = 1;
-        helpTCF("test/typecheckWithJML/TCWithJml.java","test/typecheckWithJML", "-cp", "test/typecheckWithJML", "--check");
+        helpTCN("--check");
     }
     
     @Test public void sfpatch25() {
-        helpTCF("test/sfpatch25/A.java","test/sfpatch25", "-cp", "test/sfpatch25", "--esc","--quiet");
+        helpTCN("--esc","--quiet");
+    }
+    
+    @Ignore // FIXME very long
+    @Test public void sfbug402() {
+        helpTCN("--esc", "--progress");
+    }
+    
+    @Ignore // FIXME very long
+    @Test public void sfbug402a() {
+        helpTCN("--esc", "--progress");
+    }
+    
+    @Ignore // FIXME very long
+    @Test public void sfbug402b() {
+        helpTCN("--esc", "--progress");
     }
     
     @Test public void sfbug407() {
-        helpTCF("test/sfbug407","test/sfbug407", "-cp", "test/sfbug407", "--esc", "--progress");
+        helpTCN("--esc", "--progress");
+    }
+    
+    @Ignore // times out
+    @Test public void sfbug396() {
+        helpTCN("--esc", "--progress");
     }
     
     @Test public void sfbug398() {
-        helpTCF("test/sfbug398","test/sfbug398", "-cp", "test/sfbug398", "--esc", "--progress");
+        helpTCN("--esc", "--progress");
     }
     
     @Test public void sfbug399() {
-        helpTCF("test/sfbug399","test/sfbug399", "-cp", "test/sfbug399", "--esc","--progress");
+        helpTCN("--esc", "--progress");
     }
     
     @Test public void sfbug404() {
-        helpTCF("test/sfbug404","test/sfbug404", "-cp", "test/sfbug404", "--esc","--progress","-logic=AUFNIRA");
+        helpTCN("--esc", "--progress");
     }
     
     @Test public void sfbug408() {
-        helpTCF("test/sfbug408","test/sfbug408", "-cp", "test/sfbug408", "--esc","--progress");
+        helpTCN("--esc","--progress");
     }
     
     @Test public void sfbug409() {
-        helpTCF("test/sfbug409","test/sfbug409", "-cp", "test/sfbug409", "--esc","--progress","--check-feasibility=precondition,exit,reachable,assert,assume");
+        helpTCN("--esc","--progress","--check-feasibility=precondition,exit,reachable,assert,assume");
     }
     
     @Test public void sfbug410() {
-        helpTCF("test/sfbug410","test/sfbug410", "-cp", "test/sfbug410", "--esc","--progress");
+        helpTCN("--esc", "--progress");
     }
     
 

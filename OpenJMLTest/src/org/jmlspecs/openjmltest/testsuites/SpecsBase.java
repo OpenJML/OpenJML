@@ -260,7 +260,7 @@ public class SpecsBase extends TCBase {
         
         SortedSet<String> classes = new TreeSet<String>(); 
         for (Dir dir: dirs) {
-        	System.out.println("DIR " + dir.toString());
+            System.out.println("DIR " + dir.toString());
             File d = new File(dir.toString());
             classes.addAll(findAllFiles(d, dir.toString()));
         }
@@ -366,10 +366,10 @@ public class SpecsBase extends TCBase {
 
     /** Use this to test the specs for a specific file. Enable it by
      * adding an @Test as an annotation. */
-    
+    // FIXME - runs the single test repeatedly for each parameter
     // @Test
     public void testSingle() {
-        checkClass("org.jmlspecs.lang.range", 0);
+        checkClass("org.hamcrest.Matcher", 0);
     }
 
 }
