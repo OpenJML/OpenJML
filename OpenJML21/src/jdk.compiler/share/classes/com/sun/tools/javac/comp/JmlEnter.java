@@ -1744,8 +1744,9 @@ public class JmlEnter extends Enter {
 		    + " " + binaryEnterTodo.contains(csymbol) + " size=" + binaryEnterTodo.size());
 		if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
 		    if (tsp == JmlSpecs.SpecsStatus.QUEUED) {
-		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already in progress");
-	            if (nestingLevel == 0) {
+		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already in progress (nestingLevel " + nestingLevel +")");
+	            //if (csymbol.toString().startsWith("java.util.function.Function")) Utils.dumpStack();
+		        if (nestingLevel == 0) {
 	                completeBinaryEnterTodo();
 	                return JmlSpecs.SpecsStatus.QUEUED.less(JmlSpecs.instance(context).status(csymbol));
 	            }
@@ -1779,15 +1780,35 @@ public class JmlEnter extends Enter {
 								+ binaryEnterTodo.contains(csymbol) + " " + csymbol.hashCode());
 					binaryEnterTodo.prepend(csymbol);
 					
-					if (!utils.isExtensionValueType(csymbol.type)) {
-					    for (Type t : csymbol.getInterfaces()) {
-					        requestSpecs((ClassSymbol) t.tsym);
-					    }
-					    if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
-					        requestSpecs((ClassSymbol) csymbol.getSuperclass().tsym);
-					    }
-					}
-					if (debugSpecs) System.out.println("specs: Finished queueing supers for " + csymbol);
+                    if (!utils.isExtensionValueType(csymbol.type)) {
+                        for (Type t : csymbol.getInterfaces()) {
+                            requestSpecs((ClassSymbol) t.tsym);
+                        }
+                        if (csymbol.getSuperclass() != Type.noType) { // Object has noType as a superclass
+                            requestSpecs((ClassSymbol) csymbol.getSuperclass().tsym);
+                        }
+                    }
+                    if (debugSpecs) System.out.println("specs: Finished queueing supers for " + csymbol);
+
+                    {
+	                    // The specs for a class may have nested model classes. In fact the reason for laoding a class's specs
+	                    // may be to resolve a reference to a nested model class. So, we have to enter any nested classes
+	                    // for 'csymbol' (but not any fields) immediately on first mention of the class. If we wait until 
+	                    // csymbol's turn in the queue, the mention of a nested model class will fail to be attributed because the
+	                    // specs defining it are not yet read.  This problem does not arise for non-model nested classes because they
+	                    // have corresponding binaries already present in the compiled library.
+	                    if (JmlResolve.instance(context).allowJML) {
+	                        if (debugSpecs) System.out.println("Checking for nested classes for " + csymbol);
+	                        var speccu = JmlCompiler.instance(context).parseSpecs(csymbol);
+	                        if (speccu != null) {
+	                            if (debugSpecs) System.out.println("Entering nested classes for " + csymbol + " " + (getEnv(csymbol)==null));
+	                            specsEnter(speccu);
+	                            if (debugSpecs) System.out.println("Entered nested classes for " + csymbol + " " + (getEnv(csymbol)==null));
+	                        }
+	                    }
+	                }
+
+	                
 
 				} finally {
 					nestingLevel--;
@@ -1804,31 +1825,32 @@ public class JmlEnter extends Enter {
 		}
 	}
 
-	ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
+    ListBuffer<ClassSymbol> binaryEnterTodo = new ListBuffer<ClassSymbol>();
 
-	/** This processes the entires on the 'binaryEnterTodo' queue, for each entry it reads the specs (from a .jml file)
-	 * and connects the specs with the binary via 'specsEnter'. This is only for specs connected with binary classes.
-	 * Anything with a source file should go through Enter.main
-	 */
-	public void completeBinaryEnterTodo() {
-        if (debugSpecs) System.out.println("specs: Starting completeBinaryEnterTodo " + binaryEnterTodo.size());
-		JmlSpecs specs = JmlSpecs.instance(context);
-		while (!binaryEnterTodo.isEmpty()) {
-			ClassSymbol csymbol = binaryEnterTodo.remove();
-			var sourceEnv = getEnv(csymbol);
-			if (sourceEnv != null) {
-			    // This is fairly drastic violation of understood invariants.
-			    // We are reading specs for a binary class; there should be no source AST or Env
-			    JmlCompilationUnit javaCU = (JmlCompilationUnit) sourceEnv.toplevel;
-				utils.error(javaCU.sourcefile, javaCU, "jml.internal",
-						"Unexpectedly have a source environment when expecting a binary: " + csymbol + " " + javaCU.sourcefile);
+    /** This processes the entires on the 'binaryEnterTodo' queue, for each entry it reads the specs (from a .jml file)
+     * and connects the specs with the binary via 'specsEnter'. This is only for specs connected with binary classes.
+     * Anything with a source file should go through Enter.main
+     */
+    public void completeBinaryEnterTodo() {
+        if (debugSpecs) System.out.println("specs: Starting completeBinaryEnterTodo " + binaryEnterTodo.size() + " " + binaryEnterTodo);
+        JmlSpecs specs = JmlSpecs.instance(context);
+        while (!binaryEnterTodo.isEmpty()) {
+            ClassSymbol csymbol = binaryEnterTodo.remove();
+
+            // Last check to see if specs are already present
+            if (JmlSpecs.SpecsStatus.QUEUED.less(specs.status(csymbol))) continue;
+            if (debugSpecs) System.out.println("specs: Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) );
+
+
+            var sourceEnv = getEnv(csymbol);
+            if (sourceEnv != null) {
+                // This is fairly drastic violation of understood invariants.
+                // We are reading specs for a binary class; there should be no source AST or Env
+//			    JmlCompilationUnit javaCU = (JmlCompilationUnit) sourceEnv.toplevel;
+//				utils.warning(javaCU.sourcefile, javaCU, "jml.internal",
+//						"Unexpectedly have a source environment when expecting a binary: " + csymbol + " " + javaCU.sourcefile);
 				continue;
 			}
-
-			if (debugSpecs) System.out.println("specs: Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) );
-
-			// Last check to see if specs are already present
-			if (JmlSpecs.SpecsStatus.QUEUED.less(specs.status(csymbol))) continue;
 
 			nestingLevel++;
 			JmlCompilationUnit speccu = null;

@@ -6397,7 +6397,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
             } else {
             	// <package>.array, or something illegal or the normal case
+                //if (tree.toString().startsWith("java.util.function")) System.out.println("JmlATttr: about to call Attr: " + tree);
                 super.visitSelect(tree);
+                //if (tree.toString().startsWith("java.util.function")) System.out.println("JmlATttr: returned from Attr: " + tree);
 
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
