@@ -157,4 +157,12 @@ public class Test {
         }
         //@ assert false; // IGNORED
     }
+
+    public void dowhile() {
+        int i = 2;
+        //@ loop_invariant i > 0;
+        //@ split 
+        do { --i; } while (i!=0);
+    }
+    
 }

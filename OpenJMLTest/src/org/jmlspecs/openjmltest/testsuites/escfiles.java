@@ -645,6 +645,12 @@ public class escfiles extends EscBaseFiles {
     }
     
     @Test
+    public void splits3() {
+        expectedExit = 0;
+        helpTG("--no-split");
+    }
+    
+    @Test
     public void Dzmz() {
         expectedExit = 0;
         helpTG();

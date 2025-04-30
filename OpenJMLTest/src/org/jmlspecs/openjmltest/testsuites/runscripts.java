@@ -62,4 +62,12 @@ public class runscripts extends RunBase {
     @Test public void scandebug() {
         help();
     }
+
+    @Test public void showSkipped() {
+        help();
+    }
+
+    @Test public void requireWhitespace() {
+        help();
+    }
 }

@@ -31,6 +31,10 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjmltest.OutputCompare.AnyOrder;
+import org.jmlspecs.openjmltest.OutputCompare.OneOf;
+import org.jmlspecs.openjmltest.OutputCompare.Optional;
+import org.jmlspecs.openjmltest.OutputCompare.Seq;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -534,6 +538,15 @@ public abstract class JmlTestSuite {
     public void setDeprecation() {
         Options.instance(context).put("-Xlint:deprecation","true");
     }
+
+    /** Used to indicate that just one of the list of objects will be part of the test output */
+    static public OneOf oneof(Object ... list) { return new OneOf(list); }
+    /** Used to indicate that all of the listed objects will be in the test output, but in an arbitrary order */
+    static public AnyOrder anyorder(Object ... list) { return new AnyOrder(list); }
+    /** Used to indicate that the given list is optionally part of the test output */
+    static public Optional optional(Object ... list) { return new Optional(list); }
+    /** Used to indicate that the list objects should all be sequentially found in the test output */
+    static public Seq seq(Object ... list) { return new Seq(list); }
 
 }
 

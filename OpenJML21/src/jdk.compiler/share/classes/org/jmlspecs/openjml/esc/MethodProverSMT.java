@@ -279,6 +279,7 @@ public class MethodProverSMT {
         int numberAccumulated = 0;
 
         String splitlist = JmlOption.value(context,JmlOption.SPLIT);
+        if (splitlist == null) splitlist = "";
         String[] splits = splitlist.split(",");
         int skips = 0;
         Translations translations = jmlesc.assertionAdder.methodBiMap.getf(methodDecl);

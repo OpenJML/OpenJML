@@ -15,6 +15,8 @@ import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
+import org.jmlspecs.openjmltest.OutputCompare.*;
+
 
 /** This is a base class for all tests that parse and typecheck a
  * test string of source code.  Mock files are created (or real ones used)

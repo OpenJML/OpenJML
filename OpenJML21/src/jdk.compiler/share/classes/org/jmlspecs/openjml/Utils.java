@@ -108,6 +108,7 @@ public class Utils {
     
     /** This field is used to restrict output during testing so as to 
      * make test results more deterministic (or to match old test results).
+     * It is set when processing options. It is static and so is not thread-safe.
      */
     static public boolean testingMode = false;
     

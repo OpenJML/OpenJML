@@ -5,6 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.IJmlLoop;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
@@ -120,16 +121,17 @@ public class StatementExprExtensions extends JmlExtension {
             if (clauseType == splitClause && st.expression == null) {
                 while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
                 JCStatement stt = parser.blockStatement().head;
+                boolean splitenabled = JmlOption.value(parser.context,JmlOption.SPLIT) != null;
                 if (stt instanceof JmlIfStatement stif) {
-                    stif.split = true;
+                    stif.split = splitenabled;
                     while (stif.elsepart instanceof JmlIfStatement stiff) {
-                        stiff.split = true;
+                        stiff.split = splitenabled;
                         stif = stiff;
                     }
                 } else if (stt instanceof JmlSwitchStatement) {
-                    ((JmlSwitchStatement)stt).split = true;
+                    ((JmlSwitchStatement)stt).split = splitenabled;
                 } else if (stt instanceof IJmlLoop) {
-                    ((IJmlLoop)stt).setSplit(true);
+                    ((IJmlLoop)stt).setSplit(splitenabled);
                 } else {
                     utils.warning(ste, "jml.message", "Ignoring out of place split statement");
                 }

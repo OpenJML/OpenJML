@@ -17,6 +17,7 @@ T=temp-release
 ### FIXME - not sure we need prep, even without release-tests
 openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
+	make userguide-tests
 	-make jsontests
 	-make unittests-par
 	-make tutorial-tests
@@ -56,6 +57,17 @@ tutorial-tests: Run.class .FORCE
 	    cd ${TEST}/../../openjml.github.io/tutorial; \
 	    ./test \
 	)
+
+USERGUIDE=${TEST}/tempUserGuide
+OVERLEAFID=620c2512d552cc226f5f4c94
+TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
+userguide-tests:
+	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
+	@ if [ -e ${TESTSCRIPT} ] ; then \
+	    chmod +x ${TESTSCRIPT} ; \
+	    ${TESTSCRIPT} ; \
+	    rm -rf ${USERGUIDE}; \
+	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
 
 release-tests: Run.class .FORCE
 	@ echo Running release tests with current development build
