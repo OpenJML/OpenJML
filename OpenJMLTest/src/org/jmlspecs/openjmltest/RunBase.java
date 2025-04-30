@@ -28,6 +28,7 @@ public abstract class RunBase extends JmlTestSuite {
             int exitCode = process.waitFor();
             //System.out.println("EXIT: " + exitCode);
             if (exitCode != 0) Assert.fail("Test case emitted a failure exit code: " + exitCode);
+        } catch (AssertionError e) {
         } catch (Throwable e) {
             //System.out.println("FAILED " + e);
             Assert.fail("Test " + workingDir + " failed to launch: " + e);

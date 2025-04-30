@@ -20066,8 +20066,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 
 			} else if (that.clauseType == StatementExprExtensions.splitClause) {
-
-				if (currentSplit == null || rac || infer) {
+			    // Only get here for boolean splits -- all others are recorded in the split field (cf. StatementExprExtensions)
+				if (currentSplit == null || rac || infer || JmlOption.value(context, JmlOption.SPLIT) == null) {
 					// ignore;
 				} else {
 					boolean doPos = true;
