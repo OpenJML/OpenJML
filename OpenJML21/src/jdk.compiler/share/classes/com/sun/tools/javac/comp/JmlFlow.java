@@ -619,7 +619,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlStatementShow(JmlStatementShow that) {
-        	// pure expressions - no assignments
+        	// pure expressions - no assignments // TODO - but should be initialized?
         }
 
         @Override
@@ -629,11 +629,25 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
-        	// pure expressions - no assignments
+        	// pure expressions - no assignments // TODO - but should be initialized?
         }
 
         @Override
         public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+            // A havoc is essentially an assignment, but there are special syntaxes
+            for (var sr: that.storerefs) {
+                if (sr instanceof JCIdent id) {
+                    letInit(id);
+                } else if (sr instanceof JCFieldAccess fa) {
+                    if (fa.name == null) {
+                        scan(fa.selected);
+                    } else {
+                        letInit(fa);
+                    }
+                } else {
+                    scan(sr);
+                }
+            }
             scan(that.storerefs);
         }
 

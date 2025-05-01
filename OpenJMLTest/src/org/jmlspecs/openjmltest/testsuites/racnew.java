@@ -498,6 +498,23 @@ public class racnew extends RacBase {
         );
     }
     
+    @Test public void havoc() {
+        runrac = false;
+        ignoreNotes = false;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    int j ;
+                    //@ havoc j;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: Note: Not implemented for runtime assertion checking: havoc statement",9
+                );
+    }
+    
     @Test public void testLabel() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\result == 1); */ static public int m(int i) { return i; } " +

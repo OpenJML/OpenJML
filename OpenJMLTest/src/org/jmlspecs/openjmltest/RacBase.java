@@ -178,6 +178,7 @@ public abstract class RacBase extends JmlTestSuite {
             }
             if (ex != expectedExit) fail("Compile ended with exit code " + ex);
             if (ex != 0 && !continueAnyway) return;
+            if (!runrac) return;
             
             if (rac == null) rac = defrac;
             rac[rac.length-2] = destdir;
