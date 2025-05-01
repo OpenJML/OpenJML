@@ -20149,6 +20149,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitJmlStatementHavoc(JmlStatementHavoc that) {
+        if (rac) {
+            notImplemented(that, "havoc statement");
+            return;
+        }
         if (translatingJML) {
             error(that, "Unexpected call of JmlAssertionAdder.visitJmlStatementHavoc while translating JML: "
                     + that.getClass());

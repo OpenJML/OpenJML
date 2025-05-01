@@ -538,6 +538,32 @@ public class escm extends EscBase {
                     +"}\n"
                 );
     }
+    
+    @Test
+    public void havocInit() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends P {
+                  public int i;
+
+                  //@ requires 0 <= i < a.length;
+                  public void m(int[] a, TestJava t) {
+                    int j;
+                    //@ havoc j, i;
+                    // @ havoc this.i, super.j, t.i;
+                    // @ havoc this.*, t.*, super.*;
+                    // @ havoc a[i];
+                    // @ havoc a[i..i];
+                    // @ havoc a[i..];
+                    // @ havoc a[*];
+                  }
+                }
+                class P { public int j; }
+                // FIXME - needs fixing for all the various syntaxes
+                """
+                );
+    }
 
         // TODO
         // Need to check anonymous classes within specs
