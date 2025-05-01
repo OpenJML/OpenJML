@@ -26,6 +26,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.main.JmlCompiler;
 
 /* NOTE: - oddities in the Scanner class
  It seems that if the first character of a token is unicode, then pos is
@@ -175,7 +176,7 @@ public class JmlScanner extends Scanner {
     // @ requires fac != null && input != null;
     // @ requires inputLength <= input.length;
     protected JmlScanner(JmlScannerFactory fac, char[] input, int inputLength) {
-        super(fac, new JmlTokenizer(fac, input, inputLength, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).noJML));
+        super(fac, new JmlTokenizer(fac, input, inputLength, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).disableJML()));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
     }
@@ -189,7 +190,7 @@ public class JmlScanner extends Scanner {
      */
     // @ requires fac != null && buffer != null;
     protected JmlScanner(JmlScannerFactory fac, CharBuffer buffer) {
-        super(fac, new JmlTokenizer(fac, buffer, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).noJML));
+        super(fac, new JmlTokenizer(fac, buffer, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).disableJML()));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
     }

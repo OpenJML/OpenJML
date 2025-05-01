@@ -120,10 +120,11 @@ public class JmlCompiler extends JavaCompiler {
      * @param context the compilation context for which this instance is being created
      */
     protected JmlCompiler(Context context) {
+        // CAUTION: Options are not read when JmlCompiler is first instantiated
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler
+        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler // FIXME - options not yet set???
         this.resolver = JmlResolve.instance(context);
     }
     
@@ -351,19 +352,22 @@ public class JmlCompiler extends JavaCompiler {
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;
-        noJML = false;
+        boolean jmlOption = JmlOption.isOption(context, JmlOption.JML);
+        noJML = !jmlOption;
         var charSeq = readSource(filename);
         try {
         	if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
+        	    // If the file is a source file and there is a specs file, we ignore any JML in the source file
+        	    // We also always ignore the JML if -no-jml has been set
         		specFile = checkForSpecsFile(filename, charSeq);
-        		noJML = specFile != null; // Using the noJML field to pass a parameter to the scanner factory is a hack and precludes parallel parsing within a context
+        		noJML = specFile != null || !jmlOption;
         	}
         	// This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
         	JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
         	if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
         	JmlCompilationUnit specCU = null;
-        	if (specFile != null) {
-        		noJML = false;
+        	if (specFile != null && jmlOption) {
+        		noJML = !jmlOption;
         		log.useSource(specFile);
         		charSeq = readSource(specFile);
         		specCU = (JmlCompilationUnit)parse(specFile, charSeq);
@@ -394,13 +398,16 @@ public class JmlCompiler extends JavaCompiler {
         	// FIXME - are javaCU and specCU always non-null?
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)
         } finally {
-            noJML = false;
+            noJML = !jmlOption;
             log.useSource(prev);
         }
     }
     
     /** This flag determines whether JML annotations are being parsed -- it is a bit of a hack to communicate with the scanner */
-    public boolean noJML = false;
+    // CAUTION: JmlCompiler is instantiated before the options are parsed
+    private boolean noJML = false;
+    public boolean disableJML() { return noJML; }
+    public void disableJML(boolean b) { noJML = b; }
     
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or

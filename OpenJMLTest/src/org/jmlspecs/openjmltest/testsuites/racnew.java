@@ -1203,8 +1203,30 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSpecFile2() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); }");
-        helpTCX("tt.A","package tt; public class A { static int m() { //@ set i = 1; \n return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt;
+                public class A {
+                  //@ ghost static int i = 0;
+                  //@ invariant i == 0;
+                  //@ ensures i == 1;
+                  static int m();
+                }
+                """
+                );
+        helpTCX("tt.A",
+                """
+                package tt;
+                public class A {
+                  static int m() {
+                    //@ set i = 1;
+                    return 0;
+                  }
+                  public static void main(String[] args) {
+                    m(); System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
                 );
         
