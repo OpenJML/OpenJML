@@ -412,6 +412,8 @@ public class JmlOptions extends Options {
 
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
+        
+        JmlCompiler.instance(context).disableJML(!isSet(JmlOption.JML));
 
         options.remove("printArgsToFile");
         

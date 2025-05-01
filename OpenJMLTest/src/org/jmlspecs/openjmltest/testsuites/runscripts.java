@@ -70,4 +70,8 @@ public class runscripts extends RunBase {
     @Test public void requireWhitespace() {
         help();
     }
+
+    @Test public void optionJml() {
+        help();
+    }
 }

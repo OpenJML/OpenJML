@@ -102,6 +102,7 @@ public class purity extends TCBase {
     @Test
     public void testModelMethodIncDec() {
         expectedExit = 6;
+        specialCompare = true;
         addOptions("--esc", "--spec-math=java"); // FIXME - : `THIS.b should be a non-translated expression
         helpTC(" class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
                 ,anyorder(

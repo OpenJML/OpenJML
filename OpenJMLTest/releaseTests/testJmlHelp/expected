@@ -94,7 +94,6 @@ JML options:
   --exclude                  Comma-separated list of method name patterns to exclude from ESC
   --prover                   The prover to use to check verification conditions
   --exec                     The prover executable to use
-  --logic                    The SMT logic to use (default ALL)
   --smt                      A file to write the smt command file to
   --nonnull-by-default       Makes references non_null by default [--nullable-by-default=false]
   --nullable-by-default      Makes references nullable by default

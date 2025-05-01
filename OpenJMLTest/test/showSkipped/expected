@@ -1,0 +1,26 @@
+Test 0
+Test 1
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Completed proof of Test.m() with prover !!!! - no warnings
+Skipping proof of Test.n() (excluded by skipesc)
+Skipping proof of Test.q() (excluded by skipesc)
+Completed proving methods in Test
+Test 2
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Completed proof of Test.m() with prover !!!! - no warnings
+Skipping proof of Test.n() (excluded by skipesc)
+Skipping proof of Test.q() (excluded by skipesc)
+Completed proving methods in Test
+Test 3
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Completed proof of Test.m() with prover !!!! - no warnings
+Completed proving methods in Test

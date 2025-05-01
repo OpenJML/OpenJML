@@ -1,0 +1,24 @@
+Test1a
+A.java:2: error: ';' expected
+  //@ as as as as
+           ^
+A.java:2: error: ';' expected
+  //@ as as as as
+                 ^
+2 errors
+Test1b
+Test1c
+A.java:2: error: ';' expected
+  //@ as as as as
+           ^
+A.java:2: error: ';' expected
+  //@ as as as as
+                 ^
+2 errors
+Test1d
+Test2a
+B.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false;
+        ^
+1 verification failure
+Test2b
