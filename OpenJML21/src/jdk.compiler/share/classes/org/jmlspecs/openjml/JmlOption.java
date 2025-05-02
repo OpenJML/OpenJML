@@ -556,7 +556,7 @@ public class JmlOption {
     public String synonym() { return synonym; }
 
     /** Finds the option with the given name, returning it if
-     * found and returning null if not found.
+     * found and returning null if not found. Replaces inputs that have just one leading hyphen with two hyphens if necessary.
      * @param s the name of the option to find
      * @return the option found, or null
      */
