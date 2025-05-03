@@ -1,7 +1,7 @@
 import p.*;
 import static p.X.*;
 //@ model import q.X;
-//@ model import static q.X.Q;
+//@ model import static q.X.*;
 
 public class Test6 {
   X x;

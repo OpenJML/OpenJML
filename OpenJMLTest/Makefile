@@ -110,7 +110,7 @@ cov-clean:
 
 cov-test:
 	cd ${TEST}
-	COV= time make jsontests
+	COV= time make json-tests
 	COV= time ./unittests/runpar | tee log-unittests | sort
 	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
 	## COV= make release-tests ## FIXME: Not yet working

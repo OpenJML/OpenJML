@@ -774,4 +774,10 @@ public class escfiles extends EscBaseFiles {
     public void modelImport6() {
         helpTCF("test/modelImports/Test6.java","test/modelImports/test6","--check","-cp","test/modelImports");
     }
+    
+    // Tests static imports
+    @Test
+    public void modelImport7() {
+        helpTCF("test/modelImports/Test7.java","test/modelImports/test7","--check","-cp","test/modelImports");
+    }
 }

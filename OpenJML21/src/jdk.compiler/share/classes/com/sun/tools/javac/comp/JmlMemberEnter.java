@@ -666,7 +666,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             
             JCTree.JCReturn returnStatement = jmlF.Return(init);
             JCTree.JCThrow throwStatement = jmlF.Throw(jmlF.NewClass(null, List.<JCExpression>nil(), utils.nametree(decl.pos,-1,Strings.jmlSpecsPackage + ".NoModelFieldMethod",null), List.<JCExpression>nil(), null));
-            boolean isAbstract = (vdecl.mods.flags & ABSTRACT) != 0;
             
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
@@ -700,7 +699,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (found == null) {
                 String fieldName = vdecl.name.toString();
                 String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
-                if  (isAbstract) {
+                if  (vdecl.sym.isAbstract()) {
                     // no complaint if model field is abstract
                 } else if ("skip".equals(opt)) {
                     utils.warning(vdecl.source(), vdecl, "jml.no.model.method.implementation", fieldName);
