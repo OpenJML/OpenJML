@@ -74,4 +74,8 @@ public class runscripts extends RunBase {
     @Test public void optionJml() {
         help();
     }
+
+    @Test public void properties() {
+        help();
+    }
 }

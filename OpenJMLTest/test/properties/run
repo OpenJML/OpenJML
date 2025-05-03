@@ -1,0 +1,13 @@
+#! /bin/bash
+
+if [ -z "$OJA" ]; then OJA=openjml; fi
+
+( \
+echo Test of my.properties ;\
+$OJA --esc --properties=my.properties Test.java ;\
+echo Test of openjml.properties ;\
+$OJA Test.java ;\
+echo Test of bad.properties ;\
+$OJA --check --properties=bad.properties Test.java ;\
+) >& actual
+diff expected actual && rm -rf actual

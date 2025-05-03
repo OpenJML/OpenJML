@@ -7,5 +7,9 @@ public class Test {
 
   @org.jmlspecs.annotation.SkipEsc
   public void q() {}
+  
+  public void y() {}
+  public void z() {}
+
 
 }

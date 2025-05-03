@@ -46,7 +46,6 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
             boolean ok = true;
-            Utils utils = Utils.instance(context);
             String val = JmlOptions.instance(context).get(JmlOption.COMMAND.optionName());
             try {
                 if (val != null) cmd = Cmd.valueOf(val.toUpperCase());
@@ -54,6 +53,7 @@ public class JmlOption {
                 Log.instance(context).error("jml.bad.command",val);
                 ok = false;
             }
+            Utils utils = Utils.instance(context);
             utils.cmd = cmd;
             utils.rac = cmd == Cmd.RAC;
             utils.esc = cmd == Cmd.ESC;
@@ -136,7 +136,7 @@ public class JmlOption {
     { map.put("-checkSpecsPath",CHECKSPECSPATH); }
     public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
     { map.put("-purityCheck",PURITYCHECK); }
-    public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
+    //public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
     public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);
 
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("--show-not-implemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);

@@ -1,0 +1,4 @@
+Exception in thread "main" org.jmlspecs.runtime.Utils$NoModelMethodImplementationException: No model method implementation found for q
+	at java.base/org.jmlspecs.runtime.Utils.noModelMethodImplementation(Utils.java:727)
+	at P.q(P.java:3)
+	at T.main(T.java:4)

@@ -19159,8 +19159,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						range = addImplicitConversion(range, syms.booleanType, range);
 					JCExpression value = convertNoSplit(that.value);
 					Type targetType = that.kind == qforallKind ? syms.booleanType
-							: that.kind == qexistsKind ? syms.booleanType
-									: that.kind == qnumofKind ? syms.booleanType : that.value.type; // FIXME - not sure
+                            : that.kind == qexistsKind ? syms.booleanType
+							: that.kind == qnumofKind ? syms.booleanType : that.value.type; // FIXME - not sure
 																									// about this
 																									// default
 					value = addImplicitConversion(value, targetType, value);
@@ -19206,7 +19206,42 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    JCBlock bl = popBlock(that);
 					    nonignoredStatements.addAll(bl.stats);
 					    result = eresult = id;
-					} else {
+					} else if (that.kind == qchoosexKind) {
+                        // well-definedness check
+					    if (that.range != null) {
+					        pushBlock();
+					        JmlQuantifiedExpr wd = M.at(that).JmlQuantifiedExpr(qexistsKind, dd,
+					                range, value);
+					        wd.setType(syms.booleanType);
+					        addAssert(that, Label.CHOOSEX, wd);
+					        var decl = dd.get(0);
+					        // value
+					        var ndecl = newTempDecl(decl, uniqueTempString(decl.name.toString()), decl.type);
+					        addStat(ndecl);
+					        JCIdent id = M.at(decl).Ident(ndecl.name);
+					        id.setType(decl.type);
+					        var expr = range;
+					        expr = new JmlTreeCopier(context,M) {
+					            public JCTree visitIdentifier(IdentifierTree node, Void p) {
+					                JCIdent n = (JCIdent)node;
+					                if (n.sym == decl.sym) {
+					                    JCIdent id = M.at(decl).Ident(ndecl.name);
+					                    id.setType(decl.type);
+					                    return id;
+					                } else {
+					                    return super.visitIdentifier(node,  p);
+					                }
+					            }
+					        }.copy(expr);
+					        addAssume(that, Label.CHOOSEX, expr);
+					        JCBlock bl = popBlock(that);
+					        nonignoredStatements.addAll(bl.stats);
+					        // FIXME -- well definedness of value expression
+					        result = eresult = id;
+					    } else {
+					        result = eresult = treeutils.makeBooleanLiteral(that,true);
+					    }
+                    } else{
 					    result = eresult = q;
 					}
 				} finally {

@@ -164,8 +164,8 @@ public class QuantifiedExpressions extends JmlExtension {
                         resultType = syms.booleanType;
                         break;
 
-                    case qchooseID:
-                    	valueType = syms.booleanType;
+                    case qchooseID: {
+                        valueType = syms.booleanType;
                         resultType = that.decls.head.type;
                         if (that.decls.tail.nonEmpty()) {
                             error(that.decls.tail.head, "jml.message", "A \\choose quantifier may have only one variable declaration");
@@ -175,6 +175,27 @@ public class QuantifiedExpressions extends JmlExtension {
                                     M.at(that).TypeIdent(TypeTag.BOOLEAN), attr.treeutils.falseLit);
                         attr.attribStat(that.founddef, localEnv);
                         break;
+                    }
+                    
+                    case qchoosexID: {
+                        // TODO -= check for strictness
+                        valueType = Type.noType;
+                        resultType = Type.noType;
+                        if (requireStrictJML()) {
+                            utils.warning(that.pos,"jml.not.strict","\\choosex expression");
+                        }
+                        if (that.decls.tail.nonEmpty()) {
+                            error(that.decls.tail.head, "jml.message", "A \\choosex quantifier may have only one variable declaration");
+                        }
+                        if (that.value == null) {
+                            error(that, "jml.message", "A \\choosex xquantifier must have a value expression");
+                        }
+                        String tmpname = Strings.genPrefix + "found$" + that.pos;
+                        that.founddef = (JmlVariableDecl)M.at(that).VarDef(M.at(that).Modifiers(0),attr.names.fromString(tmpname), 
+                                    M.at(that).TypeIdent(TypeTag.BOOLEAN), attr.treeutils.falseLit);
+                        attr.attribStat(that.founddef, localEnv);
+                        break;
+                    }
 
                     case qnumofID:
                         valueType = syms.booleanType;
@@ -245,6 +266,8 @@ public class QuantifiedExpressions extends JmlExtension {
     public static final IJmlClauseKind qexistsKind = new QuantifiedExpression(qexistsID);
     public static final String qchooseID = "\\choose";
     public static final IJmlClauseKind qchooseKind = new QuantifiedExpression(qchooseID);
+    public static final String qchoosexID = "\\choosex";
+    public static final IJmlClauseKind qchoosexKind = new QuantifiedExpression(qchoosexID);
     public static final String qnumofID = "\\num_of";
     public static final IJmlClauseKind qnumofKind = new QuantifiedExpression(qnumofID);
     public static final String qsumID = "\\sum";

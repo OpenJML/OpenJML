@@ -1240,7 +1240,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
                 boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
-                if (jmlenv.currentClauseKind != null && !JmlOption.isOption(context,JmlOption.NEWISPURE)) {
+                if (jmlenv.currentClauseKind != null /* && !JmlOption.isOption(context,JmlOption.NEWISPURE) */) {
                     utils.error(tree, "jml.message", "Object allocation is not permitted in specification expressions");
                 }
                 if (!isAllowed) {
@@ -5432,6 +5432,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 break;
             case qchooseID:
                 break;
+            case qchoosexID:
+                break;
             case qnumofID: 
             	restype = syms.longType; // FIXME - not working for bigint yet -- as this is RAC, we need to use BigInteger -- same for \sum etc.
                 initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_count$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
@@ -5614,7 +5616,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             JCStatement retStat;
             JCExpression cond = newvalue;
-            if (q.kind == qforallKind || q.kind == qexistsKind) { 
+            if (q.kind == qforallKind || q.kind == qexistsKind || q.kind == qchooseKind || q.kind == qchoosexKind) { 
                 if (q.kind == qforallKind) {
                     cond = treeutils.makeNot(cond.pos, cond);
 //                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
