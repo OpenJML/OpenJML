@@ -19211,7 +19211,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    if (that.range != null) {
 					        pushBlock();
 					        JmlQuantifiedExpr wd = M.at(that).JmlQuantifiedExpr(qexistsKind, dd,
-					                range, value);
+					                range, treeutils.trueLit);
 					        wd.setType(syms.booleanType);
 					        addAssert(that, Label.CHOOSEX, wd);
 					        var decl = dd.get(0);
@@ -19237,9 +19237,42 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					        JCBlock bl = popBlock(that);
 					        nonignoredStatements.addAll(bl.stats);
 					        // FIXME -- well definedness of value expression
-					        result = eresult = id;
+                            value = new JmlTreeCopier(context,M) {
+                                public JCTree visitIdentifier(IdentifierTree node, Void p) {
+                                    JCIdent n = (JCIdent)node;
+                                    if (n.sym == decl.sym) {
+                                        JCIdent id = M.at(decl).Ident(ndecl.name);
+                                        id.setType(decl.type);
+                                        return id;
+                                    } else {
+                                        return super.visitIdentifier(node,  p);
+                                    }
+                                }
+                            }.copy(value);
+					        result = eresult = value;
 					    } else {
-					        result = eresult = treeutils.makeBooleanLiteral(that,true);
+					        // FIXME - needs a type constraint on the index (e.g. if the type is short)
+					        //notImplemented(that, "\\choosex expression with no explicit range");
+                            pushBlock();
+                            var decl = dd.get(0);
+                            var ndecl = newTempDecl(decl, uniqueTempString(decl.name.toString()), decl.type);
+                            addStat(ndecl);
+                            JCIdent id = M.at(decl).Ident(ndecl.name);
+                            JCBlock bl = popBlock(that);
+                            nonignoredStatements.addAll(bl.stats);
+                            value = new JmlTreeCopier(context,M) {
+                                public JCTree visitIdentifier(IdentifierTree node, Void p) {
+                                    JCIdent n = (JCIdent)node;
+                                    if (n.sym == decl.sym) {
+                                        JCIdent id = M.at(decl).Ident(ndecl.name);
+                                        id.setType(decl.type);
+                                        return id;
+                                    } else {
+                                        return super.visitIdentifier(node,  p);
+                                    }
+                                }
+                            }.copy(value);
+					        result = eresult = value;
 					    }
                     } else{
 					    result = eresult = q;
@@ -19336,7 +19369,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     st = M.If(val, bl, null);
                                     break;
 
-                                case qchooseID:
+                                case qchooseID: {
                                     // if (guard) { val = convert(value); if (!val) { accumulator = true; break <label>; }}
                                     // if the range was empty, the value was used as the range
 
@@ -19357,7 +19390,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                             M.at(that.pos).Ident(that.founddef.sym));
                                     failureBlock = popBlock(that,checkF);
                                     break;
+                                }
+                                case qchoosexID: {
+                                    // FIXME - same as \choose and not even type correct
+                                    // if (guard) { val = convert(value); if (!val) { accumulator = true; break <label>; }}
+                                    // if the range was empty, the value was used as the range
 
+                                    JCIdent index = treeutils.makeIdent(that.decls.head.pos, indexdef.sym);
+                                    var check9b = pushBlock();
+                                    addStat(treeutils.makeAssignStat(that.pos, idd, val));
+                                    addStat(st = treeutils.makeAssignStat(that.pos, 
+                                            treeutils.makeIdent(that.pos, that.founddef.sym), treeutils.trueLit));
+                                    addStat(brStat = M.Break(label));
+                                    st = bl = popBlock(that, check9b);
+                                    var checkFx = pushBlock();
+                                    addAssert(that, Label.CHOOSEX, 
+                                            M.at(that.pos).Ident(that.founddef.sym));
+                                    failureBlock = popBlock(that,checkFx);
+                                    break;
+                                }
 								case qsumID:
 									// if (guard) { val = convert(value); accumulator = accumulator + val; }
 									st = treeutils.makeAssignStat(that.pos, id,
@@ -19592,6 +19643,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * is innermost loop); if appropriate bounds cannot be determined, the method
 	 * returns null.
 	 */
+	
+	// FIXME - similar rouinte in JmlAttr - which is used?
 	public JCExpression determineRacBounds(List<JCVariableDecl> decls, JCExpression range,
 			java.util.List<Bound> bounds) {
 		// Some current assumptions
