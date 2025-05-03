@@ -638,4 +638,9 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
     
+    @Test
+    public void choosex() {
+        helpCompileRun("Demo");
+    }
+    
 }
