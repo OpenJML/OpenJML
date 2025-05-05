@@ -7,6 +7,10 @@ import org.junit.Assert;
 
 public class runscripts extends RunBase {
     
+    @Test public void sourcepath() {
+        help();
+    }
+
     @Test public void apiA() {
         help();
     }

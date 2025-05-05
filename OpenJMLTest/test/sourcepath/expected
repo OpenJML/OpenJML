@@ -1,0 +1,44 @@
+Test 1 uses B.java from .
+A.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false;
+        ^
+./B.java:3: verify: The prover cannot establish an assertion (Assert) in method z
+    //@ assert false;
+        ^
+2 verification failures
+Test 2 uses B.java from srcp
+A.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false;
+        ^
+srcp/B.java:4: verify: The prover cannot establish an assertion (Assert) in method n
+    //@ assert false;
+        ^
+2 verification failures
+Test 2a cannot find B.java
+A.java:1: error: cannot find symbol
+public class A extends B {
+                       ^
+  symbol: class B
+1 error
+Test 3 uses B.java from .
+srcx/A.java:4: verify: The prover cannot establish an assertion (Assert) in method mm
+    //@ assert false;
+        ^
+./B.java:3: verify: The prover cannot establish an assertion (Assert) in method z
+    //@ assert false;
+        ^
+2 verification failures
+Test 4 uses B.java from srcp
+srcx/A.java:4: verify: The prover cannot establish an assertion (Assert) in method mm
+    //@ assert false;
+        ^
+srcp/B.java:4: verify: The prover cannot establish an assertion (Assert) in method n
+    //@ assert false;
+        ^
+2 verification failures
+Test 4a cannot find B.java
+srcx/A.java:1: error: cannot find symbol
+public class A extends B {
+                       ^
+  symbol: class B
+1 error
