@@ -16967,6 +16967,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
 
+		// Assume \count > 0 ==> loop condition
+	    JCIdent countid = treeutils.makeIdent(indexDecl.pos, indexDecl.sym);
+	    JCExpression countgt0 = treeutils.makeBinary(that.pos, JCTree.Tag.GT, countid, treeutils.makeIntLiteral(that.pos, 0));
+	    JCExpression condx = convertExpr(that.cond);
+	    addAssume(that,Label.LOOP,treeutils.makeImplies(that, countgt0, condx));
+    
+
+		pushBlock();
+		JCBlock bl = popBlock(that);
+		addStat(bl);
+
 		// Now in the loop, so check that the variants are non-negative
 		loopHelperCheckNegative(decreasesIDs, that);
 
@@ -16977,6 +16988,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Now compute any side-effects of the loop condition
 		addTraceableComment(that.cond, that.cond, "Loop test");
 		JCExpression cond = convertExpr(that.cond);
+		
 
 		// increment the index
 		loopHelperIncrementIndex(indexDecl);
@@ -17533,6 +17545,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addFeasibilityCheck(loop, currentStatements, Strings.feas_loopexit, "at loop exit");
 		JCBreak br = M.at(pos).Break(null);
 		br.target = loop;
+        if (loopSpecs != null) {
+            for (JmlStatementLoop loopStat : loopSpecs) {
+                if (loopStat.clauseType == loopinvariantClause) {
+                    JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loopStat;
+                    try {
+                        JCExpression copy = copy(inv.expression); // Might throw NoModelMethod
+                        addTraceableComment(inv, copy, inv.toString());
+                        JCExpression e = inv.translated ? copy : convertJML(copy);
+                        addAssert(inv, Label.LOOP_INVARIANT_ENDLOOP, e);
+                    } catch (NoModelMethod e) {
+                        // continue - skip the assertion
+                    }
+                }
+            }
+        }
 		addStat(br);
 		JCBlock bl = popBlock(pos, check);
 		if (split && currentSplit != null) {
