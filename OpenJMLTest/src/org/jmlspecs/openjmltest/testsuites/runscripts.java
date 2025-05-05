@@ -31,6 +31,10 @@ public class runscripts extends RunBase {
         help();
     }
 
+    @Test public void apiOut() {
+        help();
+    }
+
     @Test public void apiToken() {
         help();
     }
