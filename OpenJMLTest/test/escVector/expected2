@@ -12,12 +12,12 @@ Starting proof of Vector.copyInto(Object[]) with prover !!!!
 test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyInto
         the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
                      ^
-test/escVector/Vector.java:90: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method copyInto
-      //@ loop_invariant 0 <= i && i <= my_element_count;
-          ^
 test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
         the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
                  ^
+test/escVector/Vector.java:90: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method copyInto
+      //@ loop_invariant 0 <= i && i <= my_element_count;
+          ^
 Completed proof of Vector.copyInto(Object[]) with prover !!!! - with warnings
 Starting proof of Vector.copyIntoOK(Object[]) with prover !!!!
 test/escVector/Vector.java:102: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyIntoOK

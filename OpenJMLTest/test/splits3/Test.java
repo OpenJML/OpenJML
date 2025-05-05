@@ -2,9 +2,9 @@ public class Test {
 
     static public void dowhile() {
         int i = 2;
-        //@ loop_invariant i > 0;
-        //@ split  // ERROR: Out of place
-        do { --i; } while (i!=0);
+        //@ loop_invariant i >= 0 && (\count == 0 ==> i > 0);
+        //@ split
+        do { --i; } while (i > 0);
     }
 
     static public void boolsplit(int i) {

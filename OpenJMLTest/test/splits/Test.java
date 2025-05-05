@@ -160,9 +160,9 @@ public class Test {
 
     public void dowhile() {
         int i = 2;
-        //@ loop_invariant i > 0;
+        //@ loop_invariant i >= 0 && (\count == 0 ==> i > 0);
         //@ split 
-        do { --i; } while (i!=0);
+        do { --i; } while (i > 0);
     }
     
 }

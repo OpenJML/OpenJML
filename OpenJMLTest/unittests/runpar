@@ -1,13 +1,13 @@
 #! /bin/bash
 
-## This script runs all the unittests, running each testcase (with all of its subsidiaary tests) individually,
-## but executing various testcases concurrently. The number of concurrent jobs can be set by
+## This script runs all the unittests, running each testsuite (with all of its testcases) sequentially,
+## but executing various testsuites concurrently. The number of concurrent jobs can be set by
 ## executing the script as 'JOBS=n ./runpar' for a particular number 'n' (default is 5)
 ## If there are command-line arguments, they must be a list of
-## specific testcases to run. If the number of permitted JOBS is 0, then the testcases are run
+## specific testsuites to run. If the number of permitted JOBS is 0, then the testsuites are run
 ## sequentially, without spwaning any subprocesses.
 
-## The tests within a test case are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRUnner).
+## The tests within a test suite are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRUnner).
 
 ## If the environmental variable COV is set, then coverage measurements are reported
 
@@ -51,7 +51,7 @@ else
 fi
 
 if [ $numjobs -eq 0 ]; then
-    echo Running $(echo $testlist | wc -w) testcases sequentially
+    echo Running $(echo $testlist | wc -w) testsuites sequentially
     sync
     for d in $testlist; do
         nm=${d%.java}
@@ -59,7 +59,7 @@ if [ $numjobs -eq 0 ]; then
         ./run-summary log-$nm $nm
     done
 else
-    echo Running $(echo $testlist | wc -w) testcases with $numjobs concurrent jobs
+    echo Running $(echo $testlist | wc -w) testsuites with $numjobs concurrent jobs
     sync
     for d in $testlist; do
         nm=${d%.java}

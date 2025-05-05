@@ -2501,6 +2501,9 @@ public class esc2 extends EscBase {
               + "  public void instb() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ while (i-- > 0) { } /*@ assert i == -1; */ }\n"
               + "  public void instc() { int i = 5; /*@ loop_invariant i> 1; decreases i; */ while (--i > 1) { } /*@ assert i == 1; */ }\n"
               + "}"
+              ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method insta", 40
+              ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method instb", 40
+              ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method instc", 40
               );
     }
 
