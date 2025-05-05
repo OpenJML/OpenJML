@@ -178,7 +178,6 @@ public class JmlOption {
             return true;
     	}
     };
-    public static final JmlOption SILENT = new JmlOption("--silent",false,null,"Only an exit code","--verboseness="+Utils.SILENT);
     public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output warnings and errors","--verboseness="+Utils.QUIET);
     public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Limited output","--verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("--progress",false,null,"Shows progress through compilation phases","--verboseness="+Utils.PROGRESS);
