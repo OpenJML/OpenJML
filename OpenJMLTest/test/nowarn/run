@@ -9,16 +9,16 @@ echo Test 1 ;\
 $OJA --check D.java ; \
 echo EXIT $? ;\
 echo Test 2; \
-$OJA --check -Xlint:all D.java ;\
+$OJA --check D.java ;\
 echo EXIT $? ;\
 echo Test 3; \
-$OJA --check -Xlint:all -nowarn D.java ;\
+$OJA --check -nowarn D.java ;\
 echo EXIT $? ;\
 echo Test 4; \
-$OJA --check -Xlint:all -Werror -nowarn D.java ; \
+$OJA --check -Werror -nowarn D.java ; \
 echo EXIT $? ;\
 echo Test 5; \
-$OJA --check -Xlint:all -Werror D.java ; \
+$OJA --check -Werror D.java ; \
 echo EXIT $? ;\
 ) >& actual
 
@@ -27,28 +27,28 @@ echo Test 1 ;\
 $OJA --check K.java ; \
 echo EXIT $? ;\
 echo Test 2; \
-$OJA --check -Xlint:all K.java ;\
+$OJA --check K.java ;\
 echo EXIT $? ;\
 echo Test 3; \
-$OJA --check -Xlint:all -nowarn K.java ;\
+$OJA --check -nowarn K.java ;\
 echo EXIT $? ;\
 echo Test 4; \
-$OJA --check -Xlint:all -Werror -nowarn K.java ; \
+$OJA --check -Werror -nowarn K.java ; \
 echo EXIT $? ;\
 echo Test 4a; \
-$OJA --check -nowarn -Xlint:all -Werror K.java ; \
+$OJA --check -nowarn -Werror K.java ; \
 echo EXIT $? ;\
 echo Test 5; \
-$OJA --check -Xlint:all -Werror K.java ; \
+$OJA --check -Werror K.java ; \
 echo EXIT $? ;\
 ) >> actual 2>&1
 
 ## Test that -Xlint works
 (\
 echo Test -Xlint; \
-$OJA --check -Xlint:text-blocks TB.java ;\
+$OJA --check -Xlint:text-blocks t/TB.java ;\
 echo Test -Xlint off ;\
-$OJA --check TB.java ;\
+$OJA --check t/TB.java ;\
 ) >> actual 2>&1
 
 diff actual expected && rm -rf actual
