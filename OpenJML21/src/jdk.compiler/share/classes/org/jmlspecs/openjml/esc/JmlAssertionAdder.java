@@ -8053,6 +8053,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// skip presuming an error already given
 				if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(s.pos, "jml.message", "Not a store-ref expression: " + e);
 			}
+		} else if (e instanceof JmlStoreRefKeyword k) { // FIXME - why did this need to be added 
+            if (k.kind == JmlPrimitiveTypes.everythingKind) {
+                sr = M.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
+                sr.setType(locsetType);
+                list.add(sr);
+            } else if (k.kind == JmlPrimitiveTypes.nothingKind) {
+                // skip
+            } else {
+                // skip presuming an error already given
+                if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(k.pos, "jml.message", "Not a store-ref expression: " + e);
+            }
 		} else if (e.type != locsetType) {
 			// skip presuming an error already given
 			if (utils.jmlverbose == Utils.JMLVERBOSE) log.error(e.pos, "jml.message", "expected a \\locset type: " + e + " " + e.type);
@@ -12925,7 +12936,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public JCExpression checkAccess2(IJmlClauseKind kind, DiagnosticPosition pos, JCExpression lhsUnconverted, JCExpression lhs,
 			boolean isConverted, JCExpression guard, boolean emitAsserts, TranslationEnv targetEnv, boolean comparingToCallee) {
-		//System.out.println("CHECKACCESS@ " + lhsUnconverted + " " + lhs + " " + guard + " " + emitAsserts + " " + targetEnv);
+		//System.out.println("CHECKACCESS@ " + comparingToCallee + " " + lhsUnconverted + " " + lhs + " " + guard + " " + emitAsserts + " " + targetEnv);
 		JCExpression okCondition = emitAsserts ? null : treeutils.makeBooleanLiteral(pos, true);
 		if (rac) return okCondition;
 		var primarySource = log.currentSourceFile();
@@ -12940,13 +12951,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		MethodSymbol methodSym = targetEnv.methodSym;
 		JavaFileObject prev = log.currentSourceFile();
 		try {
-			//System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + targetEnv.receiver + " " + methodSym.owner);
+			//System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + methodSym.owner);
 			if (lhs instanceof JCIdent id && id.sym.owner instanceof ClassSymbol && methodSym.isConstructor()) return okCondition;// OK to set a field of 'this' inside a constructor
 			var srlist = lhs instanceof JmlStoreRef j ? List.<JmlStoreRef>of(j) : makeJmlStoreRef(pos, lhs, (ClassSymbol)methodSym.owner, false);
 			var kindLabel = kind == assignableClauseKind ? Label.ASSIGNABLE
 					: kind == accessibleClauseKind ? Label.ACCESSIBLE
 							: kind == capturesClauseKind ? Label.CAPTURES : Label.UNKNOWN;
-			//System.out.println("CA2-A " + lhs +  " " + srlist);
+			//System.out.println("CA2-A " + lhs +" " + lhs.getClass() + " : " + srlist);
 			for (var sr: srlist) {
 				for (MethodSymbol parentMethodSym : utils.parents(methodSym,true)) {
 					//System.out.println("CA2-B " + parentMethodSym);

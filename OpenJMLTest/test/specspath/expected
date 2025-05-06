@@ -1,0 +1,68 @@
+Test P1 uses ppsrc/P.java for specs
+ppsrc/P.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false; // ppsrc/P.java
+        ^
+1 verification failure
+Test P2 uses ppspecs/P.jml for specs
+ppspecs/P.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // ppspecs/P.jml
+                ^
+1 error
+Test P3 uses pxsrc/P.jml for specs
+/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/specspath/pxsrc/P.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // pxsrc/P.jml
+                ^
+1 error
+Test P4 uses ppspecs/P.jml for specs
+ppspecs/P.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // ppspecs/P.jml
+                ^
+1 error
+Test B1 uses bbsrc/B.java
+bbsrc/B.java:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // bbsrc/B.java
+                ^
+1 error
+Test B2 uses bbspecs/B.jml
+bbspecs/B.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // bbspecs/B.jml
+                ^
+1 error
+Test B3 uses bxsrc/B.jml
+/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/specspath/bxsrc/B.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // bxsrc/B.jml
+                ^
+1 error
+Test B4 uses bbspecs/B.jml
+bbspecs/B.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // bbspecs/B.jml
+                ^
+1 error
+Test C1 -- should use ccspecs/C.jml  FAILING
+ccspecs/C.jml:1: error: There is no binary class to match this Java declaration in the specification file: .C
+public class C {
+       ^
+1 error
+Test C2 -- should use srct/C.java and successfully verify FAILING
+Test C3 -- should have a assignable verification failure
+AC.java:5: verify: The prover cannot establish an assertion (Assignable: AC.java:3:) in method mm: \everything
+    m();
+     ^
+AC.java:3: verify: Associated declaration: AC.java:5:
+  //@ pure
+      ^
+2 verification failures
+Test Z1 uses ccspecs/z/C.jml
+ccspecs/z/C.jml:3: error: incompatible types: int cannot be converted to boolean
+    //@ invariant 0; // ccspecs/z/C.jml
+                  ^
+1 error
+Test Z2 -- should use srcz/z/C.java, and successfully verify  FAILING
+Test Z3 -- should have an assignable problem
+AZC.java:6: verify: The prover cannot establish an assertion (Assignable: AZC.java:3:) in method mm: \everything
+    m();
+     ^
+AZC.java:3: verify: Associated declaration: AZC.java:6:
+  //@ assignable \nothing;
+      ^
+2 verification failures
