@@ -607,6 +607,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         // FIXME - sort out whether we can read options before constructing tools
         Check.instance(context).resetHandlers();
         ClassFinder.instance(context).resetOptions(context);
+        Options.instance(context).put("compilePolicy", "simple");
+        JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
+        JmlOptions.instance(context).setupOptions();
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;

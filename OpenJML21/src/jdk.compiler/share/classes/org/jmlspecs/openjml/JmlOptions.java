@@ -141,10 +141,8 @@ public class JmlOptions extends Options {
                 iter.remove();
             }
         }
-        setupOptions(); // check consistency of options so far, even though Java options are not processed yet
-        options.put("compilePolicy", "simple");
-        JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
-        // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
+        // NOTE: cannot call setupOptions until after Java options are processed - because otherwise Lint is
+        // instantiated too early
         return newargs.toArray(new String[newargs.size()]);
     }
     

@@ -11,6 +11,10 @@ public class runscripts extends RunBase {
         help();
     }
 
+    @Test public void specspath() {
+        help();
+    }
+
     @Test public void apiA() {
         help();
     }
@@ -84,6 +88,10 @@ public class runscripts extends RunBase {
     }
 
     @Test public void properties() {
+        help();
+    }
+
+    @Test public void nowarn() {
         help();
     }
 }

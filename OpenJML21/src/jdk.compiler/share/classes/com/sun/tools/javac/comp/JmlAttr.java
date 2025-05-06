@@ -8746,8 +8746,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		super(context);
     	}
     	
-    	public static void preRegister(Context context) {
-    		new JmlArgumentAttr(context);// self registers
+        /** The key to use to retrieve the instance of this class from the Context object. */
+        //@ non_null
+        public static final Context.Key<JmlArgumentAttr> jmlArgumentAttrKey =
+            new Context.Key<JmlArgumentAttr>();
+
+        // Need to register a factory, because instantiating JmlArgumentAttr as part of registerTools
+        // causes premature instanting of Lint -- which must be instantiated after the command-line has been read
+        public static void preRegister(Context context) {
+            context.put(jmlArgumentAttrKey, new Context.Factory<JmlArgumentAttr>() {
+                public JmlArgumentAttr make(Context context) {
+                    return new JmlArgumentAttr(context);
+                }
+            });
     	}
     	
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
