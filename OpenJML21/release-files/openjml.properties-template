@@ -12,7 +12,6 @@
 # org.openjml.option.exclude=
 # org.openjml.option.prover=
 # org.openjml.option.exec=
-# org.openjml.option.logic=ALL
 # org.openjml.option.smt=
 # org.openjml.option.nullable-by-default=false    
 # org.openjml.option.code-math=safe:
@@ -22,7 +21,6 @@
 # org.openjml.option.specs-path=
 # org.openjml.option.check-specs-path=true
 # org.openjml.option.purity-check=true
-# org.openjml.option.new-is-pure=false
 # org.openjml.option.timeout=
 # org.openjml.option.show-not-implemented=false
 # org.openjml.option.show-not-executable=false

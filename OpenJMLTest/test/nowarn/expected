@@ -1,0 +1,50 @@
+Test 1
+D.java:2: warning: Inserting missing semicolon at the end of a invariant statement
+  //@ invariant true
+                    ^
+1 warning
+EXIT 0
+Test 2
+D.java:2: warning: Inserting missing semicolon at the end of a invariant statement
+  //@ invariant true
+                    ^
+1 warning
+EXIT 0
+Test 3
+EXIT 0
+Test 4
+EXIT 0
+Test 5
+D.java:2: warning: Inserting missing semicolon at the end of a invariant statement
+  //@ invariant true
+                    ^
+error: warnings found and -Werror specified
+1 error
+1 warning
+EXIT 1
+Test 1
+K.java:3: warning: [strictfp] as of release 17, all floating-point expressions are evaluated strictly and 'strictfp' is not required
+  public void m(int i) {
+              ^
+1 warning
+EXIT 0
+Test 2
+K.java:3: warning: [strictfp] as of release 17, all floating-point expressions are evaluated strictly and 'strictfp' is not required
+  public void m(int i) {
+              ^
+1 warning
+EXIT 0
+Test 3
+EXIT 0
+Test 4
+EXIT 0
+Test 4a
+EXIT 0
+Test 5
+K.java:3: warning: [strictfp] as of release 17, all floating-point expressions are evaluated strictly and 'strictfp' is not required
+  public void m(int i) {
+              ^
+error: warnings found and -Werror specified
+1 error
+1 warning
+EXIT 1
