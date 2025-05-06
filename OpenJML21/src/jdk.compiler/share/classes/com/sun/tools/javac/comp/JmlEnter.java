@@ -568,9 +568,10 @@ public class JmlEnter extends Enter {
 	        Name packageName = names.fromString(flatPackageName);
 	        // Most spec file for binary files will be for the system library packages in java.base, so try that first
 	        PackageSymbol p = syms.getPackage(syms.java_base,packageName);
-	        if (p == null) {
+	        if (p == null || p.isUnnamed() || p.toString().isEmpty()) { // No unnamed package in java.base // FIXME why doen't p.isUnnamed() work?
 	            // Otherwise try the unnamed module
 	            p = syms.getPackage(syms.unnamedModule,packageName);
+	            if (p != null && p.modle == null) p.modle = syms.unnamedModule; // FIXME - why is this necessary
 	        }
 	        if (p == null) {
 	            Collection<ModuleSymbol> mods = syms.listPackageModules(packageName);
@@ -649,7 +650,7 @@ public class JmlEnter extends Enter {
 		if (specsEnv.tree instanceof JCClassDecl cd && cd.sym != owner) throw new AssertionError("mismatched cd sym");
 		
 		var iter = owner.members().getSymbolsByName(specDecl.name, s->s instanceof ClassSymbol).iterator();
-		ClassSymbol csym = iter.hasNext() ? (ClassSymbol)iter.next() : null;
+ 		ClassSymbol csym = iter.hasNext() ? (ClassSymbol)iter.next() : null;
 		
 		if (debugEnter) System.out.println("enter: Spec class " + owner + "." + specDecl.name + " " + specsEnv.toplevel.sourcefile + " " + csym );
 

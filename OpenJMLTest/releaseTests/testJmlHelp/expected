@@ -109,7 +109,6 @@ JML options:
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
   --verboseness              Level of verboseness (0=quiet...4=debug)
   --warn                     Comma-separated list of warning keys to enable or disable
-  --silent                   Only an exit code [--verboseness=-1]
   --quiet                    Only output warnings and errors [--verboseness=0]
   --normal                   Limited output [--verboseness=1]
   --progress                 Shows progress through compilation phases [--verboseness=2]

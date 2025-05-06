@@ -739,11 +739,11 @@ public class JmlSpecs {
      */
     //@ nullable
     public JavaFileObject findSpecFile(String classFlatName) {
-        String s = classFlatName.replace('.','/');
         String suffix = Strings.specsSuffix; 
+        String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
-        	if (false) System.out.println("parser+: TRYING " + dir + " " + s + suffix);
-        	JavaFileObject j = dir.findFile(s + suffix);
+        	if (false) System.out.println("parser+: TRYING " + dir + " " + s);
+        	JavaFileObject j = dir.findFile(s);
         	if (j != null) return j;
         }
         return null;

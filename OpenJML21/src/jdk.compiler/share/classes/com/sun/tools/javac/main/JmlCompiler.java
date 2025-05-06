@@ -160,6 +160,7 @@ public class JmlCompiler extends JavaCompiler {
     // If there is no .jml file, we parse the .java with the annotations as the specs.
     //@ nullable
     JavaFileObject checkForSpecsFile(JavaFileObject filename, CharSequence charSeq) {
+        //System.out.println("FIND SPEC FOR SOURCE " + filename);
         var charBuf = charSeq instanceof java.nio.CharBuffer cb ? cb : java.nio.CharBuffer.wrap(charSeq);
     	JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
         var tokenizer = new com.sun.tools.javac.parser.JmlTokenizer(fac, charBuf, true);
@@ -194,7 +195,14 @@ public class JmlCompiler extends JavaCompiler {
     	s = s.substring(0,k); // filename without suffix or directory
     	name += s; // fully qualified class name
     	if (debugParse) System.out.println("parser: Seeking specfile for " + name);
-    	return JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+    	var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+    	if (specFile == null) {
+    	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
+    	    var path = java.nio.file.Paths.get(filename.toUri().getPath());
+    	    specFile = JmlSpecs.instance(context).new FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"));
+    	}
+        //System.out.println("  FOUND " + specFile);
+    	return specFile;
     }
     
     /** Overridden to emit debug information */
