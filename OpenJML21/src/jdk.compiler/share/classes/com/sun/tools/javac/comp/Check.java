@@ -1578,6 +1578,7 @@ public class Check {
     }
 
     void checkRaw(JCTree tree, Env<AttrContext> env) {
+        if (lint.isEnabled(LintCategory.RAW) && tree.type == null) System.out.println("TREE " + tree);
         if (lint.isEnabled(LintCategory.RAW) &&
             tree.type.hasTag(CLASS) &&
             !TreeInfo.isDiamond(tree) &&

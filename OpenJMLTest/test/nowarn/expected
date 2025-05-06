@@ -48,3 +48,9 @@ error: warnings found and -Werror specified
 1 error
 1 warning
 EXIT 1
+Test -Xlint
+t/TB.java:2: warning: [text-blocks] trailing white space will be removed
+  String s = """
+             ^
+1 warning
+Test -Xlint off
