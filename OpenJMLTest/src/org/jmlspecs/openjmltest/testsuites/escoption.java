@@ -64,10 +64,44 @@ public class escoption extends EscBase {
         org.junit.Assert.assertEquals("",out);
     }
     
+    @Test
+    public void testSTRICTA() {
+        expectedExit = 1;
+        main.addOptions("--lang=jml");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  //+STRICT@ ensures yyy;\n"
+                +"  //-STRICT@ ensures zzz;\n"
+                +"  public static void m(){}\n"
+                +"}"
+                ,"/tt/TestJava.java:3: error: cannot find symbol\n"
+                        + "  symbol:   variable yyy\n"
+                        + "  location: class tt.TestJava",22
+        );
+
+    }
+    
+    @Test
+    public void testSTRICTB() {
+        expectedExit = 1;
+        main.addOptions("--lang=openjml");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+                +"public class TestJava { \n"
+                +"  //+STRICT@ ensures yyy;\n"
+                +"  //-STRICT@ ensures zzz;\n"
+                +"  public static void m(){}\n"
+                +"}"
+                ,"/tt/TestJava.java:4: error: cannot find symbol\n"
+                        + "  symbol:   variable zzz\n"
+                        + "  location: class tt.TestJava",22
+        );
+
+    }
+    
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption() {
-    	main.addOptions("--quiet");
-    	helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        main.addOptions("--quiet");
+        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
