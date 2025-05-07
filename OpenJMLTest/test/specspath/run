@@ -1,0 +1,66 @@
+#! /bin/bash
+
+cd $(dirname "$BASH_SOURCE[0]" )
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+
+rm -rf `find . -name C.class` actual; touch actual; 
+openjml --compile srct/C.java ; cp srct/C.class srctt/C.class
+openjml --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class
+
+## P.java with no specs at all
+echo Test P1 uses ppsrc/P.java for specs >> actual
+$OJA --esc ppsrc/P.java --specs-path specsempty >> actual 2>&1
+## P.java with specs on specspath
+echo Test P2 uses ppspecs/P.jml for specs >> actual
+$OJA --esc ppsrc/P.java --specs-path ppspecs >> actual 2>&1
+## P.java with sibling specs and nothing on specspath
+echo Test P3 uses pxsrc/P.jml for specs >> actual
+$OJA --esc pxsrc/P.java --specs-path specsempty >> actual 2>&1
+## P.java with sibling specs and specs on specspath
+echo Test P4 uses ppspecs/P.jml for specs >> actual
+$OJA --esc pxsrc/P.java --specs-path ppspecs >> actual 2>&1
+## P.java with specspath defaulting to current director
+echo Test P5 uses ./P.jml for specs >> actual
+$OJA --esc pxsrc/P.java >> actual 2>&1
+
+## B.java with no specs
+echo Test B1 uses bbsrc/B.java  >> actual 2>&1
+$OJA --esc AB.java --source-path bbsrc --specs-path specsempty >> actual 2>&1
+## B.java with specs on specs path
+echo Test B2 uses bbspecs/B.jml >> actual 2>&1
+$OJA --esc AB.java --source-path bbsrc --specs-path bbspecs >> actual 2>&1
+## B.java with no specs on specs path, but sibling specs
+echo Test B3 uses bxsrc/B.jml >> actual 2>&1
+$OJA --esc AB.java --source-path bxsrc --specs-path specsempty >> actual 2>&1
+## B.java with specs on specs path and sibling specs
+echo Test B4 uses bbspecs/B.jml >> actual 2>&1
+$OJA --esc AB.java --source-path bxsrc --specs-path bbspecs  >> actual 2>&1
+## B.java with specs path defaulting to sourcepath
+echo Test B5 uses bxsrc/B.jml >> actual 2>&1
+$OJA --esc AB.java --source-path bxsrc  >> actual 2>&1
+
+
+
+
+## Referenced binary class with .class and .java and .jml  FAILS
+echo Test C1 -- should use ccspecs/C.jml >> actual 2>&1
+$OJA --esc AC.java -cp srct --specs-path=ccspecs >> actual 2>&1
+## Referenced binary class with .class and .java   FAILS
+echo Test C2 -- should use srct/C.java and successfully verify >> actual 2>&1
+$OJA --esc AC.java -cp srct --specs-path=specsempty >> actual 2>&1
+## Referenced binary class with only a .class file
+echo Test C3 -- should have a assignable verification failure >> actual 2>&1
+$OJA --esc AC.java -cp srctt --specs-path=specsempty >> actual 2>&1
+
+## Referenced binary class with .class and .java and .jml
+echo Test Z1 uses ccspecs/z/C.jml >> actual 2>&1
+$OJA --esc AZC.java -cp srcz --specs-path=ccspecs >> actual 2>&1
+## Referenced binary class with .class and .java    FAILS
+echo Test Z2 -- should use srcz/z/C.java, and successfully verify >> actual 2>&1
+$OJA --esc AZC.java -cp srcz --specs-path=specsempty >> actual 2>&1
+## Referenced binary class with only a .class file
+echo Test Z3 -- should have an assignable problem >> actual 2>&1
+$OJA --esc AZC.java -cp srczz --specs-path=specsempty >> actual 2>&1
+
+diff expected actual && rm -rf actual

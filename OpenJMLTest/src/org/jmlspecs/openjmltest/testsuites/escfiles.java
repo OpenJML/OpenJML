@@ -645,6 +645,12 @@ public class escfiles extends EscBaseFiles {
     }
     
     @Test
+    public void splits3() {
+        expectedExit = 0;
+        helpTG("--no-split");
+    }
+    
+    @Test
     public void Dzmz() {
         expectedExit = 0;
         helpTG();
@@ -767,5 +773,11 @@ public class escfiles extends EscBaseFiles {
     @Test
     public void modelImport6() {
         helpTCF("test/modelImports/Test6.java","test/modelImports/test6","--check","-cp","test/modelImports");
+    }
+    
+    // Tests static imports
+    @Test
+    public void modelImport7() {
+        helpTCF("test/modelImports/Test7.java","test/modelImports/test7","--check","-cp","test/modelImports");
     }
 }

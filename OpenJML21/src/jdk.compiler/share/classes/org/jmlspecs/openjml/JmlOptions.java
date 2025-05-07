@@ -300,6 +300,7 @@ public class JmlOptions extends Options {
             }
             return;
         }
+        
 
         if (o != null && !negate && o.hasArg() && res == null) {
             if (o instanceof JmlOption && o.enabledDefault != null) {
@@ -332,15 +333,24 @@ public class JmlOptions extends Options {
             }
             addFilesRecursively(res, remainingArgs);
         } else if (o == JmlOption.PROPERTIES) {
-            Properties properties = System.getProperties();
-            String file = res;
-            if (file != null && !file.isEmpty()) {
+            if (negate) {
+                Utils.instance(context).warning("jml.message", "-no is not permitted on --properties (ignored)");
+            }
+            if (res == null || res.isEmpty()) {
+                Utils.instance(context).warning("jml.message", "--properties requires an argument");
+            } else if (!new File(res).exists() || new File(res).isDirectory()) {
+                Utils.instance(context).warning("jml.message", "the argument of --properties must be a file: " + res);
+            } else {
+                Properties properties = new Properties();
                 try {
-                    Utils.readProps(properties,file);
-                } catch (java.io.IOException e) {
-                    Utils.instance(context).note(false,"Failed to read property file " + file + " (cwd: " + System.getProperty("user.dir") + ")");
+                    if (!Utils.readProps(properties,res)) {
+                        Utils.instance(context).warning("jml.message", "unsuccessful attempt to read properties file: " + res);
+                    } else {
+                        setPropertiesFileOptions(options, properties);
+                    }
+                } catch (IOException e) {
+                    Utils.instance(context).warning("jml.message", "unsuccessful attempt to read properties file: " + res); // TODO tell exception as well
                 }
-                setPropertiesFileOptions(options, properties);
             }
         } else {
             if (o.defaultValue() instanceof Boolean) {
@@ -385,8 +395,14 @@ public class JmlOptions extends Options {
                 String rest = key.substring(Strings.optionPropertyPrefix.length());
                 if (v.equals("true")) value = "";
                 else if (v.equals("false")) value  = null;
-                rest = "-" + rest;
+                rest = "--" + rest;
                 opts.put(rest, v);
+                JmlOption opt = JmlOption.find(rest);
+                if (opt != null) {
+                    opt.check(context, false);
+                } else {
+                    Log.instance(context).error("jml.message","No such option: " + rest);
+                }
             } else if (key.startsWith("openjml")) {
                 opts.put(key,v);
             } else if (key.startsWith("org.openjml")) {
@@ -412,6 +428,8 @@ public class JmlOptions extends Options {
 
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
+
+        JmlCompiler.instance(context).disableJML(!isSet(JmlOption.JML));
 
         options.remove("printArgsToFile");
         

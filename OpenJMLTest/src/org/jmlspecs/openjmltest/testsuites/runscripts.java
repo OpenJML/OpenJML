@@ -7,6 +7,14 @@ import org.junit.Assert;
 
 public class runscripts extends RunBase {
     
+    @Test public void sourcepath() {
+        help();
+    }
+
+    @Test public void specspath() {
+        help();
+    }
+
     @Test public void apiA() {
         help();
     }
@@ -24,6 +32,10 @@ public class runscripts extends RunBase {
     }
 
     @Test public void apiE() {
+        help();
+    }
+
+    @Test public void apiOut() {
         help();
     }
 
@@ -60,6 +72,26 @@ public class runscripts extends RunBase {
     }
 
     @Test public void scandebug() {
+        help();
+    }
+
+    @Test public void showSkipped() {
+        help();
+    }
+
+    @Test public void requireWhitespace() {
+        help();
+    }
+
+    @Test public void optionJml() {
+        help();
+    }
+
+    @Test public void properties() {
+        help();
+    }
+
+    @Test public void nowarn() {
         help();
     }
 }

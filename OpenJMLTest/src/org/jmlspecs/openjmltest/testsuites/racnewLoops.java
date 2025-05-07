@@ -34,10 +34,11 @@ public class racnewLoops extends RacBase {
                 "    for (int i=0; i<10; i++) ; \n" +
                 "} " +
                 "}"
-                ,"/tt/TestJava.java:4: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:4: JML loop invariant is false at beginning of loop body"
-                ,"/tt/TestJava.java:4: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:4: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:4: verify: JML loop invariant is false at end of loop body"
+                ,"/tt/TestJava.java:4: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:4: verify: JML loop invariant is false at end of loop body"
+                ,"/tt/TestJava.java:4: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:4: verify: JML loop invariant is false after exiting loop"
                 ,"END"
                 );
     }
@@ -121,6 +122,7 @@ public class racnewLoops extends RacBase {
                 ,"/tt/TestJava.java:7: JML loop variant is negative"
                 ,"/tt/TestJava.java:6: JML loop invariant is false at end of loop body"
                 ,"/tt/TestJava.java:6: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:6: verify: JML loop invariant is false after exiting loop"
                 ,"END"
                 );
     }
@@ -164,15 +166,18 @@ public class racnewLoops extends RacBase {
                 "} " +
                 "}"
                 ,"VALUE 5"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at end of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"VALUE 0"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at end of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"VALUE -1"
-                ,"/tt/TestJava.java:5: JML loop invariant is false before entering loop"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at beginning of loop body"
-                ,"END"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false before entering loop"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
+               ,"END"
                 );
     }
 
@@ -262,6 +267,7 @@ public class racnewLoops extends RacBase {
                 "    //@ assert i == -1;\n" +
                 "} " +
                 "}"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"END"
                 );
     }
@@ -269,20 +275,21 @@ public class racnewLoops extends RacBase {
     
     @Test public void testDoLoop2() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(5); m(0); m(-1); System.out.println(\"END\"); } \n" +
+                "m(5); m(0); m(-2); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    System.out.println(\"VALUE \" + i); \n" +
-                "    //@ loop_invariant i>= 0; \n" +
+                "    //@ loop_invariant i >= -1; \n" +
                 "    //@ decreases i; \n" +
                 "    do { --i; } while (i>=0); \n" +
                 "} " +
                 "}"
                 ,"VALUE 5"
                 ,"VALUE 0"
-                ,"VALUE -1"
-                ,"/tt/TestJava.java:5: JML loop invariant is false before entering loop"
-                ,"/tt/TestJava.java:5: JML loop invariant is false at beginning of loop body"
-                ,"/tt/TestJava.java:6: JML loop variant is negative"
+                ,"VALUE -2"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false before entering loop"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:6: verify: JML loop variant is negative"
+                ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"END"
                 );
     }

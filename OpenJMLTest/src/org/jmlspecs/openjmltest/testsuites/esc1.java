@@ -2520,6 +2520,7 @@ public class esc1 extends EscBase {
                         + "  public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
                         + "}",
                 anyorder(
+                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method inst", 39),
                         seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
                                 61),
                         seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",
@@ -2538,6 +2539,7 @@ public class esc1 extends EscBase {
                         + "  /*@ code_bigint_math */public void instc() { int i = 5; /*@ loop_invariant i>=0; decreases i; */ do { i = i+1; } while (i>0); /*@ assert i == 0; */ }\n"
                         + "}",
                 anyorder(
+                        seq("/tt/TestJava.java:3: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method inst", 39),
                         seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",
                                 84),
                         seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (LoopDecreases) in method instb",

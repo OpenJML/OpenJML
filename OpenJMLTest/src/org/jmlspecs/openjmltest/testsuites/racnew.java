@@ -498,6 +498,23 @@ public class racnew extends RacBase {
         );
     }
     
+    @Test public void havoc() {
+        runrac = false;
+        ignoreNotes = false;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    int j ;
+                    //@ havoc j;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: Note: Not implemented for runtime assertion checking: havoc statement",9
+                );
+    }
+    
     @Test public void testLabel() {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
                 " /*@ ensures (\\lbl ENS \\result == 1); */ static public int m(int i) { return i; } " +
@@ -1203,8 +1220,30 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSpecFile2() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { //@ ghost static int i = 0;\n  //@ invariant i == 0; \n //@ ensures i == 1;\n static int m(); }");
-        helpTCX("tt.A","package tt; public class A { static int m() { //@ set i = 1; \n return 0; }  \n public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt;
+                public class A {
+                  //@ ghost static int i = 0;
+                  //@ invariant i == 0;
+                  //@ ensures i == 1;
+                  static int m();
+                }
+                """
+                );
+        helpTCX("tt.A",
+                """
+                package tt;
+                public class A {
+                  static int m() {
+                    //@ set i = 1;
+                    return 0;
+                  }
+                  public static void main(String[] args) {
+                    m(); System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
                 );
         

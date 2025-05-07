@@ -15,6 +15,8 @@ import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
+import org.jmlspecs.openjmltest.OutputCompare.*;
+
 
 /** This is a base class for all tests that parse and typecheck a
  * test string of source code.  Mock files are created (or real ones used)
@@ -33,11 +35,13 @@ public abstract class TCBase extends JmlTestSuite {
     protected String testspecpath;
     protected String testSourcePath;
     protected int expectedExit;
+    protected boolean specialCompare;
     
     @Override
     public void setUp() throws Exception {
     	testspecpath = testspecpath1;
         testSourcePath = testspecpath1;
+        specialCompare = false;
         super.setUp();
         addOptions("-specspath",   testspecpath + z + "$SY" );
         addOptions("-sourcepath",   testSourcePath);
@@ -79,7 +83,8 @@ public abstract class TCBase extends JmlTestSuite {
             // If additional Java options are wanted (e.g. -verbose), add them here
             int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
             
-            checkDiagnostics(list);
+            if (!specialCompare) checkDiagnostics(list); // This comparator does not handle seq, anyorder etc.
+            else outputCompare.compareResults(list, collector); // This comparator does not handle having more than one position number
             
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);

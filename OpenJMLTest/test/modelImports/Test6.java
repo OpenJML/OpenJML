@@ -9,5 +9,5 @@ public class Test6 {
   boolean q = Q; // ERROR
   //@ ghost X y;
   //@ ghost q.X yy = y; // OK
-  //@ ghost int qq = Q; // OK
+  //@ ghost int qq = Q; // OK // Bug - does not see the static import
 }

@@ -108,6 +108,7 @@ public class Utils {
     
     /** This field is used to restrict output during testing so as to 
      * make test results more deterministic (or to match old test results).
+     * It is set when processing options. It is static and so is not thread-safe.
      */
     static public boolean testingMode = false;
     
@@ -915,22 +916,22 @@ public class Utils {
         }
         
         
-        // On the system classpath
-        {
-            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
-            if (url2 != null) {
-                String s = url2.getFile();
-                try {
-                    boolean found = readProps(properties,s);
-                    if (verbose) {
-                        if (found) noticeWriter.println("Properties read from system classpath: " + s);
-                        else noticeWriter.println("No properties found on system classpath: " + s);
-                    }
-                } catch (java.io.IOException e) {
-                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
-                }
-            }
-        }
+//        // On the system classpath
+//        {
+//            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
+//            if (url2 != null) {
+//                String s = url2.getFile();
+//                try {
+//                    boolean found = readProps(properties,s);
+//                    if (verbose) {
+//                        if (found) noticeWriter.println("Properties read from system classpath: " + s);
+//                        else noticeWriter.println("No properties found on system classpath: " + s);
+//                    }
+//                } catch (java.io.IOException e) {
+//                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
+//                }
+//            }
+//        }
 
         // In the user's home directory
         // Note that this implementation does not read through symbolic links
@@ -962,14 +963,17 @@ public class Utils {
         }
 
         // Set from environment variables
+        // This works for options whose names do not contain underscores or periods
+        // System property names typically have periods, so env.vars. cannot fill in for actual properties
         {
     		String prefix = "OPENJML_";
         	for (var p : System.getenv().entrySet()) {
         		if (p.getKey().startsWith(prefix)) {
         			String kk = Strings.optionPropertyPrefix + p.getKey().substring(prefix.length());
+        			kk = kk.replace('_','-');
         			properties.put(kk, p.getValue());
         		}
-        	} // FIXME - the above does not work for option names with . or - in them
+        	}
         }
         
 //        // TODO: Review the following
@@ -1004,7 +1008,8 @@ public class Utils {
         return properties;
     }
 
-    /** Reads properties from the given file into the given Properties object.
+    /** Reads properties from the given file into the given Properties object, 
+     * adding to or overriding any properties already present.
      * @param properties the object to add properties to
      * @param filename the file to read properties from
      * @return true if the file was found and read successfully

@@ -15,6 +15,10 @@ import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjmltest.JmlTestSuite.DiagnosticListenerX;
+import org.jmlspecs.openjmltest.OutputCompare.AnyOrder;
+import org.jmlspecs.openjmltest.OutputCompare.OneOf;
+import org.jmlspecs.openjmltest.OutputCompare.Optional;
+import org.jmlspecs.openjmltest.OutputCompare.Seq;
 import org.junit.Assert;
 
 public class OutputCompare {

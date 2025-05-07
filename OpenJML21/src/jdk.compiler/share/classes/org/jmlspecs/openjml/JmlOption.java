@@ -46,7 +46,6 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
             boolean ok = true;
-            Utils utils = Utils.instance(context);
             String val = JmlOptions.instance(context).get(JmlOption.COMMAND.optionName());
             try {
                 if (val != null) cmd = Cmd.valueOf(val.toUpperCase());
@@ -54,6 +53,7 @@ public class JmlOption {
                 Log.instance(context).error("jml.bad.command",val);
                 ok = false;
             }
+            Utils utils = Utils.instance(context);
             utils.cmd = cmd;
             utils.rac = cmd == Cmd.RAC;
             utils.esc = cmd == Cmd.ESC;
@@ -105,7 +105,7 @@ public class JmlOption {
     public static final JmlOption EXCLUDE = new JmlOption("--exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null);
     public static final JmlOption PROVER = new JmlOption("--prover",true,null,"The prover to use to check verification conditions",null);
     public static final JmlOption PROVEREXEC = new JmlOption("--exec",true,null,"The prover executable to use",null);
-    public static final JmlOption LOGIC = new JmlOption("--logic",true,"ALL","The SMT logic to use (default ALL)",null);
+    public static final JmlOption LOGIC = new JmlOption("--logic",true,"ALL","The SMT logic to use (default ALL)",null, true); // obsolete
     public static final JmlOption SMT = new JmlOption("--smt",true,null,"A file to write the smt command file to",null);
 
     public static final JmlOption NONNULLBYDEFAULT = new JmlOption("--nonnull-by-default",false,false,"Makes references non_null by default","--nullable-by-default=false");
@@ -136,7 +136,7 @@ public class JmlOption {
     { map.put("-checkSpecsPath",CHECKSPECSPATH); }
     public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
     { map.put("-purityCheck",PURITYCHECK); }
-    public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
+    //public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
     public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);
 
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("--show-not-implemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);
@@ -178,7 +178,6 @@ public class JmlOption {
             return true;
     	}
     };
-    public static final JmlOption SILENT = new JmlOption("--silent",false,null,"Only an exit code","--verboseness="+Utils.SILENT);
     public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output warnings and errors","--verboseness="+Utils.QUIET);
     public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Limited output","--verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("--progress",false,null,"Shows progress through compilation phases","--verboseness="+Utils.PROGRESS);
@@ -320,7 +319,7 @@ public class JmlOption {
 
     public static final JmlOption OSNAME = new JmlOption("--os-name",true,null,"Name of OS to use in selecting solver executable (default: auto detect)",null);
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("--inline-function-literal",false,true,"Whether to inline function literals (default: true)",null);
-    public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,!org.jmlspecs.openjml.Main.useJML, "Whether white space is required after the @ in a JML comment (default: false)", null);
+    public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,false, "Whether white space is required after the @ in a JML comment (default: false)", null);
 
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");
@@ -349,13 +348,9 @@ public class JmlOption {
 //    public static final JmlOption INFER_ANALYSIS_TYPES = new JmlOption("-infer-analysis-types", true, "ALL", "Enables specific analysis types. Takes a comma seperated list of analysis types. Support kinds are: REDUNDANT, UNSAT, TAUTOLOGIES, FRAMES, PURITY, and VISIBILITY", null);
 
     // Obsolete
-//    public static final JmlOption NOCHECKSPECSPATHX = new JmlOption("-noCheckSpecsPath",false,false,"When on, no warnings for non-existent specification path directories are issued","-checkSpecsPath=false",true);
-//    public static final JmlOption NOPURITYCHECKX = new JmlOption("-noPurityCheck",false,false,"When on, no warnings for use of impure methods are issued","-purityCheck=false",true);
-//    public static final JmlOption NOINTERNALSPECSX = new JmlOption("-noInternalSpecs",false,false,"Disables automatically appending the internal specs directory to the specification path","-internalSpecs=false",true);
-//    public static final JmlOption NOINTERNALRUNTIMEX = new JmlOption("-noInternalRuntime",false,false,"Disables automatically appending the internal JML runtime library to the classpath","-internalRuntime=false",true);
-    public static final JmlOption NO_RAC_SOURCEX = new JmlOption("-noRacSource",false,false,"RAC: Error messages will not include source information","-racShowSource=false",true);
-    public static final JmlOption NO_RAC_CHECK_ASSUMPTIONSX = new JmlOption("-noRacCheckAssumptions",false,false,"RAC: Disables checking that assumptions hold","-racCheckAssumptions=false",true);
-    public static final JmlOption NO_RAC_JAVA_CHECKSX = new JmlOption("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","-racJavaChecks=false",true);
+    public static final JmlOption NO_RAC_SOURCEX = new JmlOption("-noRacSource",false,false,"RAC: Error messages will not include source information","--rac-show-source=false",true);
+    public static final JmlOption NO_RAC_CHECK_ASSUMPTIONSX = new JmlOption("-noRacCheckAssumptions",false,false,"RAC: Disables checking that assumptions hold","--rac-check-assumptions=false",true);
+    public static final JmlOption NO_RAC_JAVA_CHECKSX = new JmlOption("-noRacJavaChecks",false,false,"RAC: Disables explicit checking of Java language checks","--rac-java-checks=false",true);
 
 
     static {
@@ -375,6 +370,7 @@ public class JmlOption {
     /** The default value of the option */
     final private Object defaultValue;
 
+    /** The default to use for String options that would otherwise require an argument */
     public String enabledDefault = null;
 
     /** The help string for this option */
@@ -559,7 +555,7 @@ public class JmlOption {
     public String synonym() { return synonym; }
 
     /** Finds the option with the given name, returning it if
-     * found and returning null if not found.
+     * found and returning null if not found. Replaces inputs that have just one leading hyphen with two hyphens if necessary.
      * @param s the name of the option to find
      * @return the option found, or null
      */

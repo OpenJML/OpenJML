@@ -1,0 +1,5 @@
+public class C {
+  //@ invariant 0; // specsp/C.jml
+  //@ pure
+  public void m() {}
+}

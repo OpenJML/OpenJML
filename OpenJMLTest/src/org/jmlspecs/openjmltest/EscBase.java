@@ -238,14 +238,5 @@ public abstract class EscBase extends JmlTestSuite {
             }
         }
     }
-    /** Used to indicate that just one of the list of objects will be part of the test output */
-    protected OneOf oneof(Object ... list) { return new OneOf(list); }
-    /** Used to indicate that all of the listed objects will be in the test output, but in an arbitrary order */
-    protected AnyOrder anyorder(Object ... list) { return new AnyOrder(list); }
-    /** Used to indicate that the given list is optionally part of the test output */
-    protected Optional optional(Object ... list) { return new Optional(list); }
-    /** Used to indicate that the list objects should all be sequentially found in the test output */
-    protected Seq seq(Object ... list) { return new Seq(list); }
-    
 
 }

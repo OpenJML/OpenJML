@@ -1240,7 +1240,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 MethodSymbol msym = null;
                 if (sym instanceof MethodSymbol) msym = (MethodSymbol)sym;
                 boolean isAllowed = isPureMethod(msym) || isQueryMethod(msym);
-                if (jmlenv.currentClauseKind != null && !JmlOption.isOption(context,JmlOption.NEWISPURE)) {
+                if (jmlenv.currentClauseKind != null /* && !JmlOption.isOption(context,JmlOption.NEWISPURE) */) {
                     utils.error(tree, "jml.message", "Object allocation is not permitted in specification expressions");
                 }
                 if (!isAllowed) {
@@ -5356,6 +5356,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public void createRacExpr(JmlQuantifiedExpr q, Env<AttrContext> localEnv, Type resultType) {
+        // FIXME - this logic is also carried out in JmlAssertionAdder -- so what is here does not seem to be used
+        
         /* The purpose of this method is to create a fully-qualified executable expression to use
          * in RAC. This is tricky. The primary JML quantified expression has already been attributed.
          * That declarations and the range and value expressions are reused in creating this RAC equivalent.
@@ -5431,6 +5433,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             case qexistsID:
                 break;
             case qchooseID:
+                break;
+            case qchoosexID:
+                initialDecl = F.VarDef(F.Modifiers(0), names.fromString("_value$$$"), F.Type(restype), F.Literal(restype.getTag(),0).setType(restype));
                 break;
             case qnumofID: 
             	restype = syms.longType; // FIXME - not working for bigint yet -- as this is RAC, we need to use BigInteger -- same for \sum etc.
@@ -5614,7 +5619,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             JCStatement retStat;
             JCExpression cond = newvalue;
-            if (q.kind == qforallKind || q.kind == qexistsKind) { 
+            if (q.kind == qforallKind || q.kind == qexistsKind || q.kind == qchooseKind ) { 
                 if (q.kind == qforallKind) {
                     cond = treeutils.makeNot(cond.pos, cond);
 //                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
@@ -5676,12 +5681,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 op1.operator = treeutils.orSymbol;
                 op2.operator = ((JmlResolve)rs).resolveBinaryOperator(op2.pos(),op2.getTag(), env, op2.lhs.type, op2.rhs.type);
                 retStat = F.Return(id);
+            } else if (q.kind == qchoosexKind) {
+                innerexpr = treeutils.trueLit;
+                JCIdent id = F.Ident(initialDecl.name);
+                id.setType(initialDecl.type);
+                id.sym = initialDecl.sym;
+                JCAssign op = treeutils.makeAssign(Position.NOPOS, id, newvalue);
+                update = F.Exec(op); 
+                retStat = F.Return(id); // Is it OK to reuse the node?
             } else {
                 return;
             }
 
 
-            JCStatement innerStatement = F.If(innerexpr, update, null);
+            JCStatement innerStatement = q.kind == qchoosexKind ? update : F.If(innerexpr, update, null);
             for (Bound bound: bounds) {
                 JCVariableDecl indexdef = bound.indexdef;
                 JCIdent indexid = newids.get(bound.decl.sym);
@@ -5750,6 +5763,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } catch (Exception e) {
             // If there is an exception, we just abort trying to produce a RAC expression
             q.racexpr = null;
+            System.out.println("NO RAC EXPR");
         }
         return;
 
@@ -5804,22 +5818,35 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
 
         try {
-            // presume int
-            JCBinary locomp = (JCBinary)((JCBinary)range).lhs;
-            JCBinary hicomp = (JCBinary)((JCBinary)range).rhs;
-            if (locomp.getTag() == JCTree.Tag.AND) {
-                hicomp = (JCBinary)locomp.rhs;
-                locomp = (JCBinary)locomp.lhs;
-            } else if (hicomp.getTag() == JCTree.Tag.AND) {
-                hicomp = (JCBinary)hicomp.lhs;
+            if (range instanceof JmlChained ch) {
+                var first = ch.conjuncts.get(0);
+                var second = ch.conjuncts.get(1);
+                Bound b = new Bound();
+                b.decl = decls.head;
+                b.lo = first.lhs;
+                b.hi = second.rhs;
+                b.lo_equal = first.getTag() == JCTree.Tag.LE;
+                b.hi_equal = second.getTag() == JCTree.Tag.LE;
+                bounds.add(0,b);
+                range = treeutils.makeAnd(range, first, second);
+            } else {
+                // presume int
+                JCBinary locomp = (JCBinary)((JCBinary)range).lhs;
+                JCBinary hicomp = (JCBinary)((JCBinary)range).rhs;
+                if (locomp.getTag() == JCTree.Tag.AND) {
+                    hicomp = (JCBinary)locomp.rhs;
+                    locomp = (JCBinary)locomp.lhs;
+                } else if (hicomp.getTag() == JCTree.Tag.AND) {
+                    hicomp = (JCBinary)hicomp.lhs;
+                }
+                Bound b = new Bound();
+                b.decl = decls.head;
+                b.lo = locomp.lhs;
+                b.hi = hicomp.rhs;
+                b.lo_equal = locomp.getTag() == JCTree.Tag.LE;
+                b.hi_equal = hicomp.getTag() == JCTree.Tag.LE;
+                bounds.add(0,b);
             }
-            Bound b = new Bound();
-            b.decl = decls.head;
-            b.lo = locomp.lhs;
-            b.hi = hicomp.rhs;
-            b.lo_equal = locomp.getTag() == JCTree.Tag.LE;
-            b.hi_equal = hicomp.getTag() == JCTree.Tag.LE;
-            bounds.add(0,b);
         } catch (Exception e) {
             return null;
         }
@@ -8506,7 +8533,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    var parents = utils.parents(msym,false);
     	                    boolean methodOverridesOthers = !parents.isEmpty();
     	                    if (specHasAlso && !methodOverridesOthers) {
-//    	                        if (!jmethod.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
+//    	                        if (!msym.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
     	                            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
     	                                utils.error(spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
     	                            } else {

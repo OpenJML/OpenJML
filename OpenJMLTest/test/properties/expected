@@ -1,0 +1,14 @@
+Test of my.properties
+Test of openjml.properties
+Test.java:3: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false;
+        ^
+1 verification failure
+Test of bad.properties
+error: No such option: --zzz
+Test of no properties
+warning: The last command-line option expects a parameter: --properties
+error: no source files
+Test of non-existent file
+warning: the argument of --properties must be a file: zzz
+1 warning

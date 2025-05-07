@@ -86,14 +86,23 @@ public class Vector {
    * @since   JDK1.0
    */ //@ requires the_array != my_element_data;
   public final synchronized void copyInto(final Object[] the_array) {
-    int i = my_element_count;
-    //@ loop_invariant 0 <= i && i <= my_element_count;
-    //@ decreases i;
-    while (i-- > 0) {
-      the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
+      int i = my_element_count;
+      //@ loop_invariant 0 <= i && i <= my_element_count;
+      //@ decreases i;
+      while (i-- > 0) {
+        the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
+      }
     }
-  }
-   
+  //@ requires the_array != my_element_data && the_array.length >= my_element_count && my_element_count > 0;
+  public final synchronized void copyIntoOK(final Object[] the_array) {
+      int i = my_element_count;
+      //@ loop_invariant 0 <= i && i <= my_element_count;
+      //@ decreases i;
+      while (--i > 0) {
+        the_array[i] = my_element_data[i]; //  ERROR - don't know the runtime type of the_array
+      }
+    }
+     
   /**
    * Searches for the first occurrence of the given argument, beginning the
    * search at <code>index</code>, and testing for equality using the

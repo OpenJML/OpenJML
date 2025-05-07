@@ -1,0 +1,17 @@
+Test 1
+Test 2
+Test.java:5: error: not a statement
+    //@zzz;// Bad syntax
+       ^
+Test.java:10: error: not a statement
+    //@zzz;// Bad syntax
+       ^
+2 errors
+Test 3
+Test.java:5: error: not a statement
+    //@zzz;// Bad syntax
+       ^
+Test.java:10: error: not a statement
+    //@zzz;// Bad syntax
+       ^
+2 errors

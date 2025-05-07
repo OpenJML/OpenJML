@@ -20,14 +20,22 @@ public abstract class RunBase extends JmlTestSuite {
     public static final String[] args = new String[] { "./run" };
     
     /** Runs the 'run' executable within the 'workingDir' folder, reporting a test success if 
-     * the exit code is 0 and fialure for any other result.
+     * the exit code is 0 and failure for any other result.
      */
     public void run(String workingDir) {
+        Process process = null;
         try {
-            Process process = Runtime.getRuntime().exec(args, null, new java.io.File(workingDir));
-            int exitCode = process.waitFor();
-            //System.out.println("EXIT: " + exitCode);
-            if (exitCode != 0) Assert.fail("Test case emitted a failure exit code: " + exitCode);
+            var pb = new ProcessBuilder(args);
+            pb.inheritIO();
+            pb.directory(new java.io.File(workingDir));
+            process = pb.start();
+            try {
+                int exitCode = process.waitFor();
+                //System.out.println("EXIT: " + exitCode);
+                if (exitCode != 0) Assert.fail("Test case emitted a failure exit code: " + exitCode);
+            } catch (Throwable e) {
+                Assert.fail("Test " + workingDir + " threw exception " + e);
+            }
         } catch (Throwable e) {
             //System.out.println("FAILED " + e);
             Assert.fail("Test " + workingDir + " failed to launch: " + e);
