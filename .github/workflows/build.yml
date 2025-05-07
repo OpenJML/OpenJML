@@ -41,7 +41,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Omitting macos-14 because the python setup fails for that runner
         ## Omitting ubuntu-24 because the cert-sync command fails
         os: [ ubuntu-22.04, macos-13, macos-14 ]
       fail-fast: false
