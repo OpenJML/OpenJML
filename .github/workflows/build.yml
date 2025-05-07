@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         ## Omitting macos-14 because the python setup fails for that runner
-        os: [ ubuntu-22.04, macos-13, ubuntu-20.04 ]
+        os: [ ubuntu-22.04, macos-13, macos-14, ubuntu-24.04, ubuntu-24.04-arm ]
       fail-fast: false
 
     steps:
