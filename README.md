@@ -1,6 +1,7 @@
 # OpenJML
 This is the primary repository for the OpenJML project. The active issues list for OpenJML development is [here](https://github.com/OpenJML/OpenJML/issues)
-and the [wiki](https://github.com/OpenJML/OpenJML/wiki) contains information relevant to development. 
+and the [wiki](https://github.com/OpenJML/OpenJML/wiki) contains information relevant to development. There are other relevant repositories under the OpenJML project,
+siblings to this one.
 Public documentation for users is at the [project website](https://www.openjml.org).
 
 This material is partially based upon work supported by the National Science Foundation under Grant No. ACI-1314674.
