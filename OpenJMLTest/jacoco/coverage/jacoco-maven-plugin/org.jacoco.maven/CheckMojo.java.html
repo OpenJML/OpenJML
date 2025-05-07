@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CheckMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">CheckMojo.java</span></div><h1>CheckMojo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *    Kyle Lieber - implementation of CheckMojo
+ *    Marc Hoffmann - redesign using report APIs
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.check.IViolationsOutput;
+import org.jacoco.report.check.Limit;
+import org.jacoco.report.check.Rule;
+
+/**
+ * Checks that the code coverage metrics are being met.
+ *
+ * @since 0.6.1
+ */
+@Mojo(name = &quot;check&quot;, defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+<span class="fc" id="L38">public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {</span>
+
+	private static final String MSG_SKIPPING = &quot;Skipping JaCoCo execution due to missing execution data file:&quot;;
+	private static final String CHECK_SUCCESS = &quot;All coverage checks have been met.&quot;;
+	private static final String CHECK_FAILED = &quot;Coverage checks have not been met. See log for details.&quot;;
+
+	/**
+	 * &lt;p&gt;
+	 * Check configuration used to specify rules on element types (BUNDLE,
+	 * PACKAGE, CLASS, SOURCEFILE or METHOD) with a list of limits. Each limit
+	 * applies to a certain counter (INSTRUCTION, LINE, BRANCH, COMPLEXITY,
+	 * METHOD, CLASS) and defines a minimum or maximum for the corresponding
+	 * value (TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO).
+	 * If a limit refers to a ratio it must be in the range from 0.0 to 1.0
+	 * where the number of decimal places will also determine the precision in
+	 * error messages. A limit ratio may optionally be declared as a percentage
+	 * where 0.80 and 80% represent the same value.
+	 * &lt;/p&gt;
+	 *
+	 * &lt;p&gt;
+	 * If not specified the following defaults are assumed:
+	 * &lt;/p&gt;
+	 *
+	 * &lt;ul&gt;
+	 * &lt;li&gt;rule element: BUNDLE&lt;/li&gt;
+	 * &lt;li&gt;limit counter: INSTRUCTION&lt;/li&gt;
+	 * &lt;li&gt;limit value: COVEREDRATIO&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 *
+	 * &lt;p&gt;
+	 * This example requires an overall instruction coverage of 80% and no class
+	 * must be missed:
+	 * &lt;/p&gt;
+	 *
+	 * &lt;pre&gt;
+	 * {@code
+	 * &lt;rules&gt;
+	 *   &lt;rule&gt;
+	 *     &lt;element&gt;BUNDLE&lt;/element&gt;
+	 *     &lt;limits&gt;
+	 *       &lt;limit&gt;
+	 *         &lt;counter&gt;INSTRUCTION&lt;/counter&gt;
+	 *         &lt;value&gt;COVEREDRATIO&lt;/value&gt;
+	 *         &lt;minimum&gt;0.80&lt;/minimum&gt;
+	 *       &lt;/limit&gt;
+	 *       &lt;limit&gt;
+	 *         &lt;counter&gt;CLASS&lt;/counter&gt;
+	 *         &lt;value&gt;MISSEDCOUNT&lt;/value&gt;
+	 *         &lt;maximum&gt;0&lt;/maximum&gt;
+	 *       &lt;/limit&gt;
+	 *     &lt;/limits&gt;
+	 *   &lt;/rule&gt;
+	 * &lt;/rules&gt;}
+	 * &lt;/pre&gt;
+	 *
+	 * &lt;p&gt;
+	 * This example requires a line coverage minimum of 50% for every class
+	 * except test classes:
+	 * &lt;/p&gt;
+	 *
+	 * &lt;pre&gt;
+	 * {@code
+	 * &lt;rules&gt;
+	 *   &lt;rule&gt;
+	 *     &lt;element&gt;CLASS&lt;/element&gt;
+	 *     &lt;excludes&gt;
+	 *       &lt;exclude&gt;*Test&lt;/exclude&gt;
+	 *     &lt;/excludes&gt;
+	 *     &lt;limits&gt;
+	 *       &lt;limit&gt;
+	 *         &lt;counter&gt;LINE&lt;/counter&gt;
+	 *         &lt;value&gt;COVEREDRATIO&lt;/value&gt;
+	 *         &lt;minimum&gt;50%&lt;/minimum&gt;
+	 *       &lt;/limit&gt;
+	 *     &lt;/limits&gt;
+	 *   &lt;/rule&gt;
+	 * &lt;/rules&gt;}
+	 * &lt;/pre&gt;
+	 */
+	@Parameter(required = true)
+	private List&lt;RuleConfiguration&gt; rules;
+
+	/**
+	 * Halt the build if any of the checks fail.
+	 */
+	@Parameter(property = &quot;jacoco.haltOnFailure&quot;, defaultValue = &quot;true&quot;, required = true)
+	private boolean haltOnFailure;
+
+	/**
+	 * File with execution data.
+	 */
+	@Parameter(defaultValue = &quot;${project.build.directory}/jacoco.exec&quot;)
+	private File dataFile;
+
+	/**
+	 * A list of class files to include into analysis. May use wildcard
+	 * characters (* and ?). When not specified everything will be included.
+	 */
+	@Parameter
+	private List&lt;String&gt; includes;
+
+	/**
+	 * A list of class files to exclude from analysis. May use wildcard
+	 * characters (* and ?). When not specified nothing will be excluded.
+	 */
+	@Parameter
+	private List&lt;String&gt; excludes;
+
+	private boolean violations;
+
+	private boolean canCheckCoverage() {
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">		if (!dataFile.exists()) {</span>
+<span class="nc" id="L150">			getLog().info(MSG_SKIPPING + dataFile);</span>
+<span class="nc" id="L151">			return false;</span>
+		}
+<span class="fc" id="L153">		final File classesDirectory = new File(</span>
+<span class="fc" id="L154">				getProject().getBuild().getOutputDirectory());</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">		if (!classesDirectory.exists()) {</span>
+<span class="nc" id="L156">			getLog().info(</span>
+					&quot;Skipping JaCoCo execution due to missing classes directory:&quot;
+							+ classesDirectory);
+<span class="nc" id="L159">			return false;</span>
+		}
+<span class="fc" id="L161">		return true;</span>
+	}
+
+	@Override
+	public void executeMojo() throws MojoExecutionException {
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">		if (!canCheckCoverage()) {</span>
+<span class="nc" id="L167">			return;</span>
+		}
+<span class="fc" id="L169">		executeCheck();</span>
+<span class="fc" id="L170">	}</span>
+
+	private void executeCheck() throws MojoExecutionException {
+<span class="fc" id="L173">		violations = false;</span>
+
+<span class="fc" id="L175">		final ReportSupport support = new ReportSupport(getLog());</span>
+
+<span class="fc" id="L177">		final List&lt;Rule&gt; checkerrules = new ArrayList&lt;Rule&gt;();</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		for (final RuleConfiguration r : rules) {</span>
+<span class="fc" id="L179">			checkerrules.add(r.rule);</span>
+<span class="fc" id="L180">		}</span>
+<span class="fc" id="L181">		support.addRulesChecker(checkerrules, this);</span>
+
+		try {
+<span class="fc" id="L184">			final IReportVisitor visitor = support.initRootVisitor();</span>
+<span class="fc" id="L185">			support.loadExecutionData(dataFile);</span>
+<span class="fc" id="L186">			support.processProject(visitor, getProject(), includes, excludes);</span>
+<span class="fc" id="L187">			visitor.visitEnd();</span>
+<span class="nc" id="L188">		} catch (final IOException e) {</span>
+<span class="nc" id="L189">			throw new MojoExecutionException(</span>
+<span class="nc" id="L190">					&quot;Error while checking code coverage: &quot; + e.getMessage(), e);</span>
+<span class="fc" id="L191">		}</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">		if (violations) {</span>
+<span class="fc bfc" id="L193" title="All 2 branches covered.">			if (this.haltOnFailure) {</span>
+<span class="fc" id="L194">				throw new MojoExecutionException(CHECK_FAILED);</span>
+			} else {
+<span class="fc" id="L196">				this.getLog().warn(CHECK_FAILED);</span>
+			}
+		} else {
+<span class="fc" id="L199">			this.getLog().info(CHECK_SUCCESS);</span>
+		}
+<span class="fc" id="L201">	}</span>
+
+	public void onViolation(final ICoverageNode node, final Rule rule,
+			final Limit limit, final String message) {
+<span class="fc" id="L205">		this.getLog().warn(message);</span>
+<span class="fc" id="L206">		violations = true;</span>
+<span class="fc" id="L207">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

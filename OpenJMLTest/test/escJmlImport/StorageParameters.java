@@ -8,7 +8,7 @@ public final class StorageParameters
 		this.configurationSizes = sizes;
 	}
 	
-	long[] getConfigurationSizes() {
+	public long[] getConfigurationSizes() {
 		return configurationSizes;
 	}
 	

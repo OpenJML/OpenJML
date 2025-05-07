@@ -21,7 +21,7 @@ public class Test {
 		case '9':
 		    try {
 			int value = Integer.parseInt(input);
-			pq.enqueue(new Integer(value));
+			pq.enqueue(Integer.valueOf(value));
 		    } catch (NumberFormatException ex) {
 			System.out.println("Invalid Number: "+ex);
 		    }

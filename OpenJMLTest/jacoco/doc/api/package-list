@@ -1,0 +1,14 @@
+com.vladium.emma.rt
+org.jacoco.agent
+org.jacoco.agent.rt
+org.jacoco.core
+org.jacoco.core.analysis
+org.jacoco.core.data
+org.jacoco.core.instr
+org.jacoco.core.runtime
+org.jacoco.core.tools
+org.jacoco.report
+org.jacoco.report.check
+org.jacoco.report.csv
+org.jacoco.report.html
+org.jacoco.report.xml

@@ -1,0 +1,19 @@
+A.java:10: verify: The prover cannot establish an assertion (Postcondition: A.java:7:) in method test
+    return 1;
+    ^
+A.java:7: verify: Associated declaration: A.java:10:
+  //@ ensures \result == 0;
+      ^
+2 verification failures
+A.java:9: verify: JML postcondition is false
+  public static int test() {
+                    ^
+A.java:7: verify: Associated declaration: A.java:9:
+  //@ ensures \result == 0;
+      ^
+A.java:4: verify: JML postcondition is false
+    test();
+        ^
+A.java:7: verify: Associated declaration: A.java:4:
+  //@ ensures \result == 0;
+      ^

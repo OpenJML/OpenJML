@@ -1,0 +1,15 @@
+
+
+echo Test1a
+$OJA A.java
+echo Test1b
+$OJA -java A.java && rm -rf A.class
+echo Test1c
+$OJA -jml A.java
+echo Test1d
+$OJA -no-jml A.java
+
+echo Test2a
+$OJA -jml --esc B.java
+echo Test2b
+$OJA -no-jml --esc B.java

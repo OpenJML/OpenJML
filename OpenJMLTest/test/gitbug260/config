@@ -1,1 +1,1 @@
-ARGS+=" --check-feasibility=none "
+ARGS+=" --check-feasibility=exit,precondition "

@@ -1,0 +1,15 @@
+OUT:
+test/gitbug529/T.java:8: verify: JML postcondition is false
+public double m() {
+              ^
+test/gitbug529/T.java:7: verify: Associated declaration: test/gitbug529/T.java:8:
+//@ ensures \result == (a * c)/(0.06 * b);
+    ^
+test/gitbug529/T.java:13: verify: JML postcondition is false
+  (new T()).m();
+             ^
+test/gitbug529/T.java:7: verify: Associated declaration: test/gitbug529/T.java:13:
+//@ ensures \result == (a * c)/(0.06 * b);
+    ^
+
+ERR:

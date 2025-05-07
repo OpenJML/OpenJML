@@ -158,8 +158,11 @@ public class Label {
     /** Used for precondition completeness assert statements */
     /*@ non_null*/ public final static Label DISJOINTNESS = new Label("DisjointPreconditions");
     
-    /** Used for precondition completeness assert statements */
+    /** Used for well-defindeness of \choose expressions */
     /*@ non_null*/ public final static Label CHOOSE = new Label("ChooseNotDefined");
+    
+    /** Used for well-defindeness of \choosex expressions */
+    /*@ non_null*/ public final static Label CHOOSEX = new Label("ChoosexNotDefined");
     
     /** Used for asserts generated from user-specified reachable statements */
     /*@ non_null*/ public final static Label REACHABLE = new Label("Reachable");
@@ -311,7 +314,7 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential divide by 0 */
     /*@ non_null*/ public final static Label UNDEFINED_DIV0 = new Label("UndefinedDivideByZero");
     
-    /** Used to designate a possible exception because of a potential large shift value */
+    /** Used to designate a potentially large shift value */
     /*@ non_null*/ public final static Label POSSIBLY_LARGESHIFT = new Label("PossiblyLargeShift");
 
     /** Used to designate a possible exception because of a bad cast */

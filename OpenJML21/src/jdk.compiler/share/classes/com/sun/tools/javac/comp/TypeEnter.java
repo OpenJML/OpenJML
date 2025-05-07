@@ -325,9 +325,9 @@ public class TypeEnter implements Completer {
             if (sym.owner.kind == PCK) {
                 resolveImports(env.toplevel, env.enclosing(TOPLEVEL));
                 todo.append(env);
-            }
-            if (env.toplevel instanceof org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jcu && jcu.specsCompilationUnit != null) { // OPENJML
-                resolveImports(jcu.specsCompilationUnit, jcu.specsCompilationUnit.topLevelEnv);
+                if (env.toplevel instanceof org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jcu && jcu.specsCompilationUnit != null) { // OPENJML
+                    resolveImports(jcu.specsCompilationUnit, jcu.specsCompilationUnit.topLevelEnv.enclosing(TOPLEVEL));
+                }
             }
 
             if (sym.owner.kind == TYP)
@@ -497,7 +497,7 @@ public class TypeEnter implements Completer {
         public void importAll(JCImport imp, // OPENJML - private to public
                                final TypeSymbol tsym,
                                Env<AttrContext> env) {
-            env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler);
+            env.toplevel.starImportScope.importAll(types, tsym.members(), typeImportFilter, imp, cfHandler, context);
         }
 
         /** Import all static members of a class or package on demand.
@@ -511,7 +511,7 @@ public class TypeEnter implements Completer {
             final StarImportScope toScope = env.toplevel.starImportScope;
             final TypeSymbol origin = tsym;
 
-            toScope.importAll(types, origin.members(), staticImportFilter, imp, cfHandler);
+            toScope.importAll(types, origin.members(), staticImportFilter, imp, cfHandler, context);
         }
 
         /** Import statics types of a given name.  Non-types are handled in Attr.
@@ -533,7 +533,7 @@ public class TypeEnter implements Completer {
             final NamedImportScope toScope = env.toplevel.namedImportScope;
             final Scope originMembers = tsym.members();
 
-            imp.importScope = toScope.importByName(types, originMembers, name, staticImportFilter, imp, cfHandler);
+            imp.importScope = toScope.importByName(types, originMembers, name, staticImportFilter, imp, cfHandler, context);
         }
 
         /** Import given class.
@@ -543,8 +543,9 @@ public class TypeEnter implements Completer {
          *                  scope to add to.
          */
         private void importNamed(DiagnosticPosition pos, final Symbol tsym, Env<AttrContext> env, JCImport imp) {
+            boolean modelImport = org.jmlspecs.openjml.Utils.isJML() && imp instanceof org.jmlspecs.openjml.JmlTree.JmlImport jimp && jimp.isModel; // OPENJML
             if (tsym.kind == TYP)
-                imp.importScope = env.toplevel.namedImportScope.importType(tsym.owner.members(), tsym.owner.members(), tsym);
+                imp.importScope = env.toplevel.namedImportScope.importType(tsym.owner.members(), tsym.owner.members(), tsym, modelImport, context); // OPENJML
         }
 
     }

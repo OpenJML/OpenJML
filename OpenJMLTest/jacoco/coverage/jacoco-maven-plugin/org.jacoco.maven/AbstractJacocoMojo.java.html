@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AbstractJacocoMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">AbstractJacocoMojo.java</span></div><h1>AbstractJacocoMojo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+
+/**
+ * Base class for JaCoCo Mojos.
+ */
+<span class="fc" id="L24">public abstract class AbstractJacocoMojo extends AbstractMojo {</span>
+
+	/**
+	 * Maven project.
+	 */
+	@Parameter(property = &quot;project&quot;, readonly = true)
+	private MavenProject project;
+
+	/**
+	 * Flag used to suppress execution.
+	 */
+	@Parameter(property = &quot;jacoco.skip&quot;, defaultValue = &quot;false&quot;)
+	private boolean skip;
+
+	public final void execute()
+			throws MojoExecutionException, MojoFailureException {
+<span class="fc bfc" id="L40" title="All 2 branches covered.">		if (skip) {</span>
+<span class="fc" id="L41">			getLog().info(</span>
+					&quot;Skipping JaCoCo execution because property jacoco.skip is set.&quot;);
+<span class="fc" id="L43">			skipMojo();</span>
+<span class="fc" id="L44">			return;</span>
+		}
+<span class="fc" id="L46">		executeMojo();</span>
+<span class="fc" id="L47">	}</span>
+
+	/**
+	 * Executes Mojo.
+	 *
+	 * @throws MojoExecutionException
+	 *             if an unexpected problem occurs. Throwing this exception
+	 *             causes a &quot;BUILD ERROR&quot; message to be displayed.
+	 * @throws MojoFailureException
+	 *             if an expected problem (such as a compilation failure)
+	 *             occurs. Throwing this exception causes a &quot;BUILD FAILURE&quot;
+	 *             message to be displayed.
+	 */
+	protected abstract void executeMojo()
+			throws MojoExecutionException, MojoFailureException;
+
+	/**
+	 * Skips Mojo.
+	 */
+	protected void skipMojo() {
+<span class="nc" id="L67">	}</span>
+
+	/**
+	 * @return Maven project
+	 */
+	protected final MavenProject getProject() {
+<span class="fc" id="L73">		return project;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -4,4 +4,7 @@ FILE="$BASH_SOURCE[0]"
 DIR=`dirname "$FILE"`
 cd "$DIR"
 
-./runx |& diff - RUN.out
+./runx >& actual
+diff actual RUN.out && rm -rf actual
+./runx2 >& actual2
+diff actual2 RUN2.out && rm -rf actual2

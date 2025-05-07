@@ -1,20 +1,25 @@
 #! /bin/bash
 
-## This script runs the JUnit tests (directly, without using Eclipse)
-## It does so by running the Test.java program, after compiling all the
-## unit test drivers in OpenJMLTest/src/org/jmlspecs/openjmltest/testcases/
+## This script may be executed within the development environment or in a release
 
-## $R is the location of the directory containing this script, with
-## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+## Directory containing this file, which should be either .../OpenJML21 or the release folder
+LOCAL=$( cd $(dirname "$BASH_SOURCE") && pwd)
 
-ROOT=$( cd $(dirname "$BASH_SOURCE") && pwd)
+if [ -e "$LOCAL/version-info.txt" ]; then
+  ## In a release
+  CL=`echo $LOCAL/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+  MODULES=$LOCAL/jdk/modules
+else
+  ## In development environment
+  CL=`echo $LOCAL/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+  MODULES=$LOCAL/build/*release/jdk/modules
+fi
 
-CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
 CP=".:$CL"
 
 OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
-EXPORTS="--add-modules jdk.compiler,java.base --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED  --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED --add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED"
+. $LOCAL/setup-exports
 
-"$ROOT/openjml" -cp $CP -p /Users/davidcok/projects/OpenJML21/OpenJML/OpenJML21/build/macosx-x86_64-server-release/jdk/modules $EXPORTS "$@"
+"$LOCAL/openjml" -cp $CP -p $MODULES $EXPORTS --compile "$@"
 

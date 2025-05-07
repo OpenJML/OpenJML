@@ -1,5 +1,5 @@
 Proving methods in ESCTest
-Skipping proof of ESCTest.ESCTest() (excluded by -method)
+Skipping proof of ESCTest.ESCTest() (Skipping ESCTest.ESCTest because it does not match findMax)
 Starting proof of ESCTest.findMax(int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

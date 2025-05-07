@@ -1,0 +1,19 @@
+OUT:
+test/jmlbigint/Test.java:56: verify: JML Division by zero
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); }
+                     ^
+BigInteger divide by zero
+test/jmlbigint/Test.java:57: verify: JML Division by zero
+      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); }
+                     ^
+BigInteger divide by zero
+test/jmlbigint/Test.java:58: verify: JML Division by zero
+      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); }
+                      ^
+BigInteger divide by zero
+test/jmlbigint/Test.java:23: verify: JML assertion is false
+        //@ assert a + b == 40; // FALSE
+            ^
+END
+
+ERR:

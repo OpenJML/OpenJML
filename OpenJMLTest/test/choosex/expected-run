@@ -1,0 +1,10 @@
+OUT:
+test/choosex/Demo.java:19: verify: JML assertion is false
+  //@ assert bb; // OK
+      ^
+test/choosex/Demo.java:24: verify: JML there is no value satisfying the \choosex predicate
+  //@ ghost boolean b2 = \choosex int k; 0 < k < 0; k == 0; // not well-defined
+                         ^
+END
+
+ERR:

@@ -1139,6 +1139,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case erasureID:
+                case typearg0ID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);
@@ -2307,7 +2308,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 //            }
 //        }
         that.lhs = convertExpr(that.lhs);
-        if (that.rhs instanceof JmlRange) System.out.println("RANGE? " + that);
         that.rhs = convertExpr(that.rhs);
         result = that; 
     }

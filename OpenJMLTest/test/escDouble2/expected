@@ -35,7 +35,7 @@ Starting proof of JMLDouble.isFinite() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.isFinite() with prover !!!! - no warnings
-Skipping proof of JMLDouble.clone() (excluded by -method)
+Skipping proof of JMLDouble.clone() (Skipping JMLDouble.clone because it matches the exclusion clone)
 Starting proof of JMLDouble.compareTo(@NonNull :: java.lang.Object)) with prover !!!!
 test/escDouble2/JMLDouble.java:163: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method compareTo
     	if (!(op2 instanceof JMLDouble)) throw new ClassCastException();
@@ -89,7 +89,7 @@ Starting proof of JMLDouble.dividedBy(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.dividedBy(@NonNull JMLDouble) with prover !!!! - no warnings
-Skipping proof of JMLDouble.remainderBy(@NonNull JMLDouble) (excluded by -method)
+Skipping proof of JMLDouble.remainderBy(@NonNull JMLDouble) (Skipping JMLDouble.remainderBy because it matches the exclusion remainderBy)
 Starting proof of JMLDouble.greaterThan(@NonNull JMLDouble) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -106,7 +106,7 @@ Starting proof of JMLDouble.lessThanOrEqualTo(@NonNull JMLDouble) with prover !!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLDouble.lessThanOrEqualTo(@NonNull JMLDouble) with prover !!!! - no warnings
-Skipping proof of JMLDouble.toString() (excluded by -method)
+Skipping proof of JMLDouble.toString() (Skipping JMLDouble.toString because it matches the exclusion toString)
 Starting proof of JMLDouble.withinEpsilonOf(@NonNull JMLDouble,double) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

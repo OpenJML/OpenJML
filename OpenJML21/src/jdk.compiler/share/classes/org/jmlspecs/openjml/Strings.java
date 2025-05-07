@@ -8,7 +8,7 @@ package org.jmlspecs.openjml;
 /** This class holds (almost) all explicit strings or other constant data used in OpenJML,
  * particularly that data that is customer visible. */
 public class Strings {
-
+    private Strings() {} // all static members -- do not instantiate
     // All explicit strings should be here
     
     // The following are stored here globally (i.e., for all compilation
@@ -342,5 +342,24 @@ public class Strings {
             }
         }
         return false;
+    }
+    
+    public static final String invariantMethodPrefix = "JML$INV$$";
+    public static final String initiallyMethodPrefix = "JML$INIT$$";
+    
+    public static final String makeInvariantMethodName(JmlTree.JmlTypeClauseExpr clause) {
+        return invariantMethodPrefix + clause.pos;
+    }
+    
+    public static final boolean isInvariantMethodName(String s) {
+        return s.startsWith(invariantMethodPrefix);
+    }
+    
+    public static final String makeInitiallyMethodName(JmlTree.JmlTypeClauseExpr clause) {
+        return initiallyMethodPrefix + clause.pos;
+    }
+    
+    public static final boolean isInitiallyMethodName(String s) {
+        return s.startsWith(initiallyMethodPrefix);
     }
 }

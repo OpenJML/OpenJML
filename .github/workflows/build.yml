@@ -3,7 +3,7 @@ name: Build OpenJML
 on:
   workflow_dispatch:
   push:
-    branches: [ master-21, dev-21 ]
+    branches: [ dev-21, master-21 ]
 
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
@@ -21,6 +21,12 @@ jobs:
       run: |
         git config --global core.autocrlf input
         git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+    - name: Check most recent release
+      run: |
+        export ver=`cat OpenJML/version.txt`
+        ( curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep "\"name\": \"OpenJML $ver\"" ) && echo "Version $ver already exists" && false
+        echo "No prior release found for version " $ver
+
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
@@ -28,15 +34,15 @@ jobs:
         export ver=`cat version.txt`
         echo Version $ver from branch $BRANCH
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
         echo Created release with id $id
 
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Omitting macos-14 because the python setup fails for that runner
-        os: [ ubuntu-22.04, macos-13, ubuntu-20.04 ]
+        ## Omitting ubuntu-24 because the cert-sync command fails
+        os: [ ubuntu-22.04, macos-13, macos-14 ]
       fail-fast: false
 
     steps:
@@ -47,6 +53,7 @@ jobs:
       if: runner.os == 'MacOS'
       run: |
         brew install coreutils
+        brew install autoconf
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
@@ -60,7 +67,7 @@ jobs:
       with:
         platform: x64
         packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v5
     - name: Set up JDK21 
       uses: actions/setup-java@v1
       with:
@@ -112,15 +119,13 @@ jobs:
         cd $FOLDER/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":' | head -1 | sed -e 's/.*: //' -e 's/,//'`
+        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
     - name: Check current GitHub release number against version.txt
       run: |
-        cd OpenJML
-        export ver=`cat version.txt`
-        export tag=$ver
-        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep tag_name | head -1 | sed -e 's/.*: \"//' -e 's/\",//'`
+        export ver=`cat OpenJML/version.txt`
+        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"

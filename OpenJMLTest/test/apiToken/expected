@@ -1,0 +1,24 @@
+COMPILED
+for : 0 3 for null class com.sun.tools.javac.parser.Tokens$Token
+          [for:0:3]
+a : 4 5 token.identifier null class com.sun.tools.javac.parser.Tokens$NamedToken
+          [token.identifier:4:5:a]
+< : 6 7 < null class com.sun.tools.javac.parser.Tokens$Token
+          [<:6:7]
+8 : 8 9 token.integer null class com.sun.tools.javac.parser.Tokens$NumericToken
+          [token.integer:8:9:10#8]
+';' : 10 11 ';' null class com.sun.tools.javac.parser.Tokens$Token
+          [';':10:11]
+/*@ : 11 14 null /*@ class com.sun.tools.javac.parser.JmlToken
+          [null:11:14:/*@]
+c : 15 16 token.identifier null class com.sun.tools.javac.parser.Tokens$NamedToken
+          [token.identifier:15:16:c]
+==> : 17 20 null ==> class com.sun.tools.javac.parser.JmlToken
+          [null:17:20:==>]
+asd : 21 26 token.string null class com.sun.tools.javac.parser.Tokens$StringToken
+          [token.string:21:26:asd]
+@*/ : 27 28 null @*/ class com.sun.tools.javac.parser.JmlToken
+          [null:27:28:@*/]
+token.end-of-input : 28 28 token.end-of-input null class com.sun.tools.javac.parser.Tokens$Token
+          [token.end-of-input:28:28]
+DONE

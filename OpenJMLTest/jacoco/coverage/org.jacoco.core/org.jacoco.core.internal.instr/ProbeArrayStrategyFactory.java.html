@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProbeArrayStrategyFactory.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.instr</a> &gt; <span class="el_source">ProbeArrayStrategyFactory.java</span></div><h1>ProbeArrayStrategyFactory.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.instr;
+
+import org.jacoco.core.internal.flow.ClassProbesAdapter;
+import org.jacoco.core.runtime.IExecutionDataAccessorGenerator;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
+
+/**
+ * Factory to find a suitable strategy to access the probe array for a given
+ * class.
+ */
+public final class ProbeArrayStrategyFactory {
+
+	private ProbeArrayStrategyFactory() {
+	}
+
+	/**
+	 * Creates a suitable strategy instance for the class described by the given
+	 * reader. Created instance must be used only to process a class or
+	 * interface for which it has been created and must be used only once.
+	 *
+	 * @param classId
+	 *            class identifier
+	 * @param reader
+	 *            reader to get information about the class
+	 * @param accessorGenerator
+	 *            accessor to the coverage runtime
+	 * @return strategy instance
+	 */
+	public static IProbeArrayStrategy createFor(final long classId,
+			final ClassReader reader,
+			final IExecutionDataAccessorGenerator accessorGenerator) {
+
+<span class="fc" id="L46">		final String className = reader.getClassName();</span>
+<span class="fc" id="L47">		final int version = InstrSupport.getMajorVersion(reader);</span>
+
+<span class="fc bfc" id="L49" title="All 2 branches covered.">		if (isInterfaceOrModule(reader)) {</span>
+<span class="fc" id="L50">			final ProbeCounter counter = getProbeCounter(reader);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">			if (counter.getCount() == 0) {</span>
+<span class="fc" id="L52">				return new NoneProbeArrayStrategy();</span>
+			}
+<span class="fc bfc" id="L54" title="All 4 branches covered.">			if (version &gt;= Opcodes.V11 &amp;&amp; counter.hasMethods()) {</span>
+<span class="fc" id="L55">				return new CondyProbeArrayStrategy(className, true, classId,</span>
+						accessorGenerator);
+			}
+<span class="fc bfc" id="L58" title="All 4 branches covered.">			if (version &gt;= Opcodes.V1_8 &amp;&amp; counter.hasMethods()) {</span>
+<span class="fc" id="L59">				return new InterfaceFieldProbeArrayStrategy(className, classId,</span>
+						counter.getCount(), accessorGenerator);
+			} else {
+<span class="fc" id="L62">				return new LocalProbeArrayStrategy(className, classId,</span>
+						counter.getCount(), accessorGenerator);
+			}
+		} else {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">			if (version &gt;= Opcodes.V11) {</span>
+<span class="fc" id="L67">				return new CondyProbeArrayStrategy(className, false, classId,</span>
+						accessorGenerator);
+			}
+<span class="fc" id="L70">			return new ClassFieldProbeArrayStrategy(className, classId,</span>
+					InstrSupport.needsFrames(version), accessorGenerator);
+		}
+	}
+
+	private static boolean isInterfaceOrModule(final ClassReader reader) {
+<span class="fc bfc" id="L76" title="All 2 branches covered.">		return (reader.getAccess()</span>
+				&amp; (Opcodes.ACC_INTERFACE | Opcodes.ACC_MODULE)) != 0;
+	}
+
+	private static ProbeCounter getProbeCounter(final ClassReader reader) {
+<span class="fc" id="L81">		final ProbeCounter counter = new ProbeCounter();</span>
+<span class="fc" id="L82">		reader.accept(new ClassProbesAdapter(counter, false), 0);</span>
+<span class="fc" id="L83">		return counter;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

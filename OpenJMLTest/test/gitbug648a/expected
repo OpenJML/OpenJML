@@ -33,4 +33,5 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of X.qqq() with prover !!!! - no warnings
 Completed proving methods in X
-5 warnings
+2 warnings
+3 verification failures

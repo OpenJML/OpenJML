@@ -1,0 +1,10 @@
+#! /bin/bash
+
+## This script runs all the testcases without any parallelism,
+## printing out a summary line for each testcase.
+## If there are command-line arguments, they must be a list of
+## specific testcases to run
+
+## If the environmental variable COV is set, then coverage measurements are reported
+
+JOBS=0 ./runpar $@

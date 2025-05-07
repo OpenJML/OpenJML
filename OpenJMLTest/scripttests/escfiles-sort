@@ -1,3 +1,0 @@
-#! /bin/bash
-
-./escfiles-filt "$@" | tee log-escfiles-sort | sort 

@@ -12,7 +12,10 @@ so that the Mac OS security allows openjml and its libraries to run.
 The 'openjml-java' script runs the OpenJML version of java -- which has the 
 OpenJML runtime libraries (jmlruntime.jar) included.
 
-Some demo examples are contained in the demos subdirectory.
+The 'openjml-compile' and 'openjml-run' scripts are used to compile and execute
+programs that programmatically call OpenJML.
+
+Some tutorial and demo examples are contained in the tutorial and demos subdirectories.
 More will be added over time.
 
 See openjml.org and github.com/OpenJML/OpenJML for additional information.

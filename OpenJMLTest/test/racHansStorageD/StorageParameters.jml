@@ -4,7 +4,7 @@ import org.jmlspecs.annotation.Nullable;
 public final class StorageParameters {
 
     private long totalBackingStore;
-    private @Nullable long[] configurationSizes;
+    private long @Nullable [] configurationSizes;
 	
 	/*@ 
 	  public behavior	    
@@ -23,8 +23,8 @@ public final class StorageParameters {
 	//@ pure helper
 	/*@ spec_public @*/ long getBackingStoreSize();
 	
-	//@ pure helper
-	/*@ spec_public @*/ @Nullable long[] getConfigurationSizes();
+	//@ spec_pure helper
+	/*@ spec_public @*/ long @Nullable [] getConfigurationSizes();
 	
 	   @org.jmlspecs.annotation.SkipRac
     public static void main(String... args);

@@ -138,11 +138,11 @@ public class System {
 		{
 			return "\n"; 
 		}
-		else if (key.equals("org.jmlspecs.openjml.racexceptions"))
+		else if (key.equals("org.jmlspecs.openjml.racexceptions")) // FIXME - this is obsolete
 		{
 			return "true";
 		}
-		else if (key.equals("org.jmlspecs.openjml.racjavaassert"))
+		else if (key.equals("org.jmlspecs.openjml.racjavaassert")) // FIXME - this is obsolete
 		{
 			return "true";
 		}

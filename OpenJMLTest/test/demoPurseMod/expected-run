@@ -1,0 +1,12 @@
+OUT:
+#DEMO/src/openjml/purseMod/Terminal.java:111: verify: JML precondition is false
+		clearPin();
+		        ^
+#DEMO/src/openjml/purseMod/Terminal.java:154: verify: Associated declaration: #DEMO/src/openjml/purseMod/Terminal.java:111:
+	public void clearPin(){
+	            ^
+#DEMO/src/openjml/purseMod/Terminal.java:147: verify: JML precondition is false
+	/*@ requires pin_pos == pin.length;
+	    ^
+
+ERR:

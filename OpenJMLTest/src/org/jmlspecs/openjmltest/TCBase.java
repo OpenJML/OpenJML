@@ -15,6 +15,8 @@ import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
 
+import org.jmlspecs.openjmltest.OutputCompare.*;
+
 
 /** This is a base class for all tests that parse and typecheck a
  * test string of source code.  Mock files are created (or real ones used)
@@ -26,18 +28,20 @@ import static org.junit.Assert.*;
  * @author David R. Cok
  *
  */
-public abstract class TCBase extends JmlTestCase {
+public abstract class TCBase extends JmlTestSuite {
 
     protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath1 = "$A"+z+"$B"+z+root+"/Specs/specs";
     protected String testspecpath;
     protected String testSourcePath;
     protected int expectedExit;
+    protected boolean specialCompare;
     
     @Override
     public void setUp() throws Exception {
     	testspecpath = testspecpath1;
         testSourcePath = testspecpath1;
+        specialCompare = false;
         super.setUp();
         addOptions("-specspath",   testspecpath + z + "$SY" );
         addOptions("-sourcepath",   testSourcePath);
@@ -51,19 +55,6 @@ public abstract class TCBase extends JmlTestCase {
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
-    }
-
-    // Used to check the test system itself
-    public void helpFailure(String failureMessage, String s, Object ... list) {
-        noExtraPrinting = true;
-        boolean failed = false;
-        try {
-            helpTC(s,list);
-        } catch (AssertionError a) {
-            failed = true;
-            assertEquals("Failure report wrong",failureMessage,a.getMessage());
-        }
-        if (!failed) fail("Test Harness failed to report an error");
     }
 
     // Helper method for tests: content is the test text; list are the expected messages and column numbers
@@ -92,39 +83,14 @@ public abstract class TCBase extends JmlTestCase {
             // If additional Java options are wanted (e.g. -verbose), add them here
             int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
             
-            int i = 0;
-            int k = 0;
-            Object p1,p2,p3,p4;
-            for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                if (k >= list.length) break;
-                String expected = doReplacements(((String)list[k++]));
-                assertEquals("Message " + i + " mismatch",expected,noSource(dd));
-                p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p4 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                if (p4 != null) {
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
-                    assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
-                    assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
-                    assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
-                } else if (p1 != null) {
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
-                } else {
-                    fail("No positions given for message " + i);
-                }
-                i++;
-            }
-            if (k < list.length) fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected (" + (list.length/2) + ")");
-            if (i < collector.getDiagnostics().size()) fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
+            if (!specialCompare) checkDiagnostics(list); // This comparator does not handle seq, anyorder etc.
+            else outputCompare.compareResults(list, collector); // This comparator does not handle having more than one position number
+            
             if (expectedExit == -1) expectedExit = list.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printDiagnostics();
-            throw e;
         }
     }
 

@@ -50,6 +50,11 @@ import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.comp.CompileStates;
 import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.parser.ScannerFactory;
+import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.parser.Tokens.Token;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -61,7 +66,6 @@ import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Options;
 import com.sun.tools.javac.util.Position;
 
 import org.jmlspecs.openjml.Main;
@@ -89,9 +93,10 @@ import org.jmlspecs.openjml.Main;
  * @author David Cok
  */
 public class API implements IAPI {
-
+    
     /** The encapsulated org.jmlspecs.openjml.Main object */
     private Main main = null;
+    
 //    //@ initially main != null;
 //    
 //    /** The listener for diagnostic messages */
@@ -109,13 +114,25 @@ public class API implements IAPI {
      * to load the compilation environment
      */
     //@ ensures isOpen;
-    protected API()  {
-//        try {
-//            main = new org.jmlspecs.openjml.Main("openjml", new PrintWriter(System.out));
-//        } catch (Exception e) {
-//            // FAILURE
-//        }
+    protected API(PrintWriter out, PrintWriter err, DiagnosticListener<? extends JavaFileObject> diagListener)  {
+        // CAUTION: Do not close pw, if it is wrapping System.out (as System.out will be closed and any writes to System.out will not work)
+        try {
+            main = new org.jmlspecs.openjml.Main(org.jmlspecs.openjml.Strings.applicationName,
+                    out != null ? out : new PrintWriter(System.out),
+                    err != null ? err : new PrintWriter(System.err));
+            main.context = main.initialize(diagListener);
+        } catch (Exception e) {
+            if (err == null) System.err.println("API X " + e);
+            else err.println("API X " + e);
+           // FAILURE - FIXME - error message
+            System.exit(4);
+        }
+        if (out != null) out.flush();
+        if (err != null) err.flush();
     }
+    
+//    @Override
+//    public Context context() { return main.context; } 
 //    
 //    /** Creates an API that will send informational output to the
 //     * given PrintWriter and diagnostic output to the given listener; no
@@ -220,34 +237,15 @@ public class API implements IAPI {
 //       if (main != null) JmlEsc.instance(main.context()).abort();
 //    }
 //    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#execute(Options, String[])
-//     */
-//    @Override
-//    public int execute(/*@nullable*/ Options options, /*@non_null*/ String ... args) {
-//        int ret = main.executeNS(main.out(), diagListener, prl, options, args);
-//        return ret;
-//    }
-//    
+   
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
-    private int execute(/*@non_null*/ PrintWriter writer, /*@nullable*/ DiagnosticListener<JavaFileObject> diagListener, /*@nullable*/ Options options, /*@non_null*/ String ... args) {
-        int ret = Main.execute(writer, diagListener, null, args);
-        return ret;
+    public int execute(/*@ non_null*/ String ... args) {
+        int x = main.compile(args, main.context).exitCode;
+        return x;
     }
     
-    @Override
-    public int execute(/*@non_null*/ String ... args) {
-        return execute(null, null, null, args);
-    }
-
-    @Override
-    public int execute(
-            /*@non_null*/ PrintWriter writer, 
-            /*@non_null*/ String ... args) {
-        return execute(writer, null, null, args);
-    }
 
     
 //    /* (non-Javadoc)
@@ -343,9 +341,9 @@ public class API implements IAPI {
 //        return errs;
 //    }
 //
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#parseFiles(java.io.File[])
-//     */
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#parseFiles(java.io.File[])
+     */
 //    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ File... files) {
 //        JmlCompiler c = JmlCompiler.instance(context());
@@ -365,7 +363,7 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseFiles(String[])
 //     */
-//    @Override
+////    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ String... filenames) {
 //        File[] files = new File[filenames.length];
 //        for (int i=0; i<filenames.length; i++) {
@@ -377,7 +375,7 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseFiles(javax.tools.JavaFileObject[])
 //     */
-//    @Override
+////    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ JavaFileObject... inputs) {
 //        JmlCompiler c = JmlCompiler.instance(context());
 //        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -389,7 +387,7 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseFiles(java.util.Collection)
 //     */
-//    @Override
+////    @Override
 //    public /*@ non_null */ java.util.List<JmlCompilationUnit> parseFiles(/*@non_null*/ Collection<? extends JavaFileObject> inputs) {
 //        JmlCompiler c = JmlCompiler.instance(context());
 //        ArrayList<JmlCompilationUnit> trees = new ArrayList<JmlCompilationUnit>();
@@ -410,9 +408,9 @@ public class API implements IAPI {
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
 //     */
-//    @Override
+////    @Override
 //    public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
-//        JmlCompiler c = JmlCompiler.instance(context());
+//        JmlCompiler c = JmlCompiler.instance(main.context);
 //        JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
 //        return specscu;
 //    }
@@ -487,16 +485,6 @@ public class API implements IAPI {
 //        return new StringJavaFileObject(name,content);
 //    }
 //    
-//    /** Creates a JavaFileObject instance from a real file, by name
-//     * @param filepath the path to the file, either absolute or relative to the current working directory
-//     * @return the resulting JavaFileObject
-//     */
-//    @Override
-//    public JavaFileObject makeJFOfromFilename(String filepath) {
-////        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
-////        return dfm.getFileForInput(filepath);
-//    	return null; // FIXME
-//    }
 //    
 //    /** Creates a JavaFileObject instance from a File object
 //     * @param file the file to wrap
@@ -1122,4 +1110,31 @@ public class API implements IAPI {
 //            return super.hashCode();
 //        }
 //    }
+    
+    public TokenIterator makeTokenIterator(String text) { return new TokenIterator(text); } 
+
+    
+    @SuppressWarnings("exports")
+    public class TokenIterator implements IAPI.ITokenIterator {
+        
+        protected JmlTokenizer tokenizer;
+        
+        public TokenIterator(String text) {
+            ScannerFactory factory = main.context.get(ScannerFactory.scannerFactoryKey);
+            tokenizer = ((JmlScanner)factory.newScanner(text, true)).jmltokenizer;
+        }
+        
+        private boolean hasNext = true;
+        
+        public boolean hasNext() {
+            return hasNext;
+        }
+        
+        public WrappedToken next() {
+            Tokens.Token jt = tokenizer.readToken();
+            hasNext = (jt.kind != Tokens.TokenKind.EOF);
+            return new WrappedToken(jt);
+        }
+    }
+
 }

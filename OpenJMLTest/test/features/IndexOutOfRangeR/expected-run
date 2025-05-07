@@ -1,0 +1,9 @@
+OUT:
+#DEMO/src/features/IndexOutOfRange.java:15: verify: JML the array index is too large
+        return array[i];
+                    ^
+
+ERR:
+Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: Index 10 out of bounds for length 10
+	at features.IndexOutOfRange.test(IndexOutOfRange.java:15)
+	at features.IndexOutOfRange.main(IndexOutOfRange.java:9)

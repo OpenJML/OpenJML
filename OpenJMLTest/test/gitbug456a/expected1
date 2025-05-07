@@ -9,8 +9,8 @@ Feasibility check - at program exit : OK
 Completed proof of bufclient.ByteBufClient.getOne(bytebuf.ByteBuf) with prover !!!! - no warnings
 Completed proving methods in bufclient.ByteBufClient
 Proving methods in bytebuf.ByteBuf
-Skipping proof of bytebuf.ByteBuf.ByteBuf() (excluded by -method)
-Skipping proof of bytebuf.ByteBuf.get(int) (excluded by -method)
+Skipping proof of bytebuf.ByteBuf.ByteBuf() (Skipping bytebuf.ByteBuf.ByteBuf because it matches the exclusion pattern bytebuf.ByteBuf.*)
+Skipping proof of bytebuf.ByteBuf.get(int) (Skipping bytebuf.ByteBuf.get because it matches the exclusion pattern bytebuf.ByteBuf.*)
 Completed proving methods in bytebuf.ByteBuf
 Proving methods in bytebuf.Buf
 Starting proof of bytebuf.Buf.Buf() with prover !!!!

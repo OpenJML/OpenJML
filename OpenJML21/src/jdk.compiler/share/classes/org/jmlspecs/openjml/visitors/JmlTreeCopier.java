@@ -61,6 +61,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
     protected Log log;
     
+    protected java.util.Map<JCTree,JCTree> targets = new java.util.HashMap<>();
+    
     /** Creates a new copier, whose new nodes are generated from the given factory*/
     public JmlTreeCopier(Context context, JmlTree.Maker maker) {
         super(maker);
@@ -142,6 +144,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
         copy.thisSymbol = that.thisSymbol;
+        copy.sym = that.sym;
         copy.type = that.type;
         copy.lineAnnotations = that.lineAnnotations;
         return copy;
@@ -151,9 +154,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;// FIXME - copy
-        copy.cases = copy(that.cases,p);
+        copy.methodSpecs = copy(that.methodSpecs,p);
         copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
         copy.type = that.type;
+        copy.sym = that.sym;
         copy.isInitializer = that.isInitializer;
         return copy;
     }
@@ -215,34 +219,28 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlDoWhileLoop(JmlDoWhileLoop that, Void p) {
-        JmlDoWhileLoop r = M.at(that.pos).JmlDoWhileLoop(
-                (JCDoWhileLoop)this.visitDoWhileLoop(that,p),
-                copy(that.loopSpecs,p));
-        // already done: r.type = that.type;
+        JmlDoWhileLoop r = (JmlDoWhileLoop)this.visitDoWhileLoop(that,p);
+        r.loopSpecs = copy(that.loopSpecs,p);
         r.split = that.split;
         return r;
     }
 
     @Override
     public JCTree visitJmlEnhancedForLoop(JmlEnhancedForLoop that, Void p) {
-        JmlEnhancedForLoop r = M.at(that.pos).JmlEnhancedForLoop(
-                (JCEnhancedForLoop)this.visitEnhancedForLoop(that,p),
-                copy(that.loopSpecs,p));
-        // already done: r.type = that.type;
-        // FIXME - implementation, indexDecl, valuesDecl, iterDecl
+        JmlEnhancedForLoop r = (JmlEnhancedForLoop)this.visitEnhancedForLoop(that, p);
+        r.loopSpecs = copy(that.loopSpecs,p);
         r.split = that.split;
         return r;
+        // FIXME - implementation, indexDecl, valuesDecl, iterDecl
     }
 
 
     @Override
     public JCTree visitJmlForLoop(JmlForLoop that, Void p) {
-        JmlForLoop r = M.at(that.pos).JmlForLoop(
-                (JCForLoop)this.visitForLoop(that,p),
-                copy(that.loopSpecs,p));
-        // already done: r.type = that.type;
-        r.split = that.split;
-        return r;
+        JmlForLoop loop = (JmlForLoop)this.visitForLoop(that,p);
+        loop.loopSpecs = copy(that.loopSpecs,p);
+        loop.split = that.split;
+        return loop;
     }
 
     @Override
@@ -300,10 +298,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitLabeledStatement(LabeledStatementTree tree, Void p) {
         var that = (JmlLabeledStatement)tree;
-        return M.at(that.pos).JmlLabeledStatement(
+        var stat = M.at(that.pos).JmlLabeledStatement(
                 that.label,
                 copy(that.extraStatements,p),
-                copy(that.body,p)).setType(that.type);
+                copy(that.body,p));
+        stat.setType(that.type);
+        targets.put(that.body, stat.body);
+        return stat;
      }
 
     @Override
@@ -857,10 +858,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlWhileLoop(JmlWhileLoop that, Void p) {
-        JmlWhileLoop r = M.at(that.pos).JmlWhileLoop(
-                (JmlWhileLoop)this.visitWhileLoop(that,p),
-                copy(that.loopSpecs,p));
-        // already done: r.type = that.type;
+        JmlWhileLoop r = (JmlWhileLoop)this.visitWhileLoop(that,p);
+        r.loopSpecs = copy(that.loopSpecs,p);
         r.split = that.split;
         return r;
     }
@@ -905,8 +904,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
      public JCTree visitBreak(BreakTree node, Void p) {
-        return super.visitBreak(node,p).setType(((JCBreak)node).type);
-        // FIXME - need to repoint reference to target
+         var br = (JCBreak)node;
+        JCBreak b = (JCBreak)super.visitBreak(node,p);
+        b.setType(br.type);
+        b.target = targets.get(br.target);
+        return b;
     }
 
     public JCTree visitCase(CaseTree node, Void p) {
@@ -928,12 +930,21 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitContinue(ContinueTree node, Void p) {
-        return super.visitContinue(node,p).setType(((JCContinue)node).type);
-        // FIXME - need to repoint reference to target
+        var oldc = (JCContinue)node;
+        JCContinue c = (JCContinue)super.visitContinue(node,p);
+        c.setType(oldc.type);
+        c.target = targets.get(oldc.target);
+        return c;
     }
 
     public JCTree visitDoWhileLoop(DoWhileLoopTree node, Void p) {
-        return super.visitDoWhileLoop(node,p).setType(((JCDoWhileLoop)node).type);
+        var oldloop = (JCDoWhileLoop) node;
+        var newloop = M.at(oldloop.pos).DoLoop(null, null);
+        targets.put(oldloop, newloop); // Need this mapping before copying the body
+        newloop.body = copy(oldloop.body, p);
+        newloop.cond = copy(oldloop.cond, p);
+        newloop.setType(oldloop.type);
+        return newloop;
     }
 
     public JCTree visitErroneous(ErroneousTree node, Void p) {
@@ -945,11 +956,26 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitEnhancedForLoop(EnhancedForLoopTree node, Void p) {
-        return super.visitEnhancedForLoop(node,p).setType(((JCEnhancedForLoop)node).type);
+        var oldloop = (JCEnhancedForLoop)node;
+        var newloop = M.at(oldloop.pos).ForeachLoop(null, null, null);
+        targets.put(oldloop, newloop); // Need this mapping before copying the body
+        newloop.var = copy(oldloop.var, p);
+        newloop.expr = copy(oldloop.expr, p);
+        newloop.body = copy(oldloop.body, p);
+        newloop.setType(oldloop.type);
+        return newloop;
     }
 
     public JCTree visitForLoop(ForLoopTree node, Void p) {
-        return super.visitForLoop(node,p).setType(((JCForLoop)node).type);
+        var oldloop = (JCForLoop) node;
+        var newloop = M.at(oldloop.pos).ForLoop(null, null, null, null);
+        targets.put(oldloop, newloop); // Need this mapping before copying the body
+        newloop.init = copy(oldloop.init, p);
+        newloop.cond = copy(oldloop.cond, p);
+        newloop.step = copy(oldloop.step, p);
+        newloop.body = copy(oldloop.body, p);
+        newloop.setType(oldloop.type);
+        return newloop;
     }
 
     public JCTree visitIdentifier(IdentifierTree node, Void p) {
@@ -1117,7 +1143,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitWhileLoop(WhileLoopTree node, Void p) {
-        return super.visitWhileLoop(node,p).setType(((JCTree)node).type);
+        var oldloop = (JCWhileLoop) node;
+        var newloop = M.at(oldloop.pos).WhileLoop(null, null);
+        targets.put(oldloop, newloop); // Need this mapping before copying the body
+        newloop.body = copy(oldloop.body, p);
+        newloop.cond = copy(oldloop.cond, p);
+        newloop.setType(oldloop.type);
+        return newloop;
     }
 
     public JCTree visitWildcard(WildcardTree node, Void p) {
@@ -1129,7 +1161,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitLetExpr(LetExpr that, Void p) {
-        LetExpr let = (that instanceof JmlLetExpr) ?  M.JmlLetExpr(copy(that.defs,p), copy(that.expr,p), ((JmlLetExpr)that).explicit): M.LetExpr(copy(that.defs,p), copy(that.expr,p));
+        LetExpr let = (that instanceof JmlLetExpr letexpr) ?  M.JmlLetExpr(copy(that.defs,p), copy(that.expr,p), letexpr.explicit): M.LetExpr(copy(that.defs,p), copy(that.expr,p));
         let.pos = that.pos;
         let.type = that.type;
         return let;

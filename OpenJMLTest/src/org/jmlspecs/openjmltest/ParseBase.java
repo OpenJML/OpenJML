@@ -5,6 +5,8 @@ import static org.junit.Assert.fail;
 
 import java.util.LinkedList;
 import java.util.List;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -19,15 +21,16 @@ import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Log;
 
+import static org.junit.Assert.*;
+
 /** This class is the base class for test suites that just are exercising the parser,
  * without doing any further typechecking.  FOr this purpose the parser can be
  * called standalone, and the parse tree inspected. 
  * @author David Cok
  *
  */
-abstract public class ParseBase extends JmlTestCase {
+abstract public class ParseBase extends JmlTestSuite {
 
-    protected static String z = java.io.File.pathSeparator;
     protected static String testspecpath = "$A"+z+"$B";
 
     protected ParserFactory fac;
@@ -43,7 +46,7 @@ abstract public class ParseBase extends JmlTestCase {
     public void setUp() throws Exception {
         super.setUp();
         main.addOptions("compilePolicy","check");  // Don't do code generation
-        main.addOptions("-specspath",   testspecpath);
+        main.addOptions("--specspath",   testspecpath);
         // TODO - are the following needed?
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
@@ -71,6 +74,11 @@ abstract public class ParseBase extends JmlTestCase {
     public void checkCompilationUnit(String s, Object ... list) {
         List<JCTree> out = parseCompilationUnit(s);
         checkParseTree(out,list);
+    }
+
+    public void checkCompilationUnitErrors(String s, Object ... list) {
+        parseCompilationUnit(s);
+        checkDiagnostics(list);
     }
 
     // TODO - put in a few harness tests
@@ -118,8 +126,8 @@ abstract public class ParseBase extends JmlTestCase {
                 for (JCTree t: actual) {
                     System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
                 }
+                printDiagnostics();
             }
-            if (print) printDiagnostics();
             Object p1, p2, p3;
             for (JCTree t: actual) {
                 if (i>=expected.length) break;
@@ -140,17 +148,20 @@ abstract public class ParseBase extends JmlTestCase {
                 ++k;
             }
             if ( i != expected.length) fail("Incorrect number of nodes listed");
+            if ( k != actual.size()) fail("Insufficient number of errors listed: " + expected.length/3 + " " + actual.size());
             if (parser.getScanner().token().kind != TokenKind.EOF) fail("Not at end of input");
         } catch (AssertionError e) {
-            if (!print) printTree(actual);
-            if (!print) printDiagnostics();
+            if (!print) {
+                printTree(actual);
+                printDiagnostics();
+            }
             throw e;
         }
     }
     
     /** Prints out the nodes of the tree */
     public void printTree(List<JCTree> list) {
-        System.out.println("NODES FOR " + name.getMethodName());
+        System.out.println("NODES FOR " + getTestName()); // FIXME - test that this actually puts out the correct name
         for (JCTree t: list) {
             System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
         }

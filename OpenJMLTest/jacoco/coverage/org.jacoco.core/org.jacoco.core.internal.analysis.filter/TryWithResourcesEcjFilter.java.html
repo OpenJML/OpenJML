@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TryWithResourcesEcjFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">TryWithResourcesEcjFilter.java</span></div><h1>TryWithResourcesEcjFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
+
+/**
+ * Filters code that ECJ generates for try-with-resources statement.
+ */
+<span class="fc" id="L29">public final class TryWithResourcesEcjFilter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc bfc" id="L33" title="All 2 branches covered.">		if (methodNode.tryCatchBlocks.isEmpty()) {</span>
+<span class="fc" id="L34">			return;</span>
+		}
+<span class="fc" id="L36">		final Matcher matcher = new Matcher(output);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">		for (final TryCatchBlockNode t : methodNode.tryCatchBlocks) {</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">			if (t.type == null) {</span>
+<span class="fc" id="L39">				matcher.start(t.handler);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">				if (!matcher.matchEcj()) {</span>
+<span class="fc" id="L41">					matcher.start(t.handler);</span>
+<span class="fc" id="L42">					matcher.matchEcjNoFlowOut();</span>
+				}
+			}
+		}
+<span class="fc" id="L46">	}</span>
+
+<span class="fc" id="L48">	static class Matcher extends AbstractMatcher {</span>
+
+		private final IFilterOutput output;
+
+<span class="fc" id="L52">		private final Map&lt;String, String&gt; owners = new HashMap&lt;String, String&gt;();</span>
+<span class="fc" id="L53">		private final Map&lt;String, LabelNode&gt; labels = new HashMap&lt;String, LabelNode&gt;();</span>
+
+		private AbstractInsnNode start;
+
+<span class="fc" id="L57">		Matcher(final IFilterOutput output) {</span>
+<span class="fc" id="L58">			this.output = output;</span>
+<span class="fc" id="L59">		}</span>
+
+		private void start(final AbstractInsnNode start) {
+<span class="fc" id="L62">			this.start = start;</span>
+<span class="fc" id="L63">			cursor = start.getPrevious();</span>
+<span class="fc" id="L64">			vars.clear();</span>
+<span class="fc" id="L65">			labels.clear();</span>
+<span class="fc" id="L66">			owners.clear();</span>
+<span class="fc" id="L67">		}</span>
+
+		private boolean matchEcj() {
+			// &quot;catch (any primaryExc)&quot;
+<span class="fc" id="L71">			nextIsVar(Opcodes.ASTORE, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L72">			nextIsEcjCloseAndThrow(&quot;r0&quot;);</span>
+
+			AbstractInsnNode c;
+<span class="fc" id="L75">			int resources = 1;</span>
+<span class="fc" id="L76">			String r = &quot;r&quot; + resources;</span>
+<span class="fc" id="L77">			c = cursor;</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">			while (nextIsEcjClose(r)) {</span>
+<span class="fc" id="L79">				nextIsJump(Opcodes.GOTO, r + &quot;.end&quot;);</span>
+<span class="fc" id="L80">				nextIsEcjSuppress(r);</span>
+<span class="fc" id="L81">				nextIsEcjCloseAndThrow(r);</span>
+<span class="fc" id="L82">				resources++;</span>
+<span class="fc" id="L83">				r = &quot;r&quot; + resources;</span>
+<span class="fc" id="L84">				c = cursor;</span>
+			}
+<span class="fc" id="L86">			cursor = c;</span>
+<span class="fc" id="L87">			nextIsEcjSuppress(&quot;last&quot;);</span>
+			// &quot;throw primaryExc&quot;
+<span class="fc" id="L89">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L90">			nextIs(Opcodes.ATHROW);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L92">				return false;</span>
+			}
+<span class="fc" id="L94">			final AbstractInsnNode end = cursor;</span>
+
+<span class="fc" id="L96">			AbstractInsnNode startOnNonExceptionalPath = start.getPrevious();</span>
+<span class="fc" id="L97">			cursor = startOnNonExceptionalPath;</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">			while (!nextIsEcjClose(&quot;r0&quot;)) {</span>
+<span class="fc" id="L99">				startOnNonExceptionalPath = startOnNonExceptionalPath</span>
+						.getPrevious();
+<span class="fc" id="L101">				cursor = startOnNonExceptionalPath;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">				if (cursor == null) {</span>
+<span class="nc" id="L103">					return false;</span>
+				}
+			}
+<span class="fc" id="L106">			startOnNonExceptionalPath = startOnNonExceptionalPath.getNext();</span>
+
+<span class="fc" id="L108">			next();</span>
+<span class="pc bpc" id="L109" title="2 of 4 branches missed.">			if (cursor == null || cursor.getOpcode() != Opcodes.GOTO) {</span>
+<span class="nc" id="L110">				return false;</span>
+			}
+
+<span class="fc" id="L113">			output.ignore(startOnNonExceptionalPath, cursor);</span>
+<span class="fc" id="L114">			output.ignore(start, end);</span>
+<span class="fc" id="L115">			return true;</span>
+		}
+
+		private boolean matchEcjNoFlowOut() {
+			// &quot;catch (any primaryExc)&quot;
+<span class="fc" id="L120">			nextIsVar(Opcodes.ASTORE, &quot;primaryExc&quot;);</span>
+
+			AbstractInsnNode c;
+<span class="fc" id="L123">			int resources = 0;</span>
+<span class="fc" id="L124">			String r = &quot;r&quot; + resources;</span>
+<span class="fc" id="L125">			c = cursor;</span>
+<span class="pc bpc" id="L126" title="1 of 4 branches missed.">			while (nextIsEcjCloseAndThrow(r) &amp;&amp; nextIsEcjSuppress(r)) {</span>
+<span class="fc" id="L127">				resources++;</span>
+<span class="fc" id="L128">				r = &quot;r&quot; + resources;</span>
+<span class="fc" id="L129">				c = cursor;</span>
+			}
+<span class="fc" id="L131">			cursor = c;</span>
+			// &quot;throw primaryExc&quot;
+<span class="fc" id="L133">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L134">			nextIs(Opcodes.ATHROW);</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L136">				return false;</span>
+			}
+<span class="fc" id="L138">			final AbstractInsnNode end = cursor;</span>
+
+<span class="fc" id="L140">			AbstractInsnNode startOnNonExceptionalPath = start.getPrevious();</span>
+<span class="fc" id="L141">			cursor = startOnNonExceptionalPath;</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">			while (!nextIsEcjClose(&quot;r0&quot;)) {</span>
+<span class="fc" id="L143">				startOnNonExceptionalPath = startOnNonExceptionalPath</span>
+						.getPrevious();
+<span class="fc" id="L145">				cursor = startOnNonExceptionalPath;</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">				if (cursor == null) {</span>
+<span class="nc" id="L147">					return false;</span>
+				}
+			}
+<span class="fc" id="L150">			startOnNonExceptionalPath = startOnNonExceptionalPath.getNext();</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">			for (int i = 1; i &lt; resources; i++) {</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">				if (!nextIsEcjClose(&quot;r&quot; + i)) {</span>
+<span class="nc" id="L153">					return false;</span>
+				}
+			}
+
+<span class="fc" id="L157">			output.ignore(startOnNonExceptionalPath, cursor);</span>
+<span class="fc" id="L158">			output.ignore(start, end);</span>
+<span class="fc" id="L159">			return true;</span>
+		}
+
+		private boolean nextIsEcjClose(final String name) {
+<span class="fc" id="L163">			nextIsVar(Opcodes.ALOAD, name);</span>
+			// &quot;if (r != null)&quot;
+<span class="fc" id="L165">			nextIsJump(Opcodes.IFNULL, name + &quot;.end&quot;);</span>
+			// &quot;r.close()&quot;
+<span class="fc" id="L167">			nextIsClose(name);</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		private boolean nextIsEcjCloseAndThrow(final String name) {
+<span class="fc" id="L172">			nextIsVar(Opcodes.ALOAD, name);</span>
+			// &quot;if (r != null)&quot;
+<span class="fc" id="L174">			nextIsJump(Opcodes.IFNULL, name);</span>
+			// &quot;r.close()&quot;
+<span class="fc" id="L176">			nextIsClose(name);</span>
+<span class="fc" id="L177">			nextIsLabel(name);</span>
+<span class="fc" id="L178">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L179">			nextIs(Opcodes.ATHROW);</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		private boolean nextIsEcjSuppress(final String name) {
+<span class="fc" id="L184">			final String suppressedExc = name + &quot;.t&quot;;</span>
+<span class="fc" id="L185">			final String startLabel = name + &quot;.suppressStart&quot;;</span>
+<span class="fc" id="L186">			final String endLabel = name + &quot;.suppressEnd&quot;;</span>
+<span class="fc" id="L187">			nextIsVar(Opcodes.ASTORE, suppressedExc);</span>
+			// &quot;suppressedExc = t&quot;
+			// &quot;if (primaryExc != null)&quot;
+<span class="fc" id="L190">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L191">			nextIsJump(Opcodes.IFNONNULL, startLabel);</span>
+			// &quot;primaryExc = suppressedExc&quot;
+<span class="fc" id="L193">			nextIsVar(Opcodes.ALOAD, suppressedExc);</span>
+<span class="fc" id="L194">			nextIsVar(Opcodes.ASTORE, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L195">			nextIsJump(Opcodes.GOTO, endLabel);</span>
+			// &quot;if (primaryExc == suppressedExc)&quot;
+<span class="fc" id="L197">			nextIsLabel(startLabel);</span>
+<span class="fc" id="L198">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L199">			nextIsVar(Opcodes.ALOAD, suppressedExc);</span>
+<span class="fc" id="L200">			nextIsJump(Opcodes.IF_ACMPEQ, endLabel);</span>
+			// &quot;primaryExc.addSuppressed(suppressedExc)&quot;
+<span class="fc" id="L202">			nextIsVar(Opcodes.ALOAD, &quot;primaryExc&quot;);</span>
+<span class="fc" id="L203">			nextIsVar(Opcodes.ALOAD, suppressedExc);</span>
+<span class="fc" id="L204">			nextIsInvoke(Opcodes.INVOKEVIRTUAL, &quot;java/lang/Throwable&quot;,</span>
+					&quot;addSuppressed&quot;, &quot;(Ljava/lang/Throwable;)V&quot;);
+<span class="fc" id="L206">			nextIsLabel(endLabel);</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">			return cursor != null;</span>
+		}
+
+		private void nextIsClose(final String name) {
+<span class="fc" id="L211">			nextIsVar(Opcodes.ALOAD, name);</span>
+<span class="fc" id="L212">			next();</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L214">				return;</span>
+			}
+<span class="pc bpc" id="L216" title="2 of 4 branches missed.">			if (cursor.getOpcode() != Opcodes.INVOKEINTERFACE</span>
+					&amp;&amp; cursor.getOpcode() != Opcodes.INVOKEVIRTUAL) {
+<span class="nc" id="L218">				cursor = null;</span>
+<span class="nc" id="L219">				return;</span>
+			}
+<span class="fc" id="L221">			final MethodInsnNode m = (MethodInsnNode) cursor;</span>
+<span class="pc bpc" id="L222" title="2 of 4 branches missed.">			if (!&quot;close&quot;.equals(m.name) || !&quot;()V&quot;.equals(m.desc)) {</span>
+<span class="nc" id="L223">				cursor = null;</span>
+<span class="nc" id="L224">				return;</span>
+			}
+<span class="fc" id="L226">			final String actual = m.owner;</span>
+<span class="fc" id="L227">			final String expected = owners.get(name);</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">			if (expected == null) {</span>
+<span class="fc" id="L229">				owners.put(name, actual);</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">			} else if (!expected.equals(actual)) {</span>
+<span class="nc" id="L231">				cursor = null;</span>
+			}
+<span class="fc" id="L233">		}</span>
+
+		private void nextIsJump(final int opcode, final String name) {
+<span class="fc" id="L236">			nextIs(opcode);</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L238">				return;</span>
+			}
+<span class="fc" id="L240">			final LabelNode actual = ((JumpInsnNode) cursor).label;</span>
+<span class="fc" id="L241">			final LabelNode expected = labels.get(name);</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">			if (expected == null) {</span>
+<span class="fc" id="L243">				labels.put(name, actual);</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">			} else if (expected != actual) {</span>
+<span class="nc" id="L245">				cursor = null;</span>
+			}
+<span class="fc" id="L247">		}</span>
+
+		private void nextIsLabel(final String name) {
+<span class="fc bfc" id="L250" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L251">				return;</span>
+			}
+<span class="fc" id="L253">			cursor = cursor.getNext();</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">			if (cursor.getType() != AbstractInsnNode.LABEL) {</span>
+<span class="nc" id="L255">				cursor = null;</span>
+<span class="nc" id="L256">				return;</span>
+			}
+<span class="fc" id="L258">			final LabelNode actual = (LabelNode) cursor;</span>
+<span class="fc" id="L259">			final LabelNode expected = labels.get(name);</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">			if (expected != actual) {</span>
+<span class="nc" id="L261">				cursor = null;</span>
+			}
+<span class="fc" id="L263">		}</span>
+
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

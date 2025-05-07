@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CounterComparator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.analysis</a> &gt; <span class="el_source">CounterComparator.java</span></div><h1>CounterComparator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.analysis;
+
+import java.io.Serializable;
+import java.util.Comparator;
+
+import org.jacoco.core.analysis.ICounter.CounterValue;
+import org.jacoco.core.analysis.ICoverageNode.CounterEntity;
+
+/**
+ * Collection of comparators to compare {@link ICounter} objects by different
+ * criteria.
+ */
+public class CounterComparator implements Comparator&lt;ICounter&gt;, Serializable {
+
+	private static final long serialVersionUID = -3777463066252746748L;
+
+	/**
+	 * Compares the absolute number of total items.
+	 */
+<span class="fc" id="L32">	public static final CounterComparator TOTALITEMS = new CounterComparator(</span>
+			CounterValue.TOTALCOUNT);
+
+	/**
+	 * Compares the absolute number of covered items.
+	 */
+<span class="fc" id="L38">	public static final CounterComparator COVEREDITEMS = new CounterComparator(</span>
+			CounterValue.COVEREDCOUNT);
+
+	/**
+	 * Compares the absolute number of missed items.
+	 */
+<span class="fc" id="L44">	public static final CounterComparator MISSEDITEMS = new CounterComparator(</span>
+			CounterValue.MISSEDCOUNT);
+
+	/**
+	 * Compares the ratio of covered items.
+	 */
+<span class="fc" id="L50">	public static final CounterComparator COVEREDRATIO = new CounterComparator(</span>
+			CounterValue.COVEREDRATIO);
+
+	/**
+	 * Compares the ratio of missed items.
+	 */
+<span class="fc" id="L56">	public static final CounterComparator MISSEDRATIO = new CounterComparator(</span>
+			CounterValue.MISSEDRATIO);
+
+	private final CounterValue value;
+	private final boolean reverse;
+
+	private CounterComparator(final CounterValue value) {
+<span class="fc" id="L63">		this(value, false);</span>
+<span class="fc" id="L64">	}</span>
+
+<span class="fc" id="L66">	private CounterComparator(final CounterValue value, final boolean reverse) {</span>
+<span class="fc" id="L67">		this.value = value;</span>
+<span class="fc" id="L68">		this.reverse = reverse;</span>
+<span class="fc" id="L69">	}</span>
+
+	public int compare(final ICounter c1, final ICounter c2) {
+<span class="fc" id="L72">		final int cmp = Double.compare(c1.getValue(value), c2.getValue(value));</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		return reverse ? -cmp : cmp;</span>
+	}
+
+	/**
+	 * Creates a new version of this comparator that sorts in reverse order.
+	 *
+	 * @return reverse comparator
+	 */
+	public CounterComparator reverse() {
+<span class="fc bfc" id="L82" title="All 2 branches covered.">		return new CounterComparator(value, !reverse);</span>
+	}
+
+	/**
+	 * Creates a new comparator for {@link ICoverageNode} counters of the given
+	 * entity based on this counter sorting criteria.
+	 *
+	 * @param entity
+	 *            counter entity to sort on
+	 * @return comparator for {@link ICoverageNode} elements
+	 */
+	public NodeComparator on(final CounterEntity entity) {
+<span class="fc" id="L94">		return new NodeComparator(this, entity);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

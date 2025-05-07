@@ -1,2 +1,2 @@
-ARGS+=" -check"
+ARGS+=" --check"
 EXIT=1

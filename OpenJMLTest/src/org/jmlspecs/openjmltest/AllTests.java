@@ -1,5 +1,6 @@
 package org.jmlspecs.openjmltest;
 
+import org.jmlspecs.openjmltest.testsuites.*;
 import org.junit.jupiter.api.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
@@ -10,10 +11,8 @@ import junit.framework.TestSuite;
 import java.io.File;
 import java.util.Arrays;
 
-import org.jmlspecs.openjmltest.testcases.*;
-
 //@RunWith(JUnitPlatform.class)
-//@SelectPackages({"org.jmlspecs.openjmltest.testcases"})
+//@SelectPackages({"org.jmlspecs.openjmltest.testsuites"})
 
 // This works but is not adaptable if tests are added in the testcases folder
 //@RunWith(Suite.class)
@@ -39,7 +38,7 @@ public class AllTests {
     
     public static TestSuite suite() {
         try {
-            File dir = new File("src/org/jmlspecs/openjmltest/testcases");
+            File dir = new File("src/org/jmlspecs/openjmltest/testsuites");
             File[] dirs = dir.listFiles();
             Arrays.sort(dirs);
             TestSuite suite = new TestSuite();
@@ -47,7 +46,7 @@ public class AllTests {
                 String nm = f.getName();
                 if (!nm.endsWith(".java")) continue;
                 if (!nm.endsWith("escfiles.java")) continue;
-                nm = "org.jmlspecs.openjmltest.testcases." + nm.substring(0, nm.length()-5);
+                nm = "org.jmlspecs.openjmltest.testsuites." + nm.substring(0, nm.length()-5);
                 try {
                     suite.addTest(new junit.framework.JUnit4TestAdapter(Class.forName(nm)));
                 } catch (ClassNotFoundException e) {}

@@ -108,6 +108,7 @@ public class Utils {
     
     /** This field is used to restrict output during testing so as to 
      * make test results more deterministic (or to match old test results).
+     * It is set when processing options. It is static and so is not thread-safe.
      */
     static public boolean testingMode = false;
     
@@ -271,6 +272,10 @@ public class Utils {
      */
     public void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
+    }
+
+    public long setJML(long flags) {
+        return flags | JMLBIT;
     }
 
     public void setJMLTop(/*@ non_null */ JCModifiers mods) {
@@ -791,6 +796,22 @@ public class Utils {
     public boolean hasJavaSuffix(String filename) {
         return (filename.endsWith(".java"));
     }
+    
+    @SafeVarargs
+    public static <T> T[] concat(T[] array1, T[] ... arrays) {
+        int n = array1.length;
+        for (var a: arrays) n += a.length;
+        T[] res = java.util.Arrays.copyOf(array1, n);
+        int k = array1.length;
+        for (var a: arrays) { System.arraycopy(a, 0, res, k, a.length); k += a.length; }
+        return res;
+    }
+
+    public static <T> T[] concat2(T[] array1, T[] array2) {
+        T[] res = java.util.Arrays.copyOf(array1, array1.length + array2.length);
+        System.arraycopy(array2, 0, res, array1.length, array2.length);
+        return res;
+    }
 
 
     /** A little class to encapsulate elapsed wall-clock time */
@@ -895,22 +916,22 @@ public class Utils {
         }
         
         
-        // On the system classpath
-        {
-            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
-            if (url2 != null) {
-                String s = url2.getFile();
-                try {
-                    boolean found = readProps(properties,s);
-                    if (verbose) {
-                        if (found) noticeWriter.println("Properties read from system classpath: " + s);
-                        else noticeWriter.println("No properties found on system classpath: " + s);
-                    }
-                } catch (java.io.IOException e) {
-                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
-                }
-            }
-        }
+//        // On the system classpath
+//        {
+//            URL url2 = ClassLoader.getSystemResource(Strings.propertiesFileName);
+//            if (url2 != null) {
+//                String s = url2.getFile();
+//                try {
+//                    boolean found = readProps(properties,s);
+//                    if (verbose) {
+//                        if (found) noticeWriter.println("Properties read from system classpath: " + s);
+//                        else noticeWriter.println("No properties found on system classpath: " + s);
+//                    }
+//                } catch (java.io.IOException e) {
+//                    noticeWriter.println("Failed to read property file " + s); // FIXME - review
+//                }
+//            }
+//        }
 
         // In the user's home directory
         // Note that this implementation does not read through symbolic links
@@ -942,14 +963,17 @@ public class Utils {
         }
 
         // Set from environment variables
+        // This works for options whose names do not contain underscores or periods
+        // System property names typically have periods, so env.vars. cannot fill in for actual properties
         {
     		String prefix = "OPENJML_";
         	for (var p : System.getenv().entrySet()) {
         		if (p.getKey().startsWith(prefix)) {
         			String kk = Strings.optionPropertyPrefix + p.getKey().substring(prefix.length());
+        			kk = kk.replace('_','-');
         			properties.put(kk, p.getValue());
         		}
-        	} // FIXME - the above does not work for option names with . or - in them
+        	}
         }
         
 //        // TODO: Review the following
@@ -984,7 +1008,8 @@ public class Utils {
         return properties;
     }
 
-    /** Reads properties from the given file into the given Properties object.
+    /** Reads properties from the given file into the given Properties object, 
+     * adding to or overriding any properties already present.
      * @param properties the object to add properties to
      * @param filename the file to read properties from
      * @return true if the file was found and read successfully
@@ -1774,11 +1799,9 @@ public class Utils {
         }
     }
     
-    /** Return true if the method is to be checked, false if it is to be skipped.
-     * A warning that the method is being skipped is issued if it is being skipped
-     * and the verbosity is high enough.
-     * */
-    public boolean filter(JCMethodDecl methodDecl, boolean emitWarning) {
+    /** Return null if the method is to be checked, a reason string if it is to be skipped.
+     */
+    public String filter(JCMethodDecl methodDecl) {
         String fullyQualifiedName = this.qualifiedName(methodDecl.sym);
         String simpleName = methodDecl.name.toString();
         if (methodDecl.sym.isConstructor()) {
@@ -1795,15 +1818,11 @@ public class Utils {
                 if (fullyQualifiedName.equals(exclude) ||
                         fullyQualifiedSig.equals(exclude) ||
                         simpleName.equals(exclude)) {
-                    if (emitWarning && this.jmlverbose > Utils.PROGRESS)
-                        log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    return false;
+                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                 }
                 try {
                     if (Pattern.matches(exclude,fullyQualifiedName)) {
-                        if (emitWarning && this.jmlverbose > Utils.PROGRESS)
-                            log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it is excluded by " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                        return false;
+                        return ("Skipping " + fullyQualifiedName + " because it matches the exclusion pattern " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
                     }
                 } catch(PatternSyntaxException e) {
                     // The methodToDo can be a regular string and does not
@@ -1843,14 +1862,11 @@ public class Utils {
                         int x = 0;
                     }
                 }
-                if (emitWarning && this.jmlverbose > Utils.PROGRESS) {
-                    log().getWriter(WriterKind.NOTICE).println("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
-                }
-                return false;
+                return ("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
             }
         }
         
-        return true;
+        return null;
     }
     
     /** Returns true if the JDK -deprecation option is set */
@@ -1962,7 +1978,7 @@ public class Utils {
     	if (verifyDiagnosticFormatter == null) 
     		verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
     	    public String formatKind(JCDiagnostic d, Locale l) {
-    	    	return Utils.testingMode?"warning: ":"verify: ";
+    	    	return Utils.testingMode?"warning: ":"verify: "; // TODO: IF we use 'verify' in tests, too many tests will fail
     	    }
     	};
     	log().setDiagnosticFormatter(verifyDiagnosticFormatter);
@@ -1970,7 +1986,7 @@ public class Utils {
         log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     	log().setDiagnosticFormatter(df);
     	JCDiagnostic.Factory.instance(context).setFormatter(df2);
-    	if (!Utils.testingMode) {
+    	if (!Utils.testingMode || JmlOption.value(context, JmlOption.EXITVERIFY) != null) {
     		verifyWarnings++;
         	log().nwarnings--;
     	}
@@ -2083,6 +2099,33 @@ public class Utils {
         // Note: streams cannot be reused
         var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
         return opt.isEmpty() ? def : opt.get().substring(key.length());
+    }
+    
+    /** This method checks that a condition that is expected to always be tree is actually true.
+     * That is, if the condition is false, some internal bug has occurred.
+     * This method is used in place of ojassert if the bug is something that can be worked around.
+     *      * If the condition is false, an error message is emitted.
+     * Returns the value of the argument.
+     */
+    public boolean ojcheck(boolean condition, String message) {
+        if (!condition) {
+            // In a bug-free program, this branch will never happen
+            Log.instance(context).error("jml.internal", message != null ? message : "internal bug caught by ojcheck");
+        }
+        return condition;
+    }
+    
+    /** This method checks that a condition that is expected to always be tree is actually true.
+     * That is, if the condition is false, some internal bug has occurred.
+     * This method is used (instead of ojcheck) if there is no reasonable recovery.
+     * If the condition is false, an error message is emitted and a JmlInternalError exception is thrown.
+     */
+    public void ojassert(boolean condition, String message) {
+        if (!condition) {
+            // In a bug-free program, this branch will never happen
+            Log.instance(context).error("jml.internal", message != null ? message : "internal bug caught by ojassert");
+            throw new JmlInternalError(message);
+        }
     }
     
     static boolean verbose = System.getenv("VERBOSE") != null;

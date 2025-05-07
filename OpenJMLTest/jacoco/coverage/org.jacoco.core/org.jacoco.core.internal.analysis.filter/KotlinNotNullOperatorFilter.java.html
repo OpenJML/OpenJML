@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KotlinNotNullOperatorFilter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis.filter</a> &gt; <span class="el_source">KotlinNotNullOperatorFilter.java</span></div><h1>KotlinNotNullOperatorFilter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis.filter;
+
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+
+/**
+ * Filters branch in bytecode that Kotlin compiler generates for not-null
+ * assertion operator.
+ */
+<span class="fc" id="L23">public final class KotlinNotNullOperatorFilter implements IFilter {</span>
+
+	public void filter(final MethodNode methodNode,
+			final IFilterContext context, final IFilterOutput output) {
+<span class="fc" id="L27">		final Matcher matcher = new Matcher();</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">		for (final AbstractInsnNode i : methodNode.instructions) {</span>
+<span class="fc" id="L29">			matcher.match(i, output);</span>
+		}
+<span class="fc" id="L31">	}</span>
+
+<span class="fc" id="L33">	private static class Matcher extends AbstractMatcher {</span>
+		public void match(final AbstractInsnNode start,
+				final IFilterOutput output) {
+<span class="fc bfc" id="L36" title="All 2 branches covered.">			if (Opcodes.IFNONNULL != start.getOpcode()) {</span>
+<span class="fc" id="L37">				return;</span>
+			}
+<span class="fc" id="L39">			cursor = start;</span>
+<span class="fc" id="L40">			nextIsInvoke(Opcodes.INVOKESTATIC, &quot;kotlin/jvm/internal/Intrinsics&quot;,</span>
+					&quot;throwNpe&quot;, &quot;()V&quot;);
+<span class="fc bfc" id="L42" title="All 2 branches covered.">			if (cursor == null) {</span>
+<span class="fc" id="L43">				return;</span>
+			}
+<span class="fc" id="L45">			output.ignore(start, cursor);</span>
+<span class="fc" id="L46">		}</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

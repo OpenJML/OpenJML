@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ReportMojo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">jacoco-maven-plugin</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.maven</a> &gt; <span class="el_source">ReportMojo.java</span></div><h1>ReportMojo.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Evgeny Mandrikov - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.maven;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
+
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.jacoco.report.IReportGroupVisitor;
+
+/**
+ * Creates a code coverage report for tests of a single project in multiple
+ * formats (HTML, XML, and CSV).
+ *
+ * @since 0.5.3
+ */
+@Mojo(name = &quot;report&quot;, defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+<span class="fc" id="L31">public class ReportMojo extends AbstractReportMojo {</span>
+
+	/**
+	 * Output directory for the reports. Note that this parameter is only
+	 * relevant if the goal is run from the command line or from the default
+	 * build lifecycle. If the goal is run indirectly as part of a site
+	 * generation, the output directory configured in the Maven Site Plugin is
+	 * used instead.
+	 */
+	@Parameter(defaultValue = &quot;${project.reporting.outputDirectory}/jacoco&quot;)
+	private File outputDirectory;
+
+	/**
+	 * File with execution data.
+	 */
+	@Parameter(property = &quot;jacoco.dataFile&quot;, defaultValue = &quot;${project.build.directory}/jacoco.exec&quot;)
+	private File dataFile;
+
+	@Override
+	boolean canGenerateReportRegardingDataFiles() {
+<span class="fc" id="L51">		return dataFile.exists();</span>
+	}
+
+	@Override
+	boolean canGenerateReportRegardingClassesDirectory() {
+<span class="fc" id="L56">		return new File(project.getBuild().getOutputDirectory()).exists();</span>
+	}
+
+	@Override
+	void loadExecutionData(final ReportSupport support) throws IOException {
+<span class="fc" id="L61">		support.loadExecutionData(dataFile);</span>
+<span class="fc" id="L62">	}</span>
+
+	@Override
+	File getOutputDirectory() {
+<span class="fc" id="L66">		return outputDirectory;</span>
+	}
+
+	@Override
+	void createReport(final IReportGroupVisitor visitor,
+			final ReportSupport support) throws IOException {
+<span class="fc" id="L72">		support.processProject(visitor, title, project, getIncludes(),</span>
+<span class="fc" id="L73">				getExcludes(), sourceEncoding);</span>
+<span class="fc" id="L74">	}</span>
+
+	public File getReportOutputDirectory() {
+<span class="nc" id="L77">		return outputDirectory;</span>
+	}
+
+	public void setReportOutputDirectory(final File reportOutputDirectory) {
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">		if (reportOutputDirectory != null &amp;&amp; !reportOutputDirectory</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">				.getAbsolutePath().endsWith(&quot;jacoco&quot;)) {</span>
+<span class="fc" id="L83">			outputDirectory = new File(reportOutputDirectory, &quot;jacoco&quot;);</span>
+		} else {
+<span class="nc" id="L85">			outputDirectory = reportOutputDirectory;</span>
+		}
+<span class="fc" id="L87">	}</span>
+
+	public String getOutputName() {
+<span class="fc" id="L90">		return &quot;jacoco/index&quot;;</span>
+	}
+
+	public String getName(final Locale locale) {
+<span class="fc" id="L94">		return &quot;JaCoCo&quot;;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

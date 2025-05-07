@@ -1,4 +1,4 @@
-test/gitbug778/error.java:81: error: method xorFunctionSameLength in class error cannot be applied to given types;
+test/gitbug778/error.java:90: error: method xorFunctionSameLength in class error cannot be applied to given types;
 				//@ assert Arrays.equals(res,xorFunctionSameLength(lengthBalancerAddingZeroes(byteArray1, ( byteArray2.length -byteArray1.length) )),byteArray2);
 				                             ^
   required: byte[],byte[]

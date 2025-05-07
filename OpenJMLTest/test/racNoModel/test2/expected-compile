@@ -1,0 +1,4 @@
+test/racNoModel/NoModelTest.java:3: error: JML model field does not have a representation: zzz
+    //@ model int zzz;
+                  ^
+1 error

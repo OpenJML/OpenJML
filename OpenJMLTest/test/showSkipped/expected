@@ -1,0 +1,35 @@
+Test 0
+Test 1
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Completed proof of Test.m() with prover !!!! - no warnings
+Skipping proof of Test.n() (excluded by skipesc)
+Skipping proof of Test.q() (excluded by skipesc)
+Starting proof of Test.y() with prover !!!!
+Completed proof of Test.y() with prover !!!! - no warnings
+Starting proof of Test.z() with prover !!!!
+Completed proof of Test.z() with prover !!!! - no warnings
+Completed proving methods in Test
+Test 2
+Proving methods in Test
+Skipping proof of Test.Test() (Skipping Test.Test because it does not match m,n,z)
+Starting proof of Test.m() with prover !!!!
+Completed proof of Test.m() with prover !!!! - no warnings
+Skipping proof of Test.n() (excluded by skipesc)
+Skipping proof of Test.q() (excluded by skipesc)
+Skipping proof of Test.y() (Skipping Test.y because it does not match m,n,z)
+Skipping proof of Test.z() (Skipping Test.z because it matches the exclusion z)
+Completed proving methods in Test
+Test 3
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Completed proof of Test.m() with prover !!!! - no warnings
+Starting proof of Test.y() with prover !!!!
+Completed proof of Test.y() with prover !!!! - no warnings
+Starting proof of Test.z() with prover !!!!
+Completed proof of Test.z() with prover !!!! - no warnings
+Completed proving methods in Test

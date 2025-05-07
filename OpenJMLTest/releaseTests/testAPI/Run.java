@@ -1,0 +1,20 @@
+import java.util.Arrays;
+import org.openjml.*;
+
+public class Run {
+    
+  public static void main(String... args) {
+    String exp = System.getenv("EXPORTS");
+    var combined = args;
+    if (exp != null) {
+       String[] exps = exp.split(" ");
+       var list = Arrays.asList(exps);
+       list.addAll(Arrays.asList(args));
+       combined = (String[])list.toArray(new String[list.size()]);
+       System.out.println(String.join(" ", combined));
+    }
+    API api = (API)IAPI.make();
+    int x = IAPI.make().execute(combined);
+    System.exit(x);
+  }
+}

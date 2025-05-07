@@ -1,0 +1,51 @@
+{
+  "class": "$JmlClassDecl",
+  "mods": {
+    "class": "$JmlModifiers",
+    "annotations": [],
+    "flags": "",
+    "jmlmods": []
+  },
+  "name": "CCC",
+  "typarams": [],
+  "implementing": [],
+  "permitting": [],
+  "defs": [
+    {
+      "class": "$JmlMethodDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": [
+          "pure"
+        ]
+      },
+      "name": "\u003cinit\u003e",
+      "restype": "void",
+      "typarams": [],
+      "params": [],
+      "thrown": [],
+      "body": {
+        "class": "$JmlBlock",
+        "flags": "",
+        "stats": [
+          {
+            "class": "$JCExpressionStatement",
+            "expr": {
+              "class": "$JCMethodInvocation",
+              "type": "void",
+              "typeargs": [],
+              "meth": {
+                "class": "$JCIdent",
+                "type": "()void",
+                "name": "super"
+              },
+              "args": []
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

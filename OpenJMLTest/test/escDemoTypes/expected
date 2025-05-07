@@ -50,12 +50,12 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Types.<T>typesz(java.util.List<T>) with prover !!!! - no warnings
 Starting proof of Types.<T>types4e(java.util.List<T>) with prover !!!!
-../../OpenJMLDemo/src/openjml/demo/Types.java:52: warning: The prover cannot establish an assertion (PossiblyBadCast) in method <T>types4e:  a T cannot be proved to be a Integer
+../../OpenJMLDemo/src/openjml/demo/Types.java:52: warning: The prover cannot establish an assertion (PossiblyBadCast) in method <T>types4e: a T cannot be proved to be a Integer
 		/*@ nullable */ Integer i = (Integer)a.get(0); // Expect ERROR
 		                            ^
 Completed proof of Types.<T>types4e(java.util.List<T>) with prover !!!! - with warnings
 Starting proof of Types.types1e(java.util.List<?>) with prover !!!!
-../../OpenJMLDemo/src/openjml/demo/Types.java:56: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types1e:  a Object cannot be proved to be a Integer
+../../OpenJMLDemo/src/openjml/demo/Types.java:56: warning: The prover cannot establish an assertion (PossiblyBadCast) in method types1e: a Object cannot be proved to be a Integer
 		/*@ nullable */ Integer i = (Integer)a.get(0); // Should fail to prove
 		                            ^
 Completed proof of Types.types1e(java.util.List<?>) with prover !!!! - with warnings

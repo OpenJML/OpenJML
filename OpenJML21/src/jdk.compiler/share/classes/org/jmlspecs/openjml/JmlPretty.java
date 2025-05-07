@@ -1332,7 +1332,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.methodSpecsCombined != null) {
             that.methodSpecsCombined.cases.accept(this);
         }
-        else if (that.cases != null) that.cases.accept(this);
+        else if (that.methodSpecs != null) that.methodSpecs.accept(this);
         // FIXME - visitMethodDef will print the Java modifiers
         // and annotations that are on the Java declaration
         // We need the following to get the combined annotations

@@ -1,0 +1,9 @@
+OUT:
+#DEMO/src/features/DivideByZero.java:11: verify: JML Division by zero
+        return 1/i;
+                ^
+
+ERR:
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at features.DivideByZero.test(DivideByZero.java:11)
+	at features.DivideByZero.main(DivideByZero.java:7)

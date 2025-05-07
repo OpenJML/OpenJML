@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ICounter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.analysis</a> &gt; <span class="el_source">ICounter.java</span></div><h1>ICounter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.analysis;
+
+/**
+ * A counter holds the missed and the covered number of particular items like
+ * classes, methods, branches or instructions.
+ */
+public interface ICounter {
+
+	/**
+	 * Different values provided by a counter.
+	 */
+<span class="fc" id="L24">	enum CounterValue {</span>
+
+		/** Total number of items */
+<span class="fc" id="L27">		TOTALCOUNT,</span>
+
+		/** Number of missed items */
+<span class="fc" id="L30">		MISSEDCOUNT,</span>
+
+		/** Number of covered items */
+<span class="fc" id="L33">		COVEREDCOUNT,</span>
+
+		/** Ratio of missed to total items */
+<span class="fc" id="L36">		MISSEDRATIO,</span>
+
+		/** Ratio of covered to total items */
+<span class="fc" id="L39">		COVEREDRATIO</span>
+	}
+
+	/**
+	 * Status flag for no items (value is 0x00).
+	 */
+	int EMPTY = 0x00;
+
+	/**
+	 * Status flag when all items are not covered (value is 0x01).
+	 */
+	int NOT_COVERED = 0x01;
+
+	/**
+	 * Status flag when all items are covered (value is 0x02).
+	 */
+	int FULLY_COVERED = 0x02;
+
+	/**
+	 * Status flag when items are partly covered (value is 0x03).
+	 */
+	int PARTLY_COVERED = NOT_COVERED | FULLY_COVERED;
+
+	/**
+	 * Returns the counter value of the given type.
+	 *
+	 * @param value
+	 *            value type to return
+	 * @return counter value
+	 */
+	double getValue(CounterValue value);
+
+	/**
+	 * Returns the total count of items.
+	 *
+	 * @return total count of items
+	 */
+	int getTotalCount();
+
+	/**
+	 * Returns the count of covered items.
+	 *
+	 * @return count of covered items
+	 */
+	int getCoveredCount();
+
+	/**
+	 * Returns the count of missed items.
+	 *
+	 * @return count of missed items
+	 */
+	int getMissedCount();
+
+	/**
+	 * Calculates the ratio of covered to total count items. If total count
+	 * items is 0 this method returns NaN.
+	 *
+	 * @return ratio of covered to total count items
+	 */
+	double getCoveredRatio();
+
+	/**
+	 * Calculates the ratio of missed to total count items. If total count items
+	 * is 0 this method returns NaN.
+	 *
+	 * @return ratio of missed to total count items
+	 */
+	double getMissedRatio();
+
+	/**
+	 * Returns the coverage status of this counter.
+	 *
+	 * @see ICounter#EMPTY
+	 * @see ICounter#NOT_COVERED
+	 * @see ICounter#PARTLY_COVERED
+	 * @see ICounter#FULLY_COVERED
+	 *
+	 * @return status of this line
+	 */
+	int getStatus();
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

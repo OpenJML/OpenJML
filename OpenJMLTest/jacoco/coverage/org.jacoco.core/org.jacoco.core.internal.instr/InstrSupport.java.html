@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InstrSupport.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.instr</a> &gt; <span class="el_source">InstrSupport.java</span></div><h1>InstrSupport.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.instr;
+
+import static java.lang.String.format;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+/**
+ * Constants and utilities for byte code instrumentation.
+ */
+public final class InstrSupport {
+
+	private InstrSupport() {
+	}
+
+	/** ASM API version */
+	public static final int ASM_API_VERSION = Opcodes.ASM9;
+
+	// === Data Field ===
+
+	/**
+	 * Name of the field that stores coverage information of a class.
+	 */
+	public static final String DATAFIELD_NAME = &quot;$jacocoData&quot;;
+
+	/**
+	 * Access modifiers of the field that stores coverage information of a
+	 * class.
+	 *
+	 * According to Java Virtual Machine Specification &lt;a href=
+	 * &quot;https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.putstatic&quot;&gt;
+	 * §6.5.putstatic&lt;/a&gt; this field must not be final:
+	 *
+	 * &lt;blockquote&gt;
+	 * &lt;p&gt;
+	 * if the field is final, it must be declared in the current class, and the
+	 * instruction must occur in the {@code &lt;clinit&gt;} method of the current
+	 * class.
+	 * &lt;/p&gt;
+	 * &lt;/blockquote&gt;
+	 */
+	public static final int DATAFIELD_ACC = Opcodes.ACC_SYNTHETIC
+			| Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_TRANSIENT;
+
+	/**
+	 * Access modifiers of the field that stores coverage information of a Java
+	 * 8 interface.
+	 *
+	 * According to Java Virtual Machine Specification &lt;a href=
+	 * &quot;https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.5-200-A.3&quot;&gt;
+	 * §4.5&lt;/a&gt;:
+	 *
+	 * &lt;blockquote&gt;
+	 * &lt;p&gt;
+	 * Fields of interfaces must have their ACC_PUBLIC, ACC_STATIC, and
+	 * ACC_FINAL flags set; they may have their ACC_SYNTHETIC flag set and must
+	 * not have any of the other flags.
+	 * &lt;/p&gt;
+	 * &lt;/blockquote&gt;
+	 */
+	public static final int DATAFIELD_INTF_ACC = Opcodes.ACC_SYNTHETIC
+			| Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
+
+	/**
+	 * Data type of the field that stores coverage information for a class (
+	 * &lt;code&gt;boolean[]&lt;/code&gt;).
+	 */
+	public static final String DATAFIELD_DESC = &quot;[Z&quot;;
+
+	// === Init Method ===
+
+	/**
+	 * Name of the initialization method.
+	 */
+	public static final String INITMETHOD_NAME = &quot;$jacocoInit&quot;;
+
+	/**
+	 * Descriptor of the initialization method.
+	 */
+	public static final String INITMETHOD_DESC = &quot;()[Z&quot;;
+
+	/**
+	 * Access modifiers of the initialization method.
+	 */
+	public static final int INITMETHOD_ACC = Opcodes.ACC_SYNTHETIC
+			| Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC;
+
+	/**
+	 * Name of the interface initialization method.
+	 *
+	 * According to Java Virtual Machine Specification &lt;a href=
+	 * &quot;https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.9-200&quot;&gt;
+	 * §2.9&lt;/a&gt;:
+	 *
+	 * &lt;blockquote&gt;
+	 * &lt;p&gt;
+	 * A class or interface has at most one class or interface initialization
+	 * method and is initialized by invoking that method. The initialization
+	 * method of a class or interface has the special name {@code &lt;clinit&gt;},
+	 * takes no arguments, and is void.
+	 * &lt;/p&gt;
+	 * &lt;p&gt;
+	 * Other methods named {@code &lt;clinit&gt;} in a class file are of no
+	 * consequence. They are not class or interface initialization methods. They
+	 * cannot be invoked by any Java Virtual Machine instruction and are never
+	 * invoked by the Java Virtual Machine itself.
+	 * &lt;/p&gt;
+	 * &lt;p&gt;
+	 * In a class file whose version number is 51.0 or above, the method must
+	 * additionally have its ACC_STATIC flag set in order to be the class or
+	 * interface initialization method.
+	 * &lt;/p&gt;
+	 * &lt;p&gt;
+	 * This requirement was introduced in Java SE 7. In a class file whose
+	 * version number is 50.0 or below, a method named {@code &lt;clinit&gt;} that is
+	 * void and takes no arguments is considered the class or interface
+	 * initialization method regardless of the setting of its ACC_STATIC flag.
+	 * &lt;/p&gt;
+	 * &lt;/blockquote&gt;
+	 *
+	 * And &lt;a href=
+	 * &quot;https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.6-200-A.6&quot;&gt;
+	 * §4.6&lt;/a&gt;:
+	 *
+	 * &lt;blockquote&gt;
+	 * &lt;p&gt;
+	 * Class and interface initialization methods are called implicitly by the
+	 * Java Virtual Machine. The value of their access_flags item is ignored
+	 * except for the setting of the ACC_STRICT flag.
+	 * &lt;/p&gt;
+	 * &lt;/blockquote&gt;
+	 */
+	static final String CLINIT_NAME = &quot;&lt;clinit&gt;&quot;;
+
+	/**
+	 * Descriptor of the interface initialization method.
+	 *
+	 * @see #CLINIT_NAME
+	 */
+	static final String CLINIT_DESC = &quot;()V&quot;;
+
+	/**
+	 * Access flags of the interface initialization method generated by JaCoCo.
+	 *
+	 * @see #CLINIT_NAME
+	 */
+	static final int CLINIT_ACC = Opcodes.ACC_SYNTHETIC | Opcodes.ACC_STATIC;
+
+	/**
+	 * Gets major version number from given bytes of class (unsigned two bytes
+	 * at offset 6).
+	 *
+	 * @param b
+	 *            bytes of class
+	 * @return major version of bytecode
+	 * @see &lt;a href=
+	 *      &quot;https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.1&quot;&gt;Java
+	 *      Virtual Machine Specification §4 The class File Format&lt;/a&gt;
+	 * @see #setMajorVersion(int, byte[])
+	 * @see #getMajorVersion(ClassReader)
+	 */
+	public static int getMajorVersion(final byte[] b) {
+<span class="fc" id="L176">		return ((b[6] &amp; 0xFF) &lt;&lt; 8) | (b[7] &amp; 0xFF);</span>
+	}
+
+	/**
+	 * Sets major version number in given bytes of class (unsigned two bytes at
+	 * offset 6).
+	 *
+	 * @param majorVersion
+	 *            major version of bytecode to set
+	 * @param b
+	 *            bytes of class
+	 * @see #getMajorVersion(byte[])
+	 */
+	public static void setMajorVersion(final int majorVersion, final byte[] b) {
+<span class="fc" id="L190">		b[6] = (byte) (majorVersion &gt;&gt;&gt; 8);</span>
+<span class="fc" id="L191">		b[7] = (byte) majorVersion;</span>
+<span class="fc" id="L192">	}</span>
+
+	/**
+	 * Gets major version number from given {@link ClassReader}.
+	 *
+	 * @param reader
+	 *            reader to get information about the class
+	 * @return major version of bytecode
+	 * @see ClassReader#ClassReader(byte[], int, int)
+	 * @see #getMajorVersion(byte[])
+	 */
+	public static int getMajorVersion(final ClassReader reader) {
+		// relative to the beginning of constant pool because ASM provides API
+		// to construct ClassReader which reads from the middle of array
+<span class="fc" id="L206">		final int firstConstantPoolEntryOffset = reader.getItem(1) - 1;</span>
+<span class="fc" id="L207">		return reader.readUnsignedShort(firstConstantPoolEntryOffset - 4);</span>
+	}
+
+	/**
+	 * Determines whether the given class file version requires stackmap frames.
+	 *
+	 * @param version
+	 *            class file version
+	 * @return &lt;code&gt;true&lt;/code&gt; if frames are required
+	 */
+	public static boolean needsFrames(final int version) {
+		// consider major version only (due to 1.1 anomaly)
+<span class="fc bfc" id="L219" title="All 2 branches covered.">		return (version &amp; 0xFFFF) &gt;= Opcodes.V1_6;</span>
+	}
+
+	/**
+	 * Ensures that the given member does not correspond to a internal member
+	 * created by the instrumentation process. This would mean that the class is
+	 * already instrumented.
+	 *
+	 * @param member
+	 *            name of the member to check
+	 * @param owner
+	 *            name of the class owning the member
+	 * @throws IllegalStateException
+	 *             thrown if the member has the same name than the
+	 *             instrumentation member
+	 */
+	public static void assertNotInstrumented(final String member,
+			final String owner) throws IllegalStateException {
+<span class="fc bfc" id="L237" title="All 4 branches covered.">		if (member.equals(DATAFIELD_NAME) || member.equals(INITMETHOD_NAME)) {</span>
+<span class="fc" id="L238">			throw new IllegalStateException(format(</span>
+					&quot;Cannot process instrumented class %s. Please supply original non-instrumented classes.&quot;,
+					owner));
+		}
+<span class="fc" id="L242">	}</span>
+
+	/**
+	 * Generates the instruction to push the given int value on the stack.
+	 * Implementation taken from
+	 * {@link org.objectweb.asm.commons.GeneratorAdapter#push(int)}.
+	 *
+	 * @param mv
+	 *            visitor to emit the instruction
+	 * @param value
+	 *            the value to be pushed on the stack.
+	 */
+	public static void push(final MethodVisitor mv, final int value) {
+<span class="fc bfc" id="L255" title="All 4 branches covered.">		if (value &gt;= -1 &amp;&amp; value &lt;= 5) {</span>
+<span class="fc" id="L256">			mv.visitInsn(Opcodes.ICONST_0 + value);</span>
+<span class="fc bfc" id="L257" title="All 4 branches covered.">		} else if (value &gt;= Byte.MIN_VALUE &amp;&amp; value &lt;= Byte.MAX_VALUE) {</span>
+<span class="fc" id="L258">			mv.visitIntInsn(Opcodes.BIPUSH, value);</span>
+<span class="fc bfc" id="L259" title="All 4 branches covered.">		} else if (value &gt;= Short.MIN_VALUE &amp;&amp; value &lt;= Short.MAX_VALUE) {</span>
+<span class="fc" id="L260">			mv.visitIntInsn(Opcodes.SIPUSH, value);</span>
+		} else {
+<span class="fc" id="L262">			mv.visitLdcInsn(Integer.valueOf(value));</span>
+		}
+<span class="fc" id="L264">	}</span>
+
+	/**
+	 * Creates a {@link ClassReader} instance for given bytes of class even if
+	 * its version not yet supported by ASM.
+	 *
+	 * @param b
+	 *            bytes of class
+	 * @return {@link ClassReader}
+	 */
+	public static ClassReader classReaderFor(final byte[] b) {
+<span class="fc" id="L275">		final int originalVersion = getMajorVersion(b);</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">		if (originalVersion == Opcodes.V21 + 1) {</span>
+			// temporarily downgrade version to bypass check in ASM
+<span class="fc" id="L278">			setMajorVersion(Opcodes.V21, b);</span>
+		}
+<span class="fc" id="L280">		final ClassReader classReader = new ClassReader(b);</span>
+<span class="fc" id="L281">		setMajorVersion(originalVersion, b);</span>
+<span class="fc" id="L282">		return classReader;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

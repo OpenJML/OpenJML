@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AllCommands.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.cli</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.cli.internal.commands</a> &gt; <span class="el_source">AllCommands.java</span></div><h1>AllCommands.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.cli.internal.commands;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.jacoco.cli.internal.Command;
+
+/**
+ * List of all available commands.
+ */
+public final class AllCommands {
+
+	private AllCommands() {
+	}
+
+	/**
+	 * @return list of new instances of all available commands
+	 */
+	public static List&lt;Command&gt; get() {
+<span class="fc" id="L32">		return Arrays.asList(new Dump(), new Instrument(), new Merge(),</span>
+				new Report(), new ClassInfo(), new ExecInfo(), new Version());
+	}
+
+	/**
+	 * @return String containing all available command names
+	 */
+	public static String names() {
+<span class="fc" id="L40">		final StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">		for (final Command c : get()) {</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">			if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L43">				sb.append('|');</span>
+			}
+<span class="fc" id="L45">			sb.append(c.name());</span>
+		}
+<span class="fc" id="L47">		return sb.toString();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

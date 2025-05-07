@@ -87,7 +87,7 @@ public class error{
 
 			else if (byteArray1.length < byteArray2.length) {// byteArray1_len < byteArray2_len
 				res = xorFunctionSameLength(lengthBalancerAddingZeroes(byteArray1,  ( byteArray2.length-byteArray1.length)), byteArray2 );
-				//@ assert Arrays.equals(res,xorFunctionSameLength(lengthBalancerAddingZeroes(byteArray1, ( byteArray2.length -byteArray1.length) ),byteArray2));
+				//@ assert Arrays.equals(res,xorFunctionSameLength(lengthBalancerAddingZeroes(byteArray1, ( byteArray2.length -byteArray1.length) )),byteArray2);
 
 				return res;
 			} 

@@ -1,0 +1,3 @@
+public class B {
+  //@ invariant 0; // bbspecs/B.jml
+}

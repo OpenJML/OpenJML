@@ -8,6 +8,7 @@ package com.sun.tools.javac.main;
 import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.main.Option.PROC;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlAstPrinter;
 import org.jmlspecs.openjml.JmlCheckSpecs;
+import org.jmlspecs.openjml.JmlJson;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
@@ -41,6 +43,7 @@ import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.visitors.JmlUseSubstitutions;
+import org.jmlspecs.openjml.JmlTree.JmlSource;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -77,6 +80,11 @@ import com.sun.tools.javac.util.PropagatedException;
 
 import static com.sun.tools.javac.parser.Tokens.*;
 
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+
 /**
  * This class extends the JavaCompiler class in order to find and parse
  * specification files when a Java source file is parsed.
@@ -112,10 +120,11 @@ public class JmlCompiler extends JavaCompiler {
      * @param context the compilation context for which this instance is being created
      */
     protected JmlCompiler(Context context) {
+        // CAUTION: Options are not read when JmlCompiler is first instantiated
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler
+        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler // FIXME - options not yet set???
         this.resolver = JmlResolve.instance(context);
     }
     
@@ -125,15 +134,16 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
-    	// init must be called before the trees are entered because entering trees invokes
-    	// type resolution, which requires the init() call
-    	// (If we do this initialization during tool registration, we get circular instantiation)
-    	init();
-    	JmlEnter.instance(context).hold();
-    	var list = super.enterTrees(roots);
-    	JmlEnter.instance(context).release();
-    	JmlEnter.instance(context).flush();
-    	return list;
+        // init must be called before the trees are entered because entering trees invokes
+        // type resolution, which requires the init() call
+        // (If we do this initialization during tool registration, we get circular instantiation)
+        init();
+        //    	JmlEnter.instance(context).hold();
+        var list = super.enterTrees(roots);
+        //    	JmlEnter.instance(context).release();
+        var any = JmlEnter.instance(context).flush(); // FIXME - not sure this is needed
+        //if (any) System.out.println("JmlCompiler - flush is needed");
+        return list;
     }
     
     static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
@@ -150,6 +160,7 @@ public class JmlCompiler extends JavaCompiler {
     // If there is no .jml file, we parse the .java with the annotations as the specs.
     //@ nullable
     JavaFileObject checkForSpecsFile(JavaFileObject filename, CharSequence charSeq) {
+        //System.out.println("FIND SPEC FOR SOURCE " + filename);
         var charBuf = charSeq instanceof java.nio.CharBuffer cb ? cb : java.nio.CharBuffer.wrap(charSeq);
     	JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
         var tokenizer = new com.sun.tools.javac.parser.JmlTokenizer(fac, charBuf, true);
@@ -184,7 +195,14 @@ public class JmlCompiler extends JavaCompiler {
     	s = s.substring(0,k); // filename without suffix or directory
     	name += s; // fully qualified class name
     	if (debugParse) System.out.println("parser: Seeking specfile for " + name);
-    	return JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+    	var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+    	if (specFile == null) {
+    	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
+    	    var path = java.nio.file.Paths.get(filename.toUri().getPath());
+    	    specFile = JmlSpecs.instance(context).new FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"));
+    	}
+        //System.out.println("  FOUND " + specFile);
+    	return specFile;
     }
     
     /** Overridden to emit debug information */
@@ -195,6 +213,7 @@ public class JmlCompiler extends JavaCompiler {
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
         	// TODO - what output writer to use?
+            System.out.println("classpath:  " + Utils.join(":",JmlSpecs.instance(context).getClassPath()));
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }
@@ -204,32 +223,159 @@ public class JmlCompiler extends JavaCompiler {
     
     @Override
     public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
-    	try {
-    		return super.parseFiles(fileObjects);
-    	} catch (AssertionError e) {
-    		// Some parse errors cause an AssertionError. This catches it and converts it to 
-    		// the empty list, which is the usual way to communicate that the chain of compiler phases
-    		// is to be aborted.
-        	return List.<JCCompilationUnit>nil();
-    	}
+        try {
+            var compunits = super.parseFiles(fileObjects);
+            if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
+                String ss = JmlOption.value(context, JmlOption.SHOW);
+                if (ss.contains("ast")) {
+                    for (var cu: compunits) {
+                        System.out.println(JmlAstPrinter.print(cu, context));
+//                        if (specCU != null) {
+//                            System.out.println(JmlAstPrinter.print(specCU, context));
+//                        }
+                    }
+                }
+
+                if (ss.startsWith("json")) {
+                    writeJson(compunits);
+                }
+
+            }
+            return compunits;
+        } catch (AssertionError e) {
+            // Some parse errors cause an AssertionError. This catches it and converts it to 
+            // the empty list, which is the usual way to communicate that the chain of compiler phases
+            // is to be aborted.
+            return List.<JCCompilationUnit>nil();
+        }
+    }
+    
+    public void writeJson(ListBuffer<Env<AttrContext>> results) {
+        String dest = options.get("-d");
+        if (dest != null && !dest.equals("-") && !new java.io.File(dest).exists() && !new java.io.File(dest).mkdirs()) {
+            utils.error("jml.message", "Failed to create output directories: " + dest);
+            return;
+        }
+        var json = new org.jmlspecs.openjml.JmlJson(context);
+        for (var env: results) {
+            var cu = (JmlClassDecl)env.tree;
+            if (utils.isSpecFile(cu.source())) continue; // TODO - for now, because too much of Java/JML is not yet implemented
+            //System.out.println("JSON FOR " + cu.name + " " + cu.sourcefile);
+            writeJson(dest, json, cu, cu.name.toString());
+        }
+    }
+    
+    public void writeJson(List<JCCompilationUnit> compunits) {
+        String dest = options.get("-d");
+        if (dest != null && !dest.equals("-") && !new java.io.File(dest).exists() && !new java.io.File(dest).mkdirs()) {
+            utils.error("jml.message", "Failed to create output directories: " + dest);
+            return;
+        }
+
+        var json = new org.jmlspecs.openjml.JmlJson(context);
+        for (var cu: compunits) {
+            //System.out.println("JSON FOR " + cu.sourcefile);
+            writeJson(dest, json, (JmlCompilationUnit)cu, null);
+        }
+    }
+
+    private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name) {
+        String sourcepath = decl.source().getName();
+        String out = null;
+        try {
+            out = json.toJson((JCTree)decl);
+        } catch (Throwable e) {
+            try (var outputStream = new java.io.ByteArrayOutputStream(); var printStream = new java.io.PrintStream(outputStream)) {
+                utils.error("jml.message", "Failed translate to json (" + sourcepath + "): "+ e);
+                e.printStackTrace(printStream);
+
+                out = outputStream.toString();
+            } catch (Throwable ee) {
+                ee.printStackTrace(System.out); // FIXME - better error report
+            }
+        }
+        if (dest == null) {
+            // FIXME - cleanup name calculation
+            // Write to file as sibling of input
+            String path = sourcepath + ".json";
+            if (name != null) {
+                int k = sourcepath.lastIndexOf("/");
+                path = sourcepath.substring(0, k+1) + name + ".json";
+            }
+            try {
+                new java.io.File(path).delete();
+                new java.io.File(path).createNewFile();
+                try ( var fw = new java.io.FileWriter(path); ) {
+                    fw.append(out);
+                    fw.append("\n");
+                } finally {}
+            } catch (java.io.IOException e) {
+                utils.error("jml.message", "Failed to delete or write to output: " + path + ": " + e);
+            }
+        } else if (dest.equals("-")) {
+            // Write all files consecutively to standard out
+            System.out.println(out);
+        } else {
+            // FIXME - cleanup name calculation
+            // Write files using 'dest' as package root
+            String pdecl = "";
+            if (decl instanceof JmlCompilationUnit ccu) {
+                pdecl = ccu.pid == null ? "" : ccu.pid.pid.toString().replace('.','/') + "/";
+            } else if (decl instanceof JmlClassDecl cd) {
+                pdecl = cd.sym.fullname.toString();
+                int k = pdecl.lastIndexOf('.');
+                pdecl = k < 0 ? "" : pdecl.substring(0,k).replace('.','/');
+            }
+            String pid = pdecl;
+            String path = sourcepath;
+            if (name == null) {
+                int k = path.lastIndexOf('/');
+                path = path.substring(k+1);
+            } else {
+                path = "/" + name;
+            }
+            var dir = dest + "/" + pid;
+            path = dir + path + ".json";
+            try {
+                new java.io.File(path).delete();
+                if (!new java.io.File(dir).exists() && !new java.io.File(dir).mkdirs()) {
+                    utils.error("jml.message", "Failed to create output directories: " + dir);
+                    return out;
+                }
+                if (!new java.io.File(path).createNewFile()) {
+                    utils.error("jml.message", "Failed to create output file: " + path);
+                    return out;
+                }
+                try ( var fw = new java.io.FileWriter(path); ) {
+                    fw.append(out);
+                    fw.append("\n");
+                } finally {}
+            } catch (Throwable e) {
+                utils.error("jml.message", "Failed to delete or write to output: " + path + ": " + e);
+            }
+        }
+        return out;
     }
  
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;
-        noJML = false;
+        boolean jmlOption = JmlOption.isOption(context, JmlOption.JML);
+        noJML = !jmlOption;
         var charSeq = readSource(filename);
         try {
         	if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
+        	    // If the file is a source file and there is a specs file, we ignore any JML in the source file
+        	    // We also always ignore the JML if -no-jml has been set
         		specFile = checkForSpecsFile(filename, charSeq);
-        		noJML = specFile != null; // Using the noJML field to pass a parameter to the scanner factory is a hack and precludes parallel parsing within a context
+        		noJML = specFile != null || !jmlOption;
         	}
         	// This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
         	JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
         	if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
         	JmlCompilationUnit specCU = null;
-        	if (specFile != null) {
-        		noJML = false;
+        	if (specFile != null && jmlOption) {
+        		noJML = !jmlOption;
         		log.useSource(specFile);
         		charSeq = readSource(specFile);
         		specCU = (JmlCompilationUnit)parse(specFile, charSeq);
@@ -243,8 +389,8 @@ public class JmlCompiler extends JavaCompiler {
                 javaCU.sourceCU = javaCU;
         	}
         	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
-            if (debugParse && filename.toString().contains("Object")) { System.out.println(specCU.toString()); }
-            org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
+            
+        	org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
             if (specCU != null) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
             if (javaCU != null && JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
                 String ss = JmlOption.value(context, JmlOption.SHOW);
@@ -260,13 +406,16 @@ public class JmlCompiler extends JavaCompiler {
         	// FIXME - are javaCU and specCU always non-null?
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)
         } finally {
-            noJML = false;
+            noJML = !jmlOption;
             log.useSource(prev);
         }
     }
     
     /** This flag determines whether JML annotations are being parsed -- it is a bit of a hack to communicate with the scanner */
-    public boolean noJML = false;
+    // CAUTION: JmlCompiler is instantiated before the options are parsed
+    private boolean noJML = false;
+    public boolean disableJML() { return noJML; }
+    public void disableJML(boolean b) { noJML = b; }
     
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or
@@ -349,6 +498,15 @@ public class JmlCompiler extends JavaCompiler {
 //        	}
 //        }
 
+        if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
+            String ss = JmlOption.value(context, JmlOption.SHOW);
+            if (ss.contains("typedjson")) {
+                writeJson(results);
+            }
+
+        }
+        
+
         return stopIfError(CompileState.ATTR, results);
     }
 
@@ -395,7 +553,7 @@ public class JmlCompiler extends JavaCompiler {
         	var results = new java.util.LinkedList<Env<AttrContext>>();
         	for (var env: envs) {
         		var t = env.tree;
-        		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;
+                if (utils.isSpecFile(((JmlTree.JmlSource)t).source())) continue;
         		env = rac(env);
         		if (env == null) continue;
         		results.add(env);
@@ -424,6 +582,7 @@ public class JmlCompiler extends JavaCompiler {
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+        //System.out.println("RACING " + env.tree.getClass() + " " + env.toplevel.sourcefile);
         
         // TODO - will sourcefile always exist? -- JLS
         String currentFile = env.toplevel.sourcefile.getName();

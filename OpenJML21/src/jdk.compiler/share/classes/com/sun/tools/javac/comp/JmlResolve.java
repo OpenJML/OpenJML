@@ -21,6 +21,7 @@ import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.Tag;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Context;
@@ -53,8 +54,15 @@ public class JmlResolve extends Resolve {
      * this class through the setJML method.  Note that contexts are nested, 
      * so you should remember and
      * restore the value of this flag when you are setting it.
+     * Setting this to true is for name resolution within a JML annotation.
      */
     protected boolean allowJML = false;
+    
+    /** This flag is set true when a name resolution is within a .jml file
+     * and thus should use the import list in the .jml file; this is not the
+     * same as being within a JML annotation (which is what allowJML is for).
+     */
+    protected boolean inJMLCU = false;
     
     /** Cached value of a org.jmlspecs.openjml.Utils object */
     final protected Utils utils;
@@ -97,6 +105,12 @@ public class JmlResolve extends Resolve {
         this.attr = JmlAttr.instance(context);
         
     }
+    /** Sets the value of inJML, returning the old value */
+    public boolean setInJMLCU(boolean inJMLCU) {
+        boolean b = this.inJMLCU;
+        this.inJMLCU = inJMLCU;
+        return b;
+    }
     
     /** This method is used to set the value of the allowJML flag.  It returns
      * the previous value.
@@ -104,7 +118,7 @@ public class JmlResolve extends Resolve {
      * @return the old value
      */
     public boolean setAllowJML(boolean allowJML) {
-        //if (!allowJML) { System.out.println("SETTING ALLOWJML " + allowJML); Utils.dumpStack(); }
+        //System.out.println("SETTING ALLOWJML TO " + allowJML); Utils.dumpStack();
         boolean b = this.allowJML;
         this.allowJML = allowJML;
         return b;
@@ -126,11 +140,56 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
-//        if (e.toString().equals("B")) {
-//            System.out.println("JMLRESOLVE " + e + " " + allowJML + " " + utils.isJML(e.flags_field) + " " + e.owner);
-//            //org.jmlspecs.openjml.Utils.dumpStack();
-//        }
         return allowJML || !utils.isJML(e.flags_field);
+    }
+    
+    @Override
+    Symbol findTypeGlobalDetails(Env<AttrContext> env, Name name, Symbol bestSoFar) {
+        if (!env.tree.hasTag(Tag.IMPORT)) {
+            Symbol sym;
+            var cu = (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit)env.toplevel;
+            var speccu = cu.specsCompilationUnit;
+            
+            boolean deb2 = false; // name.toString().equals("X") || name.toString().equals("Q");
+            if (deb2) System.out.println("SEARCHING FOR GLOBAL: " + name + "  allowJML=" + allowJML + "  inJMLCU=" + inJMLCU + " " + (speccu == null) + " " + (speccu == cu));
+
+            if (inJMLCU) {
+                sym = findGlobalType(env, speccu.namedImportScope, name, namedImportScopeRecovery);
+            } else {
+                sym = findGlobalType(env, cu.namedImportScope, name, namedImportScopeRecovery);
+            }
+            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a named import");
+            if (sym.exists()) return sym;
+            else bestSoFar = bestOf(bestSoFar, sym);
+
+            sym = findGlobalType(env, cu.toplevelScope, name, noRecovery);
+            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a top-level class");
+            if (sym.exists()) return sym;
+            else bestSoFar = bestOf(bestSoFar, sym);
+
+            sym = findGlobalType(env, cu.packge.members(), name, noRecovery);
+            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a package class");
+            if (sym.exists()) return sym;
+            else bestSoFar = bestOf(bestSoFar, sym);
+
+            if (inJMLCU) {
+                sym = findGlobalType(env, speccu.starImportScope, name, starImportScopeRecovery);
+            } else {
+                sym = findGlobalType(env, cu.starImportScope, name, starImportScopeRecovery);
+            }
+            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a star import");
+            if (sym.exists()) return sym;
+            else bestSoFar = bestOf(bestSoFar, sym);
+            //if (deb2) { System.out.println("BEST " + bestSoFar); org.jmlspecs.openjml.Utils.dumpStack(); }
+        }
+
+        return bestSoFar;
+    }
+    
+    Symbol findIdent(DiagnosticPosition pos, Env<AttrContext> env, Name name, KindSelector kind) {
+        //if (name.toString().equals("Q")) System.out.println("FINDIDENT " + name + " " + allowJML);
+        var s = super.findIdent(pos, env, name, kind);
+        return s;
     }
     
     public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,

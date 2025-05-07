@@ -1,0 +1,11 @@
+/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/testspecs/java-util-ArrayList/TestArrayList.java:44: warning: [unchecked] unchecked cast
+    ArrayList<Integer> aa = (ArrayList<Integer>)a.clone();
+                                                       ^
+  required: java.util.ArrayList<java.lang.Integer>
+  found:    java.lang.Object
+Proving methods in TestArrayList
+Starting proof of TestArrayList.esc(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestArrayList.esc(int) with prover !!!! - no warnings
+Completed proving methods in TestArrayList
+1 warning

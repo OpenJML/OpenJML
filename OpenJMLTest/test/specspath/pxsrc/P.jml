@@ -1,0 +1,3 @@
+public class P { 
+  //@ invariant 0; // pxsrc/P.jml
+}

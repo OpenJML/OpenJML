@@ -141,7 +141,8 @@ public class JmlTokenizer extends JavadocTokenizer {
     // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
-        if (scannerDebug) System.out.println("COMMENT " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug) System.out.println("COMMENT " + noJML + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug && String.valueOf(buffer,pos,endPos-pos).startsWith("//@ assert")) Utils.dumpStack();
         
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
         	// The nested block will have the same end point as the outer block
@@ -215,21 +216,11 @@ public class JmlTokenizer extends JavadocTokenizer {
             boolean isplus = ch == '+';
 
             ch = next();
-            if (!Character.isLetter(ch)) {
-               	if (ch == '@') {
-                    Utils.instance(context).warning(plusPosition,"jml.message",
-                    		"Annotation comments beginning with +@ or -@ are no longer supported; use keys instead");
-
-            	}
-            	reset(endPos);
-                return super.processComment(pos, endPos, style);
-            }
             if (ch == '@') {
                 // Old -style //+@ or //-@ comments
                 
                 if (Options.instance(context).isSet("-Xlint:deprecation")) {
-                    Utils.instance(context).warning(commentStart,plusPosition, position(),
-                    		"jml.deprecated.conditional.annotation");
+                    Utils.instance(context).warning(plusPosition,"jml.deprecated.conditional.annotation");
                 }
 
                 // To be backward compatible at the moment,
@@ -239,15 +230,15 @@ public class JmlTokenizer extends JavadocTokenizer {
                 return super.processComment(pos, endPos, style);
             }
             if (isplus) someplus = true;
-            // We might call nextToken here and look for an identifier,
-            // but that could be a recursive call of nextToken, which might
-            // be dangerous, so we use scanIdent instead
             if (!Character.isJavaIdentifierStart(ch)) {
-                // Not a valid JML comment - just return
-                // Restart after the comment
+                // This character is the beginning of a key, which must be a Java identifier. If not
+                // this is an invalid JML comment and is silently ignored (as it probably is a simple Java comment.)
                 reset(endPos);
                 return super.processComment(pos, endPos, style);
             }
+            // We might call nextToken here and look for an identifier,
+            // but that could be a recursive call of nextToken, which might
+            // be dangerous, so we use scanIdent instead
             // Check for keys
             scanIdent(); // Only valid if ch is isJavaIdentifierStart; sets 'name'
             sb.setLength(0); // See the use of sb in JavaTokenizer - if sb is not reset, then the
@@ -290,19 +281,14 @@ public class JmlTokenizer extends JavadocTokenizer {
             reset(endPos);
             return super.processComment(pos, endPos, style);
         }
-        if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
-        		&& JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
-        	if (isOneOf('+','-')) {
-                Utils.instance(context).warning(position(),
-                		"Annotation comments beginning with @+ or @- are no longer supported; use keys instead");
-
-        	}
-        	// Not a valid JML comment if there is not whitespace after the @.
-        	// This is to avoid processing commented out Annotations, like //@Injected or //@line
-        	reset(endPos);
+        if (!(isOneOf(' ','\t','{','[') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{','[')))
+                && JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
+            // Not a valid JML comment if there is not whitespace after the @.
+            // This is to avoid processing commented out Annotations, like //@Injected or //@line
+            reset(endPos);
             return super.processComment(pos, endPos, style);
         }
-        
+
         if (!jml) {
             tk = TokenKind.CUSTOM;
             jmlTokenClauseKind = Operators.startjmlcommentKind;
@@ -310,6 +296,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
+            if (scannerDebug) System.out.println("ENTERING JML " + p);
             nestedBlockComment = false;
             if (style == CommentStyle.BLOCK) {
             	if (scannerDebug) System.out.println("SETTING EBC " + p + " " + (endPos-2) + " " + length());
@@ -324,24 +311,14 @@ public class JmlTokenizer extends JavadocTokenizer {
             
             // do nothing
         }
-        return null; // Tell the caller to ignore the comment - that is, to not consider it a regular comment
+        return null; // Tell the caller to ignore the comment - that is, to not consider it a regular Java comment
     }
     
     @SuppressWarnings("this-escape")
     public int endBlockComment = length();
     
-    /** Checks comment nesting and resets to position after the comment; only call this for
-     * valid JML comments, whether processed or not */
+    /** Fixes position when comment processing is aborted */
     protected void cleanup(int commentStart, int endPos, CommentStyle style) {
-//        if (jml && jmlcommentstyle == CommentStyle.LINE && style == CommentStyle.BLOCK) {
-//            do {
-//                char cch = next();
-//                if (cch == '\r' || cch == '\n') {
-//                    log.error(commentStart, "jml.message", "Java block comment must terminate within the JML line comment");
-//                    break;
-//                }
-//            } while (position() < endPos);
-//        }
     	if (endPos != position()) reset(endPos); // Needed if we abort a comment before completing it
     }
     
@@ -431,6 +408,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     nestedBlockComment = false;
                 } else {
                     jml = false;
+                    if (scannerDebug) System.out.println("LEAVING JML ");
                     endPos = position();
                     if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
@@ -462,6 +440,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     tk = TokenKind.CUSTOM;
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                     jml = false;
+                    if (scannerDebug) System.out.println("LEAVING JML-B " + position());
                     endPos = position();
                 	if (scannerDebug) System.out.println("RESETTING EBC@ " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
@@ -572,6 +551,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 if (!isTextBlock) {
                     jml = false;
+                    if (scannerDebug) System.out.println("LEAVING JML-C " + pos + " " + endPos);
                     nestedBlockComment = false;
                     if (returnEndOfCommentTokens) {
                         tk = TokenKind.CUSTOM;
@@ -640,49 +620,54 @@ public class JmlTokenizer extends JavadocTokenizer {
     	tk = null;
     	super.scanOperator();
         if (!jml) return; // not in JML - so we scanned a regular Java operator
-        if (tk == null && get() == '\\') {
-            // backslash identifiers get redirected here since a \ itself is an
-            // error in pure Java - isSpecial does the trick
-            int ep = position();
-            put(); // include the backslash
-            char ch = next();
-            if (Character.isLetter(ch)) {
-                super.scanIdent();  // tk and name are set
-                // assuming that token() is Token.IDENTIFIER
-                String seq = name.toString();
-                jmlTokenClauseKind = Extensions.allKinds.get(seq);
-                if (scannerDebug) {
-                    System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
-                    if (jmlTokenClauseKind == null) {
-                        Extensions.dump();
-                    }
-                }
-
-                // FIXME: tk is always an IDENTIFIER. We need backslash-typenames to be identifiers.
-                // Other kinds of backslash names can be JmlTokens.
-                // Except \nothing and \everything.  Why? Straighten it out.
-                
-                if (jmlTokenClauseKind instanceof JmlPrimitiveTypes.JmlTypeKind || jmlTokenClauseKind == JmlPrimitiveTypes.nothingKind || jmlTokenClauseKind == JmlPrimitiveTypes.everythingKind || jmlTokenClauseKind == org.jmlspecs.openjml.ext.Modifiers.BSREADONLY) {
-                    tk = TokenKind.IDENTIFIER;
-                    jmlTokenClauseKind = null;
-                } else if (jmlTokenClauseKind == null) {
-                    jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
-                } else {
-                    tk = TokenKind.CUSTOM;
-                    // keep jmlTokenClauseKind
-                    if (Utils.instance(context).isDeprecationSet() && seq.equals("\\index")) {
-                        Utils.instance(context).warning(ep, "jml.deprecated.index");
-                    }
-                }
-            } else {
-                jmlError(ep, position(), "jml.extraneous.backslash"); // sets ERROR token
-            }
-            return;
-        }
         if (tk == null) {
-            jmlError(position(), "jml.internal", "Internal preconditions violated when scanning for operators: " + get());
-            // sets ERROR token
-        	return;
+            if (get() == '\\') {
+                // backslash identifiers get redirected here since a \ itself is an
+                // error in pure Java - isSpecial does the trick
+                int ep = position();
+                put(); // include the backslash
+                char ch = next();
+                if (Character.isLetter(ch)) {
+                    super.scanIdent();  // tk and name are set
+                    // assuming that token() is Token.IDENTIFIER
+                    String seq = name.toString();
+                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
+                    if (scannerDebug) {
+                        System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
+                        if (jmlTokenClauseKind == null) {
+                            Extensions.dump();
+                        }
+                    }
+
+                    // FIXME: tk is always an IDENTIFIER. We need backslash-typenames to be identifiers.
+                    // Other kinds of backslash names can be JmlTokens.
+                    // Except \nothing and \everything.  Why? Straighten it out.
+
+                    if (jmlTokenClauseKind instanceof JmlPrimitiveTypes.JmlTypeKind || jmlTokenClauseKind == JmlPrimitiveTypes.nothingKind || jmlTokenClauseKind == JmlPrimitiveTypes.everythingKind || jmlTokenClauseKind == org.jmlspecs.openjml.ext.Modifiers.BSREADONLY) {
+                        tk = TokenKind.IDENTIFIER;
+                        jmlTokenClauseKind = null;
+                    } else if (jmlTokenClauseKind == null) {
+                        jmlError(ep, position(), "jml.bad.backslash.token", seq); // sets ERROR token
+                    } else {
+                        tk = TokenKind.CUSTOM;
+                        // keep jmlTokenClauseKind
+                        if (Utils.instance(context).isDeprecationSet() && seq.equals("\\index")) {
+                            Utils.instance(context).warning(ep, "jml.deprecated.index");
+                        }
+                    }
+                } else {
+                    jmlError(ep, position(), "jml.extraneous.backslash"); // sets ERROR token
+                }
+                return;
+
+            } else {
+                // Any JML operator starts with a Java operator, except for those that start with a backslash.
+                // SO if control reaches this point some error has happened, or new operators have been introduced that
+                // do no staisfy the above rule.
+                jmlError(position(), "jml.internal", "Internal preconditions violated when scanning for operators: " + get());
+                // sets ERROR token
+                return;
+            }
         }
         // Now check if there is a longer JML operator
         // Presumes that all JML operators have a prefix that is a Java operator
@@ -795,15 +780,4 @@ public class JmlTokenizer extends JavadocTokenizer {
         return sb.toString();
     }
 
-    // TODO - get riud of this?
-    // Index of current character
-    public int pos() {
-        return position();
-    }
-    
-    /** Gets a segment of the input buffer as raw bytes (unescape or unicide interpretation) */
-    public String getCharacters(int p, int e) {
-    	return String.valueOf(getRawCharacters(p,e));
-    }
-    
 }

@@ -1,0 +1,28 @@
+test/imports/A.jml:8: error: cannot find symbol
+  F f; // ERROR
+  ^
+  symbol:   class F
+  location: class A
+test/imports/A.jml:10: error: cannot find symbol
+  //@ ghost F ff; // ERROR
+            ^
+  symbol:   class F
+  location: class A
+test/imports/A.jml:12: error: cannot find symbol
+  void m(C c, F f); // ERROR on F
+              ^
+  symbol:   class F
+  location: class A
+test/imports/A.jml:13: error: cannot find symbol
+  //@ model void mm(C cc, F ff, M mm) {} // ERROR on F
+                          ^
+  symbol:   class F
+  location: class A
+test/imports/A.jml:15: error: Type of field A.ccc in specification differs from type in source/binary: q.K vs. p.K
+  K ccc; // ERROR - wrong type
+  ^
+test/imports/A.java:13: error: Associated declaration: test/imports/A.jml:15:
+  K ccc;
+    ^
+Operation not performed because of parse or type errors
+6 errors

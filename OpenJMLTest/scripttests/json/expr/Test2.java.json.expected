@@ -1,0 +1,133 @@
+{
+  "class": "$JmlCompilationUnit",
+  "sourcefile": "expr/Test2.java",
+  "defs": [
+    {
+      "class": "$JmlImport",
+      "qualid": {
+        "class": "$JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "$JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "$JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "$JCIdent",
+              "type": "null",
+              "name": "org"
+            },
+            "name": "jmlspecs"
+          },
+          "name": "lang"
+        },
+        "name": "*"
+      },
+      "staticImport": false,
+      "isModel": true
+    },
+    {
+      "class": "$JmlClassDecl",
+      "mods": {
+        "class": "$JmlModifiers",
+        "annotations": [],
+        "flags": "",
+        "jmlmods": []
+      },
+      "name": "Test2",
+      "typarams": [],
+      "implementing": [],
+      "permitting": [],
+      "defs": [
+        {
+          "class": "$JmlMethodDecl",
+          "mods": {
+            "class": "$JmlModifiers",
+            "annotations": [],
+            "flags": "",
+            "jmlmods": []
+          },
+          "name": "m",
+          "restype": "void",
+          "typarams": [],
+          "params": [],
+          "thrown": [],
+          "methodSpecs": {
+            "class": "$JmlMethodSpecs",
+            "cases": [
+              {
+                "class": "$JmlSpecificationCase",
+                "also": "null",
+                "clauses": [
+                  {
+                    "class": "$JmlMethodClauseExpr",
+                    "clauseType": "requires",
+                    "expression": {
+                      "class": "$JmlBinary",
+                      "type": "null",
+                      "lhs": {
+                        "class": "$JCLiteral",
+                        "type": "null",
+                        "typetag": "BOOLEAN",
+                        "value": "1"
+                      },
+                      "op": "\u003d\u003d\u003e",
+                      "rhs": {
+                        "class": "$JCLiteral",
+                        "type": "null",
+                        "typetag": "BOOLEAN",
+                        "value": "0"
+                      }
+                    }
+                  },
+                  {
+                    "class": "$JmlMethodClauseExpr",
+                    "clauseType": "requires",
+                    "expression": {
+                      "class": "$JmlBinary",
+                      "type": "null",
+                      "lhs": {
+                        "class": "$JCLiteral",
+                        "type": "null",
+                        "typetag": "BOOLEAN",
+                        "value": "1"
+                      },
+                      "op": "\u003c\u003d\u003d\u003e",
+                      "rhs": {
+                        "class": "$JCLiteral",
+                        "type": "null",
+                        "typetag": "BOOLEAN",
+                        "value": "0"
+                      }
+                    }
+                  },
+                  {
+                    "class": "$JmlMethodClauseExpr",
+                    "clauseType": "requires",
+                    "expression": {
+                      "class": "$JCUnary",
+                      "type": "null",
+                      "opcode": "NOT",
+                      "arg": {
+                        "class": "$JCLiteral",
+                        "type": "null",
+                        "typetag": "BOOLEAN",
+                        "value": "0"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "body": {
+            "class": "$JmlBlock",
+            "flags": "",
+            "stats": []
+          }
+        }
+      ]
+    }
+  ]
+}

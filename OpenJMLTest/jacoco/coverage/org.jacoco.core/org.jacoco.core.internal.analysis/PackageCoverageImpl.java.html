@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PackageCoverageImpl.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.analysis</a> &gt; <span class="el_source">PackageCoverageImpl.java</span></div><h1>PackageCoverageImpl.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+package org.jacoco.core.internal.analysis;
+
+import java.util.Collection;
+
+import org.jacoco.core.analysis.CoverageNodeImpl;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.IPackageCoverage;
+import org.jacoco.core.analysis.ISourceFileCoverage;
+
+/**
+ * Implementation of {@link IPackageCoverage}.
+ */
+public class PackageCoverageImpl extends CoverageNodeImpl
+		implements IPackageCoverage {
+
+	private final Collection&lt;IClassCoverage&gt; classes;
+
+	private final Collection&lt;ISourceFileCoverage&gt; sourceFiles;
+
+	/**
+	 * Creates package node instance for a package with the given name.
+	 *
+	 * @param name
+	 *            vm name of the package
+	 * @param classes
+	 *            collection of all classes in this package
+	 * @param sourceFiles
+	 *            collection of all source files in this package
+	 */
+	public PackageCoverageImpl(final String name,
+			final Collection&lt;IClassCoverage&gt; classes,
+			final Collection&lt;ISourceFileCoverage&gt; sourceFiles) {
+<span class="fc" id="L45">		super(ElementType.PACKAGE, name);</span>
+<span class="fc" id="L46">		this.classes = classes;</span>
+<span class="fc" id="L47">		this.sourceFiles = sourceFiles;</span>
+<span class="fc" id="L48">		increment(sourceFiles);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">		for (final IClassCoverage c : classes) {</span>
+			// We need to add only classes without a source file reference.
+			// Classes associated with a source file are already included in the
+			// SourceFileCoverage objects.
+<span class="fc bfc" id="L53" title="All 2 branches covered.">			if (c.getSourceFileName() == null) {</span>
+<span class="fc" id="L54">				increment(c);</span>
+			}
+		}
+<span class="fc" id="L57">	}</span>
+
+	// === IPackageCoverage implementation ===
+
+	public Collection&lt;IClassCoverage&gt; getClasses() {
+<span class="fc" id="L62">		return classes;</span>
+	}
+
+	public Collection&lt;ISourceFileCoverage&gt; getSourceFiles() {
+<span class="fc" id="L66">		return sourceFiles;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

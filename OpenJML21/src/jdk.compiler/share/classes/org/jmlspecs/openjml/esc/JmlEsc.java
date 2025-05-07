@@ -189,7 +189,7 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(/*@non_null*/ JCMethodDecl decl) {
-    	//System.out.println("VISITING METHOD " + decl.sym.owner + " " + decl.sym);
+        // System.out.println("JMLESC VISITING METHOD " + decl.sym.owner + " " + decl.sym);
         if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
             // Constructors for anonymous classes are not explicit. They are checked
             // in the course of instantiating the anonymous object.
@@ -214,8 +214,9 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        if (!utils.filter(methodDecl,true)) {
-            markMethodSkipped(methodDecl," (excluded by -method)"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
+        var reason = utils.filter(methodDecl);
+        if (reason != null) {
+            markMethodSkipped(methodDecl," (" + reason + ")"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
             return;
         }
 

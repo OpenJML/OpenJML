@@ -1,0 +1,28 @@
+COMPILED
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.m() with prover !!!!
+Completed proof of A.m() with prover !!!! - no warnings
+Starting proof of A.n() with prover !!!!
+DIAGNOSTIC REPORTED
+    Kind:           MANDATORY_WARNING
+    Source:         SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiE/A.java]
+    Start position: 110
+    Position:       110
+    End position:   110
+    Line number:    7
+    Column number:  9
+    Message:        The prover cannot establish an assertion (Postcondition) in method n
+DIAGNOSTIC REPORTED
+    Kind:           MANDATORY_WARNING
+    Source:         SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiE/A.java]
+    Start position: 58
+    Position:       58
+    End position:   58
+    Line number:    5
+    Column number:  9
+    Message:        Associated declaration
+Completed proof of A.n() with prover !!!! - with warnings
+Completed proving methods in A
+RUN-Z 0

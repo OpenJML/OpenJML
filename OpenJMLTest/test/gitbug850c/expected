@@ -1,0 +1,26 @@
+Proving methods in FindMaxElem
+Starting proof of FindMaxElem.FindMaxElem() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FindMaxElem.FindMaxElem() with prover !!!! - no warnings
+Completed proving methods in FindMaxElem
+Proving methods in FindMaxElemImpl
+Starting proof of FindMaxElemImpl.FindMaxElemImpl() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FindMaxElemImpl.FindMaxElemImpl() with prover !!!! - no warnings
+Starting proof of FindMaxElemImpl.maxElem(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FindMaxElemImpl.maxElem(int[]) with prover !!!! - no warnings
+Completed proving methods in FindMaxElemImpl
+Proving methods in FindMaxElemImpl2
+Starting proof of FindMaxElemImpl2.FindMaxElemImpl2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FindMaxElemImpl2.FindMaxElemImpl2() with prover !!!! - no warnings
+Starting proof of FindMaxElemImpl2.maxElem(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of FindMaxElemImpl2.maxElem(int[]) with prover !!!! - no warnings
+Completed proving methods in FindMaxElemImpl2

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FrameSnapshot.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">JaCoCo</a> &gt; <a href="../index.html" class="el_bundle">org.jacoco.core</a> &gt; <a href="index.source.html" class="el_package">org.jacoco.core.internal.flow</a> &gt; <span class="el_source">FrameSnapshot.java</span></div><h1>FrameSnapshot.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (c) 2009, 2023 Mountainminds GmbH &amp; Co. KG and Contributors
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    Marc R. Hoffmann - initial API and implementation
+ *
+ *******************************************************************************/
+
+package org.jacoco.core.internal.flow;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.AnalyzerAdapter;
+
+/**
+ * IFrame implementation which creates snapshots from an {@link AnalyzerAdapter}
+ */
+class FrameSnapshot implements IFrame {
+
+<span class="fc" id="L28">	private static final FrameSnapshot NOP = new FrameSnapshot(null, null);</span>
+
+	private final Object[] locals;
+	private final Object[] stack;
+
+<span class="fc" id="L33">	private FrameSnapshot(final Object[] locals, final Object[] stack) {</span>
+<span class="fc" id="L34">		this.locals = locals;</span>
+<span class="fc" id="L35">		this.stack = stack;</span>
+<span class="fc" id="L36">	}</span>
+
+	/**
+	 * Create a IFrame instance based on the given analyzer.
+	 *
+	 * @param analyzer
+	 *            analyzer instance or &lt;code&gt;null&lt;/code&gt;
+	 * @param popCount
+	 *            number of items to remove from the operand stack
+	 * @return IFrame instance. In case the analyzer is &lt;code&gt;null&lt;/code&gt; or
+	 *         does not contain stackmap information a &quot;NOP&quot; IFrame is returned.
+	 */
+	static IFrame create(final AnalyzerAdapter analyzer, final int popCount) {
+<span class="fc bfc" id="L49" title="All 4 branches covered.">		if (analyzer == null || analyzer.locals == null) {</span>
+<span class="fc" id="L50">			return NOP;</span>
+		}
+<span class="fc" id="L52">		final Object[] locals = reduce(analyzer.locals, 0);</span>
+<span class="fc" id="L53">		final Object[] stack = reduce(analyzer.stack, popCount);</span>
+<span class="fc" id="L54">		return new FrameSnapshot(locals, stack);</span>
+	}
+
+	/**
+	 * Reduce double word types into a single slot as required
+	 * {@link MethodVisitor#visitFrame(int, int, Object[], int, Object[])}
+	 * method.
+	 */
+	private static Object[] reduce(final List&lt;Object&gt; source,
+			final int popCount) {
+<span class="fc" id="L64">		final List&lt;Object&gt; copy = new ArrayList&lt;Object&gt;(source);</span>
+<span class="fc" id="L65">		final int size = source.size() - popCount;</span>
+<span class="fc" id="L66">		copy.subList(size, source.size()).clear();</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">		for (int i = size; --i &gt;= 0;) {</span>
+<span class="fc" id="L68">			final Object type = source.get(i);</span>
+<span class="fc bfc" id="L69" title="All 4 branches covered.">			if (type == Opcodes.LONG || type == Opcodes.DOUBLE) {</span>
+<span class="fc" id="L70">				copy.remove(i + 1);</span>
+			}
+<span class="fc" id="L72">		}</span>
+<span class="fc" id="L73">		return copy.toArray();</span>
+	}
+
+	// === IFrame implementation ===
+
+	public void accept(final MethodVisitor mv) {
+<span class="fc bfc" id="L79" title="All 2 branches covered.">		if (locals != null) {</span>
+<span class="fc" id="L80">			mv.visitFrame(Opcodes.F_NEW, locals.length, locals, stack.length,</span>
+					stack);
+		}
+<span class="fc" id="L83">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span>Code Coverage Report for JaCoCo 0.8.11</div></body></html>

@@ -1,0 +1,11 @@
+test/gitbug658/Test.java:5: error: References to 'this' are not permitted in constructor preconditions: this
+  //@ requires this.i == 0;
+               ^
+test/gitbug658/Test.java:7: error: Non-static fields are not allowed in \old environments in postconditions: this
+  //@ ensures \old(this.i) == 0;
+                   ^
+test/gitbug658/Test.java:7: error: Non-static fields are not allowed in \old environments in postconditions: i
+  //@ ensures \old(this.i) == 0;
+                       ^
+Operation not performed because of parse or type errors
+3 errors

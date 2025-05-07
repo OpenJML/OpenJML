@@ -93,6 +93,14 @@ import com.sun.tools.javac.util.Options;
  * TODO - check and complete the documentation above
  */
 public class Main extends com.sun.tools.javac.main.Main {
+    
+    public static class NullPrintWriter extends java.io.PrintWriter {
+        public NullPrintWriter() { super(System.out); }
+        public void println() {}
+        public void write(char[] buf, int off, int len) {}
+        public void write(String s, int off, int len) {}
+        public void write(int c) {}
+    }
 	
 	/** Holds the value of an environment variable that is the absolute path to
 	 *  the installation directory for openjml. That is Main.root contains the 'specs' directory
@@ -207,7 +215,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
         
         public PrintProgressReporter(Context context, PrintWriter w) {
-            pw = w;
+            pw = w != null ? w : new PrintWriter(System.out);
             this.context = context;
         }
         
@@ -239,11 +247,16 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     public Main(/*@ non_null */String applicationName, 
-                /*@ non_null */PrintWriter out) 
-        throws java.io.IOException {
-        super(applicationName,out);
-    }
-    
+            /*@ non_null */PrintWriter out, /*@ non_null */PrintWriter err) 
+            throws java.io.IOException {
+        super(applicationName,out,err);
+}
+
+    public Main(/*@ non_null */String applicationName, 
+            /*@ non_null */PrintWriter out) throws java.io.IOException {
+        super(applicationName,out,out);
+}
+
     public static Context.Key<Main> key = new Context.Key<Main>();
     
     public static Main instance(Context context) {
@@ -414,6 +427,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             uninitializedLog().error("jml.toplevel.exception",e);
             e.printStackTrace(System.err);
             errorcode = com.sun.tools.javac.main.Main.Result.SYSERR.exitCode; // 3
+        } finally {
+            writer.flush();
         }
         return errorcode;
     }
@@ -532,7 +547,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // FIXME setProofResultListener(prl);
         boolean hasArgs = args.length != 0;
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
-    	// args is now the original 'args' without any files or JML arguments -- leaving only any Java options
+    	// args is now the original 'args' without JML arguments -- leaving  any Java options and files
     	if (JmlOptions.instance(context).get("-?") != null) return Result.OK;
     	if (args.length == 0 && fileObjects == null) {
     		if (hasArgs) {
@@ -548,27 +563,28 @@ public class Main extends com.sun.tools.javac.main.Main {
         // but the register call has to happen before compile is called.
         canceled = false;
         Main.Result exit = super.compile(args,context);
-    	int n = Utils.instance(context).verifyWarnings;
-    	if (n != 0) {
-    	    if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
-    		if (exit.exitCode == 0 && !Utils.testingMode) {
-    		    // Use the verification failure exit code if there are verification warnings
-    			exit = Result.VERIFY;
-    			String v = JmlOption.value(context, JmlOption.EXITVERIFY); // User specified exit code for verification failures
-    			if (v != null) {
-    				try {
-    					int z = Integer.valueOf(v);
-    					for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
-    					if (exit.exitCode != z) throw new RuntimeException();
-    		            if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
-    				} catch (Exception e) {
-    					// FIXME - why would this be an uninitialized log
-    	                uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
-    					exit = Result.CMDERR;
-    				}
-    			}
-    		}
-    	}
+        int n = Utils.instance(context).verifyWarnings;
+        //System.out.println("VWARN " + n + " " + exit.exitCode + " " + Utils.testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY));
+        if (n != 0) {
+            if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
+            if (exit.exitCode == 0) {
+                // Use the verification failure exit code if there are verification warnings
+                if (!Utils.testingMode) exit = Result.VERIFY;
+                String v = JmlOption.value(context, JmlOption.EXITVERIFY); // User specified exit code for verification failures
+                if (v != null) {
+                    try {
+                        int z = Integer.valueOf(v);
+                        for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
+                        if (exit.exitCode != z) throw new RuntimeException();
+                        if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
+                    } catch (Exception e) {
+                        // FIXME - why would this be an uninitialized log -- and why not detected when the command-line is parsed
+                        uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
+                        exit = Result.CMDERR;
+                    }
+                }
+            }
+        }
         return exit;
     }
     
@@ -618,7 +634,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (progressDelegator != null) progressDelegator.setContext(context);
         context.put(IProgressListener.class,progressDelegator);
         context.put(key, this);
-        registerTools(context,stdOut,diagListener);
+        // We register the output writer for the Log first because in registering JmlArguments,
+        // Arguments is registered, which instantiates a Log. Accordingly, we cannot set a 
+        // log (or stdOut/stdErr) based on command-line arguments.
+        context.put(Log.outKey,stdOut);
+        if (diagListener != null) context.put(DiagnosticListener.class, diagListener);
+        registerTools(context);
         // Since we can only set a context value once, we create this listener that just delegates to 
         // another listener, and then change the delegate when we need to, using setProofResultListener().
         context.put(IAPI.IProofResultListener.class, 
@@ -644,18 +665,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param diagListener if not null, a listener that will receive reports
      *    of warnings and errors
      */
-    public static <S> void registerTools(/*@non_null*/ Context context, 
-            /*@non_null*/ PrintWriter out, 
-            /*@nullable*/ DiagnosticListener<S> diagListener) {
+    public static <S> void registerTools(/*@non_null*/ Context context) {
 
-        // We register the output writer for the Log first so that it is
-        // available if tool registration (or argument processing) needs the
-        // Log.  However, note that if the Log itself is actually instantiated before
-        // Java arguments are read, then it is not set consistently with those 
-        // options.
-        context.put(Log.outKey,out);
-        
-        if (diagListener != null) context.put(DiagnosticListener.class, diagListener);
 
         // These have to be first in case there are error messages during 
         // tool registration.
