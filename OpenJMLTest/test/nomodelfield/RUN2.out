@@ -1,0 +1,3 @@
+T.java:4: verify: JML assertion is false
+    //@ assert i == 11;
+        ^
