@@ -54,6 +54,7 @@ jobs:
       if: runner.os == 'MacOS'
       run: |
         brew install coreutils
+        brew install autoconf
     - name: Linux additions
       if: runner.os == 'Linux'
       run: |
