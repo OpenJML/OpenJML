@@ -1,5 +1,0 @@
-#! /usr/bin/env bash
-rm -f *.class
-openjml --rac T.java
-openjml -Xprefer:source --compile P.java
-openjml-java T

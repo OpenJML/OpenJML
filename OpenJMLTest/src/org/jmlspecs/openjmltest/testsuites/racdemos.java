@@ -71,14 +71,14 @@ public class racdemos extends RacBase {
     public void demoecu() {
         expectedExit = 0;
         expectedRACExit = 1;
-        helpCompileRunDemo("/src/openjml/ecu",null);
+        helpCompileRunDemo("/src/openjml/ecu",null); // FIXME null should be "Test", but there are test failures
     }
 
     @Test
     public void demoecu2() {
         expectedExit = 0;
         expectedRACExit = 1;
-        helpCompileRunDemo("/src/openjml/ecu2",null);
+        helpCompileRunDemo("/src/openjml/ecu2",null); // FIXME null should be "Test", but there are test failures
     }
 
 
