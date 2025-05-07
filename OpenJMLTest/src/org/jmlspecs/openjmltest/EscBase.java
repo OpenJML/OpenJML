@@ -26,11 +26,9 @@ import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
 
-public abstract class EscBase extends JmlTestCase {
+public abstract class EscBase extends JmlTestSuite {
 
-    public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
-
-    @Rule public TestName testname = new TestName();
+    /** This JUnit rule sets a timeout on the whole test */
     @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
 
     protected static boolean runLongTests = System.getProperty("SKIPLONGTESTS") == null;
@@ -62,18 +60,15 @@ public abstract class EscBase extends JmlTestCase {
         solversWithNull.addAll(solvers);
     }
 
-    /** The parameters must be a String[] and a String */
     static public Collection<String[]> parameters() {
         return solversOnly();
     }
-    
+
     static public Collection<String[]> solversOnly() {
         return makeParameters(solvers);
     }
     
-//    public static final String[] minQuantOptions = new String[]{"-no-minQuant","-minQuant"};
-    
-    static public  Collection<String[]> solvers(java.util.List<String> solvers) {
+    static public Collection<String[]> solvers(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
             data.add(new String[]{s});
@@ -81,7 +76,7 @@ public abstract class EscBase extends JmlTestCase {
         return data;
     }
 
-    static public  Collection<String[]> optionsAndSolvers(String[] options, java.util.List<String> solvers) {
+    static public Collection<String[]> optionsAndSolvers(String[] options, java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
         	for (String opts: options) {
@@ -91,7 +86,6 @@ public abstract class EscBase extends JmlTestCase {
         return data;
     }
 
-    
     static public  Collection<String[]> makeParameters(java.util.List<String> options, java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
@@ -114,16 +108,6 @@ public abstract class EscBase extends JmlTestCase {
         return data;
     }
     
-//    static public void addOptionsToArgs(String options, java.util.List<String> args) {
-//        if (options != null) {
-//            if (options.indexOf(',')>= 0) {
-//            	for (String o: options.split(",")) if (!o.isEmpty()) args.add(o);
-//            } else {
-//            	for (String o: options.split(" ")) if (!o.isEmpty()) args.add(o);
-//            }
-//        }
-//    }
-    
     public void addOptions(String options) {
         if (options != null) {
             if (options.indexOf(',')>= 0) {
@@ -133,14 +117,13 @@ public abstract class EscBase extends JmlTestCase {
             }
         }
     }
-    
 
-    /** options is a comma- or space-separated list of options to be added */
+    /** options is a comma- or space-separated list of options to be added -- used in the parameterized JUnit tests*/
     protected String options;
+    /** The name of the solver to be used */
     protected String solver;
-    protected boolean captureOutput = false; // FIXME - why isn't true the default 
     
-    /** options is a comma- or space-separated list of options to be added */
+    /** options is a comma- or space-separated list of options to be added -- used in the parameterized JUnit tests*/
     public EscBase() {
         this.options = null;
         this.solver = "z3_4_3";
@@ -152,22 +135,21 @@ public abstract class EscBase extends JmlTestCase {
         this.solver = solver;
     }
     
-//    public void printDiagnostics() {
-//        System.out.println("SOLVER: " + solver + " " + options);
-//        super.printDiagnostics();
-//    }
-
-    protected static String z = java.io.File.pathSeparator;
+    /** a typical sepcificatino path used in the tests */
     protected static String testspecpath1 = "$A"+z+"$B";
+    /** variable that holds the specification path for each test -- may be set per test */
     protected static String testspecpath;
     
-    // Set this field to the expected exit value. 
-    // 0: only warnings and static checking errors, not parsing or type errors
-    // 1: parsing or type errors
-    // -1: don't check the exit value
+    /** Set this field to the expected exit value. 
+    <U><LI> 0: only warnings and static checking errors, not parsing or type errors
+    <LI> 1: parsing or type errors
+    <LI> -1: don't check the exit value
+    </UL> **/
     protected int expectedExit = 0;
+    /** Suppresses printing of associated declaration information (to reduce output size) */ // FIXME - perhaps contains user information?
     protected boolean noAssociatedDeclaration;
-    protected String[] args;
+    protected String[] args; // FIXME - where is this actually used
+    protected boolean captureOutput = false; // FIXME - why isn't true the default -- explain
 
     @Override
     public void setUp() throws Exception {
@@ -175,12 +157,12 @@ public abstract class EscBase extends JmlTestCase {
         testspecpath = testspecpath1;
         ignoreNotes = true;
         super.setUp(); // Uses ignoreNotes
-        addOptions("--specs-path",   testspecpath);
+        addOptions("--specs-path", testspecpath);
         addOptions("--command","esc");
-        addOptions("-keys","NOARITH");
+        addOptions("--keys","NOARITH");
         addOptions("--no-purity-check");
         addOptions("--timeout=300"); // seconds
-        addOptions("-jmltesting");
+        addOptions("-jmltesting"); // filters time-related or user-envirnment-related material out of test output
         addOptions("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
@@ -192,70 +174,6 @@ public abstract class EscBase extends JmlTestCase {
         print = false;
         args = new String[]{};
     }
-
-    /** Runs an --esc test on the file named in 'sourceDirOrFileName' (ofr if it is a folder, all the files in it), 
-     * putting the actual output in folder 'outDir' and comparing with expected files also in 'outDir'.
-     * Default options are setup in EscBase.setupForFiles().  The options in 'opts' are appended to them. 
-     * **/
-    public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
-        boolean print = false;
-        try {
-            java.util.List<String> args = setupForFiles(sourceDirname, outDir, opts);
-            String actCompile = outDir + "/actual";
-            new File(actCompile).delete();
-            PrintWriter pw = new PrintWriter(actCompile);
-            int ex = -1;
-            try {
-                //System.out.println("ARGS " + args);
-                ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
-            } finally {
-                pw.close();
-            }
-
-            String diffs = outputCompare.compareFiles(outDir + "/expected", actCompile);
-            int n = 0;
-            while (diffs != null) {
-                n++;
-                String name = outDir + "/expected" + n;
-                if (!new File(name).exists()) break;
-                diffs = outputCompare.compareFiles(name, actCompile);
-            }
-            if (diffs != null) {
-                System.out.println("TEST DIFFERENCES: " + testname.getMethodName());
-                System.out.println(diffs);
-                fail("Files differ: " + diffs);
-            }
-            
-            if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " (expected " + expectedExit + ")");
-            new File(actCompile).delete();
-
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
-        } catch (AssertionError e) {
-            throw e;
-        } finally {
-            // Should close open objects
-        }
-    }
-
-    public java.util.List<String> setupForFiles(String sourceDirOrFilename, String outDir, String ... opts) {
-        new File(outDir).mkdirs();
-        java.util.List<String> args = new LinkedList<String>();
-        args.add("-g");
-        args.add("--esc");
-        args.add("--no-purity-check");
-        args.add("-jmltesting");
-        args.add("--progress");
-        args.add("--timeout=300");
-        args.add("--code-math=java");
-        args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
-        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
-        args.add(sourceDirOrFilename);
-        if (solver != null) args.add("--prover="+solver);
-        args.addAll(Arrays.asList(opts));
-        return args;
-    }
     
     @Override
     public void tearDown() throws Exception {
@@ -264,12 +182,15 @@ public abstract class EscBase extends JmlTestCase {
         //MethodProverSMT.benchmarkName = null;
     }
 
-    protected void helpTCX2(String classname, String s, String classname2, String s2, Object... list) {
+    /** Applies ESC to the case where there are two input .java synthesized files, each consisting of a class name and the input source text;
+     * the expecgtedResults array is a line-by-line list of the expected output.
+     */
+    protected void helpTCX2(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/")+".java";
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new TestJavaFileObject(filename,inputSource);
             String filename2 = classname2.replace(".","/")+".java";
-            JavaFileObject f2 = new TestJavaFileObject(filename2,s2);
+            JavaFileObject f2 = new TestJavaFileObject(filename2,inputSource2);
             Log.instance(context).useSource(f);
 //            helpTCXB(List.of(f,f2),list);
         } catch (Exception e) {
@@ -278,10 +199,13 @@ public abstract class EscBase extends JmlTestCase {
         }
     }
 
-    protected void helpTCX(String classname, String s, Object... expectedResults) {
+    /** Applies ESC to a synthesized file, with the given classname and input contents;
+     * the expected results array is a line by line list of the expected output.
+     */
+    protected void helpTCX(String classname, String inputSource, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/") +".java"; 
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new TestJavaFileObject(filename,inputSource);
             Log.instance(context).useSource(f);
             helpTCXB(args,f, expectedResults);
         } catch (Exception e) {
@@ -314,11 +238,5 @@ public abstract class EscBase extends JmlTestCase {
             }
         }
     }
-    
-    protected OneOf oneof(Object ... list) { return new OneOf(list); }
-    protected AnyOrder anyorder(Object ... list) { return new AnyOrder(list); }
-    protected Optional optional(Object ... list) { return new Optional(list); }
-    protected Seq seq(Object ... list) { return new Seq(list); }
-    
 
 }

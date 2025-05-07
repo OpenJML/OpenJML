@@ -141,7 +141,8 @@ public class JmlTokenizer extends JavadocTokenizer {
     // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
-        if (scannerDebug) System.out.println("COMMENT " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug) System.out.println("COMMENT " + noJML + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug && String.valueOf(buffer,pos,endPos-pos).startsWith("//@ assert")) Utils.dumpStack();
         
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
         	// The nested block will have the same end point as the outer block
@@ -280,7 +281,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             reset(endPos);
             return super.processComment(pos, endPos, style);
         }
-        if (!(isOneOf(' ','\t','{') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{')))
+        if (!(isOneOf(' ','\t','{','[') || (style == CommentStyle.BLOCK && isOneOf('\n','\r','{','[')))
                 && JmlOptions.instance(context).getBoolean(JmlOption.REQUIRE_WS.optionName())) {
             // Not a valid JML comment if there is not whitespace after the @.
             // This is to avoid processing commented out Annotations, like //@Injected or //@line

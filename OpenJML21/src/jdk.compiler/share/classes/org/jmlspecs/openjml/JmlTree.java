@@ -1018,6 +1018,7 @@ public class JmlTree {
     static public final String eol = System.getProperty("line.separator");
 
     static public void unexpectedVisitor(JCTree t, Object visitor) {
+        if (visitor instanceof com.sun.tools.javac.code.TypeAnnotations.TypeAnnotationPositions) return;
         // FIXME - a better error
         System.out.println("A " + t.getClass() + " expects an IJmlVisitor, not a " + visitor.getClass());
     }
@@ -1029,12 +1030,16 @@ public class JmlTree {
         /*@nullable*/ JavaFileObject source();
         /*@nullable*/ void setSource(JavaFileObject jfo);
         DiagnosticPosition pos();
+        default public boolean isInJMLCU() {
+            return source().getKind() != JavaFileObject.Kind.SOURCE;
+        }
+
     }
     
     /** This class adds some JML specific information to the JCCompilationUnit toplevel node. */
     public static class JmlCompilationUnit extends JCTree.JCCompilationUnit implements JmlSource {
         
-        /** This list contains the parse tree of the specification file, if any, for this compilation unit. 
+        /** This field contains the parse tree of the specification file, if any, for this compilation unit. 
          *  This field may point to 'this' if the compilation unit is its own specs file. */
     	/*@ nullable */
     	public JmlCompilationUnit specsCompilationUnit = null;
@@ -1042,6 +1047,12 @@ public class JmlTree {
         /** The tree representing the package clause. */
         /*@ nullable */
         public JCPackageDecl pid;
+        
+        /** A scope for all named and named model imports. */
+        public NamedImportScope namedModelImportScope;
+        
+        /** A scope for all import-on-demands, including model imports. */
+        public StarImportScope starModelImportScope;
 
 //        /** This list contains the top-level model types declared in this compilation unit; this
 //         * is not necessarily all or even part of the top-level model types that the CUs specifications
@@ -1059,10 +1070,13 @@ public class JmlTree {
 //        /** The use to be made of this parse tree - one of the int constants below. */
 //        public int mode = 0; // init to an unknown value
         
+        /** We need to distinguish the env of the source cu from the env of the spec cu. This field is added so that
+         *  the two different cus can each hold their own env. In particular each env points back to its own toplevel instance.
+         */
         public Env<AttrContext> topLevelEnv;
         
         public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
-        public boolean forBinary() { return sourceCU == null; }
+        //public boolean forBinary() { return sourceCU == null; }
         public JavaFileObject source() { return sourcefile; }
         public void setSource(JavaFileObject s) { sourcefile = s; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file
@@ -1252,7 +1266,7 @@ public class JmlTree {
         public /*@Nullable*/ JmlClassDecl specsDecl;
         
         /** The Env<> to use for process the specsDecl */
-        public Env<AttrContext> specEnv;
+        //public Env<AttrContext> specEnv;
 
         /** This field holds the class-level specifications for the type corresponding
          * to this declaration; it is an alias for the specs that are found in the JmlSpecs database
@@ -3945,6 +3959,7 @@ public class JmlTree {
     public static class JmlTypeClauseExpr extends JmlTypeClause {
         /** The expression that is part of the clause */
         public JCTree.JCExpression expression;
+        public JCMethodDecl racmethod;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlTypeClauseExpr(int pos, JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression expression) {

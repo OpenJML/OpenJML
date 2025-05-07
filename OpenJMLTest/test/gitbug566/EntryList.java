@@ -22,6 +22,6 @@ public class EntryList {
       @ ensures \result == 1 + rest.size();
       @*/
     /*@ spec_public pure @*/ int size() {
-	   return 1 + (rest == null ? 0 : rest.size());
+       return 1 + (rest == null ? 0 : rest.size());
     }
 }

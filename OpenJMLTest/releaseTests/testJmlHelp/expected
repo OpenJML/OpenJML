@@ -94,7 +94,6 @@ JML options:
   --exclude                  Comma-separated list of method name patterns to exclude from ESC
   --prover                   The prover to use to check verification conditions
   --exec                     The prover executable to use
-  --logic                    The SMT logic to use (default ALL)
   --smt                      A file to write the smt command file to
   --nonnull-by-default       Makes references non_null by default [--nullable-by-default=false]
   --nullable-by-default      Makes references nullable by default
@@ -105,13 +104,11 @@ JML options:
   --specs-path               Specifies the directory path to search for specification files
   --check-specs-path         When on (the default), warnings for non-existent specification path directories are issued
   --purity-check             When on (the default), warnings for use of impure methods from system libraries are issued
-  --new-is-pure              Allows object allocation in pure expressions
   --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
   --verboseness              Level of verboseness (0=quiet...4=debug)
   --warn                     Comma-separated list of warning keys to enable or disable
-  --silent                   Only an exit code [--verboseness=-1]
   --quiet                    Only output warnings and errors [--verboseness=0]
   --normal                   Limited output [--verboseness=1]
   --progress                 Shows progress through compilation phases [--verboseness=2]
@@ -137,8 +134,7 @@ JML options:
   --rac-java-checks          RAC: Enables explicit checking of Java language checks
   --rac-compile-to-java-assert RAC: Compiles JML checks as Java asserts
   --rac-precondition-entry   RAC: Distinguishes Precondition failures on entry calls
-  --rac-missing-model-field-rep-source RAC: action when a model field has no representation (zero,warn,skip)
-  --rac-missing-model-field-rep-binary RAC: action when a model field for a binary class has no representation (zero,warn,skip)
+  --rac-missing-model-field-rep RAC: action when a model field has no representation (zero,zero-quiet,skip,skip-quiet,fail)
   --properties               Specifies the path to the properties file
   --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses

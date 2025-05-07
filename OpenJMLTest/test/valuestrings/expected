@@ -14,11 +14,11 @@ Completed proof of JMLStringTest.stringInvariant(string) with prover !!!! - no w
 Starting proof of JMLStringTest.stringBrackets(string,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.stringBrackets(string,int) with prover !!!! - no warnings
-Starting proof of JMLStringTest.sizeLength(string) with prover !!!!
+Completed proof of JMLStringTest.stringBrackets(\string,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.sizeLength(\string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.sizeLength(string) with prover !!!! - no warnings
+Completed proof of JMLStringTest.sizeLength(\string) with prover !!!! - no warnings
 Starting proof of JMLStringTest.newStringIsEmpty() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -31,34 +31,34 @@ Starting proof of JMLStringTest.emptyLength() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.emptyLength() with prover !!!! - no warnings
-Starting proof of JMLStringTest.addBumpsSize(string) with prover !!!!
+Starting proof of JMLStringTest.addBumpsSize(\string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addBumpsSize(string) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addBumpsSize(string,int) with prover !!!!
+Completed proof of JMLStringTest.addBumpsSize(\string) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addBumpsSize(\string,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addBumpsSize(string,int) with prover !!!! - no warnings
-Starting proof of JMLStringTest.<T>removeLowersSize(string,int) with prover !!!!
+Completed proof of JMLStringTest.addBumpsSize(\string,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.<T>removeLowersSize(\string,\bigint) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.<T>removeLowersSize(string,int) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addRemove(string,int) with prover !!!!
+Completed proof of JMLStringTest.<T>removeLowersSize(\string,\bigint) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addRemove(\string,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addRemove(string,int) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addGet1(string,int,int) with prover !!!!
+Completed proof of JMLStringTest.addRemove(\string,int) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addGet1(\string,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLStringTest.addGet1(string,int,int) with prover !!!! - no warnings
 Starting proof of JMLStringTest.addGet2(string,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addGet2(string,int,int) with prover !!!! - no warnings
-Starting proof of JMLStringTest.addGet(string,int,char) with prover !!!!
+Completed proof of JMLStringTest.addGet2(\string,int,int) with prover !!!! - no warnings
+Starting proof of JMLStringTest.addGet(\string,int,char) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of JMLStringTest.addGet(string,int,char) with prover !!!! - no warnings
+Completed proof of JMLStringTest.addGet(\string,int,char) with prover !!!! - no warnings
 Starting proof of JMLStringTest.character() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

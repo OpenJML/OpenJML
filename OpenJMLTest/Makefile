@@ -17,17 +17,26 @@ T=temp-release
 ### FIXME - not sure we need prep, even without release-tests
 openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
-	-make jsontests
+	make userguide-tests
+	-make json-tests
 	-make unittests-par
-	-make scripttests
 	-make tutorial-tests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
+
+openjml-test-git:
+	JOBS=4 time ${TEST}/unittests/runpar
+	JOBS=6 time ${TEST}/unittests/runpar
+	JOBS=8 time ${TEST}/unittests/runpar
+	JOBS=10 time ${TEST}/unittests/runpar
+	JOBS=0 time ${TEST}/unittests/runpar
+	JOBS=1 time ${TEST}/unittests/runpar
+	#grep FAILED ${TEST}/unittests/log-* | grep -v Trace | grep -v Query
 
 openjml-clean: .FORCE
 	make -C ${SRC} clean; make openjml
 
 openjml: .FORCE
-	(cd ${SRC}; make version; make openjml; make jmlruntime.jar )
+	(cd ${SRC}; make version && make openjml && make jmlruntime.jar )
 
 release: .FORCE
 	make -C ${SRC} release
@@ -49,6 +58,17 @@ tutorial-tests: Run.class .FORCE
 	    ./test \
 	)
 
+USERGUIDE=${TEST}/tempUserGuide
+OVERLEAFID=620c2512d552cc226f5f4c94
+TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
+userguide-tests:
+	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
+	@ if [ -e ${TESTSCRIPT} ] ; then \
+	    chmod +x ${TESTSCRIPT} ; \
+	    ${TESTSCRIPT} ; \
+	    rm -rf ${USERGUIDE}; \
+	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
+
 release-tests: Run.class .FORCE
 	@ echo Running release tests with current development build
 	@ $(TEST)releaseTests/runtests
@@ -59,10 +79,7 @@ unittests-seq: Run.class .FORCE
 unittests-par: Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
 
-scripttests: .FORCE Run.class
-	( cd ${TEST}/scripttests; ./runtests-sort)
-
-jsontests: .FORCE Run.class
+json-tests: .FORCE Run.class
 	${TEST}/scripttests/json/run
 	${TEST}/scripttests/json-loc/run
 
@@ -93,9 +110,8 @@ cov-clean:
 
 cov-test:
 	cd ${TEST}
-	COV= time make jsontests
+	COV= time make json-tests
 	COV= time ./unittests/runpar | tee log-unittests | sort
-	COV= time ./scripttests/runtests-sort
 	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
 	## COV= make release-tests ## FIXME: Not yet working
 

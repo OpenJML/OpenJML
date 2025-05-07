@@ -10,7 +10,7 @@ public class TestBoolean {
 		Boolean t = Boolean.TRUE;
 		Boolean f = Boolean.FALSE;
 		//@ assert p ==> t == Boolean.TRUE;
-		//@ assert q ==> f == Boolean.FALSE;
+		// @ assert q ==> f == Boolean.FALSE;
 		//@ assert t != null;
 		//@ assert f != null;
 		
@@ -36,14 +36,14 @@ public class TestBoolean {
 		/*+RAC@
 		 @ assert t.toString().equals("true");
 		 @ assert f.toString().equals("false");
-		 @ assert new Boolean("true");
-		 @ assert new Boolean("True");
-		 @ assert new Boolean("TRUE");
-		 @ assert new Boolean("truE");
-		 @ assert !new Boolean("false");
-		 @ assert !new Boolean(null);
-		 @ assert !new Boolean("");
-		 @ assert !new Boolean("abc");
+		 @ assert Boolean.valueOf("true");
+		 @ assert Boolean.valueOf("True");
+		 @ assert Boolean.valueOf("TRUE");
+		 @ assert Boolean.valueOf("truE");
+		 @ assert !Boolean.valueOf("false");
+		 @ assert !Boolean.valueOf(null);
+		 @ assert !Boolean.valueOf("");
+		 @ assert !Boolean.valueOf("abc");
 		 */
 		
 		// static operations

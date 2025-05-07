@@ -147,6 +147,27 @@ post: .FORCE
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); zip -qr ./openjml.zip * )
 
+DOWNLOADS=~/Desktop
+update-docs:
+	make userguide-examples
+	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf ../../openjml.github.io/documentation
+	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf $(RELFILES)
+	cp ${DOWNLOADS}/JML_Reference_Manual.pdf ../../openjml.github.io/documentation
+	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
+
+
+
+USERGUIDE=tempUserGuide
+OVERLEAFID=620c2512d552cc226f5f4c94
+ZIPNAME=userguide-examples.zip
+userguide-examples:
+	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
+	@ if [ -e ${USERGUIDE}/${OVERLEAFID}/examples ] ; then \
+	        (cd ${USERGUIDE}/${OVERLEAFID}; zip -rq $(ZIPNAME) examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
+	        rm -rf ${USERGUIDE}; ls -la ../../openjml.github.io/examples/${ZIPNAME}; \
+	else echo Userguide examples are not available; fi
+
+
 ## Smoke test of a newly constructed release
 trial: .FORCE
 	$(TEMP)/openjml -version

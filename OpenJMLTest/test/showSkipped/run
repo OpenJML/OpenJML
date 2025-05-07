@@ -1,0 +1,8 @@
+#! /bin/bash
+
+cd $(dirname "$BASH_SOURCE[0]" )
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+
+. ./runhelper >& actual
+diff expected actual && rm -rf actual

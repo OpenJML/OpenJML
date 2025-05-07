@@ -1,1 +1,1 @@
-ARGS+=" --nullable-by-default "
+ARGS+=" --nullable-by-default --rac-missing-model-field-rep=zero "

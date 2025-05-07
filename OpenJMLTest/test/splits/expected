@@ -172,5 +172,19 @@ Completed proof of Test.halt2(int) with prover !!!! - no warnings
 Starting proof of Test.halt3(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of Test.halt3(int) with prover !!!! - no warnings
+Starting proof of Test.dowhile() with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/splits/Test.java:161: warning: There is no feasible path to program point at program exit in method Test.dowhile()
+    public void dowhile() {
+                ^
+Result of split A is INFEASIBLE
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Result of split B is Verified
+Composite result INFEASIBLE
+Completed proof of Test.dowhile() with prover !!!! - INFEASIBLE
 Completed proving methods in Test
-23 warnings
+24 warnings

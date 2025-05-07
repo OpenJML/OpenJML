@@ -12,3 +12,5 @@
 log*
 smt
 cov
+profile.html
+tempUserGuide

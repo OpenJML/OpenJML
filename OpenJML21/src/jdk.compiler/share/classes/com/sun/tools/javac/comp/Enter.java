@@ -215,7 +215,7 @@ public class Enter extends JCTree.Visitor {
         Env<AttrContext> localEnv = new Env<>(tree, new AttrContext());
         localEnv.toplevel = tree;
         localEnv.enclClass = predefClassDef;
-        tree.toplevelScope = WriteableScope.create(tree.packge);
+        if (tree.toplevelScope == null) tree.toplevelScope = WriteableScope.create(tree.packge); // OPENJML - added condition
         tree.namedImportScope = new NamedImportScope(tree.packge);
         tree.starImportScope = new StarImportScope(tree.packge);
         localEnv.info.scope = tree.toplevelScope;

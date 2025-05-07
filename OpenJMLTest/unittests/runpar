@@ -1,19 +1,74 @@
 #! /bin/bash
+
+## This script runs all the unittests, running each testsuite (with all of its testcases) sequentially,
+## but executing various testsuites concurrently. The number of concurrent jobs can be set by
+## executing the script as 'JOBS=n ./runpar' for a particular number 'n' (default is 5)
+## If there are command-line arguments, they must be a list of
+## specific testsuites to run. If the number of permitted JOBS is 0, then the testsuites are run
+## sequentially, without spwaning any subprocesses.
+
+## The tests within a test suite are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRUnner).
+
+## If the environmental variable COV is set, then coverage measurements are reported
+
+trap ctrl_c INT
+
+function ctrl_c() {
+    rm -f the.jml.lock unittestframework
+#    echo $$ `ps | egrep '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}'`
+#    kill  $$ `ps | egrep '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}'`
+#    sleep 1
+#    ps
+#    kill $$ `ps | egrep '[unittests|summary|runtests]' | grep -v grep | awk '{ print $1}'`
+#    #pkill -9 -P $$
+    echo Aborted
+    exit 1
+}
+
+rm -f the.jml.lock unittestframework
+
 shopt -s expand_aliases
+
+if [ -z "$JOBS" ]; then
+    numjobs=5
+else
+    numjobs=$JOBS
+fi
+
 
 cd $(dirname "$BASH_SOURCE")
 
-#alias lsc="ps au | grep summary | grep -v grep | awk '{ print \$13 }' | sort -u | wc -l"
 alias lsc="jobs | wc -l"
-alias wtv="while [ \$(lsc) -gt 5 ]; do echo Waiting \$(lsc); sleep 30; done; echo proceeding \$(lsc)"
-alias wt="while [ \$(lsc) -gt 5 ]; do sleep 30; done"
+alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 20; done; echo proceeding \$(lsc)"
+alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 20; done"
 
-export testlist=`(cd ../src/org/jmlspecs/openjmltest/testcases ; ls *.java | sed -e 's/.java//')`
+if [ -z "$*" ]; then
+    testlist=`(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/.java//')`
+    rm -rf log-*
+else
+    testlist=$@
+    for d in $testlist; do rm -f log-${d%.java}; done
+fi
 
-for d in $testlist; do rm -f log-$d; done
-for d in $testlist; do
-   ./run-summary log-$d "0/0" $d & 
-   wt
-done
-wait
+if [ $numjobs -eq 0 ]; then
+    echo Running $(echo $testlist | wc -w) testsuites sequentially
+    sync
+    for d in $testlist; do
+        nm=${d%.java}
+        #echo Starting $nm
+        ./run-summary log-$nm $nm
+    done
+else
+    echo Running $(echo $testlist | wc -w) testsuites with $numjobs concurrent jobs
+    sync
+    for d in $testlist; do
+        nm=${d%.java}
+        #echo Starting $nm
+        ./run-summary log-$nm $nm & 
+        sleep 1
+        wt
+    done
+    wait
+
+fi
 echo Completed

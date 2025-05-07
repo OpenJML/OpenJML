@@ -1,0 +1,9 @@
+import org.jmlspecs.annotation.*;
+
+//@ model class BBBB {}
+
+public class Test {
+
+  //@ model public void m(@NonNull Object o, BBBB bbbb);
+
+}

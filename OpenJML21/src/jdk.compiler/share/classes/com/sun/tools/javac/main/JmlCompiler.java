@@ -43,6 +43,7 @@ import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.visitors.JmlUseSubstitutions;
+import org.jmlspecs.openjml.JmlTree.JmlSource;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
@@ -119,10 +120,11 @@ public class JmlCompiler extends JavaCompiler {
      * @param context the compilation context for which this instance is being created
      */
     protected JmlCompiler(Context context) {
+        // CAUTION: Options are not read when JmlCompiler is first instantiated
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler
+        this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler // FIXME - options not yet set???
         this.resolver = JmlResolve.instance(context);
     }
     
@@ -132,16 +134,16 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     public List<JCCompilationUnit> enterTrees(List<JCCompilationUnit> roots) {
-    	// init must be called before the trees are entered because entering trees invokes
-    	// type resolution, which requires the init() call
-    	// (If we do this initialization during tool registration, we get circular instantiation)
-    	init();
-//    	JmlEnter.instance(context).hold();
-    	var list = super.enterTrees(roots);
-//    	JmlEnter.instance(context).release();
-    	var any = JmlEnter.instance(context).flush(); // FIXME - not sure this is needed
-    	//if (any) System.out.println("JmlCompiler - flush is needed");
-    	return list;
+        // init must be called before the trees are entered because entering trees invokes
+        // type resolution, which requires the init() call
+        // (If we do this initialization during tool registration, we get circular instantiation)
+        init();
+        //    	JmlEnter.instance(context).hold();
+        var list = super.enterTrees(roots);
+        //    	JmlEnter.instance(context).release();
+        var any = JmlEnter.instance(context).flush(); // FIXME - not sure this is needed
+        //if (any) System.out.println("JmlCompiler - flush is needed");
+        return list;
     }
     
     static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
@@ -158,6 +160,7 @@ public class JmlCompiler extends JavaCompiler {
     // If there is no .jml file, we parse the .java with the annotations as the specs.
     //@ nullable
     JavaFileObject checkForSpecsFile(JavaFileObject filename, CharSequence charSeq) {
+        //System.out.println("FIND SPEC FOR SOURCE " + filename);
         var charBuf = charSeq instanceof java.nio.CharBuffer cb ? cb : java.nio.CharBuffer.wrap(charSeq);
     	JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
         var tokenizer = new com.sun.tools.javac.parser.JmlTokenizer(fac, charBuf, true);
@@ -192,7 +195,14 @@ public class JmlCompiler extends JavaCompiler {
     	s = s.substring(0,k); // filename without suffix or directory
     	name += s; // fully qualified class name
     	if (debugParse) System.out.println("parser: Seeking specfile for " + name);
-    	return JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+    	var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+    	if (specFile == null) {
+    	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
+    	    var path = java.nio.file.Paths.get(filename.toUri().getPath());
+    	    specFile = JmlSpecs.instance(context).new FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"));
+    	}
+        //System.out.println("  FOUND " + specFile);
+    	return specFile;
     }
     
     /** Overridden to emit debug information */
@@ -203,6 +213,7 @@ public class JmlCompiler extends JavaCompiler {
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
         	// TODO - what output writer to use?
+            System.out.println("classpath:  " + Utils.join(":",JmlSpecs.instance(context).getClassPath()));
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }
@@ -248,8 +259,8 @@ public class JmlCompiler extends JavaCompiler {
         var json = new org.jmlspecs.openjml.JmlJson(context);
         for (var env: results) {
             var cu = (JmlClassDecl)env.tree;
-            if (!cu.sourcefile.getName().endsWith(".java")) continue; // TODO - for now, because too much of Java/JML is not yet implemented
-            //System.out.println("JSON FOR " + cu.sourcefile);
+            if (utils.isSpecFile(cu.source())) continue; // TODO - for now, because too much of Java/JML is not yet implemented
+            //System.out.println("JSON FOR " + cu.name + " " + cu.sourcefile);
             writeJson(dest, json, cu, cu.name.toString());
         }
     }
@@ -349,19 +360,22 @@ public class JmlCompiler extends JavaCompiler {
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;
-        noJML = false;
+        boolean jmlOption = JmlOption.isOption(context, JmlOption.JML);
+        noJML = !jmlOption;
         var charSeq = readSource(filename);
         try {
         	if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
+        	    // If the file is a source file and there is a specs file, we ignore any JML in the source file
+        	    // We also always ignore the JML if -no-jml has been set
         		specFile = checkForSpecsFile(filename, charSeq);
-        		noJML = specFile != null; // Using the noJML field to pass a parameter to the scanner factory is a hack and precludes parallel parsing within a context
+        		noJML = specFile != null || !jmlOption;
         	}
         	// This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
         	JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
         	if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
         	JmlCompilationUnit specCU = null;
-        	if (specFile != null) {
-        		noJML = false;
+        	if (specFile != null && jmlOption) {
+        		noJML = !jmlOption;
         		log.useSource(specFile);
         		charSeq = readSource(specFile);
         		specCU = (JmlCompilationUnit)parse(specFile, charSeq);
@@ -392,13 +406,16 @@ public class JmlCompiler extends JavaCompiler {
         	// FIXME - are javaCU and specCU always non-null?
         	// FIXME - do we need to check/set the module and package in the specs file? (like we do in parseSpecs)
         } finally {
-            noJML = false;
+            noJML = !jmlOption;
             log.useSource(prev);
         }
     }
     
     /** This flag determines whether JML annotations are being parsed -- it is a bit of a hack to communicate with the scanner */
-    public boolean noJML = false;
+    // CAUTION: JmlCompiler is instantiated before the options are parsed
+    private boolean noJML = false;
+    public boolean disableJML() { return noJML; }
+    public void disableJML(boolean b) { noJML = b; }
     
     /** Parses the specs for a class - used when we need the specs corresponding to a binary file;
      * this may only be called for public top-level classes (the specs for non-public or
@@ -488,6 +505,7 @@ public class JmlCompiler extends JavaCompiler {
             }
 
         }
+        
 
         return stopIfError(CompileState.ATTR, results);
     }
@@ -535,7 +553,7 @@ public class JmlCompiler extends JavaCompiler {
         	var results = new java.util.LinkedList<Env<AttrContext>>();
         	for (var env: envs) {
         		var t = env.tree;
-        		if (t instanceof JmlClassDecl && ((JmlClassDecl)t).sourcefile.getKind() != JavaFileObject.Kind.SOURCE) continue;
+                if (utils.isSpecFile(((JmlTree.JmlSource)t).source())) continue;
         		env = rac(env);
         		if (env == null) continue;
         		results.add(env);
@@ -564,6 +582,7 @@ public class JmlCompiler extends JavaCompiler {
     protected Env<AttrContext> rac(Env<AttrContext> env) {
         JCTree tree = env.tree;
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
+        //System.out.println("RACING " + env.tree.getClass() + " " + env.toplevel.sourcefile);
         
         // TODO - will sourcefile always exist? -- JLS
         String currentFile = env.toplevel.sourcefile.getName();

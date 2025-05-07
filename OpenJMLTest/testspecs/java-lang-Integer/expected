@@ -1,7 +1,5 @@
 Proving methods in TestInteger
-Skipping proof of TestInteger.TestInteger() (excluded by -method)
-Skipping proof of TestInteger.main(String...) (excluded by skipesc)
-Starting proof of TestInteger.esc(int,int,Integer) with prover !!!!
-Feasibility check - at program exit : OK
-Completed proof of TestInteger.esc(int,int,Integer) with prover !!!! - no warnings
+Starting proof of TestInteger.esc(int,int,@NonNull Integer) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInteger.esc(int,int,@NonNull Integer) with prover !!!! - no warnings
 Completed proving methods in TestInteger

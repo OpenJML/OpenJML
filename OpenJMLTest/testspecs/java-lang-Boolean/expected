@@ -1,7 +1,5 @@
 Proving methods in TestBoolean
-Skipping proof of TestBoolean.TestBoolean() (excluded by -method)
-Skipping proof of TestBoolean.main(String...) (excluded by skipesc)
 Starting proof of TestBoolean.esc(boolean,boolean) with prover !!!!
-Feasibility check - at program exit : OK
+Feasibility check - at implicit return : OK
 Completed proof of TestBoolean.esc(boolean,boolean) with prover !!!! - no warnings
 Completed proving methods in TestBoolean

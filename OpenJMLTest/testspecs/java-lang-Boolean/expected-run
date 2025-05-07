@@ -1,9 +1,3 @@
 OUT:
-testspecs/java-lang-Boolean/TestBoolean.java:12: JML assertion is false
-		//@ assert p ==> t == Boolean.TRUE;   // ERROR - not necessarily true
-		    ^
-testspecs/java-lang-Boolean/TestBoolean.java:13: JML assertion is false
-		//@ assert q ==> f == Boolean.FALSE;   // ERROR - not necessarily true
-		    ^
 
 ERR:

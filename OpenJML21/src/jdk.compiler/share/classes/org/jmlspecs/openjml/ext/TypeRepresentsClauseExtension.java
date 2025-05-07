@@ -42,7 +42,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 e = parser.parseExpression();
             } else if (parser.jmlTokenClauseKind() == org.jmlspecs.openjml.ext.Operators.leftarrowKind) {
                 if (utils.isDeprecationSet() && ! strict) {
-                	utils.warning(parser.pos(), "jml.deprecated.left.arrow.in.represents");
+                    utils.warning(parser.pos(), "jml.deprecated.left.arrow.in.represents");
                 }
                 suchThat = false;
                 parser.nextToken();

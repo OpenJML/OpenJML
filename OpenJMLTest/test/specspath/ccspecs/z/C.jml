@@ -1,0 +1,4 @@
+package z;
+public class C {
+    //@ invariant 0; // ccspecs/z/C.jml
+}

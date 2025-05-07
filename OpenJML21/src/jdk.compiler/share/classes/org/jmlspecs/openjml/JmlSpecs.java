@@ -271,13 +271,8 @@ public class JmlSpecs {
         if (debugSpecs) System.out.println("specs: specspath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
         if (debugSpecs) System.out.println("specs: system property: " + s);
-        if (s == null || s.isEmpty()) s = options.get(Strings.sourcepathOptionName);
-        if (debugSpecs) System.out.println("specs: sourcepath option: " + s);
-        if (s == null || s.isEmpty()) s = options.get(Strings.classpathOptionName);
-        if (debugSpecs) System.out.println("specs: classpath option: " + s);
-        if (s == null || s.isEmpty()) s = System.getProperty("java.class.path");
-        if (debugSpecs) System.out.println("specs: java.class.path: " + s);
-        if (s == null) s = Strings.empty;
+        if (s == null || s.isEmpty()) s = getSourcePathString();
+        if (debugSpecs) System.out.println("specs: sourcepath value: " + s);
         setSpecsPath(s);
     }
     
@@ -350,13 +345,32 @@ public class JmlSpecs {
     
     /** Returns the source path
      */
-    public String[] getSourcePath() {
+    public String getSourcePathString() {
+        boolean p = Utils.debug("paths");
         Options options = Options.instance(context);
         String s = options.get(Strings.sourcepathOptionName);
-        if (s == null) s = options.get(Strings.classpathOptionName);
-        if (s == null) s = System.getProperty("java.class.path");
-        if (s == null) s = "";
-        return s.split(java.io.File.pathSeparator);
+        if (p) System.out.println("sourcepath: option: " + s);
+        if (s == null || s.isEmpty()) s = getClassPathString();
+        if (p) System.out.println("sourcepath: cp: " + s);
+        return s;
+    }
+    public String[] getSourcePath() {
+        return getSourcePathString().split(java.io.File.pathSeparator);
+    }
+    
+    public String getClassPathString() {
+        boolean p = Utils.debug("paths");
+        Options options = Options.instance(context);
+        String s = options.get(Strings.classpathOptionName);
+        if (p) System.out.println("classpath: option: " + s);
+        if (s == null) s = System.getProperty("java.class.path"); // This is empty if not set rather than null
+        if (p) System.out.println("classpath: java.class.path: " + s);
+        if (s == null || s.isEmpty()) s = ".";
+        if (p) System.out.println("classpath: default: " + s);
+        return s;
+    }
+    public String[] getClassPath() {
+        return getClassPathString().split(java.io.File.pathSeparator);
     }
     
 
@@ -725,11 +739,11 @@ public class JmlSpecs {
      */
     //@ nullable
     public JavaFileObject findSpecFile(String classFlatName) {
-        String s = classFlatName.replace('.','/');
         String suffix = Strings.specsSuffix; 
+        String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
-        	if (false) System.out.println("parser+: TRYING " + dir + " " + s + suffix);
-        	JavaFileObject j = dir.findFile(s + suffix);
+        	if (false) System.out.println("parser+: TRYING " + dir + " " + s);
+        	JavaFileObject j = dir.findFile(s);
         	if (j != null) return j;
         }
         return null;
@@ -1634,10 +1648,6 @@ public class JmlSpecs {
         	if (specdecl == null) throw new AssertionError("Unexpected null specdecl");
         	if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
         	if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
-        	//if (specenv == null) throw new AssertionError("null specenv"); // specenv is null in rac
-        	if (specenv != null && specenv.tree != specdecl) throw new AssertionError("Mismatched spec tree: " + specdecl.name + " " + specenv.tree);
-        	//if (javadecl != null && javadecl != Enter.instance(context).getEnv(javadecl.sym).tree) throw new AssertionError("Mismatched java trees");
-        	if (specenv != specdecl.specEnv) throw new AssertionError("Mismatched env");
         	this.specDecl = specdecl;
         	this.javaDecl = javadecl;
         	this.csymbol = specdecl.sym;
@@ -1913,8 +1923,14 @@ public class JmlSpecs {
 	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
     	if (utils.isExtensionValueType(type)) return false;
+    	{
+    	    var s = type.toString();
+    	    // FIXME - there must be a better way
+            if (s.contains("org.jmlspecs.annotation.NonNull")) return true;
+            if (s.contains("org.jmlspecs.annotation.Nullable")) return false;
+    	}
+        if (isNonNull(type)) return true; // FIXME - does this duplicate the above
     	if (isNonNullReturn(msym)) return true;
-    	if (isNonNull(type)) return true;
     	return false;
     }
 		

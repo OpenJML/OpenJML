@@ -10,9 +10,15 @@ test/concatComment/Test.java:16: error: <identifier> expected
 test/concatComment/Test.java:16: error: A JML declaration incorrectly follows non-JML modifiers
 //@    || false;
           ^
+test/concatComment/Test.java:16: error: Method specs may not precede a variable declaration
+//@    || false;
+          ^
+test/concatComment/Test.java:16: error: illegal start of type
+//@    || false;
+          ^
 test/concatComment/Test.java:16: error: <identifier> expected
 //@    || false;
                ^
 Operation not performed because of parse or type errors
-4 errors
+6 errors
 1 warning

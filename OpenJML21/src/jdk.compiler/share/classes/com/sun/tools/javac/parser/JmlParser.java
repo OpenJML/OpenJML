@@ -381,7 +381,6 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
-        boolean print = param.name.toString().equals("stackTrace");
         insertReplacementType(param,replacementType);
         param.vartype = normalizeAnnotations((JmlModifiers)param.mods, param.vartype);
         var typeAnnotations = extractTypeAnnotations(param.mods);
@@ -742,9 +741,11 @@ public class JmlParser extends JavacParser {
     }
 
     public JCBlock block(int pos, long flags) {
+        // If jml processing is disabled in a .java file because there is a .jml file, we still need to 
+        // parse and retain JML statements in the body of a method
     	var saved = S.jmltokenizer.noJML;
-    	S.jmltokenizer.noJML = false;
-    	
+    	S.jmltokenizer.noJML = !JmlOption.isOption(context, JmlOption.JML);
+     	
     	// The body of super.block(pos,flags) is replicated here (potential maintenance problem) because we need to reset noJML
     	// before we accept RBRACE, in case there is a JML annotation immediately following the RBRACE.
     	// Even so, there could be a problem if any lookahead tokens are already scanned.
@@ -1605,8 +1606,8 @@ public class JmlParser extends JavacParser {
     @Override
     public JCExpression unannotatedType(boolean allowVar) {
         while (isStartJml(token)) nextToken();
-        boolean isBrace = S.jml() && token.kind == TokenKind.LBRACKET;
-        if (isBrace) {
+        boolean isBracket = S.jml() && token.kind == TokenKind.LBRACKET;
+        if (isBracket) {
         	this.replacementType = null;
         	try {
         		// We need to be in non-JML mode so that we don't interpret

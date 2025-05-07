@@ -1,6 +1,8 @@
 OUT:
-java.lang.AbstractMethodError: Receiver class Test does not define or inherit an implementation of the resolved method 'abstract int get(int)' of interface IFace.
-java.lang.AbstractMethodError: Receiver class Test does not define or inherit an implementation of the resolved method 'abstract int get(int)' of interface IFace.
+org.jmlspecs.runtime.Utils$NoModelMethodImplementationException: No model method implementation found for get
+org.jmlspecs.runtime.Utils$NoModelMethodImplementationException: No model method implementation found for get
+	at java.base/org.jmlspecs.runtime.Utils.noModelMethodImplementation(Utils.java:727)
+	at IFace.get(Test.java:23)
 	at Test.main(Test.java:7)
 
 ERR:

@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ dev-21 ]
-  schedule:
-    - cron: "0 0 * * *"
+#  schedule:
+#    - cron: "0 0 * * *"
 
 env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
@@ -82,4 +82,4 @@ jobs:
 
     - name: Run full tests
       run: |
-        make -C OpenJML/OpenJMLTest openjml-test
+        make -C OpenJML/OpenJMLTest openjml-test-git
