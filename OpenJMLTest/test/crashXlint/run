@@ -1,0 +1,2 @@
+
+openjml --check -Xlint:all D.java
