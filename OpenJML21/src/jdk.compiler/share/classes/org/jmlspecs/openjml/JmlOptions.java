@@ -401,7 +401,6 @@ public class JmlOptions extends Options {
                 } else {
                     Log.instance(context).error("jml.message","No such option: " + rest);
                 }
-
             } else if (key.startsWith("openjml")) {
                 opts.put(key,v);
             } else if (key.startsWith("org.openjml")) {
