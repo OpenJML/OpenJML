@@ -11,8 +11,7 @@ public class A {
        ^
 1 error
 EXIT: 1
-B.java:1: error: class A is public, should be declared in a file named A.java
-public class A {
-       ^
-1 error
-EXIT: 1
+EXIT: 0
+error: invalid flag: 
+EXIT: 2
+EXIT: 0 true

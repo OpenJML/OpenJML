@@ -86,10 +86,14 @@ public class JmlOptions extends Options {
     }
 
     public static JmlOptions instance(Context context) {
-    	if (!(Options.instance(context) instanceof JmlOptions)) Utils.dumpStack();
-        return (JmlOptions)Options.instance(context);
+        if (Options.instance(context) instanceof JmlOptions jmlopt) return jmlopt;
+        // This branch should never execute. If it does, then there is an internal
+        // bug in that an Options instance is requested before JmlOptions is a registered tool.
+        Utils.instance(context).error("jml.internal","Options.instance returns an Options instead of a JmlOptions");
+        Utils.dumpStack();
+        throw new JmlInternalException();
     }
-    
+
     public boolean isSet(JmlOption option) {
     	return (values.get(option.optionName()) != null);
     }
@@ -135,8 +139,8 @@ public class JmlOptions extends Options {
         iter = newargs.iterator();
         while (iter.hasNext()) {
             String s = iter.next();
-            if (s.endsWith(Strings.specsSuffix) && (f=new File(s)).exists()) {
-                if (jmlfiles != null) jmlfiles.add(f);
+            if (s.endsWith(Strings.specsSuffix)) {
+                if (jmlfiles != null) jmlfiles.add(new File(s));
                 else Utils.instance(context).warning("jml.message", ".jml files on the command-line are ignored: " + s);
                 iter.remove();
             }
@@ -205,7 +209,7 @@ public class JmlOptions extends Options {
 
         String s = arg;
         // If the argument is quoted (with "), remove the quotes
-        if (s.length() > 1 && s.charAt(0) == '"' && s.charAt(s.length()-1) == '"') {
+        if (s.length() > 1 && s.startsWith("\"") && s.endsWith("\"")) {
             s = s.substring(1,s.length()-1);
         }
 
@@ -215,25 +219,23 @@ public class JmlOptions extends Options {
             s = s.replace("-no","");
         }
         
-        var o = JmlOption.find(s);
+        JmlOption o = JmlOption.find(s);
         while (o != null && o.synonym() != null) {
             s = o.synonym();
-            if (s.startsWith("-no-") || s.startsWith("--no-")) {
-                negate = !negate;
-                s = s.replace("-no","");
-            }
             o = JmlOption.find(s);
         }
         
 
+        boolean hasEqual = false;
         String res = null;
         if (o == null) {
             int k = s.indexOf('=');
             if (k != -1) {
+                hasEqual = true;
                 res = s.substring(k+1,s.length());
                 s = s.substring(0,k);
                 o = JmlOption.find(s);
-                if (!res.isEmpty() && s.equals("--help")) {
+                if ("--help".equals(s)) {
                     switch (res) {
                     case "warn":
                         System.out.println("Implemented warning keys: " + warningKeys.keySet());
@@ -255,17 +257,12 @@ public class JmlOptions extends Options {
                     // which means to reset the option to its default value
                     Object def = o.defaultValue();
                     res = def == null ? null : def.toString();
-                    if (negate && !s.equals("warn")) {
+                    if (negate) {
                         Utils.instance(context).warning("jml.message","no- is not permitted with set-to-default (empty string after = character)");
                         negate = false;
                     }
                 } else  {
-                    if (o.hasArg()) { 
-                        if (negate && !s.equals("--warn")) {
-                            Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)");
-                            negate = false;
-                        }
-                    }
+                    if (o.hasArg()) { }
                     else if ("false".equals(res)) negate = true;
                     else if ("true".equals(res)) res = "";
                     else {
@@ -275,7 +272,8 @@ public class JmlOptions extends Options {
                 }
             }
         }
-        if (o == JmlOption.DIRS || s.equals("-dirs")) { // TODO - do we need the second disjunct
+
+        if (o == JmlOption.DIRS) {
             // Test for this option here before res is set from the iterator
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
                 Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
@@ -290,7 +288,7 @@ public class JmlOptions extends Options {
                 // -dirs is different because it reads the next option and does not require an argument
                 while (iter.hasNext()) {
                     res = iter.next();
-                    if (res.length() > 0 && res.charAt(0) == '-') {
+                    if (res.startsWith("-")) {
                         // res is the next option
                         processJmlArg(res,iter,options,remainingArgs,remainingArgs);
                         return;
@@ -302,57 +300,64 @@ public class JmlOptions extends Options {
         }
         
 
-        if (o != null && !negate && o.hasArg() && res == null) {
-            if (o instanceof JmlOption && o.enabledDefault != null) {
-                res = o.enabledDefault;
-            } else if (iter.hasNext()) {
-                res = iter.next();
-                if (res != null && res.length() > 1 && res.charAt(0) == '"' && s.charAt(res.length()-1) == '"') {
-                    res = res.substring(1,res.length()-1);
+        if (o != null && o.hasArg()) {
+            if (negate && !s.equals("--warn")) {
+                Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)");
+                negate = false;
+            }
+            if (!hasEqual) {
+                if (o.enabledDefault != null) {
+                    res = o.enabledDefault;
+                } else if (iter.hasNext()) {
+                    res = iter.next();
+                    if (res != null && res.length() > 1 && res.startsWith("\"") && res.endsWith("\"")) {
+                        res = res.substring(1,res.length()-1);
+                    }
+                } else {
+                    res = "";
+                    Utils.instance(context).warning("jml.expected.parameter",s);
+                    o = null;
+                    s = null;
                 }
-            } else {
-                res = "";
-                Utils.instance(context).warning("jml.expected.parameter",s);
-                o = null;
-                s = null;
             }
         }
         
         if (s == null) {
+            // Error reported
         } else if (o == null) {
             if (s.equals("-help") || s.equals("-?") || s.equals("--help")) {
-                allHelp(true);
+                if (options.get("-?") == null) allHelp(true); // Don't duplicate help output
                 options.put("-?", "");
             } else {
+                // Not a JML option
                 remainingArgs.add(s);
             }
-        } else if (o == JmlOption.DIR || s.equals("-dir")) {
+        } else if (o == JmlOption.DIR) {
+            // Special case: --dir
+            // Note that more than one instance of --dir is permitted
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
                 Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
                 s = "-" + s;
             }
             addFilesRecursively(res, remainingArgs);
         } else if (o == JmlOption.PROPERTIES) {
-            if (negate) {
-                Utils.instance(context).warning("jml.message", "-no is not permitted on --properties (ignored)");
-            }
+            // Special case: --properties
+            // Note that more than one instance of --properties is permitted
             if (res == null || res.isEmpty()) {
-                Utils.instance(context).warning("jml.message", "--properties requires an argument");
+                Utils.instance(context).warning("jml.message", "--properties requires a non-null, non-empty argument");
             } else if (!new File(res).exists() || new File(res).isDirectory()) {
                 Utils.instance(context).warning("jml.message", "the argument of --properties must be a file: " + res);
             } else {
                 Properties properties = new Properties();
                 try {
-                    if (!Utils.readProps(properties,res)) {
-                        Utils.instance(context).warning("jml.message", "unsuccessful attempt to read properties file: " + res);
-                    } else {
-                        setPropertiesFileOptions(options, properties);
-                    }
-                } catch (IOException e) {
-                    Utils.instance(context).warning("jml.message", "unsuccessful attempt to read properties file: " + res); // TODO tell exception as well
+                    Utils.readProps(properties,res); // Already checked that the file exists
+                    setPropertiesFileOptions(options, properties);
+                } catch (Exception e) {
+                    Utils.instance(context).error("jml.message", "exception on reading properties file: " + res + " " + e);
                 }
             }
         } else {
+            // Common case: set the value and check it
             if (o.defaultValue() instanceof Boolean) {
                 JmlOption.setOption(context, o, !negate);
             } else {
@@ -362,39 +367,29 @@ public class JmlOptions extends Options {
             o.check(context, negate);
         }
     }
-    
+
     public void allHelp(boolean details) {
-    	if (!details) {
-    		Log.instance(context).printRawLines("Usage: openjml <options> <source files>");
-    		Log.instance(context).printRawLines("Use option '-?' to list options");
-    	} else {
-    		Log.instance(context).printLines(WriterKind.STDOUT, PrefixKind.JAVAC, "msg.usage.header", "openjml");
-    		Log.instance(context).printRawLines("Java options:");
-    		com.sun.tools.javac.main.Option.showHelp(Log.instance(context), OptionKind.STANDARD);
-    		helpJML(Main.instance(context).stdOut); // FIXME - send to a log?
-    	}
+        if (!details) {
+            Log.instance(context).printRawLines("Usage: openjml <options> <source files>");
+            Log.instance(context).printRawLines("Use option '-?' to list options");
+        } else {
+            Log.instance(context).printLines(WriterKind.STDOUT, PrefixKind.JAVAC, "msg.usage.header", "openjml");
+            Log.instance(context).printRawLines("Java options:");
+            com.sun.tools.javac.main.Option.showHelp(Log.instance(context), OptionKind.STANDARD);
+            helpJML(Main.instance(context).stdOut); // FIXME - send to a log?
+        }
     }
 
 
     /** Sets options (first argument) from any relevant properties (second argument) */
     protected void setPropertiesFileOptions(Options opts, Properties properties){
-        for (Map.Entry<Object,Object> p : properties.entrySet()) {
-            Object o = p.getKey();
-            if (!(o instanceof String)) {
-                Utils.instance(context).warning("jml.ignoring.non.string.key", o.getClass());
-                continue;
-            }
-            String key = (String)o;
-            Object value = p.getValue();
-            if (!(value instanceof String)) {
-                Utils.instance(context).warning("jml.ignoring.non.string.value", o.getClass(),key);
-                continue;
-            }
-            String v = (String)value;
+        for (var k : java.util.Collections.list(properties.propertyNames())) {
+            String key = (String)k;
+            String v = properties.getProperty(key);
             if (key.startsWith(Strings.optionPropertyPrefix)) {
                 String rest = key.substring(Strings.optionPropertyPrefix.length());
-                if (v.equals("true")) value = "";
-                else if (v.equals("false")) value  = null;
+                if (v.equals("true")) v = "";
+                else if (v.equals("false")) v = null;
                 rest = "--" + rest;
                 opts.put(rest, v);
                 JmlOption opt = JmlOption.find(rest);
@@ -403,11 +398,8 @@ public class JmlOptions extends Options {
                 } else {
                     Log.instance(context).error("jml.message","No such option: " + rest);
                 }
-            } else if (key.startsWith("openjml")) {
-                opts.put(key,v);
-            } else if (key.startsWith("org.openjml")) {
-                opts.put(key,v);
             } else {
+                // Just save anything that is not encoded as an option, in case it is being used as an extension
                 opts.put(key,v);
             }
         }
@@ -445,15 +437,15 @@ public class JmlOptions extends Options {
 
         // TODO - needs review
         if (utils.jmlverbose >= Utils.PROGRESS) {
-        	try {
-        		Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
-        	} catch (Exception e) {
-        		e.printStackTrace(System.out);
-        		// FIXME - report problem
-        		// continue without installing a listener
-        	}
+            try {
+                Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+                // FIXME - report problem
+                // continue without installing a listener
+            }
         } else {
-        	Main.instance(context).progressDelegator.setDelegate(null);
+            Main.instance(context).progressDelegator.setDelegate(null);
         }
 
 
@@ -508,15 +500,15 @@ public class JmlOptions extends Options {
 
         JmlOptions.instance(context).pushOptions();
         {
-        	JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
-        	if (addedOptionsAnnotation != null) {
-        		List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
-        		JCExpression rhs = ((JCAssign)exprs.head).rhs;
-        		String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.stream().map(e->e.toString()).collect(Collectors.toList()).toArray(new String[((JCNewArray)rhs).elems.size()])
-        				: rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
-        		: null;
-        				addOptions(opts);
-        	}
+            JCAnnotation addedOptionsAnnotation = Utils.instance(context).findMod(mods, optionName);
+            if (addedOptionsAnnotation != null) {
+                List<JCExpression> exprs = addedOptionsAnnotation.getArguments();
+                JCExpression rhs = ((JCAssign)exprs.head).rhs;
+                String[] opts = rhs instanceof JCNewArray ? ((JCNewArray)rhs).elems.stream().map(e->e.toString()).collect(Collectors.toList()).toArray(new String[((JCNewArray)rhs).elems.size()])
+                        : rhs instanceof JCLiteral ? new String[]{ rhs.toString() }
+                : null;
+                addOptions(opts);
+            }
         }
     }
 

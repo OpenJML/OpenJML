@@ -22,3 +22,18 @@ B.java:4: verify: The prover cannot establish an assertion (Assert) in method m
         ^
 1 verification failure
 Test2b
+Test3a
+error: file not found: C.java
+Usage: javac <options> <source files>
+use --help for a list of possible options
+Test3b
+error: file not found: C.java
+Usage: openjml <options> <source files>
+use --help for a list of possible options
+ENDING with exit code 2
+Test4a
+warning: .jml files on the command-line are ignored: C.jml
+1 warning
+Test4b
+warning: .jml files on the command-line are ignored: D.jml
+1 warning

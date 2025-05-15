@@ -214,14 +214,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 print("(");
                 printExprs(that.args);
                 print(")");
-            } else if (that.kind != null) {
-                print(that.kind.keyword());
-                if (that.javaType &&
-                        (that.kind == MiscExpressions.typelcKind || that.kind == FunctionLikeExpressions.typeofKind)
-                        ) print("j");
-                print("(");
-                printExprs(that.args);
-                print(")");
             } else if (that.name != null) {
                 print(that.name);
                 print("(");

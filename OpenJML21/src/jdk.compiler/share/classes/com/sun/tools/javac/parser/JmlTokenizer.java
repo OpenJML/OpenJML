@@ -11,7 +11,6 @@ import java.util.Stack;
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;

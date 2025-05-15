@@ -9,6 +9,11 @@ error: No such option: --zzz
 Test of no properties
 warning: The last command-line option expects a parameter: --properties
 error: no source files
+Test of folder
+warning: the argument of --properties must be a file: folder
+1 warning
 Test of non-existent file
 warning: the argument of --properties must be a file: zzz
 1 warning
+Test of mal-formed file
+error: exception on reading properties file: bad2.properties java.lang.IllegalArgumentException: Malformed \uxxxx encoding.

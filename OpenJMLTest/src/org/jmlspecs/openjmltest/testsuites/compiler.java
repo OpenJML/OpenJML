@@ -827,6 +827,51 @@ public class compiler extends JmlTestSuite{
                           );
     }
     
+    /** Tests an unmatched quote */
+    @Test
+    public void testBadEqual() {
+        helper(new String[]
+                          { "--zzz=yyy"
+                          },2,0
+                          ,""
+                          ,"""
+                           error: invalid flag: --zzz=yyy
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    /** Tests an unmatched quote */
+    @Test
+    public void testOrphanQuote() {
+        helper(new String[]
+                          { "\""
+                          },2,0
+                          ,""
+                          ,"""
+                           error: invalid flag: "
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
+    /** Tests an unmatched quote with content */
+    @Test
+    public void testOrphanQuote2() {
+        helper(new String[]
+                          { "\"--check"
+                          },2,0
+                          ,""
+                          ,"""
+                           error: invalid flag: "--check
+                           Usage: openjml <options> <source files>
+                           use --help for a list of possible options
+                           """
+                          );
+    }
+    
     @Test
     public void testModelBug() throws Exception {
         helper(new String[]
@@ -1308,6 +1353,16 @@ public class compiler extends JmlTestSuite{
         expectedFile = "releaseTests/testJmlHelp/expected";
         helper(new String[]
                 { "-?"
+                },0,0
+                ,""
+                );
+    }
+
+    @Test
+    public void release_testJmlHelpDup() throws Exception {
+        expectedFile = "releaseTests/testJmlHelp/expected";
+        helper(new String[]
+                { "-?","--help"
                 },0,0
                 ,""
                 );

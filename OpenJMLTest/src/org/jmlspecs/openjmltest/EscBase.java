@@ -164,10 +164,8 @@ public abstract class EscBase extends JmlTestSuite {
         addOptions("--timeout=300"); // seconds
         addOptions("-jmltesting"); // filters time-related or user-envirnment-related material out of test output
         addOptions("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
-        main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
- //       specs = JmlSpecs.instance(context);
         expectedExit = 0;
         noAssociatedDeclaration = false;
         ignoreNotes = false;
