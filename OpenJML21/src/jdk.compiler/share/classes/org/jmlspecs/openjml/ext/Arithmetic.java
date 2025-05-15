@@ -66,6 +66,11 @@ abstract public class Arithmetic extends JmlExtension {
         
     public boolean rac;
     
+    abstract public Mode mode();
+    
+    @Override
+    public String toString() { return mode().toString(); }
+    
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         Utils utils = Utils.instance(context);
         if (!jml) {
@@ -652,7 +657,6 @@ abstract public class Arithmetic extends JmlExtension {
             return makeBinaryOp(rewriter, that, newtype, false, false, alreadyConverted);
 
         }
-
     }
 
     public static class Safe extends Arithmetic implements IArithmeticMode {
@@ -673,7 +677,6 @@ abstract public class Arithmetic extends JmlExtension {
         public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted) {
             return makeBinaryOp(rewriter, that, null, true, true, alreadyConverted);
         }
-        
     }
 
     public static class Java extends Arithmetic implements IArithmeticMode {
