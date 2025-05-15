@@ -975,7 +975,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
             addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
             addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
-            addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher.pos,tt),assumptions);
+            addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher,tt),assumptions);
             JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
                 d.pos = catcher.param.pos;
             catchBlock.statements.add(d);
@@ -1372,7 +1372,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         if (update != null) bloopContinue.statements.addAll(update);
         
         // Create the loop end block
-        addAssume(test.pos,Label.LOOP,treeutils.makeNot(test.pos, ntest),bloopEnd.statements);
+        addAssume(test.pos,Label.LOOP,treeutils.makeNot(test, ntest),bloopEnd.statements);
         
         follows(bloopEnd,bloopAfter);
 
@@ -1530,7 +1530,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             processBlocks();
             scan(that.cond); // TODO - fix for case that has side -effects - not currently used
             JCExpression ntest = result;
-            addAssume(that.cond.pos,Label.LOOP,treeutils.makeNot(ntest.pos,ntest),bloopEnd.statements);
+            addAssume(that.cond.pos,Label.LOOP,treeutils.makeNot(ntest,ntest),bloopEnd.statements);
             processBlock(bloopContinue);
             processBlocks();
 
