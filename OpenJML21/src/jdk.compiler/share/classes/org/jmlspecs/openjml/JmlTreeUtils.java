@@ -1180,36 +1180,34 @@ public class JmlTreeUtils {
         return lhs;
     }
 
-	public boolean isLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) return true;
-		return null != typeLiteral(e);
-	}
+    public boolean isLiteral(JCExpression e) {
+        if (e instanceof JCLiteral) return true;
+        return null != typeLiteral(e);
+    }
 
-	public Number integralLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) {
-			JCLiteral lit = (JCLiteral) e;
-			if (lit.value instanceof Number number && types.isAnyIntegral(lit.type))
-				return number;
-		}
-		return null;
-	}
+    public Number integralLiteral(JCExpression e) {
+        if (e instanceof JCLiteral lit) {
+            if (lit.value instanceof Number number && types.isAnyIntegral(lit.type))
+                return number;
+        }
+        return null;
+    }
 
-	public Number floatingLiteral(JCExpression e) {
-		if (e instanceof JCLiteral lit) {
-			if (lit.value instanceof Double d) return d;
-			if (lit.value instanceof Float f) return f;
-		}
-		return null;
-	}
+    public Number floatingLiteral(JCExpression e) {
+        if (e instanceof JCLiteral lit) {
+            if (lit.value instanceof Double d) return d;
+            if (lit.value instanceof Float f) return f;
+        }
+        return null;
+    }
 
-	public Type typeLiteral(JCExpression e) {
-		if (e instanceof JmlMethodInvocation) {
-			JmlMethodInvocation lit = (JmlMethodInvocation) e;
-			if (lit.kind == typelcKind)
-				return lit.args.head.type;
-		}
-		return null;
-	}
+    public Type typeLiteral(JCExpression e) {
+        if (e instanceof JmlMethodInvocation lit) {
+            if (lit.kind == typelcKind)
+                return lit.args.head.type;
+        }
+        return null;
+    }
 
     public Boolean booleanLiteral(JCExpression e) {
         if (e instanceof JCLiteral lit) {
@@ -1219,15 +1217,19 @@ public class JmlTreeUtils {
         return null;
     }
 
-    /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
+    /** Makes an attributed AST for a non-short-circuit boolean OR expression */
     public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
             Boolean bl = booleanLiteral(lhs);
-            if (bl != null && bl) return lhs;
-            if (bl != null && !bl) { lhs = r; continue; }
+            if (bl != null) {
+                if (bl) return lhs;
+                else { lhs = r; continue; }
+            }
             Boolean b = booleanLiteral(r);
-            if (b != null && b) return r;
-            if (b != null && !b) continue;
+            if (b != null) {
+                if (b) return r;
+                else continue;
+            }
             lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
         }
         return lhs;
@@ -1236,11 +1238,15 @@ public class JmlTreeUtils {
     public JCExpression makeBitOrSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
             Boolean bl = booleanLiteral(lhs);
-            if (bl != null && bl) return lhs;
-            if (bl != null && !bl) { lhs = r; continue; }
+            if (bl != null) {
+                if (bl) return lhs;
+                else { lhs = r; continue; }
+            }
             Boolean b = booleanLiteral(r);
-            if (b != null && b) return r;
-            if (b != null && !b) continue;
+            if (b != null) {
+                if (b) return r;
+                else continue;
+            }
             lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
         }
         return lhs;
