@@ -1267,6 +1267,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testKeysBad() {
+        expectedExit = 1;
         helpTCX("tt.TestJava",
                 """
                 package tt;
@@ -1276,7 +1277,7 @@ public class escall2 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m1", 9
+                ,"/tt/TestJava.java:4: error: An argument to \\key must be an identifier or a string literal: 0", 21
                 );
     }
 

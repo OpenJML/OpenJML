@@ -87,6 +87,7 @@ public class JmlOptions extends Options {
 
     public static JmlOptions instance(Context context) {
         if (Options.instance(context) instanceof JmlOptions jmlopt) return jmlopt;
+        // NOCOVERAGE
         // This branch should never execute. If it does, then there is an internal
         // bug in that an Options instance is requested before JmlOptions is a registered tool.
         Utils.instance(context).error("jml.internal","Options.instance returns an Options instead of a JmlOptions");
@@ -95,7 +96,7 @@ public class JmlOptions extends Options {
     }
 
     public boolean isSet(JmlOption option) {
-    	return (values.get(option.optionName()) != null);
+        return (values.get(option.optionName()) != null);
     }
 
     /** Loads the options map with all defaults for Jml options */
@@ -155,8 +156,8 @@ public class JmlOptions extends Options {
     public void processOption(String key, String value) {
         var o = JmlOption.find(key);
         if (o != null) {
-        	values.put(key,  value);
-        	o.check(context,  false);
+            values.put(key,  value);
+            o.check(context,  false);
         }
     }
     
@@ -426,9 +427,9 @@ public class JmlOptions extends Options {
         options.remove("printArgsToFile");
         
         try {
-        	utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
+            utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
         } catch (Exception e) {
-        	// continue
+            // continue
         }
         if (options.get("-verbose") != null) {
             // If the Java -verbose option is set, we set -jmlverbose as well
