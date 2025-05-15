@@ -211,6 +211,10 @@ public class escfiles2 extends EscBaseFiles {
         helpTCN("--check", "--dirs", "test/optiondir/p", "q");
     }
     
+    @Test public void changeMathMode() {
+        helpTCN("--esc","--progress","--check-feasibility=none");
+    }
+    
 
 
 
