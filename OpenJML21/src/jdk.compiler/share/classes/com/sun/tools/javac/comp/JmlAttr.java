@@ -2700,7 +2700,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlMethodClauseExpr substRequires = jmlMaker.at(m.pos).JmlMethodClauseExpr(requiresID,requiresClauseKind,rc.expression);
                 prefix.append(substRequires);
                 JmlMethodClauseExpr nn = jmlMaker.at(m.pos).JmlMethodClauseExpr(requiresID,requiresClauseKind,
-                        treeutils.makeNot(substRequires.pos, rc.expression));
+                        treeutils.makeNot(substRequires, rc.expression));
                 if (first) {
                     excRequires = nn;
                     exlist.add(excRequires);
@@ -5621,7 +5621,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCExpression cond = newvalue;
             if (q.kind == qforallKind || q.kind == qexistsKind || q.kind == qchooseKind ) { 
                 if (q.kind == qforallKind) {
-                    cond = treeutils.makeNot(cond.pos, cond);
+                    cond = treeutils.makeNot(cond, cond);
 //                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
 //                    ((JCUnary)cond).operator = rs.resolveUnaryOperator(cond.pos(), JCTree.NOT, env, newvalue.type);
                 }

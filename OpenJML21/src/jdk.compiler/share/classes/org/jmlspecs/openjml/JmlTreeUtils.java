@@ -982,11 +982,11 @@ public class JmlTreeUtils {
         return makeBinary(pos, optag,  lhs, rhs);
     }
 
-    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
-        if (optag == JCTree.Tag.AND) return makeAndSimp(pos, lhs, rhs);
-        return makeBinary(pos, optag,  lhs, rhs);
-    }
+//    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+//        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
+//        if (optag == JCTree.Tag.AND) return makeAndSimp(pos, lhs, rhs);
+//        return makeBinary(pos, optag,  lhs, rhs);
+//    }
 
 
     /** Makes an attributed Java binary operator node (with boolean result)
@@ -1217,23 +1217,23 @@ public class JmlTreeUtils {
         return null;
     }
 
-    /** Makes an attributed AST for a non-short-circuit boolean OR expression */
-    public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
-            Boolean bl = booleanLiteral(lhs);
-            if (bl != null) {
-                if (bl) return lhs;
-                else { lhs = r; continue; }
-            }
-            Boolean b = booleanLiteral(r);
-            if (b != null) {
-                if (b) return r;
-                else continue;
-            }
-            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
-        }
-        return lhs;
-    }
+//    /** Makes an attributed AST for a non-short-circuit boolean OR expression */
+//    public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
+//        for (JCExpression r: rhs) {
+//            Boolean bl = booleanLiteral(lhs);
+//            if (bl != null) {
+//                if (bl) return lhs;
+//                else { lhs = r; continue; }
+//            }
+//            Boolean b = booleanLiteral(r);
+//            if (b != null) {
+//                if (b) return r;
+//                else continue;
+//            }
+//            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
+//        }
+//        return lhs;
+//    }
 
     public JCExpression makeBitOrSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
@@ -1264,14 +1264,14 @@ public class JmlTreeUtils {
                 makeNot(pos,lhs), rhs);
     }
 
-    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
-    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
-        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
-        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
-        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
-        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
-                makeNot(pos,lhs), rhs);
-    }
+//    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+//    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+//        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+//        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+//        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
+//        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+//                makeNot(pos,lhs), rhs);
+//    }
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImpliesSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
