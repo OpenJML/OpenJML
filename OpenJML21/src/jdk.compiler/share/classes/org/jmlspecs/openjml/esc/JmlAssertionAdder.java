@@ -29,7 +29,6 @@ import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
 import org.jmlspecs.openjml.JmlSpecs.SpecsStatus;
 import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
-import org.jmlspecs.openjml.Nowarns.Item;
 import org.jmlspecs.openjml.Utils.JmlNotImplementedException;
 import org.jmlspecs.openjml.ext.*;
 import org.jmlspecs.openjml.ext.StatementLocationsExtension.LocationSetStatementType;
@@ -248,9 +247,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Cached value of the Utils tool */
 	final public Utils utils;
-
-	/** Cached value of the Nowarns object */
-	final protected Nowarns nowarns;
 
 	/** Cached value of the Attribute tool */
 	final protected JmlAttr attr;
@@ -628,7 +624,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.log = Log.instance(context);
 		this.M = JmlTree.Maker.instance(context);
 		this.names = Names.instance(context);
-		this.nowarns = Nowarns.instance(context);
 		this.syms = Symtab.instance(context);
 		this.types = JmlTypes.instance(context);
 		this.utils = Utils.instance(context);
@@ -2093,14 +2088,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean isFalse = treeutils.isFalseLit(translatedExpr);
 		if (isTrue)
 			return null; // Literally true - don't even add the statement
-		if (nowarns.suppress(log.currentSource(), codepos == null ? Position.NOPOS : codepos.getPreferredPosition(),
-				label.toString()))
-			return null;
-		if (associatedPos != null) {
-			if (nowarns.suppress(associatedSource == null ? log.currentSourceFile() : associatedSource,
-					associatedPos.getPreferredPosition(), label.toString()))
-				return null;
-		}
 		String assertID = Strings.assertPrefix + (++assertCount);
 		if (assertCount == assertCountCheck) {
             System.out.println("LOC: " + log.currentSourceFile() + " " + codepos + " " + codepos.getPreferredPosition());

@@ -43,7 +43,7 @@ public class runscripts extends RunBase {
         help();
     }
 
-    @Test public void apistatic() {
+    @Test public void apiinstance() {
         help();
     }
 

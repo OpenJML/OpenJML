@@ -956,7 +956,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testConstraint1() {
-    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
+        addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava {\n"
@@ -1229,5 +1229,55 @@ public class escall2 extends EscBase {
                  );
     }
    
+    @Test
+    public void testKeys() {
+        addOptions("--esc");
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1() {
+                    //@ assert \\key(OPENJML);
+                  }
+                  public void m2() {
+                    //@ assert !\\key(ZZZ,OPENJML);
+                  }
+                  public void m3() {
+                    //@ assert !\\key(OPENJML,YYY);
+                  }
+                  public void m4() {
+                    //@ assert !\\key(ZZZ,YYY);
+                  }
+                  public void q1() {
+                    //@ assert \\key("OPENJML");
+                  }
+                  public void q2() {
+                    //@ assert !\\key("ZZZ","OPENJML");
+                  }
+                  public void q3() {
+                    //@ assert !\\key("OPENJML","YYY");
+                  }
+                  public void q4() {
+                    //@ assert !\\key("ZZZ","YYY");
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testKeysBad() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1() {
+                    //@ assert \\key(0);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m1", 9
+                );
+    }
 
 }

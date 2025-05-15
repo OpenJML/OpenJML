@@ -278,6 +278,73 @@ public class escoption extends EscBase {
     }
     
     @Test
+    public void testQuotedFeasibility() {
+        expectedExit = 2;
+        addOptions("--check-feasibility","\"xyz\"");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        ,"error: Unexpected value as argument for --check-feasibility: xyz",-1
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void testBadQuoted() {
+        expectedExit = 2;
+        addOptions("--check-feasibility","\"xyz");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        ,"error: Unexpected value as argument for --check-feasibility: \"xyz",-1
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void testBadQuoted2() {
+        expectedExit = 2;
+        addOptions("--check-feasibility","\"");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        ,"error: Unexpected value as argument for --check-feasibility: \"",-1
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void testQuotedKey() {
+        expectedExit = 0;
+        addOptions("\"--check-feasibility\"","none");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void nullDefault() {
+        expectedExit = 0;
+        addOptions("--method=","--check");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void testWhitespace() {
+        expectedExit = 1;
+        addOptions("--check","--require-white-space=false");
+        helpTCX("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
+                ,"/tt/TestJava.java:1: error: Unexpected or misspelled JML token: zzz",16
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
+    public void testWhitespace2() {
+        expectedExit = 0;
+        addOptions("--check","--require-white-space=true");
+        helpTCX("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
+        );
+        org.junit.Assert.assertTrue(output().isEmpty());
+    }
+    
+    @Test
     public void testDebugFeasibility() {
         expectedExit = 0;
         addOptions("--check-feasibility=debug:100");
@@ -294,6 +361,238 @@ public class escoption extends EscBase {
         );
         org.junit.Assert.assertEquals("",output());
     }
+    
+    @Test
+    public void oldDirs() {
+        expectedExit = 0;
+        addOptions("-dirs");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Option -dirs is deprecated in favor of --dirs",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void oldDir() {
+        expectedExit = 0;
+        addOptions("-dir=.");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Option -dir is deprecated in favor of --dir",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void dirs() {
+        expectedExit = 0;
+        addOptions("--dirs=p,q");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Ignoring p (not a file or folder)",-1
+                ,"warning: Ignoring q (not a file or folder)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void dirsDup() {
+        expectedExit = 0;
+        addOptions("--dirs=p","--dirs=q");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Ignoring p (not a file or folder)",-1
+                ,"warning: Ignoring q (not a file or folder)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void dirss() {
+        expectedExit = 0;
+        addOptions("--dirs","p","--","Test.java");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Ignoring p (not a file or folder)",-1
+                ,"warning: Ignoring q (not a file or folder)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void dir() {
+        expectedExit = 0;
+        addOptions("--dir=p");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Ignoring p (not a file or folder)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void dirDup() {
+        expectedExit = 0;
+        addOptions("--dir","p","--dir=q");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Ignoring p (not a file or folder)",-1
+                ,"warning: Ignoring q (not a file or folder)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void dirx() {
+        expectedExit = 0;
+        addOptions("--dir","p");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: Ignoring p (not a file or folder)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void negDirs() {
+        expectedExit = 0;
+        addOptions("--no-dirs");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: -no is not permitted on --dirs (ignored)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void negDir() {
+        expectedExit = 0;
+        addOptions("--no-dir","p");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: no- is only permitted for boolean options (and --warn)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+        
+    }
+    
+    @Test
+    public void badBool() {
+        expectedExit = 0;
+        addOptions("--stop-if-parse-errors=yyy");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: This command-line option is not supposed to have a parameter: --stop-if-parse-errors",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+    
+    @Test
+    public void negDefault() {
+        expectedExit = 0;
+        addOptions("--no-stop-if-parse-errors=");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: no- is not permitted with set-to-default (empty string after = character)",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+    
+    @Test
+    public void negWarn() {
+        expectedExit = 0;
+        addOptions("--no-warn=implicit-everything");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+    
+    @Test
+    public void nullProperties() {
+        expectedExit = 0;
+        addOptions("--properties",null);
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: --properties requires a non-null, non-empty argument",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+    
+    @Test
+    public void emptyProperties() {
+        expectedExit = 0;
+        addOptions("--properties","");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: --properties requires a non-null, non-empty argument",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+
+    @Test
+    public void keysNull() {
+        expectedExit = 0;
+        addOptions("--keys",null);
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+
+    @Test
+    public void keysEmpty() {
+        expectedExit = 0;
+        addOptions("--keys","");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+
+    @Test
+    public void stringDefault() {
+        expectedExit = 0;
+        addOptions("--check","--show");
+        helpTCX("tt.TestJava", "package tt; public "
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+
+    @Test
+    public void helpBadEmpty() {
+        expectedExit = 0;
+        addOptions("--help=");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: No detailed help available for ''", -1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+
+    @Test
+    public void helpBad() {
+        expectedExit = 0;
+        addOptions("--help=zzz");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+                ,"warning: No detailed help available for 'zzz'", -1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+
+    @Test
+    public void helpWarn() {
+        expectedExit = 0;
+        addOptions("--help=warn");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("Implemented warning keys: [implicit-everything]\n",output());
+    }
+
+    // FIXME - these tests abort the unittests -- something is wrong with capturing and testing the stdout/stderr
+//    @Test
+//    public void checkStdout() {
+//        System.out.println("OUT");
+//        org.junit.Assert.assertEquals("OUT\n",output());
+//    }
+//    
+////    @Test
+//    public void checkStdERR() {
+//        System.err.println("ERROR");
+//        org.junit.Assert.assertEquals("",output());
+//    }
     
     
 }
