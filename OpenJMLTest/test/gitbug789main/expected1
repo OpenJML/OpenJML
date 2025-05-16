@@ -1,7 +1,3 @@
-warning: Method id(int) has 'assignable \everything', making its caller likely impossible to verify
-test/gitbug789main/CircleOperations.java:31: warning: Associated declaration: 
-        System.out.println(cops.id(79));
-                                  ^
 Proving methods in CircleOperations
 Skipping proof of CircleOperations.CircleOperations() (Skipping CircleOperations.CircleOperations because it does not match main)
 Skipping proof of CircleOperations.id(int) (Skipping CircleOperations.id because it does not match main)

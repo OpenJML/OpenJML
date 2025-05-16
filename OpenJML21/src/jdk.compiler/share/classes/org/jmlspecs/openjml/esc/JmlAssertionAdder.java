@@ -1639,7 +1639,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
         currentEnv.arithmeticMode = Arithmetic.Math.instance(context)
                 .defaultArithmeticMode(sym, inSpec);
-        addStat(comment(null, "Pushed arith mode " + currentEnv.arithmeticMode, null));
+        //addStat(comment(null, "Pushed arith mode " + currentEnv.arithmeticMode, null));
     }
 
     public void pushArithMode() {
@@ -1647,13 +1647,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
         currentEnv.arithmeticMode = Arithmetic.Math.instance(context)
                 .defaultArithmeticMode(methodDecl != null ? methodDecl.sym : classDecl.sym, true);
-        addStat(comment(null, "Pushed arith mode " + currentEnv.arithmeticMode, null));
+        //addStat(comment(null, "Pushed arith mode " + currentEnv.arithmeticMode, null));
     }
 
-	public void popArithMode() {
-		currentEnv = currentEnv.popEnv();
-        addStat(comment(null, "Popped arith mode - now " + currentEnv.arithmeticMode, null));
-	}
+    public void popArithMode() {
+        currentEnv = currentEnv.popEnv();
+        //addStat(comment(null, "Popped arith mode - now " + currentEnv.arithmeticMode, null));
+    }
 	
 	public /* @nullable */ JCExpression convertJML(/* @nullable */ JCTree that, JCExpression condition,
 	            boolean isPostcondition) {

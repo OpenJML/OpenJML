@@ -228,6 +228,7 @@ public class JavacMessages implements Messages {
        if (msg == null) {
            msg = "compiler message file broken: key=" + key +
                " arguments={0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}";
+           System.out.println("FAILING KEY " + msg); // OPENJML - added to debug failing messages
            Thread.dumpStack(); // OPENJML - added to debug failing messages
        }
        return MessageFormat.format(msg, args);
