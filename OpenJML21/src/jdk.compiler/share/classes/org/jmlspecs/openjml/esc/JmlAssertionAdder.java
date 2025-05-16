@@ -6721,9 +6721,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        ListBuffer<JCCase> newcases = new ListBuffer<>();
 	        // The value of Continuation says whether it is possible for control flow to continue after the switch
 	        // HALT if all branches HALT; otherwise CONTINUE
-	        // FIXME - what about the situation of a missing default case and the cases do not cover all possibilities
 	        Continuation combined = Continuation.HALT;
-	        for (var _case: cases) {
+	        boolean hasDefault = false;
+	        for (JCCase _case: cases) {
+	            if (_case.labels.get(0) instanceof JCDefaultCaseLabel) hasDefault = true;
 	            continuation = Continuation.CONTINUE;
 	            boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
 
@@ -6741,6 +6742,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.labels, _case.guard, bl.stats, bl);
 	            newcases.add(newcase);
 	            combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
+	        }
+	        if (!hasDefault) {
+	            // Adding an implicit default
+	            //  FIXME - what if cases cover all possibilities?
+	            var label = M.at(pos).DefaultCaseLabel();
+	            JCBlock bl = M.at(pos).Block(0L,List.<JCStatement>nil());
+                var newcase = M.at(pos).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, List.<JCCaseLabel>of(label), null, bl.stats, bl);
+	            newcases.add(newcase);
+	            combined = Continuation.CONTINUE;
 	        }
 	        continuation = combined;
 	        newswitch.cases = newcases.toList();
