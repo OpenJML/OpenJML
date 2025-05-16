@@ -5,6 +5,7 @@ Test.java:3: verify: The prover cannot establish an assertion (Assert) in method
         ^
 1 verification failure
 Test of bad.properties
+warning: Command-line argument error: Expected 'auto', 'true' or 'false' for --esc-bv: zzz
 error: No such option: --zzz
 Test of no properties
 warning: The last command-line option expects a parameter: --properties

@@ -24,4 +24,4 @@ test/gitbug789me/CircleOperations.java:46: warning: The prover cannot establish 
 Completed proof of CircleOperations.me(String[]) with prover !!!! - with warnings
 Skipping proof of CircleOperations.mee(String[]) (Skipping CircleOperations.mee because it does not match me)
 Completed proving methods in CircleOperations
-6 warnings
+4 warnings
