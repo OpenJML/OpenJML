@@ -24,4 +24,4 @@ Skipping proof of CircleOperations.mp(String[]) (Skipping CircleOperations.mp be
 Skipping proof of CircleOperations.me(String[]) (Skipping CircleOperations.me because it does not match main)
 Skipping proof of CircleOperations.mee(String[]) (Skipping CircleOperations.mee because it does not match main)
 Completed proving methods in CircleOperations
-6 warnings
+4 warnings
