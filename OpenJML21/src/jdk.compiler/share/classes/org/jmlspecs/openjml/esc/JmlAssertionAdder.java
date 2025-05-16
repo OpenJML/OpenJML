@@ -2116,6 +2116,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		String assertID = Strings.assertPrefix + (++assertCount);
 		if (assertCount == assertCountCheck) {
             System.out.println("LOC: " + log.currentSourceFile() + " " + codepos + " " + codepos.getPreferredPosition());
+            System.out.println("PRIMARYSOURCE " + primarySource);
             if (associatedPos != null) System.out.println("ALOC: " + associatedSource + " " + associatedPos + " " + associatedPos.getPreferredPosition());
 		    Utils.dumpStack("Assertion " + assertID);
 		}
@@ -10271,8 +10272,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 														allowed = checkAccess2(clause.clauseKind, that, item, item, false, 
 																treeutils.makeBooleanLiteral(item, true), false, calleeEnv, true);
 														//System.out.println("ALLOWED " + allowed);
-														//System.out.println("CHECKING " + calleeMethodSym + " " + isPure(calleeMethodSym) + " " + methodDecl.sym + " " + item + " " + that);
+														//System.out.println("CHECKING " + clause + " " + that + " " + item);
+                                                        //System.out.println("CLAUSE FILE " + clause.sourcefile);
+                                                        //System.out.println("CURRENT FILE " + log.currentSourceFile());
+                                                        //var prevv = log.useSource(clause.sourcefile);
 														checkAccess2(clause.clauseKind, that, item, item, false, allowed, true, null, false);
+														//log.useSource(prevv);
 													} catch (Exception e) {
 														e.printStackTrace(System.out);
 													}
@@ -13074,7 +13079,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						for (JmlSpecificationCase specCase : denestedSpecs.cases) {
 
 							if (!doSpecificationCase(methodDecl, methodSym, parentMethodSym, specCase, true)) continue; // FIXME - something different for targetENv
-							log.useSource(specCase.source());
+							var prevc = log.useSource(specCase.source());
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("SPECCASE PRE " + precondition);
 							if (precondition == null) {
@@ -13103,7 +13108,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											convertedCondition = makeAssertionOptional(convertedCondition);
 											//System.out.println("Assertion checking if " + lhsUnconverted + " is in " + clause + " : " + convertedCondition);
 											addStat(comment(pos, "Assertion checking if " + lhsUnconverted + " is in " + clause, clause.sourcefile));
-											var sst = addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, clause, clause.sourcefile, null, lhsUnconverted);
+//                                            System.out.println("PRIMARY SOURCE " + primarySource);
+//                                            System.out.println("PREVC " + prevc);
+//                                            System.out.println("CURRENT " + log.currentSourceFile());
+											var sst = addAssertZ(true, pos, log.currentSourceFile(), kindLabel, convertedCondition, clause, clause.sourcefile, null, lhsUnconverted);
 											var bl = popBlock(clause);
 											addStat(M.at(clause).If(precondition, bl, null));
                                         } else {
