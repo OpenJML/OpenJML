@@ -1,0 +1,34 @@
+Proving methods in CF
+Starting proof of CF.CF() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.CF() with prover !!!! - no warnings
+Starting proof of CF.codiceMese(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.codiceMese(int) with prover !!!! - no warnings
+Starting proof of CF.codiceCognome(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.codiceCognome(String) with prover !!!! - no warnings
+Starting proof of CF.codiceNome(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.codiceNome(String) with prover !!!! - no warnings
+Starting proof of CF.getConsonanti(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.getConsonanti(String) with prover !!!! - no warnings
+Starting proof of CF.getVocali(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.getVocali(String) with prover !!!! - no warnings
+Starting proof of CF.codiceGiorno(int,char) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.codiceGiorno(int,char) with prover !!!! - no warnings
+Starting proof of CF.codiceAnno(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of CF.codiceAnno(int) with prover !!!! - no warnings
+Completed proving methods in CF
