@@ -591,10 +591,16 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** This method is called programmatically, in which case the set of files is 
         separate from the command-line options. */
     public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
-        useJML = true;
-    	this.fileObjects = fileObjects;
-    	if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
-    	return compile(args,context);
+        try {
+            useJML = true;
+            this.fileObjects = fileObjects;
+            if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
+            return compile(args,context);
+        } catch (JmlInternalAbort e) {
+            log.error("jml.message", "Unrecoverable compilation problem");
+            if (System.getenv("STACK") != null) e.printStackTrace(System.out);
+            return Main.Result.CMDERR;
+        }
     }
     
     /** Do anything that needs adjustment after options are processed but

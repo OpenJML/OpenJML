@@ -923,7 +923,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
-        //if (type.toString().endsWith(".Object")) System.out.println("PUTSPECS " + type + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + spec);
+        //if (type.toString().endsWith(".Object")) System.out.println("PUTSPECS " + type + " " + type.hashCode() + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + spec);
         spec.csymbol = type;
         specsTypes.put(type,spec);        
         setStatus(type, SpecsStatus.SPECS_LOADED);
@@ -1193,8 +1193,12 @@ public class JmlSpecs {
         
         MethodSymbol superSym = null;
         if ((sym.flags() & Flags.GENERATEDCONSTR) != 0) {
-        	var iter = ((ClassSymbol)sym.owner).getSuperclass().tsym.members().getSymbols(s->s.isConstructor() && s.type.getParameterTypes().size() == sym.type.getParameterTypes().size()).iterator();
-        	if (iter.hasNext()) superSym = (MethodSymbol)iter.next();
+            var owner = (ClassSymbol)sym.owner;
+            var sc = owner.getSuperclass();
+            if (sc != null && !(sc instanceof Type.JCNoType)) {
+                var iter = sc.tsym.members().getSymbols(s->s.isConstructor() && s.type.getParameterTypes().size() == sym.type.getParameterTypes().size()).iterator();
+                if (iter.hasNext()) superSym = (MethodSymbol)iter.next();
+            }
         }
         
 

@@ -417,7 +417,7 @@ public class Log extends AbstractLog {
         Assert.checkNonNull(name);
         getSource(name).setEndPosTable(endPosTable);
     }
-
+    
     /** Return current sourcefile.
      */
     public JavaFileObject currentSourceFile() {
