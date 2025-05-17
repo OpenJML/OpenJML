@@ -1510,7 +1510,6 @@ public class typechecking extends TCBase {
                 );
     }
 
-    @Ignore // crashes
     @Test public void testOKSuper1() {
         addMockFile("$A/A.jml","package java.lang; public class Object extends java.util.ArrayList<Object> {}");
         helpTCF("A.java",

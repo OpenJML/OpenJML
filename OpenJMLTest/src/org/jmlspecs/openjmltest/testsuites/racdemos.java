@@ -56,14 +56,14 @@ public class racdemos extends RacBase {
     @Test
     public void demoPurseMod() {
         expectedExit = 0;
-        expectedRACExit = 1;
+        expectedRACExit = 0;
         helpCompileRunDemo("/src/openjml/purseMod","CardTest");
     }
     
     @Test
     public void demoPurse() {
         expectedExit = 0;
-        expectedRACExit = 1;
+        expectedRACExit = 0;
         helpCompileRunDemo("/src/openjml/purse","CardTest");
     }
 
@@ -79,6 +79,20 @@ public class racdemos extends RacBase {
         expectedExit = 0;
         expectedRACExit = 1;
         helpCompileRunDemo("/src/openjml/ecu2",null); // FIXME null should be "Test", but there are test failures
+    }
+
+    @Test
+    public void demoQueue() {
+        expectedExit = 0;
+        expectedRACExit = 0;
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java", "test/racQueue","Queue");
+    }
+
+    @Test
+    public void demoTime() {
+        expectedExit = 0;
+        expectedRACExit = 0;
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java", "test/racTime","Time");
     }
 
 

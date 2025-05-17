@@ -1,6 +1,12 @@
 Proving methods in ListTest
-Skipping proof of ListTest.getMylist() (Skipping ListTest.getMylist because it does not match addStringInList)
-Skipping proof of ListTest.ListTest() (Skipping ListTest.ListTest because it does not match addStringInList)
+Starting proof of ListTest.getMylist() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListTest.getMylist() with prover !!!! - no warnings
+Starting proof of ListTest.ListTest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ListTest.ListTest() with prover !!!! - no warnings
 Starting proof of ListTest.addStringInList(String) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

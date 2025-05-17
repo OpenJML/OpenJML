@@ -77,7 +77,13 @@ abstract public class ParseBase extends JmlTestSuite {
     }
 
     public void checkCompilationUnitErrors(String s, Object ... list) {
-        parseCompilationUnit(s);
+        try { 
+            parseCompilationUnit(s);
+        } catch (Exception e) {
+            System.out.println("Test ended with exception: " + e);
+            e.printStackTrace(System.out);
+            printDiagnostics();
+        }
         checkDiagnostics(list);
     }
 

@@ -287,7 +287,10 @@ public class JmlParser extends JavacParser {
     		}
     	} catch (Exception e) {
            	var S = getScanner();
-           	utils.unexpectedException(e, "Exception during parsing near " + S.tokenizer.getRawString(S.tokenizer.position()-10, S.tokenizer.position()+50));
+           	int len = S.tokenizer.length();
+           	int end = S.tokenizer.position()+50;
+           	if (end > len) end = len;
+           	utils.unexpectedException(e, "Exception during parsing near " + S.tokenizer.getRawString(S.tokenizer.position()-10, end));
         }
         return u; // Might be null if an error happens, though prefer a partial tree
     }
@@ -316,13 +319,19 @@ public class JmlParser extends JavacParser {
         int pp = Position.NOPOS;
         boolean modelImport = false;
         for (var t: mods.jmlmods) {
-            if (t.jmlclausekind == Modifiers.MODEL) { modelImport = true; break; }
-            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import");
+            if (t.jmlclausekind == Modifiers.MODEL) {
+                modelImport = true; break;
+            } else {
+                utils.error(t.pos, t.endPos, "jml.no.mods.on.import");
+            }
         }
         if (!modelImport) for (var t: mods.annotations) {
         	if (t instanceof JmlAnnotation ta) {
-                if (ta.kind == Modifiers.MODEL) { modelImport = true; pp = ta.pos; break; }
-                else utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME endpos
+                if (ta.kind == Modifiers.MODEL) {
+                    modelImport = true; pp = ta.pos; break;
+                } else {
+                    utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME endpos
+                }
             }
         }
         boolean importIsInJml = S.jml();
@@ -538,9 +547,9 @@ public class JmlParser extends JavacParser {
                     }
                 } else if (token.kind == IMPORT) {
 //                	pushBackModifiers = mods;
-                	importDeclaration((JmlModifiers)mods);
-                	mods = null;
-                	utils.warning(p, pos(), "jml.message", "misplaced model import");
+                    importDeclaration((JmlModifiers)mods);
+                    mods = null;
+                    utils.warning(p, pos(), "jml.message", "misplaced model import");
                     setErrorEndPos(endPos());
                     //s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                     continue;
@@ -558,8 +567,15 @@ public class JmlParser extends JavacParser {
                     continue; // ignore token and try again
                 }
             }
-            if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
-                addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
+            if (s instanceof JCClassDecl cl) {
+                if (cl.mods == null) {
+                    // FIXME - should cl.mods ever be null?
+                    cl.mods = jmlF.at(Position.NOPOS).Modifiers(0);
+                    storeEnd(cl.mods, Position.NOPOS);
+                }
+                if ((cl.mods.flags & Flags.ENUM) != 0) {
+                    addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
+                }
             }
             while (isEndJml()) {
                 nextToken();
