@@ -57,23 +57,26 @@ public class parseErrors extends ParseBase {
                 );
     }
 
-    @Ignore // crashes
     @Test public void modifierOnImport() {
         checkCompilationUnitErrors("//@ @Pure import java.lang.System; \nclass A { }"
-                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 7
-                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 10, 9, 9, 14
+                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 15
+                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 11, 10, 10, 15
+                ,"/TEST.java:1: warning: misplaced model import", 11, 10, 10, 35 // FIXME - need a clearer error message
                 );
     }
 
-    @Ignore // crashes
     @Test public void modifierOnImport2() {
         checkCompilationUnitErrors("//@ @Model import java.lang.System; \nclass A { }"
-                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 7
-                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 10, 9, 9, 14
+                ,"/TEST.java:1: warning: misplaced model import", 12, 11, 11, 36  // FIXME - need a clearer error message
                 );
     }
 
-    @Ignore // FIXME - not sure this helps coverage
+    @Test public void modifierOnImportOK() {
+        checkCompilationUnitErrors("//@ model import java.lang.System; \nclass A { }"
+                );
+    }
+
+    // FIXME - not sure this helps coverage
     @Test public void prematureTypeListEnd() {
         checkCompilationUnitErrors("class A { public A() { /*@ model T<A B> t; */} }"
                 ,"/TEST.java:1: error: > or ',' expected", 38, 37, 37, 37
@@ -85,7 +88,7 @@ public class parseErrors extends ParseBase {
 
     }
 
-    @Ignore // FIXME - not sure this helps coverage
+    // FIXME - not sure this helps coverage
     @Test public void prematureTypeListEnd2() {
         checkCompilationUnitErrors("class A { public A() { /*@ model T<A:B> t; */} }"
                 ,"/TEST.java:1: error: > or ',' expected", 37, 36, 36, 36
@@ -129,25 +132,26 @@ public class parseErrors extends ParseBase {
                 );
     }
 
-    @Ignore  // FIXME - throws exception
     @Test public void badJmlType3() {
         checkCompilationUnitErrors("class A { public void m(/*@ /*@[ A ] x @*/ @*/ A b) {  {}  } }"
-                ,"/TEST.java:1: error: Incorrectly formed or terminated JML construct near here", 34, 33, 33, 33
+                ,"/TEST.java:1: error: Block comments may not be embedded inside JML block comments", 29, 28, 28, 28
+                ,"/TEST.java:1: error: Incorrectly formed or terminated JML construct near here", 38, 37, 37, 37
+                ,"/TEST.java:1: error: illegal start of type", 46, 45, 45, 45
                 );
     }
 
-    @Ignore // FIXME - review these
+    // FIXME - review these
     @Test public void modsOnImpliesThat() {
         checkCompilationUnitErrors("class A { /*@ requires true; also public implies_that requires true; */ public void m() { } }"
                 ,"/TEST.java:1: error: No modifiers are allowed prior to a lightweight specification case", 35, 34, 34, 34
-                ,"/TEST.java:1: warning: No modifiers are allowed prior to a implies_that token", 35, 34, 34, 34
+                //,"/TEST.java:1: warning: No modifiers are allowed prior to a implies_that token", 35, 34, 34, 34
                 );
     }
 
-    @Ignore @Test public void modsOnForExample() {
+    @Test public void modsOnForExample() {
         checkCompilationUnitErrors("class A { /*@ requires true; also public for_example requires true; */ public void m() { } }"
                 ,"/TEST.java:1: error: No modifiers are allowed prior to a lightweight specification case", 35, 34, 34, 34
-                ,"/TEST.java:1: warning: No modifiers are allowed prior to a for_example token", 35, 34, 34, 34
+                //,"/TEST.java:1: warning: No modifiers are allowed prior to a for_example token", 35, 34, 34, 34
                 );
     }
 
@@ -157,7 +161,7 @@ public class parseErrors extends ParseBase {
                 );
     }
     
-    @Ignore // FIXME - not reading the enable-preview option
+    @Ignore // FIXME - don't seem to be able to add a Java option to enable preview features
     @Test public void stringTemplate() {
         addOptions("--source","21","--enable-preview");
         checkCompilationUnitErrors("class A { String s = STR.\"My \\{x} template\"; }"

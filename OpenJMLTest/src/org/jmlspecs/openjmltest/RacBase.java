@@ -333,10 +333,11 @@ public abstract class RacBase extends JmlTestSuite {
      * @param mainClassname The fully-qualified classname for the test class (where main is)
      */
     public void helpTCF(String sourcedir, String outputdir, String mainClassname, String ... opts) {
-    	String destDir = setupOutdir(); // This is the location for compiled .class files
-//    	System.out.println("SOURCEDIR " + sourcedir);
-//    	System.out.println("DESTDIR " + destDir);
-//    	System.out.println("OUTDIR " + outputdir);
+        String destDir = setupOutdir(); // This is the location for compiled .class files
+//        System.out.println("SOURCEDIR " + sourcedir);
+//        System.out.println("DESTDIR " + destDir);
+//        System.out.println("OUTDIR " + outputdir);
+//        System.out.println("OPTS " + String.join(",",opts));
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
