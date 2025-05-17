@@ -454,7 +454,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-M " + c);
 
             addClassInferredSpecs(c);
+        } catch (PropagatedException e) {
+            throw e;
         } catch (Exception e) {
+            // FIXME _ better error report
         	System.out.println("EXCEPTION IN attribClass-Y " + c + " " + c.type);
         	e.printStackTrace(System.out);
         	throw e;
@@ -579,8 +582,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	// parsed in the class body (though they may be the same)
         if (tree instanceof JmlTypeClause) return null;
         try {
-        return super.attribStat(tree,env);
+            return super.attribStat(tree,env);
+        } catch (PropagatedException e) {
+            throw e;
         } catch (Exception e) {
+            // FIXME - better error report
             e.printStackTrace(System.out);
         	System.out.println("EXZCEPTION ON STAT " + env.enclClass.name + " " + tree + " RNV: " + env);
         	throw e;
@@ -7699,6 +7705,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
         try {
             visitMethodDef(that);
+        } catch (PropagatedException e) {
+            throw e;
         } catch (Exception e) {
             utils.error(that, "jml.internal", "Exception while attributing method: " + that);
             e.printStackTrace(System.out);
@@ -8671,6 +8679,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     		attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
     		attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
+		} catch (PropagatedException e) {
+		    throw e;
     	} catch (Exception e) {
     		utils.error("jml.message", "Exception while attributing class specs: " + csym);
     		e.printStackTrace(System.out);

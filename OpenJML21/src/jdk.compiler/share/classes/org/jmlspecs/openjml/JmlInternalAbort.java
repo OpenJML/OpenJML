@@ -24,4 +24,9 @@ public class JmlInternalAbort extends RuntimeException {
      */
     public JmlInternalAbort() {
     }
+    
+    public String toString() {
+        //Utils.dumpStack("JmlInternalAbort");
+        return super.toString();
+    }
 }
