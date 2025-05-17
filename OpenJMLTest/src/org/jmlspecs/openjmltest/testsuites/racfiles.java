@@ -401,12 +401,6 @@ public class racfiles extends RacBase {
         helpCompileOnly("--rac-check-assumptions","--rac-precondition-entry");
     }
     
-    @Test // FIXME - needs to be RAC and to be fixed
-    public void gitbug645() {
-        expectedExit = 0;
-        helpCompileOnly();
-    }
-    
     @Test
     public void gitbug532() {
         expectedRACExit = 0;

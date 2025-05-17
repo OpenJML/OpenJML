@@ -155,7 +155,8 @@ public class parseErrors extends ParseBase {
                 );
     }
 
-    @Ignore @Test public void modsOnFeasibleBehavior() {
+    @Ignore // FIXME - implement feasible behavior
+    @Test public void modsOnFeasibleBehavior() {
         checkCompilationUnitErrors("class A { /*@ requires true; also public feasible_behavior requires true; */ public void m() { } }"
                 ,"/TEST.java:1: warning: No modifiers are allowed prior to a feasible_behavior token", 42, 41, 41, 57
                 );

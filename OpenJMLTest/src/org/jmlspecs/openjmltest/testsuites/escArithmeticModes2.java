@@ -434,7 +434,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
     
-    @Ignore // FIXME
+    @Ignore // FIXME long running
     @Test // Tests long multiplication in bigint mode
     public void testMultLong() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
