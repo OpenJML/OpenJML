@@ -6,7 +6,10 @@ package org.jmlspecs.openjml;
 
 /**
  * Instances of this exception class are thrown to indicate that processing
- * should be aborted, but any relevant messages have already been posted.
+ * should be aborted, but it is a nuisance to try to cleanly exit from down
+ * in the call stack, so an instance of this class, perhaps wrapped in a
+ * PropagatedException, as used. 
+ * Any relevant error messages should be emitted before throwing the exception.
  * 
  * @author David Cok
  */

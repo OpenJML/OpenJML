@@ -320,7 +320,7 @@ public class JmlTreeUtils {
 //    		System.out.println("FBOPSYM " + e);
 //    		// fall through
 //    	}
-		throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + lhstype + " " + rhstype + " could not be resolved");
+		throw new JmlInternalException("The operation symbol " + Pretty.operatorName(optag) + " for type " + lhstype + " " + rhstype + " could not be resolved");
     }
     
     public OperatorSymbol findUnaryOpSymbol(JCTree.Tag optag, Type argtype) {
@@ -331,7 +331,7 @@ public class JmlTreeUtils {
     		System.out.println("FUOPSYM " + e);
     		// fall through
     	}
-        throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");
+        throw new JmlInternalException("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");
     }
     
     // FIXME - duplicated in JmlAssertionAdder
@@ -350,7 +350,7 @@ public class JmlTreeUtils {
         try {
             Symbol ms = utilsClass().members().findFirst(n);
             if (ms == null) {
-                throw new JmlInternalError("Method " + methodName + " not found in Utils");
+                throw new JmlInternalException("Method " + methodName + " not found in Utils");
             }
             JCFieldAccess m = factory.Select(utilsClassIdent(),n);
             m.pos = pos;
@@ -372,7 +372,7 @@ public class JmlTreeUtils {
         try {
             Symbol ms = runtimeClass("org.jmlspecs.runtime.internal.TYPE").members().findFirst(n);
             if (ms == null) {
-                throw new JmlInternalError("Method " + methodName + " not found in runtime");
+                throw new JmlInternalException("Method " + methodName + " not found in runtime");
             }
             JCFieldAccess m = factory.Select(runtimeClassIdent("org.jmlspecs.runtime.internal.TYPE"),n);
             m.pos = pos;

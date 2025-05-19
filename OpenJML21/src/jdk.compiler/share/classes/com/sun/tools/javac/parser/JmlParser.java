@@ -116,7 +116,7 @@ public class JmlParser extends JavacParser {
         if (!(F instanceof JmlTree.Maker)) {
             utils.error("jml.internal",
                     "F expected to be a JmlTree.Maker in JmlParser");
-            throw new JmlInternalError(
+            throw new JmlInternalException(
                     "Expected a JmlTree.Maker for a JmlParser");
         }
         this.S = S;
@@ -482,11 +482,70 @@ public class JmlParser extends JavacParser {
         return super.formalParameters();
     }
     
-    protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type)  {
-        if (type instanceof JCTree.JCArrayTypeTree) {
-            mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
+    private JCExpression makeAnnotated(JCExpression type, List<JCAnnotation> annotations) {
+        // FIXME - streamline this -- and what if the AnnotatedType wraps an ArrayType
+        if (type instanceof JCArrayTypeTree atype) {
+            JCExpression nelem;
+            if (atype.elemtype instanceof JCArrayTypeTree aatype) {
+                nelem = makeAnnotated(aatype, annotations);
+                return jmlF.at(aatype.pos).TypeArray(nelem);
+            } else if (atype.elemtype instanceof JCAnnotatedType antype) {
+                antype.annotations = antype.annotations.appendList(annotations);
+                return atype;
+            } else {
+                nelem = makeAnnotated(atype.elemtype, annotations);
+                nelem = jmlF.at(atype.elemtype).AnnotatedType(annotations, atype.elemtype);
+                return jmlF.at(nelem.pos).TypeArray(nelem);
+            }
+        } else {
+            return jmlF.at(type).AnnotatedType(annotations, type);
         }
+    }
+    
+    protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type)  {
+        //if (type instanceof JCTree.JCArrayTypeTree atype) {
+            // Need to move type annotations to the type
+            JCTree elemType = TreeInfo.innermostType(type, true);
+            //
+            
+            //System.out.println("BEFORE " + mods + " :: " + type + "  :: " + elemType);
+            //type = normalizeAnnotations(mods, atype);
+            var newAnnotations = new ListBuffer<JCAnnotation>();
+            var typeAnnotations = new ListBuffer<JCAnnotation>();
+            for (JCAnnotation ann: mods.annotations) {
+                String n = ann.annotationType.toString();
+                // FIXME - is there a better way to test this?
+                // FIXME - what aobut JML modifiers
+                //System.out.println("ANN " + ann + " :: " + n + " :: " + ann.getTag());
+                if (ann.getTag() == Tag.TYPE_ANNOTATION) {
+                    typeAnnotations.add(ann);
+                } else if (n.endsWith("NonNull") || n.endsWith("Nullable")) {
+                    // FIXME - should we turn this into a TypeAnnotation
+                    typeAnnotations.add(ann);
+                } else {
+                    newAnnotations.add(ann);
+                }
+                removeTypeAnnotationModifiers((JmlModifiers)mods);
+            }
+            if (!typeAnnotations.isEmpty()) {
+                type = makeAnnotated(type, typeAnnotations.toList());
+                mods.annotations = newAnnotations.toList();
+            }
+            //System.out.println("AFTER " + mods + " :: " + type);
+        //}
         return super.localVariableDeclarations(mods, type);
+    }
+    
+    void removeTypeAnnotationModifiers(JmlModifiers jmods) {
+        var newlist = new ListBuffer<JmlToken>();
+        for (JmlToken token: jmods.jmlmods) {
+            if (token.jmlclausekind instanceof IJmlClauseKind.TypeAnnotationKind) {
+                // skip
+            } else {
+                newlist.add(token);
+            }
+        }
+        jmods.jmlmods = newlist.toList();
     }
     
     /**

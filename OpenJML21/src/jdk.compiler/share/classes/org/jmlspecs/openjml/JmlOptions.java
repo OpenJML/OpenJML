@@ -302,8 +302,8 @@ public class JmlOptions extends Options {
         
 
         if (o != null && o.hasArg()) {
-            if (negate && !s.equals("--warn")) {
-                Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)");
+            if (negate && !s.equals("--warn") && !s.equals("--split")) {
+                Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)"); // FIXME - add --split to message
                 negate = false;
             }
             if (!hasEqual) {
@@ -314,7 +314,7 @@ public class JmlOptions extends Options {
                     if (res != null && res.length() > 1 && res.startsWith("\"") && res.endsWith("\"")) {
                         res = res.substring(1,res.length()-1);
                     }
-                } else {
+                } else if (!negate) {
                     res = "";
                     Utils.instance(context).warning("jml.expected.parameter",s);
                     o = null;

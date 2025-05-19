@@ -940,8 +940,8 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-    	//if (specSym.owner.toString().contains("Object") && specSym.toString().contains("toString")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
-    	spec.specSym = specSym;
+        //if (specSym.owner.toString().contains("Object") && specSym.toString().contains("toString")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
+        spec.specSym = specSym;
         specsMethods.put(specSym,spec);
         int i = 0;
         var decl = spec.specDecl == null ? spec.javaDecl : spec.specDecl;
@@ -1026,15 +1026,18 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, JmlVariableDecl decl, VarSpecs spec) {
-        if (spec != null) {
-            spec.isNonNull = computeVarNullness(decl, m.owner);
-        }
+//        if (m.toString().equals("oooo")) { System.out.println("PUTSPECS-D " + m + " " + decl + " " + spec.isNonNull); Utils.dumpStack(); }
+//        if (spec != null) {
+//            spec.isNonNull = computeVarNullness(decl, m.owner);
+//            if (m.toString().equals("oq")) System.out.println("COMPUTED " + spec.isNonNull);
+//        }
         specsFormals.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
         if (utils.verbose()) utils.note("            Saving local/formal specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
     }
     
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
+        if (m.toString().equals("sss")) { System.out.println("PUTSPECS " + m + " " + spec); Utils.dumpStack(); }
         if (spec != null) {
             spec.isNonNull = computeVarNullness(spec.decl, m.owner);
         }
@@ -1046,8 +1049,13 @@ public class JmlSpecs {
     
     public boolean computeVarNullness(JmlVariableDecl decl, Symbol owner) {
         if (decl != null) {
-            //System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
+            //if (decl.name.toString().equals("oq")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
             JmlModifiers jmods = (JmlModifiers)decl.mods;
+//            if (decl.name.toString().equals("oq")) {
+//                System.out.println("CVN-C " + findModifier(decl, Modifiers.NON_NULL) + " " + findModifier(decl, Modifiers.NULLABLE) + " " + 
+//                        findAnnotation(jmods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(jmods.annotations, Modifiers.NULLABLE)
+//                        + " " + hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL) + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE));
+//            }
             if (findModifier(decl, Modifiers.NON_NULL)) return true;
             if (findModifier(decl, Modifiers.NULLABLE)) return false;
             if (findAnnotation(jmods.annotations, Modifiers.NON_NULL)!=null) return true;
@@ -1915,8 +1923,8 @@ public class JmlSpecs {
             return false;
         } else if (vartype instanceof JCFieldAccess fa) {
             return false;
-        } else if (vartype instanceof JCArrayTypeTree att) {
-            return hasTypeAnnotation(att.elemtype, kind);
+//        } else if (vartype instanceof JCArrayTypeTree att) {
+//            return hasTypeAnnotation(att.elemtype, kind);
         } else if (vartype instanceof JCTypeApply app) {
             return hasTypeAnnotation(app.clazz, kind);
         } else {

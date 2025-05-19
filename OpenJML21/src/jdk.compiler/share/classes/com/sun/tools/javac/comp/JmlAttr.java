@@ -341,7 +341,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (syms.objectType == null) {
             System.err.println("INTERNAL FAILURE: A circular dependency among constructors has caused a failure to correctly construct objects.  Please report this internal problem.");
             // Stack trace is printed inside the constructor
-            throw new JmlInternalError();
+            throw new JmlInternalException();
         }
 
 
@@ -7765,7 +7765,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-        if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
+        if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass() + " " + that + " MODS:" + that.mods);
         if (env.enclMethod != null) {
             if (that.vartype instanceof JCTypeApply ft) {
                 var nn = specs.defaultNullity(env.enclClass.sym);
@@ -7866,6 +7866,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
             if (!that.type.isPrimitive()) {
+//                if (that.name.toString().equals("oooo")) System.out.println("OOOO " + that.type + " :: " + that.type.isAnnotated() + " $$ " + that.type.getAnnotationMirrors() + " $$ " + that.type.getClass()
+//                + " " + ((Type.ArrayType)that.type).elemtype + " " + ((Type.ArrayType)that.type).elemtype.getClass());
                 if (that.type.tsym == datagroupClass) {
                     nullness = Modifiers.NULLABLE;                    
                     // OPENJML - FIXME - wrapped the below line with TypeCompound -- not sure about the final null
@@ -7882,28 +7884,45 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                     //that.init = jmlMaker.at(that).Literal(TypeTag.BOT,null);
                     //that.init.type = datagroupClass.type;
-                } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNonNullNoDefault(that.sym)) { 
-                    nullness = Modifiers.NON_NULL;
-                } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNullableNoDefault(that.sym)|| skipDefaultNullity) {
-                    nullness = Modifiers.NULLABLE;
-//                } else {
-//                    Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
-//                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-//                    that.sym.appendAttributes(List.<Compound>of(a));
-//                    JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
-//                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
-//                    ((JmlTree.JmlAnnotation)an).kind = nullness;
-//                    an.type = an.annotationType.type;
-//                    var ft = that.vartype;
-//                    while (ft instanceof JCTree.JCTypeApply ftp) ft = ftp.clazz;
-//                    if (ft instanceof JCIdent id) {
-//                        that.mods.annotations = that.mods.annotations.append(an);
-//                    } else if (ft instanceof JCFieldAccess fta) {
-//                        System.out.println("FT " + ft + " " + ft.getClass());
-//                    } else {
-//                    	// FIXME ???
-//                        that.mods.annotations = that.mods.annotations.append(an);
-//                    }
+                } else {
+                    if (that.type.isAnnotated()) {
+                        for (Attribute.TypeCompound tc: that.type.getAnnotationMirrors()) {
+                            // FIXME - improve this check
+                            if (that.name.toString().equals("oooo")) {
+                                //                            System.out.println("OOOO-A " + tc.getAnnotationType().toString() + " " + 
+                                //                                    tc.getAnnotationType().getAnnotation() + " " + tc.getAnnotationType().getAnnotation().getClass());
+                                //                                    tc.getAnnotationType().getAnnotationsByType(org.jmlspecs.annotation.NonNull.class).length + " " + 
+                                //                                    tc.getAnnotationType().getAnnotationsByType(org.jmlspecs.annotation.Nullable.class).length);
+                            }
+                            if (tc.getAnnotationType().toString().endsWith("NonNull")) { nullness = Modifiers.NON_NULL; break; }
+                            if (tc.getAnnotationType().toString().endsWith("Nullable")) { nullness = Modifiers.NULLABLE; break; }
+                        }
+                    }
+                    if (nullness != null) {
+                        // continue
+                    } else if (utils.hasMod(that.mods,Modifiers.NON_NULL) || specs.isNonNullNoDefault(that.sym)) { 
+                        nullness = Modifiers.NON_NULL;
+                    } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNullableNoDefault(that.sym)|| skipDefaultNullity) {
+                        nullness = Modifiers.NULLABLE;
+                        //                } else {
+                        //                    Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
+                        //                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                        //                    that.sym.appendAttributes(List.<Compound>of(a));
+                        //                    JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
+                        //                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                        //                    ((JmlTree.JmlAnnotation)an).kind = nullness;
+                        //                    an.type = an.annotationType.type;
+                        //                    var ft = that.vartype;
+                        //                    while (ft instanceof JCTree.JCTypeApply ftp) ft = ftp.clazz;
+                        //                    if (ft instanceof JCIdent id) {
+                        //                        that.mods.annotations = that.mods.annotations.append(an);
+                        //                    } else if (ft instanceof JCFieldAccess fta) {
+                        //                        System.out.println("FT " + ft + " " + ft.getClass());
+                        //                    } else {
+                        //                    	// FIXME ???
+                        //                        that.mods.annotations = that.mods.annotations.append(an);
+                        //                    }
+                    }
                 }
             }
             //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
@@ -7913,9 +7932,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             if (that.sym.owner instanceof MethodSymbol ms) {
                 // vars owned by the class are fields; they have already had specs put during Entering
-                // so have formal parameters
+                // So have formal parameters.  These are local declarations
                 var s = specs.getFormal(that.sym);
                 if (s == null) {
+                    //if (that.sym.type instanceof Type.ArrayType) nullness = null;
                     specs.putSpecs(that.sym, that, new JmlSpecs.LocalSpecs(that, nullness == Modifiers.NON_NULL, ms));
                 }
             }

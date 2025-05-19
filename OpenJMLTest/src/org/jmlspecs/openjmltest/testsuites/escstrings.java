@@ -40,7 +40,8 @@ public class escstrings extends EscBase {
     /** Tests String equality  */
     @Test
     public void testStringEquals() {
-        addOptions("-escMaxWarnings=1");
+        //addOptions("--show","--method=m");
+        addOptions("--esc-max-warnings=1");
         helpTCX("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"

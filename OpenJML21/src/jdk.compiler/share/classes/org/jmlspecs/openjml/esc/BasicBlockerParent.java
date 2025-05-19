@@ -335,7 +335,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     /** Called by visit methods that should never be called. */
     protected void shouldNotBeCalled(JCTree that) {
         log.error("esc.internal.error","Did not expect to be calling a " + that.getClass() + " within " + getClass());
-        throw new JmlInternalError();
+        throw new JmlInternalException();
     }
     
 

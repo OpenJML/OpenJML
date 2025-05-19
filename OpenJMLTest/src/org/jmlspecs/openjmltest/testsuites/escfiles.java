@@ -102,12 +102,6 @@ public class escfiles extends EscBaseFiles {
         helpTG();
     }
 
-    // Just for debugging, not for testing
-//    @Test
-//    public void testOpt() {
-//        helpTF("opt","-show","-method=m");
-//    }
-
     @Test @Ignore // Problem is with mixed BV and bigint operations
     public void buggyCalculator() {
         helpTG();
