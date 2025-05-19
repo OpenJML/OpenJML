@@ -373,7 +373,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** Called by visit methods that should never be called. */
     protected void shouldNotBeCalled(JCTree that) {
         log.error("esc.internal.error","Did not expect to be calling a " + that.getClass() + " within BasicBlocker2");
-        throw new JmlInternalError();
+        throw new JmlInternalException();
     }
     
 

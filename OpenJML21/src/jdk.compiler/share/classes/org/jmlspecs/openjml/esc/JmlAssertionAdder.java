@@ -2034,7 +2034,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Issue an internal error message and throw an exception. */
 	public void error(DiagnosticPosition pos, String msg) {
 		utils.error(pos, "esc.internal.error", msg);
-		throw new JmlInternalError(msg);
+		throw new JmlInternalException(msg);
 	}
 
 	/** Issue an error message. */
@@ -11851,7 +11851,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else {
 				String msg = "Unknown type of lambda expression body: " + bl.getClass();
 				utils.error(convertedReceiver, "jml.internal", msg);
-				throw new JmlInternalError(msg);
+				throw new PropagatedException(new JmlInternalAbort());
 			}
 			// If there are arguments or a return value, we need to do a substitution pass
 			addStat(comment(that, "Inlining lambda " + convertedReceiver.toString(), log.currentSourceFile()));
@@ -14606,7 +14606,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					String msg = "Unexpected operation tag in JmlAssertionAdder.makeBin: " + tag + " "
 							+ JmlPretty.write(that);
 					log.error(that.pos, "jml.internal", msg);
-					throw new JmlInternalError(msg);
+	                throw new PropagatedException(new JmlInternalException(msg));
 				}
 				}
 				if (lhs.type != maxJmlType)
@@ -14617,7 +14617,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else {
 				String msg = "Unexpected JML type in JmlAssertionAdder.makeBin: " + maxJmlType;
 				log.error(that.pos, "jml.internal", msg);
-				throw new JmlInternalError(msg);
+                throw new PropagatedException(new JmlInternalException(msg));
 			}
 		} else {
 			return treeutils.makeBinary(that.pos, tag, opSym, lhs, rhs);
@@ -21168,12 +21168,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 						methodDecl = null;
 					} else {
+                        boolean nnDecl;
+                        if (that.sym.owner instanceof MethodSymbol) {
+                            // Local declaration
+                            nnDecl = specs.isNonNullFormal(that.sym);
+                            //System.out.println("NN LOCAL " + that.name + " " + nnDecl);
+                        } else {
+                            // Field
+                            nnDecl = specs.isNonNull(that.sym);
+                            //System.out.println("NN FIELD " + that.name + " " + nnDecl);
+                        }
 						// Regular method body
 						if (init == null || isKnownNonNull(that.init) || isKnownNonNull(init))
 							nn = null;
 						JCBlock bl = popBlock(that, check);
 						currentStatements.addAll(bl.stats);
-						if (nn != null)
+						if (nn != null && nnDecl)
 							addAssert(that, Label.POSSIBLY_NULL_INITIALIZATION, nn, that.name);
 						stat.init = init;
 						// if (splitExpressions) {

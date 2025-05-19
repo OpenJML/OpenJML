@@ -2118,13 +2118,13 @@ public class Utils {
     /** This method checks that a condition that is expected to always be tree is actually true.
      * That is, if the condition is false, some internal bug has occurred.
      * This method is used (instead of ojcheck) if there is no reasonable recovery.
-     * If the condition is false, an error message is emitted and a JmlInternalError exception is thrown.
+     * If the condition is false, an error message is emitted and a JmlInternalException exception is thrown.
      */
     public void ojassert(boolean condition, String message) {
         if (!condition) {
             // In a bug-free program, this branch will never happen
             Log.instance(context).error("jml.internal", message != null ? message : "internal bug caught by ojassert");
-            throw new JmlInternalError(message);
+            throw new JmlInternalException(message);
         }
     }
     
