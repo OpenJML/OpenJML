@@ -4415,6 +4415,7 @@ public class JmlTree {
 
     public static class JmlAnnotation extends JCAnnotation {
     	public ModifierKind kind;
+    	public JmlToken token; // the source token, if this annotation was created from a modifier; otherwise null
         public JmlAnnotation(Tag tag, JCTree annotationType, List<JCExpression> args) {
             super(tag,annotationType,args);
             kind = null;

@@ -44,7 +44,8 @@ public class racnew2 extends RacBase {
                     public static void main(String... args) {}
                 }
                 """
-                ,"/tt/TestJava.java:3: error: annotation interface not applicable to this kind of declaration",5
+                //,"/tt/TestJava.java:3: error: annotation interface not applicable to this kind of declaration",5
+                ,"/tt/TestJava.java:3: error: the type modifier/annotation is not permitted on a primitive type: void",5
         );        
     }
     

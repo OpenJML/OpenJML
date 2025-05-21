@@ -1430,6 +1430,8 @@ public class JmlEnter extends Enter {
     /** Returns true iff the two arguments are the same type, modulo remapping of the type parameters
      */
     public boolean specsTypeSufficientlyMatches(Type specsType, Type javaType) {
+        // FIXME - make a proper comparator to ignore JML type annotations
+        
         // The difficulty here is that TypeVars show up as different types,
         // and that binary types are erased, so do not have type arguments.
         // if (sym.name.toString().equals("k")) System.out.println("COMPARING " + sym +
@@ -1441,8 +1443,15 @@ public class JmlEnter extends Enter {
 //      if (specsType instanceof Type.TypeVar) return specsType.toString().equals(javaType.toString()); 
 //      if (!isBinary) return false;
 
-        if (specsType.toString().startsWith(javaType.toString()))
+        String s = specsType.toString();
+        s = s.replaceFirst("@org.jmlspecs.annotation.NonNull[ ]*","").replaceFirst("@org.jmlspecs.annotation.Nullable[ ]*","");
+        s = s.replace(". ",".");
+        s = s.replace("\\ ","\\");
+        if (s.startsWith(javaType.toString()))
             return true;
+        s = s.replace(" ","");
+        if (s.equals(javaType.toString())) return true;
+        if (javaType.toString().equals("T")) System.out.println("TYPE COMPARE " + specsType.toString() + " : " + s + " : " + javaType.toString());
         return false; // types.isSubtype(specsType, javaType);
     }
 

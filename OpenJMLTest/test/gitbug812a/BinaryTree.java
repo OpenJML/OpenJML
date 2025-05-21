@@ -62,7 +62,7 @@ public /*@ nullable_by_default @*/ class BinaryTree {
     boolean allNullAtNearlySameLevel() 
     {return depthOfNull(root).size() <= 1;};
 
-    private @NonNull
+    private @NonNullByDefault
     class Interval {
         int min;
         int max;

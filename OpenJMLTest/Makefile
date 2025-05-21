@@ -120,6 +120,8 @@ cov-report:
 	@( cd ${TEST}; rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
 	@( cd ${TEST}; java -jar ./jacoco/lib/jacococli.jar report --quiet cov/combined.exec --html cov/html \
             --sourcefiles ../OpenJML21/src/jdk.compiler/share/classes \
+            --sourcefiles ../OpenJMLTest/src/ \
+            --classfiles ../OpenJMLTest/src/ \
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
 

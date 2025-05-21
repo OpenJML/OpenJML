@@ -1026,7 +1026,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, JmlVariableDecl decl, VarSpecs spec) {
-//        if (m.toString().equals("oooo")) { System.out.println("PUTSPECS-D " + m + " " + decl + " " + spec.isNonNull); Utils.dumpStack(); }
+//        if (m.toString().equals("configurationSizes")) { System.out.println("PUTSPECS-D " + m + " " + decl + " " + spec.isNonNull); Utils.dumpStack(); }
 //        if (spec != null) {
 //            spec.isNonNull = computeVarNullness(decl, m.owner);
 //            if (m.toString().equals("oq")) System.out.println("COMPUTED " + spec.isNonNull);
@@ -1037,7 +1037,7 @@ public class JmlSpecs {
     }
     
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        if (m.toString().equals("sss")) { System.out.println("PUTSPECS " + m + " " + spec); Utils.dumpStack(); }
+        //if (m.toString().equals("configurationSizes")) { System.out.println("PUTSPECS " + m + " " + spec); Utils.dumpStack(); }
         if (spec != null) {
             spec.isNonNull = computeVarNullness(spec.decl, m.owner);
         }
@@ -1893,27 +1893,27 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
     public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-        //boolean pr = i == 0 && msym.name.toString().equals("m");
-        //if (pr) System.out.println("NNF " + type + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
+        boolean pr = false;// msym.name.toString().startsWith("StorageParameters");
+        if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (Types.instance(context).isSubtype(type, 
                 Symtab.instance(context).jmlPrimitiveType)) return true;
-        //if (pr) System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
+        if (pr) System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
         //if (type instanceof Type.TypeVar) return false; 
-        //if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
+        if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
         if (!(type instanceof Type.TypeVar) && calleeSpecs.specDecl != null) {
             var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
             JmlModifiers mods = (JmlModifiers)decl.mods;
-            //if (pr) System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
+            if (pr) System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
             if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
             if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
-            //if (pr) System.out.println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
+            if (pr) System.out.println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
             if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
             if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
         }
-        //if (pr) System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
+        if (pr) System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
         return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
     
