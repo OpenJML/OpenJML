@@ -36,7 +36,8 @@ public class access extends TCBase {
     @Test
     public void testSpecConflict() {
         helpTCF("A.java","public class A { /*@ spec_public spec_protected */ static private boolean b; } "
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",34
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",22
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",34
                 );
     }
 
@@ -93,7 +94,8 @@ public class access extends TCBase {
     @Test
     public void testSpecConflictM() {
         helpTCF("A.java","public class A { /*@ spec_public spec_protected */ static private boolean m(){return true;} } "
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",34
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",22
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",34
                 );
     }
 
@@ -150,7 +152,8 @@ public class access extends TCBase {
     @Test
     public void testSpecConflictC() {
         helpTCF("A.java","public class A { /*@ spec_public spec_protected */ static private class C{} } "
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",34
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",22
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",34
                 );
     }
 

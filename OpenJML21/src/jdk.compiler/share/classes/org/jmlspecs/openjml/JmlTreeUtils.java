@@ -2225,6 +2225,7 @@ public class JmlTreeUtils {
         JmlAnnotation a = tokenToAnnotationAST(((ModifierKind)token.jmlclausekind).fullAnnotation, token.pos, token.endPos, parser);
         if (a != null) {
             a.kind = (ModifierKind)token.jmlclausekind;
+            a.token = token;
         }
         return a;
      }

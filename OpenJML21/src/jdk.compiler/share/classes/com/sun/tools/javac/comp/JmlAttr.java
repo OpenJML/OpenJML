@@ -918,12 +918,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public ModifierKind[] allowedTypeModifiers = new ModifierKind[]{
-        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH,
         OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, SKIPRAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE,
         SPEC_PUBLIC, SPEC_PROTECTED};
 
     public ModifierKind[] allowedNestedTypeModifiers = new ModifierKind[]{
-        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH,
         OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public ModifierKind[] allowedNestedModelTypeModifiers = new ModifierKind[]{
@@ -1659,35 +1659,43 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void annotationsToModifiers(JCModifiers mods) {
-        annotationsToModifiers((JmlModifiers)mods, mods.annotations);
+        mods.annotations = annotationsToModifiers((JmlModifiers)mods, mods.annotations);
     }
         
     public void annotationsToModifiers(JmlModifiers mods, JCExpression type) {
-        annotationsToModifiers(mods, mods.annotations);
         if (type != null) typeAnnotationsToModifiers(mods, type);
+        annotationsToModifiers(mods, mods.annotations);
     }
         
-    public void annotationsToModifiers(JmlModifiers mods, List<JCAnnotation> annotations) {
+    public List<JCAnnotation> annotationsToModifiers(JmlModifiers mods, List<JCAnnotation> annotations) {
+        var remaining = new ListBuffer<JCAnnotation>();
         x: for (var a: annotations) {
             if (a instanceof JmlAnnotation jmla) {
-                if (jmla.type == null) System.out.println("SKIPPING because type is null: " + jmla);
-                if (jmla.type == null) continue; // no type if it is an unresolved name (or - a bug - if the annotation was never attributed)
-                if (jmla.type.tsym.owner != annotationPackageSymbol) continue;
-                // FIXME - why would a jmla.kind be null
-                if (jmla.kind == null) System.out.println("SKIPPING because kind is null: " + jmla);
-                if (jmla.kind == null || !jmla.kind.isNormalModifier()) continue;
-                //if (!jmla.type.toString().startsWith("org.jmlspecs.annotation")) continue;
-                int p = a.pos;
-                var kind = jmla.kind;
-                //System.out.println("KIND " + kind + " " + (kind == Modifiers.NULLABLE_BY_DEFAULT));
-//                JmlToken newtoken = null;
-//                for (JmlToken t: mods.jmlmods) {
-//                    if (t.pos == p && t.jmlclausekind == kind) continue x;
-//                }
-                JmlToken newtoken = new JmlToken(jmla.kind, jmla.sourcefile, p, p, null); // FIXME - should really have the endposition
-                mods.jmlmods.add(newtoken);
+                // Annotations have already been attributed, so jmla.type != null 
+                if (jmla.type.tsym.owner != annotationPackageSymbol) {
+                    remaining.add(jmla);
+                } else {
+                    for (JmlToken t: mods.jmlmods) {
+                        if (t.jmlclausekind == jmla.kind && t.pos == a.pos) continue x;
+                    }
+                    if (jmla.token != null) {
+                        mods.jmlmods.add(jmla.token);
+                    } else {
+                        // At this point jmla.kind != null (or some org.jmlspecs.annotation class is not well formed)
+                        int p = a.pos;
+                        var kind = jmla.kind;
+                        JmlToken newtoken = new JmlToken(jmla.kind, jmla.sourcefile, p, p, null); // FIXME - should really have the endposition
+                        try { mods.jmlmods.add(newtoken); } catch (Throwable e) {
+                            System.out.println("MODS " + mods + " : " + mods.jmlmods);
+                            System.out.println("  TOKEN " + newtoken);
+                            System.out.println("  JMLMODS " + mods.jmlmods.getClass());
+                            throw e;
+                        }
+                    }
+                }
             }
         }
+        return remaining.toList();
     }
     
     public void typeAnnotationsToModifiers(JmlModifiers mods, JCExpression type) {
@@ -6762,8 +6770,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (a == null) return false;
         var b = utils.findModifier(mods,tb);
         if (b == null) return false;
-        var t = a.pos <= b.pos ? b : a;
-        utils.error(t.source, t.pos,"jml.conflicting.modifiers",a.jmlclausekind,b.jmlclausekind); // FIXME add Assocated location
+        var t = a.pos <= b.pos ? a : b;
+        var tt = t == a ? b : a;
+        utils.errorAndAssociatedDeclaration(t.source, t.pos, tt.source, tt.pos, "jml.conflicting.modifiers",a.jmlclausekind,b.jmlclausekind);
         return true;
     }
     

@@ -1056,6 +1056,7 @@ public class Annotate {
     public void annotateTypeSecondStage(JCTree tree, List<JCAnnotation> annotations, Type storeAt) {
         typeAnnotation(() -> {
             List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
+            if (annotations.size() != compounds.size()) System.out.println("ANNOSASSERT " + annotations.size() + " " + compounds.size() + " " + annotations + " :: " + compounds);
             Assert.check(annotations.size() == compounds.size());
             // the type already has annotation metadata, but it's empty
             Annotations metadata = storeAt.getMetadata(Annotations.class);

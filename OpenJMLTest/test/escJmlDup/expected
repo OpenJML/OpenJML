@@ -1,14 +1,17 @@
-Proving methods in StorageParameters
-Starting proof of StorageParameters.StorageParameters(long[]) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of StorageParameters.StorageParameters(long[]) with prover !!!! - no warnings
-Starting proof of StorageParameters.getConfigurationSizes() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of StorageParameters.getConfigurationSizes() with prover !!!! - no warnings
-Starting proof of StorageParameters.main(String...) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of StorageParameters.main(String...) with prover !!!! - no warnings
-Completed proving methods in StorageParameters
+test/escJmlDup/StorageParameters.jml:6: error: the type modifier/annotation is not permitted on a primitive type: long
+    private @org.jmlspecs.annotation.Nullable long[] configurationSizes;
+            ^
+test/escJmlDup/StorageParameters.jml:7: error: the type modifier/annotation is not permitted on a primitive type: long
+    //@ ghost private  non_null long[] x;
+                       ^
+test/escJmlDup/StorageParameters.jml:9: error: the type modifier/annotation is not permitted on a primitive type: long
+	public StorageParameters(@org.jmlspecs.annotation.Nullable long[] sizes );
+	                         ^
+test/escJmlDup/StorageParameters.jml:12: error: the type modifier/annotation is not permitted on a primitive type: long
+	/*@ spec_public @*/ @org.jmlspecs.annotation.Nullable long[] getConfigurationSizes();
+	                    ^
+test/escJmlDup/StorageParameters.jml:17: error: the type modifier/annotation is not permitted on a primitive type: long
+    //@ model non_null long[] xx();
+              ^
+Operation not performed because of parse or type errors
+5 errors
