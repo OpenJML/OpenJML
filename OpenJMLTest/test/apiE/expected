@@ -7,7 +7,7 @@ Completed proof of A.m() with prover !!!! - no warnings
 Starting proof of A.n() with prover !!!!
 DIAGNOSTIC REPORTED
     Kind:           MANDATORY_WARNING
-    Source:         SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiE/A.java]
+    Source:         SimpleFileObject[/$ROOT/test/apiE/A.java]
     Start position: 110
     Position:       110
     End position:   110
@@ -16,7 +16,7 @@ DIAGNOSTIC REPORTED
     Message:        The prover cannot establish an assertion (Postcondition) in method n
 DIAGNOSTIC REPORTED
     Kind:           MANDATORY_WARNING
-    Source:         SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiE/A.java]
+    Source:         SimpleFileObject[$ROOT/test/apiE/A.java]
     Start position: 58
     Position:       58
     End position:   58

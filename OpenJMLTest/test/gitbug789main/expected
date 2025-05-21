@@ -9,13 +9,13 @@ Starting proof of CircleOperations.main(String[]) with prover !!!!
 test/gitbug789main/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.id(79));
                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:42: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
     //-RAC@ public invariant outputText != null && \invariant_for(outputText);
                    ^
 test/gitbug789main/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.id(79));
                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:35: warning: Associated declaration
     //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
                           ^
 Completed proof of CircleOperations.main(String[]) with prover !!!! - with warnings
