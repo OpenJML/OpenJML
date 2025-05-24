@@ -5,4 +5,6 @@ BIN=../../../OpenJML21
 
 rm -rf Run.class actual
 OJ=parse $BIN/openjml-compile *.java >& actual
-diff actual expected && rm -rf actual
+
+LOC=`(cd ../../../..; pwd)`
+sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual

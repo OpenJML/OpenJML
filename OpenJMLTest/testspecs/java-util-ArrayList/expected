@@ -1,4 +1,4 @@
-$ROOT/testspecs/java-util-ArrayList/TestArrayList.java:44: warning: [unchecked] unchecked cast
+$ROOT/OpenJML/OpenJMLTest/testspecs/java-util-ArrayList/TestArrayList.java:44: warning: [unchecked] unchecked cast
     ArrayList<Integer> aa = (ArrayList<Integer>)a.clone();
                                                        ^
   required: java.util.ArrayList<java.lang.Integer>

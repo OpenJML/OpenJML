@@ -1125,7 +1125,7 @@ public class JmlJson {
         }
     }
     
-    // FIXME - are we still using this -- is it for recording 
+    // FIXME - are we still using this -- is it for recording the attributed types?
    class PTypeAdapter extends TypeAdapter<Type> {
         public Type read(JsonReader reader) throws IOException {
           if (reader.peek() == JsonToken.NULL) {
