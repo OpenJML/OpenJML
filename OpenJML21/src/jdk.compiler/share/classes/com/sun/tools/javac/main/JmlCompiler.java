@@ -282,17 +282,32 @@ public class JmlCompiler extends JavaCompiler {
     private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name) {
         String sourcepath = decl.source().getName();
         String out = null;
+        JsonElement outtree = null;
         try {
             out = json.toJson((JCTree)decl);
+            outtree = json.toJsonTree((JCTree)decl);
         } catch (Throwable e) {
             try (var outputStream = new java.io.ByteArrayOutputStream(); var printStream = new java.io.PrintStream(outputStream)) {
                 utils.error("jml.message", "Failed translate to json (" + sourcepath + "): "+ e);
                 e.printStackTrace(printStream);
-
                 out = outputStream.toString();
             } catch (Throwable ee) {
                 ee.printStackTrace(System.out); // FIXME - better error report
             }
+        }
+        try {
+            // Checking
+            @SuppressWarnings("deprecation")
+            var res = new JsonParser().parse(out);
+            var nows = outtree.toString();//.replaceAll("[ \t\n]+","");
+            if (!res.toString().equals(nows)) { 
+                // TODO: Why does the original string representation have white space while the reread structure does not?
+                utils.error("jml.message", "Generated and reread json structures (removing whitespace) are different:\n"
+                        + nows  + "\n\nVS.\n\n" + res.toString());
+            }
+            json.toJava(out);
+        } catch (Throwable e) {
+            utils.error("jml.message", "Failed read generated json (" + sourcepath + "): "+ e);            
         }
         if (dest == null) {
             // FIXME - cleanup name calculation

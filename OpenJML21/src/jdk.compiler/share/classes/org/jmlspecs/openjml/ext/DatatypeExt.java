@@ -132,7 +132,7 @@ public class DatatypeExt extends JmlExtension {
                 List<JCTypeParameter> typarams, JCExpression extending,
                 List<JCExpression> implementing, List<JCTree> defs,
                 ClassSymbol sym) {
-            super(mods, name, typarams, extending, implementing, defs, sym);
+            super(mods, name, typarams, extending, implementing, List.<JCExpression>nil(), defs, sym);
             // TODO Auto-generated constructor stub
         }
         

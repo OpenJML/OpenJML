@@ -1,38 +1,38 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "pck/Test.java",
   "pid": {
-    "class": "$JCPackageDecl",
+    "class": "JCPackageDecl",
     "annotations": [],
     "pid": {
-      "class": "$JCIdent",
+      "class": "JCIdent",
       "type": "null",
       "name": "p"
     }
   },
   "defs": [
     {
-      "class": "$JCPackageDecl",
+      "class": "JCPackageDecl",
       "annotations": [],
       "pid": {
-        "class": "$JCIdent",
+        "class": "JCIdent",
         "type": "null",
         "name": "p"
       }
     },
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },

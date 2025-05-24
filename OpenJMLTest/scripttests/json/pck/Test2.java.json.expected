@@ -1,20 +1,20 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "pck/Test2.java",
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },
@@ -28,9 +28,9 @@
       "isModel": true
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "JmlClassDecl",
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "JmlModifiers",
         "annotations": [],
         "flags": "",
         "jmlmods": []

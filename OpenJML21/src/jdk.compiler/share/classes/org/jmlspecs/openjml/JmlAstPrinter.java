@@ -149,4 +149,31 @@ public class JmlAstPrinter extends JmlTreeScanner {
         super.visitSelect(tree);
         out();
     }
+    
+    public void visitApply(JCMethodInvocation tree) {
+        start(tree);
+//        builder.append(": ").append(tree.name.toString());
+//        if (tree.type != null) builder.append(" ").append(String.valueOf(tree.type));
+//        builder.append(" ").append(tree.toString());
+        builder.append("\n");
+        in();
+        super.visitApply(tree);
+        out();
+    }
+    
+    public void visitTypeCast(JCTypeCast tree) {
+        start(tree);
+        builder.append("\n");
+        in();
+        super.visitTypeCast(tree);
+        out();
+    }
+    
+    public void visitTypeTest(JCInstanceOf tree) {
+        start(tree);
+        builder.append("\n");
+        in();
+        super.visitTypeTest(tree);
+        out();
+    }
 }

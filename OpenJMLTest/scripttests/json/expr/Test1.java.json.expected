@@ -1,20 +1,20 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "expr/Test1.java",
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },
@@ -28,9 +28,9 @@
       "isModel": true
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "JmlClassDecl",
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "JmlModifiers",
         "annotations": [],
         "flags": "",
         "jmlmods": []
@@ -41,9 +41,9 @@
       "permitting": [],
       "defs": [
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -51,17 +51,17 @@
           "name": "x1",
           "vartype": "int",
           "init": {
-            "class": "$JCBinary",
+            "class": "JCBinary",
             "type": "null",
             "lhs": {
-              "class": "$JCLiteral",
+              "class": "JCLiteral",
               "type": "null",
               "typetag": "INT",
               "value": "4"
             },
             "opcode": "PLUS",
             "rhs": {
-              "class": "$JCLiteral",
+              "class": "JCLiteral",
               "type": "null",
               "typetag": "INT",
               "value": "6"
@@ -69,9 +69,9 @@
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -79,20 +79,20 @@
           "name": "x2",
           "vartype": "int",
           "init": {
-            "class": "$JCUnary",
+            "class": "JCUnary",
             "type": "null",
             "opcode": "NEG",
             "arg": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "x1"
             }
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -100,30 +100,30 @@
           "name": "x3",
           "vartype": "int",
           "init": {
-            "class": "$JCConditional",
+            "class": "JCConditional",
             "type": "null",
             "cond": {
-              "class": "$JCLiteral",
+              "class": "JCLiteral",
               "type": "null",
               "typetag": "BOOLEAN",
               "value": "1"
             },
             "truepart": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "x1"
             },
             "falsepart": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "x2"
             }
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -131,20 +131,20 @@
           "name": "x4",
           "vartype": "int",
           "init": {
-            "class": "$JCMethodInvocation",
+            "class": "JCMethodInvocation",
             "type": "null",
             "typeargs": [],
             "meth": {
-              "class": "$JCFieldAccess",
+              "class": "JCFieldAccess",
               "type": "null",
               "selected": {
-                "class": "$JCFieldAccess",
+                "class": "JCFieldAccess",
                 "type": "null",
                 "selected": {
-                  "class": "$JCFieldAccess",
+                  "class": "JCFieldAccess",
                   "type": "null",
                   "selected": {
-                    "class": "$JCIdent",
+                    "class": "JCIdent",
                     "type": "null",
                     "name": "java"
                   },
@@ -156,11 +156,103 @@
             },
             "args": [
               {
-                "class": "$JCIdent",
+                "class": "JCIdent",
                 "type": "null",
                 "name": "x3"
               }
             ]
+          }
+        },
+        {
+          "class": "JmlVariableDecl",
+          "mods": {
+            "class": "JmlModifiers",
+            "annotations": [],
+            "flags": "",
+            "jmlmods": []
+          },
+          "name": "o",
+          "vartype": {
+            "class": "JCIdent",
+            "type": "null",
+            "name": "Object"
+          },
+          "init": {
+            "class": "JCTypeCast",
+            "type": "null",
+            "clazz": {
+              "class": "JCFieldAccess",
+              "type": "null",
+              "selected": {
+                "class": "JCFieldAccess",
+                "type": "null",
+                "selected": {
+                  "class": "JCIdent",
+                  "type": "null",
+                  "name": "java"
+                },
+                "name": "lang"
+              },
+              "name": "String"
+            },
+            "expr": {
+              "class": "JCParens",
+              "type": "null",
+              "expr": {
+                "class": "JCMethodInvocation",
+                "type": "null",
+                "typeargs": [],
+                "meth": {
+                  "class": "JCFieldAccess",
+                  "type": "null",
+                  "selected": {
+                    "class": "JCParens",
+                    "type": "null",
+                    "expr": {
+                      "class": "JCTypeCast",
+                      "type": "null",
+                      "clazz": {
+                        "class": "JCIdent",
+                        "type": "null",
+                        "name": "Integer"
+                      },
+                      "expr": {
+                        "class": "JCIdent",
+                        "type": "null",
+                        "name": "x1"
+                      }
+                    }
+                  },
+                  "name": "toString"
+                },
+                "args": []
+              }
+            }
+          }
+        },
+        {
+          "class": "JmlVariableDecl",
+          "mods": {
+            "class": "JmlModifiers",
+            "annotations": [],
+            "flags": "",
+            "jmlmods": []
+          },
+          "name": "b",
+          "vartype": "boolean",
+          "init": {
+            "class": "JCInstanceOf",
+            "type": "null",
+            "pattern": {
+              "class": "JCIdent",
+              "type": "null",
+              "name": "String"
+            },
+            "expr": {
+              "class": "JCIdent",
+              "type": "null",
+              "name": "o"
+            }
           }
         }
       ]

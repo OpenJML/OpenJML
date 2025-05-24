@@ -1,0 +1,7 @@
+
+public class Test<T,U> {
+    
+    static <T,U extends Test> void m(U x) {}
+    void p(T y, U x) {  }
+    
+}
