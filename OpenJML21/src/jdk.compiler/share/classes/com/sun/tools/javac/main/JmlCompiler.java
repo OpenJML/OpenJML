@@ -305,7 +305,7 @@ public class JmlCompiler extends JavaCompiler {
                 utils.error("jml.message", "Generated and reread json structures (removing whitespace) are different:\n"
                         + nows  + "\n\nVS.\n\n" + res.toString());
             }
-            json.toJava(out);
+            //json.toJava(out);
         } catch (Throwable e) {
             utils.error("jml.message", "Failed read generated json (" + sourcepath + "): "+ e);            
         }

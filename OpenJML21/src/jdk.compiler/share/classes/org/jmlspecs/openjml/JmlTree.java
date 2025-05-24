@@ -2326,7 +2326,7 @@ public class JmlTree {
         public String keyword; // May be a synonym of the canonical keyword
         public Name name;
         public IJmlClauseKind clauseKind;
-        public JavaFileObject sourcefile;  // FIXME - don't think this belongs here
+        public JavaFileObject sourcefile;
         public JavaFileObject source() { return sourcefile; }
         public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
         protected JmlMethodClause(int pos, String keyword, IJmlClauseKind clauseKind) {
