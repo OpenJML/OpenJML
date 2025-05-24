@@ -1,20 +1,20 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "expr/Test2.java",
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },
@@ -28,9 +28,9 @@
       "isModel": true
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "JmlClassDecl",
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "JmlModifiers",
         "annotations": [],
         "flags": "",
         "jmlmods": []
@@ -41,9 +41,9 @@
       "permitting": [],
       "defs": [
         {
-          "class": "$JmlMethodDecl",
+          "class": "JmlMethodDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -54,27 +54,27 @@
           "params": [],
           "thrown": [],
           "methodSpecs": {
-            "class": "$JmlMethodSpecs",
+            "class": "JmlMethodSpecs",
             "cases": [
               {
-                "class": "$JmlSpecificationCase",
+                "class": "JmlSpecificationCase",
                 "also": "null",
                 "clauses": [
                   {
-                    "class": "$JmlMethodClauseExpr",
+                    "class": "JmlMethodClauseExpr",
                     "clauseType": "requires",
                     "expression": {
-                      "class": "$JmlBinary",
+                      "class": "JmlBinary",
                       "type": "null",
                       "lhs": {
-                        "class": "$JCLiteral",
+                        "class": "JCLiteral",
                         "type": "null",
                         "typetag": "BOOLEAN",
                         "value": "1"
                       },
                       "op": "\u003d\u003d\u003e",
                       "rhs": {
-                        "class": "$JCLiteral",
+                        "class": "JCLiteral",
                         "type": "null",
                         "typetag": "BOOLEAN",
                         "value": "0"
@@ -82,20 +82,20 @@
                     }
                   },
                   {
-                    "class": "$JmlMethodClauseExpr",
+                    "class": "JmlMethodClauseExpr",
                     "clauseType": "requires",
                     "expression": {
-                      "class": "$JmlBinary",
+                      "class": "JmlBinary",
                       "type": "null",
                       "lhs": {
-                        "class": "$JCLiteral",
+                        "class": "JCLiteral",
                         "type": "null",
                         "typetag": "BOOLEAN",
                         "value": "1"
                       },
                       "op": "\u003c\u003d\u003d\u003e",
                       "rhs": {
-                        "class": "$JCLiteral",
+                        "class": "JCLiteral",
                         "type": "null",
                         "typetag": "BOOLEAN",
                         "value": "0"
@@ -103,14 +103,14 @@
                     }
                   },
                   {
-                    "class": "$JmlMethodClauseExpr",
+                    "class": "JmlMethodClauseExpr",
                     "clauseType": "requires",
                     "expression": {
-                      "class": "$JCUnary",
+                      "class": "JCUnary",
                       "type": "null",
                       "opcode": "NOT",
                       "arg": {
-                        "class": "$JCLiteral",
+                        "class": "JCLiteral",
                         "type": "null",
                         "typetag": "BOOLEAN",
                         "value": "0"
@@ -122,7 +122,7 @@
             ]
           },
           "body": {
-            "class": "$JmlBlock",
+            "class": "JmlBlock",
             "flags": "",
             "stats": []
           }

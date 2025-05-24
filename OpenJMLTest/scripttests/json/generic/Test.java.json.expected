@@ -1,0 +1,163 @@
+{
+  "class": "JmlCompilationUnit",
+  "sourcefile": "generic/Test.java",
+  "defs": [
+    {
+      "class": "JmlImport",
+      "qualid": {
+        "class": "JCFieldAccess",
+        "type": "null",
+        "selected": {
+          "class": "JCFieldAccess",
+          "type": "null",
+          "selected": {
+            "class": "JCFieldAccess",
+            "type": "null",
+            "selected": {
+              "class": "JCIdent",
+              "type": "null",
+              "name": "org"
+            },
+            "name": "jmlspecs"
+          },
+          "name": "lang"
+        },
+        "name": "*"
+      },
+      "staticImport": false,
+      "isModel": true
+    },
+    {
+      "class": "JmlClassDecl",
+      "mods": {
+        "class": "JmlModifiers",
+        "annotations": [],
+        "flags": "public",
+        "jmlmods": []
+      },
+      "name": "Test",
+      "typarams": [
+        {
+          "class": "JCTypeParameter",
+          "name": "T",
+          "bounds": [],
+          "annotations": []
+        },
+        {
+          "class": "JCTypeParameter",
+          "name": "U",
+          "bounds": [],
+          "annotations": []
+        }
+      ],
+      "implementing": [],
+      "permitting": [],
+      "defs": [
+        {
+          "class": "JmlMethodDecl",
+          "mods": {
+            "class": "JmlModifiers",
+            "annotations": [],
+            "flags": "static",
+            "jmlmods": []
+          },
+          "name": "m",
+          "restype": "void",
+          "typarams": [
+            {
+              "class": "JCTypeParameter",
+              "name": "T",
+              "bounds": [],
+              "annotations": []
+            },
+            {
+              "class": "JCTypeParameter",
+              "name": "U",
+              "bounds": [
+                {
+                  "class": "JCIdent",
+                  "type": "null",
+                  "name": "Test"
+                }
+              ],
+              "annotations": []
+            }
+          ],
+          "params": [
+            {
+              "class": "JmlVariableDecl",
+              "mods": {
+                "class": "JmlModifiers",
+                "annotations": [],
+                "flags": "",
+                "jmlmods": []
+              },
+              "name": "x",
+              "vartype": {
+                "class": "JCIdent",
+                "type": "null",
+                "name": "U"
+              }
+            }
+          ],
+          "thrown": [],
+          "body": {
+            "class": "JmlBlock",
+            "flags": "",
+            "stats": []
+          }
+        },
+        {
+          "class": "JmlMethodDecl",
+          "mods": {
+            "class": "JmlModifiers",
+            "annotations": [],
+            "flags": "",
+            "jmlmods": []
+          },
+          "name": "p",
+          "restype": "void",
+          "typarams": [],
+          "params": [
+            {
+              "class": "JmlVariableDecl",
+              "mods": {
+                "class": "JmlModifiers",
+                "annotations": [],
+                "flags": "",
+                "jmlmods": []
+              },
+              "name": "y",
+              "vartype": {
+                "class": "JCIdent",
+                "type": "null",
+                "name": "T"
+              }
+            },
+            {
+              "class": "JmlVariableDecl",
+              "mods": {
+                "class": "JmlModifiers",
+                "annotations": [],
+                "flags": "",
+                "jmlmods": []
+              },
+              "name": "x",
+              "vartype": {
+                "class": "JCIdent",
+                "type": "null",
+                "name": "U"
+              }
+            }
+          ],
+          "thrown": [],
+          "body": {
+            "class": "JmlBlock",
+            "flags": "",
+            "stats": []
+          }
+        }
+      ]
+    }
+  ]
+}

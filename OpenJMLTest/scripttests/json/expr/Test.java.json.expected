@@ -1,20 +1,20 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "expr/Test.java",
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },
@@ -28,9 +28,9 @@
       "isModel": true
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "JmlClassDecl",
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "JmlModifiers",
         "annotations": [],
         "flags": "",
         "jmlmods": []
@@ -41,9 +41,9 @@
       "permitting": [],
       "defs": [
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -51,16 +51,16 @@
           "name": "i1",
           "vartype": "int",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "INT",
             "value": "5"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -68,16 +68,16 @@
           "name": "i2",
           "vartype": "long",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "LONG",
             "value": "6"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -85,37 +85,37 @@
           "name": "i3",
           "vartype": "char",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "CHAR",
             "value": "99"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
           },
           "name": "i4",
           "vartype": {
-            "class": "$JCIdent",
+            "class": "JCIdent",
             "type": "null",
             "name": "String"
           },
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "CLASS",
             "value": "123"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -123,16 +123,16 @@
           "name": "i5",
           "vartype": "float",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "FLOAT",
             "value": "8.0"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -140,16 +140,16 @@
           "name": "i6",
           "vartype": "double",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "DOUBLE",
             "value": "9.0"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -157,16 +157,16 @@
           "name": "i7",
           "vartype": "boolean",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "BOOLEAN",
             "value": "0"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -174,16 +174,16 @@
           "name": "i8",
           "vartype": "boolean",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "BOOLEAN",
             "value": "1"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -191,16 +191,16 @@
           "name": "i9",
           "vartype": "int",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "INT",
             "value": "485"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -208,16 +208,16 @@
           "name": "i10",
           "vartype": "int",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "INT",
             "value": "57005"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -225,16 +225,16 @@
           "name": "i11",
           "vartype": "int",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "INT",
             "value": "11"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -242,16 +242,16 @@
           "name": "b",
           "vartype": "byte",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "INT",
             "value": "23"
           }
         },
         {
-          "class": "$JmlVariableDecl",
+          "class": "JmlVariableDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "",
             "jmlmods": []
@@ -259,7 +259,7 @@
           "name": "s",
           "vartype": "short",
           "init": {
-            "class": "$JCLiteral",
+            "class": "JCLiteral",
             "type": "null",
             "typetag": "INT",
             "value": "34"

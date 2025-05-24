@@ -348,7 +348,7 @@ public class JmlTree {
                 List<JCExpression> implementing,
                 List<JCExpression> permitting,
                 List<JCTree> defs) {
-            JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,defs,null);
+            JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,permitting,defs,null);
             tree.pos = pos;
             tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             // In the normal course of things, context is never null, but there is a circular dependency of
@@ -1305,9 +1305,9 @@ public class JmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCExpression extending,
-                List<JCExpression> implementing, List<JCTree> defs,
+                List<JCExpression> implementing, List<JCExpression> permitting, List<JCTree> defs,
                 ClassSymbol sym) {
-            super(mods, name, typarams, extending, implementing, List.<JCExpression>nil(), defs, sym);
+            super(mods, name, typarams, extending, implementing, permitting, defs, sym);
             specsDecl = null;
             typeSpecs = null;
         }

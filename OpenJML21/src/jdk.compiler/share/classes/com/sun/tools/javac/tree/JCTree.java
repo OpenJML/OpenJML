@@ -2081,7 +2081,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
             RIGHT
         }
 
-        protected Tag opcode;
+        public Tag opcode; // OPENJML - protected to public
         public OperatorSymbol operator;
 
         public OperatorSymbol getOperator() {

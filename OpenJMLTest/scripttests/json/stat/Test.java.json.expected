@@ -1,20 +1,20 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "stat/Test.java",
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },
@@ -28,9 +28,9 @@
       "isModel": true
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "JmlClassDecl",
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "JmlModifiers",
         "annotations": [],
         "flags": "public",
         "jmlmods": []
@@ -41,9 +41,9 @@
       "permitting": [],
       "defs": [
         {
-          "class": "$JmlMethodDecl",
+          "class": "JmlMethodDecl",
           "mods": {
-            "class": "$JmlModifiers",
+            "class": "JmlModifiers",
             "annotations": [],
             "flags": "public",
             "jmlmods": []
@@ -53,9 +53,9 @@
           "typarams": [],
           "params": [
             {
-              "class": "$JmlVariableDecl",
+              "class": "JmlVariableDecl",
               "mods": {
-                "class": "$JmlModifiers",
+                "class": "JmlModifiers",
                 "annotations": [],
                 "flags": "",
                 "jmlmods": []
@@ -66,13 +66,13 @@
           ],
           "thrown": [],
           "body": {
-            "class": "$JmlBlock",
+            "class": "JmlBlock",
             "flags": "",
             "stats": [
               {
-                "class": "$JmlVariableDecl",
+                "class": "JmlVariableDecl",
                 "mods": {
-                  "class": "$JmlModifiers",
+                  "class": "JmlModifiers",
                   "annotations": [],
                   "flags": "",
                   "jmlmods": []
@@ -80,25 +80,25 @@
                 "name": "i",
                 "vartype": "int",
                 "init": {
-                  "class": "$JCLiteral",
+                  "class": "JCLiteral",
                   "type": "null",
                   "typetag": "INT",
                   "value": "0"
                 }
               },
               {
-                "class": "$JCExpressionStatement",
+                "class": "JCExpressionStatement",
                 "expr": {
-                  "class": "$JCAssignOp",
+                  "class": "JCAssignOp",
                   "type": "null",
                   "lhs": {
-                    "class": "$JCIdent",
+                    "class": "JCIdent",
                     "type": "null",
                     "name": "i"
                   },
                   "opcode": "PLUS_ASG",
                   "rhs": {
-                    "class": "$JCLiteral",
+                    "class": "JCLiteral",
                     "type": "null",
                     "typetag": "INT",
                     "value": "8"
@@ -106,28 +106,28 @@
                 }
               },
               {
-                "class": "$JmlIfStatement",
+                "class": "JmlIfStatement",
                 "cond": {
-                  "class": "$JCParens",
+                  "class": "JCParens",
                   "type": "null",
                   "expr": {
-                    "class": "$JCIdent",
+                    "class": "JCIdent",
                     "type": "null",
                     "name": "b"
                   }
                 },
                 "thenpart": {
-                  "class": "$JCExpressionStatement",
+                  "class": "JCExpressionStatement",
                   "expr": {
-                    "class": "$JCAssign",
+                    "class": "JCAssign",
                     "type": "null",
                     "lhs": {
-                      "class": "$JCIdent",
+                      "class": "JCIdent",
                       "type": "null",
                       "name": "i"
                     },
                     "rhs": {
-                      "class": "$JCLiteral",
+                      "class": "JCLiteral",
                       "type": "null",
                       "typetag": "INT",
                       "value": "7"
@@ -135,17 +135,17 @@
                   }
                 },
                 "elsepart": {
-                  "class": "$JCExpressionStatement",
+                  "class": "JCExpressionStatement",
                   "expr": {
-                    "class": "$JCAssign",
+                    "class": "JCAssign",
                     "type": "null",
                     "lhs": {
-                      "class": "$JCIdent",
+                      "class": "JCIdent",
                       "type": "null",
                       "name": "i"
                     },
                     "rhs": {
-                      "class": "$JCLiteral",
+                      "class": "JCLiteral",
                       "type": "null",
                       "typetag": "INT",
                       "value": "9"
@@ -154,36 +154,36 @@
                 }
               },
               {
-                "class": "$JmlWhileLoop",
+                "class": "JmlWhileLoop",
                 "cond": {
-                  "class": "$JCParens",
+                  "class": "JCParens",
                   "type": "null",
                   "expr": {
-                    "class": "$JCIdent",
+                    "class": "JCIdent",
                     "type": "null",
                     "name": "b"
                   }
                 },
                 "body": {
-                  "class": "$JmlBlock",
+                  "class": "JmlBlock",
                   "flags": "",
                   "stats": [
                     {
-                      "class": "$JmlIfStatement",
+                      "class": "JmlIfStatement",
                       "cond": {
-                        "class": "$JCParens",
+                        "class": "JCParens",
                         "type": "null",
                         "expr": {
-                          "class": "$JCBinary",
+                          "class": "JCBinary",
                           "type": "null",
                           "lhs": {
-                            "class": "$JCIdent",
+                            "class": "JCIdent",
                             "type": "null",
                             "name": "i"
                           },
                           "opcode": "EQ",
                           "rhs": {
-                            "class": "$JCLiteral",
+                            "class": "JCLiteral",
                             "type": "null",
                             "typetag": "INT",
                             "value": "0"
@@ -191,25 +191,25 @@
                         }
                       },
                       "thenpart": {
-                        "class": "$JCContinue"
+                        "class": "JCContinue"
                       }
                     },
                     {
-                      "class": "$JmlIfStatement",
+                      "class": "JmlIfStatement",
                       "cond": {
-                        "class": "$JCParens",
+                        "class": "JCParens",
                         "type": "null",
                         "expr": {
-                          "class": "$JCBinary",
+                          "class": "JCBinary",
                           "type": "null",
                           "lhs": {
-                            "class": "$JCIdent",
+                            "class": "JCIdent",
                             "type": "null",
                             "name": "i"
                           },
                           "opcode": "LT",
                           "rhs": {
-                            "class": "$JCLiteral",
+                            "class": "JCLiteral",
                             "type": "null",
                             "typetag": "INT",
                             "value": "0"
@@ -217,19 +217,19 @@
                         }
                       },
                       "thenpart": {
-                        "class": "$JCBreak"
+                        "class": "JCBreak"
                       }
                     }
                   ]
                 }
               },
               {
-                "class": "$JCSkip"
+                "class": "JCSkip"
               },
               {
-                "class": "$JCReturn",
+                "class": "JCReturn",
                 "expr": {
-                  "class": "$JCIdent",
+                  "class": "JCIdent",
                   "type": "null",
                   "name": "i"
                 }

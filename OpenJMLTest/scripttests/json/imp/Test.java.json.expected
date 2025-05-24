@@ -1,20 +1,20 @@
 {
-  "class": "$JmlCompilationUnit",
+  "class": "JmlCompilationUnit",
   "sourcefile": "imp/Test.java",
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "org"
             },
@@ -28,15 +28,15 @@
       "isModel": true
     },
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCIdent",
+            "class": "JCIdent",
             "type": "null",
             "name": "java"
           },
@@ -48,15 +48,15 @@
       "isModel": false
     },
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCIdent",
+            "class": "JCIdent",
             "type": "null",
             "name": "java"
           },
@@ -68,18 +68,18 @@
       "isModel": false
     },
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "java"
             },
@@ -93,18 +93,18 @@
       "isModel": false
     },
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCFieldAccess",
+            "class": "JCFieldAccess",
             "type": "null",
             "selected": {
-              "class": "$JCIdent",
+              "class": "JCIdent",
               "type": "null",
               "name": "java"
             },
@@ -118,15 +118,15 @@
       "isModel": false
     },
     {
-      "class": "$JmlImport",
+      "class": "JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
+        "class": "JCFieldAccess",
         "type": "null",
         "selected": {
-          "class": "$JCFieldAccess",
+          "class": "JCFieldAccess",
           "type": "null",
           "selected": {
-            "class": "$JCIdent",
+            "class": "JCIdent",
             "type": "null",
             "name": "java"
           },
