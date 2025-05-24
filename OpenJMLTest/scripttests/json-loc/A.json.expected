@@ -36,7 +36,10 @@
           "primitive": "68719476736"
         },
         "jmlmods": [
-          "pure"
+          {
+            "class": "com.sun.tools.javac.parser.JmlToken",
+            "primitive": "pure"
+          }
         ]
       },
       "name": {
