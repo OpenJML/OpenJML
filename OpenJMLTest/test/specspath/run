@@ -63,4 +63,5 @@ $OJA --esc AZC.java -cp srcz --specs-path=specsempty >> actual 2>&1
 echo Test Z3 -- should have an assignable problem >> actual 2>&1
 $OJA --esc AZC.java -cp srczz --specs-path=specsempty >> actual 2>&1
 
-diff expected actual && rm -rf actual
+LOC=`(cd ../../../..; pwd)`
+sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual

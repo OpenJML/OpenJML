@@ -82,6 +82,16 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug812() {
+        helpTCG("--code-math=safe");
+    }
+    
+    @Test @Ignore // FIXME - times out in attempting to prove and --code-math=math not supported
+    public void gitbug812a() {
+        helpTCG("--code-math=math");
+    }
+    
+    @Test
     public void importProblem() {
         helpTCG();
     }
