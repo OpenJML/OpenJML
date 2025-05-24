@@ -1,51 +1,89 @@
 {
-  "class": "$JmlClassDecl",
+  "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+  "sourcefile": {
+    "class": "javax.tools.JavaFileObject",
+    "primitive": "TestP.java"
+  },
   "mods": {
-    "class": "$JmlModifiers",
+    "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
     "annotations": [],
-    "flags": "",
+    "flags": {
+      "class": "long",
+      "primitive": "0"
+    },
     "jmlmods": []
   },
-  "name": "CC",
+  "name": {
+    "class": "com.sun.tools.javac.util.Name",
+    "primitive": "CC"
+  },
   "typarams": [],
+  "extending": null,
   "implementing": [],
   "permitting": [],
   "defs": [
     {
-      "class": "$JmlMethodDecl",
+      "class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+      "sourcefile": {
+        "class": "javax.tools.JavaFileObject",
+        "primitive": "TestP.java"
+      },
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
         "annotations": [],
-        "flags": "",
+        "flags": {
+          "class": "long",
+          "primitive": "68719476736"
+        },
         "jmlmods": [
           "pure"
         ]
       },
-      "name": "\u003cinit\u003e",
-      "restype": "void",
+      "name": {
+        "class": "com.sun.tools.javac.util.Name",
+        "primitive": "\u003cinit\u003e"
+      },
+      "restype": {
+        "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+        "type": "void",
+        "typetag": {
+          "class": "com.sun.tools.javac.code.TypeTag",
+          "primitive": "VOID"
+        }
+      },
       "typarams": [],
+      "recvparam": null,
       "params": [],
       "thrown": [],
+      "methodSpecs": null,
       "body": {
-        "class": "$JmlBlock",
-        "flags": "",
+        "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+        "sourcefile": null,
+        "flags": {
+          "class": "long",
+          "primitive": "0"
+        },
         "stats": [
           {
-            "class": "$JCExpressionStatement",
+            "class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
             "expr": {
-              "class": "$JCMethodInvocation",
+              "class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
               "type": "void",
               "typeargs": [],
               "meth": {
-                "class": "$JCIdent",
+                "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
                 "type": "()void",
-                "name": "super"
+                "name": {
+                  "class": "com.sun.tools.javac.util.Name",
+                  "primitive": "super"
+                }
               },
               "args": []
             }
           }
         ]
-      }
+      },
+      "defaultValue": null
     }
   ]
 }

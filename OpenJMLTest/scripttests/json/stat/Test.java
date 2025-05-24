@@ -3,6 +3,7 @@ public class Test {
     int i = 0;
     i += 8;
     if (b) i = 7; else i = 9;
+    if (!b) i = 17; // No else statement
     while (b) {
         if (i == 0) continue;
         if (i < 0) break;

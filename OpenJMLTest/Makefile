@@ -80,8 +80,8 @@ unittests-par: Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
 
 json-tests: .FORCE Run.class
-	${TEST}/scripttests/json/run
-	${TEST}/scripttests/json-loc/run
+	@ ${TEST}/scripttests/json/run
+	@ ${TEST}/scripttests/json-loc/run
 
 Run.class:
 	$(TEST)/../OpenJML21/openjml-compile Run.java
