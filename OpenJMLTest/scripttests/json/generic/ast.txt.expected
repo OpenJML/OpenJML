@@ -14,6 +14,8 @@ JmlCompilationUnit
         JCIdent: T
       JmlVariableDecl: x
         JCIdent: U
+    JmlMethodDecl: m
+      JCIdent: Class
 
 JmlCompilationUnit
   JmlImport model
@@ -31,4 +33,6 @@ JmlCompilationUnit
         JCIdent: T
       JmlVariableDecl: x
         JCIdent: U
+    JmlMethodDecl: m
+      JCIdent: Class
 

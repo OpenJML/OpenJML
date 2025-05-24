@@ -294,6 +294,80 @@
             "stats": []
           },
           "defaultValue": null
+        },
+        {
+          "class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "sourcefile": {
+            "class": "javax.tools.JavaFileObject",
+            "primitive": "generic/Test.java"
+          },
+          "mods": {
+            "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "annotations": [],
+            "flags": {
+              "class": "long",
+              "primitive": "0"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "class": "com.sun.tools.javac.util.Name",
+            "primitive": "m"
+          },
+          "restype": {
+            "class": "com.sun.tools.javac.tree.JCTree$JCTypeApply",
+            "type": null,
+            "clazz": {
+              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "type": null,
+              "name": {
+                "class": "com.sun.tools.javac.util.Name",
+                "primitive": "Class"
+              }
+            },
+            "arguments": [
+              {
+                "class": "com.sun.tools.javac.tree.JCTree$JCWildcard",
+                "type": null,
+                "inner": null,
+                "kind": {
+                  "class": "com.sun.tools.javac.tree.JCTree$TypeBoundKind",
+                  "kind": {
+                    "class": "com.sun.tools.javac.code.BoundKind",
+                    "primitive": "?"
+                  }
+                }
+              }
+            ]
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": null,
+          "body": {
+            "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "sourcefile": null,
+            "flags": {
+              "class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "expr": {
+                  "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                  "type": null,
+                  "typetag": {
+                    "class": "com.sun.tools.javac.code.TypeTag",
+                    "primitive": "BOT"
+                  },
+                  "value": null
+                }
+              }
+            ]
+          },
+          "defaultValue": null
         }
       ]
     }

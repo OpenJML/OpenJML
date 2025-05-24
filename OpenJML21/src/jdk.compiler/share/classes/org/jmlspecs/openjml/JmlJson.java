@@ -1,5 +1,6 @@
 package org.jmlspecs.openjml;
 
+import com.sun.tools.javac.code.BoundKind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -101,8 +102,10 @@ public class JmlJson {
         builder.registerTypeAdapter(JCTree.Tag.class, this.new OpTagAdapter());
         builder.registerTypeAdapter(JavaFileObject.class, this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(new JavacFileManager(context,false,null).getJavaFileObject("Z").getClass(), this.new JavaFileObjectAdapter());
-
+        builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
+        
         for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
+            if ((nestedClass.getModifiers() & Flags.ABSTRACT) != 0) continue;
             var adapter = nestedClass.toString();
             var astclass = adapter.substring(adapter.indexOf('$')+1, adapter.length()-suffix.length());
             if (astclass.isEmpty()) continue;
@@ -1109,13 +1112,37 @@ public class JmlJson {
 //            return result;
 //        }
     }
+    
+    class JCWildcardAdapter extends Adapter<JCWildcard> {
+        public static final String[] fields = { "inner", "kind" };
+        
+    }
 
 // TODO: JCWildcard
     // TODO: JCYield
     // TODO: LetExpr
-    // TODO: TypeBoundKind
     
+    class TypeBoundKindAdapter extends Adapter<TypeBoundKind> {
+        public static final String[] fields = { "kind" };
+        
+    }
+
     /**************************/
+
+    abstract class EnumAdapter<T extends Enum<T>> implements JsonSerializer<T>, JsonDeserializer<T> {
+        abstract Class<T> clazz();
+        @Override
+        public JsonElement serialize(T src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            return primitive(src.getClass(), src);
+        }
+        @Override
+        public T deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var str = json.getAsJsonObject().get("primitive").getAsJsonPrimitive().getAsString();
+            var value = Enum.<T>valueOf(clazz(), str);
+            return value;
+        }
+    }
 
     /** An adapter for Name */
     class NameAdapter implements JsonSerializer<Name>, JsonDeserializer<Name> {
@@ -1136,7 +1163,7 @@ public class JmlJson {
     class JmlTokenAdapter implements JsonSerializer<JmlToken>, JsonDeserializer<JmlToken> {
         @Override
         public JsonElement serialize(JmlToken src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            return new JsonPrimitive(src.toString());
+            return primitive(JmlToken.class, src);  // FIXME - more to a JmlToken than just the name
         }
         @Override
         public JmlToken deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
@@ -1151,20 +1178,43 @@ public class JmlJson {
         }
     }
     
-    /** An adapter for TypeTag */
-    class TypeTagAdapter implements JsonSerializer<TypeTag>, JsonDeserializer<TypeTag> {
-        @Override
-        public JsonElement serialize(TypeTag src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            return primitive(TypeTag.class, src);
-        }
-        @Override
-        public TypeTag deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var str = json.getAsJsonObject().get("primitive").getAsJsonPrimitive().getAsString();
-            var typetag = TypeTag.valueOf(str);
-            return typetag;
-        }
+    class TypeTagAdapter extends EnumAdapter<TypeTag> {
+        Class<TypeTag> clazz() { return TypeTag.class; }
     }
+    
+//    /** An adapter for TypeTag */
+//    class TypeTagAdapter implements JsonSerializer<TypeTag>, JsonDeserializer<TypeTag> {
+//        @Override
+//        public JsonElement serialize(TypeTag src, java.lang.reflect.Type type, JsonSerializationContext context) {
+//            return primitive(TypeTag.class, src);
+//        }
+//        @Override
+//        public TypeTag deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+//                throws JsonParseException {
+//            var str = json.getAsJsonObject().get("primitive").getAsJsonPrimitive().getAsString();
+//            var typetag = TypeTag.valueOf(str);
+//            return typetag;
+//        }
+//    }
+    
+    class BoundKindAdapter extends EnumAdapter<BoundKind> {
+        Class<BoundKind> clazz() { return BoundKind.class; }
+    }
+    
+//    /** An adapter for BoundKind */
+//    class BoundKindAdapter implements JsonSerializer<BoundKind>, JsonDeserializer<BoundKind> {
+//        @Override
+//        public JsonElement serialize(BoundKind src, java.lang.reflect.Type type, JsonSerializationContext context) {
+//            return primitive(BoundKind.class, src);
+//        }
+//        @Override
+//        public BoundKind deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+//                throws JsonParseException {
+//            var str = json.getAsJsonObject().get("primitive").getAsJsonPrimitive().getAsString();
+//            var typetag = BoundKind.valueOf(str);
+//            return typetag;
+//        }
+//    }
     
     /** An adapter for JavaFileObject */
     class JavaFileObjectAdapter implements JsonSerializer<JavaFileObject>, JsonDeserializer<JavaFileObject> {
@@ -1182,6 +1232,10 @@ public class JmlJson {
             var jfo = new JavacFileManager(JmlJson.this.context,false,null).getJavaFileObject(str);
             return jfo;
         }
+    }
+    
+    class OpTagAdaper extends EnumAdapter<JCTree.Tag> {
+        Class<JCTree.Tag> clazz() { return JCTree.Tag.class; }
     }
     
     /** An adapter for JCTree.Tag */
