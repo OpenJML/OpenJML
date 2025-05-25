@@ -185,6 +185,20 @@ public class parseErrors extends ParseBase {
     }
     
     @Test
+    public void harness1a() {
+        out = tempout;
+        try {
+            checkParseErrors("public c A {}");
+        } catch (AssertionError a) {
+            assertEquals("Intentional failure issued wrong message",
+                    "More errors observed (1) than expected (0)",
+                    a.getMessage());
+        } finally {
+            out = System.out;
+        }
+    }
+    
+    @Test
     public void harness2() {
         noExtraPrinting = true;
         try {
@@ -338,6 +352,22 @@ public class parseErrors extends ParseBase {
                     a.getMessage());
         }
     }
+    
+    @Test public void harness13() {
+        noExtraPrinting = true;
+        try {
+            checkParseErrors("class A { public A() { case 0; } }"
+                ,"/TEST.java:1: error: orphaned case"
+                ,"/TEST.java:1: error: : or -> expected", 30, 29, 29, 29
+                );
+        } catch (AssertionError a) {
+            assertEquals("Intentional failure issued wrong message", 
+                    "No positions given for message 0", 
+                    a.getMessage());
+        }
+    }
+
+
 
 
 }
