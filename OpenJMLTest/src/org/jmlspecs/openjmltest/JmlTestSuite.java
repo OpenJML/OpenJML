@@ -1,6 +1,5 @@
 package org.jmlspecs.openjmltest;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -398,33 +397,35 @@ public abstract class JmlTestSuite {
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 if (k >= expected.length) break;
-                if (!(expected[k++] instanceof String raw)) { fail("Expected a message string instead of " + expected[k-1]); break; } // break is just to inform control flow that 'raw' is OK
-                String message = doReplacements(raw);
+                Object m = expected[k];
+                assertTrue("Expected a message string instead of " + m,
+                            m instanceof String);
+                String message = doReplacements((String)m);
+                k++;
                 assertEquals("Message " + i + " mismatch",message,noSource(dd));
                 p1 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
                 p2 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
                 p3 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
                 p4 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
                 if (p4 != null) {
+                    // Have 4 numbers
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                     assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
                     assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
                     assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
-                } else if (p2 != null) {
-                    fail("Expected 0 or 3 position values after the column value");
-                } else if (p1 != null) {
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 } else {
-                    fail("No positions given for message " + i);
+                    // Expect only one number
+                    assertTrue("Expected 0 or 3 position values after the column value", p2 == null);
+                    assertTrue("No positions given for message " + i, p1 != null);
+                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 }
                 i++;
             }
-            if (k < expected.length) {
-                fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected. First extra: " + expected[k]);
-            }
-            if (i < collector.getDiagnostics().size()) {
-                fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
-            }
+            assertTrue("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected. First extra: " + 
+                        (k < expected.length ? expected[k] : ""),
+                    k >= expected.length);
+            assertTrue("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")",
+                    i >= collector.getDiagnostics().size());
         } catch (AssertionError e) {
             if (!noExtraPrinting) printDiagnostics();
             throw e;
