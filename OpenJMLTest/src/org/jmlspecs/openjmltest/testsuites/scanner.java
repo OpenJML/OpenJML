@@ -75,7 +75,7 @@ public class scanner extends JmlTestSuite {
             failed = true;
             assertEquals("Failure report wrong",failureMessage,a.getMessage()); // FIXME - is this really resolved incorrectly?
         }
-        if (!failed) fail("Test harness failed to report an error");
+        assertTrue("Test harness failed to report an error", failed);
     }
 
 
@@ -97,51 +97,49 @@ public class scanner extends JmlTestSuite {
      * errors found is the last argument.  The positions array contains a start and end position
      * for each token.
      */
-    public void helpScanner(String s, Object[] list, int[] positions, int numErrors) {
+    public void helpScanner(String s, Object[] expected, int[] positions, int numErrors) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s) );
             JmlScanner sc = (JmlScanner)fac.newScanner(s, true);
-            if (keys != null && org.jmlspecs.openjml.Main.useJML) {
+            if (keys != null) {
                 for (String k: keys) { JmlOptions.instance(context).commentKeys.add(k); }
             }
             int i = 0;
-            while (i<list.length) {
+            while (i<expected.length) {
                 sc.nextToken();
-                if (print) System.out.println(sc.token() + " " + sc.jmlToken());
+                if (print) out.println(sc.token() + " " + sc.jmlToken());
                 Token e = sc.token();
                 Object o = e.kind;
                 if (e instanceof JmlToken jmlt) o = jmlt.jmlclausekind;
                 try {
-                    if (o != list[i]) {
-                        fail("Unexpected token at position " + i + " expected: " + list[i] + " actual: " + o 
-                                + (" " + e.pos + " " + e.endPos));
-                    }
+                    assertTrue("Unexpected token at position " + i + " expected: " + expected[i] + " actual: " + o 
+                                + (" " + e.pos + " " + e.endPos), o == expected[i]); // Not using assertEquals because we want more information in the error report
                     if (positions != null && 2*i+1 < positions.length) {
                         assertEquals("pos for token " + i, positions[2*i], e.pos);
                         assertEquals("endpos for token " + i, positions[2*i+1], e.endPos);
                     }
                 } catch (AssertionError ex) {
-                    do {
+                    if (!noExtraPrinting) do {
                         sc.nextToken();
                         e = sc.token();
-                        System.out.println((++i) + " : " + e.kind + (" " + e.pos + " " + e.endPos));
+                        out.println((++i) + " : " + e.kind + (" " + e.pos + " " + e.endPos));
                     } while (e.kind != EOF);
                     throw ex;
                 }
                 i++;
             }
             sc.nextToken();
-            if (sc.token().kind != TokenKind.EOF) {
-                fail("Scanner not at EOF: " + sc.token().kind);
+                // The test harness only reads scanner tokens while there are matches in 'expected'.
+                // If the 'expected' list is too short, then the following assert fails.
+            assertEquals("Scanner not at EOF (read " + i + " tokens):", TokenKind.EOF, sc.token().kind);
+            if (collector.getDiagnostics().size() != numErrors && !noExtraPrinting) printDiagnostics();
+            assertEquals("Saw wrong number of errors", numErrors, collector.getDiagnostics().size());
+            if (positions != null) {
+                assertEquals("Number of start/end locations should be double the number of tokens:", 2*i, positions.length);
             }
-            if (collector.getDiagnostics().size() != numErrors) {
-                if (!noExtraPrinting) printDiagnostics();
-                fail("Saw wrong number of errors: expected " + numErrors 
-                        + " actual " + collector.getDiagnostics().size());
-            }
-            if (positions != null && 2*i != positions.length) fail("Number of start/end locations (" + (positions.length) + ") should be double the number of tokens (" + i + ")");
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            // This is not expected to ever fail -- only if the scanner itself has an internal bug that causes an exception
+            e.printStackTrace(out);
             fail("Exception thrown while processing test: " + e);
         }
     }
@@ -222,36 +220,65 @@ public class scanner extends JmlTestSuite {
     
     /** This tests that the test harness records if not enough tokens are listed */
     @Test public void testHarness1() {
-        helpFailure("Scanner not at EOF: token.identifier",
+        helpFailure("Scanner not at EOF (read 1 tokens): expected:<token.end-of-input> but was:<token.identifier>",
                 "A A",new Object[]{IDENTIFIER},null,0);
     }
     
     /** This tests that the test harness records if too many tokens are listed */
     @Test public void testHarness2() {
+        noExtraPrinting = true;
         helpFailure("Unexpected token at position 1 expected: token.identifier actual: token.end-of-input 1 1",
                 "A",new Object[]{IDENTIFIER,IDENTIFIER},null,0);
     }
     
+    /** This tests that the test harness records if too many tokens are listed */
+    @Test public void testHarness2a() {
+        print = true;
+        out = tempout;
+        try {
+            helpFailure("Unexpected token at position 1 expected: token.identifier actual: token.end-of-input 1 1",
+                "A",new Object[]{IDENTIFIER,IDENTIFIER},null,0);
+        } finally {
+            out = System.out;
+        }
+    }
+    
+    /** This tests that the test harness records if too many tokens are listed */
+    @Test public void testHarness2b() {
+        print = true;
+        out = tempout;
+        try {
+            helpFailure("Unexpected token at position 1 expected: token.identifier actual: token.end-of-input 1 1",
+                "A",new Object[]{IDENTIFIER,IDENTIFIER,IDENTIFIER},null,0);
+        } finally {
+            out = System.out;
+        }
+    }
+    
     /** This tests that the test harness records if a wrong token is listed */
     @Test public void testHarness3() {
+        noExtraPrinting = true;
         helpFailure("Unexpected token at position 0 expected: public actual: token.identifier 0 1",
                 "A",new Object[]{PUBLIC},null,0);
     }
 
     /** This tests that the test harness records if too many tokens are listed */
     @Test public void testHarness4() {
+        noExtraPrinting = true;
         helpFailure("Unexpected token at position 2 expected: token.identifier actual: token.end-of-input 1 1",
                 "A",new Object[]{IDENTIFIER,EOF,IDENTIFIER},null,0);
     }
     
     /** This tests that the test harness records if wrong start position is given */
     @Test public void testHarness5() {
+        noExtraPrinting = true;
         helpFailure("pos for token 0 expected:<1> but was:<0>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{1,2,3,4},0);
     }
     
     /** This tests that the test harness fails if wrong end position is given */
     @Test public void testHarness6() {
+        noExtraPrinting = true;
         helpFailure("endpos for token 0 expected:<2> but was:<1>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{0,2,3,4},0);
     }
@@ -259,32 +286,79 @@ public class scanner extends JmlTestSuite {
     /** This tests that the test harness fails if wrong number of errors is given */
     @Test public void testHarness7() {
         noExtraPrinting = true;
-        helpFailure("Saw wrong number of errors: expected 1 actual 0",
+        helpFailure("Saw wrong number of errors expected:<1> but was:<0>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{0,1,1,1},1);
+    }
+    
+    /** This tests that the test harness fails if wrong number of errors is given */
+    @Test public void testHarness7b() {
+        noExtraPrinting = false;
+        out = tempout;
+        try {
+            helpFailure("endpos for token 0 expected:<2> but was:<1>",
+                    "A B C",new Object[]{IDENTIFIER},new int[]{0,2},1);
+        } finally {
+            out = System.out;
+        }
+    }
+    
+    /** This tests that the test harness fails if wrong number of errors is given */
+    @Test public void testHarness7a() {
+        noExtraPrinting = false;
+        out = tempout;
+        try {
+            helpFailure("Saw wrong number of errors expected:<1> but was:<0>",
+                    "A",new Object[]{IDENTIFIER,EOF},new int[]{0,1,1,1},1);
+        } finally {
+            out = System.out;
+        }
     }
     
     /** This tests that the test harness fails if too few positions are given */
     @Test public void testHarness8() {
-        helpFailure("Number of start/end locations (1) should be double the number of tokens (2)",
+        helpFailure("Number of start/end locations should be double the number of tokens: expected:<4> but was:<1>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{0},0);
     }
     
     /** This tests that the test harness fails if too few positions are given */
     @Test public void testHarness9() {
-        helpFailure("Number of start/end locations (2) should be double the number of tokens (2)",
+        helpFailure("Number of start/end locations should be double the number of tokens: expected:<4> but was:<2>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{0,1},0);
     }
     
     /** This tests that the test harness fails if too few positions are given */
     @Test public void testHarness10() {
-        helpFailure("Number of start/end locations (0) should be double the number of tokens (2)",
+        helpFailure("Number of start/end locations should be double the number of tokens: expected:<4> but was:<0>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{},0);
     }
     
     /** This tests that the test harness fails if too many positions are given */
     @Test public void testHarness11() {
-        helpFailure("Number of start/end locations (7) should be double the number of tokens (2)",
+        helpFailure("Number of start/end locations should be double the number of tokens: expected:<4> but was:<7>",
                 "A",new Object[]{IDENTIFIER,EOF},new int[]{0,1,1,1,4,5,6},0);
+    }
+    
+    /** This tests that the test harness objects if given the wrong error message */
+    @Test public void testHarness12() {
+        noExtraPrinting = true;
+        try {
+            helpFailure("ZZZ",
+                "A",new Object[]{ERROR},new int[]{0,1},0);
+        } catch (AssertionError a) {
+            assertEquals("Test Failure", 
+                    "Failure report wrong expected:<[ZZZ]> but was:<[Unexpected token at position 0 expected: token.bad-symbol actual: token.identifier 0 1]>",
+                    a.getMessage());
+        }
+    }
+    
+    /** This tests failure harness objects if no failulre occurs */
+    @Test public void testHarness13() {
+        try {
+            helpFailure("Number of start/end locations (7) should be double the number of tokens (2)",
+                "A",new Object[]{IDENTIFIER},new int[]{0,1},0);
+        } catch (AssertionError a) {
+            assertEquals("Test Failure", "Test harness failed to report an error", a.getMessage());
+        }
     }
     
 

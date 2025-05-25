@@ -33,7 +33,7 @@ abstract public class ParseBase extends JmlTestSuite {
 
     protected static String testspecpath = "$A"+z+"$B";
 
-    protected ParserFactory fac;
+    protected JmlFactory fac;
     protected ScannerFactory sfac;
     protected JmlParser parser;
 
@@ -51,7 +51,7 @@ abstract public class ParseBase extends JmlTestSuite {
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         sfac = ScannerFactory.instance(context);
-        fac = ParserFactory.instance(context);
+        fac = (JmlFactory)JmlFactory.instance(context);
         print = false;
         jml = false;
     }
@@ -76,28 +76,20 @@ abstract public class ParseBase extends JmlTestSuite {
         checkParseTree(out,list);
     }
 
-    public void checkCompilationUnitErrors(String s, Object ... list) {
-        try { 
-            parseCompilationUnit(s);
-        } catch (Exception e) {
-            System.out.println("Test ended with exception: " + e);
-            e.printStackTrace(System.out);
-            printDiagnostics();
-        }
+    public void checkParseErrors(String s, Object ... list) {
+        parseCompilationUnit(s);
         checkDiagnostics(list);
     }
 
-    // TODO - put in a few harness tests
-    // TODO - test error messages
-    public void checkCompilationUnitFailure(String failureMessage, String s, Object ... list) {
+    public void checkParseFailure(String failureMessage, String s, Object ... list) {
         boolean failed = false;
         try {
             checkCompilationUnit(s,list);
         } catch (AssertionError a) {
             failed = true;
-            assertEquals("Failure report wrong",failureMessage,a.getMessage());
+            assertEquals("Failure message was incorrect in checkCompilationUnitFailure", failureMessage, a.getMessage());
         }
-        if (!failed) fail("Test Harness failed to report an error");
+        assertTrue("Test Harness failed to report an error", failed);
     }
     
     /** Parses the content of a compilation unit, producing a list of nodes of
@@ -107,7 +99,7 @@ abstract public class ParseBase extends JmlTestSuite {
      */
     public List<JCTree> parseCompilationUnit(String s) {
         Log.instance(context).useSource(new TestJavaFileObject(s));
-        parser = ((JmlFactory)fac).newParser(s,false,true,true,jml);
+        parser = fac.newParser(s,false,true,true,jml);
         parser.addOrgJmlspecsLang = false;
         JCTree e = parser.parseCompilationUnit();
         return ParseTreeScanner.walk(e);
@@ -129,9 +121,7 @@ abstract public class ParseBase extends JmlTestSuite {
             int i = 0;
             int k = 0;
             if (print) {
-                for (JCTree t: actual) {
-                    System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
-                }
+                printTree(actual);
                 printDiagnostics();
             }
             Object p1, p2, p3;
@@ -153,11 +143,13 @@ abstract public class ParseBase extends JmlTestSuite {
                 }
                 ++k;
             }
-            if ( i != expected.length) fail("Incorrect number of nodes listed");
-            if ( k != actual.size()) fail("Insufficient number of errors listed: " + expected.length/3 + " " + actual.size());
-            if (parser.getScanner().token().kind != TokenKind.EOF) fail("Not at end of input");
+            assertTrue("Insufficient number of nodes listed: expected " + k + ", was " + actual.size(), k == actual.size());
+            assertEquals("Too many expected nodes listed", expected.length, i);
+            // I don't believe that the following assert can ever fail -- the parser should keep going until the end of
+            // input, continually emitting errors if needed.
+            assertEquals("Not at end of input", TokenKind.EOF, parser.getScanner().token().kind);
         } catch (AssertionError e) {
-            if (!print) {
+            if (!print && !noExtraPrinting) {
                 printTree(actual);
                 printDiagnostics();
             }
@@ -167,9 +159,9 @@ abstract public class ParseBase extends JmlTestSuite {
     
     /** Prints out the nodes of the tree */
     public void printTree(List<JCTree> list) {
-        System.out.println("NODES FOR " + getTestName()); // FIXME - test that this actually puts out the correct name
+        out.println("NODES FOR " + getTestName()); // FIXME - test that this actually puts out the correct name
         for (JCTree t: list) {
-            System.out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
+            out.println(t.getClass() + " " + t.getStartPosition() + " " + t.getPreferredPosition() + " " + parser.getEndPos(t));
         }
     }
 
@@ -201,7 +193,7 @@ abstract public class ParseBase extends JmlTestSuite {
         public List<JCTree> result() { return list; }
 
         /** Adds a node to the internal accumulator and then calls the
-         * super class method.
+         * super class method to continue to walk the tree.
          */
         @Override
         public void scan(JCTree t) {
@@ -210,8 +202,4 @@ abstract public class ParseBase extends JmlTestSuite {
             super.scan(t);
         }
     }
-
-
-    /** Just to avoid Junit framework complaints about no tests */
-    public void test() {} 
 }

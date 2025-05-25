@@ -83,6 +83,16 @@ public abstract class JmlTestSuite {
         }
     }
     
+    public java.io.PrintStream out = System.out;
+    public java.io.PrintStream tempout;
+    {
+        try {
+            tempout = new java.io.PrintStream("tempout.txt");
+        } catch (FileNotFoundException e) {
+            System.out.println("Could not create temp file");
+        }
+    }
+    
     // FIXME - not sure about these -- 'root' is an absolute path
     static final public String bruntime = "../" + root + "/OpenJML/OpenJML21/bin-runtime";
     static final public String  runtime = "../" + root + "/OpenJML/OpenJML21/runtime";
@@ -359,9 +369,9 @@ public abstract class JmlTestSuite {
         printDiagnostics(collector.getDiagnostics());
     }
     
-    public static void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
+    public void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
         synchronized (System.out) {
-            System.out.println(diagnosticsToString(diagnostics));
+            out.println(diagnosticsToString(diagnostics));
         }
     }
 
@@ -381,24 +391,27 @@ public abstract class JmlTestSuite {
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
-    public void checkDiagnostics(Object[] list) {
+    public void checkDiagnostics(Object[] expected) {
         try {
             int i = 0;
             int k = 0;
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                if (k >= list.length) break;
-                String expected = doReplacements(((String)list[k++]));
-                assertEquals("Message " + i + " mismatch",expected,noSource(dd));
-                p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p4 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                if (k >= expected.length) break;
+                if (!(expected[k++] instanceof String raw)) { fail("Expected a message string instead of " + expected[k-1]); break; } // break is just to inform control flow that 'raw' is OK
+                String message = doReplacements(raw);
+                assertEquals("Message " + i + " mismatch",message,noSource(dd));
+                p1 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
+                p2 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
+                p3 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
+                p4 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
                 if (p4 != null) {
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                     assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
                     assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
                     assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
+                } else if (p2 != null) {
+                    fail("Expected 0 or 3 position values after the column value");
                 } else if (p1 != null) {
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 } else {
@@ -406,14 +419,14 @@ public abstract class JmlTestSuite {
                 }
                 i++;
             }
-            if (k < list.length) {
-                fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected");
+            if (k < expected.length) {
+                fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected. First extra: " + expected[k]);
             }
             if (i < collector.getDiagnostics().size()) {
-                fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected");
+                fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")");
             }
         } catch (AssertionError e) {
-            printDiagnostics();
+            if (!noExtraPrinting) printDiagnostics();
             throw e;
         }
 
