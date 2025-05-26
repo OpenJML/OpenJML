@@ -1,7 +1,6 @@
 package org.jmlspecs.openjmltest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -70,14 +69,6 @@ public abstract class RacBase extends JmlTestSuite {
      */
     protected String outdir;
 
-    @BeforeClass
-    public static void mktempdirectory() {
-    	File f = new File("testcompiles");
-    	if (!f.exists()) {
-    		f.mkdir();
-    	}
-    }
-    
     /** Derived classes can initialize
      * testspecpath1 - the specspath to use
      * <BR>jdkrac - default is false; if true, adjusts the classpath???
@@ -139,15 +130,15 @@ public abstract class RacBase extends JmlTestSuite {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     public void helpTCX(String classname, String compilationUnitText, Object... list) {
-    	// Source files are synthetic
-    	// Compile destination is destdir
-    	// Expected output is containted in the test code (not in a file)
-    	String destdir = setupOutdir();
-    	new java.io.File(destdir).delete(); // Make sure old builds are deleted
-    	new java.io.File(destdir).mkdir();
+        // Source files are synthetic
+        // Compile destination is destdir
+        // Expected output is containted in the test code (not in a file)
+        String destdir = setupOutdir();
+        new java.io.File(destdir).delete(); // Make sure old builds are deleted
+        new java.io.File(destdir).mkdir();
 
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
-        StreamGobbler out=null,err=null;
+        StreamGobbler outs=null,errs=null;
         boolean isMac = System.getProperty("os.name").contains("Mac");
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
@@ -176,7 +167,7 @@ public abstract class RacBase extends JmlTestSuite {
                 assertEquals("Message " + i, expected, s);
                 assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
-            if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+            assertEquals("Compile ended with exit code:", expectedExit, ex);
             if (ex != 0 && !continueAnyway) return;
             if (!runrac) return;
             
@@ -185,71 +176,71 @@ public abstract class RacBase extends JmlTestSuite {
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
             
-            out = new StreamGobbler(p.getInputStream());
-            err = new StreamGobbler(p.getErrorStream());
-            out.start();
-            err.start();
+            outs = new StreamGobbler(p.getInputStream());
+            errs = new StreamGobbler(p.getErrorStream());
+            outs.start();
+            errs.start();
             if (timeout(p,10000)) { // 10 second timeout
                 fail("Process did not complete within the timeout period");
             }
             
             int i = observedMessages*2;
             if (print) {
-                String data = out.input();
+                String data = outs.input();
                 if (data.length() > 0) {
                     String[] lines = data.split(term);
                     for (String line: lines) {
-                        System.out.println("OUT: " + line);
+                        out.println("OUT: " + line);
                     }
                 }
-                data = err.input();
+                data = errs.input();
                 if (data.length() > 0) {
                     String[] lines = data.split(term);
                     for (String line: lines) {
-                        System.out.println("ERR: " + line);
+                        out.println("ERR: " + line);
                     }
                 }
             }
-            String data = out.input();
+            String data = outs.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
-                	//System.out.println("ACT: " + line);
+                	//out.println("ACT: " + line);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
                 		expected = expected.replace("#DEMO", OpenJMLDemoPath);
-                		//System.out.println("EXP: " + expected);
+                		//out.println("EXP: " + expected);
                 		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
                 			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
                 		if (!actual.matches(".*:[0-9]+:$")) 
                 			expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
-                		//System.out.println("EXP: " + expected);
+                		//out.println("EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
-                		//System.out.println("EXP: " + expected);
+                		//out.println("EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
                 	}
                     i++;
                 }
             }
-            data = err.input();
+            data = errs.input();
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
-                	//System.out.println("ERR-ACT: " + actual);
+                	//out.println("ERR-ACT: " + actual);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
                 		expected = expected.replace("#DEMO", OpenJMLDemoPath);
-                		//System.out.println("ERR-EXP: " + expected);
+                		//out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
-                		//System.out.println("ERR-EXP: " + expected);
+                		//out.println("ERR-EXP: " + expected);
 //                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
 //                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
 //                		if (!actual.matches(".*:[0-9]+:$")) 
 //                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
-                		//System.out.println("ERR-EXP: " + expected);
+                		//out.println("ERR-EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
-                		//System.out.println("ERR-EXP: " + expected);
+                		//out.println("ERR-EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
                 	}
                     i++;
@@ -260,8 +251,8 @@ public abstract class RacBase extends JmlTestSuite {
             if (i != list.length && !print) { // if print, then we already printed
                 printDiagnostics();
             }
-            if (i> list.length) fail("More output than specified: " + i + " vs. " + list.length + " lines");
-            if (i< list.length) fail("Less output than specified: " + i + " vs. " + list.length + " lines");
+            assertFalse("More output than specified: " + i + " vs. " + list.length + " lines", i > list.length);
+            assertFalse("Less output than specified: " + i + " vs. " + list.length + " lines", i < list.length);
             if (p.exitValue() != expectedRACExit) fail("Exit code was " + p.exitValue());
         } catch (Exception e) {
             e.printStackTrace(System.out);
@@ -269,16 +260,16 @@ public abstract class RacBase extends JmlTestSuite {
         } catch (AssertionError e) {
             if (!print) printDiagnostics();
             if (!print && !noExtraPrinting) {
-                if (out != null) {
-                    String[] lines = out.input().split(term);
+                if (outs != null) {
+                    String[] lines = outs.input().split(term);
                     for (String line: lines) {
-                        System.out.println("OUT: " + line);
+                        out.println("OUT: " + line);
                     }
                 }
-                if (err != null) {
-                    String[] lines = err.input().split(term);
+                if (errs != null) {
+                    String[] lines = errs.input().split(term);
                     for (String line: lines) {
-                        System.out.println("ERR: " + line);
+                        out.println("ERR: " + line);
                     }
                 }
             }

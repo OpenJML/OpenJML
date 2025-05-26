@@ -1458,6 +1458,7 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testBadEnum1() {
+        print = true;
         addMockFile("$A/A.jml","public class A extends Enum<A> {}");
         helpTCF("A.java",
                 """

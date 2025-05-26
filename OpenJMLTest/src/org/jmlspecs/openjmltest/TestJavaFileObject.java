@@ -34,9 +34,9 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
         try {
             return new URI("file:///TEST.java");
         } catch (Exception e) {
-            System.err.println("CATASTROPHIC EXIT - FAILED TO CONSTRUCT A MOCK URI");
-            System.exit(3);
-            return null;
+            // If this exception is ever thrown, the TestJavaFileObject class will fail to be instantiated,
+            // aborting tests and any execution of openjml on startup.
+            throw new com.sun.tools.javac.util.PropagatedException(new org.jmlspecs.openjml.JmlInternalAbort("Failed to construct a mock URI in TestJavaFileObject.makeURI"));
         }
     }
 
@@ -93,7 +93,7 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     public boolean isNameCompatible(String simpleName, Kind kind) {
         String s = uri.getPath();
         if (kind == Kind.OTHER) {
-            int i = s.lastIndexOf('/');
+            int i = s.lastIndexOf('/');  // FIXME - is this branch ever used?
             s = s.substring(i+1);
             return s.startsWith(simpleName);
         } else {
@@ -104,8 +104,8 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     
     /** Returns true if the receiver and argument represent the same file */
     public boolean equals(Object o) {
-        if (!(o instanceof JavaFileObject)) return false;
-        return Utils.ifSourcesEqual(this, (JavaFileObject)o);
+        if (!(o instanceof JavaFileObject jfo)) return false;
+        return Utils.ifSourcesEqual(this, jfo);
     }
     
     /** A definition of hashCode, since we have a definition of equals */
@@ -117,11 +117,8 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
     }
     
     public String toString() {
-        //String s = super.toString(); // Something like file:///tt/TestJava.java from TestJavaFileObject
-        String s = getName();  // Something like tt/TestJava.java
-        // Note: in stack traces it appears that everything gets dropped up to and including
-        // the last /
-        return s;
+        // Notes that super.toString() produces something like file:///tt/TestJava.java from TestJavaFileObject
+        return getName();  // Something like tt/TestJava.java
     }
 
 }

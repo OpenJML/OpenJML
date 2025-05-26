@@ -43,9 +43,9 @@ public abstract class TCBase extends JmlTestSuite {
         testSourcePath = testspecpath1;
         specialCompare = false;
         super.setUp();
-        addOptions("-specspath",   testspecpath + z + "$SY" );
-        addOptions("-sourcepath",   testSourcePath);
-        addOptions("-classpath",   "src" + z + testSourcePath);
+        addOptions("--specs-path",   testspecpath + z + "$SY" );
+        addOptions("--source-path",   testSourcePath);
+        addOptions("--class-path",   "src" + z + testSourcePath);
         addOptions(JmlOption.PURITYCHECK.optionName()+"=false");
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
@@ -66,15 +66,15 @@ public abstract class TCBase extends JmlTestSuite {
     // filename is the pseudo-filename in which content is considered to be
     // content is the test text; 
     // list are the expected messages and column numbers
-    public void helpTCF(/*@ nullable*/String filename, String content, Object ... list) {
-        helpTCX(filename,content,list);
+    public void helpTCF(/*@ nullable*/String filename, String content, Object ... expected) {
+        helpTCX(filename,content,expected);
     }
 
     // Helper method for tests: 
     // filename is the pseudo-filename in which content is considered to be
     // content is the test text; 
     // list are the expected messages and column numbers
-    public void helpTCX(/*@ nullable*/String filename, String content, Object ... list) {
+    public void helpTCX(/*@ nullable*/String filename, String content, Object ... expected) {
         try {
             JavaFileObject f = new TestJavaFileObject(filename,content);
             if (filename != null) addMockFile("#B/" + filename,f);
@@ -83,43 +83,15 @@ public abstract class TCBase extends JmlTestSuite {
             // If additional Java options are wanted (e.g. -verbose), add them here
             int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
             
-            if (!specialCompare) checkDiagnostics(list); // This comparator does not handle seq, anyorder etc.
-            else outputCompare.compareResults(list, collector); // This comparator does not handle having more than one position number
+            if (!specialCompare) checkDiagnostics(expected); // This comparator does not handle seq, anyorder etc.
+            else outputCompare.compareResults(expected, collector); // This comparator does not handle having more than one position number
             
-            if (expectedExit == -1) expectedExit = list.length == 0?0:1;
+            if (expectedExit == -1) expectedExit = expected.length == 0?0:1;
             assertEquals("Wrong exit code",expectedExit, ex);
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         }
     }
-
-//    /** Used to add a pseudo file to the file system. Note that for testing, a 
-//     * typical filename given here might be #B/A.java, where #B denotes a 
-//     * mock directory on the specification path
-//     * @param filename the name of the file, including leading directory components 
-//     * @param content the String constituting the content of the pseudo-file
-//     */
-//    protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
-//        try {
-//            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
-//        } catch (Exception e) {
-//            fail("Exception in creating a URI: " + e);
-//        }
-//    }
-//
-//    /** Used to add a pseudo file to the file system. Note that for testing, a 
-//     * typical filename given here might be #B/A.java, where #B denotes a 
-//     * mock directory on the specification path
-//     * @param filename the name of the file, including leading directory components 
-//     * @param file the JavaFileObject to be associated with this name
-//     */
-//    protected void addMockFile(String filename, JavaFileObject file) {
-//        specs.addMockFile(filename,file);
-//    }
-//
-
-
-
 }
 
