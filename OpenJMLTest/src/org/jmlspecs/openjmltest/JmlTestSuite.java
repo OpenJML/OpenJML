@@ -415,8 +415,8 @@ public abstract class JmlTestSuite {
                     assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
                 } else {
                     // Expect only one number
-                    assertTrue("Expected 0 or 3 position values after the column value", p2 == null);
                     assertTrue("No positions given for message " + i, p1 != null);
+                    assertTrue("Expected 0 or 3 position values after the column value", p2 == null);
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 }
                 i++;

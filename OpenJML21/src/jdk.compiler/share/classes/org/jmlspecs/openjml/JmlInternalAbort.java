@@ -21,11 +21,18 @@ public class JmlInternalAbort extends RuntimeException {
     private static final long serialVersionUID = 2146006306510130632L;
 
     /**
-     * Constructs an instance, printing the current stack trace to System.err.
+     * Constructs an instance.
      * You should have already logged an error message with as much other
      * information as you can.
      */
     public JmlInternalAbort() {
+    }
+    
+    /**
+     * Constructs an instance containing error information.
+     */
+    public JmlInternalAbort(String message) {
+        super(message);
     }
     
     public String toString() {

@@ -1,6 +1,6 @@
 package org.jmlspecs.openjmltest;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -149,9 +149,7 @@ public abstract class EscBaseFiles extends EscBase {
 
             String diffs = null;
             var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run")));
-            if (files.length == 0) {
-                fail("There are no expected output files in " + outDir);
-            }
+            assertTrue("There are no expected output files in " + outDir, 0 != files.length);
             for (String name: files) {
                 diffs = outputCompare.compareFiles(outDir + "/" + name, actCompile);
                 if (diffs == null) {
@@ -161,15 +159,17 @@ public abstract class EscBaseFiles extends EscBase {
                 }
             }
             if (diffs != null) {
-                System.out.println("TEST DIFFERENCES: " + getTestName());
-                System.out.println(diffs);
-                fail("Files differ: " + diffs);
+                out.println("TEST DIFFERENCES: " + getTestName());
+                out.println(diffs);
+                fail("Files differ: " + diffs); // Does not return, so appears to be not covered by Jacoco
             }
             
-            if (expectedExit != -1 && ex != expectedExit) fail("Compile ended with exit code " + ex + " (expected " + expectedExit + ")");
+            if (expectedExit != -1) {
+                assertEquals("Compile ended with unexpected exit code:", expectedExit, ex);
+            }
 
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             throw e; // These exceptions come from test failures and signal the JUnit infrastructure of the failure
