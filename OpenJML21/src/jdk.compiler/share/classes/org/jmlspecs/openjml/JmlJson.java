@@ -103,6 +103,7 @@ public class JmlJson {
         builder.registerTypeAdapter(JavaFileObject.class, this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(new JavacFileManager(context,false,null).getJavaFileObject("Z").getClass(), this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
+        // FIME _ needs an IJmlClauseKind adapter for deserialization
         
         for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
             if ((nestedClass.getModifiers() & Flags.ABSTRACT) != 0) continue;
@@ -297,8 +298,11 @@ public class JmlJson {
                             continue;
                         }
                         Object value = f.get(t);
-                        if (f.getType().isPrimitive() || f.getType() == String.class) {
-                            obj.add(s, primitive(f.getType(), value));
+                        var ft = f.getType();
+                        if (ft.isPrimitive() || ft == String.class) {
+                            obj.add(s, primitive(ft, value));
+                        } else if (IJmlClauseKind.class.isAssignableFrom(ft)) {
+                            obj.add(s, primitive(IJmlClauseKind.class, value));
                         } else {
                             obj.add(s, context.serialize(value));
                         }
@@ -443,10 +447,24 @@ public class JmlJson {
     
 
     // TODO: JmlCase
-    // TODO: JCCaseLabel
-    // TODO: JCCatch
+    // TODO: JCCaseLabel -- abstract
+
+    class JCCatchAdapter extends Adapter<JCCatch> {
+        public static final String[] fields = { "param", "body" };
+    }
     // TODO: JmlChained
-    // TODO: JmlChoose
+    
+    class JmlChainedAdapter extends Adapter<JmlChained> {
+        public static final String[] fields = { "conjuncts" };
+        // FIXME - perhaps we want to customize this so that
+        // a) serializing does not duplicate expressions
+        // b) deserialization unifies references
+    }
+    
+    class JmlChooseAdapter extends Adapter<JmlChoose> {
+        public static final String[] fields = { "keyword", "clauseType", "orBlocks", "elseBlock" };
+                // FIXME - needs deserializer
+    }
 
     class JmlClassDeclAdapter extends Adapter<JmlClassDecl> {
         public static final String[] fields = {"mods", "name", "typarams", "extending", "implementing", "permitting", "defs"};
@@ -490,7 +508,10 @@ public class JmlJson {
         }
     }
     
-    // TODO: JCConstantCaseLabel
+    class JCConstantCaseLabelAdapter extends Adapter<JCConstantCaseLabel> {
+        public static final String[] fields = { "expr" };
+        // FIXME - needs deserializer
+    }
 
     class JCContinueAdapter extends Adapter<JCContinue> {
         public static final String[] fields = { "label" };
@@ -503,11 +524,29 @@ public class JmlJson {
         }
     }
     
-    // TODO: JCDefaultCaselabel
+    class JCDefaultCaseLabelAdapter extends Adapter<JCDefaultCaseLabel> {
+        public static final String[] fields = {  };
+        // FIXME - needs deserializer
+    }
+
+
     // abstract - JCDirective
-    // TODO: JmlDoWhileLoop
-    // TODO: JmlEnhancedForLoop
-    // TODO: JCErroneous
+    
+    class JmlDoWhileLoopAdapter extends Adapter<JmlDoWhileLoop> {
+        public static final String[] fields = { "body", "cond" };
+        // FIXME - needs deserializer
+    }
+    
+    class JmlEnhancedForLoopAdapter extends Adapter<JmlEnhancedForLoop> {
+        public static final String[] fields = { "var", "expr", "body" };
+        // FIXME - needs deserializer
+    }
+    
+    class JCErroneousAdapter extends Adapter<JCErroneous> {
+        public static final String[] fields = { "errs" };
+        // FIXME - needs deserializer
+    }
+
     // TODO: JCExports
     // abstract - JCExpression
 
@@ -538,7 +577,8 @@ public class JmlJson {
     class JmlForLoopAdapter extends Adapter<JmlForLoop> {
         public static final String[] fields = { "loopSpecs", "split", "init", "cond", "step", "body" };
     }
-    // TODO: JCFunctionalExpression
+    
+    // abstract - JCFunctionalExpression
     // TODO: JmlGroupName
     
     class JCIdentAdapter extends Adapter<JCIdent> {
@@ -614,9 +654,17 @@ public class JmlJson {
             return obj;
         }
     }
-    // TODO: JmlLblExpression
-    // TODO: JmlLetExpr
     
+    class JmlLblExpressionAdapter extends Adapter<JmlLblExpression> {
+        public static final String[] fields = { "kind", "label", "expression" };
+        // FIXME - needs deserializer
+    }
+    
+    class JmlLetExprAdapter extends Adapter<JmlLetExpr> {
+        public static final String[] fields = { "defs", "expr", "explicit" };
+        // FIXME - needs deserializer
+    }
+
     class JCLiteralAdapter extends Adapter<JCLiteral> {
         public static final String[] fields = { "typetag", "value" };
         @Override
@@ -687,17 +735,10 @@ public class JmlJson {
     // TODO: JmlMethodClauseCallable
     // TODO: JmlMethodClauseConditional
     // TODO: JmlMethodClauseDecl
-    // TODO: JmlMethodClauseExpr
+
     class JmlMethodClauseExprAdapter extends Adapter<JmlMethodClauseExpr> {
-        public static final String[] fields = { "keyword", "name", "clauseType", "expression", "exception" };
-        @Override
-        public JsonElement serialize(JmlMethodClauseExpr src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            var obj = newgson(src, context);
-            obj.add("clauseType", str(src.clauseKind)); // FIXME
-            obj.add("name", context.serialize(src.name));
-            obj.add("expression", context.serialize(src.expression));
-            return obj;
-        }
+        public static final String[] fields = { "keyword", "name", "clauseKind", "expression", "exception" };
+
         @Override
         public JmlMethodClauseExpr deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -753,16 +794,16 @@ public class JmlJson {
     
     class JmlMethodInvocationAdapter extends Adapter<JmlMethodInvocation> {
         public static final String[] fields = { "typeargs", "meth", "kind", "name", "args" };
-        @Override
-        public JsonElement serialize(JmlMethodInvocation src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            var obj = newgson(src, context);
-            obj.add("typeargs", context.serialize(src.typeargs));
-            obj.add("meth", context.serialize(src.meth));
-            obj.add("kind", str(src.kind)); // IJmlClauseKind
-            obj.add("name", primitive(String.class, src)); // a String
-            obj.add("args", context.serialize(src.args)); // FIXME - more - ?
-            return obj;
-        }
+//        @Override
+//        public JsonElement serialize(JmlMethodInvocation src, java.lang.reflect.Type type, JsonSerializationContext context) {
+//            var obj = newgson(src, context);
+//            obj.add("typeargs", context.serialize(src.typeargs));
+//            obj.add("meth", context.serialize(src.meth));
+//            obj.add("kind", str(src.kind)); // IJmlClauseKind
+//            obj.add("name", primitive(String.class, src)); // a String
+//            obj.add("args", context.serialize(src.args)); // FIXME - more - ?
+//            return obj;
+//        }
     }
     
     // TODO: JmlMethodSig
@@ -925,7 +966,7 @@ public class JmlJson {
     
 
     class JmlSpecificationCaseAdapter extends Adapter<JmlSpecificationCase> {
-        public static final String[] fields = { "also", "modifiers", "token", "callee_only", "clauses" };  // FIXME - more?
+        public static final String[] fields = { "also", "modifiers", "code", "token", "callee_only", "clauses" };  // FIXME - more?
 
         @Override
         public JmlSpecificationCase deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
@@ -933,10 +974,10 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlSpecificationCase(
                     (JmlModifiers)values[1], // mods
-                    false,    // code
-                    (IJmlClauseKind)values[2],    // t
+                    (boolean)values[2],    // code
+                    (IJmlClauseKind)values[3],    // t
                     (IJmlClauseKind)values[0],    // also
-                    JmlJson.<JmlMethodClause>toList(values[4]), // clauses
+                    JmlJson.<JmlMethodClause>toList(values[5]), // clauses
                     (JCBlock)null     // block
                     );
             return result;
@@ -993,10 +1034,18 @@ public class JmlJson {
     // TODO: JmlStoreRefKeyword
     // TODO: JmlStoreRefListExpression
     // TODO: JCStringTemplate
-    // TODO: JmlSwitchStatement
-    // TODO: JCSwitchExpression
-    // TODO: JCSynchronized
-
+    
+    class JmlSwitchStatementAdapter extends Adapter<JmlSwitchStatement> {
+        public static final String[] fields = { "selector", "cases", "split" };
+        // FIXME - needs deserializer
+    }
+    
+    class JCSwitchExpressionAdapter extends Adapter<JCSwitchExpression> {
+        public static final String[] fields = { "selector", "cases" };
+        // FIXME - needs deserializer
+        // FIXME - needs a JML version
+    }
+    
     class JCSynchronizedAdapter extends Adapter<JCSynchronized> {
         public static final String[] fields = { "lock", "body" };
         @Override
@@ -1018,9 +1067,12 @@ public class JmlJson {
         }
     }
     
-    // TODO: JCTry
+    class JCTryAdapter extends Adapter<JCTry> {
+        public static final String[] fields = { "resources", "body", "catchers", "finalizer" };
+    }
+    
+
     // TODO: JmlTuple
-    // TODO: JCTypeApply
 
     class JCTypeApplyAdapter extends Adapter<JCTypeApply> {
         public static final String[] fields = { "clazz", "arguments" };
@@ -1062,8 +1114,11 @@ public class JmlJson {
     // TODO: JmlTypeClauseMaps
     // TODO: JmlTypeClauseMonitorsFor
     // TODO: JmlTypeClauseRepresents
-    // TODO: JCTypeIntersection
-    // TODO: JCTypeParameter
+    
+    class JCTypeIntersectionAdapter extends Adapter<JCTypeIntersection> {
+        public static final String[] fields = { "bounds" };
+        // FIXME - needs deserialzier
+    }
     
     class JCTypeParameterAdapter extends Adapter<JCTypeParameter> {
         public static final String[] fields = { "name", "bounds", "annotations" };
@@ -1076,7 +1131,12 @@ public class JmlJson {
             return result;
         }
     }
-    // TODO: JCTypeUnion
+
+    class JCTypeUniondapter extends Adapter<JCTypeUnion> {
+        public static final String[] fields = { "alternatives" };
+        // FIXME - needs deserialzier
+    }
+    
 
     class JCUnaryAdapter extends Adapter<JCUnary> {
         public static final String[] fields = { "opcode", "arg" };
@@ -1117,10 +1177,12 @@ public class JmlJson {
         public static final String[] fields = { "inner", "kind" };
         
     }
+    
+    class JCYieldAdapter extends Adapter<JCYield> {
+        public static final String[] fields = { "value" }; // FIXME - what about target
+    }
 
-// TODO: JCWildcard
-    // TODO: JCYield
-    // TODO: LetExpr
+    // LetExpr - overridden by JmlLetExpr
     
     class TypeBoundKindAdapter extends Adapter<TypeBoundKind> {
         public static final String[] fields = { "kind" };
