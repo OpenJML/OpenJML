@@ -166,7 +166,10 @@
                         },
                         "value": "1"
                       },
-                      "op": "\u003d\u003d\u003e",
+                      "op": {
+                        "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                        "primitive": "\u003d\u003d\u003e"
+                      },
                       "rhs": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
                         "type": null,
@@ -206,7 +209,10 @@
                         },
                         "value": "1"
                       },
-                      "op": "\u003c\u003d\u003d\u003e",
+                      "op": {
+                        "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                        "primitive": "\u003c\u003d\u003d\u003e"
+                      },
                       "rhs": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
                         "type": null,

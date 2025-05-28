@@ -103,6 +103,7 @@ public class JmlJson {
         builder.registerTypeAdapter(JavaFileObject.class, this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(new JavacFileManager(context,false,null).getJavaFileObject("Z").getClass(), this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
+        builder.registerTypeAdapter(JCTree.JCLambda.ParameterKind.class, this.new ParameterKindAdapter());
         // FIME _ needs an IJmlClauseKind adapter for deserialization
         
         for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
@@ -191,7 +192,7 @@ public class JmlJson {
     }
 
     
-    /** Gets a Field by reflection in the given class or any superclass or interface, recursively */
+    /** Gets a Field by reflection in the given class or any superclass , recursively; not checking interfaces */
     java.lang.reflect.Field getField(Class<?> clazz, String key) {
         java.lang.reflect.Field field = null;
         try {
@@ -199,10 +200,6 @@ public class JmlJson {
         } catch (Exception e) {
             var sp = clazz.getSuperclass();
             if (sp != null) field = getField(sp, key);
-            if (field == null) for (var iface: clazz.getInterfaces()) {
-                field = getField(iface, key);
-                if (field != null) break;
-            }
         }
         return field;
     }
@@ -357,7 +354,7 @@ public class JmlJson {
 
     class JCArrayAccessAdapter extends Adapter<JCArrayAccess> {
         public static final String[] fields = { "indexed", "index" };
-
+        @Override
         public JCArrayAccess deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
@@ -375,21 +372,40 @@ public class JmlJson {
     
     class JCAssertAdapter extends Adapter<JCAssert> {
         public static final String[] fields = { "cond", "detail" };
+        @Override
+        public JCAssert deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.Assert(
+                    (JCExpression)values[0], 
+                    (JCExpression)values[1]
+                    );
+            return result;
+        }
     }
 
     class JCAssignAdapter extends Adapter<JCAssign> {
         public static final String[] fields = { "lhs", "rhs" };
+        @Override
+        public JCAssign deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.Assign(
+                    (JCExpression)values[0], 
+                    (JCExpression)values[1]
+                    );
+            return result;
+        }
     }
 
     class JCAssignOpAdapter extends Adapter<JCAssignOp> {
         public static final String[] fields = { "lhs", "opcode", "rhs" };
-       @Override
-        public JsonElement serialize(JCAssignOp src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            var obj = newgson(src, context);
-            obj.add("lhs", context.serialize(src.lhs));
-            obj.add("opcode", str(src.getTag()));
-            obj.add("rhs", context.serialize(src.rhs));
-            return obj;
+        @Override
+        public JCAssignOp deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.Assignop((JCTree.Tag)values[1], (JCExpression)values[0], (JCExpression)values[2]);
+            return result;
         }
     }
 
@@ -408,21 +424,22 @@ public class JmlJson {
 
     class JmlBinaryAdapter extends Adapter<JmlBinary> {
         public static final String[] fields = { "lhs", "op", "rhs" };
-        @Override
-        public JsonElement serialize(JmlBinary src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            var obj = newgson(src, context);
-            obj.add("lhs", context.serialize(src.lhs));
-            obj.add("op", str(src.op));   // FIXME - proper serializing
-            obj.add("rhs", context.serialize(src.rhs));
-            return obj;
-        }
+//        @Override
+//        public JsonElement serialize(JmlBinary src, java.lang.reflect.Type type, JsonSerializationContext context) {
+//            var obj = newgson(src, context);
+//            obj.add("lhs", context.serialize(src.lhs));
+//            obj.add("op", str(src.op));   // FIXME - proper serializing
+//            obj.add("rhs", context.serialize(src.rhs));
+//            return obj;
+//        }
+        // FIXME - needs deserializing
     }
     
     // TODO: JCBindingPattern
 
     class JmlBlockAdapter extends Adapter<JmlBlock> {
         public static final String[] fields = { "flags", "stats" };
-
+        @Override
         public JmlBlock deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
@@ -436,7 +453,7 @@ public class JmlJson {
     
     class JCBreakAdapter extends Adapter<JCBreak> {
         public static final String[] fields = { "label" };
-
+        @Override
         public JCBreak deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
@@ -451,8 +468,8 @@ public class JmlJson {
 
     class JCCatchAdapter extends Adapter<JCCatch> {
         public static final String[] fields = { "param", "body" };
+        // FIXME - needs deserializing
     }
-    // TODO: JmlChained
     
     class JmlChainedAdapter extends Adapter<JmlChained> {
         public static final String[] fields = { "conjuncts" };
@@ -515,7 +532,7 @@ public class JmlJson {
 
     class JCContinueAdapter extends Adapter<JCContinue> {
         public static final String[] fields = { "label" };
-
+        @Override
         public JCContinue deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
@@ -552,7 +569,7 @@ public class JmlJson {
 
     class JCExpressionStatementAdapter extends Adapter<JCExpressionStatement> {
         public static final String[] fields = { "expr" };
-
+        @Override
         public JCExpressionStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
@@ -576,6 +593,7 @@ public class JmlJson {
     
     class JmlForLoopAdapter extends Adapter<JmlForLoop> {
         public static final String[] fields = { "loopSpecs", "split", "init", "cond", "step", "body" };
+        // FIXME - needs deserializing
     }
     
     // abstract - JCFunctionalExpression
@@ -648,7 +666,7 @@ public class JmlJson {
         @Override
         public JsonElement serialize(JmlLambda src, java.lang.reflect.Type type, JsonSerializationContext context) {
             var obj = newgson(src, context);
-            obj.add("paramKind", str(src.paramKind));
+            obj.add("paramKind", str(src.paramKind));  // FIXME
             obj.add("params", context.serialize(src.params));
             obj.add("body", context.serialize(src.body));
             return obj;
@@ -1244,39 +1262,13 @@ public class JmlJson {
         Class<TypeTag> clazz() { return TypeTag.class; }
     }
     
-//    /** An adapter for TypeTag */
-//    class TypeTagAdapter implements JsonSerializer<TypeTag>, JsonDeserializer<TypeTag> {
-//        @Override
-//        public JsonElement serialize(TypeTag src, java.lang.reflect.Type type, JsonSerializationContext context) {
-//            return primitive(TypeTag.class, src);
-//        }
-//        @Override
-//        public TypeTag deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-//                throws JsonParseException {
-//            var str = json.getAsJsonObject().get("primitive").getAsJsonPrimitive().getAsString();
-//            var typetag = TypeTag.valueOf(str);
-//            return typetag;
-//        }
-//    }
-    
     class BoundKindAdapter extends EnumAdapter<BoundKind> {
         Class<BoundKind> clazz() { return BoundKind.class; }
     }
     
-//    /** An adapter for BoundKind */
-//    class BoundKindAdapter implements JsonSerializer<BoundKind>, JsonDeserializer<BoundKind> {
-//        @Override
-//        public JsonElement serialize(BoundKind src, java.lang.reflect.Type type, JsonSerializationContext context) {
-//            return primitive(BoundKind.class, src);
-//        }
-//        @Override
-//        public BoundKind deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-//                throws JsonParseException {
-//            var str = json.getAsJsonObject().get("primitive").getAsJsonPrimitive().getAsString();
-//            var typetag = BoundKind.valueOf(str);
-//            return typetag;
-//        }
-//    }
+    class ParameterKindAdapter extends EnumAdapter<JCTree.JCLambda.ParameterKind> {
+        Class<JCTree.JCLambda.ParameterKind> clazz() { return JCTree.JCLambda.ParameterKind.class; }
+    }
     
     /** An adapter for JavaFileObject */
     class JavaFileObjectAdapter implements JsonSerializer<JavaFileObject>, JsonDeserializer<JavaFileObject> {
