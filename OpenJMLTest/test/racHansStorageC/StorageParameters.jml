@@ -16,7 +16,7 @@ public final class StorageParameters {
 	    ensures getBackingStoreSize() == totalBackingStore;
 	    ensures getConfigurationSizes() == sizes;   
 	  @*/
-	public StorageParameters(long totalBackingStore, @org.jmlspecs.annotation.Nullable long[] sizes );
+	public StorageParameters(long totalBackingStore, long @org.jmlspecs.annotation.Nullable [] sizes );
 	
 
 	//@ pure helper
