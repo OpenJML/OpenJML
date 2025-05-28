@@ -193,7 +193,10 @@
                       "primitive": "i"
                     }
                   },
-                  "opcode": "PLUS_ASG",
+                  "opcode": {
+                    "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                    "primitive": "PLUS_ASG"
+                  },
                   "rhs": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
                     "type": null,

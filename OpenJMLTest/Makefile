@@ -18,7 +18,7 @@ T=temp-release
 openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	make userguide-tests
-	-make json-tests
+	make json-tests
 	-make unittests-par
 	-make tutorial-tests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
