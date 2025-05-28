@@ -31,8 +31,9 @@ package sv_rac;
     /**
      *	Nombre � virgule trop grand
      */
-    static { System.out.println("STATIC INIT"); } private static int m() { return 0; }
-    public static final short DECIMAL_OVERFLOW   = (short)(0x9F15 + m()); // FIXME - this causes a translation error; Without the m(), the compiler does the constant folding and OpenJML never sees the out of range cast
+    // The two bugs with static initialization have been extracted into gitbug860 and gitbug861
+    private static int m() { return 0; }
+    public static final short DECIMAL_OVERFLOW   = (short)(0x9F15 + m());
     public static final short MAX_DECIMAL_NUMBER = (short)32767;
     
     /** save stack maximum length */
@@ -754,13 +755,9 @@ package sv_rac;
     }
     
     public static void main(String[] args) throws ISOException, DecimalException {
-        System.out.println("START");
     	Decimal d = new Decimal((short)10, (short)5);
-        System.out.println("MID");
     	d.add(d);
     	d.sub(d);
-        System.out.println("STOP");
-
     	
     }
 }

@@ -4880,7 +4880,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								try {
 									JCBlock thenbl, elsebl;
 									if (rac) {
-										// FIXME: The following does not work correctly (cf. testNonNullPrecondition)
+										// FIXME: The following does not work correctly (cf. racnew.testNonnullPrecondition)
 										// unless a boxed type is used (a Boolean). It is not at all clear why this
 										// should be.
 										// The generated source code looks perfectly fine. See additional instance in
@@ -9860,7 +9860,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										JCExpression convertedEx;
 										if (rac) {
 											// FIXME: The following does not work correctly (cf.
-											// testNonNullPrecondition)
+											// racnew.testNonnullPrecondition)
 											// unless a boxed type is used (a Boolean). It is not at all clear why this
 											// should be.
 											// The generated source code looks perfectly fine. See additional instance
