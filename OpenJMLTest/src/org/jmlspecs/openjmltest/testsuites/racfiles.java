@@ -548,6 +548,17 @@ public class racfiles extends RacBase {
         expectedRACExit = 0;
         helpTCF("test/gitbug809","test/gitbug809","Parent");
     }
+    
+    @Test
+    public void gitbug860() {
+        // The bug produces error output
+        helpTCF("test/gitbug860","test/gitbug860","Test");
+    }
+    
+    @Test
+    public void gitbug861() {
+        helpTCF("test/gitbug861","test/gitbug861","Test");
+    }
 
     @Test
     public void sfbug413() {
