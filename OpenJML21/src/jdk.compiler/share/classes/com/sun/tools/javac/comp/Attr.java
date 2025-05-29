@@ -4136,6 +4136,10 @@ public class Attr extends JCTree.Visitor {
         if (exprtype.constValue() != null)
             owntype = cfolder.coerce(exprtype, owntype);
         result = check(tree, capture(owntype), KindSelector.VAL, resultInfo);
+        if (org.jmlspecs.openjml.Utils.isJML() && exprtype.constValue() != null) { 
+            System.out.println("COERCE " + tree + " " + owntype + " " + exprtype.constValue() + " " + owntype.constValue() + " " + result.constValue() + " " + tree.type.constValue());
+            if ((Integer)exprtype.constValue() == 80000) org.jmlspecs.openjml.Utils.dumpStack();
+        }
         if (!isPoly)
             chk.checkRedundantCast(localEnv, tree);
     }

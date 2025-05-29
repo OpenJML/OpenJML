@@ -56,7 +56,7 @@ public class Utils {
      */
     public static boolean showStack = "showstack".equals(racpropertyvalue);
     
-    public static boolean useStdout = racpropertyvalue == null || "stdout".equals(racpropertyvalue);
+    public static boolean useStdout = racpropertyvalue == null  || racpropertyvalue.isEmpty() || "stdout".equals(racpropertyvalue);
     static {
         if (!useStdout && !showStack && !useExceptions && !useJavaException && !useJavaAssert) {
             System.out.println("Invalid value for property " + racpropertyname + ": " + racpropertyvalue);
@@ -90,6 +90,7 @@ public class Utils {
     // This one is declared first to minimize changes to its location 
     public static void assertionFailureL(String message, /*@ nullable */String label) {
         countVerificationErrors(); 
+        System.out.println("MESSAGE " + message);
         if (Utils.useExceptions) {
             throw createException(message,label); // locB in RacBase
         } else if (Utils.showStack) { 

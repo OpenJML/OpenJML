@@ -19766,7 +19766,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    return "Bound[" + lo + (lo_equal?" <=":" <") + (hi_equal?" <= ":" < ") + hi + "]";
 		}
 	}
-	
+		
 	protected static record Comp(JCExpression lo, JCTree.Tag tag, JCExpression hi) {}
 
 	/**
@@ -20902,7 +20902,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!specs.statusOK(that.sym))
 			return; // FIXME - abort
 		JavaFileObject prevSource = log.useSource(that.source());
-
+		
 		try {
 
 			JCIdent newident = null;
@@ -21083,7 +21083,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				stat.docComment = that.docComment;
 				stat.fieldSpecs = that.fieldSpecs;
 				stat.specsDecl = that.specsDecl;
-
+                System.out.println("BARE DECL-A  " + that);
+                System.out.println("BARE DECL-B  " + stat);
+                System.out.println("BARE DECL SYM " + that.sym + " " + that.type + " " + that.sym.type + " " + that.sym.type.constValue() + " " + that.type.constValue());
+                System.out.println("BARE DECL SYM " + stat.sym + " " + stat.type + " " + stat.sym.type + " " + stat.sym.type.constValue() + " " + stat.type.constValue());
+                that.type = that.sym.type = that.sym.type.baseType();
+                
 				ListBuffer<JCStatement> check = pushBlock();
 				JCExpression init = null;
 				JCExpression nn = null;
@@ -21163,6 +21168,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										treeutils.makeIdent(that.pos, that.sym), that.type));
 							}
 							JCBlock bl = popBlock(flags, that, check);
+							System.out.println("BLOCK " + bl);
 							this.classDefs.add(stat);
 							this.classDefs.add(bl);
 						}

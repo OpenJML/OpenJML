@@ -690,6 +690,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // tools.
         // Any initialization of these tools that needs to be done based on 
         // options should be performed in setupOptions().
+        JmlConstFold.preRegister(context);
         JmlTypes.preRegister(context);
         JmlOperators.preRegister(context);
         JmlSpecs.preRegister(context); // registering the specifications repository

@@ -8,6 +8,8 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.visitors.JmlTreeVisitor;
 
 import com.sun.source.tree.*;
+import com.sun.tools.javac.tree.*;
+import static com.sun.tools.javac.tree.JCTree.*;
 
 /**
  * This is an interface for visitors for JML Expression ASTs, with parameters and return 
@@ -45,7 +47,16 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitUnary(UnaryTree node, P p);
     abstract public R visitVariable(VariableTree node, P p);
     abstract public R visitLambdaExpression(LambdaExpressionTree node, P p);
-    abstract public R visitJmlStoreRef(JmlStoreRef node, P p);
+    abstract public R visitSwitchExpression(SwitchExpressionTree node, P p);
+    abstract public R visitDeconstructionPattern(DeconstructionPatternTree node, P p);
+
+    abstract public R visitLetExpr(LetExpr that, P p);
+    abstract public R visitPatternCaseLabel(PatternCaseLabelTree node, P p);
+    abstract public R visitConstantCaseLabel(ConstantCaseLabelTree node, P p);
+    abstract public R visitDefaultCaseLabel(DefaultCaseLabelTree node, P p);
+    abstract public R visitBindingPattern(BindingPatternTree node, P p);
+    abstract public R visitAnyPattern(AnyPatternTree node, P p);
+    abstract public R visitStringTemplate(StringTemplateTree node, P p);
 
     public R visitAnnotation(AnnotationTree node, P p)                                  { return shouldNotBeCalled(node); }
     public R visitAssert(AssertTree node, P p)                                          { return shouldNotBeCalled(node); }
@@ -82,6 +93,14 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitAnnotatedType(AnnotatedTypeTree node, P p)                            { return shouldNotBeCalled(node); }
     public R visitMemberReference(MemberReferenceTree node, P p)                        { return shouldNotBeCalled(node); }
     public R visitIntersectionType(IntersectionTypeTree node, P p)                      { return shouldNotBeCalled(node); }
+    public R visitYield(YieldTree node, P p)                                            { return shouldNotBeCalled(node); }
+    public R visitUses(UsesTree node, P p)                                              { return shouldNotBeCalled(node); }
+    public R visitRequires(RequiresTree node, P p)                                      { return shouldNotBeCalled(node); }
+    public R visitProvides(ProvidesTree node, P p)                                      { return shouldNotBeCalled(node); }
+    public R visitOpens(OpensTree node, P p)                                            { return shouldNotBeCalled(node); }
+    public R visitExports(ExportsTree node, P p)                                        { return shouldNotBeCalled(node); }
+    public R visitModule(ModuleTree node, P p)                                          { return shouldNotBeCalled(node); }
+    public R visitPackage(PackageTree node, P p)                                        { return shouldNotBeCalled(node); }
 
     public R visitOther(Tree node, P p) { return shouldNotBeCalled(node); }
     
@@ -93,6 +112,11 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitJmlRange(JmlRange that, P p)               ;
     abstract public R visitJmlSetComprehension(JmlSetComprehension that, P p) ;
     abstract public R visitJmlSingleton(JmlSingleton that, P p)               ;
+    abstract public R visitJmlStoreRef(JmlStoreRef node, P p);
+    abstract public R visitJmlTuple(JmlTuple that, P p);
+    abstract public R visitJmlMatchExpression(JmlMatchExpression that, P p);
+    abstract public R visitJmlInlinedLoop(JmlInlinedLoop that, P p);
+    abstract public R visitJmlChained(JmlChained that, P p);
 
     public R visitJmlChoose(JmlChoose that, P p)                                        { return shouldNotBeCalled(that); }
     public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }

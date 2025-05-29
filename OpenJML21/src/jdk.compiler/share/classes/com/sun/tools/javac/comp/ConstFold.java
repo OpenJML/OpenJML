@@ -54,7 +54,7 @@ strictfp class ConstFold {
         return instance;
     }
 
-    private ConstFold(Context context) {
+    protected ConstFold(Context context) { // OPENJML - private -> protected
         context.put(constFoldKey, this);
 
         syms = Symtab.instance(context);
@@ -69,10 +69,10 @@ strictfp class ConstFold {
     private static Integer b2i(boolean b) {
         return b ? one : zero;
     }
-    private static int intValue(Object x) { return ((Number)x).intValue(); }
-    private static long longValue(Object x) { return ((Number)x).longValue(); }
-    private static float floatValue(Object x) { return ((Number)x).floatValue(); }
-    private static double doubleValue(Object x) { return ((Number)x).doubleValue(); }
+    protected static int intValue(Object x) { return ((Number)x).intValue(); }  // OPENJML private -> protected
+    protected static long longValue(Object x) { return ((Number)x).longValue(); } // OPENJML private -> protected
+    protected static float floatValue(Object x) { return ((Number)x).floatValue(); } // OPENJML private -> protected
+    protected static double doubleValue(Object x) { return ((Number)x).doubleValue(); } // OPENJML private -> protected
 
     /** Fold unary operation.
      *  @param opcode    The operation's opcode instruction (usually a byte code),
@@ -323,7 +323,9 @@ strictfp class ConstFold {
              case CHAR:
                  return syms.charType.constType(0 + (char)intValue(n));
              case SHORT:
-                 return syms.shortType.constType(0 + (short)intValue(n));
+                 Type stype =  syms.shortType.constType(0 + (short)intValue(n));
+                 System.out.println("STYPE " + stype + " " + stype.constValue());
+                 return stype;
              case INT:
                  return syms.intType.constType(intValue(n));
              case LONG:
