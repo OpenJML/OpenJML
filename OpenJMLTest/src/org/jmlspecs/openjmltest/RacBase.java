@@ -208,7 +208,8 @@ public abstract class RacBase extends JmlTestSuite {
                 	//out.println("ACT: " + line);
                 	if (i < list.length) {
                 		String expected = list[i].toString();
-                		expected = expected.replace("#DEMO", OpenJMLDemoPath);
+                        expected = expected.replace("$SPECS", specsdir);
+                        expected = expected.replace("#DEMO", OpenJMLDemoPath);
                 		//out.println("EXP: " + expected);
                 		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
                 			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");

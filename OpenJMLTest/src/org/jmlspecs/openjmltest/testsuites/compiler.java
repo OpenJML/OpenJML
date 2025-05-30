@@ -546,7 +546,7 @@ public class compiler extends JmlTestSuite{
                                   src + "testWarnings/A.java"
                                 },1,0
                                 ,""
-                                ,"warning: A specification path directory does not exist: " + JmlTestSuite.bruntime + " (/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest)"+eol
+                                ,"warning: A specification path directory does not exist: " + JmlTestSuite.bruntime + " (" + JmlTestSuite.root + ")"+eol
                                 +"error: warnings found and -Werror specified"+eol
                                 +"1 error"+eol
                                 +"1 warning"+eol

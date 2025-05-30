@@ -3,7 +3,7 @@
 ## Absolute path to the folder containing this file, which should be .../OpenJMLTest
 TEST=$( cd $(dirname "$BASH_SOURCE") && pwd)
 
-if [ ! -e $TEST/Run.class ]; then make -C $TEST Run.java; fi
+if [ ! -e $TEST/Run.class ]; then make -C $TEST Run.class; fi
 
 export AGENT=
 export OJA=openjml
