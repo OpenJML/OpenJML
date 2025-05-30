@@ -13028,7 +13028,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public JCExpression checkAccess2(IJmlClauseKind kind, DiagnosticPosition pos, JCExpression lhsUnconverted, JCExpression lhs,
 			boolean isConverted, JCExpression guard, boolean emitAsserts, TranslationEnv targetEnv, boolean comparingToCallee) {
-		//System.out.println("CHECKACCESS@ " + comparingToCallee + " " + lhsUnconverted + " " + lhs + " " + guard + " " + emitAsserts + " " + targetEnv);
+		//System.out.println("CHECKACCESS2 " + pos + " " + log.currentSource());
 		JCExpression okCondition = emitAsserts ? null : treeutils.makeBooleanLiteral(pos, true);
 		if (rac) return okCondition;
 		var primarySource = log.currentSourceFile();
