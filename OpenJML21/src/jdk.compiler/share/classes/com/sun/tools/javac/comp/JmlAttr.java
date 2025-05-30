@@ -196,7 +196,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The fully-qualified name of the Runtime class */
     // Use .class on the class name instead of a string so that an error happens if the class is renamed
     // This class is in the runtime library
-    /*@non_null*/ public static String runtimeClassName = "org.jmlspecs.runtime.Runtime";
+    /*@non_null*/ public static String runtimeClassName = "org.jmlspecs.runtime.Utils";
     
     /** Cached symbol of the org.jmlspecs.runtiome.Runtime class */
     /*@non_null*/ public ClassSymbol runtimeClass;
