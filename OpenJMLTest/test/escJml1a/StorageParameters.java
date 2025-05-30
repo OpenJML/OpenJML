@@ -16,7 +16,7 @@ public final class StorageParameters
 
     public static void main(String... args) {
         StorageParameters a = new StorageParameters(null);
-        @Nullable long[] b = a.getConfigurationSizes();
+        long @Nullable [] b = a.getConfigurationSizes();
         //@ assert b == a.getConfigurationSizes(); // OK
         long[] c = a.getConfigurationSizes();  // OK - c is nullable by default
 	}

@@ -1,12 +1,12 @@
-test\sv_rac\sv_rac\Decimal.java:75: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+test/testDecimal/sv_rac/Decimal.java:77: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
       ensures \fresh(this);
                     ^
-test\sv_rac\sv_rac\Decimal.java:86: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+test/testDecimal/sv_rac/Decimal.java:88: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
       ensures \fresh(this);
                     ^
-test\sv_rac\sv_rac\Decimal.java:107: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+test/testDecimal/sv_rac/Decimal.java:109: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
       ensures \fresh(this);
                     ^
-test\sv_rac\sv_rac\Decimal.java:127: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
+test/testDecimal/sv_rac/Decimal.java:129: Note: Not implemented for runtime assertion checking: ensures clause containing \fresh
       ensures \fresh(this);
                     ^

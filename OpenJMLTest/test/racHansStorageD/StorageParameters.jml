@@ -17,7 +17,7 @@ public final class StorageParameters {
 	    ensures getBackingStoreSize() == totalBackingStore;
 	    ensures getConfigurationSizes() == sizes;   
 	  @*/
-	public StorageParameters(long totalBackingStore, @Nullable long[] sizes );
+	public StorageParameters(long totalBackingStore, long @Nullable [] sizes );
 	
 
 	//@ pure helper

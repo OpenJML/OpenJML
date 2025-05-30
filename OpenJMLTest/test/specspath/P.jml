@@ -1,4 +1,4 @@
 public class P {
-  // invariant 0; // ./P.java
+  //@ invariant 0; // ./P.jml
 }
 
