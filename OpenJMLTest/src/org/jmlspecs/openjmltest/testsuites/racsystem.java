@@ -61,7 +61,7 @@ public class racsystem extends RacBase {
                 }
                 """
                 ,"Catching an AssertionError: class org.jmlspecs.runtime.JmlAssertionError /tt/TestJava.java:10: verify: JML signals condition is false"
-                ,"/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/File.jml:100: verify: Associated declaration: /tt/TestJava.java:10:"
+                ,"$SPECS/java/io/File.jml:100: verify: Associated declaration: /tt/TestJava.java:10:"
                 ,"END"
                 );
     }
