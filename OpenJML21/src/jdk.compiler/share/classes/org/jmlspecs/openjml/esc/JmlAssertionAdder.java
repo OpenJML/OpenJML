@@ -13028,7 +13028,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public JCExpression checkAccess2(IJmlClauseKind kind, DiagnosticPosition pos, JCExpression lhsUnconverted, JCExpression lhs,
 			boolean isConverted, JCExpression guard, boolean emitAsserts, TranslationEnv targetEnv, boolean comparingToCallee) {
-		//System.out.println("CHECKACCESS@ " + comparingToCallee + " " + lhsUnconverted + " " + lhs + " " + guard + " " + emitAsserts + " " + targetEnv);
+		//System.out.println("CHECKACCESS@ " + pos + " " + log.currentSourceFile());
 		JCExpression okCondition = emitAsserts ? null : treeutils.makeBooleanLiteral(pos, true);
 		if (rac) return okCondition;
 		var primarySource = log.currentSourceFile();
@@ -13079,7 +13079,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						for (JmlSpecificationCase specCase : denestedSpecs.cases) {
 
 							if (!doSpecificationCase(methodDecl, methodSym, parentMethodSym, specCase, true)) continue; // FIXME - something different for targetENv
-							var prevc = log.useSource(specCase.source());
+							var prevc = log.useSource(specCase.source()); // FIXME - do we need this?
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("SPECCASE PRE " + precondition);
 							if (precondition == null) {
@@ -13111,7 +13111,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                                            System.out.println("PRIMARY SOURCE " + primarySource);
 //                                            System.out.println("PREVC " + prevc);
 //                                            System.out.println("CURRENT " + log.currentSourceFile());
-											var sst = addAssertZ(true, pos, log.currentSourceFile(), kindLabel, convertedCondition, clause, clause.sourcefile, null, lhsUnconverted);
+											var sst = addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, clause, clause.sourcefile, null, lhsUnconverted);
 											var bl = popBlock(clause);
 											addStat(M.at(clause).If(precondition, bl, null));
                                         } else {
