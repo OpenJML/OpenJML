@@ -37,4 +37,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Vector.elementAt(int) with prover !!!! - no warnings
 Completed proving methods in Vector
-5 warnings
+7 warnings

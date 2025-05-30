@@ -180,14 +180,16 @@ public class modifiers extends TCBase {
     @Test public void testClassMods15d() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY"});
         helpTCF("A.java","public /*@nullable_by_default non_null_by_default*/ class A{}"
-                ,"/A.java:1: error: A declaration may not be both non_null_by_default and nullable_by_default",31
+                ,"/A.java:1: error: A declaration may not be both non_null_by_default and nullable_by_default",11
+                ,"/A.java:1: error: Associated declaration: /A.java:1:", 31
                 );
     }
     
     @Test public void testClassMods15e() {
         specs.setSpecsPath(new String[]{"$A","$B","$SY"});
         helpTCF("AAA.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault @NullableByDefault class AAA{}"
-                ,"/AAA.java:2: error: A declaration may not be both non_null_by_default and nullable_by_default",27
+                ,"/AAA.java:2: error: A declaration may not be both non_null_by_default and nullable_by_default",9
+                ,"/AAA.java:2: error: Associated declaration: /AAA.java:2:",27
                 );
     }
     
@@ -567,7 +569,8 @@ public class modifiers extends TCBase {
     
     @Test public void testNestedClass4() {
         helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ private class B {}}"
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",32
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",20
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",32
         );
     }
     
@@ -608,7 +611,8 @@ public class modifiers extends TCBase {
     
     @Test public void testNestedInterface6() {
         helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ private interface B {}}"
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",32
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",20
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",32
                 ); 
     }
     
@@ -656,7 +660,8 @@ public class modifiers extends TCBase {
     
     @Test public void testField() {
         helpTCF("A.java","public class A{ /*@spec_public spec_protected*/ Object o;}"
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",32
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",20
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",32
                 );
     }
     
@@ -664,8 +669,6 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ /*@non_null nullable*/ Object o;}"
                 ,"/A.java:1: error: Entity has conflicting nullity annotations",20
                 ,"/A.java:1: error: Associated declaration: /A.java:1:",29
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",29  // FIXME - duplicate messages
-//                ,"/A.java:1: error: A type may not be declared both non_null and nullable",40
                 );
     }
     
@@ -692,10 +695,8 @@ public class modifiers extends TCBase {
     
     @Test public void testGhostField1() {
         helpTCF("A.java","public class A{ /*@ghost non_null nullable Object o; */}"
-                ,"/A.java:1: error: Entity has conflicting nullity annotations",26// FIXME - duplicate
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",26
                 ,"/A.java:1: error: Associated declaration: /A.java:1:",35
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable", 35
-//                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44 // FIXME - duplicate
                 );
     }
     
@@ -732,10 +733,8 @@ public class modifiers extends TCBase {
     
     @Test public void testModelField1() {
         helpTCF("A.java","public class A{ /*@model non_null nullable Object o; */}"
-                ,"/A.java:1: error: Entity has conflicting nullity annotations",26// FIXME - duplicate
+                ,"/A.java:1: error: Entity has conflicting nullity annotations",26
                 ,"/A.java:1: error: Associated declaration: /A.java:1:",35
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable", 35
-//                ,"/A.java:1: error: A type may not be declared both non_null and nullable", 44
                 );
     }
     
@@ -798,7 +797,8 @@ public class modifiers extends TCBase {
      
     @Test public void testMethod4() {
         helpTCF("A.java","public class A{ /*@ spec_public spec_protected */ void m(){} }"
-                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",33
+                ,"/A.java:1: error: A declaration may not be both spec_public and spec_protected",21
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",33
                 );
     }
      
@@ -806,7 +806,8 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ /*@ non_null nullable */ Object m(){return null;} }"
                 ,"/A.java:1: error: Entity has conflicting nullity annotations",21// FIXME - duplicate
                 ,"/A.java:1: error: Associated declaration: /A.java:1:",30
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",30
+                ,"/A.java:1: error: A declaration may not be both non_null and nullable",21
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",30
                 );
     }
      
@@ -840,7 +841,8 @@ public class modifiers extends TCBase {
      
     @Test public void testConstructor4() {
         helpTCF("A.java","public class A{ \n/*@ spec_public spec_protected */ A(){} }"
-                ,"/A.java:2: error: A declaration may not be both spec_public and spec_protected",17
+                ,"/A.java:2: error: A declaration may not be both spec_public and spec_protected",5
+                ,"/A.java:2: error: Associated declaration: /A.java:2:",17
                 );
     }
      
@@ -883,7 +885,8 @@ public class modifiers extends TCBase {
         helpTCF("A.java","public class A{ /*@ model non_null nullable  Object m(){ return null; }*/ }"
                 ,"/A.java:1: error: Entity has conflicting nullity annotations",27// FIXME - duplicate
                 ,"/A.java:1: error: Associated declaration: /A.java:1:",36
-                ,"/A.java:1: error: A declaration may not be both non_null and nullable",36
+                ,"/A.java:1: error: A declaration may not be both non_null and nullable",27
+                ,"/A.java:1: error: Associated declaration: /A.java:1:",36
                 );
     }
      
@@ -932,20 +935,23 @@ public class modifiers extends TCBase {
     }
      
     @Test public void testFormal() {
-        helpTCF("A.java","public class A{ A(int i) {} \n" +
-                "  void m(\n" +
-                "/*@ non_null */ Object o, \n" +
-                "/*@ nullable */ Object oo, \n" +
-                "/*@ ghost non_null nullable */ Object ooo, \n" +
-                "/*@ non_null non_null */ Object ooob, \n" +
-                "/*@ spec_public */ Object oooo) {} }"
-                ,"/A.java:5: error: Entity has conflicting nullity annotations",11// FIXME - duplicate
-                ,"/A.java:5: error: Associated declaration: /A.java:5:",20
-                ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation interface", 14
-                ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",5
-                ,"/A.java:5: error: A declaration may not be both non_null and nullable",20// FIXME - duplicate
-//                ,"/A.java:5: error: A type may not be declared both non_null and nullable", 32 // FIXME - duplicate
-                ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",5
+        helpTCF("A.java",
+                """
+                public class A{ A(int i) {}
+                  void m(
+                    /*@ non_null */ Object o,
+                    /*@ nullable */ Object oo,
+                    /*@ ghost non_null nullable */ Object ooo,
+                    /*@ non_null non_null */ Object ooob,
+                    /*@ spec_public */ Object oooo
+                   ) {}
+                }
+                """
+                ,"/A.java:5: error: Entity has conflicting nullity annotations",15
+                ,"/A.java:5: error: Associated declaration: /A.java:5:",24
+                ,"/A.java:6: error: org.jmlspecs.annotation.NonNull is not a repeatable annotation interface", 18
+                ,"/A.java:5: error: This JML modifier is not allowed for a formal parameter",9
+                ,"/A.java:7: error: This JML modifier is not allowed for a formal parameter",9
                 );
     }
      
@@ -985,10 +991,8 @@ public class modifiers extends TCBase {
     @Test public void testLocalVar5() {
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  void m() {\n /*@ non_null nullable */ Object o; } }"
-                ,"/A.java:3: error: Entity has conflicting nullity annotations",6// FIXME - duplicate
+                ,"/A.java:3: error: Entity has conflicting nullity annotations",6
                 ,"/A.java:3: error: Associated declaration: /A.java:3:",15
-                ,"/A.java:3: error: A declaration may not be both non_null and nullable", 15
-//                ,"/A.java:3: error: A type may not be declared both non_null and nullable", 27 // FIXME - duplicate
                 );
     }
      
@@ -1351,7 +1355,8 @@ public class modifiers extends TCBase {
                 +"public int addExact(int x, int y);}");
         helpTCF("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
-                ,"/$A/java/lang/Math.jml:2: error: A declaration may not be both spec_public and spec_protected",17
+                ,"/$A/java/lang/Math.jml:2: error: A declaration may not be both spec_public and spec_protected",5
+                ,"/$A/java/lang/Math.jml:2: error: Associated declaration: /$A/java/lang/Math.jml:2:", 17
                 ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
                 ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_public",5
                 );

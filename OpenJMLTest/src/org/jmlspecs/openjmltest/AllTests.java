@@ -31,9 +31,9 @@ import java.util.Arrays;
 // The following runner works with the suite method to add all test case files
 // dynamically and explicitly sorts them
 @RunWith(org.junit.runners.AllTests.class)
-//@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
+// @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @TestMethodOrder(org.junit.jupiter.api.MethodOrderer.Alphanumeric.class)
-@org.junit.jupiter.api.parallel.Execution(org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT)
+// @org.junit.jupiter.api.parallel.Execution(org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT)
 public class AllTests {
     
     public static TestSuite suite() {
@@ -45,7 +45,6 @@ public class AllTests {
             for (File f: dirs) {
                 String nm = f.getName();
                 if (!nm.endsWith(".java")) continue;
-                if (!nm.endsWith("escfiles.java")) continue;
                 nm = "org.jmlspecs.openjmltest.testsuites." + nm.substring(0, nm.length()-5);
                 try {
                     suite.addTest(new junit.framework.JUnit4TestAdapter(Class.forName(nm)));

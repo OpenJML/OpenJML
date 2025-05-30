@@ -194,7 +194,7 @@ public class JmlCompiler extends JavaCompiler {
     	k = s.indexOf('.');
     	s = s.substring(0,k); // filename without suffix or directory
     	name += s; // fully qualified class name
-    	if (debugParse) System.out.println("parser: Seeking specfile for " + name);
+    	if (debugParse) System.out.println("parser: Seeking specfile for name: " + name);
     	var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
     	if (specFile == null) {
     	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
@@ -282,17 +282,32 @@ public class JmlCompiler extends JavaCompiler {
     private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name) {
         String sourcepath = decl.source().getName();
         String out = null;
+        JsonElement outtree = null;
         try {
             out = json.toJson((JCTree)decl);
+            outtree = json.toJsonTree((JCTree)decl);
         } catch (Throwable e) {
             try (var outputStream = new java.io.ByteArrayOutputStream(); var printStream = new java.io.PrintStream(outputStream)) {
                 utils.error("jml.message", "Failed translate to json (" + sourcepath + "): "+ e);
                 e.printStackTrace(printStream);
-
                 out = outputStream.toString();
             } catch (Throwable ee) {
                 ee.printStackTrace(System.out); // FIXME - better error report
             }
+        }
+        try {
+            // Checking
+            @SuppressWarnings("deprecation")
+            var res = new JsonParser().parse(out);
+            var nows = outtree.toString();//.replaceAll("[ \t\n]+","");
+            if (!res.toString().equals(nows)) { 
+                // TODO: Why does the original string representation have white space while the reread structure does not?
+                utils.error("jml.message", "Generated and reread json structures (removing whitespace) are different:\n"
+                        + nows  + "\n\nVS.\n\n" + res.toString());
+            }
+            //json.toJava(out);
+        } catch (Throwable e) {
+            utils.error("jml.message", "Failed read generated json (" + sourcepath + "): "+ e);            
         }
         if (dest == null) {
             // FIXME - cleanup name calculation
@@ -427,12 +442,26 @@ public class JmlCompiler extends JavaCompiler {
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
     	// TODO - what output writer to use?
-        if (debugParse) System.out.println("parser: Seeking specfile for " + typeSymbol);
+        if (debugParse) System.out.println("parser: Seeking specfile for type symbol: " + typeSymbol + " " + typeSymbol.hashCode());
         JavaFileObject specFile = JmlSpecs.instance(context).findSpecFile(typeSymbol);
     	if (debugParse) System.out.println("parser: Parsing specs " + typeSymbol + " " + specFile);
         if (specFile == null) return null;
 
-        var specCU = (JmlCompilationUnit)super.parse(specFile);
+        JmlCompilationUnit specCU = null;
+        if (log.getSource(specFile).getEndPosTable() != null) {
+            // An obscure situation in which the file has already been parsed, likely because there is an attempt to compile
+            // a class that duplicates a binary class in a library, and consequently there are two class symbols for the "same"
+            // class, but the same specs file is found for both of them.
+            // For now, we just declare this a failure
+            utils.error(specFile, -1, "jml.message",  // FIXME - use the no position name
+                    "Parsing failed because there is an attempt to parse a spec file twice, likely indicating that there are two instances of a class, one binary and one in source: " + typeSymbol);
+            if (typeSymbol.toString().equals("java.lang.Object")) {
+                // In case this is java.lang.Object, we will have a big trail of errors, so we just abort
+                throw new PropagatedException(new org.jmlspecs.openjml.JmlInternalAbort());
+            }
+        } else {
+            specCU = (JmlCompilationUnit)super.parse(specFile);
+        }
 
     	if (debugParse && specCU == null) System.out.println("parser: Parsing failed: " + specFile);
         if (specCU == null) return null;

@@ -1,0 +1,63 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m1() with prover !!!! - no warnings
+Starting proof of Test.m2() with prover !!!!
+test/arrayNullity/Test.java:13: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2
+        o2[0] = null; // ERROR
+              ^
+Completed proof of Test.m2() with prover !!!! - with warnings
+Starting proof of Test.m2a() with prover !!!!
+test/arrayNullity/Test.java:18: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a
+        o2[0] = null; // ERROR
+              ^
+Completed proof of Test.m2a() with prover !!!! - with warnings
+Starting proof of Test.m2b() with prover !!!!
+test/arrayNullity/Test.java:23: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2b
+        o2[0] = null; // ERROR
+              ^
+Completed proof of Test.m2b() with prover !!!! - with warnings
+Starting proof of Test.m3() with prover !!!!
+test/arrayNullity/Test.java:28: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3
+          oooo = null; // ERROR
+               ^
+Completed proof of Test.m3() with prover !!!! - with warnings
+Starting proof of Test.m4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m4() with prover !!!! - no warnings
+Starting proof of Test.q1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.q1() with prover !!!! - no warnings
+Starting proof of Test.q2() with prover !!!!
+test/arrayNullity/Test.java:43: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method q2
+          o2[0] = null; // ERROR
+                ^
+Completed proof of Test.q2() with prover !!!! - with warnings
+Starting proof of Test.q2a() with prover !!!!
+test/arrayNullity/Test.java:48: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method q2a
+          o2[0] = null; // ERROR
+                ^
+Completed proof of Test.q2a() with prover !!!! - with warnings
+Starting proof of Test.q2b() with prover !!!!
+test/arrayNullity/Test.java:53: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method q2b
+          o2[0] = null; // ERROR
+                ^
+Completed proof of Test.q2b() with prover !!!! - with warnings
+Starting proof of Test.q3() with prover !!!!
+test/arrayNullity/Test.java:58: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method q3
+          oo = null; // ERROR
+             ^
+Completed proof of Test.q3() with prover !!!! - with warnings
+Starting proof of Test.q4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.q4() with prover !!!! - no warnings
+Completed proving methods in Test
+8 warnings

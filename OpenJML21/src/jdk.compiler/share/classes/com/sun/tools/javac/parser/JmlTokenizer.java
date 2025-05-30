@@ -11,7 +11,6 @@ import java.util.Stack;
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Nowarns;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
@@ -142,7 +141,6 @@ public class JmlTokenizer extends JavadocTokenizer {
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
         if (scannerDebug) System.out.println("COMMENT " + noJML + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
-        if (scannerDebug && String.valueOf(buffer,pos,endPos-pos).startsWith("//@ assert")) Utils.dumpStack();
         
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
         	// The nested block will have the same end point as the outer block

@@ -657,8 +657,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate8() {
-    	expectedExit = 1;
-        addOptions("-method", "tt.TestJava.m1");
+    	expectedExit = 0;
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@ private normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -680,7 +680,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic8() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@ public normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -695,7 +695,7 @@ public class escvisibility extends EscBase {
                 +"     tx.B.m1();"
                 +"  }\n"
                 +"}"
-                ,"tx.B,s2"
+                ,"tx.B",s2
                         
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
                 ,"/tx/B.java:4: warning: Associated declaration",22

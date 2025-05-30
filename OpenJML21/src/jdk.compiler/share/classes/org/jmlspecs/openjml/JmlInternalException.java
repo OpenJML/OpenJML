@@ -13,7 +13,7 @@ package org.jmlspecs.openjml;
  * 
  * @author David Cok
  */
-public class JmlInternalError extends RuntimeException {
+public class JmlInternalException extends RuntimeException {
 
     /**
      * Version control for this Serializable class.
@@ -25,7 +25,7 @@ public class JmlInternalError extends RuntimeException {
      * You should have already logged an error message with as much other
      * information as you can.
      */
-    public JmlInternalError() {
+    public JmlInternalException() {
         this.printStackTrace(System.err);
     }
     
@@ -34,7 +34,7 @@ public class JmlInternalError extends RuntimeException {
      * You should have already logged an error message with as much other
      * information as you can.
      */
-    public JmlInternalError(String msg) {
+    public JmlInternalException(String msg) {
         super(msg);
         System.err.println(msg);
         this.printStackTrace(System.err);

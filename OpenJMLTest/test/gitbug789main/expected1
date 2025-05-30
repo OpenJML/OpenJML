@@ -1,7 +1,3 @@
-warning: Method id(int) has 'assignable \everything', making its caller likely impossible to verify
-test/gitbug789main/CircleOperations.java:31: warning: Associated declaration: 
-        System.out.println(cops.id(79));
-                                  ^
 Proving methods in CircleOperations
 Skipping proof of CircleOperations.CircleOperations() (Skipping CircleOperations.CircleOperations because it does not match main)
 Skipping proof of CircleOperations.id(int) (Skipping CircleOperations.id because it does not match main)
@@ -13,13 +9,13 @@ Starting proof of CircleOperations.main(String[]) with prover !!!!
 test/gitbug789main/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.id(79));
                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:35: warning: Associated declaration
     //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
                           ^
 test/gitbug789main/CircleOperations.java:31: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method main: (Caller: CircleOperations.main(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.id(79));
                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:42: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
     //-RAC@ public invariant outputText != null && \invariant_for(outputText);
                    ^
 Completed proof of CircleOperations.main(String[]) with prover !!!! - with warnings
@@ -28,4 +24,4 @@ Skipping proof of CircleOperations.mp(String[]) (Skipping CircleOperations.mp be
 Skipping proof of CircleOperations.me(String[]) (Skipping CircleOperations.me because it does not match main)
 Skipping proof of CircleOperations.mee(String[]) (Skipping CircleOperations.mee because it does not match main)
 Completed proving methods in CircleOperations
-6 warnings
+4 warnings

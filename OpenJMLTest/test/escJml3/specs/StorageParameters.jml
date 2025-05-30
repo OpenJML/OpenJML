@@ -3,15 +3,15 @@
 public final class StorageParameters {
 
     @org.jmlspecs.annotation.SpecPublic
-    @org.jmlspecs.annotation.Nullable
-    private long[] configurationSizes;
+    
+    private long @org.jmlspecs.annotation.Nullable [] configurationSizes;
 	
 	//@ pure
 	public StorageParameters(long @org.jmlspecs.annotation.Nullable [] sizes );
 	
 	//@ pure helper spec_public // ERROR This has duplicate annotation but has a bad error message
-	@org.jmlspecs.annotation.Nullable
-	/*@ spec_public @*/ long[] getConfigurationSizes();
+	
+	/*@ spec_public @*/ long @org.jmlspecs.annotation.Nullable [] getConfigurationSizes();
 	
 	   @org.jmlspecs.annotation.SkipEsc
     public static void main(String... args);

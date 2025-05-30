@@ -164,10 +164,8 @@ public abstract class EscBase extends JmlTestSuite {
         addOptions("--timeout=300"); // seconds
         addOptions("-jmltesting"); // filters time-related or user-envirnment-related material out of test output
         addOptions("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
-        main.addUncheckedOption("openjml.defaultProver=z3_4");
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
- //       specs = JmlSpecs.instance(context);
         expectedExit = 0;
         noAssociatedDeclaration = false;
         ignoreNotes = false;
@@ -183,7 +181,7 @@ public abstract class EscBase extends JmlTestSuite {
     }
 
     /** Applies ESC to the case where there are two input .java synthesized files, each consisting of a class name and the input source text;
-     * the expecgtedResults array is a line-by-line list of the expected output.
+     * the expectedResults array is a line-by-line list of the expected output.
      */
     protected void helpTCX2(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
         try {
@@ -192,9 +190,9 @@ public abstract class EscBase extends JmlTestSuite {
             String filename2 = classname2.replace(".","/")+".java";
             JavaFileObject f2 = new TestJavaFileObject(filename2,inputSource2);
             Log.instance(context).useSource(f);
-//            helpTCXB(List.of(f,f2),list);
+            helpTCXList(new String[] {}, List.<JavaFileObject>of(f,f2),expectedResults);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(out);
             fail("Exception thrown while processing test: " + e);
         }
     }
@@ -209,16 +207,19 @@ public abstract class EscBase extends JmlTestSuite {
             Log.instance(context).useSource(f);
             helpTCXB(args,f, expectedResults);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(out);
             fail("Exception thrown while processing test: " + e);
         }
     }
 
     protected void helpTCXB(String[] allargs, JavaFileObject f, Object... expectedResults) {
-        try {
-            int ex = main.compile(allargs, List.<JavaFileObject>of(f)).exitCode;
-            if (captureOutput) collectOutput(false);
+        helpTCXList(allargs, List.<JavaFileObject>of(f), expectedResults);
+    }
+    protected void helpTCXList(String[] allargs, List<JavaFileObject> files, Object... expectedResults) {
 
+        try {
+            int ex = main.compile(allargs, files).exitCode;
+            if (captureOutput) collectOutput(false);
             synchronized (System.out) { 
                 if (print) printDiagnostics();
                 outputCompare.compareResults(expectedResults,collector);
@@ -228,7 +229,7 @@ public abstract class EscBase extends JmlTestSuite {
         } catch (Exception e) {
             synchronized (System.out) { 
                 printDiagnostics();
-                e.printStackTrace(System.out);
+                e.printStackTrace(out);
                 fail("Exception thrown while processing test: " + e);
             }
         } catch (AssertionError e) {

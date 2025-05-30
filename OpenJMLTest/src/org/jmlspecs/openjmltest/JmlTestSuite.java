@@ -1,6 +1,5 @@
 package org.jmlspecs.openjmltest;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -80,6 +79,16 @@ public abstract class JmlTestSuite {
         if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
             System.out.println("The current working directory for tests is incorrect");
             System.exit(1);
+        }
+    }
+    
+    public java.io.PrintStream out = System.out;
+    public java.io.PrintStream tempout;
+    {
+        try {
+            tempout = new java.io.PrintStream("tempout.txt");
+        } catch (FileNotFoundException e) {
+            System.out.println("Could not create temp file");
         }
     }
     
@@ -359,9 +368,9 @@ public abstract class JmlTestSuite {
         printDiagnostics(collector.getDiagnostics());
     }
     
-    public static void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
+    public void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
         synchronized (System.out) {
-            System.out.println(diagnosticsToString(diagnostics));
+            out.println(diagnosticsToString(diagnostics));
         }
     }
 
@@ -381,39 +390,44 @@ public abstract class JmlTestSuite {
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
-    public void checkDiagnostics(Object[] list) {
+    public void checkDiagnostics(Object[] expected) {
         try {
             int i = 0;
             int k = 0;
             Object p1,p2,p3,p4;
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                if (k >= list.length) break;
-                String expected = doReplacements(((String)list[k++]));
-                assertEquals("Message " + i + " mismatch",expected,noSource(dd));
-                p1 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p2 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p3 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
-                p4 = (k < list.length && list[k] instanceof Integer) ? list[k++] : null;
+                if (k >= expected.length) break;
+                Object m = expected[k];
+                assertTrue("Expected a message string instead of " + m,
+                            m instanceof String);
+                String message = doReplacements((String)m);
+                k++;
+                assertEquals("Message " + i + " mismatch",message,noSource(dd));
+                p1 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
+                p2 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
+                p3 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
+                p4 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
                 if (p4 != null) {
+                    // Have 4 numbers
                     assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                     assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
                     assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
                     assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
-                } else if (p1 != null) {
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 } else {
-                    fail("No positions given for message " + i);
+                    // Expect only one number
+                    assertTrue("No positions given for message " + i, p1 != null);
+                    assertTrue("Expected 0 or 3 position values after the column value", p2 == null);
+                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
                 }
                 i++;
             }
-            if (k < list.length) {
-                fail("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected");
-            }
-            if (i < collector.getDiagnostics().size()) {
-                fail("More errors observed (" + collector.getDiagnostics().size() + ") than expected");
-            }
+            assertTrue("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected. First extra: " + 
+                        (k < expected.length ? expected[k] : ""),
+                    k >= expected.length);
+            assertTrue("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")",
+                    i >= collector.getDiagnostics().size());
         } catch (AssertionError e) {
-            printDiagnostics();
+            if (!noExtraPrinting) printDiagnostics();
             throw e;
         }
 

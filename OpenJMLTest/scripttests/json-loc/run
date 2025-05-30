@@ -9,6 +9,7 @@ ERR=0
 
 . ../../setup-coverage jsonloc
 
+echo JSON output location tests
 rm -rf *.json
 openjml --show=json *.java
 for f in *.java ; do
@@ -32,18 +33,18 @@ diff xx/yy/p/TestP.java.json TestP.java.json.expected || ERR=1
 diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected || ERR=1
 
 ## Typed AST
-
+echo TYPED
 rm -rf *.json
 $OJA --show=typedjson *.java
 for f in A.json C.json CC.json CCC.json ; do
-if ! diff $f $f.expected ; then ERR=1 ; echo $f differs from expected ;  fi;
+  echo CHECKING $f
+  if ! diff $f $f.expected ; then ERR=1 ; echo $f differs from expected ; else rm -rf $f; fi;
 done
 exit $ERR
-rm -rf *.json
 $OJA --show=typedjson -d - *.java > out
-if ! ( cat [AC]*.expected | diff - out ) ; then ERR=1 ; echo 'AC* differs from expected' ; fi;
+if ! ( cat [AC]*.expected | diff - out ) ; then ERR=1 ; echo 'AC* differs from expected' ; else rm -rf out; fi;
 
-rm -rf *.json out xx
+rm -rf out xx
 $OJA --show=typedjson -d xx/yy *.java
 if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo zz/yy/A.json differs from expected ; fi;
 if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo zz/yy/C.json differs from expected ; fi;

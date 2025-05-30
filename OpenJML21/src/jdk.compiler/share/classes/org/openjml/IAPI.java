@@ -44,8 +44,11 @@ public interface IAPI {
 
     public ITokenIterator makeTokenIterator(String text);
     
+    public boolean isOptionSet(String key);
+    public String getOption(String key);
+    
 //    public Context context();
-     
+//     
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
 //
 //
@@ -163,7 +166,6 @@ public interface IAPI {
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     static public int openjml(String ... args) {
-        //return make().execute(args);
         return org.jmlspecs.openjml.Main.execute(args);
     }
             

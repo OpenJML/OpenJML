@@ -640,7 +640,7 @@ public class racnew extends RacBase {
                 +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
                 +"System.out.println(\"END\"); } \n"
                 +"}"
-                ,"/tt/TestJava.java:3: error: the type modifier/annotation (nullable) is not permitted on a primitive type: \\TYPE",35
+                ,"/tt/TestJava.java:3: error: the type modifier/annotation is not permitted on a primitive type: \\TYPE",35
                 );
         
     }
@@ -882,7 +882,7 @@ public class racnew extends RacBase {
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
-                " static void m(/*@nullable*/Object[] o) { \n" +
+                " static void m(Object /*@nullable*/[] o) { \n" +
                 "//@ assert (\\lbl ELEM \\nonnullelements((\\lbl O o))); \n" +
                 "} " +
                 "}"

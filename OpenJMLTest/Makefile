@@ -18,7 +18,7 @@ T=temp-release
 openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	make userguide-tests
-	-make json-tests
+	make json-tests
 	-make unittests-par
 	-make tutorial-tests
 	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
@@ -80,8 +80,8 @@ unittests-par: Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
 
 json-tests: .FORCE Run.class
-	${TEST}/scripttests/json/run
-	${TEST}/scripttests/json-loc/run
+	@ ${TEST}/scripttests/json/run
+	@ ${TEST}/scripttests/json-loc/run
 
 Run.class:
 	$(TEST)/../OpenJML21/openjml-compile Run.java
@@ -120,6 +120,8 @@ cov-report:
 	@( cd ${TEST}; rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
 	@( cd ${TEST}; java -jar ./jacoco/lib/jacococli.jar report --quiet cov/combined.exec --html cov/html \
             --sourcefiles ../OpenJML21/src/jdk.compiler/share/classes \
+            --sourcefiles ../OpenJMLTest/src/ \
+            --classfiles ../OpenJMLTest/src/ \
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
 

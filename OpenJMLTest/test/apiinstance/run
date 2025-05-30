@@ -3,6 +3,7 @@
 F1="$BASH_SOURCE[0]"
 F2=$(dirname "$F1")
 cd "$F2"
+INSTALL="../../../OpenJML21"
 
-./runx |& diff - RUN.out
+($INSTALL/openjml-compile --compile Run.java && $INSTALL/openjml-run Run) |& diff - RUN.out
 if [ $? -ne 0 ]; then echo test/apistatic FAILED ; fi

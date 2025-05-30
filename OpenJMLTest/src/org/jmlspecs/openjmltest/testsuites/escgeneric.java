@@ -384,13 +384,13 @@ public class escgeneric extends EscBase {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
-                +"  public void ma(@NonNull TestG<Integer>.TestH i, Integer j) {\n"
+                +"  public void ma(@NonNull TestG<Integer>.TestH i, Integer j) {\n" // FIXME: i is nullable by default, or is the NonNull pushed to the nested class
                 +"    i.mm(j);\n"
                 +"  }\n"
-                +"  public void mb(@NonNull TestG<Object>.TestH i, Object j) {\n"
+                +"  public void mb(TestG<Object>.@Nullable TestH i, Object j) {\n"
                 +"    i.mm(j);\n"
                 +"  }\n"
-                +"  public void mc(@NonNull TestG<String>.TestH i, String j) {\n"
+                +"  public void mc(TestG<String>.@NonNull TestH i, String j) {\n"  // OK
                 +"    i.mm(j);\n"
                 +"  }\n"
                 +"}\n"
@@ -405,7 +405,6 @@ public class escgeneric extends EscBase {
                 ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ma",6
                 ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mb",6
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mc",6
                 );
     }
         
@@ -514,7 +513,7 @@ public class escgeneric extends EscBase {
         helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:1: error: the type modifier/annotation (non_null) is not permitted on a primitive type: char", 23
+                ,"/tt/TestJava.java:1: error: the type modifier/annotation is not permitted on a primitive type: char", 23
                 );
     }
 

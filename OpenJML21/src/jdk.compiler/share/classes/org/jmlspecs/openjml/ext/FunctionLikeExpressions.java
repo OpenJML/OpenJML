@@ -289,15 +289,15 @@ public class FunctionLikeExpressions extends JmlExtension {
     public static final String bigintMathID = "\\bigint_math";
     public static final IJmlClauseKind bigintMathKind = new OneArgExpression(bigintMathID);
 
-    public static final String warnopID = "\\warnop";
-    public static final IJmlClauseKind warnopKind = new OneArgExpression(warnopID);
-    public static final String nowarnopID = "\\nowarnop";
-    public static final IJmlClauseKind nowarnopKind = new OneArgExpression(nowarnopID);
-    public static final String warnID = "\\warn";
-    public static final IJmlClauseKind warnKind = new OneArgExpression(warnID);
-    public static final String bsnowarnID = "\\nowarn";
-    public static final IJmlClauseKind nowarnKind = new OneArgExpression(bsnowarnID);
-
+//    public static final String warnopID = "\\warnop";
+//    public static final IJmlClauseKind warnopKind = new OneArgExpression(warnopID);
+//    public static final String nowarnopID = "\\nowarnop";
+//    public static final IJmlClauseKind nowarnopKind = new OneArgExpression(nowarnopID);
+//    public static final String warnID = "\\warn";
+//    public static final IJmlClauseKind warnKind = new OneArgExpression(warnID);
+//    public static final String bsnowarnID = "\\nowarn";
+//    public static final IJmlClauseKind nowarnKind = new OneArgExpression(bsnowarnID);
+//
     public static final String notModifiedID = "\\not_modified";
     public static final IJmlClauseKind notModifiedKind = new AnyArgBooleanExpression(notModifiedID) {
         
@@ -572,14 +572,14 @@ public class FunctionLikeExpressions extends JmlExtension {
             JmlMethodInvocation expr = (JmlMethodInvocation)super.parse(mods, name, kind, parser);
             boolean value = true;
             for (JCExpression arg: expr.args) {
-                if (arg instanceof JCLiteral) {
-                    String key = ((JCLiteral)arg).getValue().toString();
+                if (arg instanceof JCLiteral st && st.value instanceof String) {
+                    String key = st.getValue().toString();
                     value = value && JmlOptions.instance(parser.context).commentKeys.contains(key);
-                } else if (arg instanceof JCIdent) {
-                    String key = ((JCIdent)arg).name.toString();
+                } else if (arg instanceof JCIdent id) {
+                    String key = id.name.toString();
                     value = value && JmlOptions.instance(parser.context).commentKeys.contains(key);
                 } else {
-                    utils.error(arg, "jml.message", "An argument to \\key must be an identifier or a string literal");
+                    utils.error(arg, "jml.message", "An argument to \\key must be an identifier or a string literal: " + arg);
                     return parser.maker().at(pos).Erroneous();
                 }
             }
@@ -587,7 +587,8 @@ public class FunctionLikeExpressions extends JmlExtension {
         }
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            utils.error(that.pos, "jml.message", "INTERNAL ERROR: keyKind.typecheck should not be called");
+            // NOCOVERAGE: Should never be executed
+            utils.error(that.pos, "jml.internal", "INTERNAL ERROR: keyKind.typecheck should not be called");
             return attr.syms.booleanType;
         }
     };
