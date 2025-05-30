@@ -559,6 +559,8 @@ public class Flags {
 
         final long value;
         final String lowercaseName;
+        
+        public long value() { return value; } // OPENJML - ADDED
     }
 
 }

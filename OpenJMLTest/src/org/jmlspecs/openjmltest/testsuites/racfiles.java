@@ -401,12 +401,6 @@ public class racfiles extends RacBase {
         helpCompileOnly("--rac-check-assumptions","--rac-precondition-entry");
     }
     
-    @Test @Ignore // FIXME - needs to be RAC and to be fixed
-    public void gitbug645() {
-        expectedExit = 0;
-        helpCompileOnly();
-    }
-    
     @Test
     public void gitbug532() {
         expectedRACExit = 0;
@@ -553,6 +547,17 @@ public class racfiles extends RacBase {
         runrac = false;
         expectedRACExit = 0;
         helpTCF("test/gitbug809","test/gitbug809","Parent");
+    }
+    
+    @Test
+    public void gitbug860() {
+        // The bug produces error output
+        helpTCF("test/gitbug860","test/gitbug860","Test");
+    }
+    
+    @Test
+    public void gitbug861() {
+        helpTCF("test/gitbug861","test/gitbug861","Test");
     }
 
     @Test

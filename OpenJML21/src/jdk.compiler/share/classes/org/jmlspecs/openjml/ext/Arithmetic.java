@@ -66,6 +66,11 @@ abstract public class Arithmetic extends JmlExtension {
         
     public boolean rac;
     
+    abstract public Mode mode();
+    
+    @Override
+    public String toString() { return mode().toString(); }
+    
     public IArithmeticMode defaultArithmeticMode(Symbol sym, boolean jml) {
         Utils utils = Utils.instance(context);
         if (!jml) {
@@ -336,7 +341,7 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression b = optag == JCTree.Tag.PLUS ? b1 : b2;
                     JCExpression c = rewriter.makeBin(that,  optagn,  sym, maxlit, rewriter.copy(rhs), newtype);
                     JCExpression d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, rewriter.copy(lhs), c, newtype);
-                    JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
+                    JCExpression x = rewriter.treeutils.makeImplies(that, rewriter.treeutils.makeAnd(p,a,b), d);
                     checkIt(rewriter, that, "overflow in int " + str, x);
                     // a == lhs < 0 ; b1 == 0 < rhs ; b2 == rhs < 0
                     // +) c == MIN - rhs ; d == c <= lhs == (MIN - rhs) <= lhs; x == (a && b2) ==> d
@@ -345,7 +350,7 @@ abstract public class Arithmetic extends JmlExtension {
                     b = optag == JCTree.Tag.PLUS ? b2 : b1;
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rewriter.copy(rhs), newtype);
                     d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, c, rewriter.copy(lhs), newtype);
-                    x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,rewriter.copy(b)), d);
+                    x = rewriter.treeutils.makeImplies(that, rewriter.treeutils.makeAnd(p,a,rewriter.copy(b)), d);
                     checkIt(rewriter, that, "underflow in int " + str, x);
                 } else if (newtype.getTag() == TypeTag.LONG) {
                     OperatorSymbol sym = optag == JCTree.Tag.PLUS ? rewriter.treeutils.longminusSymbol : rewriter.treeutils.longplusSymbol;
@@ -358,13 +363,13 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression b = optag == JCTree.Tag.PLUS ? b1 : b2;
                     JCExpression c = rewriter.makeBin(that,  optagn,  sym, maxlit, rewriter.copy(rhs), newtype);
                     JCExpression d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, rewriter.copy(lhs), c, newtype);
-                    JCExpression x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,b), d);
+                    JCExpression x = rewriter.treeutils.makeImplies(that, rewriter.treeutils.makeAnd(p,a,b), d);
                     checkIt(rewriter, that, "overflow in long " + str, x);
                     a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, rewriter.copy(lhs), zerolit, newtype);
                     b = optag == JCTree.Tag.PLUS ? b2 : b1;
                     c = rewriter.makeBin(that,  optagn,  sym, minlit, rewriter.copy(rhs), newtype);
                     d = rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, c, rewriter.copy(lhs), newtype);
-                    x = rewriter.treeutils.makeImplies(p, rewriter.treeutils.makeAnd(p,a,rewriter.copy(b)), d);
+                    x = rewriter.treeutils.makeImplies(that, rewriter.treeutils.makeAnd(p,a,rewriter.copy(b)), d);
                     checkIt(rewriter, that, "underflow in long " + str, x);
                 }
             } else if (optag == JCTree.Tag.MUL) {
@@ -652,7 +657,6 @@ abstract public class Arithmetic extends JmlExtension {
             return makeBinaryOp(rewriter, that, newtype, false, false, alreadyConverted);
 
         }
-
     }
 
     public static class Safe extends Arithmetic implements IArithmeticMode {
@@ -673,7 +677,6 @@ abstract public class Arithmetic extends JmlExtension {
         public JCExpression rewriteBinary(JmlAssertionAdder rewriter, JCBinary that, boolean alreadyConverted) {
             return makeBinaryOp(rewriter, that, null, true, true, alreadyConverted);
         }
-        
     }
 
     public static class Java extends Arithmetic implements IArithmeticMode {

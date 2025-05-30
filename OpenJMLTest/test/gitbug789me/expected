@@ -1,9 +1,3 @@
-test/gitbug789me/CircleOperations.java:19: warning: Method ide(int) has 'assignable \everything', making its caller likely impossible to verify
-    //@ assignable \everything;
-        ^
-test/gitbug789me/CircleOperations.java:46: warning: Associated declaration: test/gitbug789me/CircleOperations.java:19:
-        System.out.println(cops.ide(79));
-                                   ^
 Proving methods in CircleOperations
 Skipping proof of CircleOperations.CircleOperations() (Skipping CircleOperations.CircleOperations because it does not match me)
 Skipping proof of CircleOperations.id(int) (Skipping CircleOperations.id because it does not match me)
@@ -18,16 +12,16 @@ Starting proof of CircleOperations.me(String[]) with prover !!!!
 test/gitbug789me/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.ide(79));
                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:42: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
     //-RAC@ public invariant outputText != null && \invariant_for(outputText);
                    ^
 test/gitbug789me/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.ide(79));
                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/PrintStream.jml:35: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:35: warning: Associated declaration
     //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
                           ^
 Completed proof of CircleOperations.me(String[]) with prover !!!! - with warnings
 Skipping proof of CircleOperations.mee(String[]) (Skipping CircleOperations.mee because it does not match me)
 Completed proving methods in CircleOperations
-6 warnings
+4 warnings

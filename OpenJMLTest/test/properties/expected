@@ -5,10 +5,16 @@ Test.java:3: verify: The prover cannot establish an assertion (Assert) in method
         ^
 1 verification failure
 Test of bad.properties
+warning: Command-line argument error: Expected 'auto', 'true' or 'false' for --esc-bv: zzz
 error: No such option: --zzz
 Test of no properties
 warning: The last command-line option expects a parameter: --properties
 error: no source files
+Test of folder
+warning: the argument of --properties must be a file: folder
+1 warning
 Test of non-existent file
 warning: the argument of --properties must be a file: zzz
 1 warning
+Test of mal-formed file
+error: exception on reading properties file: bad2.properties java.lang.IllegalArgumentException: Malformed \uxxxx encoding.

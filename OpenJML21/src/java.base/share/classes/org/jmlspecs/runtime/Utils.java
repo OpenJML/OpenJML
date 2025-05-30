@@ -166,7 +166,7 @@ public class Utils {
      * @return the object which is the last argument
      */
     //@ ensures \result == v;
-    @Nullable public static <T> T nonNullCheck(@Nullable String message, @Nullable T v) {
+    public static <T> @Nullable T nonNullCheck(@Nullable String message, @Nullable T v) {
         if (v == null) assertionFailure(message);
         return v;
     }

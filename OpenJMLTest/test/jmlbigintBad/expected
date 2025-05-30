@@ -10,7 +10,7 @@ test/jmlbigintBad/Test.java:11: error: A \bigint may not be cast to a float
 test/jmlbigintBad/Test.java:12: error: A \bigint may not be cast to a double
       d = (double)a; // ERROR
                   ^
-test/jmlbigintBad/Test.java:13: error: illegal conversion: \real to \bigint
+test/jmlbigintBad/Test.java:13: error: incompatible types: org.jmlspecs.lang.real cannot be converted to \bigint
       a = r; // ERROR
           ^
 test/jmlbigintBad/Test.java:14: error: incompatible types: \bigint cannot be converted to int

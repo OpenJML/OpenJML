@@ -106,6 +106,20 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    /** Tests a non-star import with 2 modifiers */
+    @Test // Just checking correct testing with not all positions present
+    public void testImports5a() {
+        checkCompilationUnit("import java.io.File;  public protected class A{}",
+                JmlCompilationUnit.class, 0,48,
+                JmlImport.class, 0,20,
+                JCFieldAccess.class, 7,19,
+                JCFieldAccess.class, 7,14,
+                JCIdent.class, 7,7,11,
+                JmlClassDecl.class, 39,
+                JmlModifiers.class, 22,22,38);
+        checkMessages();
+    }
+    
     /** Tests parsing an annotation */
     @Test
     public void testAnnotation() {
@@ -195,31 +209,31 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
-    //  @Test -
+    @Test
     public void testRefining2() {
-        checkCompilationUnit("class A { void m() { /*@        recommends true else NullPointerException; ensures true; */ m(); }}",
-              JmlCompilationUnit.class, 0,0,99,
-              JmlClassDecl.class, 0,0,99,
+        checkCompilationUnit("class A { void m() { /*@ refining recommends true else NullPointerException; ensures true; */ m(); }}",
+              JmlCompilationUnit.class, 0,0,101,
+              JmlClassDecl.class, 0,0,101,
               JmlModifiers.class, -1,-1,-1,
-              JmlMethodDecl.class, 10,15,98,
+              JmlMethodDecl.class, 10,15,100,
               JmlModifiers.class, -1,-1,-1,
               JCPrimitiveTypeTree.class, 10,10,14,
-              JmlBlock.class, 19,19,98,
+              JmlBlock.class, 19,19,100,
 
-              JmlStatementSpec.class, 32, 32, 88, 
-              JmlMethodSpecs.class, 32, 32, 88,
-              JmlSpecificationCase.class, 32,32,88,
+              JmlStatementSpec.class, 25, 25, 90, 
+              JmlMethodSpecs.class, 34, 34, 90,
+              JmlSpecificationCase.class, 34,34,90,
               JmlModifiers.class, -1,-1,-1,
 
-              RecommendsClause.Node.class, 32,32, 74,
-              JCLiteral.class, 43, 43, 47,
-              JCIdent.class, 53,53,73,
+              RecommendsClause.Node.class, 34,34, 76,
+              JCLiteral.class, 45, 45, 49,
+              JCIdent.class, 55,55,75,
 
-              JmlMethodClauseExpr.class, 75,75,88,
-              JCLiteral.class, 83,83,87,
-              JCExpressionStatement.class, 92,92,96,
-              JCMethodInvocation.class, 92,93,95,
-              JCIdent.class, 92,92,93
+              JmlMethodClauseExpr.class, 77,77,90,
+              JCLiteral.class, 85,85,89,
+              JCExpressionStatement.class, 94,94,98,
+              JCMethodInvocation.class, 94,95,97,
+              JCIdent.class, 94,94,95
         );
         checkMessages();
     }
@@ -317,6 +331,190 @@ public class compilationUnit extends ParseBase {
         checkMessages();
     }
     
+    // The harness tests test that the test routines report errors as expected (and, for example, do not crash)
+    // Some variations are present to fill out test coverage
+    
+    @Test
+    public void harness1() {
+        noExtraPrinting = true;
+        checkParseFailure("Insufficient number of nodes listed: expected 1, was 3",
+                "class A {}",
+                JmlCompilationUnit.class, 0,0,10
+                );
+    }
+    
+    @Test
+    public void harness2() {
+        noExtraPrinting = true;
+        checkParseFailure("Class not matched at token 0 expected:<class org.jmlspecs.openjml.JmlTree$JmlClassDecl> but was:<class org.jmlspecs.openjml.JmlTree$JmlCompilationUnit>",
+                "class A {}",
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness3() {
+        noExtraPrinting = true;
+        checkParseFailure("Too many expected nodes listed expected:<16> but was:<12>",
+                "class A {}",
+                JmlCompilationUnit.class, 0,0,10,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness4a() {
+        try {
+            noExtraPrinting = true;
+            checkParseFailure("ZZZ",
+                    "class A {}",
+                    JmlCompilationUnit.class, 0,0,10,
+                    JmlClassDecl.class, 0,0,10
+                    );
+        } catch (AssertionError a) {
+            org.junit.Assert.assertEquals("Test failure", 
+                    "Failure message was incorrect in checkCompilationUnitFailure expected:<[ZZZ]> but was:<[Insufficient number of nodes listed: expected 2, was 3]>",
+                    a.getMessage());
+        }
+    }
+    
+    @Test
+    public void harness4b() {
+        try {
+            noExtraPrinting = true;
+            checkParseFailure("",
+                    "class A {}",
+                    JmlCompilationUnit.class, 0,0,10,
+                    JmlClassDecl.class, 0,0,10,
+                    JmlModifiers.class, -1,-1,-1
+                    );
+        } catch (AssertionError a) {
+            org.junit.Assert.assertEquals("Test failure", "Test Harness failed to report an error", a.getMessage());
+        }
+    }
+    
+    @Test
+    public void harness4c() {
+        out = tempout;
+        try {
+            print = true;
+            checkCompilationUnit(
+                    "class A {}",
+                    JmlCompilationUnit.class, 0,0,10,
+                    JmlClassDecl.class, 0,0,10,
+                    JmlModifiers.class, -1,-1,-1
+                    );
+        } finally {
+            out = System.out;
+        }
+    }
+    
+    @Test
+    public void harness4d() {
+        try {
+            out = tempout;
+            checkParseFailure("Insufficient number of nodes listed: expected 2, was 3",
+                    "class A {}",
+                    JmlCompilationUnit.class, 0,0,10,
+                    JmlClassDecl.class, 0,0,10
+                    );
+        } finally {
+            out = System.out;
+        }
+    }
+
+    @Test
+    public void harness4e() {
+        try {
+            out = tempout;
+            print = true; noExtraPrinting = true;
+            checkParseFailure("Insufficient number of nodes listed: expected 2, was 3",
+                    "class A {}",
+                    JmlCompilationUnit.class, 0,0,10,
+                    JmlClassDecl.class, 0,0,10
+                    );
+        } finally {
+            out = System.out;
+        }
+    }
+
+    @Test
+    public void harness5() {
+        noExtraPrinting = true;
+        checkParseFailure("Class not matched at token 0 expected:<0> but was:<class org.jmlspecs.openjml.JmlTree$JmlCompilationUnit>",
+                "class A {}",
+                0,0,10
+                );
+    }
+    
+    @Test
+    public void harness6() {
+        noExtraPrinting = true;
+        checkParseFailure("Start position for token 0 expected:<-100> but was:<0>",
+                "class A {}",
+                JmlCompilationUnit.class, -100,0,10,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness7() {
+        noExtraPrinting = true;
+        checkParseFailure("Preferred position for token 0 expected:<-100> but was:<0>",
+                "class A {}",
+                JmlCompilationUnit.class, 0,-100,10,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness8() {
+        noExtraPrinting = true;
+        checkParseFailure("End position for token 0 expected:<-100> but was:<10>",
+                "class A {}",
+                JmlCompilationUnit.class, 0,0,-100,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness9() {
+        noExtraPrinting = true;
+        checkParseFailure("Start position for token 0 expected:<-100> but was:<0>",
+                "class A {}",
+                JmlCompilationUnit.class, -100,10,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness10() {
+        noExtraPrinting = true;
+        checkParseFailure("End position for token 0 expected:<-100> but was:<10>",
+                "class A {}",
+                JmlCompilationUnit.class, 0,-100,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
+    
+    @Test
+    public void harness11() {
+        noExtraPrinting = true;
+        checkParseFailure("Preferred position for token 0 expected:<-100> but was:<0>",
+                "class A {}",
+                JmlCompilationUnit.class, -100,
+                JmlClassDecl.class, 0,0,10,
+                JmlModifiers.class, -1,-1,-1
+                );
+    }
     // FIXME - add all other constructs: multiple classes, interfaces, enums, extends, implements, declarations, clauses, method constructs, method clauses, nowarn
 
 }

@@ -196,7 +196,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The fully-qualified name of the Runtime class */
     // Use .class on the class name instead of a string so that an error happens if the class is renamed
     // This class is in the runtime library
-    /*@non_null*/ public static String runtimeClassName = "org.jmlspecs.runtime.Runtime";
+    /*@non_null*/ public static String runtimeClassName = "org.jmlspecs.runtime.Utils";
     
     /** Cached symbol of the org.jmlspecs.runtiome.Runtime class */
     /*@non_null*/ public ClassSymbol runtimeClass;
@@ -341,7 +341,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (syms.objectType == null) {
             System.err.println("INTERNAL FAILURE: A circular dependency among constructors has caused a failure to correctly construct objects.  Please report this internal problem.");
             // Stack trace is printed inside the constructor
-            throw new JmlInternalError();
+            throw new JmlInternalException();
         }
 
 
@@ -454,7 +454,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-M " + c);
 
             addClassInferredSpecs(c);
+        } catch (PropagatedException e) {
+            throw e;
         } catch (Exception e) {
+            // FIXME _ better error report
         	System.out.println("EXCEPTION IN attribClass-Y " + c + " " + c.type);
         	e.printStackTrace(System.out);
         	throw e;
@@ -579,8 +582,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	// parsed in the class body (though they may be the same)
         if (tree instanceof JmlTypeClause) return null;
         try {
-        return super.attribStat(tree,env);
+            return super.attribStat(tree,env);
+        } catch (PropagatedException e) {
+            throw e;
         } catch (Exception e) {
+            // FIXME - better error report
             e.printStackTrace(System.out);
         	System.out.println("EXZCEPTION ON STAT " + env.enclClass.name + " " + tree + " RNV: " + env);
         	throw e;
@@ -912,12 +918,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     
     public ModifierKind[] allowedTypeModifiers = new ModifierKind[]{
-        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH,
         OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, SKIPRAC, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE,
         SPEC_PUBLIC, SPEC_PROTECTED};
 
     public ModifierKind[] allowedNestedTypeModifiers = new ModifierKind[]{
-        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
+        CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH,
         OPTIONS, PURE, SPEC_PURE, STRICTLY_PURE, NO_STATE, MODEL, QUERY, SPEC_PUBLIC, SPEC_PROTECTED, NULLABLE_BY_DEFAULT, NON_NULL_BY_DEFAULT, IMMUTABLE};
 
     public ModifierKind[] allowedNestedModelTypeModifiers = new ModifierKind[]{
@@ -1653,35 +1659,43 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void annotationsToModifiers(JCModifiers mods) {
-        annotationsToModifiers((JmlModifiers)mods, mods.annotations);
+        mods.annotations = annotationsToModifiers((JmlModifiers)mods, mods.annotations);
     }
         
     public void annotationsToModifiers(JmlModifiers mods, JCExpression type) {
-        annotationsToModifiers(mods, mods.annotations);
         if (type != null) typeAnnotationsToModifiers(mods, type);
+        annotationsToModifiers(mods, mods.annotations);
     }
         
-    public void annotationsToModifiers(JmlModifiers mods, List<JCAnnotation> annotations) {
+    public List<JCAnnotation> annotationsToModifiers(JmlModifiers mods, List<JCAnnotation> annotations) {
+        var remaining = new ListBuffer<JCAnnotation>();
         x: for (var a: annotations) {
             if (a instanceof JmlAnnotation jmla) {
-                if (jmla.type == null) System.out.println("SKIPPING because type is null: " + jmla);
-                if (jmla.type == null) continue; // no type if it is an unresolved name (or - a bug - if the annotation was never attributed)
-                if (jmla.type.tsym.owner != annotationPackageSymbol) continue;
-                // FIXME - why would a jmla.kind be null
-                if (jmla.kind == null) System.out.println("SKIPPING because kind is null: " + jmla);
-                if (jmla.kind == null || !jmla.kind.isNormalModifier()) continue;
-                //if (!jmla.type.toString().startsWith("org.jmlspecs.annotation")) continue;
-                int p = a.pos;
-                var kind = jmla.kind;
-                //System.out.println("KIND " + kind + " " + (kind == Modifiers.NULLABLE_BY_DEFAULT));
-//                JmlToken newtoken = null;
-//                for (JmlToken t: mods.jmlmods) {
-//                    if (t.pos == p && t.jmlclausekind == kind) continue x;
-//                }
-                JmlToken newtoken = new JmlToken(jmla.kind, jmla.sourcefile, p, p, null); // FIXME - should really have the endposition
-                mods.jmlmods.add(newtoken);
+                // Annotations have already been attributed, so jmla.type != null 
+                if (jmla.type.tsym.owner != annotationPackageSymbol) {
+                    remaining.add(jmla);
+                } else {
+                    for (JmlToken t: mods.jmlmods) {
+                        if (t.jmlclausekind == jmla.kind && t.pos == a.pos) continue x;
+                    }
+                    if (jmla.token != null) {
+                        mods.jmlmods.add(jmla.token);
+                    } else {
+                        // At this point jmla.kind != null (or some org.jmlspecs.annotation class is not well formed)
+                        int p = a.pos;
+                        var kind = jmla.kind;
+                        JmlToken newtoken = new JmlToken(jmla.kind, jmla.sourcefile, p, p, null); // FIXME - should really have the endposition
+                        try { mods.jmlmods.add(newtoken); } catch (Throwable e) {
+                            System.out.println("MODS " + mods + " : " + mods.jmlmods);
+                            System.out.println("  TOKEN " + newtoken);
+                            System.out.println("  JMLMODS " + mods.jmlmods.getClass());
+                            throw e;
+                        }
+                    }
+                }
             }
         }
+        return remaining.toList();
     }
     
     public void typeAnnotationsToModifiers(JmlModifiers mods, JCExpression type) {
@@ -2700,7 +2714,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 JmlMethodClauseExpr substRequires = jmlMaker.at(m.pos).JmlMethodClauseExpr(requiresID,requiresClauseKind,rc.expression);
                 prefix.append(substRequires);
                 JmlMethodClauseExpr nn = jmlMaker.at(m.pos).JmlMethodClauseExpr(requiresID,requiresClauseKind,
-                        treeutils.makeNot(substRequires.pos, rc.expression));
+                        treeutils.makeNot(substRequires, rc.expression));
                 if (first) {
                     excRequires = nn;
                     exlist.add(excRequires);
@@ -5621,7 +5635,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             JCExpression cond = newvalue;
             if (q.kind == qforallKind || q.kind == qexistsKind || q.kind == qchooseKind ) { 
                 if (q.kind == qforallKind) {
-                    cond = treeutils.makeNot(cond.pos, cond);
+                    cond = treeutils.makeNot(cond, cond);
 //                    cond = F.Unary(JCTree.NOT, cond).setType(syms.booleanType); 
 //                    ((JCUnary)cond).operator = rs.resolveUnaryOperator(cond.pos(), JCTree.NOT, env, newvalue.type);
                 }
@@ -6756,8 +6770,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (a == null) return false;
         var b = utils.findModifier(mods,tb);
         if (b == null) return false;
-        var t = a.pos <= b.pos ? b : a;
-        utils.error(t.source, t.pos,"jml.conflicting.modifiers",a.jmlclausekind,b.jmlclausekind); // FIXME add Assocated location
+        var t = a.pos <= b.pos ? a : b;
+        var tt = t == a ? b : a;
+        utils.errorAndAssociatedDeclaration(t.source, t.pos, tt.source, tt.pos, "jml.conflicting.modifiers",a.jmlclausekind,b.jmlclausekind);
         return true;
     }
     
@@ -7699,6 +7714,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
         try {
             visitMethodDef(that);
+        } catch (PropagatedException e) {
+            throw e;
         } catch (Exception e) {
             utils.error(that, "jml.internal", "Exception while attributing method: " + that);
             e.printStackTrace(System.out);
@@ -7757,7 +7774,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-        if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass());
+        if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass() + " " + that + " MODS:" + that.mods);
         if (env.enclMethod != null) {
             if (that.vartype instanceof JCTypeApply ft) {
                 var nn = specs.defaultNullity(env.enclClass.sym);
@@ -7858,6 +7875,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             ModifierKind nullness = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
             if (!that.type.isPrimitive()) {
+//                if (that.name.toString().equals("oooo")) System.out.println("OOOO " + that.type + " :: " + that.type.isAnnotated() + " $$ " + that.type.getAnnotationMirrors() + " $$ " + that.type.getClass()
+//                + " " + ((Type.ArrayType)that.type).elemtype + " " + ((Type.ArrayType)that.type).elemtype.getClass());
                 if (that.type.tsym == datagroupClass) {
                     nullness = Modifiers.NULLABLE;                    
                     // OPENJML - FIXME - wrapped the below line with TypeCompound -- not sure about the final null
@@ -7874,28 +7893,45 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     }
                     //that.init = jmlMaker.at(that).Literal(TypeTag.BOT,null);
                     //that.init.type = datagroupClass.type;
-                } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNonNullNoDefault(that.sym)) { 
-                    nullness = Modifiers.NON_NULL;
-                } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNullableNoDefault(that.sym)|| skipDefaultNullity) {
-                    nullness = Modifiers.NULLABLE;
-//                } else {
-//                    Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
-//                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
-//                    that.sym.appendAttributes(List.<Compound>of(a));
-//                    JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
-//                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
-//                    ((JmlTree.JmlAnnotation)an).kind = nullness;
-//                    an.type = an.annotationType.type;
-//                    var ft = that.vartype;
-//                    while (ft instanceof JCTree.JCTypeApply ftp) ft = ftp.clazz;
-//                    if (ft instanceof JCIdent id) {
-//                        that.mods.annotations = that.mods.annotations.append(an);
-//                    } else if (ft instanceof JCFieldAccess fta) {
-//                        System.out.println("FT " + ft + " " + ft.getClass());
-//                    } else {
-//                    	// FIXME ???
-//                        that.mods.annotations = that.mods.annotations.append(an);
-//                    }
+                } else {
+                    if (that.type.isAnnotated()) {
+                        for (Attribute.TypeCompound tc: that.type.getAnnotationMirrors()) {
+                            // FIXME - improve this check
+                            if (that.name.toString().equals("oooo")) {
+                                //                            System.out.println("OOOO-A " + tc.getAnnotationType().toString() + " " + 
+                                //                                    tc.getAnnotationType().getAnnotation() + " " + tc.getAnnotationType().getAnnotation().getClass());
+                                //                                    tc.getAnnotationType().getAnnotationsByType(org.jmlspecs.annotation.NonNull.class).length + " " + 
+                                //                                    tc.getAnnotationType().getAnnotationsByType(org.jmlspecs.annotation.Nullable.class).length);
+                            }
+                            if (tc.getAnnotationType().toString().endsWith("NonNull")) { nullness = Modifiers.NON_NULL; break; }
+                            if (tc.getAnnotationType().toString().endsWith("Nullable")) { nullness = Modifiers.NULLABLE; break; }
+                        }
+                    }
+                    if (nullness != null) {
+                        // continue
+                    } else if (utils.hasMod(that.mods,Modifiers.NON_NULL) || specs.isNonNullNoDefault(that.sym)) { 
+                        nullness = Modifiers.NON_NULL;
+                    } else if (utils.hasMod(that.mods,Modifiers.NULLABLE) || specs.isNullableNoDefault(that.sym)|| skipDefaultNullity) {
+                        nullness = Modifiers.NULLABLE;
+                        //                } else {
+                        //                    Symbol s = (nullness == Modifiers.NON_NULL) ? nonnullAnnotationSymbol : nullableAnnotationSymbol;
+                        //                    Attribute.Compound a = new Attribute.Compound(s.type,List.<Pair<MethodSymbol,Attribute>>nil());
+                        //                    that.sym.appendAttributes(List.<Compound>of(a));
+                        //                    JCAnnotation an = jmlMaker.at(that).Annotation(a);  // FIXME - needs a position and a source - we should get the NonNullByDefault if possible
+                        //                    ((JmlTree.JmlAnnotation)an).sourcefile = that.sourcefile;
+                        //                    ((JmlTree.JmlAnnotation)an).kind = nullness;
+                        //                    an.type = an.annotationType.type;
+                        //                    var ft = that.vartype;
+                        //                    while (ft instanceof JCTree.JCTypeApply ftp) ft = ftp.clazz;
+                        //                    if (ft instanceof JCIdent id) {
+                        //                        that.mods.annotations = that.mods.annotations.append(an);
+                        //                    } else if (ft instanceof JCFieldAccess fta) {
+                        //                        System.out.println("FT " + ft + " " + ft.getClass());
+                        //                    } else {
+                        //                    	// FIXME ???
+                        //                        that.mods.annotations = that.mods.annotations.append(an);
+                        //                    }
+                    }
                 }
             }
             //        if (newMods != originalMods) for (JCAnnotation a: originalMods.annotations) { a.type = attribType(a,env); }
@@ -7905,9 +7941,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             if (that.sym.owner instanceof MethodSymbol ms) {
                 // vars owned by the class are fields; they have already had specs put during Entering
-                // so have formal parameters
+                // So have formal parameters.  These are local declarations
                 var s = specs.getFormal(that.sym);
                 if (s == null) {
+                    //if (that.sym.type instanceof Type.ArrayType) nullness = null;
                     specs.putSpecs(that.sym, that, new JmlSpecs.LocalSpecs(that, nullness == Modifiers.NON_NULL, ms));
                 }
             }
@@ -8671,6 +8708,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     		attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
     		attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
+		} catch (PropagatedException e) {
+		    throw e;
     	} catch (Exception e) {
     		utils.error("jml.message", "Exception while attributing class specs: " + csym);
     		e.printStackTrace(System.out);

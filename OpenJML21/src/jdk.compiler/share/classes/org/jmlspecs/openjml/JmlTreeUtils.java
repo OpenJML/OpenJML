@@ -96,7 +96,7 @@ public class JmlTreeUtils {
     
     /** The qualified name of the Utils class that contains runtime utility methods */
     /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.runtime.Utils";
-    /*@non_null*/ final public static String runtimeClassQualifiedName = "org.jmlspecs.runtime.Runtime";
+   // /*@non_null*/ final public static String runtimeClassQualifiedName = "org.jmlspecs.runtime.Runtime";
     /*@non_null*/ final public static String TYPEClassQualifiedName = "org.jmlspecs.runtime.internal.TYPE";
 
     /** The Context in which this object was constructed */ 
@@ -320,7 +320,7 @@ public class JmlTreeUtils {
 //    		System.out.println("FBOPSYM " + e);
 //    		// fall through
 //    	}
-		throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + lhstype + " " + rhstype + " could not be resolved");
+		throw new JmlInternalException("The operation symbol " + Pretty.operatorName(optag) + " for type " + lhstype + " " + rhstype + " could not be resolved");
     }
     
     public OperatorSymbol findUnaryOpSymbol(JCTree.Tag optag, Type argtype) {
@@ -331,7 +331,7 @@ public class JmlTreeUtils {
     		System.out.println("FUOPSYM " + e);
     		// fall through
     	}
-        throw new JmlInternalError("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");
+        throw new JmlInternalException("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");
     }
     
     // FIXME - duplicated in JmlAssertionAdder
@@ -350,7 +350,7 @@ public class JmlTreeUtils {
         try {
             Symbol ms = utilsClass().members().findFirst(n);
             if (ms == null) {
-                throw new JmlInternalError("Method " + methodName + " not found in Utils");
+                throw new JmlInternalException("Method " + methodName + " not found in Utils");
             }
             JCFieldAccess m = factory.Select(utilsClassIdent(),n);
             m.pos = pos;
@@ -372,7 +372,7 @@ public class JmlTreeUtils {
         try {
             Symbol ms = runtimeClass("org.jmlspecs.runtime.internal.TYPE").members().findFirst(n);
             if (ms == null) {
-                throw new JmlInternalError("Method " + methodName + " not found in runtime");
+                throw new JmlInternalException("Method " + methodName + " not found in runtime");
             }
             JCFieldAccess m = factory.Select(runtimeClassIdent("org.jmlspecs.runtime.internal.TYPE"),n);
             m.pos = pos;
@@ -982,11 +982,11 @@ public class JmlTreeUtils {
         return makeBinary(pos, optag,  lhs, rhs);
     }
 
-    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
-        if (optag == JCTree.Tag.AND) return makeAndSimp(pos, lhs, rhs);
-        return makeBinary(pos, optag,  lhs, rhs);
-    }
+//    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
+//        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
+//        if (optag == JCTree.Tag.AND) return makeAndSimp(pos, lhs, rhs);
+//        return makeBinary(pos, optag,  lhs, rhs);
+//    }
 
 
     /** Makes an attributed Java binary operator node (with boolean result)
@@ -1180,36 +1180,34 @@ public class JmlTreeUtils {
         return lhs;
     }
 
-	public boolean isLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) return true;
-		return null != typeLiteral(e);
-	}
+    public boolean isLiteral(JCExpression e) {
+        if (e instanceof JCLiteral) return true;
+        return null != typeLiteral(e);
+    }
 
-	public Number integralLiteral(JCExpression e) {
-		if (e instanceof JCLiteral) {
-			JCLiteral lit = (JCLiteral) e;
-			if (lit.value instanceof Number number && types.isAnyIntegral(lit.type))
-				return number;
-		}
-		return null;
-	}
+    public Number integralLiteral(JCExpression e) {
+        if (e instanceof JCLiteral lit) {
+            if (lit.value instanceof Number number && types.isAnyIntegral(lit.type))
+                return number;
+        }
+        return null;
+    }
 
-	public Number floatingLiteral(JCExpression e) {
-		if (e instanceof JCLiteral lit) {
-			if (lit.value instanceof Double d) return d;
-			if (lit.value instanceof Float f) return f;
-		}
-		return null;
-	}
+    public Number floatingLiteral(JCExpression e) {
+        if (e instanceof JCLiteral lit) {
+            if (lit.value instanceof Double d) return d;
+            if (lit.value instanceof Float f) return f;
+        }
+        return null;
+    }
 
-	public Type typeLiteral(JCExpression e) {
-		if (e instanceof JmlMethodInvocation) {
-			JmlMethodInvocation lit = (JmlMethodInvocation) e;
-			if (lit.kind == typelcKind)
-				return lit.args.head.type;
-		}
-		return null;
-	}
+    public Type typeLiteral(JCExpression e) {
+        if (e instanceof JmlMethodInvocation lit) {
+            if (lit.kind == typelcKind)
+                return lit.args.head.type;
+        }
+        return null;
+    }
 
     public Boolean booleanLiteral(JCExpression e) {
         if (e instanceof JCLiteral lit) {
@@ -1219,28 +1217,36 @@ public class JmlTreeUtils {
         return null;
     }
 
-    /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
-    public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
-            Boolean bl = booleanLiteral(lhs);
-            if (bl != null && bl) return lhs;
-            if (bl != null && !bl) { lhs = r; continue; }
-            Boolean b = booleanLiteral(r);
-            if (b != null && b) return r;
-            if (b != null && !b) continue;
-            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
-        }
-        return lhs;
-    }
+//    /** Makes an attributed AST for a non-short-circuit boolean OR expression */
+//    public JCExpression makeBitOrSimp(int pos, JCExpression lhs, JCExpression ... rhs) {
+//        for (JCExpression r: rhs) {
+//            Boolean bl = booleanLiteral(lhs);
+//            if (bl != null) {
+//                if (bl) return lhs;
+//                else { lhs = r; continue; }
+//            }
+//            Boolean b = booleanLiteral(r);
+//            if (b != null) {
+//                if (b) return r;
+//                else continue;
+//            }
+//            lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
+//        }
+//        return lhs;
+//    }
 
     public JCExpression makeBitOrSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {
             Boolean bl = booleanLiteral(lhs);
-            if (bl != null && bl) return lhs;
-            if (bl != null && !bl) { lhs = r; continue; }
+            if (bl != null) {
+                if (bl) return lhs;
+                else { lhs = r; continue; }
+            }
             Boolean b = booleanLiteral(r);
-            if (b != null && b) return r;
-            if (b != null && !b) continue;
+            if (b != null) {
+                if (b) return r;
+                else continue;
+            }
             lhs = makeBinary(pos,JCTree.Tag.BITOR,bitorSymbol,lhs,r);
         }
         return lhs;
@@ -1258,14 +1264,14 @@ public class JmlTreeUtils {
                 makeNot(pos,lhs), rhs);
     }
 
-    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
-    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
-        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
-        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
-        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
-        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
-                makeNot(pos,lhs), rhs);
-    }
+//    /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
+//    public JCExpression makeImpliesSimp(int pos, JCExpression lhs, JCExpression rhs) {
+//        if (isTrueLit(lhs) || isTrueLit(rhs)) return rhs;
+//        else if (isFalseLit(lhs)) return makeBooleanLiteral(pos,true);
+//        else if (isTrueLit(rhs)) return makeNot(pos,lhs);
+//        return makeBinary(pos,JCTree.Tag.OR,orSymbol,
+//                makeNot(pos,lhs), rhs);
+//    }
 
     /** Makes an attributed AST for the Java equivalent of a JML IMPLIES expression */
     public JCExpression makeImpliesSimp(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs) {
@@ -2219,6 +2225,7 @@ public class JmlTreeUtils {
         JmlAnnotation a = tokenToAnnotationAST(((ModifierKind)token.jmlclausekind).fullAnnotation, token.pos, token.endPos, parser);
         if (a != null) {
             a.kind = (ModifierKind)token.jmlclausekind;
+            a.token = token;
         }
         return a;
      }

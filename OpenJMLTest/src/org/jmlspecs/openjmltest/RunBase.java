@@ -32,7 +32,7 @@ public abstract class RunBase extends JmlTestSuite {
             try {
                 int exitCode = process.waitFor();
                 //System.out.println("EXIT: " + exitCode);
-                if (exitCode != 0) Assert.fail("Test case emitted a failure exit code: " + exitCode);
+                Assert.assertEquals("Test case emitted a failure exit code:", 0, exitCode);
             } catch (Throwable e) {
                 Assert.fail("Test " + workingDir + " threw exception " + e);
             }

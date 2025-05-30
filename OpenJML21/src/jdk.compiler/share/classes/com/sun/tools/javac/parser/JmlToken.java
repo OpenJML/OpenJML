@@ -39,7 +39,7 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
     /** The source file containing the token */
     public JavaFileObject source;
     
-    /** a necessary override, but just returns null */
+    /** a necessary override from interface DiagnosticPosition, but not used and just returns null */
     @Override
     public JCTree getTree() { return null; }
     
@@ -55,20 +55,13 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
     @Override
     public int getEndPosition(com.sun.tools.javac.tree.EndPosTable t) { return endPos; }
 
-    /** Creates a JmlToken object
+    /** Creates a JmlToken object, beginning a tpos and of length endPos-pos.
       */
     public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos) {
         this(jmlclausekind, null, pos, endPos, null);
     }
 
-    public JmlToken(IJmlClauseKind jmlclausekind, int pos, int endPos, List<Comment> comments) {
-        this(jmlclausekind, null, pos, endPos, comments);
-    }
-
-    public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos) {
-        this(jmlclausekind, source, pos, endPos, null);
-    }
-
+    /** Makes a JmlToken; source and comments may be null; endPos is one beyond the end of the token string. */
     public JmlToken(IJmlClauseKind jmlclausekind, JavaFileObject source, int pos, int endPos, List<Comment> comments) {
         super(TokenKind.CUSTOM, pos, endPos, comments);
         this.jmlclausekind = jmlclausekind;
@@ -103,7 +96,7 @@ public class JmlToken extends Token implements JCDiagnostic.DiagnosticPosition {
     
     @Override
     public String toString() {
-        return (jmlclausekind != null ? jmlclausekind.keyword : "?");
+        return (jmlclausekind != null ? jmlclausekind.keyword : "?"); // The false branch should never execute (internal bug if it does).
     }
 
     @Override

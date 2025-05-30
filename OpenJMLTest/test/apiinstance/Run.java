@@ -14,8 +14,12 @@ public class Run {
      ex = api.execute("--esc", "B.java");
      System.out.println("EXIT: " + ex);
      api = IAPI.make(null, null, null);
-     ex = api.execute("--esc", "B.java");
+     ex = api.execute("--check", null, "C.java"); // Includes a test that null arguments are ignored
      System.out.println("EXIT: " + ex);
+     ex = api.execute("--check", "", "C.java"); // Includes a test of an empty argument
+     System.out.println("EXIT: " + ex);
+     ex = IAPI.openjml("\"--check\"", "C.java"); // Includes a test of a quoted argument
+     System.out.println("EXIT: " + ex + " " + (ex == org.jmlspecs.openjml.Main.Result.OK.exitCode));
    } finally {
      pw.flush();
    }

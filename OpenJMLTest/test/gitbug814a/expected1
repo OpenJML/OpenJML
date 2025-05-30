@@ -1,0 +1,34 @@
+Proving methods in BinaryTree
+Proving methods in BinaryTree.Node
+Skipping proof of BinaryTree.Node.Node() (Skipping BinaryTree.Node.Node because it does not match BinaryTree.Node.size)
+Starting proof of BinaryTree.Node.size(BinaryTree.Node) with prover !!!!
+test/gitbug814a/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: underflow in int sum
+            return(size(n.left)+1+size(n.right));
+                                 ^
+test/gitbug814a/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+            return(size(n.left)+1+size(n.right));
+                                 ^
+test/gitbug814a/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+            return(size(n.left)+1+size(n.right));
+                               ^
+Completed proof of BinaryTree.Node.size(BinaryTree.Node) with prover !!!! - with warnings
+Skipping proof of BinaryTree.Node.ks(BinaryTree.Node) (Skipping BinaryTree.Node.ks because it does not match BinaryTree.Node.size)
+Completed proving methods in BinaryTree.Node
+Skipping proof of BinaryTree.keySet() (Skipping BinaryTree.keySet because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.BinaryTree() (Skipping BinaryTree.BinaryTree because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.BinaryTree(int) (Skipping BinaryTree.BinaryTree because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.BinaryTree(@NonNull BinaryTree,@NonNull BinaryTree,int) (Skipping BinaryTree.BinaryTree because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.allNullAtOrPred(BinaryTree.Node,int) (Skipping BinaryTree.allNullAtOrPred because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.allNullAtNearlySameLevel() (Skipping BinaryTree.allNullAtNearlySameLevel because it does not match BinaryTree.Node.size)
+Proving methods in BinaryTree.Interval
+Skipping proof of BinaryTree.Interval.Interval(int,int) (Skipping BinaryTree.Interval.Interval because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.Interval.size() (Skipping BinaryTree.Interval.size because it does not match BinaryTree.Node.size)
+Completed proving methods in BinaryTree.Interval
+Skipping proof of BinaryTree.depthOfNull(BinaryTree.Node) (Skipping BinaryTree.depthOfNull because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.size() (Skipping BinaryTree.size because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.toArray() (Skipping BinaryTree.toArray because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match BinaryTree.Node.size)
+Skipping proof of BinaryTree.btw(BinaryTree.Node,int,int) (Skipping BinaryTree.btw because it does not match BinaryTree.Node.size)
+Completed proving methods in BinaryTree
+3 warnings

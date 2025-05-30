@@ -13,3 +13,14 @@ echo Test2a
 $OJA -jml --esc B.java
 echo Test2b
 $OJA -no-jml --esc B.java
+
+echo Test3a
+$OJA -java -verbose C.java
+echo Test3b
+$OJA --check -verbose C.java
+
+echo Test4a
+$OJA --check C.jml B.java
+
+echo Test4b
+$OJA --check D.jml B.java

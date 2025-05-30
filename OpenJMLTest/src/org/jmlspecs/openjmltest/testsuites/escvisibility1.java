@@ -515,14 +515,14 @@ public class escvisibility1 extends EscBase {
                        "static private class P { static private int p; }\n" +
                        "static private class Q { static public int q = A.P.p ; }}\n" +  // OK
                        "class AA { static int x = A.P.p + A.Q.q; }\n" //No tt.A.P, tt.A.Q
-                ,"/tt/B.java:2: tt.A.P has private access in tt.A",13
-                ,"/tt/B.java:2: tt.A.P has private access in tt.A",13
-                ,"/tt/B.java:2: tt.A.Q has private access in tt.A",22
-                ,"/tt/B.java:2: tt.A.Q has private access in tt.A",22
-                ,"/tt/A.java:5: tt.A.P has private access in tt.A",28
-                ,"/tt/A.java:5: tt.A.P has private access in tt.A",28
-                ,"/tt/A.java:5: tt.A.Q has private access in tt.A",36
-                ,"/tt/A.java:5: tt.A.Q has private access in tt.A",36
+                ,"/tt/B.java:2: error: tt.A.P has private access in tt.A",13
+                ,"/tt/B.java:2: error: tt.A.P has private access in tt.A",13
+                ,"/tt/B.java:2: error: tt.A.Q has private access in tt.A",22
+                ,"/tt/B.java:2: error: tt.A.Q has private access in tt.A",22
+                ,"/tt/A.java:5: error: tt.A.P has private access in tt.A",28
+                ,"/tt/A.java:5: error: tt.A.P has private access in tt.A",28
+                ,"/tt/A.java:5: error: tt.A.Q has private access in tt.A",36
+                ,"/tt/A.java:5: error: tt.A.Q has private access in tt.A",36
                 );
     }
     
@@ -534,11 +534,11 @@ public class escvisibility1 extends EscBase {
                        "static protected class P { static private int p; }\n" +
                        "static protected class Q { static public int q = A.P.p ; }}\n" +  // OK
                        "class AA { static int x = A.P.p + A.Q.q; }\n" // q OK - same package
-                ,"/tt/B.java:2: tt.A.P has protected access in tt.A",13
-                ,"/tt/B.java:2: tt.A.P has protected access in tt.A",13
-                ,"/tt/B.java:2: tt.A.Q has protected access in tt.A",25
-                ,"/tt/B.java:2: tt.A.Q has protected access in tt.A",25
-                ,"/tt/A.java:5: p has private access in tt.A.P",30
+                ,"/tt/B.java:2: error: tt.A.P has protected access in tt.A",13
+                ,"/tt/B.java:2: error: tt.A.P has protected access in tt.A",13
+                ,"/tt/B.java:2: error: tt.A.Q has protected access in tt.A",25
+                ,"/tt/B.java:2: error: tt.A.Q has protected access in tt.A",25
+                ,"/tt/A.java:5: error: p has private access in tt.A.P",30
                 );
     }
     

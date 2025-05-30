@@ -1,10 +1,10 @@
 
-import org.jmlspecs.annotation.Nullable; // FIXME - should be able to get rid of this
+//import org.jmlspecs.annotation.Nullable; // FIXME - should be able to get rid of this
 public final class StorageParameters 
 {
 	public long[] configurationSizes;
 	
-	public StorageParameters(/*@ nullable */ long[] sizes) {  // FIXME - should be able to get rid of nullable
+	public StorageParameters(long [] sizes) {
 		this.configurationSizes = sizes;
 	}
 	

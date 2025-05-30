@@ -59,8 +59,8 @@ public class racfileslist extends RacBase {
                     allfiles.add(f.getName());
                 }
             }
-            for (var f: dir.list((f,s)->s.startsWith("rac"))) {
-                allfiles.add(f);
+            for (var f: dir.listFiles((f,s)->s.startsWith("rac"))) {
+                if (!new java.io.File(f, "skip").exists()) allfiles.add(f.getName());
             }
             for (var suite: testsuites) {
                 var racfiles = Class.forName(suite);

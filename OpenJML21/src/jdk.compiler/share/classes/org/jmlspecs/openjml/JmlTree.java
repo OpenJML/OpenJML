@@ -348,7 +348,7 @@ public class JmlTree {
                 List<JCExpression> implementing,
                 List<JCExpression> permitting,
                 List<JCTree> defs) {
-            JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,defs,null);
+            JmlClassDecl tree = new JmlClassDecl(mods,name,typarams,extending,implementing,permitting,defs,null);
             tree.pos = pos;
             tree.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             // In the normal course of things, context is never null, but there is a circular dependency of
@@ -1305,9 +1305,9 @@ public class JmlTree {
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCExpression extending,
-                List<JCExpression> implementing, List<JCTree> defs,
+                List<JCExpression> implementing, List<JCExpression> permitting, List<JCTree> defs,
                 ClassSymbol sym) {
-            super(mods, name, typarams, extending, implementing, List.<JCExpression>nil(), defs, sym);
+            super(mods, name, typarams, extending, implementing, permitting, defs, sym);
             specsDecl = null;
             typeSpecs = null;
         }
@@ -2326,7 +2326,7 @@ public class JmlTree {
         public String keyword; // May be a synonym of the canonical keyword
         public Name name;
         public IJmlClauseKind clauseKind;
-        public JavaFileObject sourcefile;  // FIXME - don't think this belongs here
+        public JavaFileObject sourcefile;
         public JavaFileObject source() { return sourcefile; }
         public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
         protected JmlMethodClause(int pos, String keyword, IJmlClauseKind clauseKind) {
@@ -4415,6 +4415,7 @@ public class JmlTree {
 
     public static class JmlAnnotation extends JCAnnotation {
     	public ModifierKind kind;
+    	public JmlToken token; // the source token, if this annotation was created from a modifier; otherwise null
         public JmlAnnotation(Tag tag, JCTree annotationType, List<JCExpression> args) {
             super(tag,annotationType,args);
             kind = null;

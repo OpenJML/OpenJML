@@ -1,56 +1,100 @@
 {
-  "class": "$JmlCompilationUnit",
-  "sourcefile": "decl1/Test.java",
+  "class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "sourcefile": {
+    "class": "javax.tools.JavaFileObject",
+    "primitive": "decl1/Test.java"
+  },
+  "pid": null,
   "defs": [
     {
-      "class": "$JmlImport",
+      "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
-        "class": "$JCFieldAccess",
-        "type": "null",
+        "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "type": null,
         "selected": {
-          "class": "$JCFieldAccess",
-          "type": "null",
+          "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "type": null,
           "selected": {
-            "class": "$JCFieldAccess",
-            "type": "null",
+            "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "type": null,
             "selected": {
-              "class": "$JCIdent",
-              "type": "null",
-              "name": "org"
+              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "type": null,
+              "name": {
+                "class": "com.sun.tools.javac.util.Name",
+                "primitive": "org"
+              }
             },
-            "name": "jmlspecs"
+            "name": {
+              "class": "com.sun.tools.javac.util.Name",
+              "primitive": "jmlspecs"
+            }
           },
-          "name": "lang"
+          "name": {
+            "class": "com.sun.tools.javac.util.Name",
+            "primitive": "lang"
+          }
         },
-        "name": "*"
+        "name": {
+          "class": "com.sun.tools.javac.util.Name",
+          "primitive": "*"
+        }
       },
-      "staticImport": false,
-      "isModel": true
+      "staticImport": {
+        "class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "class": "boolean",
+        "primitive": "true"
+      }
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "sourcefile": {
+        "class": "javax.tools.JavaFileObject",
+        "primitive": "decl1/Test.java"
+      },
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
         "annotations": [],
-        "flags": "public",
+        "flags": {
+          "class": "long",
+          "primitive": "1"
+        },
         "jmlmods": []
       },
-      "name": "Test",
+      "name": {
+        "class": "com.sun.tools.javac.util.Name",
+        "primitive": "Test"
+      },
       "typarams": [],
+      "extending": null,
       "implementing": [],
       "permitting": [],
       "defs": []
     },
     {
-      "class": "$JmlClassDecl",
+      "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "sourcefile": {
+        "class": "javax.tools.JavaFileObject",
+        "primitive": "decl1/Test.java"
+      },
       "mods": {
-        "class": "$JmlModifiers",
+        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
         "annotations": [],
-        "flags": "interface",
+        "flags": {
+          "class": "long",
+          "primitive": "512"
+        },
         "jmlmods": []
       },
-      "name": "B",
+      "name": {
+        "class": "com.sun.tools.javac.util.Name",
+        "primitive": "B"
+      },
       "typarams": [],
+      "extending": null,
       "implementing": [],
       "permitting": [],
       "defs": []

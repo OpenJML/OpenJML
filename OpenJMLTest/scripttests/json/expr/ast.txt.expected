@@ -56,11 +56,27 @@ JmlCompilationUnit
       JCIdent: x1
       JCIdent: x2
     JmlVariableDecl: x4
-      JCFieldAccess: abs java.lang.Math.abs
-        JCFieldAccess: Math java.lang.Math
+      JCMethodInvocation
+        JCFieldAccess: abs java.lang.Math.abs
+          JCFieldAccess: Math java.lang.Math
+            JCFieldAccess: lang java.lang
+              JCIdent: java
+        JCIdent: x3
+    JmlVariableDecl: o
+      JCIdent: Object
+      JCTypeCast
+        JCFieldAccess: String java.lang.String
           JCFieldAccess: lang java.lang
             JCIdent: java
-      JCIdent: x3
+        JCMethodInvocation
+          JCFieldAccess: toString ((Integer)x1).toString
+            JCTypeCast
+              JCIdent: Integer
+              JCIdent: x1
+    JmlVariableDecl: b
+      JCInstanceOf
+        JCIdent: o
+        JCIdent: String
 
 JmlCompilationUnit
   JmlImport model

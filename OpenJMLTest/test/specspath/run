@@ -43,24 +43,31 @@ $OJA --esc AB.java --source-path bxsrc  >> actual 2>&1
 
 
 
-## Referenced binary class with .class and .java and .jml  FAILS
+## Referenced binary class with .class and .java and .jml
 echo Test C1 -- should use ccspecs/C.jml >> actual 2>&1
 $OJA --esc AC.java -cp srct --specs-path=ccspecs >> actual 2>&1
-## Referenced binary class with .class and .java   FAILS
-echo Test C2 -- should use srct/C.java and successfully verify >> actual 2>&1
+## Referenced binary class with .class and .java
+echo Test C2 -- should find no specs for C and successfully verify C >> actual 2>&1
 $OJA --esc AC.java -cp srct --specs-path=specsempty >> actual 2>&1
+## Referenced binary class with .class and .java
+echo Test C3 -- should use srct/C.java and successfully verify >> actual 2>&1
+$OJA --esc AC.java -cp srct  >> actual 2>&1
 ## Referenced binary class with only a .class file
-echo Test C3 -- should have a assignable verification failure >> actual 2>&1
+echo Test C4 -- should have a assignable verification failure >> actual 2>&1
 $OJA --esc AC.java -cp srctt --specs-path=specsempty >> actual 2>&1
 
 ## Referenced binary class with .class and .java and .jml
 echo Test Z1 uses ccspecs/z/C.jml >> actual 2>&1
 $OJA --esc AZC.java -cp srcz --specs-path=ccspecs >> actual 2>&1
-## Referenced binary class with .class and .java    FAILS
-echo Test Z2 -- should use srcz/z/C.java, and successfully verify >> actual 2>&1
+## Referenced binary class with .class and .java
+echo Test Z2 -- should find no specs and successfully verify C >> actual 2>&1
+$OJA --esc AZC.java -cp srcz --specs-path=specsempty >> actual 2>&1
+## Referenced binary class with .class and .java
+echo Test Z3 -- should use srcz/z/C.java, and successfully verify C >> actual 2>&1
 $OJA --esc AZC.java -cp srcz --specs-path=specsempty >> actual 2>&1
 ## Referenced binary class with only a .class file
-echo Test Z3 -- should have an assignable problem >> actual 2>&1
+echo Test Z4 -- should have an assignable problem >> actual 2>&1
 $OJA --esc AZC.java -cp srczz --specs-path=specsempty >> actual 2>&1
 
-diff expected actual && rm -rf actual
+LOC=`(cd ../../../..; pwd)`
+sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual

@@ -116,7 +116,7 @@ public class JmlParser extends JavacParser {
         if (!(F instanceof JmlTree.Maker)) {
             utils.error("jml.internal",
                     "F expected to be a JmlTree.Maker in JmlParser");
-            throw new JmlInternalError(
+            throw new JmlInternalException(
                     "Expected a JmlTree.Maker for a JmlParser");
         }
         this.S = S;
@@ -287,7 +287,10 @@ public class JmlParser extends JavacParser {
     		}
     	} catch (Exception e) {
            	var S = getScanner();
-           	utils.unexpectedException(e, "Exception during parsing near " + S.tokenizer.getRawString(S.tokenizer.position()-10, S.tokenizer.position()+50));
+           	int len = S.tokenizer.length();
+           	int end = S.tokenizer.position()+50;
+           	if (end > len) end = len;
+           	utils.unexpectedException(e, "Exception during parsing near " + S.tokenizer.getRawString(S.tokenizer.position()-10, end));
         }
         return u; // Might be null if an error happens, though prefer a partial tree
     }
@@ -316,13 +319,19 @@ public class JmlParser extends JavacParser {
         int pp = Position.NOPOS;
         boolean modelImport = false;
         for (var t: mods.jmlmods) {
-            if (t.jmlclausekind == Modifiers.MODEL) { modelImport = true; break; }
-            else utils.error(t.pos, t.endPos, "jml.no.mods.on.import");
+            if (t.jmlclausekind == Modifiers.MODEL) {
+                modelImport = true; break;
+            } else {
+                utils.error(t.pos, t.endPos, "jml.no.mods.on.import");
+            }
         }
         if (!modelImport) for (var t: mods.annotations) {
         	if (t instanceof JmlAnnotation ta) {
-                if (ta.kind == Modifiers.MODEL) { modelImport = true; pp = ta.pos; break; }
-                else utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME endpos
+                if (ta.kind == Modifiers.MODEL) {
+                    modelImport = true; pp = ta.pos; break;
+                } else {
+                    utils.error(ta.pos, endPos(), "jml.no.mods.on.import"); // FIXME endpos
+                }
             }
         }
         boolean importIsInJml = S.jml();
@@ -374,6 +383,16 @@ public class JmlParser extends JavacParser {
         mods.annotations = otherAnnotations.toList();
         return typeAnnotations.toList();
     }
+    
+    JCExpression mostInnerType(JCExpression type) {
+        if (type instanceof JCArrayTypeTree atype) {
+            return mostInnerType(atype.elemtype);
+        } else if (type instanceof JCAnnotatedType antype) {
+            return mostInnerType(antype.getUnderlyingType());
+        } else {
+            return type;
+        }
+    }
 
     /** OpenJML overrides in order to parse and insert replacement types for formal parameters */
     @Override
@@ -382,9 +401,13 @@ public class JmlParser extends JavacParser {
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
         insertReplacementType(param,replacementType);
+        //if (param.name.toString().equals("sizes")) System.out.println("FORMAL " + param);
         param.vartype = normalizeAnnotations((JmlModifiers)param.mods, param.vartype);
+        //if (param.name.toString().equals("sizes")) System.out.println("  VARTYPE-A " + param.vartype);
         var typeAnnotations = extractTypeAnnotations(param.mods);
+        //if (param.name.toString().equals("sizes")) System.out.println("  TYPEANNO " + typeAnnotations);
         param.vartype = insertAnnotationsToMostInner(param.vartype, typeAnnotations, false);
+        //if (param.name.toString().equals("sizes")) System.out.println("  VARTYPE-B " + param.vartype);
         if (n != Log.instance(context).nerrors) {
         	skipToCommaOrParenOrSemi();
         	return param;
@@ -410,62 +433,109 @@ public class JmlParser extends JavacParser {
     // new object, new array, nested types?
     
     protected JCExpression normalizeAnnotations(JCModifiers modifiers, JCExpression vartype) {
+        //System.out.println("NORMALIZE-! " + modifiers + " :: " + vartype);
         if (!(modifiers instanceof JmlModifiers mods)) return vartype;
+        
+        var nonTAModifiers = new java.util.LinkedList<JmlToken>();
+        var nonTAAnnotations = new ListBuffer<JCAnnotation>();
+        var taAnnotations = new ListBuffer<JCAnnotation>();
         for (JmlToken mod: mods.jmlmods) {
-            vartype = normalizeAnnotation(mod, vartype, mods);
+            var ck = (ModifierKind)mod.jmlclausekind;
+            if (ck.isTypeAnnotation()) {
+                JmlAnnotation a = JmlTreeUtils.instance(context).makeAnnotation(mod, this);
+                if (a != null) {
+                    taAnnotations.add(a);
+                } else {
+                    // FIXME - how can this be
+                }
+            } else {
+                nonTAModifiers.add(mod);
+            }
+        }
+        if (vartype != null) for (JCAnnotation a: mods.annotations) {
+            if (a instanceof JmlAnnotation jann) {
+                if (jann.kind != null) {
+                    if (jann.kind.isTypeAnnotation()) {
+                        taAnnotations.add(a);
+                    } else {
+                        nonTAAnnotations.add(a);
+                    }
+                } else {
+                    String s = jann.annotationType.toString();
+                    if (s.endsWith("NonNull") || s.endsWith("Nullable")) {
+                        taAnnotations.add(a);                        
+                    } else {
+                        nonTAAnnotations.add(a);
+                    }
+                }
+            } else {
+                // FIXME - his should never happen
+                nonTAAnnotations.add(a);
+            }
+        }
+        if (!taAnnotations.isEmpty()) {
+            mods.jmlmods = nonTAModifiers;
+            if (vartype == null) {
+                mods.annotations = mods.annotations.appendList(taAnnotations.toList());
+            } else {
+                vartype = makeAnnotated(vartype, taAnnotations.toList());
+            }
         }
         return vartype;
     }
     
-    protected JCExpression normalizeAnnotation(JmlToken mod, JCExpression vartype, JmlModifiers mods) {
-        var ck = (ModifierKind)mod.jmlclausekind;
-        x: if (ck.isTypeAnnotation()) {
-            JmlAnnotation a = JmlTreeUtils.instance(context).makeAnnotation(mod, this);
-
-            if (a == null) break x;
-
-            // FIXME: methodDeclarationRest and variableDeclaratorRest can be called more than once with the same modifiers
-            // resulting in duplicate annotations from the same modifier
-            if (mods != null) for (var aa: mods.annotations) {
-                if (aa instanceof JmlAnnotation jaa && jaa.kind == ck && jaa.pos == mod.pos) {
-                    //utils.warning(mod.pos, mod.endPos, "jml.message", "duplicating a modifier as an annotation: " + ck); Utils.dumpStack();
-                    break x;
-                }
-            }
-            {
-                if (vartype == null) {
-                    mods.annotations = mods.annotations.append(a);
-                } else if (vartype instanceof JCAnnotatedType anntype) {
-                    vartype = normalizeAnnotation(mod, anntype.underlyingType, null);
-                    if (vartype instanceof JCAnnotatedType avt) {
-                        avt.annotations = anntype.annotations.appendList(avt.annotations);
-                    }
-                } else if (vartype instanceof JCIdent id) {
-                    if (Extensions.findKeyword(id.toString()) != null) {
-                        utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + vartype);
-                        // Do not add the annotation -  not permitted on a primitive type
-                    } else {
-                        vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
-                    }
-                } else if (vartype instanceof JCFieldAccess fa) {
-                    vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
-                } else if (vartype instanceof JCArrayTypeTree fa) {
-                    fa.elemtype = normalizeAnnotation(mod, fa.elemtype, mods);
-                } else if (vartype instanceof JCTypeApply fa) {
-                    fa.clazz = normalizeAnnotation(mod, fa.clazz, null);
-                } else if (vartype instanceof JCPrimitiveTypeTree fa) {
-                    utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + fa);
-                    // Do not add the annotation -  not permitted on a primitive type
-                } else {
-                    utils.error(mod.pos, "jml.internal", "Unknown type syntax: " + vartype.getClass() + " " + vartype);
-                }
-//            } else {
-//                //utils.warning(mod.pos, mod.endPos, "jml.message", "inserting a modifier as an annotation: " + ck); Utils.dumpStack();
-//                mods.annotations = mods.annotations.append(a);
-            }
-        }
-        return vartype;
-    }
+//    protected JCExpression normalizeAnnotation(JmlToken mod, JCExpression vartype, JmlModifiers mods) {
+//        var innermostType = mostInnerType(vartype);
+//
+//        var ck = (ModifierKind)mod.jmlclausekind;
+//        x: if (ck.isTypeAnnotation()) {
+//            //System.out.println("NORMALIZING " + vartype + " :: " + mod + " ;; " + mods + " :: " + ck);
+//            JmlAnnotation a = JmlTreeUtils.instance(context).makeAnnotation(mod, this);
+//
+//            if (a == null) break x;
+//
+//            // FIXME: methodDeclarationRest and variableDeclaratorRest can be called more than once with the same modifiers
+//            // resulting in duplicate annotations from the same modifier
+//            if (mods != null) for (var aa: mods.annotations) {
+//                if (aa instanceof JmlAnnotation jaa && jaa.kind == ck && jaa.pos == mod.pos) {
+//                    //utils.warning(mod.pos, mod.endPos, "jml.message", "duplicating a modifier as an annotation: " + ck); Utils.dumpStack();
+//                    break x;
+//                }
+//            }
+//            {
+//                if (vartype == null) { // var declaration
+//                    mods.annotations = mods.annotations.append(a);
+//                } else if (vartype instanceof JCAnnotatedType anntype) {
+//                    vartype = normalizeAnnotation(mod, anntype.underlyingType, null);
+//                    if (vartype instanceof JCAnnotatedType avt) {
+//                        avt.annotations = anntype.annotations.appendList(avt.annotations);
+//                    }
+//                } else if (vartype instanceof JCIdent id) {
+//                    if (Extensions.findKeyword(id.toString()) != null) {
+//                        utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + vartype);
+//                        // Do not add the annotation -  not permitted on a primitive type
+//                    } else {
+//                        vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
+//                    }
+//                } else if (vartype instanceof JCFieldAccess fa) {
+//                    vartype = jmlF.at(vartype.pos).AnnotatedType(List.<JCAnnotation>of(a), vartype);
+//                } else if (vartype instanceof JCArrayTypeTree fa) {
+//                    fa.elemtype = normalizeAnnotation(mod, fa.elemtype, mods);
+//                } else if (vartype instanceof JCTypeApply fa) {
+//                    fa.clazz = normalizeAnnotation(mod, fa.clazz, null);
+//                } else if (innermostType instanceof JCPrimitiveTypeTree fa) {
+//                    utils.error(mod.pos, "jml.message", "the type modifier/annotation (" + mod + ") is not permitted on a primitive type: " + fa);
+//                    // Do not add the annotation -  not permitted on a primitive type
+//                } else {
+//                    utils.error(mod.pos, "jml.internal", "Unknown type syntax: " + vartype.getClass() + " " + vartype);
+//                }
+////            } else {
+////                //utils.warning(mod.pos, mod.endPos, "jml.message", "inserting a modifier as an annotation: " + ck); Utils.dumpStack();
+////                mods.annotations = mods.annotations.append(a);
+//            }
+//        }
+//        return vartype;
+//    }
 
     /** Overridden to increase visibility */
     @Override
@@ -473,11 +543,86 @@ public class JmlParser extends JavacParser {
         return super.formalParameters();
     }
     
-    protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type)  {
-        if (type instanceof JCTree.JCArrayTypeTree) {
-            mods.annotations = List.<JCAnnotation>nil(); // FIXME - should just remove JML type annotations
+    private JCExpression makeAnnotated(JCExpression type, List<JCAnnotation> annotations) {
+        // FIXME - streamline this -- and what if the AnnotatedType wraps an ArrayType
+        // And not all annotations are type annotations
+        if (annotations.isEmpty()) return type;
+        if (type instanceof JCArrayTypeTree atype) {
+            JCExpression nelem;
+            if (atype.elemtype instanceof JCArrayTypeTree aatype) {
+                nelem = makeAnnotated(aatype, annotations);
+                return jmlF.at(aatype.pos).TypeArray(nelem);
+            } else if (atype.elemtype instanceof JCAnnotatedType antype) {
+                antype.annotations = antype.annotations.appendList(annotations);
+                return atype;
+            } else if (atype.elemtype instanceof JCPrimitiveTypeTree || atype.elemtype.toString().startsWith("\\")) {
+                for (var an: annotations) {
+                    // Is it a type annotation? We only have an AST, no type resolution
+                    if (an instanceof JmlAnnotation jann && jann.kind != null && jann.kind.isTypeAnnotation())
+                        utils.error(an.pos, "jml.message", "the type modifier/annotation is not permitted on a primitive type: " + atype.elemtype);
+                }
+                return atype;
+            } else {
+                nelem = makeAnnotated(atype.elemtype, annotations);
+                nelem = jmlF.at(atype.elemtype).AnnotatedType(annotations, atype.elemtype);
+                return jmlF.at(nelem.pos).TypeArray(nelem);
+            }
+        } else if (type instanceof JCPrimitiveTypeTree || type.toString().startsWith("\\")) {
+            for (var an: annotations) {
+              // Is it a type annotation? We only have an AST, no type resolution
+                if (an instanceof JmlAnnotation jann && jann.kind != null && jann.kind.isTypeAnnotation())
+                    utils.error(an.pos, "jml.message", "the type modifier/annotation is not permitted on a primitive type: " + type);
+            }
+        return type;
+        } else {
+            return jmlF.at(type).AnnotatedType(annotations, type);
         }
+    }
+    
+    protected List<JCStatement> localVariableDeclarations(JCModifiers mods, JCExpression type)  {
+        //if (type instanceof JCTree.JCArrayTypeTree atype) {
+            // Need to move type annotations to the type
+            JCTree elemType = TreeInfo.innermostType(type, true);
+            //
+            
+            //System.out.println("BEFORE " + mods + " :: " + type + "  :: " + elemType);
+            //type = normalizeAnnotations(mods, atype);
+            var newAnnotations = new ListBuffer<JCAnnotation>();
+            var typeAnnotations = new ListBuffer<JCAnnotation>();
+            for (JCAnnotation ann: mods.annotations) {
+                String n = ann.annotationType.toString();
+                // FIXME - is there a better way to test this?
+                // FIXME - what aobut JML modifiers
+                //System.out.println("ANN " + ann + " :: " + n + " :: " + ann.getTag());
+                if (ann.getTag() == Tag.TYPE_ANNOTATION) {
+                    typeAnnotations.add(ann);
+                } else if (n.endsWith("NonNull") || n.endsWith("Nullable")) {
+                    // FIXME - should we turn this into a TypeAnnotation
+                    typeAnnotations.add(ann);
+                } else {
+                    newAnnotations.add(ann);
+                }
+                removeTypeAnnotationModifiers((JmlModifiers)mods);
+            }
+            if (!typeAnnotations.isEmpty()) {
+                type = makeAnnotated(type, typeAnnotations.toList());
+                mods.annotations = newAnnotations.toList();
+            }
+            //System.out.println("AFTER " + mods + " :: " + type);
+        //}
         return super.localVariableDeclarations(mods, type);
+    }
+    
+    void removeTypeAnnotationModifiers(JmlModifiers jmods) {
+        var newlist = new ListBuffer<JmlToken>();
+        for (JmlToken token: jmods.jmlmods) {
+            if (token.jmlclausekind instanceof IJmlClauseKind.TypeAnnotationKind) {
+                // skip
+            } else {
+                newlist.add(token);
+            }
+        }
+        jmods.jmlmods = newlist.toList();
     }
     
     /**
@@ -538,9 +683,9 @@ public class JmlParser extends JavacParser {
                     }
                 } else if (token.kind == IMPORT) {
 //                	pushBackModifiers = mods;
-                	importDeclaration((JmlModifiers)mods);
-                	mods = null;
-                	utils.warning(p, pos(), "jml.message", "misplaced model import");
+                    importDeclaration((JmlModifiers)mods);
+                    mods = null;
+                    utils.warning(p, pos(), "jml.message", "misplaced model import");
                     setErrorEndPos(endPos());
                     //s = jmlF.at(p).Exec(jmlF.at(p).Erroneous());
                     continue;
@@ -558,8 +703,15 @@ public class JmlParser extends JavacParser {
                     continue; // ignore token and try again
                 }
             }
-            if (s instanceof JCClassDecl && (((JCClassDecl)s).mods.flags & Flags.ENUM) != 0) {
-                addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
+            if (s instanceof JCClassDecl cl) {
+                if (cl.mods == null) {
+                    // FIXME - should cl.mods ever be null?
+                    cl.mods = jmlF.at(Position.NOPOS).Modifiers(0);
+                    storeEnd(cl.mods, Position.NOPOS);
+                }
+                if ((cl.mods.flags & Flags.ENUM) != 0) {
+                    addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
+                }
             }
             while (isEndJml()) {
                 nextToken();

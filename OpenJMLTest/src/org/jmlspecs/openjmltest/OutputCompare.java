@@ -91,12 +91,12 @@ public class OutputCompare {
 
     
     /** Compares actual diagnostics against the given list of expected results */
-    public void compareResults(Object[] list, DiagnosticListenerX<JavaFileObject> collectorp) {
+    public void compareResults(Object[] expectedErrors, DiagnosticListenerX<JavaFileObject> collectorp) {
         collector = collectorp;
         failureLocation = -1;
         failureString = null;
         diagListPos = 0;
-        if (!compareResults(list)) {
+        if (!compareResults(expectedErrors)) {
             if (collector.getDiagnostics().size() <= failureLocation) {
                 Assert.fail("Too little actual output: " + collector.getDiagnostics().size() + " diagnostics");
             } else {
@@ -119,46 +119,46 @@ public class OutputCompare {
      * or the value of j advanced over all matching items. If optional is false,
      * then error messages are printed if no match is found.
      */
-    protected boolean compareResults(Object list) {
-        return compareResults(new Object[]{list});
+    protected boolean compareResults(Object expectedErrors) {
+        return compareResults(new Object[]{expectedErrors});
     }
     
-    protected boolean compareResults(Object[] list) {
+    protected boolean compareResults(Object[] expectedErrors) {
         int i = 0;
         int initPos = diagListPos;
-        while (i < list.length) {
-            if (list[i] == null) { i+=2; continue; }
-            if (!(list[i] instanceof Special)) {
-                if (comparePair(list,i,diagListPos,false)) {
+        while (i < expectedErrors.length) {
+            if (expectedErrors[i] == null) { i+=2; continue; }
+            if (!(expectedErrors[i] instanceof Special)) {
+                if (comparePair(expectedErrors,i,diagListPos,false)) {
                     diagListPos ++;
                     i += 2;
                 } else {
                     diagListPos = initPos;
                     return false;
                 }
-            } else if (list[i] instanceof AnyOrder) {
-                if (compareAnyOrder(((AnyOrder)list[i]).list)) {
+            } else if (expectedErrors[i] instanceof AnyOrder) {
+                if (compareAnyOrder(((AnyOrder)expectedErrors[i]).list)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
                     return false;
                 }
-            } else if (list[i] instanceof OneOf) {
-                if (compareOneOf(((OneOf)list[i]).list)) {
+            } else if (expectedErrors[i] instanceof OneOf) {
+                if (compareOneOf(((OneOf)expectedErrors[i]).list)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
                     return false;
                 }
-            } else if (list[i] instanceof Optional) {
+            } else if (expectedErrors[i] instanceof Optional) {
                 int initPos2 = diagListPos;
-                if (!compareResults(((Optional)list[i]).list)) {
+                if (!compareResults(((Optional)expectedErrors[i]).list)) {
                     diagListPos = initPos2;
                 }
                 ++i;
                 // It is OK if the optional did not match
-            } else if (list[i] instanceof Seq) {
-                if (compareResults(((Seq)list[i]).list)) {
+            } else if (expectedErrors[i] instanceof Seq) {
+                if (compareResults(((Seq)expectedErrors[i]).list)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
@@ -186,13 +186,17 @@ public class OutputCompare {
             failureLocation = j;
             failureString = list[i].toString();
             failureCol = -1;
-            if (issueErrors) assertEquals("Error " + j, list[i], JmlTestSuite.noSource(collector.getDiagnostics().get(j)));
+            if (issueErrors) {
+                assertEquals("Error " + j, list[i], JmlTestSuite.noSource(collector.getDiagnostics().get(j)));
+            }
             return false;
         } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
             failureLocation = j;
             failureString = null;
             failureCol = col;
-            if (issueErrors) assertEquals("Error " + j, col, actualColumn);
+            if (issueErrors) {
+                assertEquals("Error " + j, col, actualColumn);
+            }
             return false;
         } else {
             return true;

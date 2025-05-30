@@ -32,5 +32,9 @@ test/escchoose/T.java:26: warning: The prover cannot establish an assertion (Cho
     //@ assert (\choose int x; x < 0; x > 0) == 0; // Not well-defined
                 ^
 Completed proof of T.bad2() with prover !!!! - with warnings
+Starting proof of T.mok() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.mok() with prover !!!! - no warnings
 Completed proving methods in T
 5 warnings

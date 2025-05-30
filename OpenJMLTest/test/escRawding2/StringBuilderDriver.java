@@ -484,7 +484,7 @@ public class StringBuilderDriver {
     private static void testInsertIndexCharArray() { //40
         StringBuilder sb = new StringBuilder("Test String");
         char[] charArray = {'t', 'e', 's', 't'};
-        /*@ nullable @*/ char[] nullCharArray = null;
+        char /*@ nullable @*/ [] nullCharArray = null;
         
         sb.insert(0, charArray, 0, 3);
         sb.insert(0, charArray, 0, 0);
@@ -582,7 +582,7 @@ public class StringBuilderDriver {
     private static void testInsertCharArray() { //43
         StringBuilder sb = new StringBuilder("Test String");
         char[] charArray = {'t', 'e', 's', 't'};
-        /*@ nullable @*/ char[] nullCharArray = null;
+        char /*@ nullable @*/ [] nullCharArray = null;
         
         
         sb.insert(0, charArray);

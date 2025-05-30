@@ -23,7 +23,7 @@ Starting proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!!
 test/gitbug814d/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
@@ -32,7 +32,7 @@ test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814d/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
@@ -41,7 +41,7 @@ test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814d/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/specs/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
@@ -50,7 +50,7 @@ test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814d/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
@@ -65,10 +65,10 @@ test/gitbug814d/BinaryTree.java:148: warning: Associated declaration
 test/gitbug814d/BinaryTree.java:157: warning: The prover cannot establish an assertion (Precondition) in method btw
         int[] r = Arrays.copyOf(r1, r1.length + 1 + r2.length);
                                ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Arrays.jml:1944: warning: Associated declaration
+$SPECS/java/util/Arrays.jml:1944: warning: Associated declaration
     public static int[] copyOf(int /*@ nullable @*/ [] original, int newLength);
                         ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Arrays.jml:1934: warning: Precondition conjunct is false: newLength >= 0
+$SPECS/java/util/Arrays.jml:1934: warning: Precondition conjunct is false: newLength >= 0
     //@   requires newLength >= 0;
                              ^
 test/gitbug814d/BinaryTree.java:157: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method btw: overflow in int sum

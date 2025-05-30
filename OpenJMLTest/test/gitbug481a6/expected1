@@ -19,49 +19,49 @@ test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:315: warni
 test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:316: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
         System.arraycopy(v1Data, 0, data, 0, v1Data.length);
                         ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:314: warning: Associated declaration
+$SPECS/java/lang/System.jml:314: warning: Associated declaration
     public static native void arraycopy(/*@nullable*/ Object src,
                               ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
+$SPECS/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
       @    requires src == null || dest == null;
                                 ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
+$SPECS/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
            requires (src instanceof byte[]) &&
                     ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:212: warning: Precondition conjunct is false: destPos + length <= ((Object[])dest).length
+$SPECS/java/lang/System.jml:212: warning: Precondition conjunct is false: destPos + length <= ((Object[])dest).length
     @                && destPos + length <= ((Object[])dest).length;
                                          ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:221: warning: Precondition conjunct is false: (dest instanceof int[])
+$SPECS/java/lang/System.jml:221: warning: Precondition conjunct is false: (dest instanceof int[])
                  (dest instanceof int[]) &&
                  ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:234: warning: Precondition conjunct is false: destPos + length <= ((long[])dest).length
+$SPECS/java/lang/System.jml:234: warning: Precondition conjunct is false: destPos + length <= ((long[])dest).length
     @                && destPos + length <= ((long[])dest).length;
                                          ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:245: warning: Precondition conjunct is false: destPos + length <= ((char[])dest).length
+$SPECS/java/lang/System.jml:245: warning: Precondition conjunct is false: destPos + length <= ((char[])dest).length
     @                && destPos + length <= ((char[])dest).length;
                                          ^
 test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:317: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
         System.arraycopy(v2Data, 0, data, v1Data.length, v2Data.length);
                         ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:314: warning: Associated declaration
+$SPECS/java/lang/System.jml:314: warning: Associated declaration
     public static native void arraycopy(/*@nullable*/ Object src,
                               ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
+$SPECS/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
       @    requires src == null || dest == null;
                                 ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
+$SPECS/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
            requires (src instanceof byte[]) &&
                     ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:209: warning: Precondition conjunct is false: (dest instanceof Object[])
+$SPECS/java/lang/System.jml:209: warning: Precondition conjunct is false: (dest instanceof Object[])
                  (dest instanceof Object[]) &&
                  ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:220: warning: Precondition conjunct is false: (src instanceof int[])
+$SPECS/java/lang/System.jml:220: warning: Precondition conjunct is false: (src instanceof int[])
         requires (src instanceof int[]) &&
                  ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:231: warning: Precondition conjunct is false: (src instanceof long[])
+$SPECS/java/lang/System.jml:231: warning: Precondition conjunct is false: (src instanceof long[])
         requires (src instanceof long[]) &&
                  ^
-/Users/davidcok/cok/projects/OpenJMLA/Specs/specs/java/lang/System.jml:243: warning: Precondition conjunct is false: (dest instanceof char[])
+$SPECS/java/lang/System.jml:243: warning: Precondition conjunct is false: (dest instanceof char[])
                  (dest instanceof char[]) &&
                  ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings

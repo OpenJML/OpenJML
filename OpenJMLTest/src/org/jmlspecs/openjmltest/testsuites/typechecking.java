@@ -1458,6 +1458,7 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testBadEnum1() {
+        print = true;
         addMockFile("$A/A.jml","public class A extends Enum<A> {}");
         helpTCF("A.java",
                 """
@@ -1510,16 +1511,44 @@ public class typechecking extends TCBase {
                 );
     }
 
-    @Ignore // crashes
-    @Test public void testOKSuper1() {
+    @Test public void testBadSuper6() {
+        expectedExit = 2;
+        // Object.jml is not in its correct package on the specspath, so it is not found as a match to Object.java
+        addMockFile("$A/java/lang/Object.jml","package java.lang; class Object extends java.util.ArrayList<Object> {}");
+        helpTCF("Object.java",
+                """
+                package java.lang;
+                class Object{ }
+                """
+                ,"/Object.java:1: error: package exists in another module: java.base", 1
+                ,"/$A/java/lang/Object.jml: error: Parsing failed because there is an attempt to parse a spec file twice, likely indicating that there are two instances of a class, one binary and one in source: java.lang.Object", -1
+                ,"/Object.java: error: Unrecoverable compilation problem", -1
+                 );
+    }
+
+    @Test public void testBadSuper5() {
+        expectedExit = 2;
+        addMockFile("$A/java/lang/Object.jml","package java.lang; class Object extends java.util.ArrayList<Object> {}");
+        helpTCF("Object.java",
+                """
+                package java.lang;
+                class Object{ }
+                """
+                ,"/Object.java:1: error: package exists in another module: java.base", 1
+                ,"/$A/java/lang/Object.jml: error: Parsing failed because there is an attempt to parse a spec file twice, likely indicating that there are two instances of a class, one binary and one in source: java.lang.Object", -1
+                ,"/Object.java: error: Unrecoverable compilation problem", -1
+                );
+    }
+
+    @Test public void testBadSuper4() {
         addMockFile("$A/A.jml","package java.lang; public class Object extends java.util.ArrayList<Object> {}");
         helpTCF("A.java",
                 """
                 package java.lang;
                 public class Object{ }
                 """
-                ,"/$A/A.jml:1: error: The specification declaration must declare the same supertype as the source declaration: java.util.ArrayList<java.lang.Object> vs. java.util.LinkedList<java.lang.Object>", 43
-                ,"/A.java:1: error: Associated declaration: /$A/A.jml:1:", 44
+                ,"/A.java:1: error: package exists in another module: java.base", 1
+                ,"/A.java:2: error: class Object is public, should be declared in a file named Object.java", 8
                 );
     }
 

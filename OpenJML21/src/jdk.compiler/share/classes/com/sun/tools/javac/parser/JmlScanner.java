@@ -104,7 +104,7 @@ public class JmlScanner extends Scanner {
          * @param input the input to parse
          * @return the new scanner, initialized at the beginning of the input
          */
-        public Scanner newScanner(CharSequence input) {
+        public JmlScanner newScanner(CharSequence input) {
             return newScanner(input,true);
         }
 

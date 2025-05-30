@@ -602,7 +602,7 @@ public class JmlOption {
         return def;
     }
 
-    /** Name of option, with iniital - character */
+    /** Name of option, with any initial hyphens */
     public String toString() {
         return name;
     }

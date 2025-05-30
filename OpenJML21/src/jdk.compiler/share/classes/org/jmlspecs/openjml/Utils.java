@@ -910,8 +910,8 @@ public class Utils {
                     if (found) noticeWriter.println("Properties read from installation directory: " + s);
                     else noticeWriter.println("No properties found in installation directory: " + s);
                 }
-            } catch (java.io.IOException e) {
-                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+            } catch (Exception e) {
+                noticeWriter.println("Failed to read property file " + s + " " + e);
             }
         }
         
@@ -943,8 +943,8 @@ public class Utils {
                     if (found) noticeWriter.println("Properties read from user's home directory: " + s);
                     else noticeWriter.println("No properties found in user's home directory: " + s);
                 }
-            } catch (java.io.IOException e) {
-                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+            } catch (Exception e) {
+                noticeWriter.println("Failed to read property file " + s + " " + e);
             }
         }
 
@@ -957,8 +957,8 @@ public class Utils {
                     if (found) noticeWriter.println("Properties read from working directory: " + s);
                     else noticeWriter.println("No properties found in working directory: " + s);
                 }
-            } catch (java.io.IOException e) {
-                noticeWriter.println("Failed to read property file " + s); // FIXME - review
+            } catch (Exception e) {
+                noticeWriter.println("Failed to read property file " + s + " " + e);
             }
         }
 
@@ -1014,14 +1014,14 @@ public class Utils {
      * @param filename the file to read properties from
      * @return true if the file was found and read successfully
      */
-    public static boolean readProps(Properties properties, String filename) throws java.io.IOException {
+    public static boolean readProps(Properties properties, String filename) throws java.lang.Exception {
         // Note: Java, or at least this code, does not read through Cygwin symbolic links
         Path filepath = Paths.get(filename);
         if (filepath.toFile().exists()) {
             try (InputStream stream = Files.newInputStream(filepath)) {
                 properties.load(stream);
                 return true;
-            }
+            } 
         } else {
             return false;
         }
@@ -2118,13 +2118,13 @@ public class Utils {
     /** This method checks that a condition that is expected to always be tree is actually true.
      * That is, if the condition is false, some internal bug has occurred.
      * This method is used (instead of ojcheck) if there is no reasonable recovery.
-     * If the condition is false, an error message is emitted and a JmlInternalError exception is thrown.
+     * If the condition is false, an error message is emitted and a JmlInternalException exception is thrown.
      */
     public void ojassert(boolean condition, String message) {
         if (!condition) {
             // In a bug-free program, this branch will never happen
             Log.instance(context).error("jml.internal", message != null ? message : "internal bug caught by ojassert");
-            throw new JmlInternalError(message);
+            throw new JmlInternalException(message);
         }
     }
     

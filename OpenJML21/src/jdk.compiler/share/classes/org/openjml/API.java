@@ -31,6 +31,8 @@ import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.jmlspecs.openjml.JmlOptions;
+import org.jmlspecs.openjml.JmlOption;
 
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -97,15 +99,6 @@ public class API implements IAPI {
     /** The encapsulated org.jmlspecs.openjml.Main object */
     private Main main = null;
     
-//    //@ initially main != null;
-//    
-//    /** The listener for diagnostic messages */
-//    protected DiagnosticListener<? extends JavaFileObject> diagListener = null;
-//    
-////    /** The listener for proof results */
-////    protected IProofResultListener proofResultListener;
-//    
-//
     /** Creates a new compilation context, initialized with given command-line options;
      * use Factory.makeAPI to create new API objects.
      * Output is sent to System.out; no diagnostic listener is used (so errors
@@ -115,24 +108,37 @@ public class API implements IAPI {
      */
     //@ ensures isOpen;
     protected API(PrintWriter out, PrintWriter err, DiagnosticListener<? extends JavaFileObject> diagListener)  {
-        // CAUTION: Do not close pw, if it is wrapping System.out (as System.out will be closed and any writes to System.out will not work)
+        // CAUTION: Do not close out or err, if it is wrapping System.out (as System.out will be closed and any writes to System.out will not work)
         try {
             main = new org.jmlspecs.openjml.Main(org.jmlspecs.openjml.Strings.applicationName,
                     out != null ? out : new PrintWriter(System.out),
                     err != null ? err : new PrintWriter(System.err));
             main.context = main.initialize(diagListener);
-        } catch (Exception e) {
-            if (err == null) System.err.println("API X " + e);
-            else err.println("API X " + e);
-           // FAILURE - FIXME - error message
-            System.exit(4);
+        } catch (Throwable e) { // NOT EXPECED TO BE EXECUTED
+            // At least IOException may be thrown
+            // This catch block is not ever expected to be executed, but is here just in case some internal bug
+            // happens, so that there is an orderly exit; one cannot count on a log being available
+            String msg = "Unexpected top-level exception caught: " + e;
+            if (out == null) System.out.println(msg);
+            else out.println(msg);
+            System.exit(Main.Result.ABNORMAL.exitCode);
         }
         if (out != null) out.flush();
         if (err != null) err.flush();
     }
     
+    public boolean isOptionSet(String key) {
+        return JmlOption.isOption(main.context, key);
+   }
+    public String getOption(String key) {
+        return JmlOption.value(main.context, key);
+    }
+
+    
 //    @Override
-//    public Context context() { return main.context; } 
+//    public Context context() {
+//        return main.context;
+//    } 
 //    
 //    /** Creates an API that will send informational output to the
 //     * given PrintWriter and diagnostic output to the given listener; no
@@ -241,6 +247,7 @@ public class API implements IAPI {
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
+    @Override
     public int execute(/*@ non_null*/ String ... args) {
         int x = main.compile(args, main.context).exitCode;
         return x;

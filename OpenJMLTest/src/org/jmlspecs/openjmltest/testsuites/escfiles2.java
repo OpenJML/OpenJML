@@ -1,6 +1,6 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -82,6 +82,21 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug812() {
+        helpTCG("--code-math=safe");
+    }
+    
+    @Test @Ignore // FIXME - times out in attempting to prove and --code-math=math not supported
+    public void gitbug812a() {
+        helpTCG("--code-math=math");
+    }
+    
+    @Test
+    public void gitbug861() {
+        helpTCG();
+    }
+    
+    @Test
     public void importProblem() {
         helpTCG();
     }
@@ -134,6 +149,40 @@ public class escfiles2 extends EscBaseFiles {
         helpTCG();
     }
     
+    @Test
+    public void escharness1() {
+        try {
+            helpTCG("--check");
+        } catch (AssertionError a) {
+            assertEquals("Incorrect harness failure:", "There are no expected output files in test/escharness1", a.getMessage());
+        }
+    }
+    
+    @Test
+    public void escharness2() {
+        // When a comparison difference is found, the behavior is to print out the differences to 'out'
+        // For the purpose of this test, we redirect that output.
+        out = tempout;
+        try {
+            helpTCG("--check");
+        } catch (AssertionError a) {
+            String expected =
+                    """
+                    Files differ: Less actual output than expected: -- intentionally incorrect content --
+                    """;
+            assertEquals("Incorrect harness failure:", expected, a.getMessage());
+        } finally {
+            out = System.out;
+        }
+    }
+
+    // FIXME - don't think this is helpful because it does not call setupForFiles
+    @Test
+    public void escharness3() {
+        solver = "z3_4_3";
+        helpTCG("--normal");
+    }
+
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
         ArrayList<String> list = new ArrayList<String>();
@@ -205,6 +254,14 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test public void sfbug410() {
         helpTCN("--esc", "--progress");
+    }
+    
+    @Test public void optiondir() {
+        helpTCN("--check", "--dirs", "test/optiondir/p", "q");
+    }
+    
+    @Test public void changeMathMode() {
+        helpTCN("--esc","--progress","--check-feasibility=none");
     }
     
 
