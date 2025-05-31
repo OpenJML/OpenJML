@@ -11,22 +11,26 @@ ERR=0
 
 echo JSON output location tests
 rm -rf *.json
-openjml --show=json *.java
+$OJA --show=json *.java
 for f in *.java ; do
   if ! diff $f.json $f.json.expected ; then ERR=1 ; echo $f.json differs from expected; fi; 
 done
 
+echo JSON A
 rm -rf *.json
 $OJA --show=json -d - *.java > out
 cat Test*.json.expected | diff - out
 
+echo JSON B
 rm -rf *.json out xx
-openjml --show=json -d xx/yy *.java
+$OJA --show=json -d xx/yy *.java
 if ! diff xx/yy/Test.java.json Test.java.json.expected ; then ERR=1 ; echo xx/yy/Test.java.json differs from expected ; fi;
 if ! diff xx/yy/p/TestP.java.json TestP.java.json.expected ; then ERR=1 ; echo xx/yy/p/TestP.java.json differs from expected; fi;
 if ! diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected ; then ERR=1 ; echo xx/yy/q/r/TestPP.java.json differs from expected ; fi;
 echo "xxx" >> xx/yy/Test.java.json
+
 # repeat without deleting files
+echo JSON C 
 $OJA --show=json -d xx/yy *.java
 diff xx/yy/Test.java.json Test.java.json.expected || ERR=1
 diff xx/yy/p/TestP.java.json TestP.java.json.expected || ERR=1
