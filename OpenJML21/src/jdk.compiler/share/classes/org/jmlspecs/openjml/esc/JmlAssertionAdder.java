@@ -10178,6 +10178,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addStat(comment(that, "... Not checking assignables when inlining a lambda " + calleeMethodSym,
 							null));
 				} else if (!rac) {
+		            var sourceloc = log.currentSourceFile();
 					for (Pair<MethodSymbol, Type> pair : overridden) {
 						MethodSymbol mpsym = pair.first;
 						Type classType = pair.second;
@@ -10275,9 +10276,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 														//System.out.println("CHECKING " + clause + " " + that + " " + item);
                                                         //System.out.println("CLAUSE FILE " + clause.sourcefile);
                                                         //System.out.println("CURRENT FILE " + log.currentSourceFile());
-                                                        //var prevv = log.useSource(clause.sourcefile);
+                                                        //System.out.println("PREV FILE " + prevSource);
+                                                        var prevv = log.useSource(sourceloc);
 														checkAccess2(clause.clauseKind, that, item, item, false, allowed, true, null, false);
-														//log.useSource(prevv);
+														log.useSource(prevv);
 													} catch (Exception e) {
 														e.printStackTrace(System.out);
 													}
@@ -13108,9 +13110,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											convertedCondition = makeAssertionOptional(convertedCondition);
 											//System.out.println("Assertion checking if " + lhsUnconverted + " is in " + clause + " : " + convertedCondition);
 											addStat(comment(pos, "Assertion checking if " + lhsUnconverted + " is in " + clause, clause.sourcefile));
-//                                            System.out.println("PRIMARY SOURCE " + primarySource);
-//                                            System.out.println("PREVC " + prevc);
-//                                            System.out.println("CURRENT " + log.currentSourceFile());
+                                            //System.out.println("PRIMARY SOURCE " + primarySource);
+                                            //System.out.println("PREVC " + prevc);
+                                            //System.out.println("CURRENT " + log.currentSourceFile());
 											var sst = addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, clause, clause.sourcefile, null, lhsUnconverted);
 											var bl = popBlock(clause);
 											addStat(M.at(clause).If(precondition, bl, null));
