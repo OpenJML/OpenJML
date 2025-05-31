@@ -10,16 +10,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "org"
@@ -94,7 +90,6 @@
           },
           "vartype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "INT"
@@ -102,10 +97,8 @@
           },
           "init": {
             "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
-            "type": null,
             "lhs": {
               "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-              "type": null,
               "typetag": {
                 "class": "com.sun.tools.javac.code.TypeTag",
                 "primitive": "INT"
@@ -118,7 +111,6 @@
             },
             "rhs": {
               "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-              "type": null,
               "typetag": {
                 "class": "com.sun.tools.javac.code.TypeTag",
                 "primitive": "INT"
@@ -148,7 +140,6 @@
           },
           "vartype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "INT"
@@ -156,14 +147,12 @@
           },
           "init": {
             "class": "com.sun.tools.javac.tree.JCTree$JCUnary",
-            "type": null,
             "opcode": {
               "class": "com.sun.tools.javac.tree.JCTree$Tag",
               "primitive": "NEG"
             },
             "arg": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "x1"
@@ -192,7 +181,6 @@
           },
           "vartype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "INT"
@@ -200,10 +188,8 @@
           },
           "init": {
             "class": "com.sun.tools.javac.tree.JCTree$JCConditional",
-            "type": null,
             "cond": {
               "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-              "type": null,
               "typetag": {
                 "class": "com.sun.tools.javac.code.TypeTag",
                 "primitive": "BOOLEAN"
@@ -212,7 +198,6 @@
             },
             "truepart": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "x1"
@@ -220,7 +205,6 @@
             },
             "falsepart": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "x2"
@@ -249,7 +233,6 @@
           },
           "vartype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "INT"
@@ -257,20 +240,15 @@
           },
           "init": {
             "class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
-            "type": null,
             "typeargs": [],
             "meth": {
               "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-              "type": null,
               "selected": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-                "type": null,
                 "selected": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-                  "type": null,
                   "selected": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                    "type": null,
                     "name": {
                       "class": "com.sun.tools.javac.util.Name",
                       "primitive": "java"
@@ -294,7 +272,6 @@
             "args": [
               {
                 "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                "type": null,
                 "name": {
                   "class": "com.sun.tools.javac.util.Name",
                   "primitive": "x3"
@@ -324,7 +301,6 @@
           },
           "vartype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-            "type": null,
             "name": {
               "class": "com.sun.tools.javac.util.Name",
               "primitive": "Object"
@@ -332,16 +308,12 @@
           },
           "init": {
             "class": "com.sun.tools.javac.tree.JCTree$JCTypeCast",
-            "type": null,
             "clazz": {
               "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-              "type": null,
               "selected": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-                "type": null,
                 "selected": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                  "type": null,
                   "name": {
                     "class": "com.sun.tools.javac.util.Name",
                     "primitive": "java"
@@ -359,23 +331,17 @@
             },
             "expr": {
               "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-              "type": null,
               "expr": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
-                "type": null,
                 "typeargs": [],
                 "meth": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-                  "type": null,
                   "selected": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-                    "type": null,
                     "expr": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCTypeCast",
-                      "type": null,
                       "clazz": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                        "type": null,
                         "name": {
                           "class": "com.sun.tools.javac.util.Name",
                           "primitive": "Integer"
@@ -383,7 +349,6 @@
                       },
                       "expr": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                        "type": null,
                         "name": {
                           "class": "com.sun.tools.javac.util.Name",
                           "primitive": "x1"
@@ -422,7 +387,6 @@
           },
           "vartype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "BOOLEAN"
@@ -430,21 +394,18 @@
           },
           "init": {
             "class": "com.sun.tools.javac.tree.JCTree$JCInstanceOf",
-            "type": null,
-            "pattern": {
-              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
-              "name": {
-                "class": "com.sun.tools.javac.util.Name",
-                "primitive": "String"
-              }
-            },
             "expr": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "o"
+              }
+            },
+            "pattern": {
+              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "name": {
+                "class": "com.sun.tools.javac.util.Name",
+                "primitive": "String"
               }
             }
           }

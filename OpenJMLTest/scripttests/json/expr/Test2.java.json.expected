@@ -10,16 +10,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "org"
@@ -94,7 +90,6 @@
           },
           "restype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "VOID"
@@ -156,10 +151,8 @@
                     },
                     "expression": {
                       "class": "org.jmlspecs.openjml.JmlTree$JmlBinary",
-                      "type": null,
                       "lhs": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "type": null,
                         "typetag": {
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
@@ -172,7 +165,6 @@
                       },
                       "rhs": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "type": null,
                         "typetag": {
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
@@ -199,10 +191,8 @@
                     },
                     "expression": {
                       "class": "org.jmlspecs.openjml.JmlTree$JmlBinary",
-                      "type": null,
                       "lhs": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "type": null,
                         "typetag": {
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
@@ -215,7 +205,6 @@
                       },
                       "rhs": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "type": null,
                         "typetag": {
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
@@ -242,14 +231,12 @@
                     },
                     "expression": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCUnary",
-                      "type": null,
                       "opcode": {
                         "class": "com.sun.tools.javac.tree.JCTree$Tag",
                         "primitive": "NOT"
                       },
                       "arg": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "type": null,
                         "typetag": {
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"

@@ -866,13 +866,13 @@ public class JmlTree {
         }
         
         @Override
-        public JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind t, List<JCTree.JCVariableDecl> decls) {
-            return new JmlMethodClauseDecl(pos,t,decls);
+        public JmlMethodClauseDecl JmlMethodClauseDecl(String keyword, IJmlClauseKind clauseKind, List<JCTree.JCVariableDecl> decls) {
+            return new JmlMethodClauseDecl(pos,clauseKind,decls);
         }
         
         @Override
-        public JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e) {
-            return new JmlMethodClauseExpr(pos,keyword,t,e);
+        public JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind clauseKind, JCTree.JCExpression expression) {
+            return new JmlMethodClauseExpr(pos,keyword,clauseKind,expression);
         }
         
         @Override

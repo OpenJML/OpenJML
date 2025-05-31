@@ -954,7 +954,7 @@ public class JavaCompiler {
                 ),
                 classnames
             );
-
+            
             // If it's safe to do so, skip attr / flow / gen for implicit classes
             if (taskListener.isEmpty() &&
                     implicitSourcePolicy == ImplicitSourcePolicy.NONE) {
