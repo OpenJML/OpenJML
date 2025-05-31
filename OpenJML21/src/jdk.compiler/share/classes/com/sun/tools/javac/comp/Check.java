@@ -1578,6 +1578,11 @@ public class Check {
     }
 
     void checkRaw(JCTree tree, Env<AttrContext> env) {
+        if (lint.isEnabled(LintCategory.RAW) && tree.type == null) { // OPENJML FIXME - added to avoid a crash, but need fixing
+            System.out.println("Annotated type has a null type field -- crash would happen: " + 
+                    (tree instanceof JCAnnotatedType at ? Objects.toString(at.underlyingType) : ""));
+            return;
+        }
         if (lint.isEnabled(LintCategory.RAW) &&
             tree.type.hasTag(CLASS) &&
             !TreeInfo.isDiamond(tree) &&
@@ -4486,6 +4491,7 @@ public class Check {
 
             @Override
             public void visitAnnotation(JCAnnotation tree) {
+                if (tree.attribute == null) { System.out.println("Crash because an annotation is unattributed"); return; } // OPENJML FIXME - added to avoid crash
                 if (tree.attribute.type.tsym.getAnnotation(java.lang.annotation.Documented.class) != null)
                     super.visitAnnotation(tree);
             }
