@@ -42,7 +42,9 @@ release: .FORCE
 	make -C ${SRC} release
 
 
-prep: .FORCE
+prep: temp-release
+
+temp-release temp-release/D.java:
 	rm -rf $T
 	mkdir $T
 	echo "public class A { /*@ invariant 0; */ }" > $T/A.java
@@ -69,14 +71,14 @@ userguide-tests:
 	    rm -rf ${USERGUIDE}; \
 	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
 
-release-tests: Run.class .FORCE
+release-tests: prep Run.class .FORCE
 	@ echo Running release tests with current development build
 	@ $(TEST)releaseTests/runtests
 
-unittests-seq: Run.class .FORCE
+unittests-seq: prep Run.class .FORCE
 	@ $(TEST)unittests/runseq
 			
-unittests-par: Run.class .FORCE
+unittests-par: prep Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
 
 json-tests: .FORCE Run.class

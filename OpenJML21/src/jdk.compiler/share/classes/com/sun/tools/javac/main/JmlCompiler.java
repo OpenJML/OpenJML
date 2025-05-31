@@ -237,9 +237,13 @@ public class JmlCompiler extends JavaCompiler {
                 }
 
                 if (ss.startsWith("json")) {
-                    writeJson(compunits);
+                    writeJson(compunits, false);
                 }
 
+            }
+            if (org.jmlspecs.openjml.Utils.instance(context).cmd == org.jmlspecs.openjml.Main.Cmd.PARSE) {
+                // skip
+                compunits  = List.<JCCompilationUnit>nil();
             }
             return compunits;
         } catch (AssertionError e) {
@@ -250,7 +254,7 @@ public class JmlCompiler extends JavaCompiler {
         }
     }
     
-    public void writeJson(ListBuffer<Env<AttrContext>> results) {
+    public void writeJson(ListBuffer<Env<AttrContext>> results, boolean includeTypeInfo) {
         String dest = options.get("-d");
         if (dest != null && !dest.equals("-") && !new java.io.File(dest).exists() && !new java.io.File(dest).mkdirs()) {
             utils.error("jml.message", "Failed to create output directories: " + dest);
@@ -261,11 +265,11 @@ public class JmlCompiler extends JavaCompiler {
             var cu = (JmlClassDecl)env.tree;
             if (utils.isSpecFile(cu.source())) continue; // TODO - for now, because too much of Java/JML is not yet implemented
             //System.out.println("JSON FOR " + cu.name + " " + cu.sourcefile);
-            writeJson(dest, json, cu, cu.name.toString());
+            writeJson(dest, json, cu, cu.name.toString(), includeTypeInfo);
         }
     }
     
-    public void writeJson(List<JCCompilationUnit> compunits) {
+    public void writeJson(List<JCCompilationUnit> compunits, boolean includeTypeInfo) {
         String dest = options.get("-d");
         if (dest != null && !dest.equals("-") && !new java.io.File(dest).exists() && !new java.io.File(dest).mkdirs()) {
             utils.error("jml.message", "Failed to create output directories: " + dest);
@@ -275,37 +279,46 @@ public class JmlCompiler extends JavaCompiler {
         var json = new org.jmlspecs.openjml.JmlJson(context);
         for (var cu: compunits) {
             //System.out.println("JSON FOR " + cu.sourcefile);
-            writeJson(dest, json, (JmlCompilationUnit)cu, null);
+            writeJson(dest, json, (JmlCompilationUnit)cu, null, includeTypeInfo);
         }
     }
 
-    private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name) {
+    private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name, boolean includeTypeInfo) {
         String sourcepath = decl.source().getName();
         String out = null;
         JsonElement outtree = null;
+        var stdout = context.get(Log.outKey);
         try {
-            out = json.toJson((JCTree)decl);
-            outtree = json.toJsonTree((JCTree)decl);
+            out = json.toJson((JCTree)decl, includeTypeInfo); // serializes to a pretty-printed string
+            outtree = json.toJsonTree((JCTree)decl, includeTypeInfo); // serializes to an in-memory JSON tree
         } catch (Throwable e) {
-            try (var outputStream = new java.io.ByteArrayOutputStream(); var printStream = new java.io.PrintStream(outputStream)) {
-                utils.error("jml.message", "Failed translate to json (" + sourcepath + "): "+ e);
-                e.printStackTrace(printStream);
-                out = outputStream.toString();
-            } catch (Throwable ee) {
-                ee.printStackTrace(System.out); // FIXME - better error report
-            }
+            utils.error("jml.internal", "Failed translate to json (" + sourcepath + "): "+ e);
+            e.printStackTrace(stdout);
+            return null;
         }
         try {
-            // Checking
+            // Checking the output by reparsing it and comparing string representations
             @SuppressWarnings("deprecation")
             var res = new JsonParser().parse(out);
+            if (!outtree.equals(res)) {
+                utils.error("jml.internal", "Reparsed JSON tree does not match the original tree: " + decl.source());
+            }
             var nows = outtree.toString();//.replaceAll("[ \t\n]+","");
             if (!res.toString().equals(nows)) { 
-                // TODO: Why does the original string representation have white space while the reread structure does not?
                 utils.error("jml.message", "Generated and reread json structures (removing whitespace) are different:\n"
                         + nows  + "\n\nVS.\n\n" + res.toString());
             }
-            //json.toJava(out);
+            // Check the output by deserializing the output text back into an AST
+            if (JmlOption.isOption(context, JmlOption.JMLTESTING)) {
+                // In testing mode, recreate a source AST from the output JSON text
+                Object tree = json.toJava(out);
+                if (!tree.toString().equals(decl.toString())) {
+                    stdout.println("Input and output ASTs differ");
+                    stdout.println(tree.toString());  // FIXME - use designated output stream
+                    stdout.println(decl.toString());  // FIXME - use designated output stream
+                }
+                // FIXME - compare ASTs 'tree' and 'decl'
+            }
         } catch (Throwable e) {
             utils.error("jml.message", "Failed read generated json (" + sourcepath + "): "+ e);            
         }
@@ -329,9 +342,8 @@ public class JmlCompiler extends JavaCompiler {
             }
         } else if (dest.equals("-")) {
             // Write all files consecutively to standard out
-            System.out.println(out);
+            stdout.println(out);
         } else {
-            // FIXME - cleanup name calculation
             // Write files using 'dest' as package root
             String pdecl = "";
             if (decl instanceof JmlCompilationUnit ccu) {
@@ -379,22 +391,22 @@ public class JmlCompiler extends JavaCompiler {
         noJML = !jmlOption;
         var charSeq = readSource(filename);
         try {
-        	if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
-        	    // If the file is a source file and there is a specs file, we ignore any JML in the source file
-        	    // We also always ignore the JML if -no-jml has been set
-        		specFile = checkForSpecsFile(filename, charSeq);
-        		noJML = specFile != null || !jmlOption;
-        	}
-        	// This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
-        	JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
-        	if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
-        	JmlCompilationUnit specCU = null;
-        	if (specFile != null && jmlOption) {
-        		noJML = !jmlOption;
-        		log.useSource(specFile);
-        		charSeq = readSource(specFile);
-        		specCU = (JmlCompilationUnit)parse(specFile, charSeq);
-        		if (specCU.endPositions != null) log.setEndPosTable(specFile, specCU.endPositions);
+            if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
+                // If the file is a source file and there is a specs file, we ignore any JML in the source file
+                // We also always ignore the JML if -no-jml has been set
+                specFile = checkForSpecsFile(filename, charSeq);
+                noJML = specFile != null || !jmlOption;
+            }
+            // This block of code is inlined (twice) from super.parse(filename) in order to avoid rereading the source file
+            JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
+            if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
+            JmlCompilationUnit specCU = null;
+            if (specFile != null && jmlOption) {
+                noJML = !jmlOption;
+                log.useSource(specFile);
+                charSeq = readSource(specFile);
+                specCU = (JmlCompilationUnit)parse(specFile, charSeq);
+                if (specCU.endPositions != null) log.setEndPosTable(specFile, specCU.endPositions);
                 javaCU.specsCompilationUnit = specCU;
                 specCU.specsCompilationUnit = specCU;
                 specCU.sourceCU = javaCU;
@@ -530,7 +542,7 @@ public class JmlCompiler extends JavaCompiler {
         if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
             String ss = JmlOption.value(context, JmlOption.SHOW);
             if (ss.contains("typedjson")) {
-                writeJson(results);
+                writeJson(results, true);
             }
 
         }

@@ -10,16 +10,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "org"
@@ -94,7 +90,6 @@
           },
           "restype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "INT"
@@ -124,7 +119,6 @@
               },
               "vartype": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-                "type": null,
                 "typetag": {
                   "class": "com.sun.tools.javac.code.TypeTag",
                   "primitive": "BOOLEAN"
@@ -164,7 +158,6 @@
                 },
                 "vartype": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-                  "type": null,
                   "typetag": {
                     "class": "com.sun.tools.javac.code.TypeTag",
                     "primitive": "INT"
@@ -172,7 +165,6 @@
                 },
                 "init": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                  "type": null,
                   "typetag": {
                     "class": "com.sun.tools.javac.code.TypeTag",
                     "primitive": "INT"
@@ -184,10 +176,8 @@
                 "class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
                 "expr": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCAssignOp",
-                  "type": null,
                   "lhs": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                    "type": null,
                     "name": {
                       "class": "com.sun.tools.javac.util.Name",
                       "primitive": "i"
@@ -199,7 +189,6 @@
                   },
                   "rhs": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                    "type": null,
                     "typetag": {
                       "class": "com.sun.tools.javac.code.TypeTag",
                       "primitive": "INT"
@@ -212,10 +201,8 @@
                 "class": "org.jmlspecs.openjml.JmlTree$JmlIfStatement",
                 "cond": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-                  "type": null,
                   "expr": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                    "type": null,
                     "name": {
                       "class": "com.sun.tools.javac.util.Name",
                       "primitive": "b"
@@ -226,10 +213,8 @@
                   "class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
                   "expr": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCAssign",
-                    "type": null,
                     "lhs": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                      "type": null,
                       "name": {
                         "class": "com.sun.tools.javac.util.Name",
                         "primitive": "i"
@@ -237,7 +222,6 @@
                     },
                     "rhs": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                      "type": null,
                       "typetag": {
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "INT"
@@ -250,10 +234,8 @@
                   "class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
                   "expr": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCAssign",
-                    "type": null,
                     "lhs": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                      "type": null,
                       "name": {
                         "class": "com.sun.tools.javac.util.Name",
                         "primitive": "i"
@@ -261,7 +243,6 @@
                     },
                     "rhs": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                      "type": null,
                       "typetag": {
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "INT"
@@ -275,17 +256,14 @@
                 "class": "org.jmlspecs.openjml.JmlTree$JmlIfStatement",
                 "cond": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-                  "type": null,
                   "expr": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCUnary",
-                    "type": null,
                     "opcode": {
                       "class": "com.sun.tools.javac.tree.JCTree$Tag",
                       "primitive": "NOT"
                     },
                     "arg": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                      "type": null,
                       "name": {
                         "class": "com.sun.tools.javac.util.Name",
                         "primitive": "b"
@@ -297,10 +275,8 @@
                   "class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
                   "expr": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCAssign",
-                    "type": null,
                     "lhs": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                      "type": null,
                       "name": {
                         "class": "com.sun.tools.javac.util.Name",
                         "primitive": "i"
@@ -308,7 +284,6 @@
                     },
                     "rhs": {
                       "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                      "type": null,
                       "typetag": {
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "INT"
@@ -322,12 +297,14 @@
               {
                 "class": "org.jmlspecs.openjml.JmlTree$JmlWhileLoop",
                 "loopSpecs": null,
+                "split": {
+                  "class": "boolean",
+                  "primitive": "false"
+                },
                 "cond": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-                  "type": null,
                   "expr": {
                     "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                    "type": null,
                     "name": {
                       "class": "com.sun.tools.javac.util.Name",
                       "primitive": "b"
@@ -346,13 +323,10 @@
                       "class": "org.jmlspecs.openjml.JmlTree$JmlIfStatement",
                       "cond": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-                        "type": null,
                         "expr": {
                           "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
-                          "type": null,
                           "lhs": {
                             "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                            "type": null,
                             "name": {
                               "class": "com.sun.tools.javac.util.Name",
                               "primitive": "i"
@@ -364,7 +338,6 @@
                           },
                           "rhs": {
                             "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                            "type": null,
                             "typetag": {
                               "class": "com.sun.tools.javac.code.TypeTag",
                               "primitive": "INT"
@@ -383,13 +356,10 @@
                       "class": "org.jmlspecs.openjml.JmlTree$JmlIfStatement",
                       "cond": {
                         "class": "com.sun.tools.javac.tree.JCTree$JCParens",
-                        "type": null,
                         "expr": {
                           "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
-                          "type": null,
                           "lhs": {
                             "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                            "type": null,
                             "name": {
                               "class": "com.sun.tools.javac.util.Name",
                               "primitive": "i"
@@ -401,7 +371,6 @@
                           },
                           "rhs": {
                             "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                            "type": null,
                             "typetag": {
                               "class": "com.sun.tools.javac.code.TypeTag",
                               "primitive": "INT"
@@ -426,7 +395,6 @@
                 "class": "com.sun.tools.javac.tree.JCTree$JCReturn",
                 "expr": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                  "type": null,
                   "name": {
                     "class": "com.sun.tools.javac.util.Name",
                     "primitive": "i"

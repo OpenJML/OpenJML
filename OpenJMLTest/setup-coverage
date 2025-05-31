@@ -6,7 +6,7 @@ TEST=$( cd $(dirname "$BASH_SOURCE") && pwd)
 if [ ! -e $TEST/Run.class ]; then make -C $TEST Run.class; fi
 
 export AGENT=
-export OJA=openjml
+export OJA=$TEST/../OpenJML21/openjml
 if [ -n "${COV+set}" ]; then
     # COV set, but may be empty
     mkdir -p $TEST/cov

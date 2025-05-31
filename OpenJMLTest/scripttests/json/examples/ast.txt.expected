@@ -1,0 +1,2859 @@
+JmlCompilationUnit
+  JCFieldAccess: bean com.hellokaton.blade.ioc.bean
+    JCFieldAccess: ioc com.hellokaton.blade.ioc
+      JCFieldAccess: blade com.hellokaton.blade
+        JCFieldAccess: hellokaton com.hellokaton
+          JCIdent: com
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlImport
+    JCFieldAccess: Injector com.hellokaton.blade.ioc.Injector
+      JCFieldAccess: ioc com.hellokaton.blade.ioc
+        JCFieldAccess: blade com.hellokaton.blade
+          JCFieldAccess: hellokaton com.hellokaton
+            JCIdent: com
+  JmlImport
+    JCFieldAccess: Ioc com.hellokaton.blade.ioc.Ioc
+      JCFieldAccess: ioc com.hellokaton.blade.ioc
+        JCFieldAccess: blade com.hellokaton.blade
+          JCFieldAccess: hellokaton com.hellokaton
+            JCIdent: com
+  JmlImport
+    JCFieldAccess: IocKit com.hellokaton.blade.kit.IocKit
+      JCFieldAccess: kit com.hellokaton.blade.kit
+        JCFieldAccess: blade com.hellokaton.blade
+          JCFieldAccess: hellokaton com.hellokaton
+            JCIdent: com
+  JmlImport
+    JCFieldAccess: Field java.lang.reflect.Field
+      JCFieldAccess: reflect java.lang.reflect
+        JCFieldAccess: lang java.lang
+          JCIdent: java
+  JmlClassDecl: FieldInjector
+    JCIdent: Injector
+    JCMethodInvocation
+      JCFieldAccess: getName this.ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.ioc.getClass
+            JCFieldAccess: ioc this.ioc
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.ioc.SimpleIoc.class.getName
+        JCFieldAccess: class com.hellokaton.blade.ioc.SimpleIoc.class
+          JCFieldAccess: SimpleIoc com.hellokaton.blade.ioc.SimpleIoc
+            JCFieldAccess: ioc com.hellokaton.blade.ioc
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlVariableDecl: ioc
+      JCIdent: Ioc
+    JmlVariableDecl: field
+      JCIdent: Field
+    JCMethodInvocation
+      JCFieldAccess: getName ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass ioc.getClass
+            JCIdent: ioc
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.ioc.SimpleIoc.class.getName
+        JCFieldAccess: class com.hellokaton.blade.ioc.SimpleIoc.class
+          JCFieldAccess: SimpleIoc com.hellokaton.blade.ioc.SimpleIoc
+            JCFieldAccess: ioc com.hellokaton.blade.ioc
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCIdent: ioc
+    JCMethodInvocation
+      JCFieldAccess: getName this.ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.ioc.getClass
+            JCFieldAccess: ioc this.ioc
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass ioc.getClass
+            JCIdent: ioc
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCIdent: field
+    JmlMethodDecl: <init>
+      JmlVariableDecl: ioc
+        JCIdent: Ioc
+      JmlVariableDecl: field
+        JCIdent: Field
+      JCFieldAccess: ioc this.ioc
+        JCIdent: this
+      JCIdent: ioc
+      JCFieldAccess: field this.field
+        JCIdent: this
+      JCIdent: field
+    JmlMethodDecl: getType
+      JCIdent: Class
+      JCMethodInvocation
+        JCFieldAccess: getType field.getType
+          JCIdent: field
+    JmlMethodDecl: isSingleton
+      JCMethodInvocation
+        JCFieldAccess: isSingleton IocKit.isSingleton
+          JCIdent: IocKit
+        JCMethodInvocation
+          JCFieldAccess: getType field.getType
+            JCIdent: field
+    JCIdent: this
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCIdent: bean
+    JCMethodInvocation
+      JCFieldAccess: getName bean.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass bean.getClass
+            JCIdent: bean
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.types.BladeBeanDefineType.class.getName
+        JCFieldAccess: class com.hellokaton.blade.types.BladeBeanDefineType.class
+          JCFieldAccess: BladeBeanDefineType com.hellokaton.blade.types.BladeBeanDefineType
+            JCFieldAccess: types com.hellokaton.blade.types
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName this.ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.ioc.getClass
+            JCFieldAccess: ioc this.ioc
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName this.ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.ioc.getClass
+            JCFieldAccess: ioc this.ioc
+              JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JmlMethodDecl: injection
+      JCIdent: Override
+      JmlVariableDecl: bean
+        JCIdent: Object
+      JmlVariableDecl: fieldType
+        JCIdent: Class
+        JCMethodInvocation
+          JCFieldAccess: getType field.getType
+            JCIdent: field
+      JmlVariableDecl: value
+        JCIdent: Object
+        JCMethodInvocation
+          JCFieldAccess: getBean ioc.getBean
+            JCIdent: ioc
+          JCIdent: fieldType
+      JCIdent: value
+      JCIdent: IllegalStateException
+      JCMethodInvocation
+        JCFieldAccess: getName fieldType.getName
+          JCIdent: fieldType
+      JCIdent: field
+      JCMethodInvocation
+        JCIdent: injection
+        JCIdent: bean
+        JCIdent: value
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JCIdent: RuntimeException
+      JCIdent: e
+    JCIdent: this
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCIdent: bean
+    JCMethodInvocation
+      JCFieldAccess: getName bean.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass bean.getClass
+            JCIdent: bean
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.types.BladeBeanDefineType.class.getName
+        JCFieldAccess: class com.hellokaton.blade.types.BladeBeanDefineType.class
+          JCFieldAccess: BladeBeanDefineType com.hellokaton.blade.types.BladeBeanDefineType
+            JCFieldAccess: types com.hellokaton.blade.types
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JCIdent: value
+    JCMethodInvocation
+      JCFieldAccess: getName value.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass value.getClass
+            JCIdent: value
+    JCMethodInvocation
+      JCFieldAccess: getName java.lang.String.class.getName
+        JCFieldAccess: class java.lang.String.class
+          JCFieldAccess: String java.lang.String
+            JCFieldAccess: lang java.lang
+              JCIdent: java
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName this.ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.ioc.getClass
+            JCFieldAccess: ioc this.ioc
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName this.ioc.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.ioc.getClass
+            JCFieldAccess: ioc this.ioc
+              JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JCFieldAccess: ioc this.ioc
+      JCIdent: this
+    JCFieldAccess: field this.field
+      JCIdent: this
+    JmlMethodDecl: injection
+      JCIdent: Override
+      JmlVariableDecl: bean
+        JCIdent: Object
+      JmlVariableDecl: value
+        JCIdent: Object
+      JCMethodInvocation
+        JCFieldAccess: setAccessible field.setAccessible
+          JCIdent: field
+      JCMethodInvocation
+        JCFieldAccess: set field.set
+          JCIdent: field
+        JCIdent: bean
+        JCIdent: value
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JCIdent: RuntimeException
+      JCIdent: e
+    JmlMethodDecl: hasInjectFields
+      JCFieldAccess: length field.getType().getDeclaredFields().length
+        JCMethodInvocation
+          JCFieldAccess: getDeclaredFields field.getType().getDeclaredFields
+            JCMethodInvocation
+              JCFieldAccess: getType field.getType
+                JCIdent: field
+
+JmlCompilationUnit
+  JCFieldAccess: validator com.hellokaton.blade.validator
+    JCFieldAccess: blade com.hellokaton.blade
+      JCFieldAccess: hellokaton com.hellokaton
+        JCIdent: com
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlImport
+    JCFieldAccess: AllArgsConstructor lombok.AllArgsConstructor
+      JCIdent: lombok
+  JmlImport
+    JCFieldAccess: Predicate java.util.function.Predicate
+      JCFieldAccess: function java.util.function
+        JCFieldAccess: util java.util
+          JCIdent: java
+  JmlClassDecl: SimpleValidation
+    JCIdent: AllArgsConstructor
+    JCIdent: Validation
+    JCIdent: T
+    JmlVariableDecl: predicate
+      JCIdent: Predicate
+      JCIdent: T
+    JmlVariableDecl: onErrorMessage
+      JCIdent: String
+    JCIdent: predicate
+    JCIdent: onErrorMessage
+    JCMethodInvocation
+      JCFieldAccess: equals onErrorMessage.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString onErrorMessage.toString
+            JCIdent: onErrorMessage
+      JCMethodInvocation
+        JCFieldAccess: toString \result.onErrorMessage.toString
+          JCFieldAccess: onErrorMessage \result.onErrorMessage
+    JCMethodInvocation
+      JCFieldAccess: equals onErrorMessage.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString onErrorMessage.toString
+            JCIdent: onErrorMessage
+      JCMethodInvocation
+        JCFieldAccess: toString onErrorMessage.toString
+          JCIdent: onErrorMessage
+    JCFieldAccess: predicate \result.predicate
+    JCIdent: predicate
+    JCMethodInvocation
+      JCFieldAccess: getName \result.predicate.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.predicate.getClass
+            JCFieldAccess: predicate \result.predicate
+    JCMethodInvocation
+      JCFieldAccess: getName predicate.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass predicate.getClass
+            JCIdent: predicate
+    JCFieldAccess: onErrorMessage \result.onErrorMessage
+    JCIdent: onErrorMessage
+    JCFieldAccess: predicate \result.predicate
+    JCFieldAccess: onErrorMessage \result.onErrorMessage
+    JmlMethodDecl: from
+      JCIdent: SimpleValidation
+      JCIdent: T
+      JmlVariableDecl: predicate
+        JCIdent: Predicate
+        JCIdent: T
+      JmlVariableDecl: onErrorMessage
+        JCIdent: String
+      JCIdent: SimpleValidation
+      JCIdent: predicate
+      JCIdent: onErrorMessage
+    JCMethodInvocation
+      JCFieldAccess: getName this.predicate.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.predicate.getClass
+            JCFieldAccess: predicate this.predicate
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName param.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass param.getClass
+            JCIdent: param
+    JCFieldAccess: predicate this.predicate
+      JCIdent: this
+    JCFieldAccess: predicate this.predicate
+      JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName this.predicate.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.predicate.getClass
+            JCFieldAccess: predicate this.predicate
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName this.predicate.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.predicate.getClass
+            JCFieldAccess: predicate this.predicate
+              JCIdent: this
+    JCFieldAccess: onErrorMessage this.onErrorMessage
+      JCIdent: this
+    JCFieldAccess: onErrorMessage this.onErrorMessage
+      JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: equals this.onErrorMessage.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString this.onErrorMessage.toString
+            JCFieldAccess: onErrorMessage this.onErrorMessage
+              JCIdent: this
+      JCMethodInvocation
+        JCFieldAccess: toString \result.message.toString
+          JCFieldAccess: message \result.message
+    JCMethodInvocation
+      JCFieldAccess: equals this.onErrorMessage.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString this.onErrorMessage.toString
+            JCFieldAccess: onErrorMessage this.onErrorMessage
+              JCIdent: this
+      JCMethodInvocation
+        JCFieldAccess: toString this.onErrorMessage.toString
+          JCFieldAccess: onErrorMessage this.onErrorMessage
+            JCIdent: this
+    JCFieldAccess: code \result.code
+    JCMethodInvocation
+      JCFieldAccess: getName this.predicate.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass this.predicate.getClass
+            JCFieldAccess: predicate this.predicate
+              JCIdent: this
+    JCMethodInvocation
+      JCFieldAccess: getName param.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass param.getClass
+            JCIdent: param
+    JmlMethodDecl: test
+      JCIdent: Override
+      JCIdent: ValidationResult
+      JmlVariableDecl: param
+        JCIdent: T
+      JCMethodInvocation
+        JCFieldAccess: test predicate.test
+          JCIdent: predicate
+        JCIdent: param
+      JCMethodInvocation
+        JCFieldAccess: ok ValidationResult.ok
+          JCIdent: ValidationResult
+      JCMethodInvocation
+        JCFieldAccess: fail ValidationResult.fail
+          JCIdent: ValidationResult
+        JCIdent: onErrorMessage
+
+JmlCompilationUnit
+  JCFieldAccess: validator com.hellokaton.blade.validator
+    JCFieldAccess: blade com.hellokaton.blade
+      JCFieldAccess: hellokaton com.hellokaton
+        JCIdent: com
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlImport
+    JCFieldAccess: PatternKit com.hellokaton.blade.kit.PatternKit
+      JCFieldAccess: kit com.hellokaton.blade.kit
+        JCFieldAccess: blade com.hellokaton.blade
+          JCFieldAccess: hellokaton com.hellokaton
+            JCIdent: com
+  JmlImport
+    JCFieldAccess: AccessLevel lombok.AccessLevel
+      JCIdent: lombok
+  JmlImport
+    JCFieldAccess: NoArgsConstructor lombok.NoArgsConstructor
+      JCIdent: lombok
+  JmlImport
+    JCFieldAccess: HashMap java.util.HashMap
+      JCFieldAccess: util java.util
+        JCIdent: java
+  JmlImport
+    JCFieldAccess: Map java.util.Map
+      JCFieldAccess: util java.util
+        JCIdent: java
+  JmlImport
+    JCFieldAccess: Objects java.util.Objects
+      JCFieldAccess: util java.util
+        JCIdent: java
+  JmlImport static
+    JCFieldAccess: format java.lang.String.format
+      JCFieldAccess: String java.lang.String
+        JCFieldAccess: lang java.lang
+          JCIdent: java
+  JmlClassDecl: Validators
+    JCIdent: NoArgsConstructor
+    JCIdent: access
+    JCFieldAccess: PRIVATE AccessLevel.PRIVATE
+      JCIdent: AccessLevel
+    JmlVariableDecl: I18N_MAP
+      JCIdent: Map
+      JCIdent: String
+      JCIdent: String
+      JCIdent: HashMap
+    JmlVariableDecl: i18nPrefix
+      JCIdent: String
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCMethodInvocation
+      JCFieldAccess: put I18N_MAP.put
+        JCIdent: I18N_MAP
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: useChinese
+      JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlMethodDecl: notNull
+      JCIdent: Validation
+      JCIdent: T
+      JCMethodInvocation
+        JCIdent: notNull
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlMethodDecl: notNull
+      JCIdent: Validation
+      JCIdent: T
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: from SimpleValidation.from
+          JCIdent: SimpleValidation
+        JCIdent: Objects
+        JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JmlMethodDecl: notEmpty
+      JCIdent: Validation
+      JCIdent: String
+      JCMethodInvocation
+        JCIdent: notEmpty
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: msg
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: compareTo com.hellokaton.blade.validator.Validators.i18nPrefix.toString().compareTo
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: compareTo com.hellokaton.blade.validator.Validators.i18nPrefix.toString().compareTo
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JmlMethodDecl: notEmpty
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: from SimpleValidation.from
+          JCIdent: SimpleValidation
+        JCIdent: s
+        JCMethodInvocation
+          JCFieldAccess: isEmpty s.isEmpty
+            JCIdent: s
+        JmlVariableDecl: s
+        JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: size
+    JCIdent: size
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: moreThan
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: size
+      JCMethodInvocation
+        JCFieldAccess: and notEmpty().and
+          JCMethodInvocation
+            JCIdent: notEmpty
+        JCMethodInvocation
+          JCIdent: moreThan
+          JCIdent: size
+          JCMethodInvocation
+            JCFieldAccess: get I18N_MAP.get
+              JCIdent: I18N_MAP
+            JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: size
+    JCIdent: size
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JmlMethodDecl: moreThan
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: size
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: and notEmpty().and
+          JCMethodInvocation
+            JCIdent: notEmpty
+        JCMethodInvocation
+          JCFieldAccess: from SimpleValidation.from
+            JCIdent: SimpleValidation
+          JCMethodInvocation
+            JCFieldAccess: length s.length
+              JCIdent: s
+          JCIdent: size
+          JmlVariableDecl: s
+          JCMethodInvocation
+            JCIdent: format
+            JCIdent: msg
+            JCIdent: size
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: size
+    JCIdent: size
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: lessThan
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: size
+      JCMethodInvocation
+        JCIdent: lessThan
+        JCIdent: size
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: size
+    JCIdent: size
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JmlMethodDecl: lessThan
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: size
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: and notEmpty().and
+          JCMethodInvocation
+            JCIdent: notEmpty
+        JCMethodInvocation
+          JCFieldAccess: from SimpleValidation.from
+            JCIdent: SimpleValidation
+          JCMethodInvocation
+            JCFieldAccess: length s.length
+              JCIdent: s
+          JCIdent: size
+          JmlVariableDecl: s
+          JCMethodInvocation
+            JCIdent: format
+            JCIdent: msg
+            JCIdent: size
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: minSize
+    JCIdent: minSize
+    JCIdent: maxSize
+    JCIdent: maxSize
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: length
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: minSize
+      JmlVariableDecl: maxSize
+      JCMethodInvocation
+        JCFieldAccess: and moreThan(minSize).and
+          JCMethodInvocation
+            JCIdent: moreThan
+            JCIdent: minSize
+        JCMethodInvocation
+          JCIdent: lessThan
+          JCIdent: maxSize
+    JmlMethodDecl: contains
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: c
+        JCIdent: String
+      JCMethodInvocation
+        JCIdent: contains
+        JCIdent: c
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JmlMethodDecl: contains
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: c
+        JCIdent: String
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: and notEmpty().and
+          JCMethodInvocation
+            JCIdent: notEmpty
+        JCMethodInvocation
+          JCFieldAccess: from SimpleValidation.from
+            JCIdent: SimpleValidation
+          JCMethodInvocation
+            JCFieldAccess: contains s.contains
+              JCIdent: s
+            JCIdent: c
+          JmlVariableDecl: s
+          JCMethodInvocation
+            JCIdent: format
+            JCIdent: msg
+            JCIdent: c
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: max
+    JCIdent: max
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlMethodDecl: lowerThan
+      JCIdent: Validation
+      JCIdent: Integer
+      JmlVariableDecl: max
+      JCMethodInvocation
+        JCIdent: lowerThan
+        JCIdent: max
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: max
+    JCIdent: max
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlMethodDecl: lowerThan
+      JCIdent: Validation
+      JCIdent: Integer
+      JmlVariableDecl: max
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: from SimpleValidation.from
+          JCIdent: SimpleValidation
+        JCIdent: i
+        JCIdent: max
+        JmlVariableDecl: i
+        JCMethodInvocation
+          JCIdent: format
+          JCIdent: msg
+          JCIdent: max
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: min
+    JCIdent: min
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlMethodDecl: greaterThan
+      JCIdent: Validation
+      JCIdent: Integer
+      JmlVariableDecl: min
+      JCMethodInvocation
+        JCIdent: greaterThan
+        JCIdent: min
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: min
+    JCIdent: min
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: getName \result.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass \result.getClass
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.SimpleValidation.class.getName
+        JCFieldAccess: class com.hellokaton.blade.validator.SimpleValidation.class
+          JCFieldAccess: SimpleValidation com.hellokaton.blade.validator.SimpleValidation
+            JCFieldAccess: validator com.hellokaton.blade.validator
+              JCFieldAccess: blade com.hellokaton.blade
+                JCFieldAccess: hellokaton com.hellokaton
+                  JCIdent: com
+    JmlMethodDecl: greaterThan
+      JCIdent: Validation
+      JCIdent: Integer
+      JmlVariableDecl: min
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: from SimpleValidation.from
+          JCIdent: SimpleValidation
+        JCIdent: i
+        JCIdent: min
+        JmlVariableDecl: i
+        JCMethodInvocation
+          JCIdent: format
+          JCIdent: msg
+          JCIdent: min
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: min
+    JCIdent: min
+    JCIdent: max
+    JCIdent: max
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: range
+      JCIdent: Validation
+      JCIdent: Integer
+      JmlVariableDecl: min
+      JmlVariableDecl: max
+      JCMethodInvocation
+        JCFieldAccess: and greaterThan(min).and
+          JCMethodInvocation
+            JCIdent: greaterThan
+            JCIdent: min
+        JCMethodInvocation
+          JCIdent: lowerThan
+          JCIdent: max
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: isEmail
+      JCIdent: Validation
+      JCIdent: String
+      JCMethodInvocation
+        JCIdent: isEmail
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JmlMethodDecl: isEmail
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: and notEmpty().and
+          JCMethodInvocation
+            JCIdent: notEmpty
+        JCMethodInvocation
+          JCFieldAccess: from SimpleValidation.from
+            JCIdent: SimpleValidation
+          JCIdent: PatternKit
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JmlMethodDecl: isURL
+      JCIdent: Validation
+      JCIdent: String
+      JCMethodInvocation
+        JCIdent: isURL
+        JCMethodInvocation
+          JCFieldAccess: get I18N_MAP.get
+            JCIdent: I18N_MAP
+          JCIdent: i18nPrefix
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCIdent: msg
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: getName com.hellokaton.blade.validator.Validators.I18N_MAP.getClass().getName
+        JCMethodInvocation
+          JCFieldAccess: getClass com.hellokaton.blade.validator.Validators.I18N_MAP.getClass
+            JCFieldAccess: I18N_MAP com.hellokaton.blade.validator.Validators.I18N_MAP
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+      JCMethodInvocation
+        JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+          JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+            JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+              JCFieldAccess: validator com.hellokaton.blade.validator
+                JCFieldAccess: blade com.hellokaton.blade
+                  JCFieldAccess: hellokaton com.hellokaton
+                    JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+      JCMethodInvocation
+        JCFieldAccess: toString msg.toString
+          JCIdent: msg
+    JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+      JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+        JCFieldAccess: validator com.hellokaton.blade.validator
+          JCFieldAccess: blade com.hellokaton.blade
+            JCFieldAccess: hellokaton com.hellokaton
+              JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals com.hellokaton.blade.validator.Validators.i18nPrefix.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString com.hellokaton.blade.validator.Validators.i18nPrefix.toString
+            JCFieldAccess: i18nPrefix com.hellokaton.blade.validator.Validators.i18nPrefix
+              JCFieldAccess: Validators com.hellokaton.blade.validator.Validators
+                JCFieldAccess: validator com.hellokaton.blade.validator
+                  JCFieldAccess: blade com.hellokaton.blade
+                    JCFieldAccess: hellokaton com.hellokaton
+                      JCIdent: com
+    JCMethodInvocation
+      JCFieldAccess: equals msg.toString().equals
+        JCMethodInvocation
+          JCFieldAccess: toString msg.toString
+            JCIdent: msg
+    JmlMethodDecl: isURL
+      JCIdent: Validation
+      JCIdent: String
+      JmlVariableDecl: msg
+        JCIdent: String
+      JCMethodInvocation
+        JCFieldAccess: and notEmpty().and
+          JCMethodInvocation
+            JCIdent: notEmpty
+        JCMethodInvocation
+          JCFieldAccess: from SimpleValidation.from
+            JCIdent: SimpleValidation
+          JCIdent: PatternKit
+          JCIdent: msg
+
