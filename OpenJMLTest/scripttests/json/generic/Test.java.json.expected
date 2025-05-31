@@ -10,16 +10,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "org"
@@ -113,7 +109,6 @@
           },
           "restype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "VOID"
@@ -138,7 +133,6 @@
               "bounds": [
                 {
                   "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                  "type": null,
                   "name": {
                     "class": "com.sun.tools.javac.util.Name",
                     "primitive": "Test"
@@ -171,7 +165,6 @@
               },
               "vartype": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                "type": null,
                 "name": {
                   "class": "com.sun.tools.javac.util.Name",
                   "primitive": "U"
@@ -214,7 +207,6 @@
           },
           "restype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
-            "type": null,
             "typetag": {
               "class": "com.sun.tools.javac.code.TypeTag",
               "primitive": "VOID"
@@ -244,7 +236,6 @@
               },
               "vartype": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                "type": null,
                 "name": {
                   "class": "com.sun.tools.javac.util.Name",
                   "primitive": "T"
@@ -273,7 +264,6 @@
               },
               "vartype": {
                 "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                "type": null,
                 "name": {
                   "class": "com.sun.tools.javac.util.Name",
                   "primitive": "U"
@@ -316,10 +306,8 @@
           },
           "restype": {
             "class": "com.sun.tools.javac.tree.JCTree$JCTypeApply",
-            "type": null,
             "clazz": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "Class"
@@ -328,15 +316,14 @@
             "arguments": [
               {
                 "class": "com.sun.tools.javac.tree.JCTree$JCWildcard",
-                "type": null,
-                "inner": null,
                 "kind": {
                   "class": "com.sun.tools.javac.tree.JCTree$TypeBoundKind",
                   "kind": {
                     "class": "com.sun.tools.javac.code.BoundKind",
-                    "primitive": "?"
+                    "primitive": "UNBOUND"
                   }
-                }
+                },
+                "inner": null
               }
             ]
           },
@@ -357,7 +344,6 @@
                 "class": "com.sun.tools.javac.tree.JCTree$JCReturn",
                 "expr": {
                   "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                  "type": null,
                   "typetag": {
                     "class": "com.sun.tools.javac.code.TypeTag",
                     "primitive": "BOT"

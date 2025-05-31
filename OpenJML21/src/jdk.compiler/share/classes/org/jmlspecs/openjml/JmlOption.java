@@ -42,7 +42,7 @@ public class JmlOption {
     public static final JmlOption DIR = new JmlOption("--dir",true,null,"Process all files, recursively, within this directory",null);
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null);
-    public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (check,esc,rac,compile)",null) {
+    public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (parse,check,esc,rac,compile)",null) {
         public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
             boolean ok = true;

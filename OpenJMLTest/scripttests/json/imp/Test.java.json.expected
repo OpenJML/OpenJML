@@ -10,16 +10,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "org"
@@ -53,13 +49,10 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-            "type": null,
             "name": {
               "class": "com.sun.tools.javac.util.Name",
               "primitive": "java"
@@ -88,13 +81,10 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-            "type": null,
             "name": {
               "class": "com.sun.tools.javac.util.Name",
               "primitive": "java"
@@ -123,16 +113,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "java"
@@ -166,16 +152,12 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "type": null,
             "selected": {
               "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "type": null,
               "name": {
                 "class": "com.sun.tools.javac.util.Name",
                 "primitive": "java"
@@ -209,13 +191,10 @@
       "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
       "qualid": {
         "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "type": null,
         "selected": {
           "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "type": null,
           "selected": {
             "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-            "type": null,
             "name": {
               "class": "com.sun.tools.javac.util.Name",
               "primitive": "java"
