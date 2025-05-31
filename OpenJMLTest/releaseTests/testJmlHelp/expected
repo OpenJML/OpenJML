@@ -79,7 +79,7 @@ JML options:
   --dir                      Process all files, recursively, within this directory
   --dirs                     Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
   --keys                     Identifiers for optional JML comments
-  --command                  The command to execute (check,esc,rac,compile)
+  --command                  The command to execute (parse,check,esc,rac,compile)
   --check                    Does a JML syntax check [--command=check]
   --compile                  Does a Java-only compile [--command=compile]
   --rac                      Enables generating code instrumented with runtime assertion checks [--command=rac]

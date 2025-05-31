@@ -37,6 +37,7 @@ fi
 
 
 cd $(dirname "$BASH_SOURCE")
+make -C .. prep
 
 alias lsc="jobs | wc -l"
 alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 20; done; echo proceeding \$(lsc)"
