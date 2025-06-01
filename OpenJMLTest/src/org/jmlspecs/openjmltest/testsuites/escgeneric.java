@@ -409,7 +409,8 @@ public class escgeneric extends EscBase {
     }
         
     @Test
-    public void testTypeParameter2e() {  // FIXME - needs clearer error message
+    public void testTypeParameter2e() {
+        expectedExit = 1;
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -423,12 +424,120 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:3: error: Expected an identifier, found end of JML comment instead", 40
+                ,"/tt/TestJava.java:3: error: Did not expect an identifier following this formal parameter; perhaps a modifier is misspelled and thought to be a type: TestG<Integer>.qqq", 40
                 );
     }
     
+    @Test
+    public void testTypeParameter2f() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(TestG<Integer>./*@ final */TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:3: error: <identifier> expected", 36
+                ,"/tt/TestJava.java:3: error: ',', ')', or '[' expected", 42
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2g() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(TestG<Integer>./*@ pure */TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    //@ requires \\type(E) != \\type(Integer); pure\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:3: error: A pure modifier is not allowed where type annotations are expected", 37
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2h() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(TestG<Integer>./*@ public */TestH i, Integer j) {\n"
+                +"    i.mm(j);\n"
+                +"  }\n"
+                +"}\n"
+                +"class TestG<E> {\n"
+                +"  class TestH  {\n"
+                +"    public void mm(E t) {}\n"
+                +"  }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:3: error: <identifier> expected", 36
+                ,"/tt/TestJava.java:3: error: ',', ')', or '[' expected", 43
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2k1() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void ma(/*@ public */Object i) { }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:3: error: modifier public not allowed here", 31
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2k2() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void mb(/*@ pure */Object i) { }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:3: error: This JML modifier is not allowed for a formal parameter", 22
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2k3() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void mc(/*@ final */Object i) { }\n"
+                +"  public void md(/*@ non_null */Object i) { }\n"
+                +"}\n"
+                );
+    }
+    
+    @Test
+    public void testTypeParameter2k4() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  public void me(/*@ qqq */Object i) { }\n"
+                +"}\n"
+                ,"/tt/TestJava.java:3: error: Expected an identifier, found end of JML comment instead", 26
+                ,"/tt/TestJava.java:3: error: Did not expect an identifier following this formal parameter; perhaps a modifier is misspelled and thought to be a type: qqq", 26
+                );
+    }
+        
     @Test
     public void testUnboxing() {
         addOptions("--method=m");  // Just test method m
