@@ -77,6 +77,15 @@ JmlCompilationUnit
       JCInstanceOf
         JCIdent: o
         JCIdent: String
+    JmlVariableDecl: a
+    JmlVariableDecl: o
+      JCIdent: Object
+      JCIdent: Object
+      JCIdent: a
+    JmlVariableDecl: x
+      JCIdent: Test1
+      JCIdent: Test1
+    JmlVariableDecl: z
 
 JmlCompilationUnit
   JmlImport model
@@ -85,5 +94,20 @@ JmlCompilationUnit
         JCFieldAccess: jmlspecs org.jmlspecs
           JCIdent: org
   JmlClassDecl: Test2
+    JmlVariableDecl: i
+    JCIdent: i
+    JCIdent: i
     JmlMethodDecl: m
+      JCMethodInvocation
+        JCFieldAccess: m this.m
+          JCIdent: this
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: i
+      JCIdent: i
+      JmlVariableDecl: i
+      JCIdent: i
+      JCMethodInvocation
+        JCIdent: m
 
