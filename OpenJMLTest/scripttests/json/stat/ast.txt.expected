@@ -17,6 +17,24 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: i
       JCIdent: i
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JmlVariableDecl: r
+        JCIdent: PrintStream
+      JCIdent: this
+      JCIdent: i
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: a
+      JmlVariableDecl: e
+      JCIdent: a
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: j
+        JCIdent: \bigint
       JCIdent: i
 
 JmlCompilationUnit
@@ -38,5 +56,23 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: i
       JCIdent: i
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JmlVariableDecl: r
+        JCIdent: PrintStream
+      JCIdent: this
+      JCIdent: i
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: a
+      JmlVariableDecl: e
+      JCIdent: a
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: j
+        JCIdent: \bigint
       JCIdent: i
 
