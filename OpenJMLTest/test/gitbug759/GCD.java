@@ -7,75 +7,75 @@ public class GCD{
         return n1 % n2;
     }
     
+    //@ ensures mod(n, 1) == 0;
+    //@ no_state
+    public static boolean lemmamod(int n) { return true; }
+    
+    //@ axiom \forall int n; -Integer.MAX_VALUE < n < Integer.MAX_VALUE; \forall int d; d != 0; mod(-n, d) == mod(n, d);
+    
     /*@    requires 0 <= n <= Integer.MAX_VALUE;
 	  @    ensures \result == n;
 	  @ also
-	  @    requires Integer.MIN_VALUE < n < 0;
+	  @    requires -Integer.MAX_VALUE <= n < 0;
 	  @    ensures \result == -n; 
       @*/
     public /*@ no_state @*/ static int abs(int n){
         return (0 <= n) ? n : -n;
     }
 
-      /*@ requires -Integer.MAX_VALUE < nn1 < Integer.MAX_VALUE && -Integer.MAX_VALUE < nn2 < Integer.MAX_VALUE;
+      /*@ requires 0 < n1 < Integer.MAX_VALUE && 0 < n2 < Integer.MAX_VALUE;
         @ {|    
-    @   requires nn1 != 0 && nn2 != 0;
-    @   ensures 1 <= \result <= abs(nn1) & \result <= abs(nn2);
-    @   ensures mod(nn1, \result) == 0 && mod(nn2, \result) == 0;
-    @   ensures (\forall int k; \result < k <= abs(nn1) & k <= abs(nn2); mod(nn1, k) != 0 || mod(nn2, k) != 0);
+    @   ensures 1 <= \result <= n1 & \result <= n2;
+    @   ensures mod(n1, \result) == 0 && mod(n2, \result) == 0;
+    @   ensures (\forall int k; \result < k & k <= n1 & k <= n2; mod(n1, k) != 0 || mod(n2, k) != 0);
     @ also
-    @   requires nn1 == 0 && nn2 == 0;
+    @   requires n1 == 0 && n2 == 0;
     @   ensures \result == -1;
     @ also
-    @   requires nn1 == 0 && nn2 != 0;
-    @   ensures \result == abs(nn2);
+    @   requires n1 == 0 && n2 != 0;
+    @   ensures \result == abs(n2);
     @ also
-    @   requires nn1 != 0 && nn2 == 0;
-    @   ensures \result == abs(nn1);
+    @   requires n1 != 0 && n2 == 0;
+    @   ensures \result == abs(n1);
         @ |} @*/
-    public /*@ no_state @*/ static int gcd(int nn1, int nn2) throws IllegalArgumentException{
+    public /*@ no_state @*/ static int gcd(int n1, int n2) throws IllegalArgumentException{
           //@ reachable
         int result = 1;
-        int n1 = abs(nn1);
-        int n2 = abs(nn2);
-        if( nn1 == 0 && nn2 == 0){
+        if( n1 == 0 && n2 == 0){
             return -1;
         }
-        if (nn1 == 0 || nn2 == 0){
-            return nn1 == 0 ? n2 : n1;
+        if (n1 == 0 || n2 == 0){
+            return n1 == 0 ? n2 : n1;
         }
         //@ assert n1 > 0 && n2 > 0;
         
+        //@ assume lemmamod(n1) && lemmamod(n2);
+        
         //@ reachable;
         //@ maintaining 0 < i && i <= n1+1 && i <= n2+1;
-        //@ maintaining 1 <= result < i || (i==1 && result ==1);
-        // @ maintaining mod(n1, result) == 0 && mod(n2, result) == 0;
-        // @ maintaining (\forall int k; 0 < k < i; (mod(n1, k) == 0 && mod(n2, k)== 0) ==> k <= result);
-        // @ maintaining (\forall int k; result < k < i; mod(n1, k) != 0 || mod(n2, k)!= 0);
+        //@ maintaining 1 <= result < i || (i == 1 && result == 1);
+        //@ maintaining mod(n1, result) == 0 && mod(n2, result) == 0;
+        //@ maintaining (\forall int k; result < k < i; mod(n1, k) != 0 || mod(n2, k)!= 0);
         //@ decreases n1 - i;
         for(int i = 1; i <= n2 && i <= n1; i++){
-        //@ reachable;
+            //@ reachable;
             if(mod(n1, i) == 0 && mod(n2, i) == 0){
                 result = i;
             }
-         //@ assert 0 < i && i < n1+1 && i < n2+1;
-        //@ assert 0 < result <= i;
-        // @ assert mod(nn1, result) == 0 && mod(nn2, result) == 0;
-        // @ assert (\forall int k; 0 < k <= i; (mod(nn1, k) == 0 && mod(nn2, k)== 0) ==> k <= result);
-        // @ assert (\forall int k; result < k <= i; mod(nn1, k) != 0 || mod(nn2, k)!= 0);
-	//@ reachable;
+            //@ assert 0 < i && i < n1+1 && i < n2+1;
+            //@ assert 0 < result <= i;
+            //@ assert mod(n1, result) == 0 && mod(n2, result) == 0;
+            //@ assert (\forall int k; result < k <= i; mod(n1, k) != 0 || mod(n2, k)!= 0);
         }
         //@ reachable;
 
-//@ assert 1 <= result <= n1 && result <= n2;
-// @ assert mod(n1, result) == 0 && mod(n2, result) == 0;
-// @ assert mod(nn1, result) == 0 && mod(nn2, result) == 0;
-// @ assert (\forall int k; 0 < k <= n1 & k <= n2; (mod(nn1, k) == 0 && mod(nn2, k)== 0) ==> k <= result);
-// @ assert (\forall int k; result < k <= n1 & k <= n2; mod(nn1, k) != 0 || mod(nn2, k)!= 0);
+        //@ assert 1 <= result <= n1 && result <= n2;
+        //@ assert mod(n1, result) == 0 && mod(n2, result) == 0;
+        //@ assert (\forall int k; result < k <= n1 & k <= n2; mod(n1, k) != 0 || mod(n2, k)!= 0);
 
-    //@   assume 1 <= result <= n1 & result <= n2;
-    //@   assume mod(nn1, result) == 0 && mod(nn2, result) == 0;
-    //@   assume (\forall int k; result < k <= n1 & k <= n2; mod(nn1, k) != 0 || mod(nn2, k) != 0);
+    // @   assume 1 <= result <= n1 & result <= n2;
+    // @   assume mod(n1, result) == 0 && mod(n2, result) == 0;
+    // @   assume (\forall int k; result < k <= n1 & k <= n2; mod(n1, k) != 0 || mod(n2, k) != 0);
 
         return result;
     }
@@ -90,13 +90,19 @@ public class GCD{
     //@ requires n != 0 || d != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n,d)));
     //@ helper no_state
-    public static boolean lemma2(int n, int d) { /*@ show n, d; */  return true; }
+    public static boolean lemma2a(int n, int d) { /*@ show n, d; */  return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
     //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(n,-d)));
     //@ helper no_state
-    public static boolean lemma3(int n, int d) { /*@ show n, d; */ return true; }
+    public static boolean lemma2b(int n, int d) { /*@ show n, d; */  return true; }
+
+    //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
+    //@ requires n != 0 || d != 0;
+    //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n,-d)));
+    //@ helper no_state
+    public static boolean lemma2c(int n, int d) { /*@ show n, d; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
     //@ ensures \result == ((\lbl A GCD.gcd(n, 1)) == 1);
