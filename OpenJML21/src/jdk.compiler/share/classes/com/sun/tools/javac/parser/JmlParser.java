@@ -400,14 +400,13 @@ public class JmlParser extends JavacParser {
         replacementType = null;
         int n = Log.instance(context).nerrors;
         JmlVariableDecl param = (JmlVariableDecl)super.formalParameter(lambdaParameter, recordComponent);
+        if (token().kind == TokenKind.IDENTIFIER && !param.vartype.toString().contains("ERROR")) {
+            utils.error(S.prevToken().pos, "jml.message", "Did not expect an identifier following this formal parameter; perhaps a modifier is misspelled and thought to be a type: " + param.vartype);
+        }
         insertReplacementType(param,replacementType);
-        //if (param.name.toString().equals("sizes")) System.out.println("FORMAL " + param);
         param.vartype = normalizeAnnotations((JmlModifiers)param.mods, param.vartype);
-        //if (param.name.toString().equals("sizes")) System.out.println("  VARTYPE-A " + param.vartype);
         var typeAnnotations = extractTypeAnnotations(param.mods);
-        //if (param.name.toString().equals("sizes")) System.out.println("  TYPEANNO " + typeAnnotations);
         param.vartype = insertAnnotationsToMostInner(param.vartype, typeAnnotations, false);
-        //if (param.name.toString().equals("sizes")) System.out.println("  VARTYPE-B " + param.vartype);
         if (n != Log.instance(context).nerrors) {
         	skipToCommaOrParenOrSemi();
         	return param;
@@ -462,7 +461,7 @@ public class JmlParser extends JavacParser {
                     }
                 } else {
                     String s = jann.annotationType.toString();
-                    if (s.endsWith("NonNull") || s.endsWith("Nullable")) {
+                    if (s.endsWith("NonNull") || s.endsWith("Nullable")) { // FIXME - need a better test?
                         taAnnotations.add(a);                        
                     } else {
                         nonTAAnnotations.add(a);
@@ -2389,46 +2388,50 @@ public class JmlParser extends JavacParser {
         }
         return t;
     }
-    
+
     protected List<JCAnnotation> annotationsOpt(Tag kind) {
-    	ListBuffer<JCAnnotation> annos = new ListBuffer<>();
-    	//if (kind == Tag.TYPE_ANNOTATION)System.out.println("JML-ANNOTOPT-TOKEN " + token);
-    	while (true) {
-    		while (S.jml()) {
-    			if (isStartJml(token)) { nextToken(); continue; }
-    			var mm = Extensions.findKeyword(token);
-    			if (!(mm instanceof ModifierKind m)) {
-    			    break;
-    			}
-    			//System.out.println("JML-ANNOTOPT " + m);
-    			
-    			JmlAnnotation t;
-    			if (kind != Tag.TYPE_ANNOTATION) {
-                    t = utils.modToAnnotationAST(m, token.pos, token.endPos);
-    			} else {
-    		        if (m.isTypeAnnotation()) {
-                        JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
-    		            t = (JmlAnnotation)F.at(token.pos).TypeAnnotation(p,
-    		                com.sun.tools.javac.util.List.<JCExpression> nil());
-    		            t.kind = m;
-    		        } else {
-    		            utils.error(token.pos, "jml.message", "A " + m + " modifier is not allowed where type annotations are expected");
-    		            t = null;
-    		        }
-    			}
-    			if (t != null) {
-    			    annos.append(t);
-    			}
-    			nextToken();
-    			acceptEndJML();
-                //System.out.println("READ ANNOT " + token + " " + annos);
-    		}
-    		var lst = super.annotationsOpt(kind);
-    		if (lst.isEmpty()) {
-    		    return annos.toList();
-    		}
-    		annos.appendList(lst);
-    	}
+        ListBuffer<JCAnnotation> annos = new ListBuffer<>();
+        //if (kind == Tag.TYPE_ANNOTATION)System.out.println("JML-ANNOTOPT-TOKEN " + token + " " + S.jml());
+        while (true) {
+            while (S.jml()) {
+                if (isStartJml(token)) { nextToken(); continue; }
+                var mm = Extensions.findKeyword(token);
+                if (!(mm instanceof ModifierKind m)) {
+                    // The token is an identifier that is not a modifier
+                    // We don't know whether this is a (a) misspelled modifier or (b) name that is a type name
+                    // We have to presume the latter, even though that can lead to a messed up parse if indeed (a) was the case
+                    break;
+                } else {
+                    //System.out.println("JML-ANNOTOPT " + token + " " + m);
+
+                    JmlAnnotation t;
+                    if (kind != Tag.TYPE_ANNOTATION) {
+                        t = utils.modToAnnotationAST(m, token.pos, token.endPos);
+                    } else {
+                        if (m.isTypeAnnotation()) {
+                            JCExpression p = utils.nametree(token.pos, token.endPos, m.fullAnnotation, null);
+                            t = (JmlAnnotation)F.at(token.pos).TypeAnnotation(p,
+                                    com.sun.tools.javac.util.List.<JCExpression> nil());
+                            t.kind = m;
+                        } else {
+                            utils.error(token.pos, "jml.message", "A " + m + " modifier is not allowed where type annotations are expected");
+                            t = null;
+                        }
+                    }
+                    if (t != null) {
+                        annos.append(t);
+                    }
+                    nextToken();
+                }
+                acceptEndJML();
+            }
+            var lst = super.annotationsOpt(kind);
+            if (lst.isEmpty()) {
+                //acceptEndJML();
+                return annos.toList();
+            }
+            annos.appendList(lst);
+        }
     }
     
     public boolean isStartJml(Token token) {

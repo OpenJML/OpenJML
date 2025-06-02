@@ -143,9 +143,9 @@ public class JmlTokenizer extends JavadocTokenizer {
         if (scannerDebug) System.out.println("COMMENT " + noJML + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
         
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
-        	// The nested block will have the same end point as the outer block
+            // The nested block will have the same end point as the outer block
             Utils.instance(context).error(pos,"jml.message",
-            		"Block comments may not be embedded inside JML block comments");
+                    "Block comments may not be embedded inside JML block comments");
             endPos -= 2; // TODO: Presumes no unicode for the comment terminator
         }
         
