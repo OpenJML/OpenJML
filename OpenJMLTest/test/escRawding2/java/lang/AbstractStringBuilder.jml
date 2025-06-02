@@ -9,7 +9,7 @@ package java.lang;
  */
 abstract class AbstractStringBuilder implements Appendable, CharSequence {
 
-    /*@ spec_public @*/ byte[] value; //@ in modelValue;
+    /*@ spec_public @*/ char[] value; //@ in modelValue;
     
     /*@ spec_public @*/ int count; //@ in stringLength;
     
