@@ -1295,11 +1295,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1418,11 +1418,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1589,11 +1589,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1663,11 +1663,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1882,11 +1882,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1956,11 +1956,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2048,11 +2048,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2171,11 +2171,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2342,11 +2342,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2465,11 +2465,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2618,11 +2618,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2692,11 +2692,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2784,11 +2784,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3086,11 +3086,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -3160,11 +3160,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -3252,11 +3252,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -3291,11 +3291,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -3348,11 +3348,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3471,11 +3471,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3642,11 +3642,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3765,11 +3765,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3918,11 +3918,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4001,11 +4001,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4075,11 +4075,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4167,11 +4167,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4224,11 +4224,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4478,11 +4478,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -4552,11 +4552,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -4644,11 +4644,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4767,11 +4767,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -4938,11 +4938,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5061,11 +5061,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5214,11 +5214,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5288,11 +5288,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5380,11 +5380,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5419,11 +5419,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5528,11 +5528,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -5832,11 +5832,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -5906,11 +5906,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -5998,11 +5998,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -6037,11 +6037,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -6076,11 +6076,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -6133,11 +6133,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -6240,7 +6240,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "INT"
                         },
-                        "value": "0"
+                        "value": 0
                       }
                     },
                     "exception": null
@@ -6251,11 +6251,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -6374,11 +6374,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -6545,11 +6545,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -6668,11 +6668,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -6821,11 +6821,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -6904,11 +6904,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -6978,11 +6978,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -7070,11 +7070,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -7127,11 +7127,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -7166,11 +7166,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -7275,11 +7275,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -7396,11 +7396,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -7503,7 +7503,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "INT"
                         },
-                        "value": "0"
+                        "value": 0
                       }
                     },
                     "exception": null
@@ -7756,11 +7756,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -7830,11 +7830,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -7922,11 +7922,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -7952,7 +7952,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "3"
+                          "value": 3
                         }
                       },
                       "opcode": {
@@ -7978,7 +7978,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "5"
+                          "value": 5
                         }
                       }
                     },
@@ -7990,11 +7990,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -8113,11 +8113,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -8284,11 +8284,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -8407,11 +8407,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -8560,11 +8560,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -8634,11 +8634,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -8969,11 +8969,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -9043,11 +9043,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -9135,11 +9135,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -9165,7 +9165,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "3"
+                          "value": 3
                         }
                       },
                       "opcode": {
@@ -9191,7 +9191,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "5"
+                          "value": 5
                         }
                       }
                     },
@@ -9203,11 +9203,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -9242,11 +9242,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -9299,11 +9299,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -9422,11 +9422,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -9593,11 +9593,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -9716,11 +9716,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -9869,11 +9869,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -9952,11 +9952,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -10026,11 +10026,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -10118,11 +10118,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -10440,11 +10440,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -10514,11 +10514,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -10606,11 +10606,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -10636,7 +10636,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "20"
+                          "value": 20
                         }
                       },
                       "opcode": {
@@ -10662,7 +10662,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "100"
+                          "value": 100
                         }
                       }
                     },
@@ -10674,11 +10674,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -10797,11 +10797,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -10968,11 +10968,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -11091,11 +11091,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -11244,11 +11244,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -11318,11 +11318,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -11628,11 +11628,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -11702,11 +11702,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -11794,11 +11794,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -11824,7 +11824,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "20"
+                          "value": 20
                         }
                       },
                       "opcode": {
@@ -11850,7 +11850,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "100"
+                          "value": 100
                         }
                       }
                     },
@@ -11862,11 +11862,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -11901,11 +11901,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -11958,11 +11958,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12081,11 +12081,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12252,11 +12252,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12375,11 +12375,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12528,11 +12528,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12611,11 +12611,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12685,11 +12685,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -12777,11 +12777,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -13127,11 +13127,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -13201,11 +13201,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -13293,11 +13293,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -13323,7 +13323,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "3"
+                          "value": 3
                         }
                       },
                       "opcode": {
@@ -13349,7 +13349,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "5"
+                          "value": 5
                         }
                       }
                     },
@@ -13361,11 +13361,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -13391,7 +13391,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "20"
+                          "value": 20
                         }
                       },
                       "opcode": {
@@ -13417,7 +13417,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "100"
+                          "value": 100
                         }
                       }
                     },
@@ -13429,11 +13429,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -13552,11 +13552,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -13723,11 +13723,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -13846,11 +13846,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -13999,11 +13999,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -14073,11 +14073,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -14346,11 +14346,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -14361,7 +14361,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "BOOLEAN"
                       },
-                      "value": "1"
+                      "value": 1
                     },
                     "exception": null
                   }
@@ -14589,11 +14589,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -14604,7 +14604,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "BOOLEAN"
                       },
-                      "value": "1"
+                      "value": 1
                     },
                     "exception": null
                   }
@@ -14873,11 +14873,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -14947,11 +14947,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -15039,11 +15039,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -15069,7 +15069,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "5"
+                          "value": 5
                         }
                       },
                       "opcode": {
@@ -15095,7 +15095,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "20"
+                          "value": 20
                         }
                       }
                     },
@@ -15107,11 +15107,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -15230,11 +15230,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -15401,11 +15401,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -15524,11 +15524,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -15677,11 +15677,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -15751,11 +15751,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -15843,11 +15843,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -16170,11 +16170,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -16244,11 +16244,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -16336,11 +16336,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -16366,7 +16366,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "5"
+                          "value": 5
                         }
                       },
                       "opcode": {
@@ -16392,7 +16392,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "20"
+                          "value": 20
                         }
                       }
                     },
@@ -16404,11 +16404,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -16443,11 +16443,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -16500,11 +16500,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -16623,11 +16623,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -16794,11 +16794,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -16917,11 +16917,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -17070,11 +17070,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -17153,11 +17153,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -17227,11 +17227,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -17319,11 +17319,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -17376,11 +17376,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -17713,11 +17713,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -17787,11 +17787,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -17879,11 +17879,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -17909,7 +17909,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "3"
+                          "value": 3
                         }
                       },
                       "opcode": {
@@ -17935,7 +17935,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "10"
+                          "value": 10
                         }
                       }
                     },
@@ -17947,11 +17947,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -18070,11 +18070,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -18241,11 +18241,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -18364,11 +18364,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -18517,11 +18517,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -18591,11 +18591,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -18683,11 +18683,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -19010,11 +19010,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -19084,11 +19084,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -19176,11 +19176,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -19206,7 +19206,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "3"
+                          "value": 3
                         }
                       },
                       "opcode": {
@@ -19232,7 +19232,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "10"
+                          "value": 10
                         }
                       }
                     },
@@ -19244,11 +19244,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -19283,11 +19283,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -19340,11 +19340,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -19463,11 +19463,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -19634,11 +19634,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -19757,11 +19757,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -19910,11 +19910,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -19993,11 +19993,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -20067,11 +20067,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -20159,11 +20159,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -20216,11 +20216,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -20581,11 +20581,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -20655,11 +20655,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -20747,11 +20747,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -20777,7 +20777,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "3"
+                          "value": 3
                         }
                       },
                       "opcode": {
@@ -20803,7 +20803,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "10"
+                          "value": 10
                         }
                       }
                     },
@@ -20815,11 +20815,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -20845,7 +20845,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "5"
+                          "value": 5
                         }
                       },
                       "opcode": {
@@ -20871,7 +20871,7 @@
                             "class": "com.sun.tools.javac.code.TypeTag",
                             "primitive": "INT"
                           },
-                          "value": "20"
+                          "value": 20
                         }
                       }
                     },
@@ -20883,11 +20883,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -21006,11 +21006,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -21177,11 +21177,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -21300,11 +21300,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -21453,11 +21453,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -21527,11 +21527,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -21771,11 +21771,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -21845,11 +21845,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -21937,11 +21937,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -22060,11 +22060,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -22231,11 +22231,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -22354,11 +22354,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -22507,11 +22507,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -22581,11 +22581,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -22856,11 +22856,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -22930,11 +22930,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -23022,11 +23022,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -23061,11 +23061,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -23118,11 +23118,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23241,11 +23241,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23412,11 +23412,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23535,11 +23535,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23688,11 +23688,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23771,11 +23771,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23845,11 +23845,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -23937,11 +23937,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -24164,11 +24164,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -24238,11 +24238,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -24330,11 +24330,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -24453,11 +24453,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -24624,11 +24624,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -24747,11 +24747,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -24900,11 +24900,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -24974,11 +24974,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -25066,11 +25066,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -25288,11 +25288,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -25362,11 +25362,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -25454,11 +25454,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -25493,11 +25493,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -25550,11 +25550,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -25673,11 +25673,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -25844,11 +25844,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -25967,11 +25967,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -26120,11 +26120,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -26203,11 +26203,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -26277,11 +26277,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -26369,11 +26369,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -26426,11 +26426,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/Validators.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"

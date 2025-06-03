@@ -440,11 +440,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
-            if (that.list.isEmpty()) {
+            if (that.exceptions.isEmpty()) {
                 print("\\nothing");
             } else {
                 boolean first = true;
-                for (JCExpression item: that.list) {
+                for (JCExpression item: that.exceptions) {
                     if (first) first = false; else print(", ");
                     item.accept(this);
                 }

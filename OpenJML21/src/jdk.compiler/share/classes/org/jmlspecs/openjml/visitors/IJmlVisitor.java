@@ -154,7 +154,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
-        scan(tree.list);
+        scan(tree.exceptions);
     }
 
     default public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {

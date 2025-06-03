@@ -943,7 +943,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
         JmlSingleton id = factory.at(0).JmlSingleton(exceptionKind);
         id.kind = org.jmlspecs.openjml.ext.SingletonExpressions.exceptionKind;
-        for (JCExpression typetree: clause.list) {
+        for (JCExpression typetree: clause.exceptions) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
                     JCTree.Tag.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);

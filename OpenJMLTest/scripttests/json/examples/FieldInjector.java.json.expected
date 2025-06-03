@@ -633,11 +633,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -742,11 +742,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -802,11 +802,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -910,11 +910,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1124,11 +1124,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1139,7 +1139,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "BOOLEAN"
                       },
-                      "value": "1"
+                      "value": 1
                     },
                     "exception": null
                   }
@@ -1255,11 +1255,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1270,7 +1270,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "BOOLEAN"
                       },
-                      "value": "1"
+                      "value": 1
                     },
                     "exception": null
                   }
@@ -1447,11 +1447,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1486,11 +1486,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1532,11 +1532,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1578,11 +1578,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1617,11 +1617,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -1726,11 +1726,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1793,11 +1793,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1908,11 +1908,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -1975,11 +1975,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2021,11 +2021,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -2569,11 +2569,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2608,11 +2608,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2654,11 +2654,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2700,11 +2700,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2739,11 +2739,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2848,11 +2848,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2887,11 +2887,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -2982,11 +2982,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3049,11 +3049,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3164,11 +3164,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3231,11 +3231,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3277,11 +3277,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "ensures"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "ensures"
@@ -3369,7 +3369,7 @@
                               "class": "com.sun.tools.javac.code.TypeTag",
                               "primitive": "BOOLEAN"
                             },
-                            "value": "1"
+                            "value": 1
                           }
                         ]
                       }
@@ -3558,11 +3558,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "examples/FieldInjector.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -3573,7 +3573,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "BOOLEAN"
                       },
-                      "value": "1"
+                      "value": 1
                     },
                     "exception": null
                   }
@@ -3644,7 +3644,7 @@
                       "class": "com.sun.tools.javac.code.TypeTag",
                       "primitive": "INT"
                     },
-                    "value": "0"
+                    "value": 0
                   }
                 }
               }

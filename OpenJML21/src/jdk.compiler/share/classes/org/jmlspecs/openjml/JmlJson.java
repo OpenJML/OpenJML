@@ -685,8 +685,19 @@ public class JmlJson {
     }
     
     // abstract - JCFunctionalExpression
-    // TODO: JmlGroupName
     
+    class JmlGroupNameAdapter extends Adapter<JmlGroupName> {
+        public static final String[] fields = { "selection" };
+
+        @Override
+        public JmlGroupName deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlGroupName((JCExpression)values[0]);
+            return result;
+        }
+    }
+
     class JCIdentAdapter extends Adapter<JCIdent> {
         public static final String[] fields = { "name" };
 
@@ -694,10 +705,10 @@ public class JmlJson {
         public JCIdent deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var name = fromJsonElement(json.getAsJsonObject().get("name"));
-            JCIdent result = M.Ident((Name)name);
+            var result = M.Ident((Name)name);
             return result;
         }
-}
+    }
     
     class JmlIfStatementAdapter extends Adapter<JmlIfStatement> {
         public static final String[] fields = { "cond", "thenpart", "elsepart" };
@@ -723,7 +734,18 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlInlinedLoop
+    class JmlInlinedLoopAdapter extends Adapter<JmlInlinedLoop> {
+        public static final String[] fields = { "name", "loopSpecs" };
+        
+        @Override
+        public JmlInlinedLoop deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlInlinedLoop(JmlJson.<JmlStatementLoop>toList(values[1]));
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
     
     class JCInstanceOfAdapter extends Adapter<JCInstanceOf> {
         public static final String[] fields = { "expr", "pattern" };// FIXME - what about allowNulls
@@ -789,13 +811,13 @@ public class JmlJson {
 
     class JCLiteralAdapter extends Adapter<JCLiteral> {
         public static final String[] fields = { "typetag", "value" };
-        @Override
-        public JsonElement serialize(JCLiteral src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            var obj = newgson(src, context);
-            obj.add("typetag", context.serialize(src.typetag));
-            obj.add("value", str(src.value));
-            return obj;
-        }
+//        @Override
+//        public JsonElement serialize(JCLiteral src, java.lang.reflect.Type type, JsonSerializationContext context) {
+//            var obj = newgson(src, context);
+//            obj.add("typetag", context.serialize(src.typetag));
+//            obj.add("value", str(src.value));
+//            return obj;
+//        }
         @Override
         public JCLiteral deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -863,34 +885,147 @@ public class JmlJson {
         }
     }
     
+    class JmlMethodClauseBehaviorsAdapter extends Adapter<JmlMethodClauseBehaviors> {
+        public static final String[] fields = { "name", "keyword", "clauseKind", "command" };
+
+        @Override
+        public JmlMethodClauseBehaviors deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseBehaviors(
+                    (String)values[3]        // command
+                    );
+            result.name = (Name)values[0];
+            result.keyword = (String)values[1];
+            result.clauseKind = (IJmlClauseKind)values[2];
+            return result;
+        }
+    }
+
+
     // TODO: JmlMethodClauseBehaviors
     // TODO: JmlMethodClauseCallable
-    // TODO: JmlMethodClauseConditional
-    // TODO: JmlMethodClauseDecl
+
+    class JmlMethodClauseConditionalAdapter extends Adapter<JmlMethodClauseConditional> {
+        public static final String[] fields = { "name", "keyword", "clauseKind", "expression", "predicate" };
+
+        @Override
+        public JmlMethodClauseConditional deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseConditional(
+                    (String)values[1],        // keyword
+                    (IJmlClauseKind)values[2], // clauseKind
+                    (JmlExpression)values[3],
+                    (JmlExpression)values[4]
+                    );
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
+
+    class JmlMethodClauseDeclAdapter extends Adapter<JmlMethodClauseDecl> {
+        public static final String[] fields = { "name", "keyword", "clauseKind", "decls" };
+
+        @Override
+        public JmlMethodClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseDecl(
+                    (String)values[1],        // keyword
+                    (IJmlClauseKind)values[2], // clauseKind
+                    JmlJson.<JCVariableDecl>toList(values[3]) // decls
+                    );
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
 
     class JmlMethodClauseExprAdapter extends Adapter<JmlMethodClauseExpr> {
-        public static final String[] fields = { "keyword", "name", "clauseKind", "expression", "exception" };
+        public static final String[] fields = { "name", "keyword", "clauseKind", "expression", "exception" };
 
         @Override
         public JmlMethodClauseExpr deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlMethodClauseExpr(
-                    (String)values[0],        // keyword
-                    (IJmlClauseKind)values[2], // clauseType
+                    (String)values[1],        // keyword
+                    (IJmlClauseKind)values[2], // clauseKind
                     (JCExpression)values[3] // expression
                     );
-            result.name = (Name)values[1];
+            result.name = (Name)values[0];
             result.exception = (JCExpression)values[4];
             return result;
         }
     }
 
-    // TODO: JmlMethodClauseGroup
+    class JmlMethodClauseGroupAdapter extends Adapter<JmlMethodClauseGroup> {
+        public static final String[] fields = { "cases" };
+
+        @Override
+        public JmlMethodClauseGroup deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseGroup(
+                    JmlJson.<JmlSpecificationCase>toList(values[0]) // cases
+                    );
+            return result;
+        }
+    }
+
     // TODO: JmlMethodClauseInvariants
-    // TODO: JmlMethodClauseSignals
-    // TODO: JmlMethodClauseSignalsOnly
-    // TODO: JmlMethodClauseStoreRef
+
+    class JmlMethodClauseSignalsAdapter extends Adapter<JmlMethodClauseSignals> {
+        public static final String[] fields = { "name", "keyword", "clauseKind", "vardef", "expression" };
+
+        @Override
+        public JmlMethodClauseSignals deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseSignals(
+                    (String)values[1],        // keyword
+                    (IJmlClauseKind)values[2], // clauseKind
+                    (JCVariableDecl)values[3], // declaration
+                    (JCExpression)values[4] // predicate
+                    );
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
+
+    class JmlMethodClauseSignalsOnlyAdapter extends Adapter<JmlMethodClauseSignalsOnly> {
+        public static final String[] fields = { "name", "keyword", "clauseKind", "exceptions" };
+
+        @Override
+        public JmlMethodClauseSignalsOnly deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseSignalsOnly(
+                    (String)values[1],        // keyword
+                    (IJmlClauseKind)values[2], // clauseKind
+                    JmlJson.<JCExpression>toList(values[3]) // exceptions
+                    );
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
+
+    class JmlMethodClauseStoreRefAdapter extends Adapter<JmlMethodClauseStoreRef> {
+        public static final String[] fields = { "name", "keyword", "clauseKind", "list" };
+
+        @Override
+        public JmlMethodClauseStoreRef deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseStoreRef(
+                    (String)values[1],        // keyword
+                    (IJmlClauseKind)values[2], // clauseKind
+                    JmlJson.<JCExpression>toList(values[3]) // exceptions
+                    );
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
 
     class JmlMethodDeclAdapter extends Adapter<JmlMethodDecl> {
         public static final String[] fields = { "mods", "name", "restype", "typarams", "recvparam", "params", "thrown", "methodSpecs", "body", "defaultValue" };
@@ -942,8 +1077,17 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlMethodSig
-
+    class JmlMethodSigAdapter extends Adapter<JmlMethodSig> {
+        public static final String[] fields = { "expression", "argtypes" };
+        @Override
+        public JmlMethodSig deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodSig((JCExpression)values[0], JmlJson.<JCExpression>toList(values[1]));
+            return result;
+        }
+    }
+        
     class JmlMethodSpecsAdapter extends Adapter<JmlMethodSpecs> {
         public static final String[] fields = { "cases", "behaviors", "impliesThatCases", "forExampleCases" }; // FIXME - decl, desugared, feasible ?
         @Override
@@ -980,19 +1124,20 @@ public class JmlJson {
     // TODO: JCModuleDecl
 
     class JCNewArrayAdapter extends Adapter<JCNewArray> {
-        public static final String[] fields = { "annotations", "elemtype", "dims", "elems" };
+        public static final String[] fields = { "annotations", "elemtype", "dims", "elems" }; // FIXME - dimAnnotations?
         @Override
         public JCNewArray deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.NewArray(
                     (JCExpression)values[1],
-                    JmlJson.<JCExpression>toList(values[1]),
-                    JmlJson.<JCExpression>toList(values[2]));
+                    JmlJson.<JCExpression>toList(values[2]),
+                    JmlJson.<JCExpression>toList(values[3]));
             result.annotations = JmlJson.<JCAnnotation>toList(values[0]);
             return result;
         }
     }
+
     class JmlNewClassAdapter extends Adapter<JmlNewClass> {
         public static final String[] fields = { "encl", "typeargs", "clazz", "args", "def"};
         @Override
@@ -1051,14 +1196,6 @@ public class JmlJson {
 
     class JmlPrimitiveTypeTreeAdapter extends Adapter<JmlPrimitiveTypeTree> {
         public static final String[] fields = { "typetag", "jmlclausekind", "typeName" };
-//        @Override
-//        public JsonElement serialize(JmlPrimitiveTypeTree src, java.lang.reflect.Type type, JsonSerializationContext context) {
-//            var obj = newgson(src, context);
-//            obj.add("typetag", context.serialize(src.typetag));
-//            obj.add("jmlclausekind", str(src.jmlclausekind)); // FIXME - how to deserialize this
-//            obj.add("typeName", context.serialize(src.typeName));
-//            return obj;
-//        }
         @Override
         public JmlPrimitiveTypeTree deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1108,8 +1245,21 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlSetComprehension
-
+    class JmlSetComprehensionAdapter extends Adapter<JmlSetComprehension> {
+        public static final String[] fields = { "newtype", "variable", "predicate" };
+        @Override
+        public JmlSetComprehension deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlSetComprehension(
+                    (JCExpression)values[0],
+                    (JCVariableDecl)values[1],
+                    (JCExpression)values[2]
+                    );
+            return result;
+        }
+    }
+    
     class JmlSingletonAdapter extends Adapter<JmlSingleton> {
         public static final String[] fields = { "kind" };
         @Override
@@ -1120,7 +1270,6 @@ public class JmlJson {
             return result;
         }
     }
-    
 
     class JCSkipAdapter extends Adapter<JCSkip> {
         public static final String[] fields = {};
@@ -1130,7 +1279,6 @@ public class JmlJson {
             return M.Skip();
         }
     }
-    
 
     class JmlSpecificationCaseAdapter extends Adapter<JmlSpecificationCase> {
         public static final String[] fields = { "also", "modifiers", "code", "token", "callee_only", "clauses" };  // FIXME - more?
@@ -1149,13 +1297,43 @@ public class JmlJson {
                     );
             return result;
         }
-}
+    }
     
     // abstract - JCStatement
-    // TODO: JmlStatementDecls
+    
+    class JmlStatementAdapter extends Adapter<JmlStatement> {
+        public static final String[] fields = { "name", "keyword", "clauseType", "statement" };
+        @Override
+        public JmlStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlStatement(
+                    (IJmlClauseKind)values[2],
+                    (JCStatement)values[3]
+                    );
+            result.name = (Name)values[0];
+            result.keyword = (String)values[1];
+            return result;
+        }
+    }
+
+    class JmlStatementDeclsAdapter extends Adapter<JmlStatementDecls> {
+        public static final String[] fields = { "token", "list" };
+
+        @Override
+        public JmlStatementDecls deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlStatementDecls(
+                    JmlJson.<JCStatement>toList(values[1]) // clauses
+                    );
+            result.token = (IJmlClauseKind.ModifierKind)values[0];
+            return result;
+        }
+    }
     
     class JmlStatementExprAdapter extends Adapter<JmlStatementExpr> {
-        public static final String[] fields = { "keyword", "clauseKind", "label", "expression" };
+        public static final String[] fields = { "keyword", "clauseType", "label", "expression" };
         @Override
         public JmlStatementExpr deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1170,7 +1348,23 @@ public class JmlJson {
         }
     }
 
-    // TODO: JmlStatementHavoc
+    class JmlStatementHavocAdapter extends Adapter<JmlStatementHavoc> {
+        public static final String[] fields = { "name", "clauseType", "storerefs" };
+//        @Override
+//        public JmlStatementHavoc deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+//                throws JsonParseException {
+//            var values = getFieldValues(json.getAsJsonObject());
+//            var result = M.JmlStatementHavoc(
+//                    (String)values[0],
+//                    (IJmlClauseKind)values[1],
+//                    (org.jmlspecs.openjml.esc.Label)values[2],
+//                    (JCExpression)values[3]
+//                    );
+//            return result;
+//        }
+        // TODO - deserialize
+    }
+
     // JmlStatementLoop -- abstract
 
     class JmlStatementLoopExprAdapter extends Adapter<JmlStatementLoopExpr> {
@@ -1192,8 +1386,23 @@ public class JmlJson {
         public static final String[] fields = { "name", "clauseType", "expression" };
         // FIXME - deserialize
     }
-// TODO: JmlStatementLoopModifies
-    // TODO: JmlStatementShow
+
+    class JmlStatementShowAdapter extends Adapter<JmlStatementShow> {
+        public static final String[] fields = { "name", "clauseType", "expressions" };
+        @Override
+        public JmlStatementShow deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlStatementShow(
+                    (IJmlClauseKind)values[1],
+                    JmlJson.<JCExpression>toList(values[2])
+                    );
+            result.name = (Name)values[0];
+            return result;
+        }
+    }
+
+
     // TODO: JmlStatementSpec
     // TODO: JmlStoreRef
     // TODO: JmlStoreRefArrayRange
@@ -1275,8 +1484,41 @@ public class JmlJson {
     }
 
     // TODO: JmlTypeClauseConditional
-    // TODO: JmlTypeClauseConstraint
-    // TODO: JmlTypeClauseDecl
+
+    class JmlTypeClauseConstraintAdapter extends Adapter<JmlTypeClauseConstraint> {
+        public static final String[] fields = {  "name", "keyword", "clauseType", "modifiers", "expression", "sigs", "notlist" };
+        @Override
+        public JmlTypeClauseConstraint deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlTypeClauseConstraint(
+                    (JCModifiers)values[3],
+                    (JCExpression)values[4],
+                    JmlJson.<JmlMethodSig>toList(values[5])
+                    );
+            result.name = (Name)values[0];
+            result.keyword = (String)values[1];
+            result.clauseType = (IJmlClauseKind)values[2];
+            result.notlist = (boolean)values[6];
+            return result;
+        }
+    }
+
+    class JmlTypeClauseDeclAdapter extends Adapter<JmlTypeClauseDecl> {
+        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "decl" };
+        @Override
+        public JmlTypeClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlTypeClauseDecl((JCTree)values[4]);
+            result.name = (Name)values[0];
+            result.modifiers = (JCModifiers)values[1];
+            result.keyword = (String)values[2];
+            result.clauseType = (IJmlClauseKind)values[3];
+
+            return result;
+        }
+    }
     
     class JmlTypeClauseExprAdapter extends Adapter<JmlTypeClauseExpr> {
         public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "expression" };
@@ -1294,12 +1536,62 @@ public class JmlJson {
             return result;
         }
     }
-    // TODO: JmlTypeClauseIn
-    // TODO: JmlTypeClauseInitializer
+    
+    class JmlTypeClauseInAdapter extends Adapter<JmlTypeClauseIn> {
+        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "list" };
+        @Override
+        public JmlTypeClauseIn deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlTypeClauseIn(
+                    JmlJson.<JmlGroupName>toList(values[4]));
+            result.name = (Name)values[0];
+            result.modifiers = (JCModifiers)values[1];
+            result.keyword = (String)values[2];
+            result.clauseType = (IJmlClauseKind)values[3];
+
+            return result;
+        }
+    }
+    
+    class JmlTypeClauseInitializerAdapter extends Adapter<JmlTypeClauseInitializer> {
+        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "specs" };
+        @Override
+        public JmlTypeClauseInitializer deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlTypeClauseInitializer(
+                    (IJmlClauseKind)values[3],
+                    (JCModifiers)values[1]
+                    );
+            result.name = (Name)values[0];
+            result.keyword = (String)values[2];
+            result.specs = (JmlMethodSpecs)values[4];
+            return result;
+        }
+    }
+
     // TODO: JmlTypeClauseMaps
     // TODO: JmlTypeClauseMonitorsFor
-    // TODO: JmlTypeClauseRepresents
     
+    class JmlTypeClauseRepresentsAdapter extends Adapter<JmlTypeClauseRepresents> {
+        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "ident", "suchThat", "expression" };
+        @Override
+        public JmlTypeClauseRepresents deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlTypeClauseRepresents(
+                    (JCModifiers)values[1],
+                    (JCIdent)values[4],
+                    (boolean)values[5],
+                    (JCExpression)values[6]
+                    );
+            result.name = (Name)values[0];
+            result.keyword = (String)values[2];
+            return result;
+        }
+    }
+
     class JCTypeIntersectionAdapter extends Adapter<JCTypeIntersection> {
         public static final String[] fields = { "bounds" };
         // FIXME - needs deserialzier

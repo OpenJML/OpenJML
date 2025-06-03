@@ -2732,7 +2732,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     excRequires.expression = treeutils.makeBitOr(m.pos,
                             excRequires.expression, nn.expression);
                 }
-                signalsOnly.list = signalsOnly.list.append(excType);
+                signalsOnly.exceptions = signalsOnly.exceptions.append(excType);
                 JmlSingleton ee = jmlMaker.at(m.pos).JmlSingleton(exceptionKind);
                 JCExpression iof = treeutils.makeInstanceOf(m.pos, ee, excType);
                 JCExpression disjunct = treeutils.makeAnd(m.pos, iof, nn.expression);
@@ -4175,7 +4175,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
-        for (JCExpression e: tree.list) {
+        for (JCExpression e: tree.exceptions) {
             if (e instanceof JCAnnotatedType at) {
                 utils.warning(tree.sourcefile, e, "jml.message", "Annotations on signals_only exception types are meaningless and are ignored");
             }

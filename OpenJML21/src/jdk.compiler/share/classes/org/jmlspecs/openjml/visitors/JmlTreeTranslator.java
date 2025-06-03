@@ -269,7 +269,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     @Override
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
         JmlMethodClauseSignalsOnly r = that;
-        r.list = translate(that.list);
+        r.exceptions = translate(that.exceptions);
         result = r;
         // Not translating: token
     }
