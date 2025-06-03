@@ -9,12 +9,15 @@ import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.JmlToken;
 
 import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.tree.JCTree.JCCaseLabel;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree;
 import static com.sun.tools.javac.tree.JCTree.*;
 
+import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.MemberReferenceTree;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
@@ -135,6 +138,7 @@ public class JmlJson {
         builder.registerTypeAdapter(JavaFileObject.class, this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(new JavacFileManager(context,false,null).getJavaFileObject("Z").getClass(), this.new JavaFileObjectAdapter());
         builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
+        builder.registerTypeAdapter(CaseTree.CaseKind.class, this.new CaseKindAdapter());
         builder.registerTypeAdapter(JCTree.JCLambda.ParameterKind.class, this.new ParameterKindAdapter());
         builder.registerTypeAdapter(org.jmlspecs.openjml.IJmlClauseKind.class , this.new IJmlClauseKindAdapter());
         builder.registerTypeAdapter(org.jmlspecs.openjml.esc.Label.class, this.new LabelAdapter());
@@ -531,9 +535,24 @@ public class JmlJson {
         }
      }
     
+    class JmlCaseAdapter extends Adapter<JmlCase> {
+        public static final String[] fields = { "caseKind", "labels", "guard", "stats", "body" }; // FIXME - check?
+        @Override
+        public JmlCase deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.Case(
+                    (CaseTree.CaseKind)values[0],
+                    JmlJson.<JCCaseLabel>toList(values[1]),
+                    (JCExpression)values[2],
+                    JmlJson.<JCStatement>toList(values[3]),
+                    (JCTree)values[4]
+                    );
+            return result;
+        }
+     }
 
-    // TODO: JmlCase
-    // TODO: JCCaseLabel -- abstract
+    // JCCaseLabel -- abstract
 
     class JCCatchAdapter extends Adapter<JCCatch> {
         public static final String[] fields = { "param", "body" };
@@ -1300,16 +1319,17 @@ public class JmlJson {
 
     class JmlRangeAdapter extends Adapter<JmlRange> {
         public static final String[] fields = { "lo", "hi", "hiExclusive" };
-//        @Override
-//        public JmlRange deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-//                throws JsonParseException {
-//            var values = getFieldValues(json.getAsJsonObject());
-//            var result = M.JmlRange(
-//                    (JCExpression)values[0],
-//                    JmlJson.<JCPattern>toList(values[1]));
-//            return result;
-//        }
-        //@ FIXME - need to deserialize \bigint values
+        @Override
+        public JmlRange deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlRange(
+                    (JCExpression)values[0],
+                    (JCExpression)values[1]
+                    );
+            result.hiExclusive = (boolean)values[2];
+            return result;
+        }
     }
     
     class JCRecordPatternAdapter extends Adapter<JCRecordPattern> {
@@ -1617,7 +1637,18 @@ public class JmlJson {
         }
     }
 
-    // TODO: JmlTuple
+    class JmlTupleAdapter extends Adapter<JmlTuple> {
+        public static final String[] fields = { "values" };
+        @Override
+        public JmlTuple deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlTuple(
+                    JmlJson.<JCExpression>toList(values[0])
+                    );
+            return result;
+        }
+    }
 
     class JCTypeApplyAdapter extends Adapter<JCTypeApply> {
         public static final String[] fields = { "clazz", "arguments" };
@@ -1990,6 +2021,10 @@ public class JmlJson {
     
     class BoundKindAdapter extends EnumAdapter<BoundKind> {
         Class<BoundKind> clazz() { return BoundKind.class; }
+    }
+    
+    class CaseKindAdapter extends EnumAdapter<CaseTree.CaseKind> {
+        Class<CaseTree.CaseKind> clazz() { return CaseTree.CaseKind.class; }
     }
     
     class ParameterKindAdapter extends EnumAdapter<JCTree.JCLambda.ParameterKind> {

@@ -22,7 +22,7 @@ public class Test {
     //@ public normal_behavior
     //@   requires b;
     //@   requires b else RuntimeException;
-    // @   writes b, this.b, this.*, a[0], a[1..2], a[*], a[2..], \nothing, \everything;
+    //@   writes b, this.b, this.*, super.x, a[0], a[1..2], a[*], a[2..], \nothing, \everything;
     //@   ensures b;
     //@   callable \nothing;
     //@   callable \everything;
@@ -36,7 +36,7 @@ public class Test {
     //@ behaviors complete;
     
     public void m(int k) {
-        //@ ghost int z = 0;
+        //@ ghost var z = (1,"",true);
         //@ assume k == 0;
         //@ assert b;
         //@ check b;
@@ -44,7 +44,8 @@ public class Test {
         //@ set b = false;
         
         //@ loop_invariant true;
-        // @ loop_assigns \count;
+        //@ loop_assigns \nothing;
+        //@ loop_writes z;
         //@ loop_decreases k;
         while (true) {}
     }

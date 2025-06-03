@@ -17,6 +17,9 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: i
       JCIdent: i
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JCIdent: i
       JCIdent: i
 
 JmlCompilationUnit
@@ -37,6 +40,9 @@ JmlCompilationUnit
       JCIdent: i
       JCIdent: b
       JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: e
+        JCIdent: Exception
       JCIdent: i
       JCIdent: i
 

@@ -85,6 +85,8 @@ JmlCompilationUnit
       JCInstanceOf
         JCIdent: o
         JCIdent: String
+    JmlVariableDecl: z
+      JCIdent: x1
 
 JmlCompilationUnit
   JmlImport model
