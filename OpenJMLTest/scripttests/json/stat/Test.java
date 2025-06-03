@@ -9,7 +9,8 @@ public class Test {
         if (i < 0) break;
     }
     ;
-//    try {} catch (Exception e) {}
+    try {} catch (Exception e) {}
+    switch (i) { case 0: break; default: break; }
     return i;
   }
 }

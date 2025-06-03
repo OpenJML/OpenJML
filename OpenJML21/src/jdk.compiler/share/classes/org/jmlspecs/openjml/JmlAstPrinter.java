@@ -141,7 +141,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
     
     public void visitSelect(JCFieldAccess tree) {
         start(tree);
-        builder.append(": ").append(tree.name.toString());
+        builder.append(": ").append(tree.name == null ? "*" : tree.name.toString());
         if (tree.type != null) builder.append(" ").append(String.valueOf(tree.type));
         builder.append(" ").append(tree.toString());
         builder.append("\n");

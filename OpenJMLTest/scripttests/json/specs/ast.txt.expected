@@ -18,6 +18,17 @@ JmlCompilationUnit
     JCIdent: b
     JCIdent: b
     JCIdent: b
+    JCFieldAccess: b this.b
+      JCIdent: this
+    JCFieldAccess: * this.*
+      JCIdent: this
+    JCFieldAccess: x super.x
+      JCIdent: super
+    JCIdent: a
+    JCIdent: a
+    JCIdent: a
+    JCIdent: a
+    JCIdent: b
     JCIdent: m
     JCIdent: RuntimeException
     JmlMethodDecl: m
@@ -28,6 +39,7 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: b
       JCIdent: b
+      JCIdent: z
       JCIdent: k
 
 JmlCompilationUnit
@@ -50,6 +62,17 @@ JmlCompilationUnit
     JCIdent: b
     JCIdent: b
     JCIdent: b
+    JCFieldAccess: b this.b
+      JCIdent: this
+    JCFieldAccess: * this.*
+      JCIdent: this
+    JCFieldAccess: x super.x
+      JCIdent: super
+    JCIdent: a
+    JCIdent: a
+    JCIdent: a
+    JCIdent: a
+    JCIdent: b
     JCIdent: m
     JCIdent: RuntimeException
     JmlMethodDecl: m
@@ -60,5 +83,6 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: b
       JCIdent: b
+      JCIdent: z
       JCIdent: k
 
