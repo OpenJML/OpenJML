@@ -8386,10 +8386,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression asg = null;
 						if (mclause.clauseKind == CallableClauseExtension.callableClause) {
 							JmlMethodClauseCallable c = (JmlMethodClauseCallable) mclause;
-							if (c.keyword != null) {
-								if (c.keyword.kind == nothingKind) {
+							if (c.singleton != null) {
+								if (c.singleton.kind == nothingKind) {
 									asg = treeutils.falseLit;
-								} else if (c.keyword.kind == everythingKind) {
+								} else if (c.singleton.kind == everythingKind) {
 									asg = null;
 								}
 							} else if (sym == null) {
@@ -10291,11 +10291,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												// Here we check that anything listed in the in callee's spec cases is callable
 												anyCallableClauses = true;
 												JmlMethodClauseCallable callableClause = (JmlMethodClauseCallable) clause;
-												if (callableClause.keyword != null) {
-													if (callableClause.keyword.kind == nothingKind) {
+												if (callableClause.singleton != null) {
+													if (callableClause.singleton.kind == nothingKind) {
 														// callee is callable \nothing - no problem
-													} else if (callableClause.keyword.kind == everythingKind) {
-														checkThatMethodIsCallable(callableClause.keyword, null);
+													} else if (callableClause.singleton.kind == everythingKind) {
+														checkThatMethodIsCallable(callableClause.singleton, null);
 													}
 												} else {
 													List<JmlMethodSig> sigs = callableClause.methodSignatures;
@@ -18095,7 +18095,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlMethodClauseCallable(JmlMethodClauseCallable that) {
-		JmlMethodClauseCallable mc = M.at(that).JmlMethodClauseCallable(that.keyword);
+		JmlMethodClauseCallable mc = M.at(that).JmlMethodClauseCallable(that.singleton);
 		mc.setType(that.type);
 		mc.methodSignatures = convert(that.methodSignatures);
 		mc.sourcefile = that.sourcefile;

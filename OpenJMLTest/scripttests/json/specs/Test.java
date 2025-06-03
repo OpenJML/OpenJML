@@ -24,6 +24,9 @@ public class Test {
     //@   requires b else RuntimeException;
     // @   writes b, this.b, this.*, a[0], a[1..2], a[*], a[2..], \nothing, \everything;
     //@   ensures b;
+    //@   callable \nothing;
+    //@   callable \everything;
+    //@   callable m(int);
     //@   
     //@ also public behavior
     //@   signals (Exception e) true;

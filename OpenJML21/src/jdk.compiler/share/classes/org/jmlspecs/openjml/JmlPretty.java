@@ -408,8 +408,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         try {
             print(useCanonicalName ? that.clauseKind.keyword() : that.keyword);
             print(" ");
-            if (that.keyword != null) {
-                that.keyword.accept(this);
+            if (that.singleton != null) {
+                that.singleton.accept(this);
             } else {
                 Iterator<JmlMethodSig> iter = that.methodSignatures.iterator();
                 iter.next().accept(this);

@@ -113,7 +113,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-        scan(tree.keyword);
+        scan(tree.singleton);
         scan(tree.methodSignatures);
     }
 
