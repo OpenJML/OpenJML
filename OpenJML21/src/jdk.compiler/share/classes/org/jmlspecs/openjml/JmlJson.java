@@ -875,10 +875,7 @@ public class JmlJson {
             TypeTag typetag = (TypeTag)fromJsonElement(json.getAsJsonObject().get("typetag"));
             var o = json.getAsJsonObject().get("value");
             if (o.isJsonNull()) {
-                if (typetag == TypeTag.BOT) {
-                    return M.Literal(TypeTag.BOT, null);
-                }
-                return null;
+                return M.Literal(TypeTag.BOT, null);
             }
             JsonPrimitive pr = o.getAsJsonPrimitive();
             Object v = null;
@@ -911,7 +908,8 @@ public class JmlJson {
                 v = pr.getAsByte();
                 break;
             default:
-                System.out.println("UNKNOWN LITERAL VALUE FOR TAG " + typetag + " " + pr); // FIXME - error
+                log.error("jml.message","Unexpected TypeTag in deserializing JCLiteral: " + typetag + " " + pr);
+                return M.Literal(TypeTag.BOT, null);
             }
             JCLiteral result = M.Literal(typetag, v);
             return result;
