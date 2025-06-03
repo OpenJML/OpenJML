@@ -5,7 +5,12 @@ import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseBehaviors;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
 
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -53,9 +58,9 @@ public class MethodExprClauseExtensions extends JmlExtension {
     static { java.util.Arrays.sort(behaviorsCommands); }
 
     
-    public static final IJmlClauseKind behaviorsClauseKind = new MethodClauseExprType(behaviorsID) {
-        public boolean oldNoLabelAllowed() { return true; }
-        public boolean preOrOldWithLabelAllowed() { return true; }
+    public static final IJmlClauseKind behaviorsClauseKind = new IJmlClauseKind.MethodSpecClauseKind(behaviorsID) {
+        public boolean oldNoLabelAllowed() { return false; }
+        public boolean preOrOldWithLabelAllowed() { return false; }
         
         @Override
         public 
@@ -86,6 +91,13 @@ public class MethodExprClauseExtensions extends JmlExtension {
             wrapup(cl, clauseKind, true, true);
             return cl;           
         }
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+            
 
     };
 

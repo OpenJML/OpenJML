@@ -835,7 +835,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (clause instanceof JmlMethodClauseSignalsOnly) {
 							JmlMethodClauseSignalsOnly so = (JmlMethodClauseSignalsOnly) clause;
 							if (!so.defaultClause)
-								for (JCExpression x : so.list) {
+								for (JCExpression x : so.exceptions) {
 									activeExceptions.add(x.type);
 								}
 						}
@@ -2133,6 +2133,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (Object o : args) {
 				extra = o == null ? extra : ((extra == null ? "" : (extra + " ")) + utils.abbrev(o.toString()));
 			}
+			if (assertCount == assertCountCheck) System.out.println("   ASSERTDESCRIPTION " + extra);
 
 			JmlStatementExpr st = treeutils.makeAssert(codepos, label,
 					treeutils.makeIdent(translatedExpr.pos, assertDecl.sym));
@@ -5727,7 +5728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									try {
 										JCIdent exceptionId = treeutils.makeIdent(clause.pos, exceptionSym);
 										JCExpression condd = treeutils.falseLit;
-										for (JCExpression t : ((JmlMethodClauseSignalsOnly) clause).list) {
+										for (JCExpression t : ((JmlMethodClauseSignalsOnly) clause).exceptions) {
 										    if (t instanceof JCAnnotatedType at) {
 										        // Perhaps only remove NonNull and Nullable
 										        t = at.underlyingType;
@@ -11199,7 +11200,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 										JCIdent exceptionId = treeutils.makeIdent(clause.pos, exceptionSym);
 										JCExpression condd = treeutils.falseLit;
-										for (JCExpression t : ((JmlMethodClauseSignalsOnly) clause).list) {
+										for (JCExpression t : ((JmlMethodClauseSignalsOnly) clause).exceptions) {
 											JCExpression tc = M.at(t).TypeTest(exceptionId, t)
 													.setType(syms.booleanType);
 											condd = treeutils.makeOr(clause.pos, condd, tc);
@@ -17027,7 +17028,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlMethodSig(JmlMethodSig that) {
-		result = M.at(that).JmlConstraintMethodSig(convertExpr(that.expression), convertExprList(that.argtypes));
+		result = M.at(that).JmlMethodSig(convertExpr(that.expression), convertExprList(that.argtypes));
 		result.setType(that.type);
 	}
 
@@ -18152,7 +18153,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that) {
-		JmlMethodClauseSignalsOnly mc = M.at(that).JmlMethodClauseSignalsOnly(that.keyword, that.clauseKind, convertExprList(that.list));
+		JmlMethodClauseSignalsOnly mc = M.at(that).JmlMethodClauseSignalsOnly(that.keyword, that.clauseKind, convertExprList(that.exceptions));
 		mc.setType(that.type);
 		mc.defaultClause = that.defaultClause;
 		mc.sourcefile = that.sourcefile;
@@ -22949,14 +22950,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 
-		@Override
-		public /* @ nullable */ java.util.List<JmlStatementExpr> visitLambdaExpression(LambdaExpressionTree that,
-				Void p) {
-			// FIXME
-			JCTree.JCLambda exp = (JCTree.JCLambda) that;
-			notImplemented("Lambda Expression not implemented", null);
-			return null;
-		}
+        @Override
+        public /* @ nullable */ java.util.List<JmlStatementExpr> visitJmlMethodSig(JmlMethodSig that,
+                Void p) {
+            // FIXME
+            notImplemented("Welldefined check of JmlMethodSig Expression not implemented", null);
+            return null;
+        }
+
+        @Override
+        public /* @ nullable */ java.util.List<JmlStatementExpr> visitLambdaExpression(LambdaExpressionTree that,
+                Void p) {
+            // FIXME
+            JCTree.JCLambda exp = (JCTree.JCLambda) that;
+            notImplemented("Welldefined check of Lambda Expression not implemented", null);
+            return null;
+        }
 
 		@Override
 		public /* @ nullable */ java.util.List<JmlStatementExpr> visitMethodInvocation(MethodInvocationTree node,

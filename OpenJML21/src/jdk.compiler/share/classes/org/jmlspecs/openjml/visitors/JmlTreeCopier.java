@@ -210,9 +210,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     
     @Override
-    public JCTree visitJmlConstraintMethodSig(JmlMethodSig that,
+    public JCTree visitJmlMethodSig(JmlMethodSig that,
             Void p) {
-        return M.at(that.pos).JmlConstraintMethodSig(
+        return M.at(that.pos).JmlMethodSig(
                 copy(that.expression,p),
                 copy(that.argtypes,p)).setType(that.type);
     }
@@ -431,7 +431,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlMethodClauseSignalsOnly copy = M.at(that.pos).JmlMethodClauseSignalsOnly(
                 that.keyword,
                 that.clauseKind,
-                copy(that.list,p));
+                copy(that.exceptions,p));
         copy.defaultClause = that.defaultClause;
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;

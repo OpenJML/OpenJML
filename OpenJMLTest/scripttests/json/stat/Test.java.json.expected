@@ -169,7 +169,7 @@
                     "class": "com.sun.tools.javac.code.TypeTag",
                     "primitive": "INT"
                   },
-                  "value": "0"
+                  "value": 0
                 }
               },
               {
@@ -193,7 +193,7 @@
                       "class": "com.sun.tools.javac.code.TypeTag",
                       "primitive": "INT"
                     },
-                    "value": "8"
+                    "value": 8
                   }
                 }
               },
@@ -226,7 +226,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "INT"
                       },
-                      "value": "7"
+                      "value": 7
                     }
                   }
                 },
@@ -247,7 +247,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "INT"
                       },
-                      "value": "9"
+                      "value": 9
                     }
                   }
                 }
@@ -288,7 +288,7 @@
                         "class": "com.sun.tools.javac.code.TypeTag",
                         "primitive": "INT"
                       },
-                      "value": "17"
+                      "value": 17
                     }
                   }
                 },
@@ -342,7 +342,7 @@
                               "class": "com.sun.tools.javac.code.TypeTag",
                               "primitive": "INT"
                             },
-                            "value": "0"
+                            "value": 0
                           }
                         }
                       },
@@ -375,7 +375,7 @@
                               "class": "com.sun.tools.javac.code.TypeTag",
                               "primitive": "INT"
                             },
-                            "value": "0"
+                            "value": 0
                           }
                         }
                       },

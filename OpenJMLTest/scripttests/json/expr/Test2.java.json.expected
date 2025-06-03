@@ -140,11 +140,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "expr/Test2.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -157,7 +157,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
                         },
-                        "value": "1"
+                        "value": 1
                       },
                       "op": {
                         "class": "org.jmlspecs.openjml.IJmlClauseKind",
@@ -169,7 +169,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
                         },
-                        "value": "0"
+                        "value": 0
                       }
                     },
                     "exception": null
@@ -180,11 +180,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "expr/Test2.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -197,7 +197,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
                         },
-                        "value": "1"
+                        "value": 1
                       },
                       "op": {
                         "class": "org.jmlspecs.openjml.IJmlClauseKind",
@@ -209,7 +209,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
                         },
-                        "value": "0"
+                        "value": 0
                       }
                     },
                     "exception": null
@@ -220,11 +220,11 @@
                       "class": "javax.tools.JavaFileObject",
                       "primitive": "expr/Test2.java"
                     },
+                    "name": null,
                     "keyword": {
                       "class": "java.lang.String",
                       "primitive": "requires"
                     },
-                    "name": null,
                     "clauseKind": {
                       "class": "org.jmlspecs.openjml.IJmlClauseKind",
                       "primitive": "requires"
@@ -241,7 +241,7 @@
                           "class": "com.sun.tools.javac.code.TypeTag",
                           "primitive": "BOOLEAN"
                         },
-                        "value": "0"
+                        "value": 0
                       }
                     },
                     "exception": null

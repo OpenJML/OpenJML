@@ -10,6 +10,10 @@ JmlCompilationUnit
     JmlVariableDecl: i3
     JmlVariableDecl: i4
       JCIdent: String
+    JmlVariableDecl: ie
+      JCIdent: String
+    JmlVariableDecl: ws
+      JCIdent: String
     JmlVariableDecl: i5
     JmlVariableDecl: i6
     JmlVariableDecl: i7
@@ -31,6 +35,10 @@ JmlCompilationUnit
     JmlVariableDecl: i2
     JmlVariableDecl: i3
     JmlVariableDecl: i4
+      JCIdent: String
+    JmlVariableDecl: ie
+      JCIdent: String
+    JmlVariableDecl: ws
       JCIdent: String
     JmlVariableDecl: i5
     JmlVariableDecl: i6

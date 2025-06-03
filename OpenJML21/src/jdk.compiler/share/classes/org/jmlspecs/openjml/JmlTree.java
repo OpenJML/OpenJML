@@ -105,7 +105,7 @@ public class JmlTree {
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChained JmlChained(List<JCBinary> conjuncts);
         JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
-        JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes);
+        JmlMethodSig JmlMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlStatementExpr JmlExpressionStatement(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e);
@@ -129,7 +129,7 @@ public class JmlTree {
         JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind kind, JCTree.JCVariableDecl var, JCTree.JCExpression e);
         JmlMethodClauseSignalsOnly JmlMethodClauseSignalsOnly(String keyword, IJmlClauseKind kind, List<JCTree.JCExpression> e);
-        JmlMethodClause JmlMethodClauseStoreRef(String keyword, IJmlClauseKind kind, List<JCExpression> list);
+        JmlMethodClauseStoreRef JmlMethodClauseStoreRef(String keyword, IJmlClauseKind kind, List<JCExpression> list);
         JmlMethodInvocation JmlMethodInvocation(IJmlClauseKind kind, List<JCExpression> args);
         JmlMethodInvocation JmlMethodInvocation(String token, List<JCExpression> args);
         JmlMethodSpecs JmlMethodSpecs(List<JmlSpecificationCase> cases);
@@ -835,7 +835,7 @@ public class JmlTree {
         }
         
         @Override
-        public JmlMethodSig JmlConstraintMethodSig(JCExpression expr, List<JCExpression> argtypes) {
+        public JmlMethodSig JmlMethodSig(JCExpression expr, List<JCExpression> argtypes) {
             return new JmlMethodSig(pos,expr,argtypes);
         }
 
@@ -1799,7 +1799,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlConstraintMethodSig(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodSig(this, d);
             } else {
                 unexpectedVisitor(this,v);
                 return null; //return super.accept(v,d);
@@ -2565,13 +2565,14 @@ public class JmlTree {
     /** This class represents a method specification clause that has just an
      * expression (e.g. requires, ensures).
      */
-    public static class JmlMethodClauseBehaviors extends JmlMethodClauseExpr {
+    public static class JmlMethodClauseBehaviors extends JmlMethodClause {
 
         public String command;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseBehaviors(int pos, String command) {
-            super(pos,behaviorsID,behaviorsClauseKind,null);
+            super(pos, behaviorsID, behaviorsClauseKind);
+            this.pos = pos;
             this.command = command;
         }
 
@@ -2716,12 +2717,12 @@ public class JmlTree {
         
         /** The list of names of exceptions - either JCIdent or JCFieldAccess */
         // FIXME - why not Names?
-        public List<JCTree.JCExpression> list;
+        public List<JCTree.JCExpression> exceptions;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseSignalsOnly(int pos, String keyword, IJmlClauseKind clauseType, List<JCTree.JCExpression> list) {
+        protected JmlMethodClauseSignalsOnly(int pos, String keyword, IJmlClauseKind clauseType, List<JCTree.JCExpression> exceptions) {
             super(pos, keyword, clauseType);
-            this.list = list;
+            this.exceptions = exceptions;
             this.defaultClause = false;
         }
 

@@ -645,7 +645,7 @@ public abstract class IJmlClauseKind {
                 id = parser.jmlF.at(p).Select(id, n);
                 first = false;
                 if (n == parser.names.asterisk) {
-                    return parser.jmlF.at(initpos).JmlConstraintMethodSig(id, null);
+                    return parser.jmlF.at(initpos).JmlMethodSig(id, null);
                 }
             }
         }
@@ -671,7 +671,7 @@ public abstract class IJmlClauseKind {
                 parser.nextToken(); // consume the RPAREN
             }
         }
-        return parser.jmlF.at(initpos).JmlConstraintMethodSig(id,
+        return parser.jmlF.at(initpos).JmlMethodSig(id,
                 args == null ? null : args.toList());
     }
 }
