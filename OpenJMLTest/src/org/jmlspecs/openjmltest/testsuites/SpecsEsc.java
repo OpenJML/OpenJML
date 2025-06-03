@@ -28,10 +28,11 @@ public class SpecsEsc extends EscBaseFiles {
     @Parameters
     static public  Collection<String[]> datax() {
         if (!dotests) return new ArrayList<String[]>(0);
-        Collection<String[]> data = new ArrayList<String[]>(1000);
+        ArrayList<String[]> data = new ArrayList<String[]>(1000);
         for (File f: findAllFiles()) {
             data.add(new String[]{ f.getName()});
         }
+        java.util.Collections.sort(data, ((t1,t2)->t1[0].compareTo(t2[0])));
 //        data.add(new String[]{ "java-lang-Object"});
         return data;
     }
