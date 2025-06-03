@@ -41,7 +41,7 @@ test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
 test/gitbug814d/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-$SPECS/specs/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: warning: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
 test/gitbug814d/BinaryTree.java:162: warning: Associated method exit

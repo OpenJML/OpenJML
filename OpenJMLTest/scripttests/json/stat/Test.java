@@ -1,4 +1,5 @@
 public class Test {
+  //@ public invariant I: true;
   public int m(boolean b) {
     int i = 0;
     i += 8;
@@ -9,8 +10,21 @@ public class Test {
         if (i < 0) break;
     }
     ;
+    assert true: "Always";
+    assert false;
     try {} catch (Exception e) {}
-    switch (i) { case 0: break; default: break; }
+    try (var r = new PrintStream();) {} finally {}
+    synchronized (this) {}
+    //@ loop_decreases 10-i;
+    for (int i=0; i<10; i++) {}
+    int[] a;
+    for (var e: a) {}
+    while (i<10) { i++; }
+    do { i++; } while (i<20);
+    //@ ghost \bigint j = 0;
+    switch (5) { case 0: break; default: break;}
+    try {} catch (Exception e) {}
+>>>>>>> ee6422a96a635ed95717e4c11007b6f078774512
     return i;
   }
 }

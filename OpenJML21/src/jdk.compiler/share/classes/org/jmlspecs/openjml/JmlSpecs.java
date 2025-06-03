@@ -2135,7 +2135,7 @@ public class JmlSpecs {
         if (k == STRICTLY_PURE) return true;
         if (k == SPEC_PURE) return true;
         if (k == PURE) return true;
-        return false;
+        return false; // Not reachable, unless some purity option is missing above
     }
 
     public boolean isSpecPureMethod(MethodSymbol symbol) {
@@ -2143,9 +2143,19 @@ public class JmlSpecs {
         return t != null && t.jmlclausekind == SPEC_PURE;
     }
 
+    public boolean isAtLeastSpecPureMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        return t != null && (t.jmlclausekind == SPEC_PURE || t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
+    }
+
     public boolean isStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
-        return t != null && t.jmlclausekind == STRICTLY_PURE;
+        return t != null && (t.jmlclausekind == STRICTLY_PURE);
+    }
+    
+    public boolean isAtLeastStrictlyPureMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        return t != null && (t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
     }
     
     public boolean isSpecOKMethod(MethodSymbol msym) {
@@ -2159,6 +2169,13 @@ public class JmlSpecs {
         }
         return false;  
     }
+    
+    public boolean isHeapIndependent(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        return t != null && (t.jmlclausekind == NO_STATE);
+    }
+    
+
 
     public JmlToken findPurityModifier(JmlModifiers mods) {
         return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
