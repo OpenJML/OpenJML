@@ -7071,6 +7071,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return;
     }
     
+    // FIXME - switch to using this function from JmlSpecs
     public boolean isHeapIndependent(MethodSymbol symbol) {
         MethodSpecs mspecs = specs.getLoadedSpecs(symbol);
         if (mspecs == null) {

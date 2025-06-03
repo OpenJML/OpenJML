@@ -9,8 +9,11 @@ Starting proof of stack.StackImpl.push(int) with prover !!!!
 test/sfbug420e/StackImpl.java:34: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method push
 		internalStack[stackCounter] = item; // ERROR - index might be too large
 		             ^
+test/sfbug420e/StackImpl.java:33: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method push: overflow in int sum
+		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not way what happens when \result is false
+		                ^
 test/sfbug420e/StackImpl.java:33: warning: The prover cannot establish an assertion (Postcondition) in method push
-		if(stackCounter + 1 > maxSize) return false;
+		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not way what happens when \result is false
 		                               ^
 test/sfbug420e/Stack.java:27: warning: Associated declaration
 	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
@@ -26,4 +29,4 @@ Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it
 Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match push)
 Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match push)
 Completed proving methods in stack.StackImpl
-5 warnings
+6 warnings

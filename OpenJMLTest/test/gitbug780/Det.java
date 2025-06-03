@@ -3,8 +3,8 @@ abstract public class Det {
   //@ pure
   abstract int theInt();
 
-  //@ strictly_pure
-  abstract int[] theInt2();
+  //@ spec_pure
+  abstract int /*@ non_null */ [] theInt2();
 
   public void m() {
     int x = theInt();
@@ -15,12 +15,12 @@ abstract public class Det {
   }
 
   public void marray() {
-    int[] x = theInt2();
+    int/*@ non_null */ [] x = theInt2();
     //@ assert theInt2() == theInt2();
     //@ assert java.util.Arrays.equals(theInt2(), theInt2());
     //@ assert x == theInt2();
     //@ assert java.util.Arrays.equals(x, theInt2());
-    int[] y = theInt2();
+    int /*@ non_null */ [] y = theInt2();
     //@ assert x == y;
     //@ assert java.util.Arrays.equals(x, y);
   }
@@ -29,27 +29,27 @@ abstract public class Det {
 
   //@ ensures java.util.Arrays.equals(\result, myIntArray);
   //@ spec_pure
-  abstract int[] theInt3();
+  abstract int/*@ non_null */[] theInt3();
 
   public void mmodel() {
-    int[] x = theInt3();
+    int/*@ non_null */ [] x = theInt3();
     //@ assert java.util.Arrays.equals(theInt3(), theInt3());
     //@ assert java.util.Arrays.equals(x, theInt3());
-    int[] y = theInt3();
+    int/*@ non_null */[] y = theInt3();
     //@ assert java.util.Arrays.equals(x, y);
   }
  
   //@ ensures \result == myIntArray;
   //@ spec_pure
-  abstract int[] theInt4();
+  abstract int/*@ non_null */[] theInt4();
 
   public void mmodel2() {
-    int[] x = theInt4();
+    int/*@ non_null */[] x = theInt4();
     //@ assert theInt4() == theInt4();
     //@ assert java.util.Arrays.equals(theInt4(), theInt4());
     //@ assert x == theInt4();
     //@ assert java.util.Arrays.equals(x, theInt4());
-    int[] y = theInt4();
+    int/*@ non_null */[] y = theInt4();
     //@ assert x == y;
     //@ assert java.util.Arrays.equals(x, y);
   }

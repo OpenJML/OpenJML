@@ -7,4 +7,16 @@ Starting proof of Det.m() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Det.m() with prover !!!! - no warnings
+Starting proof of Det.marray() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Det.marray() with prover !!!! - no warnings
+Starting proof of Det.mmodel() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Det.mmodel() with prover !!!! - no warnings
+Starting proof of Det.mmodel2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Det.mmodel2() with prover !!!! - no warnings
 Completed proving methods in Det

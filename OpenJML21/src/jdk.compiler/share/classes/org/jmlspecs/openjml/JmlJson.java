@@ -9,11 +9,6 @@ import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.JmlToken;
 
 import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.tree.JCTree.JCCaseLabel;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree;
 import static com.sun.tools.javac.tree.JCTree.*;
 
@@ -174,7 +169,7 @@ public class JmlJson {
 //                    System.out.println("No AST class found for adapter " + adapter);
                 }
             } catch (Exception e) {
-                log.error("jml.internal","Exception attempting to find an AST class corresponding to adapter " + adapter + " : " + e);
+                Log.instance(JmlJson.this.context).error("jml.internal","Exception attempting to find an AST class corresponding to adapter " + adapter + " : " + e);
             }
         }
         // Set the string output of Json construction to be pretty-printed and to allow null fields
@@ -277,7 +272,9 @@ public class JmlJson {
             var p = json.get("primitive");
             if ("long".equals(s)) {
                 return p.getAsJsonPrimitive().getAsLong();
-            } else if ("boolean".equals(s)) {
+            } else if ("int".equals(s)) {
+                return p.getAsJsonPrimitive().getAsInt();
+            } if ("boolean".equals(s)) {
                 return Boolean.valueOf(p.getAsJsonPrimitive().getAsString());
             } else if ("java.lang.String".equals(s)) {
                 return p.isJsonNull() ? null : p.getAsJsonPrimitive().getAsString();
@@ -742,7 +739,8 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var loop = M.ForLoop(JmlJson.<JCStatement>toList(values[2]), (JCExpression)values[3], JmlJson.<JCExpressionStatement>toList(values[4]), (JCBlock)values[5]);
-            var result = M.JmlForLoop(loop, JmlJson.<JmlStatementLoop>toList(values[1]));
+            var result = M.JmlForLoop(loop, JmlJson.<JmlStatementLoop>toList(values[0]));
+            result.split = (boolean)values[1];
             return result;
         }
     }
@@ -1188,6 +1186,7 @@ public class JmlJson {
                     JmlJson.<JCExpression>toList(values[2]),
                     JmlJson.<JCExpression>toList(values[3]));
             result.annotations = JmlJson.<JCAnnotation>toList(values[0]);
+            // result.dimAnnotations = JmlJson.<List<JCAnnotation>>toList(values[1]); // FIXME - this needs implementation
             return result;
         }
     }
@@ -1455,7 +1454,7 @@ public class JmlJson {
     }
     
     class JmlStatementExprAdapter extends Adapter<JmlStatementExpr> {
-        public static final String[] fields = { "keyword", "clauseType", "label", "expression" };
+        public static final String[] fields = { "keyword", "clauseType", "label", "expression", "optionalExpression" };
         @Override
         public JmlStatementExpr deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1466,6 +1465,7 @@ public class JmlJson {
                     (org.jmlspecs.openjml.esc.Label)values[2],
                     (JCExpression)values[3]
                     );
+            result.optionalExpression = (JCExpression)values[4];
             return result;
         }
     }
@@ -1567,6 +1567,7 @@ public class JmlJson {
         }
     }
     
+<<<<<<< HEAD
     class JmlSwitchStatementAdapter extends Adapter<JmlSwitchStatement> {
         public static final String[] fields = { "selector", "cases", "split" };
         @Override
@@ -1584,6 +1585,7 @@ public class JmlJson {
     
     class JCSwitchExpressionAdapter extends Adapter<JCSwitchExpression> {
         public static final String[] fields = { "selector", "cases" }; // FIXME - polyKind? split?
+        // FIXME - needs a JML version ?
         @Override
         public JCSwitchExpression deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1594,9 +1596,20 @@ public class JmlJson {
                     );
             return result;
         }
-        // FIXME - needs a JML version?
+     }
+
+     class JmlSwitchStatementAdapter extends Adapter<JmlSwitchStatement> {
+        public static final String[] fields = { "selector", "cases", "split" };
+        @Override
+        public JmlSwitchStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = (JmlSwitchStatement)M.Switch((JCExpression)values[0], JmlJson.<JCCase>toList(values[1]));
+            result.split = (boolean)values[2];
+            return result;
+        }
     }
-    
+   
     class JCSynchronizedAdapter extends Adapter<JCSynchronized> {
         public static final String[] fields = { "lock", "body" };
         @Override
@@ -2027,6 +2040,10 @@ public class JmlJson {
     
     class ParameterKindAdapter extends EnumAdapter<JCTree.JCLambda.ParameterKind> {
         Class<JCTree.JCLambda.ParameterKind> clazz() { return JCTree.JCLambda.ParameterKind.class; }
+    }
+    
+    class CaseKindAdapter extends EnumAdapter<CaseKind> {
+        Class<CaseKind> clazz() { return CaseKind.class; }
     }
     
     class ReferenceKindAdapter extends EnumAdapter<JCMemberReference.ReferenceKind> {

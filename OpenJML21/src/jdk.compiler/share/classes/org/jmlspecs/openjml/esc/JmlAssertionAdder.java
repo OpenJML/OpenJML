@@ -1999,18 +1999,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return stat;
 	}
 
-	/**
-	 * This generates a JmlExpressionStatement comment statement with the given
-	 * string as text; the statement is not added to any statement list.
-	 */
-	protected JmlStatementExpr comment(DiagnosticPosition pos, String s, /* @ nullable */JavaFileObject source) {
-		if (s.contains("\n") || s.contains("\r")) {
-			s = s.replace("\r\n", " ").replace('\r', ' ').replace('\n', ' ');
-		}
-		JmlStatementExpr st = M.at(pos).JmlExpressionStatement(commentID, commentClause, null, M.at(pos).Literal(s));
-		st.associatedSource = source;
-		return st;
-	}
+    /**
+     * This generates a JmlExpressionStatement comment statement with the given
+     * string as text; the statement is not added to any statement list.
+     */
+    protected JmlStatementExpr comment(DiagnosticPosition pos, String s, /* @ nullable */JavaFileObject source) {
+        if (s.contains("\n") || s.contains("\r")) {
+            s = s.replace("\r\n", " ").replace('\r', ' ').replace('\n', ' ');
+        }
+        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(commentID, commentClause, null, M.at(pos).Literal(s));
+        st.associatedSource = source;
+        return st;
+    }
+
+    /**
+     * This generates a JmlExpressionStatement comment statement with the given
+     * string as text; the statement is not added to any statement list.
+     */
+    protected JmlStatementExpr comment(String s) {
+        return comment(null, s, null);
+    }
 
 	/**
 	 * This generates a comment statement whose content is the given JCTree,
@@ -2133,7 +2141,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (Object o : args) {
 				extra = o == null ? extra : ((extra == null ? "" : (extra + " ")) + utils.abbrev(o.toString()));
 			}
-			if (assertCount == assertCountCheck) System.out.println("   ASSERTDESCRIPTION " + extra);
 
 			JmlStatementExpr st = treeutils.makeAssert(codepos, label,
 					treeutils.makeIdent(translatedExpr.pos, assertDecl.sym));
@@ -2717,7 +2724,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Returns true if the given symbol is pure (locally or globally) */
 	public boolean isPure(MethodSymbol symbol) {
-		return specs.isPureMethod(symbol);
+		return specs.isAnyPurityMethod(symbol);
 
 	}
 
@@ -8730,7 +8737,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
 		boolean print =  Utils.debug("trans");
-        boolean printb = print ;//|| that.toString().contains("cops.id");
+        boolean printb = print;
         //print |= that.toString().contains("cops.id");
     	if (print) System.out.println("APPLY HELPER: " + that);
 //    	if (that instanceof JCMethodInvocation) {
@@ -9041,6 +9048,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
             boolean calleeIsPure = specs.isAnyPurityMethod(calleeMethodSym);
+            boolean calleeIsSpecPure = specs.isAtLeastSpecPureMethod(calleeMethodSym);
             //if (calleeMethodSym.toString().contains("ok")) System.out.println("ISPURE-Z " + calleeIsPure + " " + calleeMethodSym.owner + "." + calleeMethodSym);
             boolean effectivelyPure = true;
 			{
@@ -9121,17 +9129,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
             if (print) System.out.println("ALL PA " + paramActuals_);
 			}
-            //System.out.println("MAP " + calleeMethodSym + " " + paramActuals_);
-
-			//System.out.println("PARAM MAPPINGS " + calleeMethodSym + " " + trArgs + " " + paramActuals_);
-			// // The following line is needed for the case of new object expression with an
-			// anonymous class without a constructor
-			// if (overridden.isEmpty())
-			// overridden.add(pair(calleeMethodSym,calleeMethodSym.owner.type));
-			// System.out.print("OVERRIDDEN FOR " + calleeMethodSym.owner + " " +
-			// calleeMethodSym);
-			// overridden.iterator().forEachRemaining(p->System.out.print(" [" + p.first + "
-			// # " + p.second + "]")); System.out.println();
 
 			/**
 			 * We can either try to keep subexpressions as subexpressions, or break them out
@@ -9149,13 +9146,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    && calleeMethodSym.params != null; // FIXME - why this?
 			boolean calleeIsConstructor = calleeMethodSym.isConstructor();
 			boolean calleeIsFunction = attr.isHeapIndependent(calleeMethodSym);
-			boolean nodoTranslations = !rac && translatingJML
-					&& (calleeIsFunction || (!(that instanceof JCNewClass) && isPure(calleeMethodSym)));
-			boolean hasAModelProgram = hasModelProgram(overridden);
-			if (hasAModelProgram)
-				nodoTranslations = false;
-			boolean isRecursive = isRecursiveCall(calleeMethodSym); // Checks whether this method has already been
-																	// called in the call stack
+            boolean hasAModelProgram = hasModelProgram(overridden);
+            boolean isRecursive = isRecursiveCall(calleeMethodSym); // Checks whether this method has already been called in the call stack
+
+            boolean nodoTranslations = !rac && translatingJML && !hasAModelProgram
+					&& (calleeIsFunction || (!(that instanceof JCNewClass) && !(that instanceof JCNewArray) && isPure(calleeMethodSym)));
+
 			//nodoTranslations = nodoTranslations || isRecursive;
 			if (!splitExpressions)
 				nodoTranslations = true;
@@ -9170,9 +9166,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            boolean addMethodAxioms = !rac && !calleeMethodSym.isConstructor() && !hasTypeArgs && !isSuperCall && !isThisCall && isPure(calleeMethodSym)
 //                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
 			boolean inlineSpecs = !isRecursive && splitExpressions && localVariables.isEmpty(); // !addMethodAxioms;
-			boolean strictlyPure = utils.isJavaOrJmlPrimitiveType(calleeMethodSym.getReturnType());
+			//boolean effectivelySpecPure = utils.isJavaOrJmlPrimitiveType(calleeMethodSym.getReturnType());
+			boolean effectivelySpecPure = specs.isAtLeastSpecPureMethod(calleeMethodSym) || utils.isJavaOrJmlPrimitiveType(calleeMethodSym.getReturnType());
 			boolean includeDeterminism = !rac && !calleeIsConstructor && !isSuperCall && !isThisCall
-					&& (calleeIsPure || effectivelyPure) && !isVoid;
+					&& (effectivelySpecPure) && !isVoid;
 			boolean details = true && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass);
 
 			addToCallStack(that);
@@ -9375,26 +9372,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - what about newclass.encl
 			}
 
-			if (print) System.out.println("APPLYHELPER-I " + calleeMethodSym.owner + " " + calleeMethodSym + " " + (!inlineSpecs) + " " + (!isVoid));
-			if (!inlineSpecs && !isVoid) {
+			if (print) System.out.println("APPLYHELPER-I " + calleeMethodSym.owner + " " + calleeMethodSym + " " + (!inlineSpecs) + " " + addMethodAxioms + " " + includeDeterminism + " " + effectivelySpecPure + " " +  (!isVoid));
+//			{
+//			    JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(calleeMethodSym);
+//			    makeAndSaveNewMethodName(calleeMethodSym, resultType,
+//			            calleeIsFunction, calleeSpecs,
+//			            calleeSpecs.decl != null ? calleeSpecs.decl.pos : that.pos, newParamTypes);
+//			}
+			if ((!inlineSpecs) && !isVoid) {
 				if (addMethodAxioms)
 					assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
 
-//                JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(calleeMethodSym);
-//                makeAndSaveNewMethodName(calleeMethodSym, resultType,
-//                        calleeIsFunction, calleeSpecs,
-//                        calleeSpecs.decl != null ? calleeSpecs.decl.pos : that.pos, newParamTypes);
-				JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
-				e.type = resultType; // In case the determinism call has a typevar output
-				if (print) System.out.println("DETERMINISM CALL FOR " + includeDeterminism + " " + calleeMethodSym + " " + e);
-				if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
-					// makeFreshExpression()
-				}
-				if (includeDeterminism && strictlyPure) addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, e);
+				JCExpression e = assertDeterminismCall(that, print, calleeMethodSym, newThisExpr, resultType,
+                        effectivelySpecPure, includeDeterminism, extendedArgs);
 				result = eresult = e;
 				currentEnv.currentReceiver = newThisExpr;
 				return;
 			}
+
 			if (print) System.out.println("APPLYHELPER-J " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 			// FIXME - comment?
@@ -10066,6 +10061,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (print) System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
+			if (calleeIsSpecPure) {
+			    assertDeterminismCall(that, print, calleeMethodSym, newThisExpr, resultType,
+			            effectivelySpecPure, includeDeterminism, extendedArgs);
+			}
+
             var assignsListsBuffer = new ListBuffer<StoreRefGroup>();
             var readsListsBuffer = new ListBuffer<StoreRefGroup>();
             TranslationEnv calleeEnv = new TranslationEnv(newThisId,null,allocCounter,calleeMethodSym);
@@ -10427,7 +10427,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					newargs.addAll(trArgs);
                     if (includeDeterminism) {
                         JCExpression sp = treeutils.trueLit;
-                        if (!strictlyPure) {
+                        if (!effectivelySpecPure) {
                             sp = treeutils.makeNot(that, makeFreshExpression(that, resultExpr, currentOldLabel));
                         }
                         JCIdent id = M.at(p).Ident(newMethodName);
@@ -11438,6 +11438,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (print) System.out.println("APPLYHELPER-ZZZ " + eresult);
 		}
 	}
+
+
+    private JCExpression assertDeterminismCall(JCExpression that, boolean print, MethodSymbol calleeMethodSym,
+            JCExpression newThisExpr, Type resultType, boolean effectivelySpecPure, boolean includeDeterminism,
+            List<JCExpression> extendedArgs) {
+        JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
+        e.type = resultType; // In case the determinism call has a typevar output
+        if (print) System.out.println("DETERMINISM CALL FOR " + includeDeterminism + " " + calleeMethodSym + " " + e);
+        if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
+        	// makeFreshExpression()
+        }
+        if (includeDeterminism && effectivelySpecPure) addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, e);
+        return e;
+    }
 	
 	public void makeMethodHavocAxiom(DiagnosticPosition pos, Type receiverType, MethodSymbol calleeMethodSym, Type returnType, Object havocs,
 	                        java.util.List<StoreRefGroup> readItems, List<JCExpression> args) {
@@ -21930,7 +21944,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            System.out.println("REPLACING " + receiverType + " WITH " + msym.owner.type);  // FIXME - a temporary hack
 //            receiverType = msym.owner.type;
 //        }
-		boolean isFunction = isHeapIndependent(msym);
+        boolean isFunction = isHeapIndependent(msym);
+		addStat(comment("Method axioms for " + msym + " heapIndependent =" + isFunction));
 		JCExpression savedCondition = condition;
 		if (isFunction) condition = treeutils.trueLit;
 		boolean isStatic = utils.isJMLStatic(msym);
@@ -22290,7 +22305,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					e.triggers = List.<JCExpression>of(wellDefinedCall);
 					e.type = syms.booleanType;
 					addAssume(clauseToReference, useNamesForHeap ? Label.METHOD_DEFINITION : Label.IMPLICIT_ASSUME, e);
-					if (msym.toString().contains("empty")) System.out.println("METHOD AXIOM " + msym + " " + e);
+					//if (msym.toString().contains("empty")) System.out.println("METHOD AXIOM " + msym + " " + e);
 				}
 			}
 		} catch (Exception e) { // FIXME - intentional aborts should be passed alont
