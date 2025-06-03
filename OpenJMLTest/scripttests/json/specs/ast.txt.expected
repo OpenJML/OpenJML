@@ -18,6 +18,7 @@ JmlCompilationUnit
     JCIdent: b
     JCIdent: b
     JCIdent: b
+    JCIdent: m
     JCIdent: RuntimeException
     JmlMethodDecl: m
       JmlVariableDecl: k
@@ -49,6 +50,7 @@ JmlCompilationUnit
     JCIdent: b
     JCIdent: b
     JCIdent: b
+    JCIdent: m
     JCIdent: RuntimeException
     JmlMethodDecl: m
       JmlVariableDecl: k

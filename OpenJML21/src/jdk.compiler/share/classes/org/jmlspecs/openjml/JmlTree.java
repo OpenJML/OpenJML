@@ -124,7 +124,7 @@ public class JmlTree {
         JmlMethodClauseExpr JmlMethodClauseExpr(String keyword, IJmlClauseKind t, JCTree.JCExpression e);
         JmlMethodClauseBehaviors JmlMethodClauseBehaviors(String command);
         JmlMethodClauseInvariants JmlMethodClauseInvariants(List<JCExpression> expressions);
-        JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword);
+        JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton singleton);
         JmlMethodClauseCallable JmlMethodClauseCallable(List<JmlMethodSig> methodSignatures);
         JmlMethodClauseConditional JmlMethodClauseConditional(String keyword, IJmlClauseKind kind, JCTree.JCExpression e, JCTree.JCExpression predicate);
         JmlMethodClauseSignals JmlMethodClauseSignals(String keyword, IJmlClauseKind kind, JCTree.JCVariableDecl var, JCTree.JCExpression e);
@@ -881,8 +881,8 @@ public class JmlTree {
         }
         
         @Override
-        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton keyword) {
-            return new JmlMethodClauseCallable(pos,keyword,null);
+        public JmlMethodClauseCallable JmlMethodClauseCallable(JmlSingleton singleton) {
+            return new JmlMethodClauseCallable(pos,singleton,null);
         }
         
         @Override
@@ -2458,13 +2458,13 @@ public class JmlTree {
      */
     public static class JmlMethodClauseCallable extends JmlMethodClause {
 
-        public JmlSingleton keyword;
+        public JmlSingleton singleton;
         public List<JmlMethodSig> methodSignatures;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlMethodClauseCallable(int pos, JmlSingleton keyword, List<JmlMethodSig> methodSignatures) {
+        protected JmlMethodClauseCallable(int pos, JmlSingleton singleton, List<JmlMethodSig> methodSignatures) {
             super(pos, CallableClauseExtension.callableID, CallableClauseExtension.callableClause);
-            this.keyword = keyword;
+            this.singleton = singleton;
             this.methodSignatures = methodSignatures;
         }
 
@@ -3789,17 +3789,19 @@ public class JmlTree {
     /** This class represents type clauses (e.g. invariant, constraint,...) in a class specification */
     abstract public static class JmlTypeClause extends JCTree implements JmlSource, IInJML {
         
+        /** Optional name */
+        public Name name;
+
+        /** The modifiers for the clause */
+        public JCModifiers modifiers;
+
         /** The token identifying the kind of clause this represents */
         public String keyword;
-        public Name name;
         public IJmlClauseKind clauseType;
         
         /** The source of this clause, since it might be from a different compilation unit. */
         public JavaFileObject source;
         
-        /** The modifiers for the clause */
-        public JCModifiers modifiers;
-
         /** Returns the source file for the clause */
         public JavaFileObject source() { return source; }
         

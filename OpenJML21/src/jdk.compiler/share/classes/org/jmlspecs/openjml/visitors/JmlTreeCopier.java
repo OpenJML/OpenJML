@@ -334,8 +334,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlMethodClauseCallable(JmlMethodClauseCallable that, Void p) {
         JmlMethodClauseCallable copy;
-        if (that.keyword != null) {
-            copy = M.at(that.pos).JmlMethodClauseCallable(that.keyword);
+        if (that.singleton != null) {
+            copy = M.at(that.pos).JmlMethodClauseCallable(that.singleton);
         } else {
             copy = M.at(that.pos).JmlMethodClauseCallable(copy(that.methodSignatures,p));
         }
