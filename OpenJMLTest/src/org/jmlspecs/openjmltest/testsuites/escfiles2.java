@@ -209,6 +209,10 @@ public class escfiles2 extends EscBaseFiles {
         helpTCN("--check");
     }
     
+    @Test public void jmlstring() {
+        helpTCN("--esc");
+    }
+    
     @Test public void sfpatch25() {
         helpTCN("--esc","--quiet");
     }

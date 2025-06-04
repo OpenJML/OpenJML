@@ -9379,6 +9379,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //			            calleeIsFunction, calleeSpecs,
 //			            calleeSpecs.decl != null ? calleeSpecs.decl.pos : that.pos, newParamTypes);
 //			}
+			if (print) System.out.println("APPLYHELPER-II " + calleeMethodSym + " " + inlineSpecs + "" + isVoid + " " + addMethodAxioms + " " + includeDeterminism);
 			if ((!inlineSpecs) && !isVoid) {
 				if (addMethodAxioms)
 					assertCalledMethodPrecondition(that, calleeMethodSym, extendedArgs);
@@ -10061,7 +10062,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (print) System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
-			if (calleeIsSpecPure) {
+			if (calleeIsSpecPure && !isVoid) {
 			    assertDeterminismCall(that, print, calleeMethodSym, newThisExpr, resultType,
 			            effectivelySpecPure, includeDeterminism, extendedArgs);
 			}
