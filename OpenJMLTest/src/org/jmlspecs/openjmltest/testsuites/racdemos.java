@@ -70,15 +70,23 @@ public class racdemos extends RacBase {
     @Test
     public void demoecu() {
         expectedExit = 0;
-        expectedRACExit = 1;
-        helpCompileRunDemo("/src/openjml/ecu",null); // FIXME null should be "Test", but there are test failures
+        expectedRACExit = 0;
+        helpCompileRunDemo("/src/openjml/ecu","Test");
     }
 
     @Test
     public void demoecu2() {
+        expectedExit = 1;
+        helpCompileRunDemo("/src/openjml/ecu2",null);
+    }
+
+    @Test
+    public void demoecu2a() {
+        //collectOutput(true);
         expectedExit = 0;
-        expectedRACExit = 1;
-        helpCompileRunDemo("/src/openjml/ecu2",null); // FIXME null should be "Test", but there are test failures
+        expectedRACExit = 0;
+        helpCompileRunDemo("/src/openjml/ecu2a","IgnitionTest");
+        //collectOutput(false);
     }
 
     @Test
