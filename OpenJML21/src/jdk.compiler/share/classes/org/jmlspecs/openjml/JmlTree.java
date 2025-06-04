@@ -3476,7 +3476,8 @@ public class JmlTree {
      */
     public static class JmlStatementSpec extends JmlAbstractStatement {
         public JmlMethodSpecs statementSpecs;
-        public List<JCStatement> statements;
+        public List<JCStatement> statements; // A statement spec may apply to a sequence of statements 
+                                             // (in a begin-end pair, not just a single statement
         public List<JCIdent> exports;
         public List<JCVariableDecl> decls;
         public List<JCStatement> newStatements;

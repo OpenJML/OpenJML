@@ -356,6 +356,106 @@
           "defaultValue": null
         }
       ]
+    },
+    {
+      "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "sourcefile": {
+        "class": "javax.tools.JavaFileObject",
+        "primitive": "generic/Test.java"
+      },
+      "mods": {
+        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "annotations": [],
+        "flags": {
+          "class": "long",
+          "primitive": "0"
+        },
+        "jmlmods": []
+      },
+      "name": {
+        "class": "com.sun.tools.javac.util.Name",
+        "primitive": "ClassType"
+      },
+      "typarams": [],
+      "extending": null,
+      "implementing": [],
+      "permitting": [],
+      "defs": []
+    },
+    {
+      "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "sourcefile": {
+        "class": "javax.tools.JavaFileObject",
+        "primitive": "generic/Test.java"
+      },
+      "mods": {
+        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "annotations": [],
+        "flags": {
+          "class": "long",
+          "primitive": "512"
+        },
+        "jmlmods": []
+      },
+      "name": {
+        "class": "com.sun.tools.javac.util.Name",
+        "primitive": "InterfaceType"
+      },
+      "typarams": [],
+      "extending": null,
+      "implementing": [],
+      "permitting": [],
+      "defs": []
+    },
+    {
+      "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "sourcefile": {
+        "class": "javax.tools.JavaFileObject",
+        "primitive": "generic/Test.java"
+      },
+      "mods": {
+        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "annotations": [],
+        "flags": {
+          "class": "long",
+          "primitive": "0"
+        },
+        "jmlmods": []
+      },
+      "name": {
+        "class": "com.sun.tools.javac.util.Name",
+        "primitive": "ZZ"
+      },
+      "typarams": [
+        {
+          "class": "com.sun.tools.javac.tree.JCTree$JCTypeParameter",
+          "name": {
+            "class": "com.sun.tools.javac.util.Name",
+            "primitive": "T"
+          },
+          "bounds": [
+            {
+              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "name": {
+                "class": "com.sun.tools.javac.util.Name",
+                "primitive": "ClassType"
+              }
+            },
+            {
+              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "name": {
+                "class": "com.sun.tools.javac.util.Name",
+                "primitive": "InterfaceType"
+              }
+            }
+          ],
+          "annotations": []
+        }
+      ],
+      "extending": null,
+      "implementing": [],
+      "permitting": [],
+      "defs": []
     }
   ]
 }

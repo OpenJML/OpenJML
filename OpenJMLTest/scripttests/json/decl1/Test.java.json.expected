@@ -68,7 +68,32 @@
       "extending": null,
       "implementing": [],
       "permitting": [],
-      "defs": []
+      "defs": [
+        {
+          "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+          "sourcefile": {
+            "class": "javax.tools.JavaFileObject",
+            "primitive": "decl1/Test.java"
+          },
+          "flags": {
+            "class": "long",
+            "primitive": "8"
+          },
+          "stats": []
+        },
+        {
+          "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+          "sourcefile": {
+            "class": "javax.tools.JavaFileObject",
+            "primitive": "decl1/Test.java"
+          },
+          "flags": {
+            "class": "long",
+            "primitive": "0"
+          },
+          "stats": []
+        }
+      ]
     },
     {
       "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",

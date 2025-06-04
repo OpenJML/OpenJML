@@ -1353,6 +1353,11 @@
                     "primitive": "Override"
                   }
                 },
+                "token": null,
+                "kind": {
+                  "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "primitive": null
+                },
                 "args": []
               }
             ],
@@ -2446,6 +2451,11 @@
                     "class": "com.sun.tools.javac.util.Name",
                     "primitive": "Override"
                   }
+                },
+                "token": null,
+                "kind": {
+                  "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "primitive": null
                 },
                 "args": []
               }
