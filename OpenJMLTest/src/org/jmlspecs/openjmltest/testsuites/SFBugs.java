@@ -553,7 +553,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug597() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--esc-max-warnings=1");
     }
     
     @Test

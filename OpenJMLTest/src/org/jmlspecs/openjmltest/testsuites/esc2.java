@@ -3813,20 +3813,22 @@ public class esc2 extends EscBase {
         expectedExit = 0;
         addOptions("--esc-max-warnings=10");
         helpTCX("tt.TestJava",
-                          "package tt; //@ nullable_by_default \n" 
-                        + "public class TestJava  { \n" 
-                        + "  /*@ requires o != null; \n"
-                        + "      ensures \\result == (j>=0); \n"
-                        + "     spec_pure */ public static boolean positive(Object o, int j) { \n"
-                        + "         return j >= 0; }\n"
-                        + "  public int j; \n"
-                        + "  //@ signals (NullPointerException e) positive(null,j); \n"
-                        + "  //@ signals (NegativeArraySizeException e) positive(null,j); \n"
-                        + "  public void m0(int i, Object o) {\n"
-                        + "      if (i == 1) { j = -2; throw new NullPointerException(); }\n" 
-                        + "      if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
-                        + "  }\n" 
-                        + "}"
+                        """
+                        package tt; //@ nullable_by_default
+                        public class TestJava  {
+                          /*@ requires o != null;
+                              ensures \\result == (j>=0);
+                             spec_pure */ public static boolean positive(Object o, int j) {
+                                 return j >= 0; }
+                          public int j;
+                          //@ signals (NullPointerException e) positive(null,j);
+                          //@ signals (NegativeArraySizeException e) positive(null,j);
+                          public void m0(int i, Object o) {
+                              if (i == 1) { j = -2; throw new NullPointerException(); }
+                              if (i == 2) { j = -1; throw new NegativeArraySizeException(); }
+                          }
+                        }
+                        """
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:5: warning: Associated declaration",41
