@@ -1,4 +1,9 @@
-public class Test {}
+public class Test {
+    
+    static {}
+    {}
+    
+}
 interface B {}
 enum C { X, Y}
 record D(int i) {}

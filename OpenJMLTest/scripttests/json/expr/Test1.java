@@ -10,4 +10,5 @@ class Test1 {
   Test1 x = new Test1();
   int y = switch (x1) { case 0 -> 5; default -> 10; };
   int z = switch (0) { case 0 -> { yield 7; } default -> { yield 8; } };
+  //String ss = STR."abc \{ x1 }"; // preview feature not yet implemented
 }

@@ -14,6 +14,7 @@ import static com.sun.tools.javac.tree.JCTree.*;
 
 import com.sun.source.tree.CaseTree;
 import com.sun.source.tree.MemberReferenceTree;
+import com.sun.source.tree.ModuleTree;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlTree;
@@ -135,9 +136,10 @@ public class JmlJson {
         builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
         builder.registerTypeAdapter(CaseTree.CaseKind.class, this.new CaseKindAdapter());
         builder.registerTypeAdapter(JCTree.JCLambda.ParameterKind.class, this.new ParameterKindAdapter());
-        builder.registerTypeAdapter(org.jmlspecs.openjml.IJmlClauseKind.class , this.new IJmlClauseKindAdapter());
+        builder.registerTypeAdapter(org.jmlspecs.openjml.IJmlClauseKind.class, this.new IJmlClauseKindAdapter());
         builder.registerTypeAdapter(org.jmlspecs.openjml.esc.Label.class, this.new LabelAdapter());
-        builder.registerTypeAdapter(MemberReferenceTree.ReferenceMode.class, this. new ReferenceModeAdapter());
+        builder.registerTypeAdapter(MemberReferenceTree.ReferenceMode.class, this.new ReferenceModeAdapter());
+        builder.registerTypeAdapter(ModuleTree.ModuleKind.class, this.new ModuleKindAdapter());
         
         for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
             if ((nestedClass.getModifiers() & Flags.ABSTRACT) != 0) continue;
@@ -169,7 +171,7 @@ public class JmlJson {
 //                    System.out.println("No AST class found for adapter " + adapter);
                 }
             } catch (Exception e) {
-                Log.instance(JmlJson.this.context).error("jml.internal","Exception attempting to find an AST class corresponding to adapter " + adapter + " : " + e);
+                log.error("jml.internal","Exception attempting to find an AST class corresponding to adapter " + adapter + " : " + e);
             }
         }
         // Set the string output of Json construction to be pretty-printed and to allow null fields
@@ -302,7 +304,7 @@ public class JmlJson {
             try {
                 return (String[])this.getClass().getDeclaredField("fields").get(this);
             } catch (Exception e) {
-                Log.instance(JmlJson.this.context).error("jml.internal", "Failed to find the 'fields' array in class " + this.getClass());
+                log.error("jml.internal", "Failed to find the 'fields' array in class " + this.getClass());
                 return new String[0];
             }
         }
@@ -349,10 +351,10 @@ public class JmlJson {
                     }
                     return obj;
                 } else {
-                    Log.instance(JmlJson.this.context).error("jml.internal", "Failure to serialize an input of type " + src.getClass() + " (not a JCTree subclass)");
+                    log.error("jml.internal", "Failure to serialize an input of type " + src.getClass() + " (not a JCTree subclass)");
                 }
             } catch (Exception e) {
-                Log.instance(JmlJson.this.context).error("jml.internal", "Failure to serialize an input of type " + src.getClass() + ": " + e);
+                log.error("jml.internal", "Failure to serialize an input of type " + src.getClass() + ": " + e);
                 e.printStackTrace(System.out);
             }
             return null;
@@ -362,7 +364,7 @@ public class JmlJson {
          * factory method to produce a new AST element. 
          */
         public T deserialize(JsonElement src, java.lang.reflect.Type type, JsonDeserializationContext context) {
-            Log.instance(JmlJson.this.context).error("jml.internal","NO DESERIALIZER: " + this.getClass() + " " + type);
+            log.error("jml.internal","NO DESERIALIZER: " + this.getClass() + " " + type);
             return null;
         }
     }
@@ -371,6 +373,7 @@ public class JmlJson {
 
     class JCAnnotatedTypeAdapter extends Adapter<JCAnnotatedType> {
         public static final String[] fields = { "annotations", "underlyingType" };
+        @Override
         public JCAnnotatedType deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
@@ -382,14 +385,17 @@ public class JmlJson {
     }
 
     class JmlAnnotationAdapter extends Adapter<JmlAnnotation> {
-        public static final String[] fields = { "annotationType", "args" };
+        public static final String[] fields = { "annotationType", "token", "kind", "args" };
+        @Override
         public JmlAnnotation deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Annotation(
                     (JCTree)values[0], 
-                    JmlJson.<JCExpression>toList(values[1])
+                    JmlJson.<JCExpression>toList(values[3])
                     );
+            result.token = (JmlToken)values[1];
+            result.kind = (IJmlClauseKind.ModifierKind)values[2];
             return result;
         }
     }
@@ -974,8 +980,8 @@ public class JmlJson {
             var result = M.JmlMethodClauseConditional(
                     (String)values[1],        // keyword
                     (IJmlClauseKind)values[2], // clauseKind
-                    (JmlExpression)values[3],
-                    (JmlExpression)values[4]
+                    (JCExpression)values[3], // expression
+                    (JCExpression)values[4]  // predicate
                     );
             result.name = (Name)values[0];
             return result;
@@ -1173,7 +1179,30 @@ public class JmlJson {
 
     }
     
-    // TODO: JCModuleDecl
+    class JCModuleDeclAdapter extends Adapter<JCModuleDecl> {
+        public static final String[] fields = { "mods", "kind", "qualId", "directives" };
+        // This custom serializer is needed because one of the fields of JCModuleDecl is private
+        @Override
+        public JsonElement serialize(JCModuleDecl src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src, context);
+            obj.add("mods", context.serialize(src.mods));
+            obj.add("kind", context.serialize(src.getModuleType()));
+            obj.add("qualId", context.serialize(src.qualId));
+            obj.add("directives", context.serialize(src.directives));
+            return obj;
+        }
+        @Override
+        public JCModuleDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.ModuleDef(
+                    (JCModifiers)values[0],
+                    (ModuleTree.ModuleKind)values[1],
+                    (JCExpression)values[2],
+                    JmlJson.<JCDirective>toList(values[3]));
+            return result;
+        }
+    }
 
     class JCNewArrayAdapter extends Adapter<JCNewArray> {
         public static final String[] fields = { "annotations", "elemtype", "dims", "elems" }; // FIXME - dimAnnotations?
@@ -1535,7 +1564,7 @@ public class JmlJson {
     }
 
     class JmlStatementSpecAdapter extends Adapter<JmlStatementSpec> {
-        public static final String[] fields = { "statementSpecs" }; // FIXME - exports? decls? newStatements? label?
+        public static final String[] fields = { "statementSpecs", "statements" }; // FIXME - exports? decls? newStatements? label?
         @Override
         public JmlStatementSpec deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1543,6 +1572,7 @@ public class JmlJson {
             var result = M.JmlStatementSpec(
                     (JmlMethodSpecs)values[0]
                     );
+            result.statements = JmlJson.<JCStatement>toList(values[1]);
             return result;
         }
     }
@@ -1567,22 +1597,6 @@ public class JmlJson {
         }
     }
     
-<<<<<<< HEAD
-    class JmlSwitchStatementAdapter extends Adapter<JmlSwitchStatement> {
-        public static final String[] fields = { "selector", "cases", "split" };
-        @Override
-        public JmlSwitchStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var values = getFieldValues(json.getAsJsonObject());
-            var result = M.Switch(
-                    (JCExpression)values[0],
-                    JmlJson.<JCCase>toList(values[1])
-                    );
-            result.split = (boolean)values[2];
-            return result;
-        }
-    }
-    
     class JCSwitchExpressionAdapter extends Adapter<JCSwitchExpression> {
         public static final String[] fields = { "selector", "cases" }; // FIXME - polyKind? split?
         // FIXME - needs a JML version ?
@@ -1598,30 +1612,34 @@ public class JmlJson {
         }
      }
 
-     class JmlSwitchStatementAdapter extends Adapter<JmlSwitchStatement> {
-        public static final String[] fields = { "selector", "cases", "split" };
-        @Override
-        public JmlSwitchStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var values = getFieldValues(json.getAsJsonObject());
-            var result = (JmlSwitchStatement)M.Switch((JCExpression)values[0], JmlJson.<JCCase>toList(values[1]));
-            result.split = (boolean)values[2];
-            return result;
-        }
-    }
    
-    class JCSynchronizedAdapter extends Adapter<JCSynchronized> {
-        public static final String[] fields = { "lock", "body" };
-        @Override
-        public JCSynchronized deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var values = getFieldValues(json.getAsJsonObject());
-            var result = M.Synchronized((JCExpression)values[0], (JCBlock)values[1]);
-            return result;
-        }
-    }
+     class JmlSwitchStatementAdapter extends Adapter<JmlSwitchStatement> {
+         public static final String[] fields = { "selector", "cases", "split" };
+         @Override
+         public JmlSwitchStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                 throws JsonParseException {
+             var values = getFieldValues(json.getAsJsonObject());
+             var result = M.Switch(
+                     (JCExpression)values[0],
+                     JmlJson.<JCCase>toList(values[1])
+                     );
+             result.split = (boolean)values[2];
+             return result;
+         }
+     }
 
-    class JCThrowAdapter extends Adapter<JCThrow> {
+     class JCSynchronizedAdapter extends Adapter<JCSynchronized> {
+         public static final String[] fields = { "lock", "body" };
+         @Override
+         public JCSynchronized deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                 throws JsonParseException {
+             var values = getFieldValues(json.getAsJsonObject());
+             var result = M.Synchronized((JCExpression)values[0], (JCBlock)values[1]);
+             return result;
+         }
+     }
+
+     class JCThrowAdapter extends Adapter<JCThrow> {
         public static final String[] fields = { "expr" };
         @Override
         public JCThrow deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
@@ -1802,7 +1820,7 @@ public class JmlJson {
     }
     
     class JmlTypeClauseMonitorsForAdapter extends Adapter<JmlTypeClauseMonitorsFor> {
-        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "identifier", "expression" };
+        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "identifier", "list" };
         @Override
         public JmlTypeClauseMonitorsFor deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1913,7 +1931,7 @@ public class JmlJson {
         public JmlWhileLoop deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            var loop = M.WhileLoop((JCExpression)values[2], (JCBlock)values[3]);
+            var loop = M.WhileLoop((JCExpression)values[2], (JCStatement)values[3]);
             @SuppressWarnings("unchecked")
             var result = M.JmlWhileLoop(loop, JmlJson.<JmlStatementLoop>toList(values[0]));
             result.split = (boolean)values[1];
@@ -2012,7 +2030,7 @@ public class JmlJson {
     class JmlTokenAdapter implements JsonSerializer<JmlToken>, JsonDeserializer<JmlToken> {
         @Override
         public JsonElement serialize(JmlToken src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            return primitive(JmlToken.class, src);  // FIXME - more to a JmlToken than just the name -- source, position, comments?
+            return primitive(JmlToken.class, src.toString());  // FIXME - more to a JmlToken than just the name -- source, position, comments?
         }
         @Override
         public JmlToken deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
@@ -2034,16 +2052,16 @@ public class JmlJson {
         Class<BoundKind> clazz() { return BoundKind.class; }
     }
     
+    class ModuleKindAdapter extends EnumAdapter<ModuleTree.ModuleKind> {
+        Class<ModuleTree.ModuleKind> clazz() { return ModuleTree.ModuleKind.class; }
+    }
+    
     class CaseKindAdapter extends EnumAdapter<CaseTree.CaseKind> {
         Class<CaseTree.CaseKind> clazz() { return CaseTree.CaseKind.class; }
     }
     
     class ParameterKindAdapter extends EnumAdapter<JCTree.JCLambda.ParameterKind> {
         Class<JCTree.JCLambda.ParameterKind> clazz() { return JCTree.JCLambda.ParameterKind.class; }
-    }
-    
-    class CaseKindAdapter extends EnumAdapter<CaseKind> {
-        Class<CaseKind> clazz() { return CaseKind.class; }
     }
     
     class ReferenceKindAdapter extends EnumAdapter<JCMemberReference.ReferenceKind> {

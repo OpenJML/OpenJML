@@ -24,7 +24,8 @@ public class Test {
     //@ ghost \bigint j = 0;
     switch (5) { case 0: break; default: break;}
     try {} catch (Exception e) {}
->>>>>>> ee6422a96a635ed95717e4c11007b6f078774512
+    @Nullable Object o = null;
     return i;
   }
+  
 }

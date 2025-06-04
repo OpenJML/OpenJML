@@ -16,6 +16,11 @@ JmlCompilationUnit
         JCIdent: U
     JmlMethodDecl: m
       JCIdent: Class
+  JmlClassDecl: ClassType
+  JmlClassDecl: InterfaceType
+  JmlClassDecl: ZZ
+    JCIdent: ClassType
+    JCIdent: InterfaceType
 
 JmlCompilationUnit
   JmlImport model
@@ -35,4 +40,9 @@ JmlCompilationUnit
         JCIdent: U
     JmlMethodDecl: m
       JCIdent: Class
+  JmlClassDecl: ClassType
+  JmlClassDecl: InterfaceType
+  JmlClassDecl: ZZ
+    JCIdent: ClassType
+    JCIdent: InterfaceType
 

@@ -1,0 +1,55 @@
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JCFieldAccess: base java.base
+    JCIdent: java
+  JCFieldAccess: logging java.logging
+    JCIdent: java
+  JCFieldAccess: xml java.xml
+    JCIdent: java
+  JCFieldAccess: io java.io
+    JCIdent: java
+  JCFieldAccess: lang java.lang
+    JCIdent: java
+  JCFieldAccess: javac jdk.internal.javac
+    JCFieldAccess: internal jdk.internal
+      JCIdent: jdk
+  JCFieldAccess: compiler java.compiler
+    JCIdent: java
+  JCFieldAccess: compiler jdk.compiler
+    JCIdent: jdk
+  JCFieldAccess: vector jdk.incubator.vector
+    JCFieldAccess: incubator jdk.incubator
+      JCIdent: jdk
+  JCFieldAccess: jshell jdk.jshell
+    JCIdent: jdk
+  JCFieldAccess: LoggerFinder java.lang.System.LoggerFinder
+    JCFieldAccess: System java.lang.System
+      JCFieldAccess: lang java.lang
+        JCIdent: java
+  JCFieldAccess: FileSystemProvider java.nio.file.spi.FileSystemProvider
+    JCFieldAccess: spi java.nio.file.spi
+      JCFieldAccess: file java.nio.file
+        JCFieldAccess: nio java.nio
+          JCIdent: java
+  JCFieldAccess: JrtFileSystemProvider jdk.internal.jrtfs.JrtFileSystemProvider
+    JCFieldAccess: jrtfs jdk.internal.jrtfs
+      JCFieldAccess: internal jdk.internal
+        JCIdent: jdk
+  JCFieldAccess: RandomGenerator java.util.random.RandomGenerator
+    JCFieldAccess: random java.util.random
+      JCFieldAccess: util java.util
+        JCIdent: java
+  JCFieldAccess: SecureRandom java.security.SecureRandom
+    JCFieldAccess: security java.security
+      JCIdent: java
+  JCFieldAccess: Random java.util.Random
+    JCFieldAccess: util java.util
+      JCIdent: java
+  JCFieldAccess: SplittableRandom java.util.SplittableRandom
+    JCFieldAccess: util java.util
+      JCIdent: java
+
