@@ -76,6 +76,11 @@ public class escfiles2 extends EscBaseFiles {
         helpTCG();
     }
     
+    @Test
+    public void gitbug780a() {
+        helpTCG("--method=marray");
+    }
+    
     @Test @Ignore // FIXME - times out in attempting to prove
     public void gitbug802() {
         helpTCG();

@@ -15,7 +15,7 @@ Starting proof of FirstTest.toString() with prover !!!!
 test/firstTest/FirstTest.java:12: warning: The prover cannot establish an assertion (Postcondition) in method toString
         return ""+a;
         ^
-$SPECS/java/lang/Object.jml:212: warning: Associated declaration
+$SPECS/java/lang/Object.jml:218: warning: Associated declaration
     @     ensures \result == ptoString();
           ^
 Completed proof of FirstTest.toString() with prover !!!! - with warnings
