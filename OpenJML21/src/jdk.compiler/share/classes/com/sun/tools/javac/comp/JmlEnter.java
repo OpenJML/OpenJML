@@ -786,11 +786,15 @@ public class JmlEnter extends Enter {
 			JmlSpecs.instance(context).putSpecs(csym, tspecs);
 			// Do all nested classes, recursively
 			specDecl.defs = specsListEnter(csym, specDecl.defs, localEnv);
+			if (csym.isRecord()) {
+			    System.out.println("ENTERING RECORD-A " + csym);
+			}
 		} catch (Exception e) {
 			utils.unexpectedException("JmlEnterspecsClassEnter", e);
 			return false;
 		} finally {
 		}
+
 		return true;
     }
 
@@ -814,6 +818,9 @@ public class JmlEnter extends Enter {
 			    	//TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(cs, JmlSpecs.instance(context).getLoadedSpecs(cs).specsEnv);
                     //specsMemberEnter(specDecl); // Enter class specDecl non-recursively
                     //specsMembersEnter(cs, specDecl.defs); // Enter any classes in specDecl
+			          if (cs.isRecord()) {
+			                System.out.println("ENTERING RECORD-A " + cs);
+			            }
 			    } else {
 			        specsMemberEnter(specDecl); // Enter class specDecl non-recursively
 			        specsMembersEnter(cs, specDecl.defs); // Enter any classes in specDecl

@@ -1237,6 +1237,13 @@ public class JmlSpecs {
         } else if ((sym.owner.flags() & Flags.RECORD) != 0) { // Only generate default record specs for esc
             if (utils.esc && sym.isConstructor() && (sym.flags() & Flags.GENERATEDCONSTR) != 0) {
                 ListBuffer<JmlMethodClause> clauses = new ListBuffer<>();
+                if (decl != null) for (JCVariableDecl param: decl.params) {
+                    VarSymbol field = (VarSymbol)sym.owner.members().findFirst(param.name, s->(s instanceof VarSymbol));
+                    var fieldSpecs = new FieldSpecs((JmlVariableDecl)param);
+                    fieldSpecs.mods.jmlmods.add(new JmlToken(Modifiers.SPEC_PUBLIC, param.pos, param.pos+1)); // FIXME - actually would like the token corresponding to the name, or at least its positions
+                    putSpecs(field, fieldSpecs);
+                    System.out.println("PUTSPECS " + field + " " + fieldSpecs);
+                }
                 for (VarSymbol param: sym.params) { 
                     Symbol field = sym.owner.members().findFirst(param.name, s->!(s instanceof MethodSymbol));
                     // At this point thisSymbol is not yet available, so we can't make the expression this.x == x
@@ -1893,7 +1900,7 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
     public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-        boolean pr = false;// msym.name.toString().startsWith("StorageParameters");
+        boolean pr =  msym.name.toString().contains("add(") || msym.name.toString().contains("m2");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (Types.instance(context).isSubtype(type, 

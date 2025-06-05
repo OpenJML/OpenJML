@@ -2033,7 +2033,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 					JmlVariableDecl jmlparam = (JmlVariableDecl) jmliter.next();
 					javaparam.specsDecl = jmlparam;
 					jmlparam.sym = javaparam.sym;
-					long diffs = (javaparam.mods.flags ^ jmlparam.mods.flags);
+					long diffs = (javaparam.mods.flags ^ jmlparam.mods.flags) & ~(Flags.COMPOUND|Flags.RECORD); // FIXME - why does the specs file not automatically get these modifiers
 					if (diffs != 0) {
 						utils.errorAndAssociatedDeclaration(specMethodDecl.sourcefile, jmlparam.pos(),
 								javaMatch.sourcefile, javaparam.pos(), 
@@ -6039,7 +6039,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (sym.kind == VAR) {
                         VarSymbol vsym = (VarSymbol)sym;
                         mods = specs.getSpecsModifiers((VarSymbol)sym);
-                   }
+                        if (vsym.owner instanceof ClassSymbol cs && cs.isRecord() && !vsym.isStatic()) v = Flags.PUBLIC;
+                    }
                     if (sym.kind == MTH) {
                         mods = specs.getSpecsModifiers((MethodSymbol)sym);
                     }
@@ -6462,7 +6463,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             else  c = s.enclClass();
             if (c != null) addTodo(c); // FIXME - why this?
         }
-        
+        if (tree.sym != null && tree.sym.toString().contains("bbbb")) System.out.println("CHECKVIZ " + tree + " " + tree.sym + " " + jmlenv.jmlVisibility);
         if (tree.sym != null) checkVisibility(tree, jmlenv.jmlVisibility, tree.sym, tree.selected);
 
         // For selections that are fields with an enclosing class, we check whether it is readable

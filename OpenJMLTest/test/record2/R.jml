@@ -1,0 +1,11 @@
+public record R(int x, boolean bbbb) {
+  //@ public normal_behavior
+    //@  ensures this.bbbb == false;
+    // @  ensures this.bbbb() == false;
+  public R(int x, boolean bbbb);
+  
+  //@ public normal_behavior
+  //@  ensures \result == 100;
+  //@ strictly_pure
+  public int x();
+}
