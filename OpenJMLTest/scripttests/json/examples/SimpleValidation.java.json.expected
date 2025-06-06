@@ -24,19 +24,19 @@
             "@id": "533",
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "9",
+              "@ref": "9",
               "primitive": "com"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "10",
+            "@ref": "10",
             "primitive": "hellokaton"
           }
         },
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "11",
+          "@ref": "11",
           "primitive": "blade"
         }
       },
@@ -50,41 +50,41 @@
   "defs": [
     {
       "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
-      "@id": "529",
+      "@ref": "529",
       "annotations": [],
       "pid": {
         "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "@id": "530",
+        "@ref": "530",
         "selected": {
           "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "@id": "531",
+          "@ref": "531",
           "selected": {
             "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "@id": "532",
+            "@ref": "532",
             "selected": {
               "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-              "@id": "533",
+              "@ref": "533",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "9",
+                "@ref": "9",
                 "primitive": "com"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "10",
+              "@ref": "10",
               "primitive": "hellokaton"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "11",
+            "@ref": "11",
             "primitive": "blade"
           }
         },
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "534",
+          "@ref": "534",
           "primitive": "validator"
         }
       }
@@ -106,25 +106,25 @@
               "@id": "539",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "19",
+                "@ref": "19",
                 "primitive": "org"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "20",
+              "@ref": "20",
               "primitive": "jmlspecs"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "21",
+            "@ref": "21",
             "primitive": "lang"
           }
         },
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "22",
+          "@ref": "22",
           "primitive": "*"
         }
       },
@@ -184,7 +184,7 @@
               "@id": "549",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "50",
+                "@ref": "50",
                 "primitive": "java"
               }
             },
@@ -220,7 +220,7 @@
       "@id": "553",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "528",
+        "@ref": "528",
         "primitive": "examples/SimpleValidation.java"
       },
       "mods": {
@@ -235,14 +235,14 @@
               "@id": "556",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "544",
+                "@ref": "544",
                 "primitive": "AllArgsConstructor"
               }
             },
             "token": null,
             "kind": {
               "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-              "@id": "59",
+              "@ref": "59",
               "primitive": null
             },
             "args": []
@@ -292,7 +292,7 @@
               "@id": "563",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "559",
+                "@ref": "559",
                 "primitive": "T"
               }
             }
@@ -306,7 +306,7 @@
           "@id": "564",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "528",
+            "@ref": "528",
             "primitive": "examples/SimpleValidation.java"
           },
           "mods": {
@@ -332,7 +332,7 @@
               "@id": "568",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "552",
+                "@ref": "552",
                 "primitive": "Predicate"
               }
             },
@@ -342,7 +342,7 @@
                 "@id": "569",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "559",
+                  "@ref": "559",
                   "primitive": "T"
                 }
               }
@@ -355,7 +355,7 @@
           "@id": "570",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "528",
+            "@ref": "528",
             "primitive": "examples/SimpleValidation.java"
           },
           "mods": {
@@ -378,7 +378,7 @@
             "@id": "573",
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "433",
+              "@ref": "433",
               "primitive": "String"
             }
           },
@@ -389,7 +389,7 @@
           "@id": "574",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "528",
+            "@ref": "528",
             "primitive": "examples/SimpleValidation.java"
           },
           "mods": {
@@ -415,7 +415,7 @@
               "@id": "578",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "557",
+                "@ref": "557",
                 "primitive": "SimpleValidation"
               }
             },
@@ -425,7 +425,7 @@
                 "@id": "579",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "559",
+                  "@ref": "559",
                   "primitive": "T"
                 }
               }
@@ -437,7 +437,7 @@
               "@id": "580",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "559",
+                "@ref": "559",
                 "primitive": "T"
               },
               "bounds": [],
@@ -451,7 +451,7 @@
               "@id": "581",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "528",
+                "@ref": "528",
                 "primitive": "examples/SimpleValidation.java"
               },
               "mods": {
@@ -466,7 +466,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "566",
+                "@ref": "566",
                 "primitive": "predicate"
               },
               "vartype": {
@@ -477,7 +477,7 @@
                   "@id": "584",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "552",
+                    "@ref": "552",
                     "primitive": "Predicate"
                   }
                 },
@@ -487,7 +487,7 @@
                     "@id": "585",
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "559",
+                      "@ref": "559",
                       "primitive": "T"
                     }
                   }
@@ -500,7 +500,7 @@
               "@id": "586",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "528",
+                "@ref": "528",
                 "primitive": "examples/SimpleValidation.java"
               },
               "mods": {
@@ -515,7 +515,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "572",
+                "@ref": "572",
                 "primitive": "onErrorMessage"
               },
               "vartype": {
@@ -523,7 +523,7 @@
                 "@id": "588",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "433",
+                  "@ref": "433",
                   "primitive": "String"
                 }
               },
@@ -540,12 +540,12 @@
                 "@id": "590",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "528",
+                  "@ref": "528",
                   "primitive": "examples/SimpleValidation.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "modifiers": {
@@ -564,7 +564,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -577,7 +577,7 @@
                     "@id": "592",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -588,7 +588,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -599,13 +599,13 @@
                         "@id": "595",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "566",
+                          "@ref": "566",
                           "primitive": "predicate"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -613,7 +613,7 @@
                         "@id": "596",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -626,7 +626,7 @@
                     "@id": "597",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -637,7 +637,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -648,13 +648,13 @@
                         "@id": "600",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "572",
+                          "@ref": "572",
                           "primitive": "onErrorMessage"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -662,7 +662,7 @@
                         "@id": "601",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -675,7 +675,7 @@
                     "@id": "602",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -686,7 +686,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -708,7 +708,7 @@
                               "@id": "608",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "572",
+                                "@ref": "572",
                                 "primitive": "onErrorMessage"
                               }
                             },
@@ -748,13 +748,13 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "572",
+                                "@ref": "572",
                                 "primitive": "onErrorMessage"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "609",
+                              "@ref": "609",
                               "primitive": "toString"
                             }
                           },
@@ -769,7 +769,7 @@
                     "@id": "616",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -780,7 +780,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -802,13 +802,13 @@
                               "@id": "622",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "572",
+                                "@ref": "572",
                                 "primitive": "onErrorMessage"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "609",
+                              "@ref": "609",
                               "primitive": "toString"
                             }
                           },
@@ -816,7 +816,7 @@
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "610",
+                          "@ref": "610",
                           "primitive": "equals"
                         }
                       },
@@ -828,12 +828,12 @@
                           "meth": null,
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "126",
+                            "@ref": "126",
                             "primitive": "\\old"
                           },
                           "name": {
                             "@class": "java.lang.String",
-                            "@id": "59",
+                            "@ref": "59",
                             "primitive": null
                           },
                           "args": [
@@ -849,13 +849,13 @@
                                   "@id": "626",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "572",
+                                    "@ref": "572",
                                     "primitive": "onErrorMessage"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "609",
+                                  "@ref": "609",
                                   "primitive": "toString"
                                 }
                               },
@@ -872,7 +872,7 @@
                     "@id": "627",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -883,7 +883,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -897,19 +897,19 @@
                           "@id": "631",
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "615",
+                            "@ref": "615",
                             "primitive": "\\result"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "566",
+                          "@ref": "566",
                           "primitive": "predicate"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -919,12 +919,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -933,7 +933,7 @@
                             "@id": "633",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "566",
+                              "@ref": "566",
                               "primitive": "predicate"
                             }
                           }
@@ -947,7 +947,7 @@
                     "@id": "634",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -958,7 +958,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -986,19 +986,19 @@
                                   "@id": "642",
                                   "kind": {
                                     "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                                    "@id": "615",
+                                    "@ref": "615",
                                     "primitive": "\\result"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "566",
+                                  "@ref": "566",
                                   "primitive": "predicate"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -1006,7 +1006,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -1014,7 +1014,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1024,12 +1024,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1052,13 +1052,13 @@
                                     "@id": "648",
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "566",
+                                      "@ref": "566",
                                       "primitive": "predicate"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "69",
+                                    "@ref": "69",
                                     "primitive": "getClass"
                                   }
                                 },
@@ -1066,7 +1066,7 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "70",
+                                "@ref": "70",
                                 "primitive": "getName"
                               }
                             },
@@ -1082,7 +1082,7 @@
                     "@id": "649",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1093,7 +1093,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1107,19 +1107,19 @@
                           "@id": "653",
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "615",
+                            "@ref": "615",
                             "primitive": "\\result"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "572",
+                          "@ref": "572",
                           "primitive": "onErrorMessage"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1129,12 +1129,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1143,7 +1143,7 @@
                             "@id": "655",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "572",
+                              "@ref": "572",
                               "primitive": "onErrorMessage"
                             }
                           }
@@ -1157,7 +1157,7 @@
                     "@id": "656",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1168,7 +1168,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1179,13 +1179,13 @@
                         "@id": "659",
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "615",
+                          "@ref": "615",
                           "primitive": "\\result"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1193,7 +1193,7 @@
                         "@id": "660",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -1206,7 +1206,7 @@
                     "@id": "661",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1217,7 +1217,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1231,19 +1231,19 @@
                           "@id": "665",
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "615",
+                            "@ref": "615",
                             "primitive": "\\result"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "566",
+                          "@ref": "566",
                           "primitive": "predicate"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1251,7 +1251,7 @@
                         "@id": "666",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -1264,7 +1264,7 @@
                     "@id": "667",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1275,7 +1275,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1289,19 +1289,19 @@
                           "@id": "671",
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "615",
+                            "@ref": "615",
                             "primitive": "\\result"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "572",
+                          "@ref": "572",
                           "primitive": "onErrorMessage"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1309,7 +1309,7 @@
                         "@id": "672",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -1349,7 +1349,7 @@
                       "@id": "677",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "557",
+                        "@ref": "557",
                         "primitive": "SimpleValidation"
                       }
                     },
@@ -1361,7 +1361,7 @@
                       "@id": "678",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "566",
+                        "@ref": "566",
                         "primitive": "predicate"
                       }
                     },
@@ -1370,7 +1370,7 @@
                       "@id": "679",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "572",
+                        "@ref": "572",
                         "primitive": "onErrorMessage"
                       }
                     }
@@ -1387,7 +1387,7 @@
           "@id": "680",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "528",
+            "@ref": "528",
             "primitive": "examples/SimpleValidation.java"
           },
           "mods": {
@@ -1402,14 +1402,14 @@
                   "@id": "683",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "204",
+                    "@ref": "204",
                     "primitive": "Override"
                   }
                 },
                 "token": null,
                 "kind": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "args": []
@@ -1443,7 +1443,7 @@
               "@id": "687",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "528",
+                "@ref": "528",
                 "primitive": "examples/SimpleValidation.java"
               },
               "mods": {
@@ -1466,7 +1466,7 @@
                 "@id": "690",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "559",
+                  "@ref": "559",
                   "primitive": "T"
                 }
               },
@@ -1483,12 +1483,12 @@
                 "@id": "692",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "528",
+                  "@ref": "528",
                   "primitive": "examples/SimpleValidation.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "modifiers": {
@@ -1507,7 +1507,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -1520,7 +1520,7 @@
                     "@id": "694",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1531,7 +1531,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1559,19 +1559,19 @@
                                   "@id": "702",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "68",
+                                    "@ref": "68",
                                     "primitive": "this"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "566",
+                                  "@ref": "566",
                                   "primitive": "predicate"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -1579,7 +1579,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -1587,7 +1587,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1609,13 +1609,13 @@
                                 "@id": "707",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "689",
+                                  "@ref": "689",
                                   "primitive": "param"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -1623,7 +1623,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -1637,7 +1637,7 @@
                     "@id": "708",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1648,7 +1648,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1662,19 +1662,19 @@
                           "@id": "712",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "566",
+                          "@ref": "566",
                           "primitive": "predicate"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1684,12 +1684,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1701,13 +1701,13 @@
                               "@id": "715",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "68",
+                                "@ref": "68",
                                 "primitive": "this"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "566",
+                              "@ref": "566",
                               "primitive": "predicate"
                             }
                           }
@@ -1721,7 +1721,7 @@
                     "@id": "716",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1732,7 +1732,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1760,19 +1760,19 @@
                                   "@id": "724",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "68",
+                                    "@ref": "68",
                                     "primitive": "this"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "566",
+                                  "@ref": "566",
                                   "primitive": "predicate"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -1780,7 +1780,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -1788,7 +1788,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1798,12 +1798,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1829,19 +1829,19 @@
                                       "@id": "731",
                                       "name": {
                                         "@class": "com.sun.tools.javac.util.Name",
-                                        "@id": "68",
+                                        "@ref": "68",
                                         "primitive": "this"
                                       }
                                     },
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "566",
+                                      "@ref": "566",
                                       "primitive": "predicate"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "69",
+                                    "@ref": "69",
                                     "primitive": "getClass"
                                   }
                                 },
@@ -1849,7 +1849,7 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "70",
+                                "@ref": "70",
                                 "primitive": "getName"
                               }
                             },
@@ -1865,7 +1865,7 @@
                     "@id": "732",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1876,7 +1876,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1890,19 +1890,19 @@
                           "@id": "736",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "572",
+                          "@ref": "572",
                           "primitive": "onErrorMessage"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1912,12 +1912,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1929,13 +1929,13 @@
                               "@id": "739",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "68",
+                                "@ref": "68",
                                 "primitive": "this"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "572",
+                              "@ref": "572",
                               "primitive": "onErrorMessage"
                             }
                           }
@@ -1949,7 +1949,7 @@
                     "@id": "740",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -1960,7 +1960,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1985,19 +1985,19 @@
                                 "@id": "747",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "68",
+                                  "@ref": "68",
                                   "primitive": "this"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "572",
+                                "@ref": "572",
                                 "primitive": "onErrorMessage"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "609",
+                              "@ref": "609",
                               "primitive": "toString"
                             }
                           },
@@ -2005,7 +2005,7 @@
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "610",
+                          "@ref": "610",
                           "primitive": "equals"
                         }
                       },
@@ -2025,7 +2025,7 @@
                                 "@id": "751",
                                 "kind": {
                                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                                  "@id": "615",
+                                  "@ref": "615",
                                   "primitive": "\\result"
                                 }
                               },
@@ -2037,7 +2037,7 @@
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "609",
+                              "@ref": "609",
                               "primitive": "toString"
                             }
                           },
@@ -2052,7 +2052,7 @@
                     "@id": "753",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -2063,7 +2063,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2088,19 +2088,19 @@
                                 "@id": "760",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "68",
+                                  "@ref": "68",
                                   "primitive": "this"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "572",
+                                "@ref": "572",
                                 "primitive": "onErrorMessage"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "609",
+                              "@ref": "609",
                               "primitive": "toString"
                             }
                           },
@@ -2108,7 +2108,7 @@
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "610",
+                          "@ref": "610",
                           "primitive": "equals"
                         }
                       },
@@ -2120,12 +2120,12 @@
                           "meth": null,
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "126",
+                            "@ref": "126",
                             "primitive": "\\old"
                           },
                           "name": {
                             "@class": "java.lang.String",
-                            "@id": "59",
+                            "@ref": "59",
                             "primitive": null
                           },
                           "args": [
@@ -2144,19 +2144,19 @@
                                     "@id": "765",
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "68",
+                                      "@ref": "68",
                                       "primitive": "this"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "572",
+                                    "@ref": "572",
                                     "primitive": "onErrorMessage"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "609",
+                                  "@ref": "609",
                                   "primitive": "toString"
                                 }
                               },
@@ -2173,7 +2173,7 @@
                     "@id": "766",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -2184,7 +2184,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2195,13 +2195,13 @@
                         "@id": "769",
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "615",
+                          "@ref": "615",
                           "primitive": "\\result"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -2209,7 +2209,7 @@
                         "@id": "770",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -2222,7 +2222,7 @@
                     "@id": "771",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -2233,7 +2233,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2247,7 +2247,7 @@
                           "@id": "775",
                           "kind": {
                             "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                            "@id": "615",
+                            "@ref": "615",
                             "primitive": "\\result"
                           }
                         },
@@ -2259,7 +2259,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -2267,7 +2267,7 @@
                         "@id": "777",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -2280,7 +2280,7 @@
                     "@id": "778",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "528",
+                      "@ref": "528",
                       "primitive": "examples/SimpleValidation.java"
                     },
                     "name": null,
@@ -2291,7 +2291,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2319,19 +2319,19 @@
                                   "@id": "786",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "68",
+                                    "@ref": "68",
                                     "primitive": "this"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "566",
+                                  "@ref": "566",
                                   "primitive": "predicate"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -2339,7 +2339,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -2347,7 +2347,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -2357,12 +2357,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -2385,13 +2385,13 @@
                                     "@id": "792",
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "689",
+                                      "@ref": "689",
                                       "primitive": "param"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "69",
+                                    "@ref": "69",
                                     "primitive": "getClass"
                                   }
                                 },
@@ -2399,7 +2399,7 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "70",
+                                "@ref": "70",
                                 "primitive": "getName"
                               }
                             },
@@ -2444,13 +2444,13 @@
                         "@id": "798",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "566",
+                          "@ref": "566",
                           "primitive": "predicate"
                         }
                       },
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "684",
+                        "@ref": "684",
                         "primitive": "test"
                       }
                     },
@@ -2460,7 +2460,7 @@
                         "@id": "799",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "689",
+                          "@ref": "689",
                           "primitive": "param"
                         }
                       }
@@ -2478,7 +2478,7 @@
                         "@id": "802",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "686",
+                          "@ref": "686",
                           "primitive": "ValidationResult"
                         }
                       },
@@ -2502,7 +2502,7 @@
                         "@id": "806",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "686",
+                          "@ref": "686",
                           "primitive": "ValidationResult"
                         }
                       },
@@ -2518,7 +2518,7 @@
                         "@id": "808",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "572",
+                          "@ref": "572",
                           "primitive": "onErrorMessage"
                         }
                       }

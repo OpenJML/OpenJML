@@ -61,7 +61,7 @@
       "@id": "12",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "Test.java"
       },
       "mods": {
@@ -90,7 +90,7 @@
       "@id": "15",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "Test.java"
       },
       "mods": {

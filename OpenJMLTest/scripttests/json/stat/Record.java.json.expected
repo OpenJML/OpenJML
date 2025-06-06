@@ -61,7 +61,7 @@
       "@id": "12",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "stat/Record.java"
       },
       "mods": {
@@ -89,7 +89,7 @@
           "@id": "15",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "stat/Record.java"
           },
           "mods": {
@@ -117,7 +117,7 @@
               "@id": "18",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "stat/Record.java"
               },
               "mods": {
@@ -151,7 +151,7 @@
               "@id": "23",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "stat/Record.java"
               },
               "mods": {
@@ -174,7 +174,7 @@
                 "@id": "26",
                 "typetag": {
                   "@class": "com.sun.tools.javac.code.TypeTag",
-                  "@id": "22",
+                  "@ref": "22",
                   "primitive": "INT"
                 }
               },
@@ -187,7 +187,7 @@
           "@id": "27",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "stat/Record.java"
           },
           "mods": {
@@ -222,7 +222,7 @@
               "@id": "32",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "stat/Record.java"
               },
               "mods": {
@@ -245,7 +245,7 @@
                 "@id": "35",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "14",
+                  "@ref": "14",
                   "primitive": "Record"
                 }
               },
@@ -268,7 +268,7 @@
                 "@id": "37",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "stat/Record.java"
                 },
                 "mods": {
@@ -283,7 +283,7 @@
                 },
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "29",
+                  "@ref": "29",
                   "primitive": "p"
                 },
                 "vartype": {
@@ -291,7 +291,7 @@
                   "@id": "39",
                   "typetag": {
                     "@class": "com.sun.tools.javac.code.TypeTag",
-                    "@id": "22",
+                    "@ref": "22",
                     "primitive": "INT"
                   }
                 },
@@ -306,7 +306,7 @@
                       "@id": "42",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "34",
+                        "@ref": "34",
                         "primitive": "r"
                       }
                     }
@@ -333,7 +333,7 @@
                               "@id": "47",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "17",
+                                "@ref": "17",
                                 "primitive": "R"
                               }
                             },
@@ -370,7 +370,7 @@
                             "@id": "53",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "22",
+                              "@ref": "22",
                               "primitive": "INT"
                             },
                             "value": 0
@@ -379,10 +379,10 @@
                       ],
                       "body": {
                         "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "@id": "53",
+                        "@ref": "53",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "22",
+                          "@ref": "22",
                           "primitive": "INT"
                         },
                         "value": 0
@@ -393,7 +393,7 @@
                       "@id": "54",
                       "caseKind": {
                         "@class": "com.sun.source.tree.CaseTree$CaseKind",
-                        "@id": "44",
+                        "@ref": "44",
                         "primitive": "RULE"
                       },
                       "labels": [
@@ -412,7 +412,7 @@
                             "@id": "57",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "22",
+                              "@ref": "22",
                               "primitive": "INT"
                             },
                             "value": 1
@@ -421,10 +421,10 @@
                       ],
                       "body": {
                         "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
-                        "@id": "57",
+                        "@ref": "57",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "22",
+                          "@ref": "22",
                           "primitive": "INT"
                         },
                         "value": 1
@@ -442,7 +442,7 @@
                     "@id": "59",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "name": null,
@@ -462,7 +462,7 @@
                           "@id": "63",
                           "typetag": {
                             "@class": "com.sun.tools.javac.code.TypeTag",
-                            "@id": "22",
+                            "@ref": "22",
                             "primitive": "INT"
                           },
                           "value": 0
@@ -495,13 +495,13 @@
                           "@id": "69",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "66",
+                            "@ref": "66",
                             "primitive": "k"
                           }
                         },
                         "opcode": {
                           "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                          "@id": "64",
+                          "@ref": "64",
                           "primitive": "LE"
                         },
                         "rhs": {
@@ -509,7 +509,7 @@
                           "@id": "70",
                           "typetag": {
                             "@class": "com.sun.tools.javac.code.TypeTag",
-                            "@id": "22",
+                            "@ref": "22",
                             "primitive": "INT"
                           },
                           "value": 10
@@ -522,7 +522,7 @@
                     "@id": "71",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "name": null,
@@ -537,7 +537,7 @@
                         "@id": "73",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "66",
+                          "@ref": "66",
                           "primitive": "k"
                         }
                       }
@@ -548,7 +548,7 @@
                     "@id": "74",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "name": null,
@@ -565,7 +565,7 @@
                         "@id": "77",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "22",
+                          "@ref": "22",
                           "primitive": "INT"
                         },
                         "value": 10
@@ -580,7 +580,7 @@
                         "@id": "79",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "66",
+                          "@ref": "66",
                           "primitive": "k"
                         }
                       }
@@ -597,7 +597,7 @@
                     "@id": "80",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "mods": {
@@ -612,7 +612,7 @@
                     },
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "66",
+                      "@ref": "66",
                       "primitive": "k"
                     },
                     "vartype": {
@@ -620,7 +620,7 @@
                       "@id": "82",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "22",
+                        "@ref": "22",
                         "primitive": "INT"
                       }
                     },
@@ -629,7 +629,7 @@
                       "@id": "83",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "22",
+                        "@ref": "22",
                         "primitive": "INT"
                       },
                       "value": 0
@@ -644,7 +644,7 @@
                     "@id": "85",
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "66",
+                      "@ref": "66",
                       "primitive": "k"
                     }
                   },
@@ -658,7 +658,7 @@
                     "@id": "87",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "22",
+                      "@ref": "22",
                       "primitive": "INT"
                     },
                     "value": 10
@@ -681,7 +681,7 @@
                         "@id": "91",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "66",
+                          "@ref": "66",
                           "primitive": "k"
                         }
                       }
@@ -758,7 +758,7 @@
                     "@id": "101",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "96",
+                      "@ref": "96",
                       "primitive": "BOOLEAN"
                     },
                     "value": 1
@@ -770,7 +770,7 @@
                 "@id": "102",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "stat/Record.java"
                 },
                 "mods": {
@@ -796,7 +796,7 @@
                     "@id": "106",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "22",
+                      "@ref": "22",
                       "primitive": "INT"
                     }
                   }
@@ -810,7 +810,7 @@
                     "@id": "108",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "22",
+                      "@ref": "22",
                       "primitive": "INT"
                     }
                   },
@@ -820,7 +820,7 @@
                       "@id": "109",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "22",
+                        "@ref": "22",
                         "primitive": "INT"
                       },
                       "value": 10
@@ -842,7 +842,7 @@
                   "@id": "111",
                   "sourcefile": {
                     "@class": "javax.tools.JavaFileObject",
-                    "@id": "2",
+                    "@ref": "2",
                     "primitive": "stat/Record.java"
                   },
                   "mods": {
@@ -865,7 +865,7 @@
                     "@id": "114",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "22",
+                      "@ref": "22",
                       "primitive": "INT"
                     }
                   },
@@ -876,7 +876,7 @@
                   "@id": "115",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "104",
+                    "@ref": "104",
                     "primitive": "a"
                   }
                 },

@@ -59,50 +59,50 @@
   "defs": [
     {
       "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
-      "@id": "3",
+      "@ref": "3",
       "annotations": [],
       "pid": {
         "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-        "@id": "4",
+        "@ref": "4",
         "selected": {
           "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-          "@id": "5",
+          "@ref": "5",
           "selected": {
             "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-            "@id": "6",
+            "@ref": "6",
             "selected": {
               "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
-              "@id": "7",
+              "@ref": "7",
               "selected": {
                 "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                "@id": "8",
+                "@ref": "8",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "9",
+                  "@ref": "9",
                   "primitive": "com"
                 }
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "10",
+                "@ref": "10",
                 "primitive": "hellokaton"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "11",
+              "@ref": "11",
               "primitive": "blade"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "12",
+            "@ref": "12",
             "primitive": "ioc"
           }
         },
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "13",
+          "@ref": "13",
           "primitive": "bean"
         }
       }
@@ -175,25 +175,25 @@
                 "@id": "28",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "9",
+                  "@ref": "9",
                   "primitive": "com"
                 }
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "10",
+                "@ref": "10",
                 "primitive": "hellokaton"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "11",
+              "@ref": "11",
               "primitive": "blade"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "12",
+            "@ref": "12",
             "primitive": "ioc"
           }
         },
@@ -232,25 +232,25 @@
                 "@id": "35",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "9",
+                  "@ref": "9",
                   "primitive": "com"
                 }
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "10",
+                "@ref": "10",
                 "primitive": "hellokaton"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "11",
+              "@ref": "11",
               "primitive": "blade"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "12",
+            "@ref": "12",
             "primitive": "ioc"
           }
         },
@@ -289,19 +289,19 @@
                 "@id": "42",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "9",
+                  "@ref": "9",
                   "primitive": "com"
                 }
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "10",
+                "@ref": "10",
                 "primitive": "hellokaton"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "11",
+              "@ref": "11",
               "primitive": "blade"
             }
           },
@@ -349,7 +349,7 @@
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "21",
+              "@ref": "21",
               "primitive": "lang"
             }
           },
@@ -379,7 +379,7 @@
       "@id": "53",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "examples/FieldInjector.java"
       },
       "mods": {
@@ -405,7 +405,7 @@
           "@id": "56",
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "29",
+            "@ref": "29",
             "primitive": "Injector"
           }
         }
@@ -417,7 +417,7 @@
           "@id": "57",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "name": null,
@@ -472,7 +472,7 @@
                       },
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "12",
+                        "@ref": "12",
                         "primitive": "ioc"
                       }
                     },
@@ -524,25 +524,25 @@
                             "@id": "79",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "9",
+                              "@ref": "9",
                               "primitive": "com"
                             }
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "10",
+                            "@ref": "10",
                             "primitive": "hellokaton"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "11",
+                          "@ref": "11",
                           "primitive": "blade"
                         }
                       },
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "12",
+                        "@ref": "12",
                         "primitive": "ioc"
                       }
                     },
@@ -560,7 +560,7 @@
                 },
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "70",
+                  "@ref": "70",
                   "primitive": "getName"
                 }
               },
@@ -573,7 +573,7 @@
           "@id": "82",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -588,7 +588,7 @@
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "12",
+            "@ref": "12",
             "primitive": "ioc"
           },
           "vartype": {
@@ -596,7 +596,7 @@
             "@id": "84",
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "36",
+              "@ref": "36",
               "primitive": "Ioc"
             }
           },
@@ -607,7 +607,7 @@
           "@id": "85",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -630,7 +630,7 @@
             "@id": "88",
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "52",
+              "@ref": "52",
               "primitive": "Field"
             }
           },
@@ -641,7 +641,7 @@
           "@id": "89",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -668,7 +668,7 @@
               "@id": "92",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "examples/FieldInjector.java"
               },
               "mods": {
@@ -683,7 +683,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "12",
+                "@ref": "12",
                 "primitive": "ioc"
               },
               "vartype": {
@@ -691,7 +691,7 @@
                 "@id": "94",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "36",
+                  "@ref": "36",
                   "primitive": "Ioc"
                 }
               },
@@ -702,7 +702,7 @@
               "@id": "95",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "examples/FieldInjector.java"
               },
               "mods": {
@@ -717,7 +717,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "87",
+                "@ref": "87",
                 "primitive": "field"
               },
               "vartype": {
@@ -725,7 +725,7 @@
                 "@id": "97",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "52",
+                  "@ref": "52",
                   "primitive": "Field"
                 }
               },
@@ -742,12 +742,12 @@
                 "@id": "99",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "examples/FieldInjector.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "modifiers": {
@@ -779,7 +779,7 @@
                     "@id": "102",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -815,13 +815,13 @@
                                 "@id": "110",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "12",
+                                  "@ref": "12",
                                   "primitive": "ioc"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -829,7 +829,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -837,7 +837,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -867,43 +867,43 @@
                                       "@id": "118",
                                       "name": {
                                         "@class": "com.sun.tools.javac.util.Name",
-                                        "@id": "9",
+                                        "@ref": "9",
                                         "primitive": "com"
                                       }
                                     },
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "10",
+                                      "@ref": "10",
                                       "primitive": "hellokaton"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "11",
+                                    "@ref": "11",
                                     "primitive": "blade"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "12",
+                                  "@ref": "12",
                                   "primitive": "ioc"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "80",
+                                "@ref": "80",
                                 "primitive": "SimpleIoc"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "81",
+                              "@ref": "81",
                               "primitive": "class"
                             }
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -917,7 +917,7 @@
                     "@id": "119",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -942,19 +942,19 @@
                           "@id": "124",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -969,7 +969,7 @@
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -978,7 +978,7 @@
                             "@id": "127",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "12",
+                              "@ref": "12",
                               "primitive": "ioc"
                             }
                           }
@@ -992,7 +992,7 @@
                     "@id": "128",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1003,7 +1003,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1031,19 +1031,19 @@
                                   "@id": "136",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "68",
+                                    "@ref": "68",
                                     "primitive": "this"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "12",
+                                  "@ref": "12",
                                   "primitive": "ioc"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -1051,7 +1051,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -1059,7 +1059,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1069,12 +1069,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1097,13 +1097,13 @@
                                     "@id": "142",
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "12",
+                                      "@ref": "12",
                                       "primitive": "ioc"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "69",
+                                    "@ref": "69",
                                     "primitive": "getClass"
                                   }
                                 },
@@ -1111,7 +1111,7 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "70",
+                                "@ref": "70",
                                 "primitive": "getName"
                               }
                             },
@@ -1127,7 +1127,7 @@
                     "@id": "143",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1138,7 +1138,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -1152,19 +1152,19 @@
                           "@id": "147",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -1174,12 +1174,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -1188,7 +1188,7 @@
                             "@id": "149",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "87",
+                              "@ref": "87",
                               "primitive": "field"
                             }
                           }
@@ -1227,13 +1227,13 @@
                       "@id": "154",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "68",
+                        "@ref": "68",
                         "primitive": "this"
                       }
                     },
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "12",
+                      "@ref": "12",
                       "primitive": "ioc"
                     }
                   },
@@ -1242,7 +1242,7 @@
                     "@id": "155",
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "12",
+                      "@ref": "12",
                       "primitive": "ioc"
                     }
                   }
@@ -1262,13 +1262,13 @@
                       "@id": "159",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "68",
+                        "@ref": "68",
                         "primitive": "this"
                       }
                     },
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "87",
+                      "@ref": "87",
                       "primitive": "field"
                     }
                   },
@@ -1277,7 +1277,7 @@
                     "@id": "160",
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "87",
+                      "@ref": "87",
                       "primitive": "field"
                     }
                   }
@@ -1292,7 +1292,7 @@
           "@id": "161",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -1352,12 +1352,12 @@
                 "@id": "171",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "examples/FieldInjector.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "modifiers": {
@@ -1376,7 +1376,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -1389,7 +1389,7 @@
                     "@id": "173",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1400,7 +1400,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1446,13 +1446,13 @@
                       "@id": "181",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "87",
+                        "@ref": "87",
                         "primitive": "field"
                       }
                     },
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "163",
+                      "@ref": "163",
                       "primitive": "getType"
                     }
                   },
@@ -1468,7 +1468,7 @@
           "@id": "182",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -1491,7 +1491,7 @@
             "@id": "185",
             "typetag": {
               "@class": "com.sun.tools.javac.code.TypeTag",
-              "@id": "176",
+              "@ref": "176",
               "primitive": "BOOLEAN"
             }
           },
@@ -1508,12 +1508,12 @@
                 "@id": "187",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "examples/FieldInjector.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "modifiers": {
@@ -1532,7 +1532,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -1545,7 +1545,7 @@
                     "@id": "189",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1556,7 +1556,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1564,7 +1564,7 @@
                       "@id": "191",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "176",
+                        "@ref": "176",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -1602,13 +1602,13 @@
                       "@id": "196",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "44",
+                        "@ref": "44",
                         "primitive": "IocKit"
                       }
                     },
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "184",
+                      "@ref": "184",
                       "primitive": "isSingleton"
                     }
                   },
@@ -1625,13 +1625,13 @@
                           "@id": "199",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "87",
+                            "@ref": "87",
                             "primitive": "field"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "163",
+                          "@ref": "163",
                           "primitive": "getType"
                         }
                       },
@@ -1649,7 +1649,7 @@
           "@id": "200",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -1671,7 +1671,7 @@
                 "token": null,
                 "kind": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "args": []
@@ -1705,7 +1705,7 @@
               "@id": "208",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "examples/FieldInjector.java"
               },
               "mods": {
@@ -1720,7 +1720,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "13",
+                "@ref": "13",
                 "primitive": "bean"
               },
               "vartype": {
@@ -1745,7 +1745,7 @@
                 "@id": "213",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "examples/FieldInjector.java"
                 },
                 "also": {
@@ -1769,7 +1769,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -1782,7 +1782,7 @@
                     "@id": "216",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1793,7 +1793,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1804,7 +1804,7 @@
                         "@id": "219",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "68",
+                          "@ref": "68",
                           "primitive": "this"
                         }
                       },
@@ -1831,7 +1831,7 @@
                     "@id": "223",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1842,7 +1842,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1856,19 +1856,19 @@
                           "@id": "227",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1876,7 +1876,7 @@
                         "@id": "228",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -1889,7 +1889,7 @@
                     "@id": "229",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1900,7 +1900,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1914,19 +1914,19 @@
                           "@id": "233",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1934,7 +1934,7 @@
                         "@id": "234",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -1947,7 +1947,7 @@
                     "@id": "235",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -1958,7 +1958,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -1969,13 +1969,13 @@
                         "@id": "238",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "13",
+                          "@ref": "13",
                           "primitive": "bean"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -1983,7 +1983,7 @@
                         "@id": "239",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -1996,7 +1996,7 @@
                     "@id": "240",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -2007,7 +2007,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -2032,13 +2032,13 @@
                                 "@id": "247",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "13",
+                                  "@ref": "13",
                                   "primitive": "bean"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -2046,7 +2046,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -2054,7 +2054,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -2084,19 +2084,19 @@
                                       "@id": "255",
                                       "name": {
                                         "@class": "com.sun.tools.javac.util.Name",
-                                        "@id": "9",
+                                        "@ref": "9",
                                         "primitive": "com"
                                       }
                                     },
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "10",
+                                      "@ref": "10",
                                       "primitive": "hellokaton"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "11",
+                                    "@ref": "11",
                                     "primitive": "blade"
                                   }
                                 },
@@ -2114,13 +2114,13 @@
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "81",
+                              "@ref": "81",
                               "primitive": "class"
                             }
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -2134,7 +2134,7 @@
                     "@id": "258",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -2145,7 +2145,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2159,19 +2159,19 @@
                           "@id": "262",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -2181,12 +2181,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -2198,13 +2198,13 @@
                               "@id": "265",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "68",
+                                "@ref": "68",
                                 "primitive": "this"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "12",
+                              "@ref": "12",
                               "primitive": "ioc"
                             }
                           }
@@ -2218,7 +2218,7 @@
                     "@id": "266",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -2229,7 +2229,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2257,19 +2257,19 @@
                                   "@id": "274",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "68",
+                                    "@ref": "68",
                                     "primitive": "this"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "12",
+                                  "@ref": "12",
                                   "primitive": "ioc"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -2277,7 +2277,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -2285,7 +2285,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -2295,12 +2295,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -2326,19 +2326,19 @@
                                       "@id": "281",
                                       "name": {
                                         "@class": "com.sun.tools.javac.util.Name",
-                                        "@id": "68",
+                                        "@ref": "68",
                                         "primitive": "this"
                                       }
                                     },
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "12",
+                                      "@ref": "12",
                                       "primitive": "ioc"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "69",
+                                    "@ref": "69",
                                     "primitive": "getClass"
                                   }
                                 },
@@ -2346,7 +2346,7 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "70",
+                                "@ref": "70",
                                 "primitive": "getName"
                               }
                             },
@@ -2362,7 +2362,7 @@
                     "@id": "282",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -2373,7 +2373,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2387,19 +2387,19 @@
                           "@id": "286",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -2409,12 +2409,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -2426,13 +2426,13 @@
                               "@id": "289",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "68",
+                                "@ref": "68",
                                 "primitive": "this"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "87",
+                              "@ref": "87",
                               "primitive": "field"
                             }
                           }
@@ -2446,7 +2446,7 @@
                     "@id": "290",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -2457,7 +2457,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2471,19 +2471,19 @@
                           "@id": "294",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -2491,7 +2491,7 @@
                         "@id": "295",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -2504,7 +2504,7 @@
                     "@id": "296",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -2515,7 +2515,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -2529,19 +2529,19 @@
                           "@id": "300",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -2549,7 +2549,7 @@
                         "@id": "301",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -2591,7 +2591,7 @@
                       "@id": "305",
                       "sourcefile": {
                         "@class": "javax.tools.JavaFileObject",
-                        "@id": "2",
+                        "@ref": "2",
                         "primitive": "examples/FieldInjector.java"
                       },
                       "mods": {
@@ -2617,7 +2617,7 @@
                           "@id": "309",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "166",
+                            "@ref": "166",
                             "primitive": "Class"
                           }
                         },
@@ -2630,7 +2630,7 @@
                               "@id": "311",
                               "kind": {
                                 "@class": "com.sun.tools.javac.code.BoundKind",
-                                "@id": "169",
+                                "@ref": "169",
                                 "primitive": "UNBOUND"
                               }
                             },
@@ -2650,13 +2650,13 @@
                             "@id": "314",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "87",
+                              "@ref": "87",
                               "primitive": "field"
                             }
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "163",
+                            "@ref": "163",
                             "primitive": "getType"
                           }
                         },
@@ -2668,7 +2668,7 @@
                       "@id": "315",
                       "sourcefile": {
                         "@class": "javax.tools.JavaFileObject",
-                        "@id": "2",
+                        "@ref": "2",
                         "primitive": "examples/FieldInjector.java"
                       },
                       "mods": {
@@ -2691,7 +2691,7 @@
                         "@id": "318",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "211",
+                          "@ref": "211",
                           "primitive": "Object"
                         }
                       },
@@ -2707,7 +2707,7 @@
                             "@id": "321",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "12",
+                              "@ref": "12",
                               "primitive": "ioc"
                             }
                           },
@@ -2723,7 +2723,7 @@
                             "@id": "323",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "307",
+                              "@ref": "307",
                               "primitive": "fieldType"
                             }
                           }
@@ -2744,13 +2744,13 @@
                             "@id": "327",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "317",
+                              "@ref": "317",
                               "primitive": "value"
                             }
                           },
                           "opcode": {
                             "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                            "@id": "71",
+                            "@ref": "71",
                             "primitive": "EQ"
                           },
                           "rhs": {
@@ -2758,7 +2758,7 @@
                             "@id": "328",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "222",
+                              "@ref": "222",
                               "primitive": "BOT"
                             },
                             "value": null
@@ -2828,13 +2828,13 @@
                                             "@id": "342",
                                             "name": {
                                               "@class": "com.sun.tools.javac.util.Name",
-                                              "@id": "307",
+                                              "@ref": "307",
                                               "primitive": "fieldType"
                                             }
                                           },
                                           "name": {
                                             "@class": "com.sun.tools.javac.util.Name",
-                                            "@id": "70",
+                                            "@ref": "70",
                                             "primitive": "getName"
                                           }
                                         },
@@ -2843,7 +2843,7 @@
                                     },
                                     "opcode": {
                                       "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                                      "@id": "339",
+                                      "@ref": "339",
                                       "primitive": "PLUS"
                                     },
                                     "rhs": {
@@ -2851,7 +2851,7 @@
                                       "@id": "343",
                                       "typetag": {
                                         "@class": "com.sun.tools.javac.code.TypeTag",
-                                        "@id": "338",
+                                        "@ref": "338",
                                         "primitive": "CLASS"
                                       },
                                       "value": " for field: "
@@ -2859,7 +2859,7 @@
                                   },
                                   "opcode": {
                                     "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                                    "@id": "339",
+                                    "@ref": "339",
                                     "primitive": "PLUS"
                                   },
                                   "rhs": {
@@ -2867,7 +2867,7 @@
                                     "@id": "344",
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "87",
+                                      "@ref": "87",
                                       "primitive": "field"
                                     }
                                   }
@@ -2892,7 +2892,7 @@
                           "@id": "347",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "205",
+                            "@ref": "205",
                             "primitive": "injection"
                           }
                         },
@@ -2902,7 +2902,7 @@
                             "@id": "348",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "13",
+                              "@ref": "13",
                               "primitive": "bean"
                             }
                           },
@@ -2911,7 +2911,7 @@
                             "@id": "349",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "317",
+                              "@ref": "317",
                               "primitive": "value"
                             }
                           }
@@ -2929,7 +2929,7 @@
                       "@id": "351",
                       "sourcefile": {
                         "@class": "javax.tools.JavaFileObject",
-                        "@id": "2",
+                        "@ref": "2",
                         "primitive": "examples/FieldInjector.java"
                       },
                       "mods": {
@@ -2990,7 +2990,7 @@
                                 "@id": "361",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "353",
+                                  "@ref": "353",
                                   "primitive": "e"
                                 }
                               }
@@ -3013,7 +3013,7 @@
           "@id": "362",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -3028,14 +3028,14 @@
                   "@id": "365",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "204",
+                    "@ref": "204",
                     "primitive": "Override"
                   }
                 },
                 "token": null,
                 "kind": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "args": []
@@ -3049,7 +3049,7 @@
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "205",
+            "@ref": "205",
             "primitive": "injection"
           },
           "restype": {
@@ -3057,7 +3057,7 @@
             "@id": "366",
             "typetag": {
               "@class": "com.sun.tools.javac.code.TypeTag",
-              "@id": "207",
+              "@ref": "207",
               "primitive": "VOID"
             }
           },
@@ -3069,7 +3069,7 @@
               "@id": "367",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "examples/FieldInjector.java"
               },
               "mods": {
@@ -3084,7 +3084,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "13",
+                "@ref": "13",
                 "primitive": "bean"
               },
               "vartype": {
@@ -3092,7 +3092,7 @@
                 "@id": "369",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "211",
+                  "@ref": "211",
                   "primitive": "Object"
                 }
               },
@@ -3103,7 +3103,7 @@
               "@id": "370",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "examples/FieldInjector.java"
               },
               "mods": {
@@ -3118,7 +3118,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "317",
+                "@ref": "317",
                 "primitive": "value"
               },
               "vartype": {
@@ -3126,7 +3126,7 @@
                 "@id": "372",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "211",
+                  "@ref": "211",
                   "primitive": "Object"
                 }
               },
@@ -3143,12 +3143,12 @@
                 "@id": "374",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "examples/FieldInjector.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "214",
+                  "@ref": "214",
                   "primitive": "also"
                 },
                 "modifiers": {
@@ -3167,7 +3167,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -3180,7 +3180,7 @@
                     "@id": "376",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3191,7 +3191,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3202,13 +3202,13 @@
                         "@id": "379",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "68",
+                          "@ref": "68",
                           "primitive": "this"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -3216,7 +3216,7 @@
                         "@id": "380",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -3229,7 +3229,7 @@
                     "@id": "381",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3240,7 +3240,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3254,19 +3254,19 @@
                           "@id": "385",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -3274,7 +3274,7 @@
                         "@id": "386",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -3287,7 +3287,7 @@
                     "@id": "387",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3298,7 +3298,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3312,19 +3312,19 @@
                           "@id": "391",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -3332,7 +3332,7 @@
                         "@id": "392",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -3345,7 +3345,7 @@
                     "@id": "393",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3356,7 +3356,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3367,13 +3367,13 @@
                         "@id": "396",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "13",
+                          "@ref": "13",
                           "primitive": "bean"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -3381,7 +3381,7 @@
                         "@id": "397",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -3394,7 +3394,7 @@
                     "@id": "398",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3405,7 +3405,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3430,13 +3430,13 @@
                                 "@id": "405",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "13",
+                                  "@ref": "13",
                                   "primitive": "bean"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -3444,7 +3444,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -3452,7 +3452,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -3482,43 +3482,43 @@
                                       "@id": "413",
                                       "name": {
                                         "@class": "com.sun.tools.javac.util.Name",
-                                        "@id": "9",
+                                        "@ref": "9",
                                         "primitive": "com"
                                       }
                                     },
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "10",
+                                      "@ref": "10",
                                       "primitive": "hellokaton"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "11",
+                                    "@ref": "11",
                                     "primitive": "blade"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "256",
+                                  "@ref": "256",
                                   "primitive": "types"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "257",
+                                "@ref": "257",
                                 "primitive": "BladeBeanDefineType"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "81",
+                              "@ref": "81",
                               "primitive": "class"
                             }
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -3532,7 +3532,7 @@
                     "@id": "414",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3543,7 +3543,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3554,13 +3554,13 @@
                         "@id": "417",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "317",
+                          "@ref": "317",
                           "primitive": "value"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -3568,7 +3568,7 @@
                         "@id": "418",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -3581,7 +3581,7 @@
                     "@id": "419",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3592,7 +3592,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -3617,13 +3617,13 @@
                                 "@id": "426",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "317",
+                                  "@ref": "317",
                                   "primitive": "value"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -3631,7 +3631,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -3639,7 +3639,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -3663,13 +3663,13 @@
                                   "@id": "432",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "50",
+                                    "@ref": "50",
                                     "primitive": "java"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "21",
+                                  "@ref": "21",
                                   "primitive": "lang"
                                 }
                               },
@@ -3681,13 +3681,13 @@
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "81",
+                              "@ref": "81",
                               "primitive": "class"
                             }
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -3701,7 +3701,7 @@
                     "@id": "434",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3712,7 +3712,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -3726,19 +3726,19 @@
                           "@id": "438",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -3748,12 +3748,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -3765,13 +3765,13 @@
                               "@id": "441",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "68",
+                                "@ref": "68",
                                 "primitive": "this"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "12",
+                              "@ref": "12",
                               "primitive": "ioc"
                             }
                           }
@@ -3785,7 +3785,7 @@
                     "@id": "442",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3796,7 +3796,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -3824,19 +3824,19 @@
                                   "@id": "450",
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "68",
+                                    "@ref": "68",
                                     "primitive": "this"
                                   }
                                 },
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "12",
+                                  "@ref": "12",
                                   "primitive": "ioc"
                                 }
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "69",
+                                "@ref": "69",
                                 "primitive": "getClass"
                               }
                             },
@@ -3844,7 +3844,7 @@
                           },
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "70",
+                            "@ref": "70",
                             "primitive": "getName"
                           }
                         },
@@ -3852,7 +3852,7 @@
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -3862,12 +3862,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -3893,19 +3893,19 @@
                                       "@id": "457",
                                       "name": {
                                         "@class": "com.sun.tools.javac.util.Name",
-                                        "@id": "68",
+                                        "@ref": "68",
                                         "primitive": "this"
                                       }
                                     },
                                     "name": {
                                       "@class": "com.sun.tools.javac.util.Name",
-                                      "@id": "12",
+                                      "@ref": "12",
                                       "primitive": "ioc"
                                     }
                                   },
                                   "name": {
                                     "@class": "com.sun.tools.javac.util.Name",
-                                    "@id": "69",
+                                    "@ref": "69",
                                     "primitive": "getClass"
                                   }
                                 },
@@ -3913,7 +3913,7 @@
                               },
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "70",
+                                "@ref": "70",
                                 "primitive": "getName"
                               }
                             },
@@ -3929,7 +3929,7 @@
                     "@id": "458",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -3940,7 +3940,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -3954,19 +3954,19 @@
                           "@id": "462",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "71",
+                        "@ref": "71",
                         "primitive": "EQ"
                       },
                       "rhs": {
@@ -3976,12 +3976,12 @@
                         "meth": null,
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "126",
+                          "@ref": "126",
                           "primitive": "\\old"
                         },
                         "name": {
                           "@class": "java.lang.String",
-                          "@id": "59",
+                          "@ref": "59",
                           "primitive": null
                         },
                         "args": [
@@ -3993,13 +3993,13 @@
                               "@id": "465",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "68",
+                                "@ref": "68",
                                 "primitive": "this"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "87",
+                              "@ref": "87",
                               "primitive": "field"
                             }
                           }
@@ -4013,7 +4013,7 @@
                     "@id": "466",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -4024,7 +4024,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -4038,19 +4038,19 @@
                           "@id": "470",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "12",
+                          "@ref": "12",
                           "primitive": "ioc"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -4058,7 +4058,7 @@
                         "@id": "471",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -4071,7 +4071,7 @@
                     "@id": "472",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -4082,7 +4082,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "121",
+                      "@ref": "121",
                       "primitive": "ensures"
                     },
                     "expression": {
@@ -4096,19 +4096,19 @@
                           "@id": "476",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "68",
+                            "@ref": "68",
                             "primitive": "this"
                           }
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "87",
+                          "@ref": "87",
                           "primitive": "field"
                         }
                       },
                       "opcode": {
                         "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                        "@id": "220",
+                        "@ref": "220",
                         "primitive": "NE"
                       },
                       "rhs": {
@@ -4116,7 +4116,7 @@
                         "@id": "477",
                         "typetag": {
                           "@class": "com.sun.tools.javac.code.TypeTag",
-                          "@id": "222",
+                          "@ref": "222",
                           "primitive": "BOT"
                         },
                         "value": null
@@ -4168,7 +4168,7 @@
                             "@id": "484",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "87",
+                              "@ref": "87",
                               "primitive": "field"
                             }
                           },
@@ -4184,7 +4184,7 @@
                             "@id": "486",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "176",
+                              "@ref": "176",
                               "primitive": "BOOLEAN"
                             },
                             "value": 1
@@ -4207,7 +4207,7 @@
                             "@id": "490",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "87",
+                              "@ref": "87",
                               "primitive": "field"
                             }
                           },
@@ -4223,7 +4223,7 @@
                             "@id": "492",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "13",
+                              "@ref": "13",
                               "primitive": "bean"
                             }
                           },
@@ -4232,7 +4232,7 @@
                             "@id": "493",
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "317",
+                              "@ref": "317",
                               "primitive": "value"
                             }
                           }
@@ -4250,7 +4250,7 @@
                       "@id": "495",
                       "sourcefile": {
                         "@class": "javax.tools.JavaFileObject",
-                        "@id": "2",
+                        "@ref": "2",
                         "primitive": "examples/FieldInjector.java"
                       },
                       "mods": {
@@ -4265,7 +4265,7 @@
                       },
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "353",
+                        "@ref": "353",
                         "primitive": "e"
                       },
                       "vartype": {
@@ -4273,7 +4273,7 @@
                         "@id": "497",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "355",
+                          "@ref": "355",
                           "primitive": "Exception"
                         }
                       },
@@ -4301,7 +4301,7 @@
                               "@id": "501",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "360",
+                                "@ref": "360",
                                 "primitive": "RuntimeException"
                               }
                             },
@@ -4311,7 +4311,7 @@
                                 "@id": "502",
                                 "name": {
                                   "@class": "com.sun.tools.javac.util.Name",
-                                  "@id": "353",
+                                  "@ref": "353",
                                   "primitive": "e"
                                 }
                               }
@@ -4334,7 +4334,7 @@
           "@id": "503",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "examples/FieldInjector.java"
           },
           "mods": {
@@ -4357,7 +4357,7 @@
             "@id": "506",
             "typetag": {
               "@class": "com.sun.tools.javac.code.TypeTag",
-              "@id": "176",
+              "@ref": "176",
               "primitive": "BOOLEAN"
             }
           },
@@ -4374,12 +4374,12 @@
                 "@id": "508",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "examples/FieldInjector.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "59",
+                  "@ref": "59",
                   "primitive": null
                 },
                 "modifiers": {
@@ -4398,7 +4398,7 @@
                 },
                 "token": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "101",
+                  "@ref": "101",
                   "primitive": "normal_behavior"
                 },
                 "callee_only": {
@@ -4411,7 +4411,7 @@
                     "@id": "510",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "examples/FieldInjector.java"
                     },
                     "name": null,
@@ -4422,7 +4422,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "104",
+                      "@ref": "104",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -4430,7 +4430,7 @@
                       "@id": "512",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "176",
+                        "@ref": "176",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -4481,13 +4481,13 @@
                               "@id": "521",
                               "name": {
                                 "@class": "com.sun.tools.javac.util.Name",
-                                "@id": "87",
+                                "@ref": "87",
                                 "primitive": "field"
                               }
                             },
                             "name": {
                               "@class": "com.sun.tools.javac.util.Name",
-                              "@id": "163",
+                              "@ref": "163",
                               "primitive": "getType"
                             }
                           },

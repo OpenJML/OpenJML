@@ -39,10 +39,10 @@ import java.io.IOException;
 
 // TODO:
 // Update discussion below
-// Fix deserialization of JavaFileObject
 // Record positions?
 // Lots more classes to fixup and corresponding tests
 // Capture comments?
+// Deserialize recognizing common references (including JavaFileObject, JmlChained, types, symbols)
 //TODO:
 //- change unnecessary unicode to ASCII
 //- specifications
@@ -118,6 +118,7 @@ public class JmlJson {
     public final static String suffix = "Adapter";
     public final static String classTag = "@class";
     public final static String idTag = "@id";
+    public final static String refTag = "@ref";
     public final static String primitiveTag = "primitive";
     
     protected static final Context.Key<JmlJsonData> jsonKey = new Context.Key<>();
@@ -237,13 +238,23 @@ public class JmlJson {
         return obj;
     }
     
+    public void clearIds() {
+        data.ids.clear();
+    }
+    
     /** Returns true if a new id was created */
     private boolean addId(JsonObject obj, Object o) {
         long k = System.identityHashCode(o);
         Integer id = data.ids.get(k);
         boolean b = false;
-        if (id == null) { id = data.ids.size()+1; data.ids.put(k, id); b = true; }
-        obj.add(idTag, new JsonPrimitive(id.toString()));
+        if (id == null) { 
+            id = data.ids.size()+1;
+            data.ids.put(k, id);
+            obj.add(idTag, new JsonPrimitive(id.toString()));
+            b = true;
+        } else {
+            obj.add(refTag, new JsonPrimitive(id.toString()));
+        }
         return b;
     }
     
@@ -649,6 +660,41 @@ public class JmlJson {
         // FIXME - perhaps we want to customize this so that
         // a) serializing does not duplicate expressions
         // b) deserialization unifies references
+        @Override
+        public JsonElement serialize(JmlChained src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            boolean flatChains = false;
+            if (flatChains) {
+                var obj = newgson(src, context);
+//                obj.add("lhs", src.conjuncts.get(0).lhs);
+//                for (JCBinary e: src.conjuncts) {
+//                    var objj = newgson(e, context);
+//                    objj.add("opcode", context.serialize(e.opcode));
+//                    objj.add("rhs", context.serialize(e.rhs));
+//                    // FIXME
+//                }
+//                obj.add("rhss", objj);
+//                common(json, obj, context);
+                return obj;
+            } else {
+                return super.serialize(src, type, context);
+            }
+        }
+        @Override
+        public JmlChained deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            boolean flatChains = false;
+            if (false) {
+                // FIXME
+                return null;
+            } else {
+                var values = getFieldValues(json.getAsJsonObject());
+                var result = M.JmlChained(JmlJson.<JCBinary>toList(values[0]));
+                common(json, result, context);
+                return result;
+                
+            }
+        }
+
     }
     
     class JmlChooseAdapter extends Adapter<JmlChoose> {

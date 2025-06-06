@@ -23,14 +23,14 @@
   "defs": [
     {
       "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
-      "@id": "20",
+      "@ref": "20",
       "annotations": [],
       "pid": {
         "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-        "@id": "21",
+        "@ref": "21",
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "22",
+          "@ref": "22",
           "primitive": "p"
         }
       }
@@ -52,25 +52,25 @@
               "@id": "27",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "8",
+                "@ref": "8",
                 "primitive": "org"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "9",
+              "@ref": "9",
               "primitive": "jmlspecs"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "10",
+            "@ref": "10",
             "primitive": "lang"
           }
         },
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "11",
+          "@ref": "11",
           "primitive": "*"
         }
       },
@@ -88,7 +88,7 @@
       "@id": "28",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "19",
+        "@ref": "19",
         "primitive": "TestP.java"
       },
       "mods": {
