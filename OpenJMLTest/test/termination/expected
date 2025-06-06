@@ -23,6 +23,10 @@ Starting proof of Termination.z(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Termination.z(int) with prover !!!! - no warnings
+Starting proof of Termination.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.main(String...) with prover !!!! - no warnings
 Completed proving methods in Termination
 Proving methods in I
 Completed proving methods in I

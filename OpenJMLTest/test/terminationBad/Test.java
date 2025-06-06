@@ -1,18 +1,23 @@
 public class Test {
 
-  public void m() {
+  static public void m() {
     m();
   }
 
   //@ measured_by 0;
-  public void q(int i) {
+  static public void q(int i) {
     if (i > 0) q(i-1);
   }
 
-  //@ requires i > -10;
+
   //@ measured_by i;
-  public void p(int i) {
-    if (i > -10) p(i-1);
+  static public void p(int i) {
+    if (i > -2) p(i-1);
   }
 
+  public static void main(String... args) {
+      q(2);
+      p(2);
+      //m();
+  }
 }
