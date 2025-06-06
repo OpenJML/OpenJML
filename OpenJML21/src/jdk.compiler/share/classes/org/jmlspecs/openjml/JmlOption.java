@@ -171,7 +171,7 @@ public class JmlOption {
                 if (!val.isEmpty()) {
                     String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
                     for (var k: keys) {
-                        if (options.warningKeys.containsKey(k)) options.warningKeys.put(k,!negate);
+                        if (options.warningKeys.containsKey(k)) options.warningKeys.put(k, negate ? JmlOptions.WarnType.QUIET : JmlOptions.WarnType.WARN );
                         else Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
                     }
                 }

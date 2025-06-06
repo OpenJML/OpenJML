@@ -137,8 +137,11 @@ public class Label {
     /** Used for assume statements generated to capture the return value */
     /*@ non_null*/ public final static Label RETURN = new Label("Return");
     
-    /** Used for assume statements generated to capture the return value */
-    /*@ non_null*/ public final static Label TERMINATION = new Label("Termination");
+    /** Used for assert statements testing that termination metric decreases */
+    /*@ non_null*/ public final static Label TERMINATION = new Label("TerminationDecreases");
+    
+    /** Used for assert statements testing that termination metric decreases */
+    /*@ non_null*/ public final static Label TERMINATIONNONNEG = new Label("TerminationNonNegative");
     
     /** Used for assume statements generated to define auxiliary variables */
     /*@ non_null*/ public final static Label SYN = new Label("Synthetic");

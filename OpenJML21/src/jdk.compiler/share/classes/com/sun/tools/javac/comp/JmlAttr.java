@@ -2420,7 +2420,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     //System.out.println("EMPTY WITH INHERITED " + msym.owner + " " + msym);
                     return;
                 }
-                JmlSpecs.MethodSpecs jms = JmlSpecs.instance(context).defaultSpecs(msp.cases.decl, msym, Position.NOPOS);
+                JmlSpecs.MethodSpecs jms = JmlSpecs.instance(context).defaultSpecs(msp.cases.decl, msym, msp.cases.decl != null ? msp.cases.decl.pos : Position.NOPOS);
                 msp.mods.flags |= jms.mods.flags;
                 if (jms.mods.annotations != msp.mods.annotations) msp.mods.annotations = msp.mods.annotations.appendList(jms.mods.annotations);
                 if (((JmlModifiers)msp.mods).jmlmods != ((JmlModifiers)jms.mods).jmlmods) ((JmlModifiers)msp.mods).jmlmods.addAll(((JmlModifiers)jms.mods).jmlmods);
@@ -4123,11 +4123,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         switch (tree.clauseKind.keyword()) {
             case durationID:
             case workingspaceID:
-                attribExpr(tree.expression, env, syms.longType);
+                attribExpr(tree.expression, env, JmlPrimitiveTypes.bigintTypeKind.getType(context));
                 break;
                 
             case measuredbyID:
-                attribExpr(tree.expression, env, syms.intType);
+                attribExpr(tree.expression, env, JmlPrimitiveTypes.bigintTypeKind.getType(context));
                 break;
                 
             default:

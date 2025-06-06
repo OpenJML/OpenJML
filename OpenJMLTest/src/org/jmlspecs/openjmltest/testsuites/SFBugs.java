@@ -1095,7 +1095,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug738() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--warn=missing-measured-by");
     }
     
     @Test

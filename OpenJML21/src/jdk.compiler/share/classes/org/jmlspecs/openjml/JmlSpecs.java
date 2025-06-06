@@ -1397,6 +1397,7 @@ public class JmlSpecs {
             } else {
                 break xx;
             }
+            //System.out.println("DEFAULT SPECS " + sym); Utils.dumpStack();
             JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
             mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
             //System.out.println("ADDING SPEC_PURE " + sym.owner + " " + sym + " " + (decl!=null));

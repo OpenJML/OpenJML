@@ -299,8 +299,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
      */
     protected JmlClassDecl classDecl = null;
 
-    protected Symbol enclosingMethod;
-    protected Symbol enclosingClass;
+    protected MethodSymbol topEnclosingMethod;
+    protected MethodSymbol enclosingMethod;
+    protected ClassSymbol topEnclosingClass;
+    protected ClassSymbol enclosingClass;
 
     /**
      * The Ident to use when translating this - starts as the this for the receiver
@@ -856,8 +858,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCIdent savedExplicitThisId = this.explicitThisId;
 		JCExpression savedThisExpr = this.currentEnv.currentReceiver;
 		VarSymbol savedExceptionSym = this.exceptionSym;
-		Symbol savedEnclosingMethod = this.enclosingMethod;
-		Symbol savedEnclosingClass = this.enclosingClass;
+		MethodSymbol savedEnclosingMethod = this.enclosingMethod;
+		ClassSymbol savedEnclosingClass = this.enclosingClass;
 		VarSymbol savedResultSym = this.resultSym;
 		JCExpression savedResultExpr = this.resultExpr;
 		VarSymbol savedTerminationSym = this.terminationSym;
@@ -866,7 +868,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		ListBuffer<JCStatement> prevStats = initialStatements;
 		ListBuffer<JCStatement> savedOldStatements = oldStatements;
 		JavaFileObject prevSource = log.useSource(pmethodDecl.source());
-		Map<Object, JCExpression> savedParamActuals = paramActuals_;
+		var savedParamActuals = paramActuals_;
 		java.util.List<Symbol> savedCompletedInvariants = this.completedInvariants;
 		Set<Symbol> savedInProcessInvariants = this.inProcessInvariants;
 		boolean isModel = isModel(pmethodDecl.sym);
@@ -907,8 +909,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		boolean undoLabels = false; // TODO - explain why this is used
 		try {
-			enclosingMethod = pmethodDecl.sym;
-			enclosingClass = pmethodDecl.sym.owner;
+			topEnclosingMethod = enclosingMethod = pmethodDecl.sym;
+			topEnclosingClass = enclosingClass = (ClassSymbol)pmethodDecl.sym.owner;
 			if (utils.hasModifier(pmethodDecl.mods, Modifiers.MODEL) && (pmethodDecl.mods.flags & Flags.SYNTHETIC) != 0) {
 				return convertMethodBodyNoInitModel(pmethodDecl, pclassDecl);
 			}
@@ -3881,7 +3883,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         e3 = treeutils.makeDynamicTypeEquality(pos, copy(id), sym.type);
                     } else {
                         e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
-                        if (specs.isNonNull(compType, (ClassSymbol) enclosingClass)) {
+                        if (specs.isNonNull(compType, enclosingClass)) {
                             JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id));
                             e3 = treeutils.makeAnd(pos, e3, e4);
                         }
@@ -6067,8 +6069,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void addStaticInitialization(ClassSymbol csym) {
+	    // This method might be called to add static initializers while processing some class
+	    // If so, we have to temporarily reset topEnclosingMethod to avoid detecting spurious recursion.
+	    // However, this does go against the intended meaning of topEnclosingMethod
 		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
-
+		var saved = topEnclosingMethod;
+		topEnclosingMethod = null;
 		// If there is a static initializer, use it
 		if (tspecs != null) {
 			{
@@ -6097,10 +6103,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						addAssume(tci, Label.POSTCONDITION, post);
 					}
 					log.useSource(prev);
+			        topEnclosingMethod = saved;
 					return; // There must be at most one static initializer
 				}
 			}
 		}
+		topEnclosingMethod = saved;
 
 		// We could declare and initialize all the static fields here, but that results
 		// in
@@ -8231,6 +8239,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		}
 //		return newlist.toList();
 //	}
+	
+	// This set records locations where warnings about missing mieasured_by clauses are given,
+	// so we don't repeat the same warning for the same location.
+	java.util.Set<Object> measuredByChecks = new java.util.HashSet<>();
 
 	// FIXME - needs work
 	@Override
@@ -8328,6 +8340,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				that.args = newargs.toList();
 			}
 		}
+		
 		if (sym.name == names.fromString("clone") && sym.owner.name == names.fromString("Array")) {
 			// Special case of the special class Array
 			((JCFieldAccess) that.meth).sym = syms.objectType.tsym.members().findFirst(names.fromString("clone"));
@@ -8361,6 +8374,70 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			popMapSymbols(saved);
 		}
 	}
+
+
+    private void addTerminationCheck(JCMethodInvocation that, List<JCExpression> trArgs) {
+        MethodSymbol applySym = (MethodSymbol)TreeInfo.symbol(that.meth);
+        if (applySym.isConstructor()) return;  // Java does not allow recursive or mutually recursive constructor invocation
+        if (applySym == topEnclosingMethod) {
+            var oldmap = paramActuals_;
+
+            pushArithMode(topEnclosingMethod, true);
+            try {
+                boolean anySpecCases = false;
+                for (MethodSymbol parentMethodSym : utils.parents(topEnclosingMethod,true)) {
+                    JmlMethodSpecs denestedSpecs = JmlSpecs.instance(context).getDenestedSpecs(parentMethodSym);
+                    if (!denestedSpecs.cases.isEmpty()) {
+                        anySpecCases = true;
+                        @SuppressWarnings("unchecked")
+                        var newmap = new HashMap<Object,JCExpression>(); if (paramActuals_ != null) newmap.putAll(paramActuals_);
+                        for (int i = 0; i < parentMethodSym.params.length(); i++) {
+                            VarSymbol p = parentMethodSym.params.get(i);
+                            JCExpression e = trArgs.get(i);
+                            newmap.put(p, e);
+                        }
+                        for (var speccase: denestedSpecs.cases) {
+                            JCExpression precondition = preconditions.get(speccase);
+                            boolean anyChecks = false;
+                            for (var clause: speccase.clauses) {
+                                if (clause.clauseKind == MethodResourceClauseExtension.measuredbyClause) {
+                                    anyChecks = true;
+                                    JCExpression metric = ((JmlMethodClauseConditional)clause).expression; // FIXME - ignoring condition
+                                    addStat(comment("Checking termination metric of " + topEnclosingMethod + ": " + metric));
+                                    paramActuals_ = oldmap;
+                                    JCIdent origValue = newTemp(convertJML(treeutils.makeOld(clause, metric)));
+                                    paramActuals_ = newmap;
+                                    JCIdent newValue = newTemp(convertJML(metric));
+                                    var a = treeutils.makeImplies(clause, precondition, treeutils.makeBinary(clause, JCTree.Tag.LT, newValue, origValue));
+                                    var b = treeutils.makeImplies(clause, precondition, treeutils.makeBinary(clause, JCTree.Tag.LE, treeutils.zero, newValue));
+                                    var prev = log.useSource(speccase.sourcefile);
+                                    addAssert(metric, Label.TERMINATION, a, that, prev);
+                                    addAssert(metric, Label.TERMINATIONNONNEG, b, that, prev);
+                                    log.useSource(prev);
+                                }
+                            }
+                            if (!anyChecks) {
+                                if (measuredByChecks.add(that)) {
+                                    utils.warningCategory(JmlOptions.MISSING_MEASURED_BY,log.currentSourceFile(), that, speccase.sourcefile, speccase, 
+                                            "Method " + enclosingMethod + " is called recursively, but a specification case has no measured_by clause");
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!anySpecCases) {
+                    // FIXME - will there always be a default spec case?
+                    if (measuredByChecks.add(that)) {
+                        utils.warningCategory(JmlOptions.MISSING_MEASURED_BY, log.currentSourceFile(), that, methodDecl.sourcefile, methodDecl, 
+                                "Method " + enclosingMethod + " is called recursively, but there are no specification cases and hence no measured_by clauses");
+                    }
+                }
+            } finally {
+	            paramActuals_ = oldmap;
+	            popArithMode();
+	        }
+	    }
+    }
 
 	java.util.List<String> callStack = new LinkedList<>();
 	java.util.List<Symbol> callStackSym = new LinkedList<>();
@@ -8782,8 +8859,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																			// actual arguments
 		ListBuffer<JCStatement> savedOldStatements = this.oldStatements;
 		JCIdent savedFresh = this.currentFresh;
-		Symbol savedEnclosingMethod = this.enclosingMethod;
-		Symbol savedEnclosingClass = this.enclosingClass;
+		MethodSymbol savedEnclosingMethod = this.enclosingMethod;
+		ClassSymbol savedEnclosingClass = this.enclosingClass;
 		Map<TypeSymbol, Type> savedTypeVarMapping = this.typevarMapping;
 		Map<TypeSymbol, Type> newTypeVarMapping = this.typevarMapping;
 		var savedCurrentOldLabel = currentOldLabel;
@@ -8896,8 +8973,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						: (splitExpressions && currentEnv.currentReceiver != explicitThisId) ? newTemp(currentEnv.currentReceiver)
 								: currentEnv.currentReceiver;
 				newThisId = newThisExpr instanceof JCIdent ? (JCIdent) newThisExpr : null;
-				enclosingMethod = id.sym;
-				enclosingClass = id.sym.owner;
+				enclosingMethod = (MethodSymbol)id.sym;
+				enclosingClass = (ClassSymbol)id.sym.owner;
 				if (print)
 					System.out.println("APPLYHELPER-B " + calleeMethodSym.owner + " " + calleeMethodSym + " "
 							+ specs.status(calleeMethodSym) );
@@ -8974,8 +9051,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				mExpr.setType(that.type);
 				mExpr.varargsElement = null; // We have combined the arargs elements into an array
 				trExpr = mExpr; // rewritten expression - for RAC
-				enclosingMethod = fa.sym;
-				enclosingClass = fa.sym.owner;
+				enclosingMethod = (MethodSymbol)fa.sym;
+				enclosingClass = (ClassSymbol)fa.sym.owner;
 
 			} else if (newclass != null) {
 				if (print) System.out.println("APPLYHELPER-NEWCLASS " + calleeMethodSym + " " + newclass);
@@ -9008,7 +9085,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				expr.setType(that.type);
 				trExpr = expr;
 				enclosingMethod = calleeMethodSym;
-				enclosingClass = calleeMethodSym.owner;
+				enclosingClass = (ClassSymbol)calleeMethodSym.owner;
 				if (print) System.out.println("APPLYHELPER-NEWCLASS-Z " + calleeMethodSym.owner + " " + calleeMethodSym + " " + newclass);
 
 				// newThisId, newThisExpr are assigned the resultId later - can only be used in
@@ -9022,6 +9099,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //	            //System.out.println("REPLACING " + receiverType + " WITH " + calleeMethodSym.owner.type);  // FIXME - a temporary hack
 //	            receiverType = calleeMethodSym.owner.type;
 //	        }
+
+		    if (apply != null) addTerminationCheck(apply, trArgs);
+
 
 			if (print)
 				System.out.println("APPLYHELPER-D " + calleeMethodSym.owner + " " + calleeMethodSym);
@@ -9062,7 +9142,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    if (info.specCase.callee_only) continue;
 			    pushArithMode(info.parentMethodSymbol, true);
 			    try {
-			    x: if (!calleeIsPure && JmlOptions.instance(context).allowed(JmlOptions.IMPLICIT_EVERYTHING)) {
+			    x: if (!calleeIsPure && JmlOptions.instance(context).allowed(JmlOptions.IMPLICIT_EVERYTHING) != JmlOptions.WarnType.QUIET) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
 			        boolean isEverything = true;
@@ -13319,7 +13399,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			rhs = addImplicitConversion(rhs, that.lhs.type, rhs);
 			if (array.type instanceof Type.ArrayType) {
 				var atype = (Type.ArrayType) array.type;
-				if (specs.isNonNull(atype.elemtype, (ClassSymbol)enclosingClass)) { // FIXME - need the enclosing class at the
+				if (specs.isNonNull(atype.elemtype, enclosingClass)) { // FIXME - need the enclosing class at the
 																			// point of declaration
 					e = treeutils.makeNeqObject(that.rhs.pos, rhs, treeutils.nullLit);
 					addAssert(that, Label.POSSIBLY_NULL_ASSIGNMENT, e);
@@ -17338,7 +17418,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				e = M.at(that.var).Indexed(fa, index);
 				e.type = typearg;
 
-				boolean nn = specs.isNonNull(typearg, (ClassSymbol) enclosingClass);
+				boolean nn = specs.isNonNull(typearg, enclosingClass);
 				e = convertJML(e);
 				if (nn)
 					addAssume(that.var, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that.var, e));
@@ -21955,7 +22035,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression savedResultExpr = resultExpr;
 		JCExpression savedCurrentThisExpr = currentEnv.currentReceiver;
 		boolean savedSplitExpressions = splitExpressions;
-		Map<Object, JCExpression> savedParamActuals = paramActuals_;
+		var savedParamActuals = paramActuals_;
 
 		Symbol ownerSym = inClassDecl() ? classDecl.sym : methodDecl.sym;
 		JCTree ownerDecl = inClassDecl() ? classDecl : methodDecl;

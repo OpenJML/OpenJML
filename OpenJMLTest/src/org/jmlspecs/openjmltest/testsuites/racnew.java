@@ -217,7 +217,7 @@ public class racnew extends RacBase {
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:4: verify: JML precondition is false"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
-                ,"/tt/TestJava.java:1: verify: JML precondition is false"  // FIXME - should not be 1
+                ,"/tt/TestJava.java:7: verify: JML precondition is false"
                 ,"END"
                 );
     }

@@ -54,6 +54,8 @@ public class JmlOptions extends Options {
     
     // Warning-keys
     public static final String IMPLICIT_EVERYTHING = "implicit-everything";
+    public static final String MISSING_MEASURED_BY = "missing-measured-by";
+    public static final String MISSING_SPECS = "missing-specs";
 
     protected Context context;
 
@@ -63,16 +65,21 @@ public class JmlOptions extends Options {
     /** The set of keys that control the use of optional comments, set in setupOptions() */
     public Set<String> commentKeys = new HashSet<String>();
     
-    public Map<String,Boolean> warningKeys = new java.util.HashMap<>();
+    public static enum WarnType { QUIET, WARN, ERROR };
+    public Map<String,WarnType> warningKeys = new java.util.HashMap<>();
     {
-        warningKeys.put(IMPLICIT_EVERYTHING, true);
+        warningKeys.put(MISSING_SPECS, WarnType.QUIET);
+        warningKeys.put(IMPLICIT_EVERYTHING, WarnType.WARN);
+        warningKeys.put(MISSING_MEASURED_BY, WarnType.QUIET);
     }
     
-    public boolean allowed(String key) {
-        Boolean b = warningKeys.get(key);
-        if (b != null) return b;
+    public WarnType allowed(String key) {
+        WarnType b = warningKeys.get(key);
+        if (b != null) {
+            return b;
+        }
         Utils.instance(context).error("jml.internal.not.so.bad","Invalid warning key: " + key);
-        return true;
+        return WarnType.WARN;
     }
 
     protected JmlOptions(Context context) {

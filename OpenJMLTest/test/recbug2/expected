@@ -1,3 +1,15 @@
+test/recbug2/Test.java:7: warning: [missing-measured-by] Method f() is called recursively, but a specification case has no measured_by clause
+  //@ ensures \result == f();
+                          ^
+test/recbug2/Test.java:3: warning: Associated declaration: test/recbug2/Test.java:7:
+  //@ ensures \result == g();
+      ^
+test/recbug2/Test.java:3: warning: [missing-measured-by] Method g() is called recursively, but a specification case has no measured_by clause
+  //@ ensures \result == g();
+                          ^
+test/recbug2/Test.java:7: warning: Associated declaration: test/recbug2/Test.java:3:
+  //@ ensures \result == f();
+      ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -20,4 +32,4 @@ test/recbug2/Test.java:7: warning: Associated declaration
       ^
 Completed proof of Test.g() with prover !!!! - with warnings
 Completed proving methods in Test
-4 warnings
+8 warnings
