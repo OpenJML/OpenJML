@@ -279,45 +279,83 @@ public class JmlCompiler extends JavaCompiler {
         var json = new org.jmlspecs.openjml.JmlJson(context);
         for (var cu: compunits) {
             //System.out.println("JSON FOR " + cu.sourcefile);
-            writeJson(dest, json, (JmlCompilationUnit)cu, null, includeTypeInfo);
+            writeJson(dest, json, cu, null, includeTypeInfo);
         }
     }
+    
+    private static final int span = 100;
+    private String formatLongString(String s) {
+        if (s.length() <= span) return s;
+        else return s.substring(0,span) + "\n" + formatLongString(s.substring(span));
+    }
 
-    private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name, boolean includeTypeInfo) {
-        String sourcepath = decl.source().getName();
+    private String writeJson(String dest, JmlJson json, JCTree decl, String name, boolean includeTypeInfo) {
+        String sourcepath = decl instanceof JmlTree.JmlSource s ? s.source().getName() : "?";
         String out = null;
         JsonElement outtree = null;
         var stdout = context.get(Log.outKey);
         try {
-            out = json.toJson((JCTree)decl, includeTypeInfo); // serializes to a pretty-printed string
-            outtree = json.toJsonTree((JCTree)decl, includeTypeInfo); // serializes to an in-memory JSON tree
+            //json.clearIds();
+            out = json.toJson(decl, includeTypeInfo); // serializes to a pretty-printed string
+            // If we do both of these, we need to clear the cache of ids in between, but then we can't share ids between classes
+            //json.clearIds();
+            //outtree = json.toJsonTree(decl, includeTypeInfo); // serializes to an in-memory JSON tree
         } catch (Throwable e) {
             utils.error("jml.internal", "Failed translate to json (" + sourcepath + "): "+ e);
             e.printStackTrace(stdout);
             return null;
         }
         try {
-            // Checking the output by reparsing it and comparing string representations
-            @SuppressWarnings("deprecation")
-            var res = new JsonParser().parse(out);
-            if (!outtree.equals(res)) {
-                utils.error("jml.internal", "Reparsed JSON tree does not match the original tree: " + decl.source());
-            }
-            var nows = outtree.toString();//.replaceAll("[ \t\n]+","");
-            if (!res.toString().equals(nows)) { 
-                utils.error("jml.message", "Generated and reread json structures (removing whitespace) are different:\n"
-                        + nows  + "\n\nVS.\n\n" + res.toString());
-            }
+//            // Checking the output by reparsing it and comparing string representations
+//            @SuppressWarnings("deprecation")
+//            var res = new JsonParser().parse(out);
+//            if (!outtree.equals(res)) {
+//                utils.error("jml.internal", "Reparsed JSON tree does not match the original tree: " + sourcepath);
+//            }
+//            // Parsed tree interprets unicode sequences
+//            var rereadString = res.toString();
+//            var treeString = outtree.toString();
+//            // Serialized tree has unicode sequences
+//            var nowsOut = out.replaceAll("[ \t\n]+","");
+//            // Compare string version of parsed version of output text generated tree to string version of generated tree
+//            if (!rereadString.equals(treeString)) { 
+//                utils.error("jml.message", "Generated and reread json tree structures are different:\n"
+//                        + formatLongString(rereadString)  + "\n\nVS.\n\n" + formatLongString(treeString));
+//              System.out.println("Lengths " + rereadString.length() + " " + treeString.length());
+//              for (int i = 0; i < treeString.length(); ++i) {
+//                  if (rereadString.charAt(i) != treeString.charAt(i)) {
+//                      System.out.println("   DIFF " + i + " " + rereadString.charAt(i) + " " + treeString.charAt(i));
+//                      break;
+//                  }
+//              }
+//            }
+//            // Compare string version of parsed version of output text generated tree to directly generated json text
+//            // These differ in unicode representations
+//            if (!rereadString.equals(nowsOut)) { 
+//                utils.error("jml.message", "Generated and reread json string structures (removing whitespace) are different:\n"
+//                        + formatLongString(rereadString) + "\n\nVS.\n\n" + formatLongString(nowsOut));
+//                System.out.println("Lengths " + rereadString.length() + " " + nowsOut.length());
+//                for (int i = 0; i < nowsOut.length(); ++i) {
+//                    if (rereadString.charAt(i) != nowsOut.charAt(i)) {
+//                        System.out.println("   DIFF " + i + " " + rereadString.charAt(i) + " " + nowsOut.charAt(i));
+//                        break;
+//                    }
+//                }
+//            }
             // Check the output by deserializing the output text back into an AST
             if (JmlOption.isOption(context, JmlOption.JMLTESTING)) {
                 // In testing mode, recreate a source AST from the output JSON text
-                Object tree = json.toJava(out);
-                if (!tree.toString().equals(decl.toString())) {
+                Object obj = json.toJava(out);
+                JmlPretty p = new JmlPretty(stdout, true); p.printSourceInfo = true;
+                if (!(obj instanceof JCTree tree)) {
                     stdout.println("Input and output ASTs differ");
-                    stdout.println(tree.toString());  // FIXME - use designated output stream
-                    stdout.println(decl.toString());  // FIXME - use designated output stream
+                    stdout.println(obj.toString());
+                    stdout.println(p.toString(decl));
+                } else if (!p.toString(tree).equals(p.toString(decl))) {
+                    stdout.println("Input and output ASTs differ");
+                    stdout.println(p.toString(tree));
+                    stdout.println(p.toString(decl));
                 }
-                // FIXME - compare ASTs 'tree' and 'decl'
             }
         } catch (Throwable e) {
             utils.error("jml.message", "Failed read generated json (" + sourcepath + "): "+ e);            

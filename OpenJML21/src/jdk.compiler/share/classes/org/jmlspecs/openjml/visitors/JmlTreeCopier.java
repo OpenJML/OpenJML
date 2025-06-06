@@ -620,20 +620,20 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.optionalExpression = copy(that.optionalExpression,p);
         copy.associatedPos = that.associatedPos;
         copy.associatedClause = that.associatedClause;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
-        copyEndPos(copy,that,copy.source); // FIXME - should the log be set before all the sub-copies?
+        copyEndPos(copy,that,copy.sourcefile); // FIXME - should the log be set before all the sub-copies?
         return copy;
     }
 
     @Override
     public JCTree visitJmlStatementHavoc(JmlStatementHavoc that, Void p) {
-    	var prev = log.useSource(that.source);
+        //var prev = log.useSource(that.sourcefile);
         JmlStatementHavoc copy = M.at(that.pos).JmlHavocStatement(
                 copy(that.storerefs,p));
         copy.type = that.type;
         copyEndPos(copy,that);
-        log.useSource(prev);
+        //log.useSource(prev);
         return copy;
     }
 
@@ -648,7 +648,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlStatementLoopModifies(JmlStatementLoopModifies that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlStatementLoopModifies copy = M.at(that.pos).JmlStatementLoopModifies(
                 that.clauseType,
                 copy(that.storerefs,p));
@@ -708,7 +708,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.field,
                 that.originalStoreRef
                 );
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
     }
@@ -723,13 +723,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseConditional(JmlTypeClauseConditional that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseConditional copy = M.at(that.pos).JmlTypeClauseConditional(
                 copy(that.modifiers,p),
                 that.clauseType,
                 copy(that.identifier,p),
                 copy(that.expression,p));
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);
@@ -738,13 +738,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseConstraint copy = M.at(that.pos).JmlTypeClauseConstraint(
                 copy(that.modifiers,p),
                 copy(that.expression,p),
                 copy(that.sigs,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copy.notlist = that.notlist;
         copyEndPos(copy,that);
@@ -754,12 +754,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseDecl(JmlTypeClauseDecl that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseDecl copy = M.at(that.pos).JmlTypeClauseDecl(
                 copy(that.decl,p));
         copy.clauseType = that.clauseType;
         copy.modifiers = copy(that.modifiers,p);
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);
@@ -768,13 +768,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseExpr(JmlTypeClauseExpr that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseExpr copy = M.at(that.pos).JmlTypeClauseExpr(
                 copy(that.modifiers,p),
                 that.keyword,
                 that.clauseType,
                 copy(that.expression,p));
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);
@@ -783,11 +783,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseIn(JmlTypeClauseIn that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseIn copy = M.at(that.pos).JmlTypeClauseIn(
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.modifiers = copy(that.modifiers,p);
         copy.parentVar = that.parentVar; // FIXME - does this need repointing to the new copy
         copy.type = that.type;
@@ -798,12 +798,12 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseInitializer copy = M.at(that.pos).JmlTypeClauseInitializer(
                 that.clauseType,null);
         copy.modifiers = copy(that.modifiers,p);
         copy.specs = copy(that.specs,p);
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);
@@ -812,13 +812,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseMaps(JmlTypeClauseMaps that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseMaps copy = M.at(that.pos).JmlTypeClauseMaps(
                 copy(that.expressions,p),
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
         copy.modifiers = copy(that.modifiers,p);
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);
@@ -827,13 +827,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseMonitorsFor copy = M.at(that.pos).JmlTypeClauseMonitorsFor(
                 copy(that.modifiers,p),
                 copy(that.identifier,p),
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);
@@ -842,14 +842,14 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that, Void p) {
-    	var prev = log.useSource(that.source);
+    	var prev = log.useSource(that.sourcefile);
         JmlTypeClauseRepresents copy = M.at(that.pos).JmlTypeClauseRepresents(
                 copy(that.modifiers,p),
                 copy(that.ident,p),
                 that.suchThat,
                 copy(that.expression,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copyEndPos(copy,that);
         log.useSource(prev);

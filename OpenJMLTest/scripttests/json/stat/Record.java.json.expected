@@ -1,67 +1,82 @@
 {
-  "class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "@class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "@id": "1",
   "sourcefile": {
-    "class": "javax.tools.JavaFileObject",
+    "@class": "javax.tools.JavaFileObject",
+    "@id": "2",
     "primitive": "stat/Record.java"
   },
   "pid": null,
   "defs": [
     {
-      "class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "3",
       "qualid": {
-        "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "4",
         "selected": {
-          "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "5",
           "selected": {
-            "class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "6",
             "selected": {
-              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "7",
               "name": {
-                "class": "com.sun.tools.javac.util.Name",
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "8",
                 "primitive": "org"
               }
             },
             "name": {
-              "class": "com.sun.tools.javac.util.Name",
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "9",
               "primitive": "jmlspecs"
             }
           },
           "name": {
-            "class": "com.sun.tools.javac.util.Name",
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "10",
             "primitive": "lang"
           }
         },
         "name": {
-          "class": "com.sun.tools.javac.util.Name",
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "11",
           "primitive": "*"
         }
       },
       "staticImport": {
-        "class": "boolean",
+        "@class": "boolean",
         "primitive": "false"
       },
       "isModel": {
-        "class": "boolean",
+        "@class": "boolean",
         "primitive": "true"
       }
     },
     {
-      "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "@id": "12",
       "sourcefile": {
-        "class": "javax.tools.JavaFileObject",
+        "@class": "javax.tools.JavaFileObject",
+        "@ref": "2",
         "primitive": "stat/Record.java"
       },
       "mods": {
-        "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "@id": "13",
         "annotations": [],
         "flags": {
-          "class": "long",
+          "@class": "long",
           "primitive": "1"
         },
         "jmlmods": []
       },
       "name": {
-        "class": "com.sun.tools.javac.util.Name",
+        "@class": "com.sun.tools.javac.util.Name",
+        "@id": "14",
         "primitive": "Record"
       },
       "typarams": [],
@@ -70,22 +85,26 @@
       "permitting": [],
       "defs": [
         {
-          "class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+          "@id": "15",
           "sourcefile": {
-            "class": "javax.tools.JavaFileObject",
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
             "primitive": "stat/Record.java"
           },
           "mods": {
-            "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "16",
             "annotations": [],
             "flags": {
-              "class": "long",
+              "@class": "long",
               "primitive": "2305843009213693952"
             },
             "jmlmods": []
           },
           "name": {
-            "class": "com.sun.tools.javac.util.Name",
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "17",
             "primitive": "R"
           },
           "typarams": [],
@@ -94,56 +113,68 @@
           "permitting": [],
           "defs": [
             {
-              "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "18",
               "sourcefile": {
-                "class": "javax.tools.JavaFileObject",
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
                 "primitive": "stat/Record.java"
               },
               "mods": {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "19",
                 "annotations": [],
                 "flags": {
-                  "class": "long",
+                  "@class": "long",
                   "primitive": "2305843009230471186"
                 },
                 "jmlmods": []
               },
               "name": {
-                "class": "com.sun.tools.javac.util.Name",
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "20",
                 "primitive": "i"
               },
               "vartype": {
-                "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                "@id": "21",
                 "typetag": {
-                  "class": "com.sun.tools.javac.code.TypeTag",
+                  "@class": "com.sun.tools.javac.code.TypeTag",
+                  "@id": "22",
                   "primitive": "INT"
                 }
               },
               "init": null
             },
             {
-              "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "23",
               "sourcefile": {
-                "class": "javax.tools.JavaFileObject",
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
                 "primitive": "stat/Record.java"
               },
               "mods": {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "24",
                 "annotations": [],
                 "flags": {
-                  "class": "long",
+                  "@class": "long",
                   "primitive": "2305843009230471186"
                 },
                 "jmlmods": []
               },
               "name": {
-                "class": "com.sun.tools.javac.util.Name",
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "25",
                 "primitive": "j"
               },
               "vartype": {
-                "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                "@id": "26",
                 "typetag": {
-                  "class": "com.sun.tools.javac.code.TypeTag",
+                  "@class": "com.sun.tools.javac.code.TypeTag",
+                  "@ref": "22",
                   "primitive": "INT"
                 }
               },
@@ -152,28 +183,34 @@
           ]
         },
         {
-          "class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "27",
           "sourcefile": {
-            "class": "javax.tools.JavaFileObject",
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
             "primitive": "stat/Record.java"
           },
           "mods": {
-            "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "28",
             "annotations": [],
             "flags": {
-              "class": "long",
+              "@class": "long",
               "primitive": "1"
             },
             "jmlmods": []
           },
           "name": {
-            "class": "com.sun.tools.javac.util.Name",
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "29",
             "primitive": "p"
           },
           "restype": {
-            "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "30",
             "typetag": {
-              "class": "com.sun.tools.javac.code.TypeTag",
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@id": "31",
               "primitive": "VOID"
             }
           },
@@ -181,28 +218,34 @@
           "recvparam": null,
           "params": [
             {
-              "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "32",
               "sourcefile": {
-                "class": "javax.tools.JavaFileObject",
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
                 "primitive": "stat/Record.java"
               },
               "mods": {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "33",
                 "annotations": [],
                 "flags": {
-                  "class": "long",
+                  "@class": "long",
                   "primitive": "8589934592"
                 },
                 "jmlmods": []
               },
               "name": {
-                "class": "com.sun.tools.javac.util.Name",
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "34",
                 "primitive": "r"
               },
               "vartype": {
-                "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "35",
                 "name": {
-                  "class": "com.sun.tools.javac.util.Name",
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "14",
                   "primitive": "Record"
                 }
               },
@@ -212,83 +255,104 @@
           "thrown": [],
           "methodSpecs": null,
           "body": {
-            "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "36",
             "sourcefile": null,
             "flags": {
-              "class": "long",
+              "@class": "long",
               "primitive": "0"
             },
             "stats": [
               {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@id": "37",
                 "sourcefile": {
-                  "class": "javax.tools.JavaFileObject",
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
                   "primitive": "stat/Record.java"
                 },
                 "mods": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "38",
                   "annotations": [],
                   "flags": {
-                    "class": "long",
+                    "@class": "long",
                     "primitive": "0"
                   },
                   "jmlmods": []
                 },
                 "name": {
-                  "class": "com.sun.tools.javac.util.Name",
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "29",
                   "primitive": "p"
                 },
                 "vartype": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                  "@id": "39",
                   "typetag": {
-                    "class": "com.sun.tools.javac.code.TypeTag",
+                    "@class": "com.sun.tools.javac.code.TypeTag",
+                    "@ref": "22",
                     "primitive": "INT"
                   }
                 },
                 "init": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCSwitchExpression",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCSwitchExpression",
+                  "@id": "40",
                   "selector": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                    "@id": "41",
                     "expr": {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "42",
                       "name": {
-                        "class": "com.sun.tools.javac.util.Name",
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "34",
                         "primitive": "r"
                       }
                     }
                   },
                   "cases": [
                     {
-                      "class": "org.jmlspecs.openjml.JmlTree$JmlCase",
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlCase",
+                      "@id": "43",
                       "caseKind": {
-                        "class": "com.sun.source.tree.CaseTree$CaseKind",
+                        "@class": "com.sun.source.tree.CaseTree$CaseKind",
+                        "@id": "44",
                         "primitive": "RULE"
                       },
                       "labels": [
                         {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCConstantCaseLabel",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCConstantCaseLabel",
+                          "@id": "45",
                           "expr": {
-                            "class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "46",
                             "typeargs": [],
                             "meth": {
-                              "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "47",
                               "name": {
-                                "class": "com.sun.tools.javac.util.Name",
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "17",
                                 "primitive": "R"
                               }
                             },
                             "args": [
                               {
-                                "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "48",
                                 "name": {
-                                  "class": "com.sun.tools.javac.util.Name",
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@id": "49",
                                   "primitive": "ii"
                                 }
                               },
                               {
-                                "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "50",
                                 "name": {
-                                  "class": "com.sun.tools.javac.util.Name",
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@id": "51",
                                   "primitive": "jj"
                                 }
                               }
@@ -299,11 +363,14 @@
                       "guard": null,
                       "stats": [
                         {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCYield",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCYield",
+                          "@id": "52",
                           "value": {
-                            "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                            "@id": "53",
                             "typetag": {
-                              "class": "com.sun.tools.javac.code.TypeTag",
+                              "@class": "com.sun.tools.javac.code.TypeTag",
+                              "@ref": "22",
                               "primitive": "INT"
                             },
                             "value": 0
@@ -311,33 +378,41 @@
                         }
                       ],
                       "body": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@ref": "53",
                         "typetag": {
-                          "class": "com.sun.tools.javac.code.TypeTag",
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "22",
                           "primitive": "INT"
                         },
                         "value": 0
                       }
                     },
                     {
-                      "class": "org.jmlspecs.openjml.JmlTree$JmlCase",
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlCase",
+                      "@id": "54",
                       "caseKind": {
-                        "class": "com.sun.source.tree.CaseTree$CaseKind",
+                        "@class": "com.sun.source.tree.CaseTree$CaseKind",
+                        "@ref": "44",
                         "primitive": "RULE"
                       },
                       "labels": [
                         {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCDefaultCaseLabel"
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCDefaultCaseLabel",
+                          "@id": "55"
                         }
                       ],
                       "guard": null,
                       "stats": [
                         {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCYield",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCYield",
+                          "@id": "56",
                           "value": {
-                            "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                            "@id": "57",
                             "typetag": {
-                              "class": "com.sun.tools.javac.code.TypeTag",
+                              "@class": "com.sun.tools.javac.code.TypeTag",
+                              "@ref": "22",
                               "primitive": "INT"
                             },
                             "value": 1
@@ -345,9 +420,11 @@
                         }
                       ],
                       "body": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@ref": "57",
                         "typetag": {
-                          "class": "com.sun.tools.javac.code.TypeTag",
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "22",
                           "primitive": "INT"
                         },
                         "value": 1
@@ -357,64 +434,82 @@
                 }
               },
               {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlForLoop",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlForLoop",
+                "@id": "58",
                 "loopSpecs": [
                   {
-                    "class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopExpr",
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopExpr",
+                    "@id": "59",
                     "sourcefile": {
-                      "class": "javax.tools.JavaFileObject",
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "name": null,
                     "clauseType": {
-                      "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@id": "60",
                       "primitive": "loop_invariant"
                     },
                     "expression": {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "61",
                       "lhs": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                        "@id": "62",
                         "lhs": {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                          "@id": "63",
                           "typetag": {
-                            "class": "com.sun.tools.javac.code.TypeTag",
+                            "@class": "com.sun.tools.javac.code.TypeTag",
+                            "@ref": "22",
                             "primitive": "INT"
                           },
                           "value": 0
                         },
                         "opcode": {
-                          "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                          "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                          "@id": "64",
                           "primitive": "LE"
                         },
                         "rhs": {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "65",
                           "name": {
-                            "class": "com.sun.tools.javac.util.Name",
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@id": "66",
                             "primitive": "k"
                           }
                         }
                       },
                       "opcode": {
-                        "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@id": "67",
                         "primitive": "AND"
                       },
                       "rhs": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                        "@id": "68",
                         "lhs": {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "69",
                           "name": {
-                            "class": "com.sun.tools.javac.util.Name",
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "66",
                             "primitive": "k"
                           }
                         },
                         "opcode": {
-                          "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                          "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                          "@ref": "64",
                           "primitive": "LE"
                         },
                         "rhs": {
-                          "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                          "@id": "70",
                           "typetag": {
-                            "class": "com.sun.tools.javac.code.TypeTag",
+                            "@class": "com.sun.tools.javac.code.TypeTag",
+                            "@ref": "22",
                             "primitive": "INT"
                           },
                           "value": 10
@@ -423,55 +518,69 @@
                     }
                   },
                   {
-                    "class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopModifies",
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopModifies",
+                    "@id": "71",
                     "sourcefile": {
-                      "class": "javax.tools.JavaFileObject",
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "name": null,
                     "clauseType": {
-                      "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@id": "72",
                       "primitive": "loop_writes"
                     },
                     "storerefs": [
                       {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "73",
                         "name": {
-                          "class": "com.sun.tools.javac.util.Name",
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "66",
                           "primitive": "k"
                         }
                       }
                     ]
                   },
                   {
-                    "class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopExpr",
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopExpr",
+                    "@id": "74",
                     "sourcefile": {
-                      "class": "javax.tools.JavaFileObject",
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "name": null,
                     "clauseType": {
-                      "class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@id": "75",
                       "primitive": "loop_decreases"
                     },
                     "expression": {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "76",
                       "lhs": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "77",
                         "typetag": {
-                          "class": "com.sun.tools.javac.code.TypeTag",
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "22",
                           "primitive": "INT"
                         },
                         "value": 10
                       },
                       "opcode": {
-                        "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@id": "78",
                         "primitive": "MINUS"
                       },
                       "rhs": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "79",
                         "name": {
-                          "class": "com.sun.tools.javac.util.Name",
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "66",
                           "primitive": "k"
                         }
                       }
@@ -479,40 +588,48 @@
                   }
                 ],
                 "split": {
-                  "class": "boolean",
+                  "@class": "boolean",
                   "primitive": "false"
                 },
                 "init": [
                   {
-                    "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                    "@id": "80",
                     "sourcefile": {
-                      "class": "javax.tools.JavaFileObject",
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
                       "primitive": "stat/Record.java"
                     },
                     "mods": {
-                      "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                      "@id": "81",
                       "annotations": [],
                       "flags": {
-                        "class": "long",
+                        "@class": "long",
                         "primitive": "0"
                       },
                       "jmlmods": []
                     },
                     "name": {
-                      "class": "com.sun.tools.javac.util.Name",
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "66",
                       "primitive": "k"
                     },
                     "vartype": {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                      "@id": "82",
                       "typetag": {
-                        "class": "com.sun.tools.javac.code.TypeTag",
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "22",
                         "primitive": "INT"
                       }
                     },
                     "init": {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "83",
                       "typetag": {
-                        "class": "com.sun.tools.javac.code.TypeTag",
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "22",
                         "primitive": "INT"
                       },
                       "value": 0
@@ -520,22 +637,28 @@
                   }
                 ],
                 "cond": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                  "@id": "84",
                   "lhs": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "85",
                     "name": {
-                      "class": "com.sun.tools.javac.util.Name",
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "66",
                       "primitive": "k"
                     }
                   },
                   "opcode": {
-                    "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                    "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                    "@id": "86",
                     "primitive": "LT"
                   },
                   "rhs": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@id": "87",
                     "typetag": {
-                      "class": "com.sun.tools.javac.code.TypeTag",
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "22",
                       "primitive": "INT"
                     },
                     "value": 10
@@ -543,17 +666,22 @@
                 },
                 "step": [
                   {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                    "@id": "88",
                     "expr": {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCUnary",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCUnary",
+                      "@id": "89",
                       "opcode": {
-                        "class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@id": "90",
                         "primitive": "POSTINC"
                       },
                       "arg": {
-                        "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "91",
                         "name": {
-                          "class": "com.sun.tools.javac.util.Name",
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "66",
                           "primitive": "k"
                         }
                       }
@@ -561,65 +689,76 @@
                   }
                 ],
                 "body": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@id": "92",
                   "sourcefile": null,
                   "flags": {
-                    "class": "long",
+                    "@class": "long",
                     "primitive": "0"
                   },
                   "stats": []
                 }
               },
               {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlWhileLoop",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlWhileLoop",
+                "@id": "93",
                 "loopSpecs": null,
                 "split": {
-                  "class": "boolean",
+                  "@class": "boolean",
                   "primitive": "false"
                 },
                 "cond": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                  "@id": "94",
                   "expr": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@id": "95",
                     "typetag": {
-                      "class": "com.sun.tools.javac.code.TypeTag",
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@id": "96",
                       "primitive": "BOOLEAN"
                     },
                     "value": 1
                   }
                 },
                 "body": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@id": "97",
                   "sourcefile": null,
                   "flags": {
-                    "class": "long",
+                    "@class": "long",
                     "primitive": "0"
                   },
                   "stats": []
                 }
               },
               {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlDoWhileLoop",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlDoWhileLoop",
+                "@id": "98",
                 "loopSpecs": null,
                 "split": {
-                  "class": "boolean",
+                  "@class": "boolean",
                   "primitive": "false"
                 },
                 "body": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@id": "99",
                   "sourcefile": null,
                   "flags": {
-                    "class": "long",
+                    "@class": "long",
                     "primitive": "0"
                   },
                   "stats": []
                 },
                 "cond": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                  "@id": "100",
                   "expr": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@id": "101",
                     "typetag": {
-                      "class": "com.sun.tools.javac.code.TypeTag",
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "96",
                       "primitive": "BOOLEAN"
                     },
                     "value": 1
@@ -627,49 +766,61 @@
                 }
               },
               {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@id": "102",
                 "sourcefile": {
-                  "class": "javax.tools.JavaFileObject",
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
                   "primitive": "stat/Record.java"
                 },
                 "mods": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "103",
                   "annotations": [],
                   "flags": {
-                    "class": "long",
+                    "@class": "long",
                     "primitive": "0"
                   },
                   "jmlmods": []
                 },
                 "name": {
-                  "class": "com.sun.tools.javac.util.Name",
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "104",
                   "primitive": "a"
                 },
                 "vartype": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                  "@id": "105",
                   "elemtype": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@id": "106",
                     "typetag": {
-                      "class": "com.sun.tools.javac.code.TypeTag",
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "22",
                       "primitive": "INT"
                     }
                   }
                 },
                 "init": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
+                  "@id": "107",
                   "annotations": [],
                   "elemtype": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@id": "108",
                     "typetag": {
-                      "class": "com.sun.tools.javac.code.TypeTag",
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "22",
                       "primitive": "INT"
                     }
                   },
                   "dims": [
                     {
-                      "class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "109",
                       "typetag": {
-                        "class": "com.sun.tools.javac.code.TypeTag",
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "22",
                         "primitive": "INT"
                       },
                       "value": 10
@@ -679,52 +830,62 @@
                 }
               },
               {
-                "class": "org.jmlspecs.openjml.JmlTree$JmlEnhancedForLoop",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlEnhancedForLoop",
+                "@id": "110",
                 "loopSpecs": null,
                 "split": {
-                  "class": "boolean",
+                  "@class": "boolean",
                   "primitive": "false"
                 },
                 "var": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                  "@id": "111",
                   "sourcefile": {
-                    "class": "javax.tools.JavaFileObject",
+                    "@class": "javax.tools.JavaFileObject",
+                    "@ref": "2",
                     "primitive": "stat/Record.java"
                   },
                   "mods": {
-                    "class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                    "@id": "112",
                     "annotations": [],
                     "flags": {
-                      "class": "long",
+                      "@class": "long",
                       "primitive": "0"
                     },
                     "jmlmods": []
                   },
                   "name": {
-                    "class": "com.sun.tools.javac.util.Name",
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@id": "113",
                     "primitive": "e"
                   },
                   "vartype": {
-                    "class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@id": "114",
                     "typetag": {
-                      "class": "com.sun.tools.javac.code.TypeTag",
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "22",
                       "primitive": "INT"
                     }
                   },
                   "init": null
                 },
                 "expr": {
-                  "class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "115",
                   "name": {
-                    "class": "com.sun.tools.javac.util.Name",
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "104",
                     "primitive": "a"
                   }
                 },
                 "body": {
-                  "class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@id": "116",
                   "sourcefile": null,
                   "flags": {
-                    "class": "long",
+                    "@class": "long",
                     "primitive": "0"
                   },
                   "stats": []

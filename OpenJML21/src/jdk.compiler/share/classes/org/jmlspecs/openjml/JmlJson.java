@@ -39,10 +39,10 @@ import java.io.IOException;
 
 // TODO:
 // Update discussion below
-// Fix deserialization of JavaFileObject
 // Record positions?
 // Lots more classes to fixup and corresponding tests
 // Capture comments?
+// Deserialize recognizing common references (including JavaFileObject, JmlChained, types, symbols)
 //TODO:
 //- change unnecessary unicode to ASCII
 //- specifications
@@ -93,7 +93,6 @@ import java.io.IOException;
 
 public class JmlJson {
     
-    final GsonBuilder builder;
     final Gson gson;
     final Context context;
     final Names names;
@@ -117,65 +116,109 @@ public class JmlJson {
     public final static String prefix = "com.sun.tools.javac.tree.JCTree$";
     public final static String prefixjml = "org.jmlspecs.openjml.JmlTree$";
     public final static String suffix = "Adapter";
+    public final static String classTag = "@class";
+    public final static String idTag = "@id";
+    public final static String refTag = "@ref";
+    public final static String primitiveTag = "primitive";
+    
+    protected static final Context.Key<JmlJsonData> jsonKey = new Context.Key<>();
+
+    
+    
+    static class JmlJsonData {
+        public static JmlJsonData instance(Context context) {
+            JmlJsonData instance = context.get(jsonKey); 
+            if (instance == null) {
+                instance = new JmlJsonData(context);
+                context.put(jsonKey, instance);
+            }
+            return instance;
+        }
+
+        java.util.Map<Long,Integer> ids = new java.util.HashMap<>();
+        java.util.Map<String, JavaFileObject> fileObjects = new java.util.HashMap<>();
+        JavacFileManager filemanager;
+        JmlJsonData(Context context) {
+            filemanager = new JavacFileManager(context,false,null);
+        }
+        public JavaFileObject getJFO(String filepath) {
+            var jfo = fileObjects.get(filepath);
+            if (jfo == null) {
+                jfo = filemanager.getJavaFileObject(filepath);
+                fileObjects.put(filepath, jfo);
+            }
+            return jfo;
+        }
+    }
+
+    public JmlJsonData data;
 
     public JmlJson(Context context) {
         this.context = context;
         this.names = Names.instance(context);
         this.M = JmlTree.Maker.instance(context);
         this.log = Log.instance(context);
-        
-        // Register all the adapters
-        this.builder = new GsonBuilder();
-        builder.registerTypeAdapter(JmlToken.class, this.new JmlTokenAdapter());
-        builder.registerTypeAdapter(names.fromString("").getClass(), this.new NameAdapter());
-        builder.registerTypeAdapter(Type.class, this.new PTypeAdapter());
-        builder.registerTypeAdapter(TypeTag.class, this.new TypeTagAdapter());
-        builder.registerTypeAdapter(JCTree.Tag.class, this.new OpTagAdapter());
-        builder.registerTypeAdapter(JavaFileObject.class, this.new JavaFileObjectAdapter());
-        builder.registerTypeAdapter(new JavacFileManager(context,false,null).getJavaFileObject("Z").getClass(), this.new JavaFileObjectAdapter());
-        builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
-        builder.registerTypeAdapter(CaseTree.CaseKind.class, this.new CaseKindAdapter());
-        builder.registerTypeAdapter(JCTree.JCLambda.ParameterKind.class, this.new ParameterKindAdapter());
-        builder.registerTypeAdapter(org.jmlspecs.openjml.IJmlClauseKind.class, this.new IJmlClauseKindAdapter());
-        builder.registerTypeAdapter(org.jmlspecs.openjml.esc.Label.class, this.new LabelAdapter());
-        builder.registerTypeAdapter(MemberReferenceTree.ReferenceMode.class, this.new ReferenceModeAdapter());
-        builder.registerTypeAdapter(ModuleTree.ModuleKind.class, this.new ModuleKindAdapter());
-        
-        for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
-            if ((nestedClass.getModifiers() & Flags.ABSTRACT) != 0) continue;
-            var adapter = nestedClass.toString();
-            var astclass = adapter.substring(adapter.indexOf('$')+1, adapter.length()-suffix.length());
-            if (astclass.isEmpty()) continue;
-            try {
-                var cons = nestedClass.getDeclaredConstructors()[0];
-                var adap = cons.newInstance(this);
-                Class<?> cl = null;
+        this.data = JmlJsonData.instance(context);
+
+        { // Would prefer to construct the builder once in JmlJsonData, but to do that all the adapters must be moved
+            // to be members of JmlJsonData -- so a big refactoring step
+            
+            GsonBuilder builder = new GsonBuilder();
+            // Set the string output of Json construction to be pretty-printed and to allow null fields
+            builder.setPrettyPrinting().serializeNulls();
+            // Register all the adapters
+            builder.registerTypeAdapter(JmlToken.class, this.new JmlTokenAdapter());
+            builder.registerTypeAdapter(names.fromString("").getClass(), this.new NameAdapter());
+            builder.registerTypeAdapter(Name.class, this.new NameAdapter());
+            builder.registerTypeAdapter(Type.class, this.new PTypeAdapter());
+            builder.registerTypeAdapter(TypeTag.class, this.new TypeTagAdapter());
+            builder.registerTypeAdapter(JCTree.Tag.class, this.new OpTagAdapter());
+            builder.registerTypeAdapter(JavaFileObject.class, this.new JavaFileObjectAdapter());
+            builder.registerTypeAdapter(new JavacFileManager(context,false,null).getJavaFileObject("Z").getClass(), this.new JavaFileObjectAdapter());
+            builder.registerTypeAdapter(BoundKind.class, this.new BoundKindAdapter());
+            builder.registerTypeAdapter(CaseTree.CaseKind.class, this.new CaseKindAdapter());
+            builder.registerTypeAdapter(JCTree.JCLambda.ParameterKind.class, this.new ParameterKindAdapter());
+            builder.registerTypeAdapter(org.jmlspecs.openjml.IJmlClauseKind.class, this.new IJmlClauseKindAdapter());
+            builder.registerTypeAdapter(org.jmlspecs.openjml.esc.Label.class, this.new LabelAdapter());
+            builder.registerTypeAdapter(MemberReferenceTree.ReferenceMode.class, this.new ReferenceModeAdapter());
+            builder.registerTypeAdapter(ModuleTree.ModuleKind.class, this.new ModuleKindAdapter());
+            
+            for (Class<?> nestedClass : JmlJson.class.getDeclaredClasses()) {
+                if (!Adapter.class.isAssignableFrom(nestedClass)) continue;
+                if ((nestedClass.getModifiers() & Flags.ABSTRACT) != 0) continue;
+                var adapter = nestedClass.toString();
+                var astclass = adapter.substring(adapter.indexOf('$')+1, adapter.length()-suffix.length());
+                if (astclass.isEmpty()) continue;
                 try {
-                    cl = Class.forName(prefix + astclass);
-                } catch (ClassNotFoundException e) {
-                    // continue
+                    var cons = nestedClass.getDeclaredConstructors()[0];
+                    var adap = cons.newInstance(this);
+                    Class<?> cl = null;
+                    try {
+                        cl = Class.forName(prefix + astclass);
+                    } catch (ClassNotFoundException e) {
+                        // continue
+                    }
+                    if (cl == null) try {
+                        cl = Class.forName(prefixjml + astclass);
+                    } catch (ClassNotFoundException e) {
+                        // continue
+                    }
+                    if (cl == null) try {
+                        cl = Class.forName("com.sun.tools.javac.util." + astclass);
+                    } catch (ClassNotFoundException e) {
+                        // continue
+                    }
+                    if (cl != null) {
+                        builder.registerTypeAdapter(cl, adap);
+//                    } else {
+//                        System.out.println("No AST class found for adapter " + adapter);
+                    }
+                } catch (Exception e) {
+                    Log.instance(context).error("jml.internal","Exception attempting to find an AST class corresponding to adapter " + adapter + " : " + e);
                 }
-                if (cl == null) try {
-                    cl = Class.forName(prefixjml + astclass);
-                } catch (ClassNotFoundException e) {
-                    // continue
-                }
-                if (cl == null) try {
-                    cl = Class.forName("com.sun.tools.javac.util." + astclass);
-                } catch (ClassNotFoundException e) {
-                    // continue
-                }
-                if (cl != null) {
-                    builder.registerTypeAdapter(cl, adap);
-//                } else {
-//                    System.out.println("No AST class found for adapter " + adapter);
-                }
-            } catch (Exception e) {
-                log.error("jml.internal","Exception attempting to find an AST class corresponding to adapter " + adapter + " : " + e);
             }
+            this.gson = builder.create();
         }
-        // Set the string output of Json construction to be pretty-printed and to allow null fields
-        this.gson = builder.setPrettyPrinting().serializeNulls().create();
     }
     
     /** Serializes a class name in a way that is readily deserializable */
@@ -189,16 +232,38 @@ public class JmlJson {
     /** Creates JSON for a primitive type value, in a way that is self-deserializable*/
     private JsonObject primitive(Class<?> clazz, Object o) {
         var obj = new JsonObject();
-        obj.add("class", new JsonPrimitive(formatClass(clazz)));
-        obj.add("primitive", str(o));
+        obj.add(classTag, new JsonPrimitive(formatClass(clazz)));
+        if (Object.class.isAssignableFrom(clazz)) addId(obj, o);
+        obj.add(primitiveTag, str(o));
         return obj;
+    }
+    
+    public void clearIds() {
+        data.ids.clear();
+    }
+    
+    /** Returns true if a new id was created */
+    private boolean addId(JsonObject obj, Object o) {
+        long k = System.identityHashCode(o);
+        Integer id = data.ids.get(k);
+        boolean b = false;
+        if (id == null) { 
+            id = data.ids.size()+1;
+            data.ids.put(k, id);
+            obj.add(idTag, new JsonPrimitive(id.toString()));
+            b = true;
+        } else {
+            obj.add(refTag, new JsonPrimitive(id.toString()));
+        }
+        return b;
     }
     
     /** Creates an initial JsonObject, including the class of the object and, if a JCTree, its type and sourcefile, if relevant. */
     private JsonObject newgson(Object o, JsonSerializationContext context) {
         var clazz = o.getClass();
         var obj = new JsonObject();
-        obj.add("class", new JsonPrimitive(formatClass(clazz)));
+        obj.add(classTag, new JsonPrimitive(formatClass(clazz)));
+        if (o instanceof Object) addId(obj, o);
         if (includeTypeInfo && o instanceof JCExpression ex) {
             obj.add("type", str(ex.type)); // FIXME - proper encoding -- will also need symbols, break target etc.
         }
@@ -262,16 +327,16 @@ public class JmlJson {
         }
     }
 
-    /** Converts a JsonObject to an element of an OpenJML AST, using the JsonObject's "class" field 
+    /** Converts a JsonObject to an element of an OpenJML AST, using the JsonObject's "@class" field 
      * as the type of the target object.
      */
     Object fromJsonObject(JsonObject json) {
-        String s = json.get("class").getAsJsonPrimitive().getAsString();
+        String s = json.get(classTag).getAsJsonPrimitive().getAsString();
         try {
             Class<?> cl = Class.forName(s);
             return gson.fromJson((JsonElement)json,cl);
         } catch (Exception e) {
-            var p = json.get("primitive");
+            var p = json.get(primitiveTag);
             if ("long".equals(s)) {
                 return p.getAsJsonPrimitive().getAsLong();
             } else if ("int".equals(s)) {
@@ -324,6 +389,13 @@ public class JmlJson {
                 }
             }
             return values;
+        }
+        
+        public void common(JsonElement json, JCTree tree, JsonDeserializationContext context) {
+            if (tree instanceof JmlSource ast) {
+                JavaFileObject jfo = (JavaFileObject)fromJsonElement(json.getAsJsonObject().get("sourcefile"));
+                ast.setSource(jfo);
+            }
         }
         
          /** Default serializing routine for all values of JCTree subclasses */
@@ -380,6 +452,7 @@ public class JmlJson {
             var result = M.AnnotatedType(
                     JmlJson.<JCAnnotation>toList(values[0]),
                     (JCExpression)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -396,6 +469,7 @@ public class JmlJson {
                     );
             result.token = (JmlToken)values[1];
             result.kind = (IJmlClauseKind.ModifierKind)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -407,6 +481,7 @@ public class JmlJson {
                 throws JsonParseException {
             //var values = getFieldValues(json.getAsJsonObject());
             var result = M.AnyPattern();
+            common(json, result, context);
             return result;
         }
     }
@@ -420,6 +495,7 @@ public class JmlJson {
                     (JCExpression)values[0], 
                     (JCExpression)values[1]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -433,6 +509,7 @@ public class JmlJson {
             var result = M.TypeArray(
                     (JCExpression)values[0]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -447,6 +524,7 @@ public class JmlJson {
                     (JCExpression)values[0], 
                     (JCExpression)values[1]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -461,6 +539,7 @@ public class JmlJson {
                     (JCExpression)values[0], 
                     (JCExpression)values[1]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -472,6 +551,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Assignop((JCTree.Tag)values[1], (JCExpression)values[0], (JCExpression)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -485,6 +565,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Binary((JCTree.Tag)values[1], (JCExpression)values[0], (JCExpression)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -496,6 +577,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlBinary((org.jmlspecs.openjml.ext.Operators.Operator)values[1], (JCExpression)values[0], (JCExpression)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -509,6 +591,7 @@ public class JmlJson {
             var result = M.BindingPattern(
                     (JCVariableDecl)values[0]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -523,6 +606,7 @@ public class JmlJson {
                     (long)values[0], 
                     JmlJson.<JCStatement>toList(values[1])
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -534,6 +618,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Break((Name)values[0]);
+            common(json, result, context);
             return result;
         }
      }
@@ -551,6 +636,7 @@ public class JmlJson {
                     JmlJson.<JCStatement>toList(values[3]),
                     (JCTree)values[4]
                     );
+            common(json, result, context);
             return result;
         }
      }
@@ -564,6 +650,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Catch((JCVariableDecl)values[0],(JCBlock)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -573,6 +660,41 @@ public class JmlJson {
         // FIXME - perhaps we want to customize this so that
         // a) serializing does not duplicate expressions
         // b) deserialization unifies references
+        @Override
+        public JsonElement serialize(JmlChained src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            boolean flatChains = false;
+            if (flatChains) {
+                var obj = newgson(src, context);
+//                obj.add("lhs", src.conjuncts.get(0).lhs);
+//                for (JCBinary e: src.conjuncts) {
+//                    var objj = newgson(e, context);
+//                    objj.add("opcode", context.serialize(e.opcode));
+//                    objj.add("rhs", context.serialize(e.rhs));
+//                    // FIXME
+//                }
+//                obj.add("rhss", objj);
+//                common(json, obj, context);
+                return obj;
+            } else {
+                return super.serialize(src, type, context);
+            }
+        }
+        @Override
+        public JmlChained deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            boolean flatChains = false;
+            if (false) {
+                // FIXME
+                return null;
+            } else {
+                var values = getFieldValues(json.getAsJsonObject());
+                var result = M.JmlChained(JmlJson.<JCBinary>toList(values[0]));
+                common(json, result, context);
+                return result;
+                
+            }
+        }
+
     }
     
     class JmlChooseAdapter extends Adapter<JmlChoose> {
@@ -582,6 +704,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlChoose((String)values[0],(IJmlClauseKind)values[1],JmlJson.<JCBlock>toList(values[2]),(JCBlock)values[3]);
+            common(json, result, context);
             return result;
         }
     }
@@ -592,7 +715,7 @@ public class JmlJson {
         public JmlClassDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            JCClassDecl result = M.ClassDef(
+            var result = M.ClassDef(
                     (JCModifiers)values[0], 
                     (Name)values[1], 
                     JmlJson.<JCTypeParameter>toList(values[2]),
@@ -601,7 +724,8 @@ public class JmlJson {
                     JmlJson.<JCTree>toList(values[6])
                     );
             result.permitting = JmlJson.<JCExpression>toList(values[5]);
-            return (JmlClassDecl)result;
+            common(json, result, context);
+            return result;
         }
     }
 
@@ -613,6 +737,7 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             JmlCompilationUnit result = M.TopLevel(JmlJson.<JCTree>toList(values[1]));
             result.pid = (JCPackageDecl)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -624,6 +749,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Conditional((JCExpression)values[0],(JCExpression)values[1],(JCExpression)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -635,6 +761,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.ConstantCaseLabel((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -646,6 +773,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Continue((Name)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -657,6 +785,7 @@ public class JmlJson {
                 throws JsonParseException {
             //var values = getFieldValues(json.getAsJsonObject());
             var result = M.DefaultCaseLabel();
+            common(json, result, context);
             return result;
         }
     }
@@ -672,6 +801,7 @@ public class JmlJson {
             var loop = M.DoLoop((JCBlock)values[2], (JCExpression)values[3]);
             var result = M.JmlDoWhileLoop(loop, JmlJson.<JmlStatementLoop>toList(values[0]));
             result.split = (boolean)values[1];
+            common(json, result, context);
             return result;
         }
     }
@@ -685,6 +815,7 @@ public class JmlJson {
             var loop = M.ForeachLoop((JCVariableDecl)values[2], (JCExpression)values[3], (JCBlock)values[4]);
             var result = M.JmlEnhancedForLoop(loop, JmlJson.<JmlStatementLoop>toList(values[0]));
             result.split = (boolean)values[1];
+            common(json, result, context);
             return result;
         }
     }
@@ -696,6 +827,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Erroneous(JmlJson.<JCTree>toList(values[0])); // FIXME - this needs testing
+            common(json, result, context);
             return result;
         }
     }
@@ -710,6 +842,7 @@ public class JmlJson {
                     (JCExpression)values[0],
                     JmlJson.<JCExpression>toList(values[1])
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -723,6 +856,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Exec((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -734,6 +868,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Select((JCExpression)values[0], (Name)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -747,6 +882,7 @@ public class JmlJson {
             var loop = M.ForLoop(JmlJson.<JCStatement>toList(values[2]), (JCExpression)values[3], JmlJson.<JCExpressionStatement>toList(values[4]), (JCBlock)values[5]);
             var result = M.JmlForLoop(loop, JmlJson.<JmlStatementLoop>toList(values[0]));
             result.split = (boolean)values[1];
+            common(json, result, context);
             return result;
         }
     }
@@ -760,6 +896,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlGroupName((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -771,6 +908,7 @@ public class JmlJson {
                 throws JsonParseException {
             var name = fromJsonElement(json.getAsJsonObject().get("name"));
             var result = M.Ident((Name)name);
+            common(json, result, context);
             return result;
         }
     }
@@ -782,6 +920,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.If((JCExpression)values[0], (JCStatement)values[1], (JCStatement)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -793,7 +932,8 @@ public class JmlJson {
         public JmlImport deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            JmlImport result = M.JmlImport((JCFieldAccess)values[0], (boolean)values[1], (boolean)values[2]);
+            var result = M.JmlImport((JCFieldAccess)values[0], (boolean)values[1], (boolean)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -806,6 +946,7 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlInlinedLoop(JmlJson.<JmlStatementLoop>toList(values[1]));
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -817,6 +958,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.TypeTest((JCExpression)values[0], (JCExpression)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -828,6 +970,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Labelled((Name)values[0], (JCStatement)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -844,6 +987,7 @@ public class JmlJson {
                     (JCExpression)values[2]
                     );
             result.paramKind = (JCLambda.ParameterKind)values[3];
+            common(json, result, context);
             return result;
         }
     }
@@ -855,6 +999,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlLblExpression((int)values[3], (IJmlClauseKind)values[0], (Name)values[1], (JCExpression)values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -867,6 +1012,7 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             var result = (JmlLetExpr)M.LetExpr(JmlJson.<JCStatement>toList(values[0]), (JCExpression)values[1]);
             result.explicit = (boolean)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -915,7 +1061,8 @@ public class JmlJson {
                 log.error("jml.message","Unexpected TypeTag in deserializing JCLiteral: " + typetag + " " + pr);
                 return M.Literal(TypeTag.BOT, null);
             }
-            JCLiteral result = M.Literal(typetag, v);
+            var result = M.Literal(typetag, v);
+            common(json, result, context);
             return result;
         }
     }
@@ -934,6 +1081,7 @@ public class JmlJson {
                     (JCExpression)values[2],
                     JmlJson.<JCExpression>toList(values[3])
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -950,6 +1098,7 @@ public class JmlJson {
             result.name = (Name)values[0];
             result.keyword = (String)values[1];
             result.clauseKind = (IJmlClauseKind)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -967,6 +1116,7 @@ public class JmlJson {
             result.keyword = (String)values[1];
             result.clauseKind = (IJmlClauseKind)values[2];
             result.singleton = (JmlSingleton)values[3];
+            common(json, result, context);
             return result;
         }
     }
@@ -984,6 +1134,7 @@ public class JmlJson {
                     (JCExpression)values[4]  // predicate
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1000,6 +1151,7 @@ public class JmlJson {
                     JmlJson.<JCVariableDecl>toList(values[3]) // decls
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1017,6 +1169,7 @@ public class JmlJson {
                     );
             result.name = (Name)values[0];
             result.exception = (JCExpression)values[4];
+            common(json, result, context);
             return result;
         }
     }
@@ -1030,6 +1183,7 @@ public class JmlJson {
             var result = M.JmlMethodClauseGroup(
                     JmlJson.<JmlSpecificationCase>toList(values[0]) // cases
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1049,6 +1203,7 @@ public class JmlJson {
                     (JCExpression)values[4] // predicate
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1065,6 +1220,7 @@ public class JmlJson {
                     JmlJson.<JCExpression>toList(values[3]) // exceptions
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1081,6 +1237,7 @@ public class JmlJson {
                     JmlJson.<JCExpression>toList(values[3]) // exceptions
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1103,6 +1260,7 @@ public class JmlJson {
                     (JCExpression)values[9] // defaultValue
                     );
             result.methodSpecs = (JmlMethodSpecs)values[7];
+            common(json, result, context);
             return result;
         }
     }
@@ -1114,6 +1272,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Apply(JmlJson.<JCExpression>toList(values[0]), (JCExpression)values[1], JmlJson.<JCExpression>toList(values[2]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1131,6 +1290,7 @@ public class JmlJson {
             result.typeargs = null;
             result.meth = null;
             result.name = null; // FIXME 
+            common(json, result, context);
             return result;
         }
     }
@@ -1142,6 +1302,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlMethodSig((JCExpression)values[0], JmlJson.<JCExpression>toList(values[1]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1156,6 +1317,7 @@ public class JmlJson {
             result.behaviors = JmlJson.<JmlMethodClauseBehaviors>toList(values[1]);
             result.impliesThatCases = JmlJson.<JmlSpecificationCase>toList(values[2]);
             result.forExampleCases = JmlJson.<JmlSpecificationCase>toList(values[3]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1174,6 +1336,7 @@ public class JmlJson {
                     JmlJson.<JCAnnotation>toList(values[0])
                     );
             result.jmlmods = JmlJson.<JmlToken>toList(values[2]);
+            common(json, result, context);
             return result;
         }
 
@@ -1200,6 +1363,7 @@ public class JmlJson {
                     (ModuleTree.ModuleKind)values[1],
                     (JCExpression)values[2],
                     JmlJson.<JCDirective>toList(values[3]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1216,6 +1380,7 @@ public class JmlJson {
                     JmlJson.<JCExpression>toList(values[3]));
             result.annotations = JmlJson.<JCAnnotation>toList(values[0]);
             // result.dimAnnotations = JmlJson.<List<JCAnnotation>>toList(values[1]); // FIXME - this needs implementation
+            common(json, result, context);
             return result;
         }
     }
@@ -1232,6 +1397,7 @@ public class JmlJson {
                     (JCExpression)values[2],
                     JmlJson.<JCExpression>toList(values[3]),
                     (JCClassDecl)values[4]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1246,6 +1412,7 @@ public class JmlJson {
                     (JCExpression)values[0],
                     JmlJson.<JCExpression>toList(values[1])
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1259,6 +1426,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.PackageDecl(JmlJson.<JCAnnotation>toList(values[0]), (JCExpression)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1269,6 +1437,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Parens((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1281,6 +1450,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.PatternCaseLabel((JCPattern)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1294,6 +1464,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.TypeIdent((TypeTag)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1307,6 +1478,7 @@ public class JmlJson {
             var result = (JmlPrimitiveTypeTree)M.TypeIdent((TypeTag)values[0]); // FIXME - needs fixing
             result.jmlclausekind = (IJmlClauseKind)values[1];
             result.typeName = (Name)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -1321,6 +1493,7 @@ public class JmlJson {
                     (JCExpression)values[0],
                     JmlJson.<JCExpression>toList(values[1])
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1339,6 +1512,7 @@ public class JmlJson {
                     );
             result.triggers = JmlJson.<JCExpression>toList(values[4]);
             result.failure = (JCStatement)values[5];
+            common(json, result, context);
             return result;
         }
     }
@@ -1354,6 +1528,7 @@ public class JmlJson {
                     (JCExpression)values[1]
                     );
             result.hiExclusive = (boolean)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -1367,6 +1542,7 @@ public class JmlJson {
             var result = M.RecordPattern(
                     (JCExpression)values[0],
                     JmlJson.<JCPattern>toList(values[1]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1382,6 +1558,7 @@ public class JmlJson {
                     (boolean)values[1],
                     (JCExpression)values[2]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1393,6 +1570,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Return((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1408,6 +1586,7 @@ public class JmlJson {
                     (JCVariableDecl)values[1],
                     (JCExpression)values[2]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1419,6 +1598,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlSingleton((IJmlClauseKind)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1428,7 +1608,9 @@ public class JmlJson {
         @Override
         public JCSkip deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            return M.Skip();
+            var result = M.Skip();
+            common(json, result, context);
+            return result;
         }
     }
 
@@ -1446,6 +1628,7 @@ public class JmlJson {
                     JmlJson.<JmlMethodClause>toList(values[5]), // clauses
                     (JCBlock)null     // block
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1464,6 +1647,7 @@ public class JmlJson {
                     );
             result.name = (Name)values[0];
             result.keyword = (String)values[1];
+            common(json, result, context);
             return result;
         }
     }
@@ -1478,6 +1662,7 @@ public class JmlJson {
                     JmlJson.<JCStatement>toList(values[1]) // clauses
                     );
             result.token = (IJmlClauseKind.ModifierKind)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1495,6 +1680,7 @@ public class JmlJson {
                     (JCExpression)values[3]
                     );
             result.optionalExpression = (JCExpression)values[4];
+            common(json, result, context);
             return result;
         }
     }
@@ -1529,6 +1715,7 @@ public class JmlJson {
                     (JCExpression)values[2]
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1544,6 +1731,7 @@ public class JmlJson {
                     JmlJson.<JCExpression>toList(values[2])
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1559,6 +1747,7 @@ public class JmlJson {
                     JmlJson.<JCExpression>toList(values[2])
                     );
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1573,6 +1762,7 @@ public class JmlJson {
                     (JmlMethodSpecs)values[0]
                     );
             result.statements = JmlJson.<JCStatement>toList(values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1582,20 +1772,22 @@ public class JmlJson {
     // TODO: JmlStoreRefKeyword
     // TODO: JmlStoreRefListExpression
     
-    class JCStringTemplateAdapter extends Adapter<JCStringTemplate> {
-        public static final String[] fields = { "processor", "fragments", "expressions" };
-        @Override
-        public JCStringTemplate deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var values = getFieldValues(json.getAsJsonObject());
-            var result = M.StringTemplate(
-                    (JCExpression)values[0],
-                    JmlJson.<String>toList(values[1]),
-                    JmlJson.<JCExpression>toList(values[2])
-                    );
-            return result;
-        }
-    }
+// Java String templates are a preview feature in Java V21 that is removed in Java 23ff for future redesign.
+//    class JCStringTemplateAdapter extends Adapter<JCStringTemplate> {
+//        public static final String[] fields = { "processor", "fragments", "expressions" };
+//        @Override
+//        public JCStringTemplate deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+//                throws JsonParseException {
+//            var values = getFieldValues(json.getAsJsonObject());
+//            var result = M.StringTemplate(
+//                    (JCExpression)values[0],
+//                    JmlJson.<String>toList(values[1]),
+//                    JmlJson.<JCExpression>toList(values[2])
+//                    );
+//            common(json, result, context);
+//            return result;
+//        }
+//    }
     
     class JCSwitchExpressionAdapter extends Adapter<JCSwitchExpression> {
         public static final String[] fields = { "selector", "cases" }; // FIXME - polyKind? split?
@@ -1608,6 +1800,7 @@ public class JmlJson {
                     (JCExpression)values[0],
                     JmlJson.<JCCase>toList(values[1])
                     );
+            common(json, result, context);
             return result;
         }
      }
@@ -1624,6 +1817,7 @@ public class JmlJson {
                      JmlJson.<JCCase>toList(values[1])
                      );
              result.split = (boolean)values[2];
+             common(json, result, context);
              return result;
          }
      }
@@ -1635,6 +1829,7 @@ public class JmlJson {
                  throws JsonParseException {
              var values = getFieldValues(json.getAsJsonObject());
              var result = M.Synchronized((JCExpression)values[0], (JCBlock)values[1]);
+             common(json, result, context);
              return result;
          }
      }
@@ -1646,6 +1841,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Throw((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1662,6 +1858,7 @@ public class JmlJson {
                     JmlJson.<JCCatch>toList(values[2]),
                     (JCBlock)values[3]
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1675,6 +1872,7 @@ public class JmlJson {
             var result = M.JmlTuple(
                     JmlJson.<JCExpression>toList(values[0])
                     );
+            common(json, result, context);
             return result;
         }
     }
@@ -1685,6 +1883,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.TypeApply((JCExpression)values[0], JmlJson.<JCExpression>toList(values[1]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1696,6 +1895,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.TypeCast((JCTree)values[0], (JCExpression)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1714,6 +1914,7 @@ public class JmlJson {
                     );
             result.name = (Name)values[0];
             result.keyword = (String)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -1733,6 +1934,7 @@ public class JmlJson {
             result.keyword = (String)values[1];
             result.clauseType = (IJmlClauseKind)values[2];
             result.notlist = (boolean)values[6];
+            common(json, result, context);
             return result;
         }
     }
@@ -1748,6 +1950,7 @@ public class JmlJson {
             result.modifiers = (JCModifiers)values[1];
             result.keyword = (String)values[2];
             result.clauseType = (IJmlClauseKind)values[3];
+            common(json, result, context);
             return result;
         }
     }
@@ -1764,6 +1967,7 @@ public class JmlJson {
                     (IJmlClauseKind)values[3], 
                     (JCExpression)values[4]);
             result.name = (Name)values[0];
+            common(json, result, context);
             return result;
         }
     }
@@ -1780,6 +1984,7 @@ public class JmlJson {
             result.modifiers = (JCModifiers)values[1];
             result.keyword = (String)values[2];
             result.clauseType = (IJmlClauseKind)values[3];
+            common(json, result, context);
             return result;
         }
     }
@@ -1797,6 +2002,7 @@ public class JmlJson {
             result.name = (Name)values[0];
             result.keyword = (String)values[2];
             result.specs = (JmlMethodSpecs)values[4];
+            common(json, result, context);
             return result;
         }
     }
@@ -1815,6 +2021,7 @@ public class JmlJson {
             result.modifiers = (JCModifiers)values[1];
             result.keyword = (String)values[2];
             result.clauseType = (IJmlClauseKind)values[3];
+            common(json, result, context);
             return result;
         }
     }
@@ -1833,6 +2040,7 @@ public class JmlJson {
             result.name = (Name)values[0];
             result.keyword = (String)values[2];
             result.clauseType = (IJmlClauseKind)values[3];
+            common(json, result, context);
             return result;
         }
     }
@@ -1851,6 +2059,7 @@ public class JmlJson {
                     );
             result.name = (Name)values[0];
             result.keyword = (String)values[2];
+            common(json, result, context);
             return result;
         }
     }
@@ -1863,6 +2072,7 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             @SuppressWarnings("unchecked")
             var result = M.TypeIntersection(JmlJson.<JCExpression>toList(values[0]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1876,6 +2086,7 @@ public class JmlJson {
             @SuppressWarnings("unchecked")
             var result = M.TypeParameter((Name)values[0], JmlJson.<JCExpression>toList(values[1]));
             result.annotations = JmlJson.<JCAnnotation>toList(values[2]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1888,6 +2099,7 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             @SuppressWarnings("unchecked")
             var result = M.TypeUnion(JmlJson.<JCExpression>toList(values[0]));
+            common(json, result, context);
             return result;
         }
     }
@@ -1899,6 +2111,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Unary((JCTree.Tag)values[0], (JCExpression)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1910,6 +2123,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Uses((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1922,6 +2136,7 @@ public class JmlJson {
             var values = getFieldValues(json.getAsJsonObject());
             @SuppressWarnings("unchecked")
             var result = (JmlVariableDecl)M.VarDef((JCModifiers)values[0], (Name)values[1], (JCExpression)values[2], (JCExpression)values[3]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1935,6 +2150,7 @@ public class JmlJson {
             @SuppressWarnings("unchecked")
             var result = M.JmlWhileLoop(loop, JmlJson.<JmlStatementLoop>toList(values[0]));
             result.split = (boolean)values[1];
+            common(json, result, context);
             return result;
         }
     }
@@ -1946,6 +2162,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Wildcard((TypeBoundKind)values[0], (JCTree)values[1]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1957,6 +2174,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.Yield((JCExpression)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1970,6 +2188,7 @@ public class JmlJson {
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.TypeBoundKind((BoundKind)values[0]);
+            common(json, result, context);
             return result;
         }
     }
@@ -1985,7 +2204,7 @@ public class JmlJson {
         @Override
         public T deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var value = Enum.<T>valueOf(clazz(), str);
@@ -2002,7 +2221,7 @@ public class JmlJson {
         @Override
         public Name deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             Name n = names.fromString(str);
@@ -2018,7 +2237,7 @@ public class JmlJson {
         @Override
         public org.jmlspecs.openjml.esc.Label deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var n = org.jmlspecs.openjml.esc.Label.find(str);
@@ -2035,7 +2254,7 @@ public class JmlJson {
         @Override
         public JmlToken deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var kind = Extensions.findKeyword(str);
@@ -2082,12 +2301,10 @@ public class JmlJson {
         @Override
         public JavaFileObject deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
-            System.out.println("DESERIALIZING " + json + " " + typeOfT + " " + str);
-            // FIXME - how to deserialize a JavaFileObject
-            var jfo = new JavacFileManager(JmlJson.this.context,false,null).getJavaFileObject(str);
+            var jfo = data.getJFO(str);
             return jfo;
         }
     }
@@ -2109,7 +2326,7 @@ public class JmlJson {
         @Override
         public IJmlClauseKind deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             return Extensions.findKeyword(str);

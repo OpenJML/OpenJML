@@ -2146,7 +2146,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			JmlStatementExpr st = treeutils.makeAssert(codepos, label,
 					treeutils.makeIdent(translatedExpr.pos, assertDecl.sym));
-			st.source = primarySource;
+			st.sourcefile = primarySource;
 			st.associatedPos = associatedPos == null ? Position.NOPOS : associatedPos.getPreferredPosition();
 			st.associatedSource = associatedSource;
 			st.optionalExpression = info;
@@ -2176,7 +2176,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements.add(st);
 			if (associatedPos == null && nestedCallLocation != null) {
 				st.associatedPos = nestedCallLocation.pos;
-				st.associatedSource = st.source; // FIXME _ this is wrong - noty necessarily the same file
+				st.associatedSource = st.sourcefile; // FIXME _ this is wrong - noty necessarily the same file
 			}
 			return st;
 		}
@@ -2344,7 +2344,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements = list;
 			JmlStatementExpr a = addAssert(item, Label.FEASIBILITY_CHECK, bin);
 			a.description = description;
-			a.source = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource) item).source() : null;
+			a.sourcefile = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource) item).source() : null;
 			a.associatedPos = feasibilityCheckCount;
 			descs.add(a);
 			currentStatements = prev;
@@ -2436,7 +2436,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JmlStatementExpr stt = null;
 		if ((infer || esc)) {
 			JmlStatementExpr st = treeutils.makeAssume(pos, label, translatedExpr);
-			st.source = log.currentSourceFile();
+			st.sourcefile = log.currentSourceFile();
 			st.associatedPos = associatedPosition == null ? Position.NOPOS : associatedPosition.getPreferredPosition();
 			st.associatedSource = associatedSource;
 			st.optionalExpression = info;
@@ -3132,10 +3132,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										                      : treeutils.invMethodCall(currentEnv.currentReceiver, cl);
 		                                addStat(comment(pos, (assume?"Assume":"Assert") + " invariant " + e, null));
 										if (assume)
-											addAssume(pos, invariantLabel, e, cpos, clause.source,
+											addAssume(pos, invariantLabel, e, cpos, clause.sourcefile,
 													invariantDescription);
 										else
-											addAssert(pos, invariantLabel, e, cpos, clause.source,
+											addAssert(pos, invariantLabel, e, cpos, clause.sourcefile,
 													invariantDescription);
 									} catch (NoModelMethod e) {
 										// log.error(clause.pos, "jml.message", e.getMessage());
@@ -3254,7 +3254,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JmlTypeClause t : specs.getAttrSpecs((ClassSymbol) expr.type.tsym).clauses) {
 				if (t.clauseType != invariantClause)
 					continue;
-				JavaFileObject prev = log.useSource(t.source);
+				JavaFileObject prev = log.useSource(t.sourcefile);
 				try {
 					JCExpression e = convertJML(copy((JmlTypeClauseExpr) t).expression); // FIXME - why copy the
 																								// caluse
@@ -3336,7 +3336,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 				if (!assume && (t.modifiers.flags & Flags.FINAL) != 0)
 					continue;
-				JavaFileObject prev = log.useSource(t.source);
+				JavaFileObject prev = log.useSource(t.sourcefile);
 				try {
 					JCExpression e = convertJML(copy((JmlTypeClauseExpr) t).expression); // FIXME - really need
 																								// the convertCopy?
@@ -3483,9 +3483,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										addTraceableComment(tt.expression, clause.toString());
 										JCExpression e = convertJML(tt.expression);
 										if (assume)
-											addAssume(pos, Label.CONSTRAINT, e, cpos, clause.source);
+											addAssume(pos, Label.CONSTRAINT, e, cpos, clause.sourcefile);
 										else
-											addAssert(pos, Label.CONSTRAINT, e, cpos, clause.source);
+											addAssert(pos, Label.CONSTRAINT, e, cpos, clause.sourcefile);
 									} finally {
 										addStat(popBlock(clause, ch));
 									}
@@ -3500,9 +3500,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                 ? convertJML(t.expression)
                                                 : treeutils.invMethodCall(currentEnv.currentReceiver, t);
                                         if (assume)
-                                            addAssume(pos, Label.INITIALLY, e, cpos, clause.source);
+                                            addAssume(pos, Label.INITIALLY, e, cpos, clause.sourcefile);
                                         else
-                                            addAssert(pos, Label.INITIALLY, e, cpos, clause.source);
+                                            addAssert(pos, Label.INITIALLY, e, cpos, clause.sourcefile);
 									} finally {
 										addStat(popBlock(cpos, ch));
 									}
@@ -3575,7 +3575,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								addStat(comment(clause));
 								JmlTypeClauseExpr t = (JmlTypeClauseExpr) clause;
 								JCExpression e = convertJML(t.expression);
-								addAssume(pos, Label.AXIOM, e, cpos, clause.source);
+								addAssume(pos, Label.AXIOM, e, cpos, clause.sourcefile);
 							}
 						}
 					} catch (NoModelMethod e) {
@@ -4126,7 +4126,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							addStat(comment(clause));
 							JmlTypeClauseExpr t = (JmlTypeClauseExpr) clause;
 							JCExpression e = convertJML(t.expression);
-							addAssume(cpos, Label.AXIOM, e, cpos, clause.source);
+							addAssume(cpos, Label.AXIOM, e, cpos, clause.sourcefile);
 						}
 					}
 				} catch (NoModelMethod e) {
@@ -4210,7 +4210,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression lit = treeutils.makeLit(p, convertedfa.type, value);
 			JCExpression eq = treeutils.makeEquality(p, convertedfa, lit);
 			st = treeutils.makeAssume(pos, Label.IMPLICIT_ASSUME, eq);
-			st.source = log.currentSourceFile(); // FIXME - or the source file where it is declared?
+			st.sourcefile = log.currentSourceFile(); // FIXME - or the source file where it is declared?
 			st.associatedPos = p;
 			st.associatedSource = null;
 			st.optionalExpression = null;
@@ -4248,7 +4248,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression eq = treeutils.makeEquality(init.getPreferredPosition(), lenexpr, len);
 						// FIXME - could add information about nexted dimensions and about elements
 						st = treeutils.makeAssume(init, Label.IMPLICIT_ASSUME, eq);
-						st.source = log.currentSourceFile(); // FIXME - or the source file where it is declared?
+						st.sourcefile = log.currentSourceFile(); // FIXME - or the source file where it is declared?
 						st.associatedPos = p;
 						st.associatedSource = null;
 						st.optionalExpression = null;
@@ -8164,9 +8164,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} finally {
 			log.useSource(previousSource);
 		}
-		javax.tools.JavaFileObject jfo = pos.source();
+		var jfo = pos.source();
 		for (var ls : locsets) {
-			((JmlStoreRef) ls).source = jfo;
+			((JmlStoreRef) ls).sourcefile = jfo;
 			ls.type = locsetType;
 		}
 		JCExpression e = treeutils.makeLocsetUnion(pos.pos(), locsets.toList());
@@ -19261,7 +19261,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 				if (obj == null && !hasStatic(clause.modifiers))
 					continue;
-				JavaFileObject prevSource = log.useSource(clause.source);
+				JavaFileObject prevSource = log.useSource(clause.sourcefile);
 				try {
 					JCExpression e = convertJML(((JmlTypeClauseExpr) clause).expression);
 					result = result == null ? e : treeutils.makeAnd(pos, result, e);
@@ -20379,7 +20379,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					st.associatedPos = that.associatedPos;
 					st.optionalExpression = fullTranslation ? convertExpr(that.optionalExpression)
 							: that.optionalExpression;
-					st.source = that.source;
+					st.sourcefile = that.sourcefile;
 					result = addStat(st);
 				}
 
@@ -20712,7 +20712,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (that.receiver != null) {
 			    var rcv = convertExpr(that.receiver);
 				JCExpression exx = treeutils.makeNotNull(that.receiver, rcv);
-				var prevv = log.useSource(that.source);
+				var prevv = log.useSource(that.sourcefile);
 				addAssert(that, Label.UNDEFINED_NULL_DEREFERENCE, exx);
 				log.useSource(prevv);
 				that.receiver = rcv;
@@ -20725,7 +20725,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					lhs = addConversion(lhs, rhs.type, lhs, true, false);
 					JCExpression ex = treeutils.makeBinary(that.pos, JCTree.Tag.LE, lhs, rhs);
 					ex = convertExpr(ex);
-					var prev = log.useSource(that.source);
+					var prev = log.useSource(that.sourcefile);
 					addAssert(that.range.lo, Label.UNDEFINED_NEGATIVEINDEX, ex);
 					log.useSource(prev);
 				}
@@ -20734,7 +20734,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					var rhs = treeutils.makeLength(that.range.hi.pos(), that.receiver);
 					JCExpression ex = treeutils.makeBinary(that.range.pos(), JCTree.Tag.LT, lhs, rhs);
 					ex = convertExpr(ex);
-					var prev = log.useSource(that.source);
+					var prev = log.useSource(that.sourcefile);
 					addAssert(that.range.hi, Label.UNDEFINED_TOOLARGEINDEX, ex);
 					log.useSource(prev);
 				}
@@ -20761,7 +20761,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression expr = convertExpr(that.expression);
             JmlTypeClauseConstraint cl = M.at(that).JmlTypeClauseConstraint(mods, expr, convert(that.sigs));
             cl.setType(that.type);
-            cl.source = that.source;
+            cl.sourcefile = that.sourcefile;
             cl.clauseType = that.clauseType;
             cl.notlist = that.notlist;
             classDefs.add(cl);
@@ -20791,7 +20791,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression expr = convertJML(that.expression);
 			JmlTypeClauseExpr cl = M.at(that).JmlTypeClauseExpr(mods, that.keyword, that.clauseType, expr);
 			cl.setType(that.type);
-			cl.source = that.source;
+	        cl.sourcefile = that.sourcefile;
 			// if (!rac) classDefs.add(cl);// FIXME - should we have this at all?
 			result = cl;
 		} catch (JmlNotImplementedException e) {
@@ -20811,7 +20811,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JmlTypeClauseIn cl = M.at(that).JmlTypeClauseIn(convert(that.list));
 		cl.modifiers = mods;
 		cl.setType(that.type);
-		cl.source = that.source;
+        cl.sourcefile = that.sourcefile;
 		cl.clauseType = that.clauseType;
 		cl.parentVar = that.parentVar; // FIXME - need to map declaration
 		classDefs.add(cl);
@@ -20825,7 +20825,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JmlTypeClauseInitializer cl = M.at(that).JmlTypeClauseInitializer(that.clauseType, mods);
 		cl.specs = convert(that.specs);
 		cl.setType(that.type);
-		cl.source = that.source;
+		cl.sourcefile = that.sourcefile;
 		classDefs.add(cl);
 		result = cl;
 	}
@@ -20851,7 +20851,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JmlTypeClauseMaps cl = M.at(that).JmlTypeClauseMaps(exprs.toList(), convert(that.list));
 		cl.modifiers = mods;
 		cl.setType(that.type);
-		cl.source = that.source;
+		cl.sourcefile = that.sourcefile;
 		cl.clauseType = that.clauseType;
 		classDefs.add(cl);
 		result = cl;
@@ -20864,7 +20864,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCIdent id = treeutils.makeIdent(that.identifier.pos, that.identifier.sym);
 		JmlTypeClauseMonitorsFor cl = M.at(that).JmlTypeClauseMonitorsFor(mods, id, convert(that.list));
 		cl.setType(that.type);
-		cl.source = that.source;
+		cl.sourcefile = that.sourcefile;
 		cl.clauseType = that.clauseType;
 		classDefs.add(cl);
 		result = cl;
@@ -20977,7 +20977,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
 				tcd.modifiers = msdecl.mods;
 				tcd.pos = msdecl.pos;
-				tcd.source = that.source();
+				tcd.sourcefile = that.source();
 				tcd.modifiers = msdecl.mods; // FIXME - is this necesssary
 				typeSpecs.modelFieldMethods.append(tcd);
 //                typeSpecs.decls.append(tcd);
