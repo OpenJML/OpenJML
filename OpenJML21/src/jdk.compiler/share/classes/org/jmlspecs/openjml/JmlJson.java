@@ -227,7 +227,7 @@ public class JmlJson {
     /** Creates JSON for a primitive type value, in a way that is self-deserializable*/
     private JsonObject primitive(Class<?> clazz, Object o) {
         var obj = new JsonObject();
-        obj.add("class", new JsonPrimitive(formatClass(clazz)));
+        obj.add("@class", new JsonPrimitive(formatClass(clazz)));
         obj.add("primitive", str(o));
         return obj;
     }
@@ -236,7 +236,7 @@ public class JmlJson {
     private JsonObject newgson(Object o, JsonSerializationContext context) {
         var clazz = o.getClass();
         var obj = new JsonObject();
-        obj.add("class", new JsonPrimitive(formatClass(clazz)));
+        obj.add("@class", new JsonPrimitive(formatClass(clazz)));
         if (includeTypeInfo && o instanceof JCExpression ex) {
             obj.add("type", str(ex.type)); // FIXME - proper encoding -- will also need symbols, break target etc.
         }
@@ -300,11 +300,11 @@ public class JmlJson {
         }
     }
 
-    /** Converts a JsonObject to an element of an OpenJML AST, using the JsonObject's "class" field 
+    /** Converts a JsonObject to an element of an OpenJML AST, using the JsonObject's "@class" field 
      * as the type of the target object.
      */
     Object fromJsonObject(JsonObject json) {
-        String s = json.get("class").getAsJsonPrimitive().getAsString();
+        String s = json.get("@class").getAsJsonPrimitive().getAsString();
         try {
             Class<?> cl = Class.forName(s);
             return gson.fromJson((JsonElement)json,cl);
