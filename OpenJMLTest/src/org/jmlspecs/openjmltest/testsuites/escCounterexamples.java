@@ -66,22 +66,28 @@ public class escCounterexamples extends EscBase {
     /** Tests a called precondition and method and constructor arguments */
     @Test
     public void testCE3() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public TestJava(int i) {}\n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public TestJava(int i) {}
                 
-                +"  public void m1(int k) {\n"
-                +"    c1(k,k!=0);\n"
-                +"    TestJava j = new TestJava(2+3);\n"
-                +"    (k==0?this:j).m1(0);\n"
-                +"  }\n"
+                  //@ measured_by k;
+                  public void m1(int k) {
+                    c1(k,k!=0);
+                    TestJava j = new TestJava(2+3);
+                    (k==0?this:j).m1(0);
+                  }
                 
-                +"  //@ requires k == 0;\n"
-                +"  public void c1(int k, boolean b) {};\n"
-                +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",7
-                ,"/tt/TestJava.java:10: warning: Associated declaration",15
-                ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: k == 0",18
+                  //@ requires k == 0;
+                  public void c1(int k, boolean b) {};
+                }
+                """
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method m1",7
+                ,"/tt/TestJava.java:13: warning: Associated declaration",15
+                ,"/tt/TestJava.java:12: warning: Precondition conjunct is false: k == 0",18
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (TerminationDecreases) in method m1", 19
+                ,"/tt/TestJava.java:9: warning: Associated declaration", 21
                 );
     }
     

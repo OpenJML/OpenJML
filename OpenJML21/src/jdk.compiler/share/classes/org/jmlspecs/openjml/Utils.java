@@ -1954,6 +1954,79 @@ public class Utils {
         log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
     }
 
+    public void warningCategory(String category, int pos, String message) {
+        var wt = JmlOptions.instance(context).allowed(category);
+        switch (wt) {
+        case WARN:
+            log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
+            break;
+        case ERROR:
+            log().error(pos, JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
+            break;
+        }
+    }
+
+    public void warningCategory(String category, String message) {
+        var wt = JmlOptions.instance(context).allowed(category);
+        switch (wt) {
+        case WARN:
+            log().warning(JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
+            break;
+        case ERROR:
+            log().error(JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
+            break;
+        }
+    }
+
+    public void warningCategory(String category, DiagnosticPosition pos, String message) {
+        var wt = JmlOptions.instance(context).allowed(category);
+        switch (wt) {
+        case WARN:
+            log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
+            break;
+        case ERROR:
+            log().error(pos, JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
+            break;
+        }
+    }
+
+    public void warningCategory(String category, JavaFileObject source, DiagnosticPosition pos, JavaFileObject asource, DiagnosticPosition apos, String message) {
+        var wt = JmlOptions.instance(context).allowed(category);
+        Log log = log();
+        switch (wt) {
+        case WARN: {
+            JavaFileObject prev = log.useSource(source);
+            try {
+                log.warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
+            } finally {
+                log.useSource(prev);
+            }
+            prev = log.useSource(asource);
+            try {
+                log.warning(apos, JCDiagnostic.Factory.instance(context).warningKey("jml.associated.decl.cf", locationString(pos, source)));
+            } finally {
+                log.useSource(prev);
+            }
+            break;
+        }
+        case ERROR: {
+            JavaFileObject prev = log.useSource(source);
+            try {
+                log.error(pos, JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
+            } finally {
+                log.useSource(prev);
+            }
+            prev = log.useSource(asource);
+            try {
+                log.error(apos, JCDiagnostic.Factory.instance(context).errorKey("jml.associated.decl.cf", locationString(pos, source)));
+            } finally {
+                log.useSource(prev);
+            }
+            break;
+        }
+        }
+    }
+
     public void warning(int begin, int end, String key, Object... args) {
         this.warning(
                 new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1

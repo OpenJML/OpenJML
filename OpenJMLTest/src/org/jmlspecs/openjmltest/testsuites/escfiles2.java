@@ -274,6 +274,14 @@ public class escfiles2 extends EscBaseFiles {
     }
     
 
+    @Test public void termination() {
+        helpTCN("--esc", "--progress", "--warn=missing-measured-by");
+    }
+    
+    @Test public void terminationBad() {
+        helpTCN("--esc", "--progress", "--warn=missing-measured-by");
+    }
+    
 
 
 }
