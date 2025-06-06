@@ -3620,7 +3620,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Attributes a constraint clause */
     public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
-        JavaFileObject old = log.useSource(tree.source);
+        JavaFileObject old = log.useSource(tree.sourcefile);
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
         jmlenv.currentClauseKind = tree.clauseType;
@@ -3669,7 +3669,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
     	//System.out.println("ATTR TYPE CLAUSE DECL " + tree);
     	jmlenv = jmlenv.pushCopy();
-        JavaFileObject old = log.useSource(tree.source);
+        JavaFileObject old = log.useSource(tree.sourcefile);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
@@ -3684,7 +3684,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Attributes a initializer or static_initializer declaration */
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
-        JavaFileObject old = log.useSource(tree.source);
+        JavaFileObject old = log.useSource(tree.sourcefile);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             if (tree.modifiers != null && tree.modifiers.annotations != null && !tree.modifiers.annotations.isEmpty()) {
@@ -3726,7 +3726,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
         jmlenv.currentClauseKind = tree.clauseType;
-        JavaFileObject old = log.useSource(tree.source);
+        JavaFileObject old = log.useSource(tree.sourcefile);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         VarSymbol prevSecret = currentSecretContext;
         try {
@@ -3869,7 +3869,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
-        JavaFileObject old = log.useSource(tree.source);
+        JavaFileObject old = log.useSource(tree.sourcefile);
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         try {
             jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
@@ -3901,7 +3901,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** Attributes the readable-if and writable-if clauses */
     public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
-        JavaFileObject old = log.useSource(tree.source);
+        JavaFileObject old = log.useSource(tree.sourcefile);
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
         jmlenv.currentClauseKind = tree.clauseType;

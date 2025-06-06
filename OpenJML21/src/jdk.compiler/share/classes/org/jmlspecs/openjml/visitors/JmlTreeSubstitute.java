@@ -323,7 +323,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 copy(that.expression,p),
                 copy(that.sigs,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         copy.notlist = that.notlist;
         return copy;
@@ -335,7 +335,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 copy(that.decl,p));
         copy.clauseType = that.clauseType;
         copy.modifiers = copy(that.modifiers,p);
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
     }
@@ -346,7 +346,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
         JmlTypeClauseIn copy = M.at(that.pos).JmlTypeClauseIn(
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.modifiers = copy(that.modifiers,p);
         copy.parentVar = that.parentVar; // FIXME - does this need repointing to the new copy
         copy.type = that.type;
@@ -361,7 +361,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
         copy.modifiers = copy(that.modifiers,p);
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
     }
@@ -373,7 +373,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 copy(that.identifier,p),
                 copy(that.list,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
     }
@@ -386,7 +386,7 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
                 that.suchThat,
                 copy(that.expression,p));
         copy.clauseType = that.clauseType;
-        copy.source = that.source;
+        copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
     }

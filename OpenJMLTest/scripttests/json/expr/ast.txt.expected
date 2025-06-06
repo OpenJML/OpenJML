@@ -121,3 +121,13 @@ JmlCompilationUnit
       JCMethodInvocation
         JCIdent: m
 
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Chains
+    JmlVariableDecl: b1
+    JmlVariableDecl: b2
+
