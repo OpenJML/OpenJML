@@ -799,28 +799,28 @@ public class JmlTree {
         @Override
         public JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e) {
             JmlTypeClauseExpr t = new JmlTypeClauseExpr(pos,mods,keyword,token,e);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
         @Override
         public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl) {
             JmlTypeClauseDecl t = new JmlTypeClauseDecl(pos,decl);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
         @Override
         public JmlTypeClauseInitializer JmlTypeClauseInitializer(IJmlClauseKind token, JCModifiers mods) {
             JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token, mods);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
         @Override
         public JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCTree.JCExpression e, List<JmlMethodSig> sigs) {
             JmlTypeClauseConstraint t = new JmlTypeClauseConstraint(pos,mods,e,sigs);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
         
@@ -842,21 +842,21 @@ public class JmlTree {
         @Override
         public JmlTypeClauseRepresents JmlTypeClauseRepresents(JCModifiers mods, JCTree.JCExpression ident, boolean suchThat, JCTree.JCExpression e) {
             JmlTypeClauseRepresents t = new JmlTypeClauseRepresents(pos, mods, ident,suchThat,e);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
 
         @Override
         public JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p) {
             JmlTypeClauseConditional t = new JmlTypeClauseConditional(pos, mods, token,ident,p);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
 
         @Override
         public JmlTypeClauseMonitorsFor JmlTypeClauseMonitorsFor(JCModifiers mods, JCTree.JCIdent ident, List<JCTree.JCExpression> list) {
             JmlTypeClauseMonitorsFor t = new JmlTypeClauseMonitorsFor(pos, mods, ident, list);
-            t.source = context == null ? null : Log.instance(context).currentSourceFile();
+            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return t;
         }
 
@@ -945,14 +945,14 @@ public class JmlTree {
         @Override
         public JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list) {
             JmlTypeClauseIn r = new JmlTypeClauseIn(pos,list);
-            r.source = context == null ? null : Log.instance(context).currentSourceFile();
+            r.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return r;
         }
         
         @Override
         public JmlTypeClauseMaps JmlTypeClauseMaps(List<JCExpression> exprs, List<JmlGroupName> list) {
             JmlTypeClauseMaps r = new JmlTypeClauseMaps(pos,exprs,list);
-            r.source = context == null ? null : Log.instance(context).currentSourceFile();
+            r.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
             return r;
         }
 
@@ -3339,13 +3339,13 @@ public class JmlTree {
         public JmlMethodClause associatedClause = null;
         
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
-        public JavaFileObject source;
+        public JavaFileObject sourcefile;
         
         @Override
-        public JavaFileObject source() { return associatedSource; }
+        public JavaFileObject source() { return associatedSource; } // FIXME - why is this associated source
         
         @Override
-        public void setSource(JavaFileObject jfo) { source = jfo; }
+        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
         
         /** A Label that gives detail about the kind of assertion or assumption */
         public Label label;
@@ -3426,9 +3426,6 @@ public class JmlTree {
         /** The store-refs whose values are unknown */
         public List<JCTree.JCExpression> storerefs;
                 
-        /** The source file in which the statement sits (and the file to which pos and line correspond) */
-        public JavaFileObject source;
-        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementHavoc(int pos, List<JCTree.JCExpression> storerefs) {
             this.pos = pos;
@@ -3524,13 +3521,13 @@ public class JmlTree {
         public boolean translated;
  
         /** The source file in which the statement sits (and the file to which pos and line correspond) */
-        public JavaFileObject source;
+        public JavaFileObject sourcefile;
         
         @Override
-        public JavaFileObject source() { return source; }
+        public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { source = jfo; }
+        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
 }
 
     /** This class represents JML statements within the body of a method
@@ -3670,7 +3667,7 @@ public class JmlTree {
     		this.originalStoreRef = originalStoreRef;
     	}
     	
-    	public JavaFileObject source;
+    	public JavaFileObject sourcefile; // FIXME - not sure we need or use this
     	
     	public boolean isEverything() { return isEverything; }
     	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JmlPrimitiveTypes.nothingKind; }
@@ -3801,13 +3798,13 @@ public class JmlTree {
         public IJmlClauseKind clauseType;
         
         /** The source of this clause, since it might be from a different compilation unit. */
-        public JavaFileObject source;
+        public JavaFileObject sourcefile;
         
         /** Returns the source file for the clause */
-        public JavaFileObject source() { return source; }
+        public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { source = jfo; }
+        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
         
         public boolean isJML() {
             return true;
@@ -4051,7 +4048,7 @@ public class JmlTree {
             this.pos = pos;
             this.keyword = token.keyword();
             this.clauseType = token;
-            this.source = null;
+            this.sourcefile = null;
             this.modifiers = mods; 
         }
         
@@ -4226,7 +4223,7 @@ public class JmlTree {
     public static class JmlLambda extends JCLambda {
         public JCExpression jmlType;
         public JCIdent literal;
-        public JavaFileObject sourceLocation;
+        public JavaFileObject sourceLocation; // FIXME - rename this?
         
         public JmlLambda(List<JCVariableDecl> params,
                 JCTree body, JCExpression jmlType) {
@@ -4433,7 +4430,7 @@ public class JmlTree {
         /** The origin of the annotation, which may not be the same as the item being annotated;
          * if null, the annotation is inserted to make a default explicit.
          */
-        /*@nullable*/ public JavaFileObject sourcefile;
+        /*@nullable*/ public JavaFileObject sourcefile; // FIXME - have this be a JmlSource?
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {

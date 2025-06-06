@@ -683,7 +683,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     continue;
                 }
                 if (found != null) {
-                    utils.warning(rep.source,ddecl.pos,"jml.duplicate.represents");
+                    utils.warning(rep.sourcefile,ddecl.pos,"jml.duplicate.represents");
                     // FIXME - the duplicate is at found.pos
                     continue;
                 }
@@ -793,7 +793,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(modelVarDecl.sym);
         JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
         tcd.pos = mr.pos;
-        tcd.source = fspecs.source();
+        tcd.sourcefile = fspecs.source();
         tcd.modifiers = mr.mods;
         tsp.modelFieldMethods.append(tcd);
         modelMethods.put(modelVarDecl.sym, mr);

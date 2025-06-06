@@ -279,18 +279,18 @@ public class JmlCompiler extends JavaCompiler {
         var json = new org.jmlspecs.openjml.JmlJson(context);
         for (var cu: compunits) {
             //System.out.println("JSON FOR " + cu.sourcefile);
-            writeJson(dest, json, (JmlCompilationUnit)cu, null, includeTypeInfo);
+            writeJson(dest, json, cu, null, includeTypeInfo);
         }
     }
 
-    private String writeJson(String dest, JmlJson json, JmlTree.JmlSource decl, String name, boolean includeTypeInfo) {
-        String sourcepath = decl.source().getName();
+    private String writeJson(String dest, JmlJson json, JCTree decl, String name, boolean includeTypeInfo) {
+        String sourcepath = decl instanceof JmlTree.JmlSource s ? s.source().getName() : "?";
         String out = null;
         JsonElement outtree = null;
         var stdout = context.get(Log.outKey);
         try {
-            out = json.toJson((JCTree)decl, includeTypeInfo); // serializes to a pretty-printed string
-            outtree = json.toJsonTree((JCTree)decl, includeTypeInfo); // serializes to an in-memory JSON tree
+            out = json.toJson(decl, includeTypeInfo); // serializes to a pretty-printed string
+            outtree = json.toJsonTree(decl, includeTypeInfo); // serializes to an in-memory JSON tree
         } catch (Throwable e) {
             utils.error("jml.internal", "Failed translate to json (" + sourcepath + "): "+ e);
             e.printStackTrace(stdout);
@@ -301,7 +301,7 @@ public class JmlCompiler extends JavaCompiler {
             @SuppressWarnings("deprecation")
             var res = new JsonParser().parse(out);
             if (!outtree.equals(res)) {
-                utils.error("jml.internal", "Reparsed JSON tree does not match the original tree: " + decl.source());
+                utils.error("jml.internal", "Reparsed JSON tree does not match the original tree: " + sourcepath);
             }
             var nows = outtree.toString();//.replaceAll("[ \t\n]+","");
             if (!res.toString().equals(nows)) { 
@@ -311,11 +311,16 @@ public class JmlCompiler extends JavaCompiler {
             // Check the output by deserializing the output text back into an AST
             if (JmlOption.isOption(context, JmlOption.JMLTESTING)) {
                 // In testing mode, recreate a source AST from the output JSON text
-                Object tree = json.toJava(out);
-                if (!tree.toString().equals(decl.toString())) {
+                Object obj = json.toJava(out);
+                JmlPretty p = new JmlPretty(stdout, true); p.printSourceInfo = true;
+                if (!(obj instanceof JCTree tree)) {
                     stdout.println("Input and output ASTs differ");
-                    stdout.println(tree.toString());  // FIXME - use designated output stream
-                    stdout.println(decl.toString());  // FIXME - use designated output stream
+                    stdout.println(obj.toString());  // FIXME - use designated output stream
+                    stdout.println(p.toString(decl));  // FIXME - use designated output stream
+                } else if (!p.toString(tree).equals(p.toString(decl))) {
+                    stdout.println("Input and output ASTs differ");
+                    stdout.println(p.toString(tree));  // FIXME - use designated output stream
+                    stdout.println(p.toString(decl));  // FIXME - use designated output stream
                 }
                 // FIXME - compare ASTs 'tree' and 'decl'
             }

@@ -645,7 +645,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected void addAssert(Label label, JCExpression trExpr, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
         JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(assertID, assertClause,label,trExpr);
         st.optionalExpression = null;
-        st.source = source; // source file in which st.pos resides
+        st.sourcefile = source; // source file in which st.pos resides
         //st.line = -1; 
         st.associatedPos = declpos;
         st.associatedSource = null; // OK - always same as source
@@ -1597,7 +1597,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.associatedPos = that.associatedPos;
             st.associatedSource = that.associatedSource;
             st.description = that.description;
-            st.source = that.source;
+            st.sourcefile = that.sourcefile;
             st.type = that.type;
             st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
