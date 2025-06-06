@@ -29,12 +29,16 @@ if ! diff xx/yy/p/TestP.java.json TestP.java.json.expected ; then ERR=1 ; echo x
 if ! diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected ; then ERR=1 ; echo xx/yy/q/r/TestPP.java.json differs from expected ; fi;
 echo "xxx" >> xx/yy/Test.java.json
 
-# repeat without deleting files
+# repeat without deleting files, to test ability to overwrite
 echo JSON C 
 $OJA --show=json -d xx/yy *.java
 diff xx/yy/Test.java.json Test.java.json.expected || ERR=1
 diff xx/yy/p/TestP.java.json TestP.java.json.expected || ERR=1
 diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected || ERR=1
+
+if [ $ERR == 1 ]; then echo "JSON LOCATION TESTS FAILED "; fi
+exit $ERR
+################### Not testing typed ASTs yet
 
 ## Typed AST
 echo TYPED
@@ -50,17 +54,17 @@ if ! ( cat [AC]*.expected | diff - out ) ; then ERR=1 ; echo 'AC* differs from e
 
 rm -rf out xx
 $OJA --show=typedjson -d xx/yy *.java
-if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo zz/yy/A.json differs from expected ; fi;
-if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo zz/yy/C.json differs from expected ; fi;
-if ! diff xx/yy/p/CC.json CC.json.expected ; then ERR=1 ; echo zz/yy/p/CC.json differs from expected ; fi;
-if ! diff xx/yy/q/r/CCC.json CCC.json.expected ; then ERR=1 ; echo zz/yy/q/r/CCC.json differs from expected ; fi;
+if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo xx/yy/A.json differs from expected ; fi;
+if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo xx/yy/C.json differs from expected ; fi;
+if ! diff xx/yy/p/CC.json CC.json.expected ; then ERR=1 ; echo xx/yy/p/CC.json differs from expected ; fi;
+if ! diff xx/yy/q/r/CCC.json CCC.json.expected ; then ERR=1 ; echo xx/yy/q/r/CCC.json differs from expected ; fi;
 echo "xxx" >> xx/yy/Test.java.json
 # repeat without deleting files
 $OJA --show=typedjson -d xx/yy *.java
-if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo zz/yy/A.json differs from expected ; fi;
-if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo zz/yy/C.json differs from expected ; fi;
-if ! diff xx/yy/p/CC.json CC.json.expected ; then ERR=1 ; echo zz/yy/p/CC.json differs from expected ; fi;
-if ! diff xx/yy/q/r/CCC.json CCC.json.expected ; then ERR=1 ; echo zz/yy/q/r/CCC.json differs from expected ; fi;
+if ! diff xx/yy/A.json A.json.expected ; then ERR=1 ; echo xx/yy/A.json differs from expected ; fi;
+if ! diff xx/yy/C.json C.json.expected ; then ERR=1 ; echo xx/yy/C.json differs from expected ; fi;
+if ! diff xx/yy/p/CC.json CC.json.expected ; then ERR=1 ; echo xx/yy/p/CC.json differs from expected ; fi;
+if ! diff xx/yy/q/r/CCC.json CCC.json.expected ; then ERR=1 ; echo xx/yy/q/r/CCC.json differs from expected ; fi;
 
 if [ $ERR == 1 ]; then echo "JSON LOCATION TESTS FAILED "; fi
 exit $ERR

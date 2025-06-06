@@ -117,6 +117,8 @@ public class JmlJson {
     public final static String prefixjml = "org.jmlspecs.openjml.JmlTree$";
     public final static String suffix = "Adapter";
     public final static String classTag = "@class";
+    public final static String idTag = "@id";
+    public final static String primitiveTag = "primitive";
     
     protected static final Context.Key<JmlJsonData> jsonKey = new Context.Key<>();
 
@@ -132,6 +134,7 @@ public class JmlJson {
             return instance;
         }
 
+        java.util.Map<Long,Integer> ids = new java.util.HashMap<>();
         java.util.Map<String, JavaFileObject> fileObjects = new java.util.HashMap<>();
         JavacFileManager filemanager;
         JmlJsonData(Context context) {
@@ -229,8 +232,19 @@ public class JmlJson {
     private JsonObject primitive(Class<?> clazz, Object o) {
         var obj = new JsonObject();
         obj.add(classTag, new JsonPrimitive(formatClass(clazz)));
-        obj.add("primitive", str(o));
+        if (Object.class.isAssignableFrom(clazz)) addId(obj, o);
+        obj.add(primitiveTag, str(o));
         return obj;
+    }
+    
+    /** Returns true if a new id was created */
+    private boolean addId(JsonObject obj, Object o) {
+        long k = System.identityHashCode(o);
+        Integer id = data.ids.get(k);
+        boolean b = false;
+        if (id == null) { id = data.ids.size()+1; data.ids.put(k, id); b = true; }
+        obj.add(idTag, new JsonPrimitive(id.toString()));
+        return b;
     }
     
     /** Creates an initial JsonObject, including the class of the object and, if a JCTree, its type and sourcefile, if relevant. */
@@ -238,6 +252,7 @@ public class JmlJson {
         var clazz = o.getClass();
         var obj = new JsonObject();
         obj.add(classTag, new JsonPrimitive(formatClass(clazz)));
+        if (o instanceof Object) addId(obj, o);
         if (includeTypeInfo && o instanceof JCExpression ex) {
             obj.add("type", str(ex.type)); // FIXME - proper encoding -- will also need symbols, break target etc.
         }
@@ -310,7 +325,7 @@ public class JmlJson {
             Class<?> cl = Class.forName(s);
             return gson.fromJson((JsonElement)json,cl);
         } catch (Exception e) {
-            var p = json.get("primitive");
+            var p = json.get(primitiveTag);
             if ("long".equals(s)) {
                 return p.getAsJsonPrimitive().getAsLong();
             } else if ("int".equals(s)) {
@@ -2143,7 +2158,7 @@ public class JmlJson {
         @Override
         public T deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var value = Enum.<T>valueOf(clazz(), str);
@@ -2160,7 +2175,7 @@ public class JmlJson {
         @Override
         public Name deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             Name n = names.fromString(str);
@@ -2176,7 +2191,7 @@ public class JmlJson {
         @Override
         public org.jmlspecs.openjml.esc.Label deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var n = org.jmlspecs.openjml.esc.Label.find(str);
@@ -2193,7 +2208,7 @@ public class JmlJson {
         @Override
         public JmlToken deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var kind = Extensions.findKeyword(str);
@@ -2240,7 +2255,7 @@ public class JmlJson {
         @Override
         public JavaFileObject deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             var jfo = data.getJFO(str);
@@ -2265,7 +2280,7 @@ public class JmlJson {
         @Override
         public IJmlClauseKind deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            var o = json.getAsJsonObject().get("primitive");
+            var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
             return Extensions.findKeyword(str);
