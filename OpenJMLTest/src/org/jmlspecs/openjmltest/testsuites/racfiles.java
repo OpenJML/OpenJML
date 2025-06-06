@@ -648,4 +648,14 @@ public class racfiles extends RacBase {
         helpCompileRun("Demo");
     }
     
+    @Test
+    public void termination() {
+        helpCompileRun("Termination");
+    }
+    
+    @Test
+    public void terminationBad() {
+        helpCompileRun("Test");
+    }
+    
 }
