@@ -65,7 +65,7 @@ public class TypeExprClauseExtension extends JmlExtension {
             
             if (clauseType == constraintClause) {
                 JmlTree.JmlTypeClauseConstraint tcl = parseConstraint(mods);
-                tcl.source = log.currentSourceFile();
+                tcl.sourcefile = log.currentSourceFile();
                 return tcl;
             } else {
                 parser.nextToken();
@@ -121,7 +121,7 @@ public class TypeExprClauseExtension extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
         	JmlTypeClauseExpr clause = (JmlTypeClauseExpr)tree;
             boolean isStatic = clause.modifiers != null && attr.isStatic(clause.modifiers);
-            JavaFileObject old = log.useSource(clause.source);
+            JavaFileObject old = log.useSource(clause.sourcefile);
             attr.jmlenv = attr.jmlenv.pushCopy();
             VarSymbol previousSecretContext = attr.currentSecretContext;
             boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);

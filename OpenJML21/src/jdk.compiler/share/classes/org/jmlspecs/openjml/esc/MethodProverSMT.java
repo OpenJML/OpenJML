@@ -1142,7 +1142,7 @@ public class MethodProverSMT {
                             pos = terminationPos;
                             prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
                         } else {
-                            if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                            if (assertStat.sourcefile != null) prev = log.useSource(assertStat.sourcefile);
                         }
                         JavaFileObject mainSource = log.currentSourceFile();
                         String associatedLocation = Strings.empty;
@@ -1165,12 +1165,12 @@ public class MethodProverSMT {
                         String loc;
 //                        if (epos == Position.NOPOS || pos != assertStat.pos) {
 //                            utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-//                            loc = utils.locationString(pos,assertStat.source);
+//                            loc = utils.locationString(pos,assertStat.sourcefile);
 //                            tracer.appendln(loc + " Invalid assertion (" + label + ")");
 //                        } else {
                             // FIXME - migrate to using pos() for terminationPos as well 
-                        	utils.verify(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                            loc = utils.locationString(pos,assertStat.source);
+                        	utils.verify(assertStat.sourcefile,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+                            loc = utils.locationString(pos,assertStat.sourcefile);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
                             if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
                                 try {
@@ -1183,7 +1183,7 @@ public class MethodProverSMT {
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is
                         // a literal string, it is printed with quotes around it.
-                        if (assertStat.source != null) log.useSource(prev);
+                        if (assertStat.sourcefile != null) log.useSource(prev);
                         
                         if (assertStat.associatedPos != Position.NOPOS) {
                             utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
@@ -1196,7 +1196,7 @@ public class MethodProverSMT {
                             if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
-                                if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+                                if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
                                     if (terminationPos == info.decl.pos) {
                                     	JavaFileObject pp = log.useSource(mainSource);
                                     	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
@@ -1509,7 +1509,7 @@ public class MethodProverSMT {
                         pos = terminationPos;
                         prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
                     } else {
-                        if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                        if (assertStat.sourcefile != null) prev = log.useSource(assertStat.sourcefile);
                     }
                     JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
@@ -1541,7 +1541,7 @@ public class MethodProverSMT {
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is
                     // a literal string, it is printed with quotes around it.
-                    if (assertStat.source != null) log.useSource(prev);
+                    if (assertStat.sourcefile != null) log.useSource(prev);
                     
                     if (assertStat.associatedPos != Position.NOPOS) {
                         //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
@@ -1555,7 +1555,7 @@ public class MethodProverSMT {
                         IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
                         if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
-                            if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+                            if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
                                 if (terminationPos == info.decl.pos) {
                                 	JavaFileObject pr = log.useSource(mainSource);
                                 	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
