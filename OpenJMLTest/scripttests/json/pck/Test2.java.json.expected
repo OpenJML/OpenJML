@@ -25,25 +25,25 @@
               "@id": "34",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "11",
+                "@ref": "11",
                 "primitive": "org"
               }
             },
             "name": {
               "@class": "com.sun.tools.javac.util.Name",
-              "@id": "12",
+              "@ref": "12",
               "primitive": "jmlspecs"
             }
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "13",
+            "@ref": "13",
             "primitive": "lang"
           }
         },
         "name": {
           "@class": "com.sun.tools.javac.util.Name",
-          "@id": "14",
+          "@ref": "14",
           "primitive": "*"
         }
       },
@@ -61,7 +61,7 @@
       "@id": "35",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "29",
+        "@ref": "29",
         "primitive": "pck/Test2.java"
       },
       "mods": {

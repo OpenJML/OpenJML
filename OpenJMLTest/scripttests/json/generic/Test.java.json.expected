@@ -61,7 +61,7 @@
       "@id": "12",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "generic/Test.java"
       },
       "mods": {
@@ -112,7 +112,7 @@
           "@id": "19",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "generic/Test.java"
           },
           "mods": {
@@ -145,7 +145,7 @@
               "@id": "24",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "16",
+                "@ref": "16",
                 "primitive": "T"
               },
               "bounds": [],
@@ -156,7 +156,7 @@
               "@id": "25",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "18",
+                "@ref": "18",
                 "primitive": "U"
               },
               "bounds": [
@@ -165,7 +165,7 @@
                   "@id": "26",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "14",
+                    "@ref": "14",
                     "primitive": "Test"
                   }
                 }
@@ -180,7 +180,7 @@
               "@id": "27",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "generic/Test.java"
               },
               "mods": {
@@ -203,7 +203,7 @@
                 "@id": "30",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "18",
+                  "@ref": "18",
                   "primitive": "U"
                 }
               },
@@ -229,7 +229,7 @@
           "@id": "32",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "generic/Test.java"
           },
           "mods": {
@@ -252,7 +252,7 @@
             "@id": "35",
             "typetag": {
               "@class": "com.sun.tools.javac.code.TypeTag",
-              "@id": "23",
+              "@ref": "23",
               "primitive": "VOID"
             }
           },
@@ -264,7 +264,7 @@
               "@id": "36",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "generic/Test.java"
               },
               "mods": {
@@ -287,7 +287,7 @@
                 "@id": "39",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "16",
+                  "@ref": "16",
                   "primitive": "T"
                 }
               },
@@ -298,7 +298,7 @@
               "@id": "40",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "generic/Test.java"
               },
               "mods": {
@@ -313,7 +313,7 @@
               },
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "29",
+                "@ref": "29",
                 "primitive": "x"
               },
               "vartype": {
@@ -321,7 +321,7 @@
                 "@id": "42",
                 "name": {
                   "@class": "com.sun.tools.javac.util.Name",
-                  "@id": "18",
+                  "@ref": "18",
                   "primitive": "U"
                 }
               },
@@ -347,7 +347,7 @@
           "@id": "44",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "generic/Test.java"
           },
           "mods": {
@@ -362,7 +362,7 @@
           },
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "21",
+            "@ref": "21",
             "primitive": "m"
           },
           "restype": {
@@ -433,7 +433,7 @@
       "@id": "56",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "generic/Test.java"
       },
       "mods": {
@@ -462,7 +462,7 @@
       "@id": "59",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "generic/Test.java"
       },
       "mods": {
@@ -491,7 +491,7 @@
       "@id": "62",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "generic/Test.java"
       },
       "mods": {
@@ -515,7 +515,7 @@
           "@id": "65",
           "name": {
             "@class": "com.sun.tools.javac.util.Name",
-            "@id": "16",
+            "@ref": "16",
             "primitive": "T"
           },
           "bounds": [
@@ -524,7 +524,7 @@
               "@id": "66",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "58",
+                "@ref": "58",
                 "primitive": "ClassType"
               }
             },
@@ -533,7 +533,7 @@
               "@id": "67",
               "name": {
                 "@class": "com.sun.tools.javac.util.Name",
-                "@id": "61",
+                "@ref": "61",
                 "primitive": "InterfaceType"
               }
             }

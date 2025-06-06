@@ -61,7 +61,7 @@
       "@id": "12",
       "sourcefile": {
         "@class": "javax.tools.JavaFileObject",
-        "@id": "2",
+        "@ref": "2",
         "primitive": "specs/Method.java"
       },
       "mods": {
@@ -89,7 +89,7 @@
           "@id": "15",
           "sourcefile": {
             "@class": "javax.tools.JavaFileObject",
-            "@id": "2",
+            "@ref": "2",
             "primitive": "specs/Method.java"
           },
           "mods": {
@@ -124,7 +124,7 @@
               "@id": "20",
               "sourcefile": {
                 "@class": "javax.tools.JavaFileObject",
-                "@id": "2",
+                "@ref": "2",
                 "primitive": "specs/Method.java"
               },
               "mods": {
@@ -164,7 +164,7 @@
                 "@id": "26",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "specs/Method.java"
                 },
                 "also": {
@@ -201,7 +201,7 @@
                     "@id": "30",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -231,7 +231,7 @@
                     "@id": "35",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -242,7 +242,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "32",
+                      "@ref": "32",
                       "primitive": "requires"
                     },
                     "expression": {
@@ -250,7 +250,7 @@
                       "@id": "37",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "34",
+                        "@ref": "34",
                         "primitive": "b"
                       }
                     },
@@ -269,7 +269,7 @@
                     "@id": "40",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -289,7 +289,7 @@
                         "@id": "43",
                         "sourcefile": {
                           "@class": "javax.tools.JavaFileObject",
-                          "@id": "2",
+                          "@ref": "2",
                           "primitive": "specs/Method.java"
                         },
                         "mods": {
@@ -321,7 +321,7 @@
                           "@id": "48",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "34",
+                            "@ref": "34",
                             "primitive": "b"
                           }
                         }
@@ -333,7 +333,7 @@
                     "@id": "49",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -353,7 +353,7 @@
                         "@id": "52",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "34",
+                          "@ref": "34",
                           "primitive": "b"
                         }
                       },
@@ -371,7 +371,7 @@
                         },
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "34",
+                          "@ref": "34",
                           "primitive": "b"
                         }
                       },
@@ -383,7 +383,7 @@
                           "@id": "57",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "55",
+                            "@ref": "55",
                             "primitive": "this"
                           }
                         },
@@ -424,7 +424,7 @@
                           "@id": "65",
                           "typetag": {
                             "@class": "com.sun.tools.javac.code.TypeTag",
-                            "@id": "24",
+                            "@ref": "24",
                             "primitive": "INT"
                           },
                           "value": 0
@@ -438,7 +438,7 @@
                           "@id": "67",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "64",
+                            "@ref": "64",
                             "primitive": "a"
                           }
                         },
@@ -450,7 +450,7 @@
                             "@id": "69",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "24",
+                              "@ref": "24",
                               "primitive": "INT"
                             },
                             "value": 1
@@ -460,7 +460,7 @@
                             "@id": "70",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "24",
+                              "@ref": "24",
                               "primitive": "INT"
                             },
                             "value": 2
@@ -479,7 +479,7 @@
                           "@id": "72",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "64",
+                            "@ref": "64",
                             "primitive": "a"
                           }
                         },
@@ -502,7 +502,7 @@
                           "@id": "75",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "64",
+                            "@ref": "64",
                             "primitive": "a"
                           }
                         },
@@ -514,7 +514,7 @@
                             "@id": "77",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "24",
+                              "@ref": "24",
                               "primitive": "INT"
                             },
                             "value": 2
@@ -551,7 +551,7 @@
                     "@id": "82",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -570,7 +570,7 @@
                       "@id": "85",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "34",
+                        "@ref": "34",
                         "primitive": "b"
                       }
                     },
@@ -581,7 +581,7 @@
                     "@id": "86",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -600,7 +600,7 @@
                       "@id": "89",
                       "kind": {
                         "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                        "@id": "79",
+                        "@ref": "79",
                         "primitive": "\\nothing"
                       }
                     },
@@ -611,18 +611,18 @@
                     "@id": "90",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
                     "keyword": {
                       "@class": "java.lang.String",
-                      "@id": "87",
+                      "@ref": "87",
                       "primitive": "callable"
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "88",
+                      "@ref": "88",
                       "primitive": "callable"
                     },
                     "singleton": {
@@ -630,7 +630,7 @@
                       "@id": "91",
                       "kind": {
                         "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                        "@id": "81",
+                        "@ref": "81",
                         "primitive": "\\everything"
                       }
                     },
@@ -641,18 +641,18 @@
                     "@id": "92",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
                     "keyword": {
                       "@class": "java.lang.String",
-                      "@id": "87",
+                      "@ref": "87",
                       "primitive": "callable"
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "88",
+                      "@ref": "88",
                       "primitive": "callable"
                     },
                     "singleton": null,
@@ -665,7 +665,7 @@
                           "@id": "94",
                           "name": {
                             "@class": "com.sun.tools.javac.util.Name",
-                            "@id": "17",
+                            "@ref": "17",
                             "primitive": "m"
                           }
                         },
@@ -675,7 +675,7 @@
                             "@id": "95",
                             "typetag": {
                               "@class": "com.sun.tools.javac.code.TypeTag",
-                              "@id": "24",
+                              "@ref": "24",
                               "primitive": "INT"
                             }
                           }
@@ -688,7 +688,7 @@
                     "@id": "96",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "cases": [
@@ -697,12 +697,12 @@
                         "@id": "97",
                         "sourcefile": {
                           "@class": "javax.tools.JavaFileObject",
-                          "@id": "2",
+                          "@ref": "2",
                           "primitive": "specs/Method.java"
                         },
                         "also": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "27",
+                          "@ref": "27",
                           "primitive": null
                         },
                         "modifiers": null,
@@ -712,7 +712,7 @@
                         },
                         "token": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "27",
+                          "@ref": "27",
                           "primitive": null
                         },
                         "callee_only": {
@@ -725,7 +725,7 @@
                             "@id": "98",
                             "sourcefile": {
                               "@class": "javax.tools.JavaFileObject",
-                              "@id": "2",
+                              "@ref": "2",
                               "primitive": "specs/Method.java"
                             },
                             "name": null,
@@ -736,7 +736,7 @@
                             },
                             "clauseKind": {
                               "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                              "@id": "84",
+                              "@ref": "84",
                               "primitive": "ensures"
                             },
                             "expression": {
@@ -744,7 +744,7 @@
                               "@id": "100",
                               "typetag": {
                                 "@class": "com.sun.tools.javac.code.TypeTag",
-                                "@id": "47",
+                                "@ref": "47",
                                 "primitive": "BOOLEAN"
                               },
                               "value": 1
@@ -758,7 +758,7 @@
                         "@id": "101",
                         "sourcefile": {
                           "@class": "javax.tools.JavaFileObject",
-                          "@id": "2",
+                          "@ref": "2",
                           "primitive": "specs/Method.java"
                         },
                         "also": {
@@ -782,7 +782,7 @@
                         },
                         "token": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "27",
+                          "@ref": "27",
                           "primitive": null
                         },
                         "callee_only": {
@@ -795,7 +795,7 @@
                             "@id": "104",
                             "sourcefile": {
                               "@class": "javax.tools.JavaFileObject",
-                              "@id": "2",
+                              "@ref": "2",
                               "primitive": "specs/Method.java"
                             },
                             "name": null,
@@ -806,7 +806,7 @@
                             },
                             "clauseKind": {
                               "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                              "@id": "84",
+                              "@ref": "84",
                               "primitive": "ensures"
                             },
                             "expression": {
@@ -814,7 +814,7 @@
                               "@id": "106",
                               "typetag": {
                                 "@class": "com.sun.tools.javac.code.TypeTag",
-                                "@id": "47",
+                                "@ref": "47",
                                 "primitive": "BOOLEAN"
                               },
                               "value": 0
@@ -830,7 +830,7 @@
                     "@id": "107",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -849,7 +849,7 @@
                       "@id": "110",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "24",
+                        "@ref": "24",
                         "primitive": "INT"
                       },
                       "value": 4242
@@ -859,7 +859,7 @@
                       "@id": "111",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "47",
+                        "@ref": "47",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -872,12 +872,12 @@
                 "@id": "112",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "specs/Method.java"
                 },
                 "also": {
                   "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                  "@id": "102",
+                  "@ref": "102",
                   "primitive": "also"
                 },
                 "modifiers": {
@@ -909,7 +909,7 @@
                     "@id": "115",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -928,7 +928,7 @@
                       "@id": "118",
                       "sourcefile": {
                         "@class": "javax.tools.JavaFileObject",
-                        "@id": "2",
+                        "@ref": "2",
                         "primitive": "specs/Method.java"
                       },
                       "mods": {
@@ -962,7 +962,7 @@
                       "@id": "123",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "47",
+                        "@ref": "47",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -973,7 +973,7 @@
                     "@id": "124",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -984,7 +984,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "117",
+                      "@ref": "117",
                       "primitive": "signals"
                     },
                     "vardef": {
@@ -992,7 +992,7 @@
                       "@id": "126",
                       "sourcefile": {
                         "@class": "javax.tools.JavaFileObject",
-                        "@id": "2",
+                        "@ref": "2",
                         "primitive": "specs/Method.java"
                       },
                       "mods": {
@@ -1011,7 +1011,7 @@
                         "@id": "128",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "122",
+                          "@ref": "122",
                           "primitive": "Exception"
                         }
                       },
@@ -1022,7 +1022,7 @@
                       "@id": "129",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "47",
+                        "@ref": "47",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -1033,7 +1033,7 @@
                     "@id": "130",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -1054,7 +1054,7 @@
                     "@id": "133",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -1065,7 +1065,7 @@
                     },
                     "clauseKind": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "132",
+                      "@ref": "132",
                       "primitive": "signals_only"
                     },
                     "exceptions": [
@@ -1074,7 +1074,7 @@
                         "@id": "135",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "39",
+                          "@ref": "39",
                           "primitive": "RuntimeException"
                         }
                       }
@@ -1089,7 +1089,7 @@
                 "@id": "136",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "specs/Method.java"
                 },
                 "name": null,
@@ -1127,7 +1127,7 @@
                 "@id": "141",
                 "sourcefile": {
                   "@class": "javax.tools.JavaFileObject",
-                  "@id": "2",
+                  "@ref": "2",
                   "primitive": "specs/Method.java"
                 },
                 "mods": {
@@ -1161,7 +1161,7 @@
                       "@id": "146",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "24",
+                        "@ref": "24",
                         "primitive": "INT"
                       },
                       "value": 1
@@ -1181,7 +1181,7 @@
                       "@id": "149",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "47",
+                        "@ref": "47",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -1216,7 +1216,7 @@
                     "@id": "155",
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "22",
+                      "@ref": "22",
                       "primitive": "k"
                     }
                   },
@@ -1230,7 +1230,7 @@
                     "@id": "157",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "24",
+                      "@ref": "24",
                       "primitive": "INT"
                     },
                     "value": 0
@@ -1262,7 +1262,7 @@
                   "@id": "162",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "34",
+                    "@ref": "34",
                     "primitive": "b"
                   }
                 },
@@ -1284,7 +1284,7 @@
                 },
                 "label": {
                   "@class": "org.jmlspecs.openjml.esc.Label",
-                  "@id": "161",
+                  "@ref": "161",
                   "primitive": "Assert"
                 },
                 "expression": {
@@ -1292,7 +1292,7 @@
                   "@id": "166",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
-                    "@id": "34",
+                    "@ref": "34",
                     "primitive": "b"
                   }
                 },
@@ -1313,7 +1313,7 @@
                     "@id": "169",
                     "name": {
                       "@class": "com.sun.tools.javac.util.Name",
-                      "@id": "34",
+                      "@ref": "34",
                       "primitive": "b"
                     }
                   }
@@ -1344,7 +1344,7 @@
                       "@id": "175",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "34",
+                        "@ref": "34",
                         "primitive": "b"
                       }
                     },
@@ -1353,7 +1353,7 @@
                       "@id": "176",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "47",
+                        "@ref": "47",
                         "primitive": "BOOLEAN"
                       },
                       "value": 0
@@ -1370,7 +1370,7 @@
                     "@id": "178",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -1384,7 +1384,7 @@
                       "@id": "180",
                       "typetag": {
                         "@class": "com.sun.tools.javac.code.TypeTag",
-                        "@id": "47",
+                        "@ref": "47",
                         "primitive": "BOOLEAN"
                       },
                       "value": 1
@@ -1395,7 +1395,7 @@
                     "@id": "181",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -1410,7 +1410,7 @@
                         "@id": "183",
                         "kind": {
                           "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                          "@id": "79",
+                          "@ref": "79",
                           "primitive": "\\nothing"
                         }
                       }
@@ -1421,13 +1421,13 @@
                     "@id": "184",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
                     "clauseType": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
-                      "@id": "182",
+                      "@ref": "182",
                       "primitive": "loop_writes"
                     },
                     "storerefs": [
@@ -1436,7 +1436,7 @@
                         "@id": "185",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
-                          "@id": "144",
+                          "@ref": "144",
                           "primitive": "z"
                         }
                       }
@@ -1447,7 +1447,7 @@
                     "@id": "186",
                     "sourcefile": {
                       "@class": "javax.tools.JavaFileObject",
-                      "@id": "2",
+                      "@ref": "2",
                       "primitive": "specs/Method.java"
                     },
                     "name": null,
@@ -1461,7 +1461,7 @@
                       "@id": "188",
                       "name": {
                         "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "22",
+                        "@ref": "22",
                         "primitive": "k"
                       }
                     }
@@ -1479,7 +1479,7 @@
                     "@id": "190",
                     "typetag": {
                       "@class": "com.sun.tools.javac.code.TypeTag",
-                      "@id": "47",
+                      "@ref": "47",
                       "primitive": "BOOLEAN"
                     },
                     "value": 1
