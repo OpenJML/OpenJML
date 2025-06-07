@@ -1192,7 +1192,6 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementExpr",
                 "@id": "150",
-                "sourcefile": null,
                 "keyword": {
                   "@class": "java.lang.String",
                   "@id": "151",
@@ -1241,7 +1240,6 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementExpr",
                 "@id": "158",
-                "sourcefile": null,
                 "keyword": {
                   "@class": "java.lang.String",
                   "@id": "159",
@@ -1271,7 +1269,6 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementExpr",
                 "@id": "163",
-                "sourcefile": null,
                 "keyword": {
                   "@class": "java.lang.String",
                   "@id": "164",
@@ -1368,11 +1365,6 @@
                   {
                     "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopExpr",
                     "@id": "178",
-                    "sourcefile": {
-                      "@class": "javax.tools.JavaFileObject",
-                      "@ref": "2",
-                      "primitive": "specs/Method.java"
-                    },
                     "name": null,
                     "clauseType": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
@@ -1393,11 +1385,6 @@
                   {
                     "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopModifies",
                     "@id": "181",
-                    "sourcefile": {
-                      "@class": "javax.tools.JavaFileObject",
-                      "@ref": "2",
-                      "primitive": "specs/Method.java"
-                    },
                     "name": null,
                     "clauseType": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
@@ -1419,11 +1406,6 @@
                   {
                     "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopModifies",
                     "@id": "184",
-                    "sourcefile": {
-                      "@class": "javax.tools.JavaFileObject",
-                      "@ref": "2",
-                      "primitive": "specs/Method.java"
-                    },
                     "name": null,
                     "clauseType": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
@@ -1445,11 +1427,6 @@
                   {
                     "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopExpr",
                     "@id": "186",
-                    "sourcefile": {
-                      "@class": "javax.tools.JavaFileObject",
-                      "@ref": "2",
-                      "primitive": "specs/Method.java"
-                    },
                     "name": null,
                     "clauseType": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",

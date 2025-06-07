@@ -11,5 +11,6 @@ public class Record {
       do {} while (true);
       int[] a = new int[10];
       for (int e: a) {} 
+      boolean b = (r instanceof R(int ii,int jj));
   }
 }

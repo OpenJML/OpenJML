@@ -28,8 +28,6 @@ package com.sun.tools.javac.comp;
 import java.util.EnumSet;
 import java.util.Set;
 
-import org.jmlspecs.openjml.Utils;
-
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.tree.*;
@@ -254,7 +252,6 @@ public class MemberEnter extends JCTree.Visitor {
             localEnv.info.returnResult = attr.new ResultInfo(KindSelector.VAL,
                                                              tree.sym.type.getReturnType());
         }
-        //if (org.jmlspecs.openjml.Utils.isJML() && tree.name.toString().equals("accept")) System.out.println("METHODENV " + ((tree.mods.flags & STATIC) != 0)); // OPENJML
         if ((tree.mods.flags & STATIC) != 0) localEnv.info.staticLevel++;
         localEnv.info.yieldResult = null;
         return localEnv;
@@ -299,7 +296,6 @@ public class MemberEnter extends JCTree.Visitor {
             tree.vartype.type = atype.makeVarargs();
         }
         WriteableScope enclScope = enter.enterScope(env);
-        //if (enclScope.owner.toString().endsWith("VVV") && tree.name.toString().equals("i")) { org.jmlspecs.openjml.Utils.dumpStack("ENTERING VVV.i"); }
         Type vartype = tree.isImplicitlyTyped()
                 ? env.info.scope.owner.kind == MTH ? Type.noType : syms.errType
                 : tree.vartype.type;
@@ -317,7 +313,6 @@ public class MemberEnter extends JCTree.Visitor {
             }
         }
 
-// OPENJML - TODO - this has changed somewhat - is the new version correct?
         if(!(Feature.UNNAMED_VARIABLES.allowedInSource(source) && tree.sym.isUnnamedVariable())) {
         visitFieldDefHelper(tree, v, enclScope, localEnv, tree.mods.annotations); // OPENJML - added to allow overriding some functionality
 /*   
@@ -329,14 +324,12 @@ public class MemberEnter extends JCTree.Visitor {
             enclScope.enter(v);
         }   
 */          
-                                                             
+        }                                                     
         if (!tree.isImplicitlyTyped()) {
             annotate.queueScanTreeAndTypeAnnotate(tree.vartype, localEnv, v, tree.pos());
         }
-        
-        v.pos = tree.pos;
 
-    }
+        v.pos = tree.pos;
     }
 
     // OPENJML - added to allow overriding some functionality // FIXME - return value not used

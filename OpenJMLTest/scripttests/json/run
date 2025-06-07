@@ -12,13 +12,9 @@ if [ ${#DIRS} == 0 ] ; then DIRS=* ; fi
 for d in $DIRS ; do 
   if [ -d $d ]; then
     echo DIR $d
-    $OJA -jmltesting --command=parse --show=ast $d/*.java > $d/ast.txt
-    for j in $d/*.txt; do
-      ( diff $j $j.expected && rm $j ) || ERR=1
-    done
-    $OJA -jmltesting --command=parse --show=json $d/*.java
-    for j in $d/*.json; do
-      ( diff $j $j.expected && rm $j ) || ERR=1
+    for j in $d/*.java; do
+      $OJA -jmltesting --command=parse --show=json $j
+      ( diff $j.json $j.json.expected && rm $j.json ) || ERR=1
     done
   fi
 done

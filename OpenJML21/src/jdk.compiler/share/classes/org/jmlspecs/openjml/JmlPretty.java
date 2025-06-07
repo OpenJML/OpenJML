@@ -1407,21 +1407,21 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         indent();
         for (JmlTypeClause t: fspecs.list) {
             try {
-//                if (t.clauseType == inClause|| t.clauseType == mapsClause) {
-                    align(); t.accept(this); println();
-//                }
+                if (t.clauseType == inClause) {
+                    println(); align(); t.accept(this);
+                }
             } catch (IOException e) {
                 perr(t,e);
             }
         }
-//        for (JmlTypeClause t: fspecs.list) {
-//            try{
-//                if (t.clauseType == inClause || t.clauseType == mapsClause) continue;
-//                align(); t.accept(this); println(); // FIXME - what might theses be?
-//            } catch (IOException e) {
-//                perr(t,e);
-//            }
-//        }
+        for (JmlTypeClause t: fspecs.list) {
+            try{
+                if (t.clauseType == inClause) continue;
+                println(); align(); t.accept(this);
+            } catch (IOException e) {
+                perr(t,e);
+            }
+        }
         undent();
     }
 
