@@ -648,13 +648,13 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlStatementLoopModifies(JmlStatementLoopModifies that, Void p) {
-    	var prev = log.useSource(that.sourcefile);
+    	//var prev = log.useSource(that.sourcefile);
         JmlStatementLoopModifies copy = M.at(that.pos).JmlStatementLoopModifies(
                 that.clauseType,
                 copy(that.storerefs,p));
         copy.type = that.type;
         copyEndPos(copy,that);
-        log.useSource(prev);
+        //log.useSource(prev);
         return copy;
     }
 
@@ -708,7 +708,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.field,
                 that.originalStoreRef
                 );
-        copy.sourcefile = that.sourcefile;
+        //copy.sourcefile = that.sourcefile;
         copy.type = that.type;
         return copy;
     }
