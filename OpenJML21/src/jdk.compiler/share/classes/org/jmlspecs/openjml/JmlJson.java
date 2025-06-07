@@ -1042,16 +1042,16 @@ public class JmlJson {
     // TODO: JmlMatchExpression
 
     class JCMemberReferenceAdapter extends Adapter<JCMemberReference> {
-        public static final String[] fields = { "mode", "name", "expr", "typeargs" };
+        public static final String[] fields = { "mode", "typeargs", "expr", "name" };
         @Override
         public JCMemberReference deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = new JCMemberReference(  // FIXME - no factory method ?
                     (MemberReferenceTree.ReferenceMode)values[0],
-                    (Name)values[1],
+                    (Name)values[3],
                     (JCExpression)values[2],
-                    JmlJson.<JCExpression>toList(values[3])
+                    JmlJson.<JCExpression>toList(values[1])
                     );
             common(json, result, context);
             return result;
@@ -1911,21 +1911,22 @@ public class JmlJson {
         }
     }
 
-    class JmlTypeClauseDeclAdapter extends Adapter<JmlTypeClauseDecl> {
-        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "decl" };
-        @Override
-        public JmlTypeClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var values = getFieldValues(json.getAsJsonObject());
-            var result = M.JmlTypeClauseDecl((JCTree)values[4]);
-            result.name = (Name)values[0];
-            result.modifiers = (JCModifiers)values[1];
-            result.keyword = (String)values[2];
-            result.clauseType = (IJmlClauseKind)values[3];
-            common(json, result, context);
-            return result;
-        }
-    }
+    // JmlTypeClauseDecl is not used in a parsed AST -- and perhaps will be refactored away completely
+//    class JmlTypeClauseDeclAdapter extends Adapter<JmlTypeClauseDecl> {
+//        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "decl" };
+//        @Override
+//        public JmlTypeClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+//                throws JsonParseException {
+//            var values = getFieldValues(json.getAsJsonObject());
+//            var result = M.JmlTypeClauseDecl((JCTree)values[4]);
+//            result.name = (Name)values[0];
+//            result.modifiers = (JCModifiers)values[1];
+//            result.keyword = (String)values[2];
+//            result.clauseType = (IJmlClauseKind)values[3];
+//            common(json, result, context);
+//            return result;
+//        }
+//    }
     
     class JmlTypeClauseExprAdapter extends Adapter<JmlTypeClauseExpr> {
         public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "expression" };

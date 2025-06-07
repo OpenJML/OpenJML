@@ -1523,6 +1523,11 @@ public class JmlTree {
         /** A fixed ident used in ESC */
         public JCIdent ident = null;
         
+        public JmlSpecs.FieldSpecs fieldSpecs() {
+            if (fieldSpecs == null) fieldSpecs = new JmlSpecs.FieldSpecs(this);
+            return fieldSpecs;
+        }
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlVariableDecl(JCModifiers mods, Name name,
                 /*@ nullable */ JCExpression vartype, JCExpression init, VarSymbol sym, boolean declaredUsingVar) {

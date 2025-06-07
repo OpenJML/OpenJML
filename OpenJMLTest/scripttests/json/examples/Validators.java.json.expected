@@ -5475,21 +5475,21 @@
                         "@id": "645",
                         "primitive": "INVOKE"
                       },
-                      "name": {
-                        "@class": "com.sun.tools.javac.util.Name",
-                        "@id": "646",
-                        "primitive": "nonNull"
-                      },
+                      "typeargs": null,
                       "expr": {
                         "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                        "@id": "647",
+                        "@id": "646",
                         "name": {
                           "@class": "com.sun.tools.javac.util.Name",
                           "@ref": "54",
                           "primitive": "Objects"
                         }
                       },
-                      "typeargs": null
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@id": "647",
+                        "primitive": "nonNull"
+                      }
                     },
                     {
                       "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
@@ -30140,11 +30140,7 @@
                             "@ref": "645",
                             "primitive": "INVOKE"
                           },
-                          "name": {
-                            "@class": "com.sun.tools.javac.util.Name",
-                            "@ref": "2982",
-                            "primitive": "isEmail"
-                          },
+                          "typeargs": null,
                           "expr": {
                             "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
                             "@id": "3298",
@@ -30154,7 +30150,11 @@
                               "primitive": "PatternKit"
                             }
                           },
-                          "typeargs": null
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "2982",
+                            "primitive": "isEmail"
+                          }
                         },
                         {
                           "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
@@ -33239,11 +33239,7 @@
                             "@ref": "645",
                             "primitive": "INVOKE"
                           },
-                          "name": {
-                            "@class": "com.sun.tools.javac.util.Name",
-                            "@ref": "3302",
-                            "primitive": "isURL"
-                          },
+                          "typeargs": null,
                           "expr": {
                             "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
                             "@id": "3628",
@@ -33253,7 +33249,11 @@
                               "primitive": "PatternKit"
                             }
                           },
-                          "typeargs": null
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "3302",
+                            "primitive": "isURL"
+                          }
                         },
                         {
                           "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
