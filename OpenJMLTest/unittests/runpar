@@ -25,6 +25,7 @@ function ctrl_c() {
     exit 1
 }
 
+cd $(dirname "$BASH_SOURCE")
 rm -f the.jml.lock unittestframework
 
 shopt -s expand_aliases
@@ -36,7 +37,6 @@ else
 fi
 
 
-cd $(dirname "$BASH_SOURCE")
 make -C .. prep
 
 alias lsc="jobs | wc -l"
@@ -73,3 +73,4 @@ else
 
 fi
 echo Completed
+./retry

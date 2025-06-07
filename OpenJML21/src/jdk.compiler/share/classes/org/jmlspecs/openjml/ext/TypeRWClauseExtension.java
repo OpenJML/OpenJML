@@ -55,7 +55,7 @@ public class TypeRWClauseExtension extends JmlExtension {
                     error(parser.pos(), parser.endPos(), "jml.expected", "an if token");
                     e = M.Erroneous();
                 } else {
-                    parser.accept(TokenKind.IF); // check that current token is 'if' and advace scanner
+                    parser.accept(TokenKind.IF); // check that current token is 'if' and advance scanner
                     e = parser.parseExpression(); // read expression, advancing scanner to token after expression
                 }
             }

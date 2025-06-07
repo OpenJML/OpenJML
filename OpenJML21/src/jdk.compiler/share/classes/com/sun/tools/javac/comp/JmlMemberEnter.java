@@ -225,6 +225,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				}
     			}
         	}
+            x: for (var t: specsDecl.defs) {
+                if (t instanceof JmlTree.JmlTypeClauseConditional tc) {
+                    var nm = tc.identifier.name;
+                    for (var v: specsDecl.defs) {
+                        if (v instanceof JCVariableDecl vd && vd.name == nm) {
+                            specs.getLoadedSpecs(vd.sym).list.append(tc);
+                            continue x;
+                        }
+                    }
+                    utils.error(tc.sourcefile, tc.identifier, "jml.message", "The identifier must be a member of the enclosing class: " + nm);
+                }
+            }
         	return;
     	}
     	//System.out.println("MATCHING MEMBERS "+ cd.name);
@@ -244,6 +256,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					super.memberEnter(specVarDecl, env);
     					specVarDecl.type = specVarDecl.sym.type;
     					if (specVarDecl.fieldSpecs == null) specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
+                        //System.out.println("PUTTING FIELD SPECS-B " + specVarDecl + " " + env.enclClass.name + " " + specVarDecl.fieldSpecs);
     					specs.putSpecs(specVarDecl.sym, specVarDecl.fieldSpecs);
     					sourceDecl.defs = sourceDecl.defs.append(specVarDecl);
     					//System.out.println("NEW JML FIELD " + cd.name + " " + specVarDecl.name + " " + specVarDecl.sym + " " + specVarDecl.type + " " + specVarDecl.vartype + " " + specVarDecl.vartype.type );
@@ -368,6 +381,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 						hasInstanceInit = true;
 					}
 				}
+    		} else if (t instanceof JmlTree.JmlTypeClauseConditional jt) {
+    		    
     		}
     		if (ok) revisedDefs.add(t);
     	}
@@ -401,6 +416,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	//   d.specsDecl is set for each member; iot may be equal to d
     	//   if d.specsDecl is different than d then d.specsDecl.specsDecl is null
     	//   putSpecs has been called for each legitimate member
+    }
+
+    private void collectFieldSpecs(Env<AttrContext> env, JmlVariableDecl vd) {
+        for (var d: env.enclClass.defs) {
+            if (d instanceof JmlTree.JmlTypeClauseConditional tc && tc.identifier.name == vd.name) {
+                vd.fieldSpecs.list.add(tc); return;
+            }
+        }
     }
     
     public boolean enterJML = true; // Set to false to just create the sym and type, but not enter or check duplicates

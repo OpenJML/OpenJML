@@ -13,7 +13,11 @@ for d in $DIRS ; do
   if [ -d $d ]; then
     echo DIR $d
     for j in $d/*.java; do
-      $OJA -jmltesting --command=parse --show=json $j
+      if [ "$d" == "error" ]; then
+        $OJA -jmltesting --command=parse --show=json $j > /dev/null
+      else
+        $OJA -jmltesting --command=parse --show=json $j
+      fi
       ( diff $j.json $j.json.expected && rm $j.json ) || ERR=1
     done
   fi
