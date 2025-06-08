@@ -1939,22 +1939,22 @@ public class JmlJson {
         }
     }
 
-    class JmlTypeClauseDeclAdapter extends Adapter<JmlTypeClauseDecl> {
-        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "decl" };
-        @Override
-        public JmlTypeClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            var values = getFieldValues(json.getAsJsonObject());
-            var result = M.JmlTypeClauseDecl((JCTree)values[4]);
-            result.name = (Name)values[0];
-            result.modifiers = (JCModifiers)values[1];
-            result.keyword = (String)values[2];
-            result.clauseType = (IJmlClauseKind)values[3];
-            common(json, result, context);
-            return result;
-        }
-    }
-    
+//    class JmlTypeClauseDeclAdapter extends Adapter<JmlTypeClauseDecl> {
+//        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "decl" };
+//        @Override
+//        public JmlTypeClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+//                throws JsonParseException {
+//            var values = getFieldValues(json.getAsJsonObject());
+//            var result = M.JmlTypeClauseDecl((JCTree)values[4]);
+//            result.name = (Name)values[0];
+//            result.modifiers = (JCModifiers)values[1];
+//            result.keyword = (String)values[2];
+//            result.clauseType = (IJmlClauseKind)values[3];
+//            common(json, result, context);
+//            return result;
+//        }
+//    }
+//    
     class JmlTypeClauseExprAdapter extends Adapter<JmlTypeClauseExpr> {
         public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "expression" };
         @Override

@@ -752,20 +752,20 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    @Override
-    public JCTree visitJmlTypeClauseDecl(JmlTypeClauseDecl that, Void p) {
-    	var prev = log.useSource(that.sourcefile);
-        JmlTypeClauseDecl copy = M.at(that.pos).JmlTypeClauseDecl(
-                copy(that.decl,p));
-        copy.clauseType = that.clauseType;
-        copy.modifiers = copy(that.modifiers,p);
-        copy.sourcefile = that.sourcefile;
-        copy.type = that.type;
-        copyEndPos(copy,that);
-        log.useSource(prev);
-        return copy;
-    }
-
+//    @Override
+//    public JCTree visitJmlTypeClauseDecl(JmlTypeClauseDecl that, Void p) {
+//    	var prev = log.useSource(that.sourcefile);
+//        JmlTypeClauseDecl copy = M.at(that.pos).JmlTypeClauseDecl(
+//                copy(that.decl,p));
+//        copy.clauseType = that.clauseType;
+//        copy.modifiers = copy(that.modifiers,p);
+//        copy.sourcefile = that.sourcefile;
+//        copy.type = that.type;
+//        copyEndPos(copy,that);
+//        log.useSource(prev);
+//        return copy;
+//    }
+//
     @Override
     public JCTree visitJmlTypeClauseExpr(JmlTypeClauseExpr that, Void p) {
     	var prev = log.useSource(that.sourcefile);

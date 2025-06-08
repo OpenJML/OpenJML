@@ -384,11 +384,11 @@ public class JmlFlow extends Flow  {
             //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
         }
 
-        @Override
-        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
-        }
-
+//        @Override
+//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
+//        }
+//
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
          // ignore call
@@ -854,11 +854,11 @@ public class JmlFlow extends Flow  {
         	// no need to analyze
         }
 
-        @Override
-        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-        	// no need to analyze
-        }
-
+//        @Override
+//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+//        	// no need to analyze
+//        }
+//
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         	// no need to analyze
@@ -1228,11 +1228,11 @@ public class JmlFlow extends Flow  {
             //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
         }
 
-        @Override
-        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
-        }
-
+//        @Override
+//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
+//        }
+//
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
          // ignore call

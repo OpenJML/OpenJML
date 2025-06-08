@@ -155,7 +155,7 @@ public class JmlTree {
         JmlTuple JmlTuple(java.util.List<JCExpression> list);
         JmlTypeClauseConditional JmlTypeClauseConditional(JCModifiers mods, IJmlClauseKind token, JCTree.JCIdent ident, JCTree.JCExpression p);
         JmlTypeClauseConstraint JmlTypeClauseConstraint(JCModifiers mods, JCExpression e, List<JmlMethodSig> sigs);
-        JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl);
+//        JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl);
         JmlTypeClauseExpr JmlTypeClauseExpr(JCModifiers mods, String keyword, IJmlClauseKind token, JCTree.JCExpression e);
         JmlTypeClauseIn JmlTypeClauseIn(List<JmlGroupName> list);
         JmlTypeClauseInitializer JmlTypeClauseInitializer(IJmlClauseKind token, JCModifiers mods);
@@ -803,13 +803,13 @@ public class JmlTree {
             return t;
         }
         
-        @Override
-        public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl) {
-            JmlTypeClauseDecl t = new JmlTypeClauseDecl(pos,decl);
-            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
-            return t;
-        }
-        
+//        @Override
+//        public JmlTypeClauseDecl JmlTypeClauseDecl(JCTree decl) {
+//            JmlTypeClauseDecl t = new JmlTypeClauseDecl(pos,decl);
+//            t.sourcefile = context == null ? null : Log.instance(context).currentSourceFile();
+//            return t;
+//        }
+//        
         @Override
         public JmlTypeClauseInitializer JmlTypeClauseInitializer(IJmlClauseKind token, JCModifiers mods) {
             JmlTypeClauseInitializer t = new JmlTypeClauseInitializer(pos, token, mods);
@@ -3912,48 +3912,48 @@ public class JmlTree {
         }
     }
 
-    /** This class represents type clauses that are declarations (ghost and model) */
-    public static class JmlTypeClauseDecl extends JmlTypeClause {
-        
-        public JCTree decl;
-        
-        /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlTypeClauseDecl(int pos, JCTree decl) {
-            this.pos = pos;
-            this.clauseType = typedeclClause;
-            this.modifiers = 
-                    decl instanceof JCVariableDecl ? ((JCVariableDecl)decl).mods :
-                        decl instanceof JCMethodDecl ? ((JCMethodDecl)decl).mods :
-                            decl instanceof JCClassDecl ? ((JCClassDecl)decl).mods :
-                        null;  // FIXME - something wrong if this is null
-            this.decl = decl;
-        }
-        
-        @Override
-        public Tag getTag() {
-            return decl.getTag();
-        }
-        
-        @Override
-        public void accept(Visitor v) {
-            if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlTypeClauseDecl(this); 
-            } else {
-                //System.out.println("A JmlTypeClauseDecl expects an IJmlVisitor, not a " + v.getClass());
-                //decl.accept(v); // FIXME - if this is in then JML decls that are part of the AST get processed when they should not
-            }
-        }
-    
-        @Override
-        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
-            if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseDecl(this, d);
-            } else {
-                //System.out.println("A JmlTypeClauseDecl expects an JmlTreeVisitor, not a " + v.getClass());
-                return decl.accept(v,d);
-            }
-        }
-    }
+//    /** This class represents type clauses that are declarations (ghost and model) */
+//    public static class JmlTypeClauseDecl extends JmlTypeClause {
+//        
+//        public JCTree decl;
+//        
+//        /** The constructor for the AST node - but use the factory to get new nodes, not this */
+//        protected JmlTypeClauseDecl(int pos, JCTree decl) {
+//            this.pos = pos;
+//            this.clauseType = typedeclClause;
+//            this.modifiers = 
+//                    decl instanceof JCVariableDecl ? ((JCVariableDecl)decl).mods :
+//                        decl instanceof JCMethodDecl ? ((JCMethodDecl)decl).mods :
+//                            decl instanceof JCClassDecl ? ((JCClassDecl)decl).mods :
+//                        null;  // FIXME - something wrong if this is null
+//            this.decl = decl;
+//        }
+//        
+//        @Override
+//        public Tag getTag() {
+//            return decl.getTag();
+//        }
+//        
+//        @Override
+//        public void accept(Visitor v) {
+//            if (v instanceof IJmlVisitor) {
+//                ((IJmlVisitor)v).visitJmlTypeClauseDecl(this); 
+//            } else {
+//                //System.out.println("A JmlTypeClauseDecl expects an IJmlVisitor, not a " + v.getClass());
+//                //decl.accept(v); // FIXME - if this is in then JML decls that are part of the AST get processed when they should not
+//            }
+//        }
+//    
+//        @Override
+//        public <R,D> R accept(TreeVisitor<R,D> v, D d) {
+//            if (v instanceof JmlTreeVisitor) {
+//                return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseDecl(this, d);
+//            } else {
+//                //System.out.println("A JmlTypeClauseDecl expects an JmlTreeVisitor, not a " + v.getClass());
+//                return decl.accept(v,d);
+//            }
+//        }
+//    }
 
     /** This class represents type clauses (e.g. invariant, axiom, 
      * ...) in a class specification */
