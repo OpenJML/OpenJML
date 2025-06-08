@@ -622,6 +622,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.associatedClause = that.associatedClause;
         copy.sourcefile = that.sourcefile;
         copy.type = that.type;
+        copy.name = that.name;
         copyEndPos(copy,that,copy.sourcefile); // FIXME - should the log be set before all the sub-copies?
         return copy;
     }
