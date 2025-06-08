@@ -2170,7 +2170,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    JCTree.JCExpression type = maker.Type(datagroupClass.type);
 //                    JCTree.JCVariableDecl vd = maker.VarDef(nmods,datagroup,type,null);
 //                    JmlMemberEnter.instance(context).memberEnter(vd,enclosingClassEnv);
-//                    JmlTree.JmlTypeClauseDecl td = maker.JmlTypeClauseDecl(vd);
 //                    utils.setJML(vd.mods);
 //                    vd.accept(this); // attribute it
 //                    queryDatagroup = vd.sym;
@@ -3663,25 +3662,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
    
-//    /** Attributes a declaration within a JML annotation - that is, a
-//     * model method, model type, or ghost or model field
-//     */
-//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
-//    	//System.out.println("ATTR TYPE CLAUSE DECL " + tree);
-//    	jmlenv = jmlenv.pushCopy();
-//        JavaFileObject old = log.useSource(tree.sourcefile);
-//        boolean prevAllowJML = jmlresolve.setAllowJML(true);
-//        try {
-//            jmlenv.jmlVisibility = tree.modifiers.flags & Flags.AccessFlags;
-//            attribStat(tree.decl,env);
-//        } finally {
-//            jmlresolve.setAllowJML(prevAllowJML);
-//            log.useSource(old);
-//            jmlenv = jmlenv.pop();
-//        }
-//    }
-    
-    
     /** Attributes a initializer or static_initializer declaration */
     public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
         JavaFileObject old = log.useSource(tree.sourcefile);
@@ -8855,7 +8835,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlTuple(JmlTuple tree)                       { visitTree(tree); }
         public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) { visitTree(tree); }
         public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) { visitTree(tree); }
-//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree)     { visitTree(tree); }
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree)     { visitTree(tree); }
         public void visitJmlTypeClauseIn(JmlTypeClauseIn tree)         { visitTree(tree); }
         public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) { visitTree(tree); }

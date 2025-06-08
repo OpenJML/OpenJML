@@ -813,10 +813,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         specs.addModifier(modelVarDecl.pos, endpos, Modifiers.MODEL, mr.mods);
         specs.addModifier(modelVarDecl.pos, endpos, Modifiers.PURE, mr.mods);
         JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(modelVarDecl.sym);
-//        JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
-//        tcd.pos = mr.pos;
-//        tcd.sourcefile = fspecs.source();
-//        tcd.modifiers = mr.mods;
         tsp.modelFieldMethods.append(mr);
         modelMethods.put(modelVarDecl.sym, mr);
         return mr;

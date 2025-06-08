@@ -537,15 +537,6 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-//    @Override
-//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//        JmlTypeClauseDecl r = that;
-//        r.modifiers = translate(that.modifiers);
-//        r.decl = translate(that.decl);
-//        // No change to source, token, pos, type
-//        result = r;
-//    }
-//
     @Override
     public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         JmlTypeClauseExpr r = that;

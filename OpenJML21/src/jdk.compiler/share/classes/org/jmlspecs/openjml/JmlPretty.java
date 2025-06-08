@@ -831,11 +831,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         } catch (IOException e) { perr(that,e); }
     }
 
-//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//        printSource(that, false);
-//        that.decl.accept(this); // FIXME - //@?
-//    }
-//
     public boolean useCanonicalName = true;
 
 

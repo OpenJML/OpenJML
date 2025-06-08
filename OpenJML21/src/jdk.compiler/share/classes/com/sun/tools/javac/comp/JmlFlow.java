@@ -384,11 +384,6 @@ public class JmlFlow extends Flow  {
             //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
         }
 
-//        @Override
-//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//            //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
-//        }
-//
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
          // ignore call
@@ -459,7 +454,7 @@ public class JmlFlow extends Flow  {
 //            JavaFileObject prev = Log.instance(context).currentSourceFile();
 //            try {
 //                // Do Flow processing on each JML clause of the class declaration
-//                for (JmlTypeClauseDecl c : tspecs.decls) {
+//                for (JmlTypeClause c : tspecs.decls) {
 //                        JCTree d = c.decl;
 //                        Log.instance(context).useSource(c.source());
 //                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
@@ -854,11 +849,6 @@ public class JmlFlow extends Flow  {
         	// no need to analyze
         }
 
-//        @Override
-//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//        	// no need to analyze
-//        }
-//
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
         	// no need to analyze
@@ -919,14 +909,12 @@ public class JmlFlow extends Flow  {
 //            try {
 //                // Do Flow processing on each JML clause of the class declaration
 //                for (JmlTypeClause c : tspecs.clauses) {
-//                    if (c instanceof JmlTypeClauseDecl) {
-//                        JCTree d = ((JmlTypeClauseDecl)c).decl;
+//                        JCTree d = c.decl;
 //                        Log.instance(context).useSource(c.source());
 //                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
 //                            continue;
 //                        }
 //                        d.accept(this);
-//                    }
 //                }
 //            } finally {
 //                Log.instance(context).useSource(prev);
@@ -1228,11 +1216,6 @@ public class JmlFlow extends Flow  {
             //Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseConstraint");
         }
 
-//        @Override
-//        public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//            Log.instance(context).error("jml.internal","Unexpected call of JmlFlow.visitJmlTypeClauseDecl");
-//        }
-//
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
          // ignore call
@@ -1300,8 +1283,8 @@ public class JmlFlow extends Flow  {
 //            try {
 //                // Do Flow processing on each JML clause of the class declaration
 //                for (JmlTypeClause c : tspecs.clauses) {
-//                    if (c instanceof JmlTypeClauseDecl) {
-//                        JCTree d = ((JmlTypeClauseDecl)c).decl;
+//                    if (c instanceof JmlTypeClause) {
+//                        JCTree d = ((JmlTypeClause)c).decl;
 //                        Log.instance(context).useSource(c.source());
 //                        if (c.modifiers != null && (c.modifiers.flags & Flags.SYNTHETIC) != 0) {
 //                            continue;
