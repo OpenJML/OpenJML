@@ -1767,7 +1767,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that)            { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)        { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)        { shouldNotBeCalled(that); }
+//    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }

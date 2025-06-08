@@ -5348,10 +5348,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// For JML fields
 		for (JCTree dd : specs.getAttrSpecs((ClassSymbol) csym).clauses) {
-			if (!(dd instanceof JmlTypeClauseDecl)) continue;
-			JCTree t = ((JmlTypeClauseDecl) dd).decl;
-			if (!(t instanceof JCVariableDecl)) continue;
-			JCVariableDecl d = (JCVariableDecl) t;
+//			if (!(dd instanceof JmlTypeClauseDecl)) continue;
+//			JCTree t = ((JmlTypeClauseDecl) dd).decl;
+			if (!(dd instanceof JCVariableDecl d)) continue;
 			if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
 			if (beingConstructed && !utils.isJMLStatic(d.sym)) continue;
 			if (isDataGroup(d.type)) continue;
@@ -20776,12 +20775,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
-	// OK - e.g. ghost or model declaration
-	@Override
-	public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-		scan(that.decl);
-	}
-
+//	// OK - e.g. ghost or model declaration
+//	@Override
+//	public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
+//		scan(that.decl);
+//	}
+//
 	// OK - e.g. invariant
 	@Override
 	public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
