@@ -144,6 +144,7 @@ public class JmlTree {
         JmlStatement JmlStatement(IJmlClauseKind t, JCTree.JCStatement e);
         JmlStatementShow JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
+        JmlStatementHavoc JmlStatementHavoc(List<JCTree.JCExpression> storerefs);
         JmlStatementLoopExpr JmlStatementLoopExpr(IJmlClauseKind t, JCTree.JCExpression e);
         JmlStatementLoopModifies JmlStatementLoopModifies(IJmlClauseKind t, List<JCTree.JCExpression> e);
         JmlStatementSpec JmlStatementSpec(JmlMethodSpecs specs);
@@ -756,7 +757,7 @@ public class JmlTree {
         }
         
         /** Creates a JML havoc statement */
-//        @Override
+        @Override
         public JmlStatementHavoc JmlStatementHavoc(List<JCTree.JCExpression> storerefs) {
             return new JmlStatementHavoc(pos,storerefs);
         }
@@ -995,8 +996,7 @@ public class JmlTree {
     public static final int JMLLBLEXPR = JMLSETCOMPREHENSION + 1;
     public static final int JMLSINGLETON = JMLLBLEXPR + 1;
     public static final int JMLTYPECLAUSEEXPR = JMLSINGLETON + 1;
-    public static final int JMLTYPECLAUSEDECL = JMLTYPECLAUSEEXPR + 1;
-    public static final int JMLTYPECLAUSEREPRESENTS = JMLTYPECLAUSEDECL + 1;
+    public static final int JMLTYPECLAUSEREPRESENTS = JMLTYPECLAUSEEXPR + 1;
     public static final int JMLTYPECLAUSECONSTRAINT = JMLTYPECLAUSEREPRESENTS + 1;
     public static final int JMLCONSTRAINTMETHODSIG = JMLTYPECLAUSECONSTRAINT + 1;
     public static final int JMLTYPECLAUSEINITIALIZER = JMLCONSTRAINTMETHODSIG + 1;
