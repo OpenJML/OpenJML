@@ -3624,8 +3624,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				ListIterator<Type> iter = p.listIterator(p.size());
 				outer: while (iter.hasPrevious()) {
 					JmlSpecs.TypeSpecs tyspecs = specs.getAttrSpecs((ClassSymbol) iter.previous().tsym);
-					for (JmlTypeClauseDecl x : tyspecs.modelFieldMethods) {
-						if (x.decl instanceof JmlMethodDecl md) {
+					for (var md : tyspecs.modelFieldMethods) {
+						//if (x.decl instanceof JmlMethodDecl md) {
 							// THe DEFAULT Flag is used to indicate that the method is just the place-holder
 							// method
 							// created in JmlMemberEnter. It should be ignored as it is not a user supplied
@@ -3638,7 +3638,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				                if ((md.mods.flags & Utils.JMLADDED) == 0) return; // model field has a real rep
 								break outer;
 							}
-						}
+						//}
 					}
 				}
 				// The current model method has no representation
@@ -20906,8 +20906,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JmlMethodDecl mdecl = null;
 			// Find the method for this model field. It will have been created in
 			// JmlMemberEnter
-			for (JmlTypeClauseDecl m : typeSpecs.modelFieldMethods) {
-				JmlMethodDecl md = (JmlMethodDecl) m.decl;
+			for (var md : typeSpecs.modelFieldMethods) {
+				//JmlMethodDecl md = (JmlMethodDecl) m.decl;
 				if (!md.name.toString().equals(str))
 					continue;
 //                try {
@@ -20949,7 +20949,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				long flags = Flags.PUBLIC | Flags.SYNTHETIC;
 				flags |= (that.modifiers.flags & Flags.STATIC);
 				JCModifiers mods = M.Modifiers(flags);
-				JCMethodDecl msdecl = treeutils.makeMethodDefNoArg(mods, name, that.ident.type, classDecl.sym);
+				JmlMethodDecl msdecl = treeutils.makeMethodDefNoArg(mods, name, that.ident.type, classDecl.sym);
 				msdecl.pos = that.pos;
 				ListBuffer<JCStatement> check = pushBlock();
 				try {
@@ -20974,12 +20974,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					msdecl.body.stats = popBlock(msdecl.body, check).stats;
 				}
 				classDefs.add(msdecl);
-				JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
-				tcd.modifiers = msdecl.mods;
-				tcd.pos = msdecl.pos;
-				tcd.sourcefile = that.source();
-				tcd.modifiers = msdecl.mods; // FIXME - is this necesssary
-				typeSpecs.modelFieldMethods.append(tcd);
+//				JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
+//				tcd.modifiers = msdecl.mods;
+//				tcd.pos = msdecl.pos;
+//				tcd.sourcefile = that.source();
+//				tcd.modifiers = msdecl.mods; // FIXME - is this necesssary
+				typeSpecs.modelFieldMethods.append(msdecl);
 //                typeSpecs.decls.append(tcd);
 			}
 		}

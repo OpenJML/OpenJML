@@ -1628,10 +1628,9 @@ public class JmlSpecs {
         /*@ non_null */
         public ListBuffer<JmlTree.JmlTypeClause> clauses;
 
-        // FIXME - is this still used?
         /** Synthetic methods for model fields (these are also included in the clauses list) */
         /*@ non_null */
-        public ListBuffer<JmlTree.JmlTypeClauseDecl> modelFieldMethods = new ListBuffer<JmlTree.JmlTypeClauseDecl>();
+        public ListBuffer<JmlMethodDecl> modelFieldMethods = new ListBuffer<JmlMethodDecl>();
 
         /** A map from initializer blocks of the class to the specifications for the initializers. */ // FIXME - review
         /*@ non_null */
