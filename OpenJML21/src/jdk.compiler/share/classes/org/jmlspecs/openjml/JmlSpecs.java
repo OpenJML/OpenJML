@@ -1666,16 +1666,25 @@ public class JmlSpecs {
         	this.file = specdecl.source(); // FIXME - do we need this caching?
         	this.modifiers = (JmlModifiers)specdecl.mods; // FIXME - need to set mods from java or csymbol
         	this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
-        	for (JCTree t: specdecl.defs) {
+        	x: for (JCTree t: specdecl.defs) {
         		if (t instanceof JmlTypeClauseInitializer init) {
         			if (init.keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
         				staticInitializerSpec = init;
         			} else {
         				initializerSpec = init;
         			}
-        		} else if (t instanceof JmlTypeClauseConditional) {
-        			// No such clause should be present // FIXME: error message
-        			System.out.println("UNEXPECTED RW CLAUSE " + t);
+        		} else if (t instanceof JmlTypeClauseConditional tc) {
+//        		    Name nm = tc.identifier.name;
+//        			for (var def: specdecl.defs) {
+//        			    if (def instanceof JmlVariableDecl vd && vd.name == nm) {
+//        			        System.out.println("ADDING " + tc);
+//        			        vd.fieldSpecs().list.add(tc);
+//        			        System.out.println("  NOW " + vd.fieldSpecs().list);
+//        			        Utils.dumpStack();
+//        			        continue x;
+//        			    }
+//        			}
+//        			//Utils.instance(context).error(tc.sourcefile, tc.identifier, "jml.message", "There is no field declaration matching hits name: " + nm);
         		} else if (t instanceof JmlTypeClause) {
         			this.clauses.add((JmlTypeClause)t);
         		}

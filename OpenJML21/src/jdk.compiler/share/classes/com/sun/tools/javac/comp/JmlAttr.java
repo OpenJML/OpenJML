@@ -3916,16 +3916,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 log.error(tree.identifier.pos,"jml.visibility.is.different",Flags.toString(clauseVisibility), Flags.toString(jmlenv.jmlVisibility));
             }
             
-//            if (sym.owner != env.enclClass.sym) {
-//                log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
+            if (sym.owner != env.enclClass.sym) {
+                log.error(tree.identifier.pos,"jml.ident.not.in.class",sym,sym.owner,env.enclClass.sym);
 //            } else {
 //                // FIXME _ should this be done elsewhere
 //                VarSymbol vsym = (VarSymbol)sym;
-//                JmlSpecs.FieldSpecs fs = specs.getSpecs(vsym);
+//                JmlSpecs.FieldSpecs fs = specs.get(vsym);
 //                //if (fs == null) specs.putSpecs(vsym,fs=new JmlSpecs.FieldSpecs(tree.sym.));
 //                fs.list.append(tree);
 //            	System.out.println("ADDING TO " + vsym + " " + tree + " " + tree.identifier + " " + tree.identifier.sym + " " + tree.identifier.type);
-//            }
+            }
             
             boolean isStatic = sym.isStatic();
             if (isStatic) // ||(env.enclClass.sym.flags() & INTERFACE) != 0) // FIXME - what about interfaces
@@ -7653,6 +7653,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 enter.classEnter(tree, env);
             }
             super.visitClassDef(tree);
+            var newlist = new ListBuffer<JCTree>();
+            x: for (var d: tree.defs) {
+                if (d instanceof JmlTypeClauseConditional tc) {
+                    var sym = tc.identifier.sym;
+                    for (var dd: tree.defs) {
+                        if (dd instanceof JCVariableDecl vd && vd.sym == sym) {
+                            specs.get(vd.sym).list.add(tc);
+                            continue x;
+                        }
+                    }
+                    System.out.println("RW CLAUSE NO MATCH " + sym);
+                    // FIXME - no match
+                } else {
+                    newlist.add(d);
+                }
+            }
+            tree.defs = newlist.toList();
         } finally {
         }
     }

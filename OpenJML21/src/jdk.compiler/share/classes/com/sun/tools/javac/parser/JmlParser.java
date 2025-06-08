@@ -852,24 +852,24 @@ public class JmlParser extends JavacParser {
         ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
         if (injml) utils.setJML(cd.mods);
         S.lineAnnotations = new java.util.LinkedList<>();
-        ListBuffer<JCTree> newdefs = new ListBuffer<>();
-        for (var d: cd.defs) {
-            if (d instanceof JmlTypeClauseConditional ct) {
-                x: { 
-                    JCIdent id = ct.identifier;
-                    for (var dd: cd.defs) {
-                        if (dd instanceof JmlVariableDecl vd && vd.name == id.name) {
-                            vd.fieldSpecs.list.add(ct);
-                            break x;
-                        }
-                    }
-                    utils.error(id, "jml.message", "The identifier must be a member of the enclosing class: " + id);
-                }
-            } else {
-                newdefs.add(d);
-            }
-        }
-        cd.defs = newdefs.toList();
+//        ListBuffer<JCTree> newdefs = new ListBuffer<>();
+//        for (var d: cd.defs) {
+//            if (d instanceof JmlTypeClauseConditional ct) {
+//                x: { 
+//                    JCIdent id = ct.identifier;
+//                    for (var dd: cd.defs) {
+//                        if (dd instanceof JmlVariableDecl vd && vd.name == id.name) {
+//                            vd.fieldSpecs.list.add(ct);
+//                            break x;
+//                        }
+//                    }
+//                    utils.error(id, "jml.message", "The identifier must be a member of the enclosing class: " + id);
+//                }
+//            } else {
+//                newdefs.add(d);
+//            }
+//        }
+//        cd.defs = newdefs.toList();
         return cd;
     }
 
@@ -1475,7 +1475,7 @@ public class JmlParser extends JavacParser {
                             d.isInitializerBlock = true;
                             d.sourcefile = currentSourceFile();
                             if (currentMethodSpecs != null) {
-                                currentMethodSpecs.decl = null; // null means the JmlMethodSpecs belons to a block, not a method
+                                currentMethodSpecs.decl = null; // null means the JmlMethodSpecs belongs to a block, not a method
                                 currentMethodSpecs = null;
                             }
 

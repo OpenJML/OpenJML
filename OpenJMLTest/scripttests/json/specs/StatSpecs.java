@@ -6,4 +6,12 @@ public class StatSpecs {
         m(r);
     }
     
+    public void qq(int r) {
+        //@ refining
+        //@  ensures true;
+        //@ begin
+        m(r);
+        //@ end
+    }
+    
 }
