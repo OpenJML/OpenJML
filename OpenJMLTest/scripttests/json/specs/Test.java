@@ -29,6 +29,10 @@ public class Test {
     //@ ensures true;
     //@ initializer
     
+    //@ ghost \bigint ii;
+    //@ model \real jj;
+    //@ ghost \set<Object> oo;
+    
     public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {
         //@ loop_invariant a.values == \old(a.values);
         //@ inlined_loop;
