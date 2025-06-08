@@ -1456,11 +1456,11 @@ public class JmlParser extends JavacParser {
                             }
                             if (startsInJml) utils.setJML(d.mods);
                             //d.toplevel.sourcefile = log.currentSourceFile();
-                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            ttr = tr;
                             attach(d, dc); // FIXME - already attached I think; here and below
                         } else if (tr instanceof JmlMethodDecl d) {
                             d.sourcefile = currentSourceFile();
-                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            ttr = tr;
                             attach(d, dc);
                             d.methodSpecs = currentMethodSpecs;
                             if (currentMethodSpecs != null) {
@@ -1469,7 +1469,7 @@ public class JmlParser extends JavacParser {
                             }
 
                         } else if (tr instanceof JmlBlock d) {
-                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            ttr = tr;
                             attach(d, dc);
                             d.specificationCases = currentMethodSpecs;
                             d.isInitializerBlock = true;
@@ -1489,7 +1489,7 @@ public class JmlParser extends JavacParser {
                                 replacementType = null;
                             }
                             vd.sourcefile = currentSourceFile();
-                            ttr = tr; // toP(jmlF.at(pos).JmlTypeClauseDecl(d));
+                            ttr = tr;
                             attach(vd, dc);
                             if (startsInJml) utils.setJML(vd.mods);
                             currentVariableDecl = vd;

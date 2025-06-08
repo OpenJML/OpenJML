@@ -292,11 +292,6 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.sigs);
     }
 
-//    default public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
-//        scan(tree.modifiers);
-//        scan(tree.decl);
-//    }
-
     default public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
         scan(tree.modifiers);
         scan(tree.expression);

@@ -79,7 +79,6 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlTuple(JmlTuple that, P p)                       ;
     R visitJmlTypeClauseConditional(JmlTypeClauseConditional that, P p) ;
     R visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that, P p) ;
-//    R visitJmlTypeClauseDecl(JmlTypeClauseDecl that, P p)     ;
     R visitJmlTypeClauseExpr(JmlTypeClauseExpr that, P p)     ;
     R visitJmlTypeClauseIn(JmlTypeClauseIn that, P p)         ;
     R visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that, P p) ;

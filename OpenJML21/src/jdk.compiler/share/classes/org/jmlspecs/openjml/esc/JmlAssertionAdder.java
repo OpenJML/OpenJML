@@ -4336,19 +4336,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (tspecs == null)
 			return; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
 
-		/*
-		 * for (JmlTypeClause clause : tspecs.decls) { try { if (!(clause instanceof
-		 * JmlTypeClauseDecl)) continue; JmlTypeClauseDecl tdecl =
-		 * (JmlTypeClauseDecl)clause; if (!(tdecl.decl instanceof JmlVariableDecl))
-		 * continue; JmlVariableDecl vdecl = (JmlVariableDecl)tdecl.decl; if (vdecl.init
-		 * == null) continue; if (!utils.jmlvisible(null, methodDecl.sym.owner, csym,
-		 * vdecl.mods.flags, methodDecl.mods.flags)) continue; if ((vdecl.sym.flags() &
-		 * (Flags.FINAL | Flags.STATIC)) != (Flags.FINAL|Flags.STATIC)) continue; Object
-		 * constValue = vdecl.init.type.constValue(); if (constValue == null) continue;
-		 * addStat(vdecl); } catch (JmlNotImplementedException e) {
-		 * notImplemented(clause.keyword + " clause containing ", e, clause.source()); }
-		 * }
-		 */
+
+//		for (JmlTypeClause clause : tspecs.decls) { 
+//		    try { 
+//		        if (!(tdecl.decl instanceof JmlVariableDecl)) continue; 
+//		        JmlVariableDecl vdecl = (JmlVariableDecl)tdecl.decl; 
+//		        if (vdecl.init == null) continue; 
+//		        if (!utils.jmlvisible(null, methodDecl.sym.owner, csym,
+//		                vdecl.mods.flags, methodDecl.mods.flags)) continue; 
+//		        if ((vdecl.sym.flags() &(Flags.FINAL | Flags.STATIC)) != (Flags.FINAL|Flags.STATIC)) continue; 
+//		        Object constValue = vdecl.init.type.constValue(); 
+//		        if (constValue == null) continue;
+//		        addStat(vdecl); 
+//		    } 
+//		    catch (JmlNotImplementedException e) {
+//		        notImplemented(clause.keyword + " clause containing ", e, clause.source());
+//		    }
+//		}
+
 	}
 
 	protected void assumeStaticInvariants(ClassSymbol csym) {
@@ -5205,7 +5210,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		currentEnv.currentReceiver = savedThis;
 		/*
-		 * for (JmlTypeClauseDecl dd: specs.getSpecs(classDecl.sym).decls) { JCTree tt =
+		 * for (JmlTypeClause dd: specs.getSpecs(classDecl.sym).decls) { JCTree tt =
 		 * dd.decl; if (!(tt instanceof JCVariableDecl)) continue; JCVariableDecl d =
 		 * (JCVariableDecl)tt; if (utils.isPrimitiveType(d.sym.type)) continue; if
 		 * (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
@@ -5261,7 +5266,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		log.useSource(prevJFO);
 		currentEnv.currentReceiver = savedThis;
 		/*
-		 * for (JmlTypeClauseDecl dd: specs.getSpecs(classSym).decls) { JCTree tt =
+		 * for (JmlTypeClause dd: specs.getSpecs(classSym).decls) { JCTree tt =
 		 * dd.decl; if (!(tt instanceof JCVariableDecl)) continue; JCVariableDecl d =
 		 * (JCVariableDecl)tt; if (utils.isPrimitiveType(d.sym.type)) continue; if
 		 * (staticOnly && !utils.isJMLStatic(d.sym)) continue;
@@ -5348,8 +5353,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// For JML fields
 		for (JCTree dd : specs.getAttrSpecs((ClassSymbol) csym).clauses) {
-//			if (!(dd instanceof JmlTypeClauseDecl)) continue;
-//			JCTree t = ((JmlTypeClauseDecl) dd).decl;
 			if (!(dd instanceof JCVariableDecl d)) continue;
 			if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
 			if (beingConstructed && !utils.isJMLStatic(d.sym)) continue;
@@ -5389,8 +5392,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                }
 ////                // For JML fields
 ////                for (JCTree dd: classDecl.typeSpecs.clauses) {
-////                    if (!(dd instanceof JmlTypeClauseDecl)) continue;
-////                    JCTree t = ((JmlTypeClauseDecl)dd).decl;
+////                    if (!(dd instanceof JmlTypeClause)) continue;
+////                    JCTree t = ((JmlTypeClause)dd).decl;
 ////                    if (!(t instanceof JCVariableDecl)) continue;
 ////                    JCVariableDecl d = (JCVariableDecl)t;
 ////                    if (d.sym == null) continue; // FIXME - model fields, at least, can have null symbols, I think
@@ -5574,7 +5577,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			currentEnv.currentReceiver = savedThis;
 			/*
-			 * for (JmlTypeClauseDecl dd: specs.getSpecs(classDecl.sym).decls) { JCTree tt =
+			 * for (JmlTypeClause dd: specs.getSpecs(classDecl.sym).decls) { JCTree tt =
 			 * dd.decl; if (!(tt instanceof JCVariableDecl)) continue; JCVariableDecl d =
 			 * (JCVariableDecl)tt; if (utils.isPrimitiveType(d.sym.type)) continue; if
 			 * (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym)) continue;
@@ -20775,12 +20778,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
-//	// OK - e.g. ghost or model declaration
-//	@Override
-//	public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) {
-//		scan(that.decl);
-//	}
-//
 	// OK - e.g. invariant
 	@Override
 	public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) {
@@ -20973,11 +20970,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					msdecl.body.stats = popBlock(msdecl.body, check).stats;
 				}
 				classDefs.add(msdecl);
-//				JmlTypeClauseDecl tcd = M.JmlTypeClauseDecl(msdecl);
-//				tcd.modifiers = msdecl.mods;
-//				tcd.pos = msdecl.pos;
-//				tcd.sourcefile = that.source();
-//				tcd.modifiers = msdecl.mods; // FIXME - is this necesssary
 				typeSpecs.modelFieldMethods.append(msdecl);
 //                typeSpecs.decls.append(tcd);
 			}
