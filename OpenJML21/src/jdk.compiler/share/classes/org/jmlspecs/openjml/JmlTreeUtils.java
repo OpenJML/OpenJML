@@ -1722,7 +1722,7 @@ public class JmlTreeUtils {
     
     
     // FIXME _ document
-    public JCMethodDecl makeMethodDefNoArg(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass) {
+    public JmlMethodDecl makeMethodDefNoArg(JCModifiers mods, Name methodName, Type resultType, ClassSymbol ownerClass) {
 
         MethodType mtype = new MethodType(List.<Type>nil(),resultType,List.<Type>nil(),ownerClass);
 
@@ -1732,7 +1732,7 @@ public class JmlTreeUtils {
                 mtype, 
                 ownerClass);
 
-        JCMethodDecl mdecl = factory.MethodDef(
+        JmlMethodDecl mdecl = (JmlMethodDecl)factory.MethodDef(
                 msym,
                 factory.Block(0,List.<JCStatement>nil()));
 

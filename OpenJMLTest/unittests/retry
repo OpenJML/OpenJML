@@ -1,0 +1,10 @@
+#! /bin/bash
+
+echo Unexpected failures
+failures=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | comm -13 known-failures -`
+echo $failures
+for t in $failures ; do
+    echo Retrying $t
+    ./runtests $t
+done
+
