@@ -1659,19 +1659,14 @@ public class JmlJson {
 
     class JmlStatementHavocAdapter extends Adapter<JmlStatementHavoc> {
         public static final String[] fields = { "name", "clauseType", "storerefs" };
-//        @Override
-//        public JmlStatementHavoc deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-//                throws JsonParseException {
-//            var values = getFieldValues(json.getAsJsonObject());
-//            var result = M.JmlStatementHavoc(
-//                    (String)values[0],
-//                    (IJmlClauseKind)values[1],
-//                    (org.jmlspecs.openjml.esc.Label)values[2],
-//                    (JCExpression)values[3]
-//                    );
-//            return result;
-//        }
-        // FIXME - deserialize
+        @Override
+        public JmlStatementHavoc deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlStatementHavoc(JmlJson.<JCExpression>toList(values[2]));
+            result.name = (Name)values[0];
+            return result;
+        }
     }
 
     // JmlStatementLoop -- abstract

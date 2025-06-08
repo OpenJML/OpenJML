@@ -755,6 +755,12 @@ public class JmlTree {
             return new JmlStatementDecls(pos,list);
         }
         
+        /** Creates a JML havoc statement */
+//        @Override
+        public JmlStatementHavoc JmlStatementHavoc(List<JCTree.JCExpression> storerefs) {
+            return new JmlStatementHavoc(pos,storerefs);
+        }
+        
         /** Creates JML statements such as set and debug and end */
         @Override
         public JmlStatement JmlStatement(IJmlClauseKind t, JCStatement e) {
