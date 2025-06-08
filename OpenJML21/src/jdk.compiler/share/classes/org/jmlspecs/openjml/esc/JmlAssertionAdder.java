@@ -8165,7 +8165,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		var jfo = pos.source();
 		for (var ls : locsets) {
-			((JmlStoreRef) ls).sourcefile = jfo;
+//			((JmlStoreRef) ls).sourcefile = jfo;
 			ls.type = locsetType;
 		}
 		JCExpression e = treeutils.makeLocsetUnion(pos.pos(), locsets.toList());
@@ -20711,9 +20711,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (that.receiver != null) {
 			    var rcv = convertExpr(that.receiver);
 				JCExpression exx = treeutils.makeNotNull(that.receiver, rcv);
-				var prevv = log.useSource(that.sourcefile);
+//				var prevv = log.useSource(that.sourcefile);
 				addAssert(that, Label.UNDEFINED_NULL_DEREFERENCE, exx);
-				log.useSource(prevv);
+//				log.useSource(prevv);
 				that.receiver = rcv;
 			}
 			if (that.range != null && !(that.originalStoreRef instanceof JCArrayAccess arr && arr.index instanceof JmlRange range && range.isDefaultRange())) {
@@ -20724,18 +20724,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					lhs = addConversion(lhs, rhs.type, lhs, true, false);
 					JCExpression ex = treeutils.makeBinary(that.pos, JCTree.Tag.LE, lhs, rhs);
 					ex = convertExpr(ex);
-					var prev = log.useSource(that.sourcefile);
+//					var prev = log.useSource(that.sourcefile);
 					addAssert(that.range.lo, Label.UNDEFINED_NEGATIVEINDEX, ex);
-					log.useSource(prev);
+//					log.useSource(prev);
 				}
 				if (that.range.hi != null) {
 					var lhs = that.range.hi;
 					var rhs = treeutils.makeLength(that.range.hi.pos(), that.receiver);
 					JCExpression ex = treeutils.makeBinary(that.range.pos(), JCTree.Tag.LT, lhs, rhs);
 					ex = convertExpr(ex);
-					var prev = log.useSource(that.sourcefile);
+//					var prev = log.useSource(that.sourcefile);
 					addAssert(that.range.hi, Label.UNDEFINED_TOOLARGEINDEX, ex);
-					log.useSource(prev);
+//					log.useSource(prev);
 				}
 			}
 		}

@@ -479,6 +479,7 @@ public class JmlJson {
         @Override
         public JCAnyPattern deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
+            // This is a preview feature not yet turned on for V21
             //var values = getFieldValues(json.getAsJsonObject());
             var result = M.AnyPattern();
             common(json, result, context);
@@ -657,42 +658,13 @@ public class JmlJson {
     
     class JmlChainedAdapter extends Adapter<JmlChained> {
         public static final String[] fields = { "conjuncts" };
-        // FIXME - perhaps we want to customize this so that
-        // a) serializing does not duplicate expressions
-        // b) deserialization unifies references
-        @Override
-        public JsonElement serialize(JmlChained src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            boolean flatChains = false;
-            if (flatChains) {
-                var obj = newgson(src, context);
-//                obj.add("lhs", src.conjuncts.get(0).lhs);
-//                for (JCBinary e: src.conjuncts) {
-//                    var objj = newgson(e, context);
-//                    objj.add("opcode", context.serialize(e.opcode));
-//                    objj.add("rhs", context.serialize(e.rhs));
-//                    // FIXME
-//                }
-//                obj.add("rhss", objj);
-//                common(json, obj, context);
-                return obj;
-            } else {
-                return super.serialize(src, type, context);
-            }
-        }
         @Override
         public JmlChained deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            boolean flatChains = false;
-            if (false) {
-                // FIXME
-                return null;
-            } else {
-                var values = getFieldValues(json.getAsJsonObject());
-                var result = M.JmlChained(JmlJson.<JCBinary>toList(values[0]));
-                common(json, result, context);
-                return result;
-                
-            }
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlChained(JmlJson.<JCBinary>toList(values[0]));
+            common(json, result, context);
+            return result;
         }
 
     }
@@ -957,7 +929,7 @@ public class JmlJson {
         public JCInstanceOf deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            var result = M.TypeTest((JCExpression)values[0], (JCExpression)values[1]);
+            var result = M.TypeTest((JCExpression)values[0], (JCTree)values[1]);
             common(json, result, context);
             return result;
         }
@@ -1070,16 +1042,16 @@ public class JmlJson {
     // TODO: JmlMatchExpression
 
     class JCMemberReferenceAdapter extends Adapter<JCMemberReference> {
-        public static final String[] fields = { "mode", "name", "expr", "typeargs" };
+        public static final String[] fields = { "mode", "typeargs", "expr", "name" };
         @Override
         public JCMemberReference deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = new JCMemberReference(  // FIXME - no factory method ?
                     (MemberReferenceTree.ReferenceMode)values[0],
-                    (Name)values[1],
+                    (Name)values[3],
                     (JCExpression)values[2],
-                    JmlJson.<JCExpression>toList(values[3])
+                    JmlJson.<JCExpression>toList(values[1])
                     );
             common(json, result, context);
             return result;
@@ -1939,22 +1911,6 @@ public class JmlJson {
         }
     }
 
-//    class JmlTypeClauseDeclAdapter extends Adapter<JmlTypeClauseDecl> {
-//        public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "decl" };
-//        @Override
-//        public JmlTypeClauseDecl deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
-//                throws JsonParseException {
-//            var values = getFieldValues(json.getAsJsonObject());
-//            var result = M.JmlTypeClauseDecl((JCTree)values[4]);
-//            result.name = (Name)values[0];
-//            result.modifiers = (JCModifiers)values[1];
-//            result.keyword = (String)values[2];
-//            result.clauseType = (IJmlClauseKind)values[3];
-//            common(json, result, context);
-//            return result;
-//        }
-//    }
-//    
     class JmlTypeClauseExprAdapter extends Adapter<JmlTypeClauseExpr> {
         public static final String[] fields = {  "name", "modifiers", "keyword", "clauseType", "expression" };
         @Override

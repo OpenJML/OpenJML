@@ -1523,6 +1523,11 @@ public class JmlTree {
         /** A fixed ident used in ESC */
         public JCIdent ident = null;
         
+        public JmlSpecs.FieldSpecs fieldSpecs() {
+            if (fieldSpecs == null) fieldSpecs = new JmlSpecs.FieldSpecs(this);
+            return fieldSpecs;
+        }
+        
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlVariableDecl(JCModifiers mods, Name name,
                 /*@ nullable */ JCExpression vartype, JCExpression init, VarSymbol sym, boolean declaredUsingVar) {
@@ -3323,8 +3328,9 @@ public class JmlTree {
     /** This class represents JML statements within the body of a method
      * that take an expression, such as assert, assume, unreachable, reachable
      */
-    public static class JmlStatementExpr extends JmlAbstractStatement implements JmlSource {
-        /** The kind of statement - e.g. ASSERT, ASSUME, COMMENT, ... */
+    public static class JmlStatementExpr extends JmlAbstractStatement { // Intentionally not a JmlSource 
+        /** The kind of statement - e.g. ASSERT, ASSUME, COMMENT, ... ; note that this AST node is used both
+         * for soruce code assert statements and for internally generated asserts of all other conditions to be checked. */
         public String keyword;
         public IJmlClauseKind clauseType;
         
@@ -3338,14 +3344,19 @@ public class JmlTree {
         
         public JmlMethodClause associatedClause = null;
         
-        /** The source file in which the statement sits (and the file to which pos and line correspond) */
+        // Source file JmlStatements do not need a sourcefile designation -- they are statements within a MethodDecl.
+        // However, assert and assume statements that are generated and sent on to SMT do need sourcefile information
+        // so that when the assertion is found to be violated an appropriately located error message can be issued.
+        // Such an assert/accum statement also carries any associated location information.
+        
+        /** The source file to use when reporting that this assertion is violated by ESC or RAC.  */
         public JavaFileObject sourcefile;
         
-        @Override
-        public JavaFileObject source() { return associatedSource; } // FIXME - why is this associated source
-        
-        @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+//        @Override
+//        public JavaFileObject source() { return associatedSource; } // FIXME - why is this associated source
+//        
+//        @Override
+//        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
         
         /** A Label that gives detail about the kind of assertion or assumption */
         public Label label;
@@ -3514,20 +3525,20 @@ public class JmlTree {
     /** This is just an abstract class to mark all the kinds of statements that are
      * part of a loop specification.
      */
-    public static abstract class JmlStatementLoop extends JmlAbstractStatement implements JmlSource {
+    public static abstract class JmlStatementLoop extends JmlAbstractStatement {
     	protected JmlStatementLoop() {}
 
     	public IJmlClauseKind clauseType;
         public boolean translated;
  
-        /** The source file in which the statement sits (and the file to which pos and line correspond) */
-        public JavaFileObject sourcefile;
-        
-        @Override
-        public JavaFileObject source() { return sourcefile; }
-        
-        @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+//        /** The source file in which the statement sits (and the file to which pos and line correspond) */
+//        public JavaFileObject sourcefile;
+//        
+//        @Override
+//        public JavaFileObject source() { return sourcefile; }
+//        
+//        @Override
+//        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
 }
 
     /** This class represents JML statements within the body of a method
@@ -3667,7 +3678,7 @@ public class JmlTree {
     		this.originalStoreRef = originalStoreRef;
     	}
     	
-    	public JavaFileObject sourcefile; // FIXME - not sure we need or use this
+//    	public JavaFileObject sourcefile; // FIXME - not sure we need or use this
     	
     	public boolean isEverything() { return isEverything; }
     	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JmlPrimitiveTypes.nothingKind; }

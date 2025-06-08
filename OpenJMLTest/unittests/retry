@@ -1,9 +1,12 @@
 #! /bin/bash
 
+newfailures=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | comm -13 known-failures -`
+newsuccesses=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | comm -23 known-failures -`
+echo Unexpected successes
+echo $newsuccesses
 echo Unexpected failures
-failures=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | comm -13 known-failures -`
-echo $failures
-for t in $failures ; do
+echo $newfailures
+for t in $newfailures ; do
     echo Retrying $t
     ./runtests $t
 done

@@ -23,6 +23,8 @@ public class Test {
     do { i++; } while (i<20);
     //@ ghost \bigint j = 0;
     switch (5) { case 0: break; default: break;}
+    Object o = (Integer)9;
+    switch (o) { case String s when i > 0: break; default: }
     try {} catch (Exception e) {}
     @Nullable Object o = null;
     return i;
