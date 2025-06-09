@@ -1920,7 +1920,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Pop and ignore the content of currentStatements. */
 	protected void popBlock() {
-		popBlock(null, null);
+		popBlock(0L, null, null);
 	}
 
 	protected LinkedList<ListBuffer<JCStatement>> markBlock() {
@@ -8580,8 +8580,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// Without this an argument that is just an Ident or a Literal
 				// and is not used ends up without its value captured for
 				// tracing <<< THis all is no longer true I think, at least for literals
-				if (!(a instanceof JCLiteral) && treeutils.typeLiteral(a) == null)
+				if (!(a instanceof JCLiteral) && treeutils.typeLiteral(a) == null) {
 					a = newTemp(a);
+				}
 			}
 			out.add(a);
 		}
@@ -9006,11 +9007,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					//if (calleeMethodSym.toString().contains("empty")) System.out.println("METHSEL " + that + " " + fa.selected + " " + fa.selected.type + " " + convertedReceiver);
 				}
 
+				if (!typeargs.isEmpty()) addStat(comment("Converting type arguments"));
 				typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here
 												// and elsewhere
 				if (print) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
+                addStat(comment("Converting arguments for " + that));
 				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,
-						(fa.sym.flags() & Flags.VARARGS) != 0);
+						(fa.sym.flags() & Flags.VARARGS) != 0); // FIXME - this is a different test for varargs than in the branch above
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
 				// newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null,
 				// meth.type.asMethodType());
@@ -9076,7 +9079,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							"java.lang.NullPointerException");
 				}
 
+                if (!typeargs.isEmpty()) addStat(comment("Converting type arguments"));
 				typeargs = convert(typeargs);
+                addStat(comment("Converting arguments for " + that));
 				trArgs = convertArgs(that, untrArgs, calleeMethodSym.type.asMethodType().argtypes,
 						(calleeMethodSym.flags() & Flags.VARARGS) != 0);
 
@@ -11018,8 +11023,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								JCIdent id = treeutils.makeIdent(v.pos, v.sym);
 								JCExpression oldid = treeutils.makeOld(v.pos(), id,
 										labelPropertiesStore.get(attr.preLabel));
-								if (rac)
-									oldid = convertExpr(oldid);
+								if (rac) {
+	                                pushBlock(labelPropertiesStore.get(attr.preLabel).extraStats());
+									oldid = convertExpr(id);
+									popBlock();
+								}
 								JCExpression recv = utils.isJMLStatic(methodDecl.sym) ? null : savedThisExpr;
 								currentStatements.add(comment(that, "Assuming invariants for caller parameter " + id
 										+ " upon reentering the caller " + utils.qualifiedMethodSig(methodDecl.sym)
@@ -18569,7 +18577,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlMethodInvocation(JmlMethodInvocation that) {
 		IJmlClauseKind k = that.kind;
-		//System.out.println("VISITING " + that);
 
 		if (k != null)
 			switch (k.keyword()) {
@@ -18598,11 +18605,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (evalStateLabel == null) {
 						eresult = convertExpr(arg);
 					} else if (rac) {
-						pushBlock();
+						pushBlock(lp.extraStats());
 						//var saved = evalStateLabel;
 						try {
 							currentEnv.stateLabel = evalStateLabel = null;
-							currentStatements = lp.extraStats();
 							heapCount = lp.heapCount;
 							if (!convertingAssignable && arg instanceof JCArrayAccess
 									&& (((JCArrayAccess) arg).indexed instanceof JCIdent
@@ -18626,18 +18632,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							} else {
 							    currentEnv.localsForbidden = true;
 								arg = convertExpr(arg); // into label extra statements
-								String s = "_JML___old_" + nextUnique(); // FIXME - Put string in Strings
+								String s = "_JML___old_" + nextUnique(); // FIXME - Put string in Strings; use a newTempDecl call
 								Name nm = names.fromString(s);
 								JCVariableDecl d = treeutils.makeVarDef(arg.type, nm, methodDecl.sym,
 										treeutils.makeZeroEquivalentLit(arg, arg.type));
 								// v.mods.flags |= Flags.FINAL; // If we use this, the sym has to be set FINAL
 								// as well.
-								ListBuffer<JCStatement> check7 = pushBlock();
-								addStat(treeutils.makeAssignStat(arg.pos, treeutils.makeIdent(arg.pos, d.sym), arg));
+                                currentStatements.add(d); // into label extra statements
+                                var check7 = pushBlock();
+								var stt = treeutils.makeAssignStat(arg.pos, treeutils.makeIdent(arg.pos, d.sym), arg);
+								addStat(stt);
 								JCBlock bl = popBlock(arg, check7);
 								JCTry st = makeRACTry(bl, "_JML__old_ex", arg);
-								addStat(d); // into label extra statements
-								addStat(st); // into label extra statements
+								currentStatements.add(st); // into label extra statements
 								JCIdent id = treeutils.makeIdent(arg.pos, d.sym);
 								eresult = id;
 							}

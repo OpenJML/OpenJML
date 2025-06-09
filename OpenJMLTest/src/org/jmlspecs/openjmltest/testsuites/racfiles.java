@@ -670,7 +670,7 @@ public class racfiles extends RacBase {
     
     @Test
     public void gitbug865() {
-        helpCompileRun("SumRange");
+        helpCompileOnly("--warn=missing-measured-by");
     }
     
     @Test

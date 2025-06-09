@@ -1643,7 +1643,7 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local8>\" is null"
                 ,"\tat tt.A.main(A.java:4)"
                 );
     }
@@ -1702,7 +1702,7 @@ public class racnew2 extends RacBase {
                  }
                 """
                 ,"/tt/A.java:5: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local5>\" is null"
                 ,"\tat tt.A.main(A.java:5)"
                 );
     }
