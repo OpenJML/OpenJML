@@ -263,7 +263,7 @@ public class JmlJson {
         var clazz = o.getClass();
         var obj = new JsonObject();
         obj.add(classTag, new JsonPrimitive(formatClass(clazz)));
-        if (o instanceof Object) addId(obj, o);
+        addId(obj, o);
         if (includeTypeInfo && o instanceof JCExpression ex) {
             obj.add("type", str(ex.type)); // FIXME - proper encoding -- will also need symbols, break target etc.
         }
@@ -2234,9 +2234,9 @@ public class JmlJson {
         Class<JCTree.JCLambda.ParameterKind> clazz() { return JCTree.JCLambda.ParameterKind.class; }
     }
     
-    class ReferenceKindAdapter extends EnumAdapter<JCMemberReference.ReferenceKind> {
-        Class<JCMemberReference.ReferenceKind> clazz() { return JCMemberReference.ReferenceKind.class; }
-    }
+//    class ReferenceKindAdapter extends EnumAdapter<JCMemberReference.ReferenceKind> {
+//        Class<JCMemberReference.ReferenceKind> clazz() { return JCMemberReference.ReferenceKind.class; }
+//    }
     
     class ReferenceModeAdapter extends EnumAdapter<MemberReferenceTree.ReferenceMode> {
         Class<MemberReferenceTree.ReferenceMode> clazz() { return MemberReferenceTree.ReferenceMode.class; }
@@ -2265,15 +2265,11 @@ public class JmlJson {
         Class<JCTree.Tag> clazz() { return JCTree.Tag.class; }
     }
     
-    class IJmlClauseKindAdapter implements JsonSerializer<IJmlClauseKind>, JsonDeserializer<IJmlClauseKind> {
-        // This serializer is not actually effective because IJmlClauseKind is an interface and actual instances are some
+    class IJmlClauseKindAdapter implements JsonDeserializer<IJmlClauseKind> {
+        // A serializer for IJmlClauseKind is not actually effective because IJmlClauseKind is an interface and actual instances are some
         // derived class. But we can't register an adapter for each derived class. So there is specialized code in 
         // Adapter.serialize. But because the serialization includes the class identifier IJmlClauseKind.class, the 
         // deserializer below will be called.
-        @Override
-        public JsonElement serialize(IJmlClauseKind src, java.lang.reflect.Type type, JsonSerializationContext context) {
-            return primitive(IJmlClauseKind.class, src.toString());
-        }
         @Override
         public IJmlClauseKind deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
