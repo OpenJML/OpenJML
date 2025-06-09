@@ -658,4 +658,24 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
     
+    @Test
+    public void gitbug862() {
+        helpCompileRun("Test");
+    }
+    
+    @Test
+    public void gitbug864() {
+        helpCompileRun("ListUtils");
+    }
+    
+    @Test
+    public void gitbug865() {
+        helpCompileRun("SumRange");
+    }
+    
+    @Test
+    public void gitbug866() {
+        helpCompileRun("ConsecutiveChecker");
+    }
+    
 }
