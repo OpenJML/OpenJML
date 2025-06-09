@@ -3,5 +3,9 @@ public class ConsecutiveChecker {
         int[] sorted = l.clone();
         return true;
     }
+
+    public static void main(String ... args) {
+        checkConsecutive(new int[10]);
+    }
 }
 
