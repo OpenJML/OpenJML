@@ -8343,8 +8343,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		
-		if (sym.name == names.fromString("clone") && sym.owner.name == names.fromString("Array")) {
-			// Special case of the special class Array
+		if (!rac && sym.name == names.clone && sym.owner.name == names.fromString("Array")) {
+		    // Change the symbol so that we get the specifications in Object.clone.
+		    // However, having the wrong symbol causes rac to crash (cf. gitbug866)
+		    // FIXME - perhaps we should just register the specs for Array.clone as well.
 			((JCFieldAccess) that.meth).sym = syms.objectType.tsym.members().findFirst(names.fromString("clone"));
 		}
 		if (classDecl.sym.isEnum() && methodDecl.sym.isConstructor() && that.meth instanceof JCIdent
@@ -9004,9 +9006,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					//if (calleeMethodSym.toString().contains("empty")) System.out.println("METHSEL " + that + " " + fa.selected + " " + fa.selected.type + " " + convertedReceiver);
 				}
 
+				System.out.println("TYPEAGS " + calleeMethodSym + " " + calleeMethodSym.type + " " + typeargs.length() + " " + typeargs);
 				typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here
 												// and elsewhere
-				if (print) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
+                System.out.println("CONV TYPEAGS " + calleeMethodSym + " " + calleeMethodSym.type + " " + typeargs);
+				if (print || true) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
 				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,
 						(fa.sym.flags() & Flags.VARARGS) != 0);
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
@@ -12322,6 +12326,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (rac) {
 			// This will create a fully-qualified version of the type name
+		    System.out.println("NEW ARRAY " + that + " " + that.elemtype + " " + that.elemtype.type + " " + that.type);
 			JCExpression elemtype = that.elemtype == null ? null
 					: treeutils.makeType(that.elemtype.pos, that.elemtype.type);
 			result = eresult = M.at(that).NewArray(elemtype, dims.toList(), elems == null ? null : elems.toList())
@@ -15624,8 +15629,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
-        boolean print = false; // that.toString().endsWith(".balance");
-        if (print) System.out.println("VISITSELECT-A " + that );
+        boolean print = false; // that.toString().contains(".clone");
+        if (print) System.out.println("VISITSELECT-A " + that + " " + that.sym + " " + that.sym.owner);
         JCExpression selected;
 
         Symbol s = convertSymbol(that.sym);
@@ -15649,7 +15654,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-	    if (print) System.out.println("VISITSELECT " + that + " " + trexpr);
+	    if (print) System.out.println("VISITSELECT-A " + that + " " + trexpr + " " + s + " " + s.owner + " " + (s==that.sym));
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
 		JCExpression eee = null;
@@ -15896,7 +15901,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		result = eresult = eee;
-		if (print) System.out.println("VISITSELECT-Z " + that + " " + eresult);
+		if (print) System.out.println("VISITSELECT-Z " + that + " " + eresult + " ");
 	}
 
 	protected Symbol classSuffix = null;
