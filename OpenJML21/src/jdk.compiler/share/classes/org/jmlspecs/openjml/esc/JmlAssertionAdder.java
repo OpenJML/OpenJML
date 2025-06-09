@@ -8343,8 +8343,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		
-		if (sym.name == names.fromString("clone") && sym.owner.name == names.fromString("Array")) {
-			// Special case of the special class Array
+		if (!rac && sym.name == names.clone && sym.owner.name == names.fromString("Array")) {
+		    // Change the symbol so that we get the specifications in Object.clone.
+		    // However, having the wrong symbol causes rac to crash (cf. gitbug866)
+		    // FIXME - perhaps we should just register the specs for Array.clone as well.
 			((JCFieldAccess) that.meth).sym = syms.objectType.tsym.members().findFirst(names.fromString("clone"));
 		}
 		if (classDecl.sym.isEnum() && methodDecl.sym.isConstructor() && that.meth instanceof JCIdent
@@ -9624,9 +9626,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (paramTypes != null) {
 					// Type checks (e.g. NonNull) on assignments to formal parameters
 					if (calleeMethodSym.params == null) {
-						System.out.println(
-								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
-										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
+//						System.out.println(
+//								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
+//										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
 					} else {
 						var calleeSpecs = specs.getAttrSpecs(calleeMethodSym);
 						for (int i = 0; i < calleeMethodSym.params.size(); i++) {
@@ -15624,8 +15626,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
-        boolean print = false; // that.toString().endsWith(".balance");
-        if (print) System.out.println("VISITSELECT-A " + that );
+        boolean print = false; // that.toString().contains(".clone");
+        if (print) System.out.println("VISITSELECT-A " + that + " " + that.sym + " " + that.sym.owner);
         JCExpression selected;
 
         Symbol s = convertSymbol(that.sym);
@@ -15649,7 +15651,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-	    if (print) System.out.println("VISITSELECT " + that + " " + trexpr);
+	    if (print) System.out.println("VISITSELECT-A " + that + " " + trexpr + " " + s + " " + s.owner + " " + (s==that.sym));
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
 		JCExpression eee = null;
@@ -15896,7 +15898,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		result = eresult = eee;
-		if (print) System.out.println("VISITSELECT-Z " + that + " " + eresult);
+		if (print) System.out.println("VISITSELECT-Z " + that + " " + eresult + " ");
 	}
 
 	protected Symbol classSuffix = null;
