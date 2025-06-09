@@ -9006,11 +9006,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					//if (calleeMethodSym.toString().contains("empty")) System.out.println("METHSEL " + that + " " + fa.selected + " " + fa.selected.type + " " + convertedReceiver);
 				}
 
-				System.out.println("TYPEAGS " + calleeMethodSym + " " + calleeMethodSym.type + " " + typeargs.length() + " " + typeargs);
 				typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here
 												// and elsewhere
-                System.out.println("CONV TYPEAGS " + calleeMethodSym + " " + calleeMethodSym.type + " " + typeargs);
-				if (print || true) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
+				if (print) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
 				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,
 						(fa.sym.flags() & Flags.VARARGS) != 0);
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
@@ -9628,9 +9626,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (paramTypes != null) {
 					// Type checks (e.g. NonNull) on assignments to formal parameters
 					if (calleeMethodSym.params == null) {
-						System.out.println(
-								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
-										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
+//						System.out.println(
+//								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
+//										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
 					} else {
 						var calleeSpecs = specs.getAttrSpecs(calleeMethodSym);
 						for (int i = 0; i < calleeMethodSym.params.size(); i++) {
@@ -12326,7 +12324,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (rac) {
 			// This will create a fully-qualified version of the type name
-		    System.out.println("NEW ARRAY " + that + " " + that.elemtype + " " + that.elemtype.type + " " + that.type);
 			JCExpression elemtype = that.elemtype == null ? null
 					: treeutils.makeType(that.elemtype.pos, that.elemtype.type);
 			result = eresult = M.at(that).NewArray(elemtype, dims.toList(), elems == null ? null : elems.toList())
