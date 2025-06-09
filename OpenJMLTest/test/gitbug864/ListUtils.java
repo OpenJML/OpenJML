@@ -15,4 +15,18 @@ public class ListUtils {
         }
         return minLength;
     }
+
+    public static void main(String... args) {
+      var a = new java.util.ArrayList<java.util.List<Integer>>();
+      var b = new java.util.ArrayList<Integer>();
+      b.add(1); b.add(2);
+      a.add(b);
+      b = new java.util.ArrayList<Integer>();
+      b.add(1);
+      a.add(b);
+      b = new java.util.ArrayList<Integer>();
+      b.add(1); b.add(2); b.add(3);
+      a.add(b);
+      System.out.println(findMinLength(a));
+    }
 }

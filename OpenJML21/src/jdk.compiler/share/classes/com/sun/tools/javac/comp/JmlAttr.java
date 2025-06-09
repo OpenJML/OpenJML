@@ -7736,7 +7736,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tt instanceof JCTypeApply ttt) {
             var a = insertDefaultNullityInTypeArg(ttt.clazz, defaultNullity);
             var args = insertDefaultNullityInTypeArgs(ttt.arguments, defaultNullity);
-            return a == ttt.clazz && args == ttt.arguments ? tt : jmlMaker.at(arg).TypeApply(a, args);
+            return a == ttt.clazz && args == ttt.arguments ? tt : jmlMaker.at(arg).TypeApply(a, args).setType(a.type);// FIXME - should this be a type with annotation
         } else if (tt instanceof JCAnnotatedType atype) {
             if (specs.findAnnotation(atype.annotations, Modifiers.NON_NULL) != null
                     || specs.findAnnotation(atype.annotations, Modifiers.NULLABLE) != null) return tt;
@@ -7746,7 +7746,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             return tt;
         } else {
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
-            return jmlMaker.at(arg).AnnotatedType(List.<JCAnnotation>of(ann), arg);
+            return jmlMaker.at(arg).AnnotatedType(List.<JCAnnotation>of(ann), arg).setType(arg.type); // FIXME - should this be a type with annotation
        }
     }
     
