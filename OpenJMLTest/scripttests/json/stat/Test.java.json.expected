@@ -1575,11 +1575,40 @@
                 }
               },
               {
-                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
                 "@id": "218",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "stat/Test.java"
+                },
+                "mods": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "219",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "jmlmods": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "220",
+                  "primitive": "CCC"
+                },
+                "typarams": [],
+                "extending": null,
+                "implementing": [],
+                "permitting": [],
+                "defs": []
+              },
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@id": "221",
                 "expr": {
                   "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                  "@id": "219",
+                  "@id": "222",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
                     "@ref": "33",
