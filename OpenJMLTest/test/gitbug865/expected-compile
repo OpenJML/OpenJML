@@ -1,0 +1,7 @@
+test/gitbug865/SumRange.java:3: warning: [missing-measured-by] Method sumTo(int[]) is called recursively, but a specification case has no measured_by clause
+        return sumTo(a);
+                    ^
+test/gitbug865/SumRange.java:2: warning: Associated declaration: test/gitbug865/SumRange.java:3:
+    public static int sumTo(int[] a) {
+                      ^
+2 warnings

@@ -74,4 +74,4 @@ else
 fi
 echo Completed
 ./retry -print
-./retry | tee log-retry | grep -e 'Testing|FAILED'
+./retry | tee log-retry | grep -E 'Retrying|FAILED'
