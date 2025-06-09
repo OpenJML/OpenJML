@@ -111,8 +111,6 @@ escfilesTrace.escTrace3
 escfilesTrace.escTrace4
 escfilesTrace.escTrace5
 escfilesTrace.escTrace6
-escArithmeticModes2.testModSafeBB
-escArithmeticModes2.testModSafeBB
 escfilesTrace.escTraceBS
 escfilesTrace.escTraceDo
 escfilesTrace.escTraceDo1
@@ -150,6 +148,7 @@ escfileslist2.test[jmlstring]
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[rangeTest1]
+escfileslist3.test[record2]
 escfileslist3.test[textBlock4b]
 escfileslist3.test[verifythis-2019-1]
 escfilesmodels.gitbug431
@@ -171,7 +170,6 @@ racfiles.racbug1
 racfiles.rangeTest
 racfiles.gitbug862
 racfiles.gitbug864
-racfiles.gitbug865
 racfileslist.test[racHansStorage]
 racfileslist.test[racHansStorageA]
 racfileslist.test[racHansStorageB]
