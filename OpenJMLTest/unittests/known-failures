@@ -140,13 +140,13 @@ escfileslist1.test[escConstructor]
 escfileslist1.test[firstTest]
 escfileslist1.test[gitbug718x3]
 escfileslist1.test[gitbug755]
-escfileslist2.test[gitbug759]
+escfileslist1.test[gitbug759]
 escfileslist2.test[gitbug814]
 escfileslist2.test[gitbug814d]
 escfileslist2.test[jmlbigint]
 escfileslist2.test[jmlstring]
-escfileslist2.test[listNullity]
-escfileslist2.test[locsetTests]
+escfileslist3.test[listNullity]
+escfileslist3.test[locsetTests]
 escfileslist3.test[rangeTest1]
 escfileslist3.test[record2]
 escfileslist3.test[textBlock4b]
@@ -168,6 +168,8 @@ racfiles.gitbug861
 racfiles.rac1
 racfiles.racbug1
 racfiles.rangeTest
+racfiles.gitbug862
+racfiles.gitbug864
 racfileslist.test[racHansStorage]
 racfileslist.test[racHansStorageA]
 racfileslist.test[racHansStorageB]

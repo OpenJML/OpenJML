@@ -27,6 +27,8 @@ public class Test {
     switch (o) { case String s when i > 0: break; default: }
     try {} catch (Exception e) {}
     @Nullable Object o = null;
+    //@ havoc i, a;
+    class CCC {}
     return i;
   }
   

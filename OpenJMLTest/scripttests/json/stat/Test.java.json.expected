@@ -1575,11 +1575,70 @@
                 }
               },
               {
-                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementHavoc",
                 "@id": "218",
+                "name": null,
+                "clauseType": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@id": "219",
+                  "primitive": "havoc"
+                },
+                "storerefs": [
+                  {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "220",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "33",
+                      "primitive": "i"
+                    }
+                  },
+                  {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "221",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "130",
+                      "primitive": "a"
+                    }
+                  }
+                ]
+              },
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+                "@id": "222",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "stat/Test.java"
+                },
+                "mods": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "223",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "jmlmods": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "224",
+                  "primitive": "CCC"
+                },
+                "typarams": [],
+                "extending": null,
+                "implementing": [],
+                "permitting": [],
+                "defs": []
+              },
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@id": "225",
                 "expr": {
                   "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
-                  "@id": "219",
+                  "@id": "226",
                   "name": {
                     "@class": "com.sun.tools.javac.util.Name",
                     "@ref": "33",
