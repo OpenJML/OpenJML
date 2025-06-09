@@ -675,7 +675,7 @@ public class racfiles extends RacBase {
     
     @Test
     public void gitbug866() {
-        helpCompileOnly();
+        helpCompileRun("ConsecutiveChecker");
     }
     
 }
