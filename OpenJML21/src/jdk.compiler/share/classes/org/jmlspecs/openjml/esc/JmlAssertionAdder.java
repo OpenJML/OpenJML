@@ -8321,7 +8321,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			int actualLength = that.args.length();
 			int formalLength = msym.type.asMethodType().argtypes.length(); // msym.params can be null if there are
 																			// varargs
-			Type varargType = msym.type.getParameterTypes().last();
+            Type varargType = that.meth.type.getParameterTypes().last();
 			if (actualLength != formalLength || (!types.isSameType(that.args.last().type, varargType)
 					&& !(that.args.last().type instanceof Type.ArrayType))) {
 				int p = that.meth.pos;
