@@ -7,8 +7,10 @@ echo $newsuccesses
 echo Unexpected failures
 echo $newfailures
 if [ "$1" == "-print" ]; then exit 0 ; fi
+ERR=0
 for t in $newfailures ; do
     echo Retrying $t
-    ./runtests $t
+    ./runtests $t || ERR=1
 done
-
+echo Completed retry $ERR
+exit $ERR
