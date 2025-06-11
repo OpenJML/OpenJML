@@ -1,14 +1,18 @@
 #! /bin/bash
 
-newfailures=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | comm -13 known-failures -`
-newsuccesses=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | comm -23 known-failures -`
+sort known-failures > known-failures-sorted
+newfailures=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | sort | comm -13 known-failures-sorted -`
+newsuccesses=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | sort | comm -23 known-failures-sorted -`
+rm known-failures-sorted
 echo Unexpected successes
 echo $newsuccesses
 echo Unexpected failures
 echo $newfailures
 if [ "$1" == "-print" ]; then exit 0 ; fi
+ERR=0
 for t in $newfailures ; do
     echo Retrying $t
-    ./runtests $t
+    ./runtests $t || ERR=1
 done
+exit $ERR
 
