@@ -27,7 +27,7 @@ openjml-test-git: prep
 	-make -C ${TEST} userguide-tests
 	-make -C ${TEST} json-tests
 	#make tutorial-tests
-	JOBS=8 time ${TEST}/unittests/runpa
+	JOBS=8 time ${TEST}/unittests/runpar
 
 openjml-test-temp:
 	JOBS=4 time ${TEST}/unittests/runpar
