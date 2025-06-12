@@ -21,9 +21,15 @@ openjml-test: prep
 	make json-tests
 	-make unittests-par
 	-make tutorial-tests
-	#( cd ./unittests; grep -v sleep ./runall | tr -d '&' > ./runseq ; source ./runseq )
 
-openjml-test-git:
+openjml-test-git: prep
+	-make -C ${TEST} release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
+	-make -C ${TEST} userguide-tests
+	-make -C ${TEST} json-tests
+	#make tutorial-tests
+	JOBS=8 time ${TEST}/unittests/runpa
+
+openjml-test-temp:
 	JOBS=4 time ${TEST}/unittests/runpar
 	JOBS=6 time ${TEST}/unittests/runpar
 	JOBS=8 time ${TEST}/unittests/runpar
