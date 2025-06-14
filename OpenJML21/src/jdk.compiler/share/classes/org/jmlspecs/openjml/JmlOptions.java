@@ -52,11 +52,6 @@ import com.sun.tools.javac.util.Log.WriterKind;
  */
 public class JmlOptions extends Options {
     
-    // Warning-keys
-    public static final String IMPLICIT_EVERYTHING = "implicit-everything";
-    public static final String MISSING_MEASURED_BY = "missing-measured-by";
-    public static final String MISSING_SPECS = "missing-specs";
-
     protected Context context;
 
     /** A stack of sets of options */
@@ -65,27 +60,12 @@ public class JmlOptions extends Options {
     /** The set of keys that control the use of optional comments, set in setupOptions() */
     public Set<String> commentKeys = new HashSet<String>();
     
-    public static enum WarnType { QUIET, WARN, ERROR };
-    public Map<String,WarnType> warningKeys = new java.util.HashMap<>();
-    {
-        warningKeys.put(MISSING_SPECS, WarnType.QUIET);
-        warningKeys.put(IMPLICIT_EVERYTHING, WarnType.WARN);
-        warningKeys.put(MISSING_MEASURED_BY, WarnType.QUIET);
-    }
-    
-    public WarnType allowed(String key) {
-        WarnType b = warningKeys.get(key);
-        if (b != null) {
-            return b;
-        }
-        Utils.instance(context).error("jml.internal.not.so.bad","Invalid warning key: " + key);
-        return WarnType.WARN;
-    }
-
+ 
     protected JmlOptions(Context context) {
         super(context);
         this.context = context;
         loadDefaults();
+        WarningCategory.instance(context);
     }
 
     public static void preRegister(Context context) {
@@ -246,7 +226,7 @@ public class JmlOptions extends Options {
                 if ("--help".equals(s)) {
                     switch (res) {
                     case "warn":
-                        System.out.println("Implemented warning keys: " + warningKeys.keySet());
+                        System.out.println("Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet());
                         break;
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
