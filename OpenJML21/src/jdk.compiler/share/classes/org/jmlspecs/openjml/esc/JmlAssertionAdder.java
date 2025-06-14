@@ -8422,7 +8422,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                             if (!anyChecks) {
                                 if (measuredByChecks.add(that)) {
-                                    utils.warningCategory(JmlOptions.MISSING_MEASURED_BY,log.currentSourceFile(), that, speccase.sourcefile, speccase, 
+                                    utils.warningCategory(WarningCategory.MISSING_MEASURED_BY,log.currentSourceFile(), that, speccase.sourcefile, speccase, 
                                             "Method " + enclosingMethod + " is called recursively, but a specification case has no measured_by clause");
                                 }
                             }
@@ -8432,7 +8432,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!anySpecCases) {
                     // FIXME - will there always be a default spec case?
                     if (measuredByChecks.add(that)) {
-                        utils.warningCategory(JmlOptions.MISSING_MEASURED_BY, log.currentSourceFile(), that, methodDecl.sourcefile, methodDecl, 
+                        utils.warningCategory(WarningCategory.MISSING_MEASURED_BY, log.currentSourceFile(), that, methodDecl.sourcefile, methodDecl, 
                                 "Method " + enclosingMethod + " is called recursively, but there are no specification cases and hence no measured_by clauses");
                     }
                 }
@@ -9151,7 +9151,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    if (info.specCase.callee_only) continue;
 			    pushArithMode(info.parentMethodSymbol, true);
 			    try {
-			    x: if (!calleeIsPure && JmlOptions.instance(context).allowed(JmlOptions.IMPLICIT_EVERYTHING) != JmlOptions.WarnType.QUIET) {
+			    x: if (!calleeIsPure && WarningCategory.instance(context).allowed(WarningCategory.IMPLICIT_EVERYTHING) != WarningCategory.WarnAction.QUIET) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
 			        boolean isEverything = true;

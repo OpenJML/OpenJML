@@ -1863,7 +1863,7 @@ public class JmlEnter extends Enter {
 				} else {
 				    // No specs -- binary with no .jml file
 				    recordEmptySpecs(csymbol); // so we don't keep trying to load it
-				    utils.warningCategory(org.jmlspecs.openjml.JmlOptions.MISSING_SPECS,"No specifications file found for binary " + csymbol);
+				    utils.warningCategory(org.jmlspecs.openjml.WarningCategory.MISSING_SPECS,"No specifications file found for binary " + csymbol);
 				}
 
 			} finally {
