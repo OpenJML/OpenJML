@@ -75,4 +75,6 @@ fi
 echo Completed
 ./retry -print
 ./retry | tee logretry | grep -E 'Retrying|FAILED'
-echo Completed retrys
+ERR=$?
+echo Completed retrys $ERR
+exit $ERR
