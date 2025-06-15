@@ -1,5 +1,6 @@
  interface  I {
 
+    //@ public static ghost int state;
 }
 public class Test547 implements I {
 
