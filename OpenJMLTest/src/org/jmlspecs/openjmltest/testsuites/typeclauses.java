@@ -854,5 +854,18 @@ public class typeclauses extends TCBase {
         );
     }
     
+    @Test
+    public void gitbug107() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  //@ axiom \\lockset == \\lockset;
+                }
+                """
+                ,"/A.java:2: error: a \\locksest expression is not permitted in an axiom clause",13
+                ,"/A.java:2: error: a \\locksest expression is not permitted in an axiom clause",25
+                );
+    }
+    
 }
 
