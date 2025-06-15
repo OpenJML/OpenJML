@@ -74,7 +74,8 @@ else
 fi
 echo Completed
 ./retry -print
-./retry | tee logretry | grep -E 'Retrying|FAILED'
-ERR=$?
+ERR=0
+(./retry || ERR=1) | tee logretry | grep -E 'Retrying|FAILED'
+echo Pipe $?
 echo Completed retrys $ERR
 exit $ERR

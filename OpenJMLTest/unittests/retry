@@ -9,6 +9,7 @@ echo $newsuccesses
 echo Unexpected failures
 echo $newfailures
 if [ "$1" == "-print" ]; then exit 0 ; fi
+cat log-runscripts
 ERR=0
 for t in $newfailures ; do
     echo Retrying $t
