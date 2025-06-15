@@ -164,6 +164,9 @@ public class SingletonExpressions extends JmlExtension {
     public static final IJmlClauseKind locksetKind = new SingletonExpressionKind(locksetID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            if (attr.jmlenv.currentClauseKind == TypeExprClauseExtension.axiomClause) {
+                Utils.instance(attr.context).error(that, "jml.message", "a \\locksest expression is not permitted in an axiom clause");
+            }
             return attr.JMLSetType;
         }
     };
