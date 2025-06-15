@@ -88,16 +88,18 @@ public class OpenJMLTestRunner {
                 clazz = (Class<JmlTestSuite>)Class.forName("org.jmlspecs.openjmltest.testsuites." + item);
             } catch (ClassNotFoundException e) {
                 System.out.println("Error: There is no unit test named " + item);
+                failures++;
                 continue;
             }
             if (args.length == 0 && java.util.Arrays.binarySearch(skips,item) >= 0) {
                 System.out.println("Skipping " + clazz);
+                failures++;
                 continue;
             }
             if (verbose) System.out.println("Queueing " + clazz);
             var cons = clazz.getConstructors();
             if (cons.length != 1) {
-                synchronized (sfailures) { failures++; }
+                failures++;
                 System.out.println("ERROR: Class " + clazz + " should have just one public constructor");
                 continue;
             }
@@ -171,12 +173,13 @@ public class OpenJMLTestRunner {
         }
         eservice.shutdownNow(); // Program won't exit without calling this
         System.out.println((tests-timeouts-failures) + " successes, " + timeouts + " timeouts, " + failures + " failures, " + ignores + " ignored");
+        System.exit((failures+timeouts > 0 || tests == 0 )? 1 : 0);
     }
 
     static Integer tests = 0; static Object stests = new Object();
     static Integer timeouts = 0; static Object stimeouts = new Object();
     static Integer failures = 0; static Object sfailures = new Object();
-    static int ignores = 0;
+    static Integer ignores = 0;
     static ArrayList<Thread> threads = new ArrayList<>();
 
     static List<UnitTest> tasks = java.util.Collections.synchronizedList(new LinkedList<UnitTest>());
@@ -197,43 +200,6 @@ public class OpenJMLTestRunner {
             if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " has task " + t.method); }
             t.run(); // Output from the task itself is not synchronized
             if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " completed task " + t.method); }
-        }
-    }
-
-    /** This method is run in the thread doing the testcase and constitutes running the test */
-    static public void doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
-        synchronized(stests) { tests++; }
-        try {
-            synchronized (System.out) { System.out.println("Testing " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
-            JmlTestSuite t = null;
-            try {
-                // Essentially, we are creating our own JUnit test runner here -- I think to control the output and metrics
-                // but we ignore some JUnit features such as @Before annotations
-                var n = constr.newInstance(params); // constructs an instance of the JmlTestSuite
-                if (n instanceof JmlTestSuite tt) {
-                    t = tt;
-                    t.testname = method.getName();
-                    t.setUp();
-                    method.invoke(t); // invokes the specific test within the testcase -- output directly to System.out is not synchronized
-                } else {
-                    throw new RuntimeException("Test suite " + n.getClass() + " does not extend JmlTestSuite");
-                }
-            } catch (Throwable e) {
-                if (e.getCause() != null) e = e.getCause();
-                synchronized(sfailures) { failures++; }
-                synchronized (System.out) { 
-                    System.out.println("Test FAILED: " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)));
-                    System.out.println(e);
-                    if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
-                }
-            } finally {
-                if (t != null) t.tearDown();
-            }
-        } catch (Exception e) {
-            synchronized (System.out) {
-                System.out.println("Failed to construct or execute or teardown test: " + method + " " + e);
-                if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
-            }
         }
     }
 
@@ -270,5 +236,43 @@ public class OpenJMLTestRunner {
                 }
             }
         }
+                
+        /** This method is run in the thread doing the testcase and constitutes running the test */
+        public void doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
+            synchronized (stests) { tests++; }
+            try {
+                synchronized (System.out) { System.out.println("Testing " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
+                JmlTestSuite t = null;
+                try {
+                    // Essentially, we are creating our own JUnit test runner here -- I think to control the output and metrics
+                    // but we ignore some JUnit features such as @Before annotations
+                    var n = constr.newInstance(params); // constructs an instance of the JmlTestSuite
+                    if (n instanceof JmlTestSuite tt) {
+                        t = tt;
+                        t.testname = method.getName();
+                        t.setUp();
+                        method.invoke(t); // invokes the specific test within the testcase -- output directly to System.out is not synchronized
+                    } else {
+                        throw new RuntimeException("Test suite " + n.getClass() + " does not extend JmlTestSuite");
+                    }
+                } catch (Throwable e) {
+                    if (e.getCause() != null) e = e.getCause();
+                    synchronized (sfailures) { failures++; }
+                    synchronized (System.out) { 
+                        System.out.println("Test FAILED: " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)));
+                        System.out.println(e);
+                        if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+                    }
+                } finally {
+                    if (t != null) t.tearDown();
+                }
+            } catch (Exception e) {
+                synchronized (System.out) {
+                    System.out.println("Failed to construct or execute or teardown test: " + method + " " + e);
+                    if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+                }
+            }
+        }
+
     }
  }

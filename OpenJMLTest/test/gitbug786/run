@@ -2,6 +2,7 @@
 
 cd $(dirname "$BASH_SOURCE[0]" )
 BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 rm -rf MainApp.class actual
 $BIN/openjml-compile MainApp.java > actual || exit 1
