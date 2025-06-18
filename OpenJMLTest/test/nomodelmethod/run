@@ -1,12 +1,13 @@
 #! /usr/bin/env bash
 
-. ../setup-for-runscript
-setup-for-runscript
+cd $(dirname $BASH_SOURCE[0] )  
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 ERR=0
 (\
 rm -f *.class ;\
-$OJA --rac T.javaa ;\
+$OJA --rac T.java ;\
 $OJA -Xprefer:source --compile P.java ;\
 $BIN/openjml-java T ;\
 ) >& actual

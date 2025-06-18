@@ -4,14 +4,12 @@ sort known-failures > known-failures-sorted
 newfailures=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | sort | comm -13 known-failures-sorted -`
 newsuccesses=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | sort | comm -23 known-failures-sorted -`
 rm known-failures-sorted
-echo Unexpected successes
-echo $newsuccesses
-echo Unexpected failures
-echo $newfailures
-if [ "$1" == "-print" ]; then exit 0 ; fi
-cat log-runscripts
+echo Unexpected successes: $newsuccesses
+echo Unexpected failures: $newfailures
+
 ERR=0
-for t in $newfailures ; do
+for tt in $newfailures ; do
+    t=`echo $tt | sed -e 's/.test\[/#/' -e 's/\]//'`
     echo Retrying $t
     ./runtests $t || ERR=1
 done

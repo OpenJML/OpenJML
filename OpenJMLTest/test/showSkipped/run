@@ -1,8 +1,18 @@
 #! /bin/bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
+cd $(dirname $BASH_SOURCE[0] )  
 BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
-. ./runhelper >& actual
+(\
+echo Test 0 ;\
+$OJA -jmltesting --esc --normal Test.java ;\
+echo Test 1 ;\
+$OJA -jmltesting --esc --progress Test.java ;\
+echo Test 2 ;\
+$OJA -jmltesting --esc --progress --method=m,n,z --exclude=z --show-skipped Test.java ;\
+echo Test 3 ;\
+$OJA -jmltesting --esc --progress --no-show-skipped Test.java ;\
+) >& actual 
+
 diff expected actual && rm -rf actual

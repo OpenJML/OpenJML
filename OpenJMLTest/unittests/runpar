@@ -70,12 +70,11 @@ else
         wt
     done
     wait
-
 fi
 echo Completed
-./retry -print
+sync
 ERR=0
-(./retry || ERR=1) | tee logretry | grep -E 'Retrying|FAILED'
+(./retry || ERR=1) | tee logretry | grep -E 'Retrying|FAILED|Unexpected'
 echo Pipe $?
 echo Completed retrys $ERR
 exit $ERR

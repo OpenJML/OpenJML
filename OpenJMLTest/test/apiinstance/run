@@ -1,8 +1,8 @@
 #! /usr/bin/env bash
 
 cd $(dirname "$BASH_SOURCE[0]" )
-INSTALL="../../../OpenJML21"
-if [ -z "$OJA" ]; then OJA=$INSTALL/openjml; fi
+BIN="../../../OpenJML21"
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
-($INSTALL/openjml-compile --compile Run.java && $INSTALL/openjml-run Run) |& diff - RUN.out
+($BIN/openjml-compile --compile Run.java && $BIN/openjml-run Run) |& diff - RUN.out
 if [ $? -ne 0 ]; then echo test/apiinstance FAILED ; fi
