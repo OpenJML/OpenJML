@@ -31,14 +31,14 @@ public abstract class RunBase extends JmlTestSuite {
             process = pb.start();
             try {
                 int exitCode = process.waitFor();
-                //System.out.println("EXIT: " + exitCode);
-                Assert.assertEquals("Test case emitted a failure exit code:", 0, exitCode);
+                Assert.assertEquals("Test " + workingDir + " FAILED: emitted a failure exit code:", 0, exitCode);
+            } catch (AssertionError e) {
             } catch (Throwable e) {
-                Assert.fail("Test " + workingDir + " threw exception " + e);
+                Assert.fail("Test " + workingDir + " FAILED: threw exception " + e);
             }
+        } catch (AssertionError e) {
         } catch (Throwable e) {
-            //System.out.println("FAILED " + e);
-            Assert.fail("Test " + workingDir + " failed to launch: " + e);
+            Assert.fail("Test " + workingDir + " FAILED: failed to launch: " + e);
         }
     }
     

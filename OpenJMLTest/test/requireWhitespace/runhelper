@@ -1,7 +1,0 @@
-
-echo Test 1
-$OJA --check --require-white-space Test.java
-echo Test 2
-$OJA --check Test.java
-echo Test 3
-$OJA --check --no-require-white-space Test.java

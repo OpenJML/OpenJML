@@ -1,8 +1,11 @@
 #! /bin/bash
 
-if [ -z "$OJA" ]; then OJA=openjml ; fi
+cd $(dirname $BASH_SOURCE[0] )  
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+ 
 OJ=scanner $OJA --check A.java > actual
 if [ $? != 1 ]; then echo Failed ; exit 1; fi
 num=`grep "TOKEN " actual | wc -l`
-if [ $num = 0 ]; then echo No tokens; exit 1; fi
+if [ $num -eq 0 ]; then echo No tokens; exit 1; fi
 exit 0
