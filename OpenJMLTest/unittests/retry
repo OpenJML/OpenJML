@@ -13,5 +13,4 @@ for tt in $newfailures ; do
     echo Retrying $t
     ./runtests $t || ERR=1
 done
-echo Completed retry $ERR
 exit $ERR

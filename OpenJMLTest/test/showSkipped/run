@@ -16,3 +16,4 @@ $OJA -jmltesting --esc --progress --no-show-skipped Test.java ;\
 ) >& actual 
 
 diff expected actual && rm -rf actual
+exit $?

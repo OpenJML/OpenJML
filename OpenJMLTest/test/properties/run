@@ -21,3 +21,4 @@ echo Test of mal-formed file ;\
 $OJA --properties=bad2.properties Test.java ;\
 ) >& actual
 diff expected actual && rm -rf actual
+exit $?

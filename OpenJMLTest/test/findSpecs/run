@@ -9,3 +9,4 @@ OJ=parse $BIN/openjml-compile *.java >& actual
 
 LOC=`(cd ../../../..; pwd)`
 sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual
+exit $?

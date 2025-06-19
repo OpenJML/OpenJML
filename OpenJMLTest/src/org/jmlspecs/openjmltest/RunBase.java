@@ -31,21 +31,23 @@ public abstract class RunBase extends JmlTestSuite {
             process = pb.start();
             try {
                 int exitCode = process.waitFor();
-                Assert.assertEquals("Test " + workingDir + " FAILED: emitted a failure exit code:", 0, exitCode);
+                Assert.assertEquals("Test " + getTestName() + ": emitted a failure exit code:", 0, exitCode);
             } catch (AssertionError e) {
+                throw e;
             } catch (Throwable e) {
-                Assert.fail("Test " + workingDir + " FAILED: threw exception " + e);
+                Assert.fail("Test " + getTestName() + ": threw exception " + e);
             }
         } catch (AssertionError e) {
+            throw e;
         } catch (Throwable e) {
-            Assert.fail("Test " + workingDir + " FAILED: failed to launch: " + e);
+            Assert.fail("Test " + getTestName() + ": failed to launch: " + e);
         }
     }
     
     /** A helper method that runs a test in the folder 'test/testname' where testname is the both
      * the name of the test method and the name of the test folder.
      */
-    public void help() {
+    public void doTest() {
         run("test/" + getTestName());
     }
 
