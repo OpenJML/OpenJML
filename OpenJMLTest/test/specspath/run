@@ -69,3 +69,4 @@ $OJA --esc AZC.java -cp srczz --specs-path=specsempty >> actual 2>&1
 
 LOC=`(cd ../../../..; pwd)`
 sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual
+exit $?

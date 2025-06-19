@@ -25,10 +25,12 @@ public class OpenJMLTestRunner {
     static boolean sequential = true;
     static boolean verbose = false;
 
+    /** Test suites to dkip, by simple suite name */
     public static String[] skips = new String[]{};
     {
         Arrays.sort(skips);
     }
+
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
         String th = System.getenv("THREADS");
@@ -76,24 +78,26 @@ public class OpenJMLTestRunner {
             if (args.length == 0 && !item.endsWith(".java")) continue;
             if (item.endsWith(".java")) item = item.substring(0,item.length()-5);
 
-            String tail = null;
+            String testName = null;
+            String suiteName = null;
             int k = item.indexOf('#');
             if (k < 0) k = item.indexOf('.');
             if (k > 0) {
-                tail = item.substring(k+1);
-                item = item.substring(0,k);
+                testName = item.substring(k+1);
+                suiteName = item.substring(0,k);
+            } else {
+                suiteName = item;
             }
             Class<JmlTestSuite> clazz;
             try {
-                clazz = (Class<JmlTestSuite>)Class.forName("org.jmlspecs.openjmltest.testsuites." + item);
+                clazz = (Class<JmlTestSuite>)Class.forName("org.jmlspecs.openjmltest.testsuites." + suiteName);
             } catch (ClassNotFoundException e) {
-                System.out.println("Error: There is no unit test named " + item);
+                System.out.println("Error: There is no test suite named " + suiteName);
                 failures++;
                 continue;
             }
-            if (args.length == 0 && java.util.Arrays.binarySearch(skips,item) >= 0) {
+            if (args.length == 0 && java.util.Arrays.binarySearch(skips,suiteName) >= 0) {
                 System.out.println("Skipping " + clazz);
-                failures++;
                 continue;
             }
             if (verbose) System.out.println("Queueing " + clazz);
@@ -107,9 +111,9 @@ public class OpenJMLTestRunner {
             var allmethods = clazz.getDeclaredMethods();
             var methods = allmethods;
             java.util.Arrays.sort(methods, (a,b)->a.toString().compareTo(b.toString()));
-            if (tail != null) {
+            if (testName != null) {
                 methods = new Method[]{};
-                String nm = tail;
+                String nm = testName;
                 for (var m: allmethods) {
                     if (m.getName().equals(nm)) {
                         methods = new Method[] { m };
@@ -123,7 +127,6 @@ public class OpenJMLTestRunner {
                 Method pmethod = null;
                 x: while (c != null) {
                     for (var m: c.getDeclaredMethods()) {
-                        
                         var a = m.getAnnotationsByType(org.junit.runners.Parameterized.Parameters.class);
                         if (a.length != 0) {
                             pmethod = m;
@@ -135,7 +138,6 @@ public class OpenJMLTestRunner {
                 if (pmethod == null) {
                     System.out.println("No @Parameters found for " + clazz);
                     continue;
-                } else {
                 }
                 if (verbose) System.out.println("Found @Parameter: " + pmethod);
                 params = (java.util.Collection<Object[]>)pmethod.invoke(null);
@@ -184,9 +186,10 @@ public class OpenJMLTestRunner {
 
     static List<UnitTest> tasks = java.util.Collections.synchronizedList(new LinkedList<UnitTest>());
 
-    // Previous code will have created a queue of UnitTest objects. This method takes the front object
-    // off the queue and then executes it, repeating that action until the queue is empty.
-    // Note that more than one threadTask may be executing, so access to the queue is synchTest fileronized.
+    /** Previous code will have created a queue of UnitTest objects. This method takes the front object
+        off the queue and then executes it, repeating that action until the queue is empty.
+        Note that more than one threadTask may be executing, so access to the queue is synchTest synchronized.
+    */
     static public void threadTask() {
         if (verbose) synchronized (System.out) { System.out.println("Launching " + Thread.currentThread().getName()); }
         UnitTest t;

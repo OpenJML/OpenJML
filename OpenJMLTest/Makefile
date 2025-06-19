@@ -79,10 +79,10 @@ userguide-tests:
 
 release-tests: prep Run.class .FORCE
 	@ echo Running release tests with current development build
-	@ $(TEST)releaseTests/runtests
+	@ $(TEST)/releaseTests/runtests
 
 unittests-seq: prep Run.class .FORCE
-	@ $(TEST)unittests/runseq
+	@ $(TEST)/unittests/runseq
 			
 unittests-par: prep Run.class .FORCE
 	( ${TEST}/unittests/runpar | tee log-unittests | sort  )

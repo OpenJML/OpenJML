@@ -52,4 +52,5 @@ $OJA --check t/TB.java ;\
 ) >> actual 2>&1
 
 diff actual expected && rm -rf actual
+exit $?
 

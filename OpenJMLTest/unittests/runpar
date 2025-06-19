@@ -73,8 +73,8 @@ else
 fi
 echo Completed
 sync
-ERR=0
-(./retry || ERR=1) | tee logretry | grep -E 'Retrying|FAILED|Unexpected'
-echo Pipe $?
-echo Completed retrys $ERR
+set -o pipefail
+./retry | tee logretry | grep -E 'Retrying|FAILED|Unexpected'
+ERR=$?
+if [ $ERR -eq 1 ]; then echo Completed retrys with remaining failures; else echo Completed all retrys successfully; fi
 exit $ERR

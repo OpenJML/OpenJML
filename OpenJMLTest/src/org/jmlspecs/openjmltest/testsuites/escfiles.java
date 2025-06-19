@@ -212,7 +212,13 @@ public class escfiles extends EscBaseFiles {
     @Test
     public void escVector() {
         expectedExit = 0;
-        helpTG("--code-math=java");
+        helpTG("--code-math=java","--exclude=copyIntoOK,copyIntoA");
+    }
+
+    @Test
+    public void escVectorA() {
+        expectedExit = 0;
+        helpTG("--code-math=java","--method=copyIntoOK,copyIntoA");
     }
 
     @Test

@@ -8,3 +8,4 @@ rm -rf Run.class actual
 $BIN/openjml-compile Run.java > actual || exit 1
 $BIN/openjml-run Run >> actual
 diff actual expected && rm -rf actual
+exit $?

@@ -9,4 +9,5 @@ $BIN/openjml-compile Run.java > actual || exit 1
 echo COMPILED >> actual
 $BIN/openjml-run Run >> actual
 LOC=`(cd ../../../..; pwd)`
-sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual
+sed -e "s%\$ROOT%$LOC%g" < expected | ( diff - actual && rm -rf actual )
+exit $?
