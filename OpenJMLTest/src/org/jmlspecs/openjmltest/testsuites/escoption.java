@@ -578,7 +578,7 @@ public class escoption extends EscBase {
         addOptions("--help=warn");
         helpTCX("tt.TestJava", "package tt; public class TestJava {}"
         );
-        org.junit.Assert.assertEquals("Implemented warning keys: [implicit-everything, missing-measured-by, missing-specs]\n",output());
+        org.junit.Assert.assertEquals("Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]\n",output());
     }
 
     // FIXME - these tests abort the unittests -- something is wrong with capturing and testing the stdout/stderr

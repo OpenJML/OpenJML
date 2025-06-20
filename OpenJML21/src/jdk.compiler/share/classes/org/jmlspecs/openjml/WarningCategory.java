@@ -24,6 +24,7 @@ public class WarningCategory {
     public static final String MISSING_MEASURED_BY = "missing-measured-by";
     public static final String MISSING_SPECS = "missing-specs";
     public static final String MISSING_SEMICOLON = "missing-semicolon";
+    public static final String LITERAL_DIV_BY_ZERO = "literal-divide-by-zero";
 
     public static enum WarnAction { QUIET, WARN, ERROR };
     public static Map<String, WarnAction> init(Map<String, WarnAction> map) {
@@ -31,6 +32,7 @@ public class WarningCategory {
         map.put(MISSING_SPECS, WarnAction.QUIET);
         map.put(IMPLICIT_EVERYTHING, WarnAction.WARN);
         map.put(MISSING_MEASURED_BY, WarnAction.QUIET);
+        map.put(LITERAL_DIV_BY_ZERO, WarnAction.WARN);
         return map;
     }
 
@@ -59,6 +61,15 @@ public class WarningCategory {
     }
 
     public WarnAction allowed(String key) {
+        WarnAction b = warningKeys.get(key);
+        if (b != null) {
+            return b;
+        }
+        Utils.instance(context).error("jml.internal.not.so.bad","Invalid warning key: " + key);
+        return WarnAction.WARN;
+    }
+
+    public WarnAction action(String key) {
         WarnAction b = warningKeys.get(key);
         if (b != null) {
             return b;

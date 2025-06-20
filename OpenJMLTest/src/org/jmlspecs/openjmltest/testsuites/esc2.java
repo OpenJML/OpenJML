@@ -2935,7 +2935,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testUndefinedInSpec5() {
-        addOptions("-nullableByDefault", "-no-checkAccessible");
+        addOptions("--nullable-by-default", "--no-checkAccessible");
         helpTCX("tt.TestJava",
                 "package tt; \n" + "public class TestJava { \n" + "  static TestJava t;\n" + "  int j = t.j;\n" + "}",
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method TestJava",

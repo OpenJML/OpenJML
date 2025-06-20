@@ -22,11 +22,11 @@ fi
 
 count=0
 while true; do
-  r=`( time ./runtests $* ) 2>&1 | tee $f | grep failures`
+  r=`( time ./runtests $* ) 2>&1 | tee $f | grep failures | grep -v EXP`
   if [ -n "$r" ]; then break; fi
   sleep 5
-  echo "Retrying (# $count) summary for $@"
   count=$(( $count + 1 ))
+  echo "Retrying (# $count) summary for $@"
   if [ $count -ge 3 ]; then echo Giving up on $@ ; exit 1; fi
 done
 

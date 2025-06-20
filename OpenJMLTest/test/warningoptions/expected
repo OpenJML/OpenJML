@@ -1,41 +1,48 @@
 Value	Default	Key
 WARN	WARN	implicit-everything
+WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
 QUIET	QUIET	missing-specs
 
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
+WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
 WARN	QUIET	missing-specs
 
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
+WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
 QUIET	QUIET	missing-specs
 
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
+WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
 QUIET	QUIET	missing-specs
 
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
+WARN	WARN	literal-divide-by-zero
 WARN	QUIET	missing-measured-by
 WARN	QUIET	missing-specs
 
 error: no source files
 Value	Default	Key
 QUIET	WARN	implicit-everything
+QUIET	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
 QUIET	QUIET	missing-specs
 
 error: no source files
 Value	Default	Key
 QUIET	WARN	implicit-everything
+QUIET	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
 QUIET	QUIET	missing-specs
 

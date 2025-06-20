@@ -1744,6 +1744,41 @@ public class escall3 extends EscBase {
                 );
     }
     
+    @Ignore // constant folding not implemented
+    @Test public void divByZero() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public void m(int i, long l) {
+                        var a = i/0;
+                        var b = l/0;
+                        var c = i % 0;
+                        var d = l % 0;
+                    }
+                }
+                """
+                );
+    }
+    
+    @Ignore // constant folding not implemented
+    @Test public void divByZeroQ() {
+        addOptions("--no-warn=literal-div-by-zero");
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public void m(int i, long l) {
+                        var a = i/0;
+                        var b = l/0;
+                        var c = i % 0;
+                        var d = l % 0;
+                    }
+                }
+                """
+                );
+    }
+    
     // FIXME - test all these try tests in a constructor
 
 }

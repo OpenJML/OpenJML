@@ -330,6 +330,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + sourceDecl.sym + "." + specMethodDecl.sym);
 						ok = false;
     				} else {
+    				    boolean print = false;//specMethodDecl.name.toString().equals("of");
+    				    if (print) System.out.println("SME " + matchSym + (javaMethodDecl.specsDecl == null));
     					if (javaMethodDecl.specsDecl == null) {
                         	// FIXME - fix matching of method types
     						Type specResultType = (specMethodDecl.restype == null) ? null : attr.attribType(specMethodDecl.restype, env); // FIXME - should use the env for the specCU
@@ -826,6 +828,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol csym, Env<AttrContext> env, boolean complain) {
 
+        boolean print = false;//specMethod.name.toString().equals("of");
         JCMethodDecl tree = specMethod;
 
         MethodSymbol msym = tree.sym;
@@ -834,6 +837,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        Env<AttrContext> localEnvSpec = null;
         Type computedResultType = null;
 //        Env<AttrContext> savedEnv = null;
+        if (print) System.out.println("MATCHMETHOD " + msym + " "  + msym.type);
         if (msym != null) {
             localEnv = methodEnv(tree, env); // FIXME - or getMethodEnv?
             computedResultType = msym.getReturnType();
