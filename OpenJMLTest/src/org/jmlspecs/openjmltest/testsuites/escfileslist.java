@@ -64,39 +64,32 @@ public class escfileslist extends EscBaseFiles {
     
     public static java.util.List<String[]> alldata() { 
         var tests = new java.util.LinkedList<String>();
-        var namedTests = System.getenv("NAMEDTEST");
-        if (namedTests != null) {
-            for (var s: namedTests.trim().split(" ")) {
-                var ss = s.trim(); if (!ss.isEmpty()) tests.add(ss);
-            }
-        } else {
-            var dir = new File("test");
-            for (var f: dir.listFiles()) {
-                String nm = f.getName();
-                if (!f.isDirectory()) continue;
-                if (!new java.io.File(f, "skip").exists() && !new java.io.File(f, "run").exists() && !nm.startsWith("rac")) {
-                    if (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) {
-                        tests.add(nm);
-                    }
+        var dir = new File("test");
+        for (var f: dir.listFiles()) {
+            String nm = f.getName();
+            if (!f.isDirectory()) continue;
+            if (!new java.io.File(f, "skip").exists() && !new java.io.File(f, "run").exists() && !nm.startsWith("rac")) {
+                if (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) {
+                    tests.add(nm);
                 }
             }
-            for (var suite: testsuites) {
-                try {
-                    var escfiles = Class.forName(suite);
-                    var methods = java.util.Arrays.stream(escfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
-                            .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-                    tests.removeAll(methods);
-                } catch (Exception e) {
-                    System.out.println("FAILED TO FIND TESTS IN " + suite);
-                }
+        }
+        for (var suite: testsuites) {
+            try {
+                var escfiles = Class.forName(suite);
+                var methods = java.util.Arrays.stream(escfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
+                        .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
+                tests.removeAll(methods);
+            } catch (Exception e) {
+                System.out.println("FAILED TO FIND TESTS IN " + suite);
             }
-            tests.sort((e1,e2)->e1.compareTo(e2));
-            for (var nn: tests) {
-                if (!hasJavaFile(new File(dir,nn))) {
-                    System.out.println("No source files " + nn);
-                }
+        }
+        tests.sort((e1,e2)->e1.compareTo(e2));
+        for (var nn: tests) {
+            if (!hasJavaFile(new File(dir,nn))) {
+                System.out.println("No source files " + nn);
             }
-            System.out.println("REMAINING " + tests);
+            //System.out.println("ORPHANED " + tests);
         }
         var params = tests.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
         return params;

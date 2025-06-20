@@ -3,24 +3,36 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.putAtI(int) with prover !!!!
+Starting proof of Test.putAtI(Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.putAtI(int) with prover !!!! - no warnings
+Completed proof of Test.putAtI(Integer) with prover !!!! - no warnings
 Starting proof of Test.mm() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mm() with prover !!!! - no warnings
 Completed proving methods in Test
+Proving methods in TestB
+Starting proof of TestB.TestB() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestB.TestB() with prover !!!! - no warnings
+Starting proof of TestB.putAtI(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestB.putAtI(int) with prover !!!! - no warnings
+Starting proof of TestB.mm() with prover !!!!
+Completed proof of TestB.mm() with prover !!!! - with warnings
+Completed proving methods in TestB
 Proving methods in TestA
 Starting proof of TestA.TestA() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
-Starting proof of TestA.putAtI(int[],int) with prover !!!!
+Starting proof of TestA.putAtI(int[],Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TestA.putAtI(int[],int) with prover !!!! - no warnings
+Completed proof of TestA.putAtI(int[],Integer) with prover !!!! - no warnings
 Starting proof of TestA.m() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

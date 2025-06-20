@@ -1071,7 +1071,7 @@ public class JmlEnter extends Enter {
 	public Env<AttrContext> methodEnv;
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
-		boolean print = false;// mdecl.name.toString().equals("toString") && csym.toString().equals("java.lang.Object");
+		boolean print = false;//mdecl.name.toString().equals("of") && csym.toString().equals("java.util.stream.Stream");
 		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv + " " + mdecl.specsDecl);
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
@@ -1164,7 +1164,7 @@ public class JmlEnter extends Enter {
 			if (debugEnter) System.out.println("enter: Entered JML method: " + msym + " (owner: " + csym + ")");
 		} else {
 			// Found a matching Java binary method
-			//if (print) System.out.println("MATCHED " + msym);
+			if (print) System.out.println("MATCHED " + msym);
 			boolean matchIsJML = utils.isJML(msym.flags());
 			JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).get(msym); // Raw get to see if specs are present
 
@@ -1198,8 +1198,12 @@ public class JmlEnter extends Enter {
 				return false;
 			}
 			typeEnvs.put(csym, specsEnv);
+			// Need to copy types into the spec declaration to be sure that we get the Java type
+			// symbols for type variables
 			if (mdecl.restype != null) {
-				Type t = Attr.instance(context).attribType(mdecl.restype, csym);
+			    if (print) System.out.println("JME " + msym.getReturnType() + " " + mdecl.restype);
+				// FIXME
+			    Type t = Attr.instance(context).attribType(mdecl.restype, csym);
 				// The difficulty here is that TypeVars show up as different types,
 				// and that binary types are erased, so do not have type arguments.
 				try {
@@ -1212,6 +1216,18 @@ public class JmlEnter extends Enter {
 					utils.error(mdecl.restype, "jml.mismatched.return.type",
 							msym.enclClass().fullname + "." + msym.toString(), t, msym.getReturnType());
 				}
+                mdecl.restype.type = msym.getReturnType();
+			}
+			int k = 0;
+			for (var p: mdecl.params) {
+			    p.type = msym.params.get(k).type;
+			    p.sym.type = p.type;
+			    k++;
+			}
+			k = 0;
+			for (var p: mdecl.typarams) {
+			    p.type = msym.getTypeParameters().get(k).type;
+			    k++;
 			}
 			
 //			// FIXME - move to Attr
@@ -1224,8 +1240,7 @@ public class JmlEnter extends Enter {
 			// Either
 			// 0) There is no Java declaration, just a (model/ghost) spec declaration --
 			// that is the case above with msym == null
-			// 1) Just binary, no source Java declaration, and a jml declaration: javaMDecl
-			// == null
+			// 1) Just binary, no source Java declaration, and a jml declaration: javaMDecl == null
 			// 2) Java and JML are the same file: javaMDecl == mdecl
 			// 3) Java and JML are different files: javaMDecl != null, javaMDecl != mdecl
 			// Note that the javaSym may have already been used for attribution of other

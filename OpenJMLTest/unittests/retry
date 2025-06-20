@@ -8,8 +8,7 @@ echo Unexpected successes: $newsuccesses
 echo Unexpected failures: $newfailures
 
 ERR=0
-for tt in $newfailures ; do
-    t=`echo $tt | sed -e 's/.test\[/#/' -e 's/\]//'`
+for t in $newfailures ; do
     echo Retrying $t
     ./runtests $t || ERR=1
 done

@@ -79,6 +79,7 @@ import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.*;
 
 import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
+import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
 import org.jmlspecs.openjml.ext.ArrayFieldExtension.JmlField;
@@ -5900,7 +5901,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     @Override
     public void visitIdent(JCIdent tree) {
-        boolean print = false; // && tree.toString().equals("java");
+        boolean print = false;//tree.toString().equals("elements");
         if (print) System.out.println("JML-VISITIDENT " + tree + " # " + tree.name + " # " + Utils.join(" ", quantifiedExprs) + " # " + tree.sym);
     	// Attributing an ident can instigate loading of new classes
     	// Every routine is responsible for saving and restoring state
@@ -5941,7 +5942,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type saved = result;
             if (print) System.out.println("JML-VISITIDENT-A " + tree + " " + tree.sym + " " + tree.type + " " + tree.sym.getClass() + " " + tree.sym.owner + " " + 
                                     tree.sym.owner.getClass() + " " + (tree.sym instanceof PackageSymbol ps ? ps.sourcefile : tree.sym.outermostClass().sourcefile) + " " + env);
-        	if (tree.sym == null) {
+        	if (print && tree.type instanceof Type.ArrayType aty && aty.getComponentType() instanceof Type.TypeVar tv) System.out.println("  TVAR " + tv + " " + tv.tsym + " " + tv.hashCode() + " " + tv.tsym.hashCode());
+            if (tree.sym == null) {
         		System.out.println("IDENT NULL SYM " + tree + " " + env.info.scope);
         	}
         	if ((tree.sym instanceof VarSymbol || tree.sym instanceof MethodSymbol)
@@ -5952,7 +5954,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         			&& tree.sym.owner == enclosingClassEnv.enclClass.sym
         			&& interpretInPreState(tree,jmlenv.currentClauseKind)
         			) {
-        		String k = (jmlenv.currentClauseKind == requiresClauseKind) ? "preconditions: " :
+        		String k = (jmlenv.currentClauseKind == requiresClauseKind || jmlenv.currentClauseKind == recommendsClauseKind || jmlenv.currentClauseKind == oldClause) ? "preconditions: " :
         			(jmlenv.currentClauseKind.keyword() + " clauses: ");
         		k += tree.toString();
         		if (tree.sym.name != names._this)
@@ -6375,7 +6377,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitSelect(JCFieldAccess tree) {
-        boolean print = false;//tree.toString().contains("oldjlinks") || tree.toString().contains("oldlinks");
+        boolean print = false; // tree.toString().contains("values");// && tree.toString().contains("261");
         if (tree.name == null) {
             // This is a store-ref with a wild-card field
             // FIXME - the following needs some review
@@ -6419,6 +6421,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             } else {
             	// <package>.array, or something illegal or the normal case
                 super.visitSelect(tree);
+                if (print) System.out.println("SELECT " + tree + " " + tree.sym + " " + tree.sym.type + " " + result + " " + tree.selected.type + " " + tree.type);
 
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
@@ -6460,7 +6463,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		utils.error(tree, "jml.message", "A " + tree.selected.type.toString() + " value may not be dereferenced");
     		return false;
     	}
-    	// Need to be sure that the specs are loaded for the receiver -- otherwise any JML fields mightnot be known
+    	// Need to be sure that the specs are loaded for the receiver -- otherwise any JML fields might not be known
     	TypeSymbol s = tree.selected.type.tsym; // might be a PackageSymbol; also might be int.class
     	if (s instanceof ClassSymbol && s.type.isReference()) specs.getLoadedSpecs((ClassSymbol)s);
     	return true;
