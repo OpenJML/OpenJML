@@ -46,7 +46,7 @@ class TestB {
     //@ assignable ii, arr[ii];
     //@ ensures arr[oldI] == v;
     //@ ensures ii == oldI + 1;
-    static public void putAtI(int v) { // FIXME - the problem is the implicit conversion from Integer to int
+    static public void putAtI(int v) {
         arr[ii] = v;
         ii++;
     }
@@ -58,12 +58,12 @@ class TestB {
         //@ assume arr.length == 5;
         
         ii = 0;
-        //@ loop_invariant Test.ii == \count;
+        //@ loop_invariant ii == \count;
         //@ loop_invariant (\forall int j; j>=0 && j<\count; arr[j] == j+1);
-        //@ loop_modifies Test.ii, Test.arr[*];
+        //@ loop_modifies ii, arr[*];
         //@ inlined_loop;
         st.forEachOrdered(v -> putAtI(v));
-        //@ assert Test.ii == st.count();
+        //@ assert TestB.ii == st.count();
         
         //@ assert arr[0] == 1;
         //@ assert arr[4] == 5;
