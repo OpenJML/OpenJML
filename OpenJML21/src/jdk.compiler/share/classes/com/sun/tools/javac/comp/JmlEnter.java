@@ -1216,26 +1216,31 @@ public class JmlEnter extends Enter {
 					utils.error(mdecl.restype, "jml.mismatched.return.type",
 							msym.enclClass().fullname + "." + msym.toString(), t, msym.getReturnType());
 				}
-                mdecl.restype.type = msym.getReturnType();
 			}
-			int k = 0;
-			for (var p: mdecl.params) {
-			    p.type = msym.params.get(k).type;
-			    p.sym.type = p.type;
-			    k++;
+			// FIXME - why does the escfiles.enums test fail without this guard
+			if (!(msym.owner == Symtab.instance(context).enumSym && msym.name.toString().equals("valueOf"))) {
+			    if (mdecl.restype != null) {
+	                mdecl.restype.type = msym.getReturnType();
+			    }
+			    int k = 0;
+			    for (var p: mdecl.params) {
+			        p.type = msym.params.get(k).type;
+			        p.sym.type = p.type;
+			        k++;
+			    }
+			    k = 0;
+			    for (var p: mdecl.typarams) {
+			        p.type = msym.getTypeParameters().get(k).type;
+			        k++;
+			    }
 			}
-			k = 0;
-			for (var p: mdecl.typarams) {
-			    p.type = msym.getTypeParameters().get(k).type;
-			    k++;
-			}
-			
-//			// FIXME - move to Attr
-//			if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
-//				utils.error(mdecl.source(), mdecl.body, "jml.message",
-//						"The specification of the method " + csym + "." + msym + " must not have a body");
-//				;
-//			}
+
+            // FIXME - move to Attr
+            if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
+                utils.error(mdecl.source(), mdecl.body, "jml.message",
+                        "The specification of the method " + csym + "." + msym + " must not have a body");
+                ;
+            }
 
 			// Either
 			// 0) There is no Java declaration, just a (model/ghost) spec declaration --
