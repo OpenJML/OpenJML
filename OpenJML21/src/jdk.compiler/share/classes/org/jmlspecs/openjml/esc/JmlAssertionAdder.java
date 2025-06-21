@@ -8595,26 +8595,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			a = convertExpr(a);
 			
-			// There may be an implicit conversion from actual to formal argument. For esc, we make that conversion
-			// explicit for boxing/unboxing and numeric (widening conversions). Note that type attribution has already
-			// determined that the implicit conversion is ok.
-			if (last && hasVarArgs && !(a.type instanceof Type.ArrayType)) {
-				currentArgType = ((Type.ArrayType) argtypes.last()).getComponentType();
-				//System.out.println("ADDING IMPLICIT " + currentArgType + " " + a);
-				a = addImplicitConversion(a, currentArgType, a);
-				usedVarArgs = true;
-			} else if (a instanceof JCLambda) {
-				// No casts - obscures the fact that the atranslated arg is a JCLambda
-				// also a.type ihas type variables resolved
-				// Just continue
-			} else {
-			    //System.out.println("ARGCONVERSION " + a.type + " " + currentArgType);
-	            if (rac || (a.type.isPrimitive() || types.isNumeric(a.type) || currentArgType.isPrimitive() || types.isNumeric(currentArgType))) {
-	                var convtype = rac ? currentArgType : convertType(currentArgType);
-	                //System.out.println("ADDING IMPLICIT-A " + currentArgType + " " + convtype + " " + a + " " + a.type);
-                    a = addImplicitConversion(a, convtype, a); // FIXME - currentArgType should not be null
-				}
-			}
+            // There may be an implicit conversion from actual to formal argument. For esc, we make that conversion
+            // explicit for boxing/unboxing and numeric (widening conversions). Note that type attribution has already
+            // determined that the implicit conversion is ok. Also any varargs arguments have already been collected into 
+            // a single array (cf. code in visitApply).
+            if (a instanceof JCLambda) {
+                // No casts - obscures the fact that the atranslated arg is a JCLambda
+                // also a.type ihas type variables resolved
+                // Just continue
+            } else {
+                //System.out.println("ARGCONVERSION " + a.type + " " + currentArgType);
+                // The 'rac' disjunct is needed for tests like racHans4c/d/e
+                // The other disjunct is needed for test implicitIterationA
+                if (rac || (a.type.isPrimitive() || types.isNumeric(a.type) || currentArgType.isPrimitive() || types.isNumeric(currentArgType))) {
+                    var convtype = rac ? currentArgType : convertType(currentArgType);
+                    //System.out.println("ADDING IMPLICIT-A " + currentArgType + " " + convtype + " " + a + " " + a.type);
+                    a = addImplicitConversion(a, convtype, a);
+                }
+            }
 			if (useMethodAxioms && translatingJML) {
 			} else if ((a instanceof JCIdent) && ((JCIdent) a).name.toString().startsWith(Strings.tmpVarString)) {
 			} else if ((a instanceof JCIdent) && localVariables.containsKey(((JCIdent) a).sym)) {
