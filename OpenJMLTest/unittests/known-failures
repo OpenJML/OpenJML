@@ -79,17 +79,12 @@ SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
 SpecsEsc.testSpecificationFile[java-util-ArrayList]
 escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
-escTrace.testEnsuresSafeTrace
-escTrace.testEnsuresTrace
-escTrace.testFieldTrace
-escTrace.testSimpleTrace
+# escTraceTests - need work, but are successful at the moment
 escfiles.customPrimitiveTypes
 escfiles.datatype
 escfiles.esc2DArray
-escfiles.escInlineLoop
 escfiles.factorial
-escfiles.implicitIterationA
-escfiles.modelImport5
+escfiles.modelImport5 # static model import needs implementation
 escfiles.modelImport6
 escfiles.modelImport7
 escfiles.sfbug420X
