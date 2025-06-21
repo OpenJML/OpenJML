@@ -121,7 +121,9 @@ public class TypeExprClauseExtension extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
         	JmlTypeClauseExpr clause = (JmlTypeClauseExpr)tree;
             boolean isStatic = clause.modifiers != null && attr.isStatic(clause.modifiers);
-            JavaFileObject old = log.useSource(clause.sourcefile);
+            if (log == null) log = attr.log; // log may be null because a type clause may be synthesized without everr having been parser
+                                    // and so init(parser) may not have been called (e.g. for axioms about Enums)
+            JavaFileObject old = attr.log.useSource(clause.sourcefile);
             attr.jmlenv = attr.jmlenv.pushCopy();
             VarSymbol previousSecretContext = attr.currentSecretContext;
             boolean prevAllowJML = attr.jmlresolve.setAllowJML(true);

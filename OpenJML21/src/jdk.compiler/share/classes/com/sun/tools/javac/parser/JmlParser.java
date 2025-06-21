@@ -708,7 +708,7 @@ public class JmlParser extends JavacParser {
                     cl.mods = jmlF.at(Position.NOPOS).Modifiers(0);
                     storeEnd(cl.mods, Position.NOPOS);
                 }
-                if ((cl.mods.flags & Flags.ENUM) != 0) {
+                if ((cl.mods.flags & Flags.ENUM) != 0 && JmlOption.isOption(context,JmlOption.JML)) {
                     addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
                 }
             }
