@@ -1218,7 +1218,7 @@ public class JmlEnter extends Enter {
 				}
 			}
 			// FIXME - why does the escfiles.enums test fail without this guard
-			if (!(msym.owner == Symtab.instance(context).enumSym && msym.name.toString().equals("valueOf"))) {
+			if (!(msym.owner == Symtab.instance(context).enumSym && msym.name == names.valueOf)) {
 			    if (mdecl.restype != null) {
 	                mdecl.restype.type = msym.getReturnType();
 			    }
