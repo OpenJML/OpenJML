@@ -22,7 +22,9 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestB.putAtI(int) with prover !!!! - no warnings
 Starting proof of TestB.mm() with prover !!!!
-Completed proof of TestB.mm() with prover !!!! - with warnings
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestB.mm() with prover !!!! - no warnings
 Completed proving methods in TestB
 Proving methods in TestA
 Starting proof of TestA.TestA() with prover !!!!
