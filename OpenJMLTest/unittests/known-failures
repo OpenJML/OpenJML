@@ -102,6 +102,7 @@ escfiles2.escRawdingB
 escfiles2.gitbug450a
 escfiles2.gitbug450b
 escfiles2.gitbug861
+escfilesdemo.escDemoTypesNoQuants
 escfilesTrace.escDMZCashTrace
 escfilesTrace.escDemoChangeCase
 escfilesTrace.escDemoPaths
@@ -145,8 +146,8 @@ escfileslist2.test[gitbug814]
 escfileslist2.test[gitbug814d]
 escfileslist2.test[jmlbigint]
 escfileslist2.test[jmlstring]
-escfileslist3.test[listNullity]
-escfileslist3.test[locsetTests]
+escfileslist2.test[listNullity]
+escfileslist2.test[locsetTests]
 escfileslist3.test[rangeTest1]
 escfileslist3.test[record2]
 escfileslist3.test[textBlock4b]
