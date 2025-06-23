@@ -104,9 +104,8 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return t.erasure().isAssignableFrom(this.base);
     }
     
-    // FIXME - does not work for arrays of JML types with type arguments.
     public TYPE getComponentType() {
-        if (!base.isArray()) return null;
+        if (!base.isArray()) throw new IllegalArgumentException("Calling \\elemtype on a value that is not an (or does not have) array type");
         return TYPE.of(base.getComponentType());
     }
 

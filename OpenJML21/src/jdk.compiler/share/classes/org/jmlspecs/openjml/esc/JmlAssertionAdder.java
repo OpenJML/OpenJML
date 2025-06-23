@@ -15756,6 +15756,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			eee = newfa;
 		} else if ((infer || esc) && s != null && s.name == names._class) {
 			eee = treeutils.makeJavaTypelc(that.selected);
+			if (splitExpressions) {
+			    addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(eee.pos, eee));
+			} else {
+			    // FIXME - what to do here?
+			}
 //		} else if (that.sym == allocSym) {
 //			eee = M.at(that.pos).Select(trexpr, that.sym);
 //		} else if (translatingJML && s == null) {
@@ -18551,7 +18556,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		switch (tag) {
 		case ARRAY:
 		case CLASS:
-			eresult = methodCallgetClass(convertExpr(arg));
+            arg = convertExpr(arg);
+            var a = treeutils.makeNotNull(arg.pos,arg);
+            addJavaCheck(arg, a, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+			eresult = methodCallgetClass(arg);
 			break;
 		case BOOLEAN:
 			eresult = treeutils.makePrimitiveClassLiteralExpression("java.lang.Boolean");
@@ -18579,7 +18587,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			break;
 		default:
 			log.error(arg.pos, "jml.unknown.construct", "typeof for " + arg.type, "JmlRac.translateTypeOf");
-			// We give it an arbitrary value // FIXME - or do we call it undefined
+			// We give it an arbitrary value // FIXME - or do we call it undefined or erroneous -- also what about void and BOT
 			eresult = treeutils.makePrimitiveClassLiteralExpression("java.lang.Boolean");
 			break;
 		}
@@ -18616,15 +18624,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} finally {
 			checkAccessEnabled = pv;
 		}
-	}
-
-	/** Helper method to translate \elemtype expressions for RAC */
-	protected void translateElemtype(JCMethodInvocation tree) {
-		// OK for Java types, but not complete for JML types - FIXME
-		JCExpression arg = tree.args.head;
-		arg = convertExpr(arg);
-		JCExpression c = treeutils.makeMethodInvocation(tree, arg, "getComponentType");
-		result = eresult = c;
 	}
 
 	protected Utils.DoubleMap<Name, Symbol, JCVariableDecl> oldarrays = new Utils.DoubleMap<Name, Symbol, JCVariableDecl>();
@@ -18747,19 +18746,33 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				break;
 			}
 			case typeofID: {
+			    // Argument: any non-null Java value, primitive or reference
+			    // Result: a \TYPE value holding the dynamic type of the value
 				if (rac) {
 					translateTypeOf(that);
 				}
 				if (esc || infer) {
-					JCExpression arg = convertExpr(that.args.get(0));
-					JmlMethodInvocation meth = M.at(that).JmlMethodInvocation(that.kind, arg);
-					meth.startpos = that.startpos;
-					meth.varargsElement = that.varargsElement;
-					meth.meth = that.meth;
-					meth.type = that.type;
-					meth.labelProperties = that.labelProperties;
-					meth.typeargs = that.typeargs; // FIXME - do these need translating?
-					result = eresult = meth;
+				    JCExpression arg = that.args.get(0);
+				    if (arg.type.isPrimitive()) {
+				        // Convert expressions like \\typeof(i) where i is avalue of a Java primitive type to \\type(int), for the corresponding type
+				        var ty = M.at(arg).TypeIdent(arg.type.getTag());
+				        ty.setType(arg.type);
+                        JmlMethodInvocation meth = M.at(that).JmlMethodInvocation(typelcKind, ty);
+                        meth.setType(TYPE);
+				        result = eresult = meth;
+				    } else {
+				        arg = convertExpr(arg);
+				        var a = treeutils.makeNotNull(arg.pos,arg);
+				        addJavaCheck(arg, a, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+				        JmlMethodInvocation meth = M.at(that).JmlMethodInvocation(that.kind, arg);
+				        meth.startpos = that.startpos;
+				        meth.varargsElement = that.varargsElement;
+				        meth.meth = that.meth;
+				        meth.type = that.type;
+				        meth.labelProperties = that.labelProperties;
+				        meth.typeargs = that.typeargs; // There should be no type arguments
+				        result = eresult = meth;
+				    }
 				}
 				break;
 			}
@@ -18785,22 +18798,89 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				break;
 			}
-			case elemtypeID: {
-				if (rac)
-					translateElemtype(that);
-				if (esc || infer) {
-					JCExpression arg = that.args.get(0);
-					if (arg.type == TYPE) {
-						JCExpression t = translateType(that.args.get(0));
-						result = eresult = treeutils.makeJmlMethodInvocation(that, elemtypeKind, that.type, t);
-					} else {
-						result = eresult = treeutils.makeJmlMethodInvocation(that, typeofKind, that.type,
-								convertJML(arg));
-						result = eresult = treeutils.makeJmlMethodInvocation(that, elemtypeKind, that.type, eresult);
-					}
-				}
-				break;
-			}
+            case elemtypeID: {
+                // Either (a) TYPE -> TYPE, where the argument returns true for \isarray
+                // or (b) Object -> Type, where the argument is non-null and returns true for \isarray(\typeof(arg))
+                JCExpression arg = that.args.get(0);
+                if (rac) {
+                    if (arg.type == TYPE) {
+                        arg = translateType(that.args.get(0));
+                        // Check (in JML land) whether the argument has an array type (dynamically)
+                        JCExpression isarray = treeutils.makeMethodInvocation(that, arg, "isArray");
+                        addJavaCheck(arg, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
+                        // Compute (in JML land) the TYPE value corresponding to the dynamic element type
+                        JCExpression c = treeutils.makeMethodInvocation(that, arg, "getComponentType");
+                        result = eresult = c;
+                    } else {
+                        // Type is expected to be some reference type (including array tyoes)
+                        arg = convertExpr(that.args.get(0));
+                        // Check whether the argument is null
+                        var na = treeutils.makeNotNull(arg.pos,arg);
+                        addJavaCheck(arg, na, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        // Check (in Java land) whether the argument has an array type (dynamically)
+                        arg = methodCallgetClass(arg);
+                        JCExpression isarray = treeutils.makeMethodInvocation(that, arg, "isArray");
+                        addJavaCheck(arg, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
+                        // Compute (in JML land) the TYPE value corresponding to the dynamic element type
+                        var ty = treeutils.makeType(arg, JmlPrimitiveTypes.TYPETypeKind.getType(context));
+                        JCExpression c = treeutils.makeMethodInvocation(arg, ty, names.of, arg);
+                        result = eresult = treeutils.makeMethodInvocation(that, c, "getComponentType");
+                    }
+                }
+                if (esc || infer) {
+                    if (arg.type == TYPE) {
+                        arg = translateType(that.args.get(0));
+                        // Check (in JML land) whether the argument has an array type (dynamically)
+                        JCExpression isarray = treeutils.makeJmlMethodInvocation(that, isarrayKind, syms.booleanType, arg);
+                        addJavaCheck(that, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT,
+                                "java.lang.IllegalArgumentException");
+                        result = eresult = treeutils.makeJmlMethodInvocation(that, elemtypeKind, that.type, arg);
+                    } else {
+                        // Type is expected to be some reference type (including array tyoes)
+                        arg = convertExpr(arg);
+                        // Check whether the argument is null
+                        var na = treeutils.makeNotNull(arg.pos,arg);
+                        addJavaCheck(arg, na, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        // Check (in Java-SMT land) whether the argument has an array type (dynamically)
+                        arg = treeutils.makeJmlMethodInvocation(that, typeofKind, that.type, arg);
+                        JCExpression isarray = treeutils.makeJmlMethodInvocation(that, isarrayKind, syms.booleanType, arg);
+                        addJavaCheck(arg, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
+                        // Compute (in SMT land) the TYPE value corresponding to the dynamic element type
+                        result = eresult = treeutils.makeJmlMethodInvocation(that, elemtypeKind, that.type, arg);
+                    }
+                }
+                break;
+            }
+            case isarrayID: {
+                // Returns boolean
+                // Either (a) argument is a TYPE value
+                // or (b) argument is a non-null Class<> value
+                // Type checking should prevent the argument from being either a TYPE or a Class<> value
+                JCExpression arg = that.args.get(0);
+                if (rac) {
+                    var a = convertJML(arg);
+                    if (arg.type.tsym == syms.classType.tsym) {
+                        var aa = treeutils.makeNotNull(a.pos,a);
+                        addJavaCheck(arg, aa, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                    }
+                    JCExpression c = treeutils.makeMethodInvocation(that, a, "isArray");
+                    result = eresult = c;
+                }
+                if (esc || infer) {
+                    if (arg.type == TYPE) {
+                        JCExpression t = translateType(that.args.get(0));
+                        result = eresult = treeutils.makeJmlMethodInvocation(that, isarrayKind, that.type, t);
+                    } else if (arg.type.tsym == syms.classType.tsym) {
+                        var a = convertJML(arg);
+                        var na = treeutils.makeNotNull(a.pos,a);
+                        addJavaCheck(arg, na, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        var ty = treeutils.makeType(a, JmlPrimitiveTypes.TYPETypeKind.getType(context));
+                        a = treeutils.makeMethodInvocation(a, ty, names.of, a);
+                        result = eresult = treeutils.makeJmlMethodInvocation(that, isarrayKind, that.type, a);
+                    }
+                }
+                break;
+            }
 			case distinctID: {
 				// Any type error should have been reported in JmlAttr
 				boolean anyPrimitive = false;

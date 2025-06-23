@@ -1235,12 +1235,12 @@ public class JmlEnter extends Enter {
 			    }
 			}
 
-            // FIXME - move to Attr
-            if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
-                utils.error(mdecl.source(), mdecl.body, "jml.message",
-                        "The specification of the method " + csym + "." + msym + " must not have a body");
-                ;
-            }
+//            // FIXME - moved to Attr - delete if tests are OK
+//            if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
+//                utils.error(mdecl.source(), mdecl.body, "jml.message",
+//                        "The specification of the method " + csym + "." + msym + " must not have a body");
+//                ;
+//            }
 
 			// Either
 			// 0) There is no Java declaration, just a (model/ghost) spec declaration --

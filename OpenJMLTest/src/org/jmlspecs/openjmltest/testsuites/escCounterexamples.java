@@ -93,7 +93,7 @@ public class escCounterexamples extends EscBase {
     
     /** Tests assignments */
     @Test
-    public void testCE4() {  // FIXME - the unreachable statements are added and should fail -- does not even seem to start the proof
+    public void testCE4() {
         helpTCX("tt.TestJava",
                 """
                 package tt;

@@ -148,6 +148,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String concat = "stringConcat";
     public static final String nonnullelements = "nonnullelements";
     public static final String arrayElemType = "__arrayElemType";
+    public static final String isarray = "__isarray";
 
     /** A convenience declaration, to avoid calling the constructor for every empty list */
     public static final List<ISort> emptyList = new LinkedList<ISort>();
@@ -392,6 +393,8 @@ public class SMTTranslator extends JmlTreeScanner {
         //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" (_makeArrayType T)) T)))");
         }
         if (quants && quantOK) {
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (=> (_isJMLArrayType (_JMLT_0 T)) (_isArrayType T)) ))");
+            addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (=> (_isArrayType (erasure T)) (_isJMLArrayType T) ) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" (_makeJMLArrayType T)) T)))");
             addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (_isArrayType (_makeArrayType T)) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (_isJMLArrayType (_makeJMLArrayType T)) ))");
@@ -1937,27 +1940,34 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 return;
             }
-        } else if (m instanceof JCFieldAccess) {
-            JCFieldAccess fa = (JCFieldAccess)m;
-            String name = fa.name.toString();
-            String newname = null;
-            if (Utils.instance(context).isJMLStatic(fa.sym)) {
-                // FIXME The fully qualifiedness should be done in BasicBlocking
-                newname = "_" + m.toString();
-                addFcn(newname,tree);
-            } else {
-                newname = fa.sym.owner.toString() + "." + name;
-                addFcn(newname,tree);
+        } else if (m instanceof JCFieldAccess fa) {
+            if (fa.toString().equals("org.jmlspecs.lang.internal.TYPE.of")) {
+                List<IExpr> newargs = new LinkedList<IExpr>();
+                for (JCExpression arg: tree.args) {
+                    newargs.add(convertExpr(arg));
+                }
+                result = F.fcn(F.symbol("_JMLT_" + (tree.args.length()-1)),newargs);
+           } else {
+                String name = fa.name.toString();
+                String newname = null;
+                if (Utils.instance(context).isJMLStatic(fa.sym)) {
+                    // FIXME The fully qualifiedness should be done in BasicBlocking
+                    newname = "_" + m.toString();
+                    addFcn(newname,tree);
+                } else {
+                    newname = fa.sym.owner.toString() + "." + name;
+                    addFcn(newname,tree);
+                }
+                List<IExpr> newargs = new LinkedList<IExpr>();
+                if (!Utils.instance(context).isJMLStatic(fa.sym)) {
+                    newargs.add(convertExpr(fa.selected));
+                }
+                for (JCExpression arg: tree.args) {
+                    newargs.add(convertExpr(arg));
+                }
+                var sym = F.symbol(makeBarEnclosedString(newname));
+                result = newargs.isEmpty() ? sym : F.fcn(sym,newargs);
             }
-            List<IExpr> newargs = new LinkedList<IExpr>();
-            if (!Utils.instance(context).isJMLStatic(fa.sym)) {
-                newargs.add(convertExpr(fa.selected));
-            }
-            for (JCExpression arg: tree.args) {
-                newargs.add(convertExpr(arg));
-            }
-            var sym = F.symbol(makeBarEnclosedString(newname));
-            result = newargs.isEmpty() ? sym : F.fcn(sym,newargs);
             
         }
     }
@@ -1982,6 +1992,12 @@ public class SMTTranslator extends JmlTreeScanner {
             result = F.fcn(F.symbol(nonnullelements), newargs);
         } else if (that.kind == elemtypeKind) {
             result = F.fcn(F.symbol(arrayElemType), newargs);
+        } else if (that.kind == isarrayKind) {
+            if (that.args.get(0).type.tsym == TYPE) {
+                result = F.fcn(F.symbol("_isJMLArrayType"), newargs);
+            } else {
+                result = F.fcn(F.symbol("_isArrayType"), newargs);                
+            }
         } else if (that.kind == sameKind || that.kind == oldKind) { // old has already been translated
             result = newargs.get(0);
         } else if (that.kind == erasureKind) {

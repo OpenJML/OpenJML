@@ -1622,9 +1622,12 @@ public class JmlTreeUtils {
     }
     
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, Name name, JCExpression ... nargs) {
-        Scope sc = receiver.type.tsym.members();
+        // FIXME - I don't think the members() call gets superclass/interface methods
+        var ts = receiver.type.tsym;
         String s = "\tFor " + receiver.type + " " + (nargs.length==0? "" : (nargs[0].type.toString() + " ...")) + "\n";
         try {
+            Scope sc = ts.members();
+            if (sc == null) System.out.println("MMI  " + receiver + " " + receiver.type + " " + name + " " + sc);
             var iter = sc.getSymbolsByName(name).iterator();
             x: while (iter.hasNext()) {
                 Symbol sym = iter.next();
@@ -1856,11 +1859,12 @@ public class JmlTreeUtils {
             if (type.getTag() == TypeTag.ARRAY) {
                 Type compType = ((Type.ArrayType)type).getComponentType();
                 JmlMethodInvocation ct = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,compType));
-                JCExpression e = makeTypeof(id);
-                e = factory.at(p).JmlMethodInvocation(elemtypeKind,e);
+                JCExpression ee = makeTypeof(id);
+                JCExpression ea = factory.at(p).JmlMethodInvocation(isarrayKind,ee).setType(syms.booleanType);
+                JCExpression e = factory.at(p).JmlMethodInvocation(elemtypeKind,ee);
                 e.type = ct.type = TYPE;
                 e = makeEqObject(p, e, ct);
-                expr = makeAnd(p,expr,e);
+                expr = makeAnd(p,expr,makeAnd(p, ea, e));
             }
         }
         
@@ -1909,14 +1913,15 @@ public class JmlTreeUtils {
                 //if (JmlOption.isOption(context, JmlOption.BOOGIE)) expr = tt; // FIXME - just until Boogie handles unerased types
             } else {
                 Type comptype = ((Type.ArrayType)type).elemtype;
-                JCExpression e = makeTypeof(id);
-                e = makeJmlMethodInvocation(pos,elemtypeKind,e.type,e);
+                JCExpression ee = makeTypeof(id);
+                JCExpression ea = factory.at(p).JmlMethodInvocation(isarrayKind,ee).setType(syms.booleanType);
+                JCExpression e = makeJmlMethodInvocation(pos,elemtypeKind,ee.type,ee);
                 ((JmlMethodInvocation)e).kind = elemtypeKind;
                 JmlMethodInvocation tt = factory.at(p).JmlMethodInvocation(typelcKind,makeType(pos,comptype));
                 tt.type = TYPE;
                 if (comptype.isPrimitive()) e = makeEquality(p,e,tt);
                 else e = makeSubtype(pos,e,tt);
-                expr = makeAnd(p,expr,e);
+                expr = makeAnd(p,expr,makeAnd(p, ea, e));
             }
         }
         //System.out.println("DTNNE " + expr);
