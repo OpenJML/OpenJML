@@ -628,45 +628,6 @@ public class racnew extends RacBase {
                 );
     }
 
-    @Test public void testElemtype() {
-        expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
-                +"Object o = new String[3]; Object oo = new int[5]; Object o3 = Integer.valueOf(4);\n"
-                +"//@ ghost nullable Class t; ghost nullable \\TYPE tt; \n"
-                +"//@ set tt = (\\lbl A \\elemtype(\\typeof(o)));\n"
-                +"//@ set tt = (\\lbl B \\elemtype(\\typeof(oo)));\n"
-                +"//@ set tt = (\\lbl C \\elemtype(\\typeof(o3)));\n"
-                +"//@ set t = (\\lbl D \\elemtype(Class.class));\n"
-                +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
-                +"System.out.println(\"END\"); } \n"
-                +"}"
-                ,"/tt/TestJava.java:3: error: the type modifier/annotation is not permitted on a primitive type: \\TYPE",35
-                );
-        
-    }
-    
-    @Test public void testElemtype1() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
-                +"Object o = new String[3]; Object oo = new int[5]; Object o3 = Integer.valueOf(4);\n"
-                +"//@ ghost nullable Class t; ghost \\TYPE tt; \n"
-                +"//@ set tt = (\\lbl A \\elemtype(\\typeof(o)));\n"
-                +"//@ set tt = (\\lbl B \\elemtype(\\typeof(oo)));\n"
-                +"//@ set tt = (\\lbl C \\elemtype(\\typeof(o3)));\n"
-                +"//@ set t = (\\lbl D \\elemtype(Class.class));\n"
-                +"//@ set t = (\\lbl E \\elemtype(Boolean[].class));\n"
-                +"System.out.println(\"END\"); } \n"
-                +"}"
-                ,"LABEL A = class java.lang.String"
-                ,"LABEL B = int"
-                ,"LABEL C = null"
-                ,"LABEL D = null"
-                ,"LABEL E = class java.lang.Boolean"
-                ,"END"
-                );
-        
-    }
-    
-
     @Test public void testTypeOfA() {
         helpTCX("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" +
                 "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
@@ -3455,7 +3416,170 @@ public class racnew extends RacBase {
                         ,"LABEL JMLSHOW_5 = -5"
                         );
     }
+    
+    @Test
+    public void testIsArray() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int i;
+                    Object oo = new Object();
+                    int[] x = new int[1];
+                    Object o = new Object[2];
+                    Object[] oa = new Object[2];
 
+                    //@ assert  \\isarray(\\typeof(x));
+                    //@ assert  \\isarray(\\type(int[]));
+                    //@ assert  \\isarray(\\typeof(o));
+                    //@ assert  \\isarray(\\type(Object[]));
+                    //  assert !\\isarray(\\typeof(i));  // Cannot apply typeof to a value of primitive type
+                    //@ assert !\\isarray(\\type(int));
+                    //@ assert !\\isarray(\\typeof(oo));
+                    //@ assert !\\isarray(\\type(Object));
 
+                    //@ assert \\isarray(x.getClass());
+                    //@ assert \\isarray(int[].class);
+                    //@ assert \\isarray(o.getClass());
+                    //@ assert \\isarray(Object[].class);
+                    //  assert !\\isarray(i.getClass()); // Invalid syntax
+                    //@ assert !\\isarray(int.class);
+                    //@ assert !\\isarray(oo.getClass());
+                    //@ assert !\\isarray(Object.class);
+                    System.out.println("DONE");
+                  }
+                }
+                """
+                ,"DONE"
+                );
+        
+    }
+    
+    @Test
+    public void testIsArrayN() {
+        expectedExit = 0;
+        expectedRACExit = 1;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Class<?> n = null;
+                    //@ assert \\isarray(n);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: JML actual argument may not be null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"java.lang.Class.isArray()\" because \"<local5>\" is null"
+                ,"\tat tt.TestJava.main(TestJava.java:6)"
+                );
+        
+    }
 
+    // If tests are added here, add them also in the corresponding esc tests (currently escall3.testElemTypeN)
+    @Test
+    public void testElemTypeN() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Object o = new Object();
+                    Class<?> n = null;
+                    try {
+                      //@ assert \\elemtype(n) ==\\type(Object);
+                    } catch (Exception e) {
+                      System.out.println(e);
+                    }
+                    try {
+                      //@ assert \\elemtype(null) == \\typeof(o);
+                    } catch (Exception e) {
+                      System.out.println(e);
+                    }
+                    try {
+                      Integer i = 0;
+                      //@ assert \\elemtype(i) == \\typeof(o);
+                    } catch (Exception e) {
+                      System.out.println(e);
+                    }
+                    try {
+                      int i = 0;
+                      //@ assert \\elemtype(\\typeof(i)) == \\typeof(o);
+                    } catch (Exception e) {
+                      System.out.println(e);
+                    }
+                    try {
+                      //@ assert \\elemtype(\\type(Integer)) == \\typeof(o);
+                    } catch (Exception e) {
+                      System.out.println(e);
+                    }
+                    try {
+                      //@ assert \\elemtype(\\type(int)) == \\typeof(o);
+                    } catch (Exception e) {
+                      System.out.println(e);
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: JML actual argument may not be null"
+                ,"java.lang.NullPointerException: Cannot invoke \"Object.getClass()\" because \"<local8>\" is null"
+                ,"/tt/TestJava.java:13: verify: JML actual argument may not be null"
+                ,"java.lang.NullPointerException: Cannot invoke \"Object.getClass()\" because \"null\" is null"
+                ,"/tt/TestJava.java:19: verify: JML actual argument has an illegal value"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"/tt/TestJava.java:25: verify: JML actual argument has an illegal value"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"/tt/TestJava.java:30: verify: JML actual argument has an illegal value"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"/tt/TestJava.java:35: verify: JML actual argument has an illegal value"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                );
+    }
+
+    // If tests are added here, add them also in the corresponding esc tests (currently escall3.testElemType)
+    @Test
+    public void testElemType() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Object o = new Object();
+                    Object oo = new Object[2];
+                    Object[] oa = new Object[2];
+                    Object[] ob = new Integer[2];
+                    // \\TYPE argument
+                    //@ show \\elemtype(\\typeof(oo));
+                    //@ assert \\elemtype(\\typeof(oa)) == \\typeof(o);
+                    // Object argument
+                    //@ show \\elemtype(oa);
+                    //@ show \\elemtype(oo);
+                    //@ assert \\elemtype(oo) == \\typeof(o);
+                    //@ show \\elemtype(ob);
+                    //@ assert \\elemtype(ob) == \\type(Integer);
+                    //@ assert \\elemtype(\\type(Integer[])) == \\type(Integer);
+                    //@ assert \\elemtype(\\type(int[])) == \\type(int);
+                  }
+                }
+                """
+                ,"LABEL JMLSHOW_1 = class java.lang.Object"
+                ,"LABEL JMLSHOW_2 = class java.lang.Object"
+                ,"LABEL JMLSHOW_3 = class java.lang.Object"
+                ,"LABEL JMLSHOW_4 = class java.lang.Integer"
+                );
+    }
+    
+    @Test public void testElemTypeMod() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" 
+                +"//@ ghost nullable \\TYPE tt; \n"
+                +"}}"
+                ,"/tt/TestJava.java:2: error: the type modifier/annotation is not permitted on a primitive type: \\TYPE",11
+                );
+        
+    }
 }

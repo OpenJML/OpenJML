@@ -1780,5 +1780,205 @@ public class escall3 extends EscBase {
     }
     
     // FIXME - test all these try tests in a constructor
+    
+    @Test
+    public void testIsArray() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int i;
+                    Object oo = new Object();
+                    int[] x = new int[1];
+                    Object o = new Object[2];
+                    Object[] oa = new Object[2];
+                
+                    //@ assert  \\isarray(\\typeof(x));
+                    //@ assert  \\isarray(\\type(int[]));
+                    //@ assert  \\isarray(\\typeof(o));
+                    //@ assert  \\isarray(\\type(Object[]));
+                    //@ assert !\\isarray(\\typeof(i));
+                    //@ assert !\\isarray(\\type(int));
+                    //@ assert !\\isarray(\\typeof(oo));
+                    //@ assert !\\isarray(\\type(Object));
+                
+                    //@ assert \\isarray(x.getClass());
+                    //@ assert \\isarray(int[].class);
+                    //@ assert \\isarray(o.getClass());
+                    //@ assert \\isarray(Object[].class);
+                    //  assert !\\isarray(i.getClass()); // Invalid syntax
+                    //@ assert !\\isarray(int.class);
+                    //@ assert !\\isarray(oo.getClass());
+                    //@ assert !\\isarray(Object.class);
+                    //@ assert  \\isarray(oa.getClass());
+                  }
+                }
+                """
+                 );
+        
+    }
+
+    @Test
+    public void testIsArrayN() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Class<?> n = null;
+                    //@ assert \\isarray(n);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (NullArgument) in method main", 25
+                );
+    }
+
+    @Test
+    public void testIsArrayIllegal() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    //@ ghost \\bigint z;
+                    int i;
+                    //@ assert \\isarray(z);
+                    //@ assert !\\isarray(i.getClass()); // Invalid syntax
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:7: error: The argument of \\isarray must have type \\TYPE or java.lang.Class, not \\bigint", 25
+                ,"/tt/TestJava.java:8: error: int cannot be dereferenced", 27
+                );
+    }
+
+    @Test
+    public void testElemType() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Object o = new Object();
+                    Object oo = new Object[2];
+                    Object[] oa = new Object[2];
+                    Object[] ob = new Integer[2];
+                    // \\TYPE argument
+                    //@ assert \\elemtype(\\typeof(oo)) == \\type(Object);
+                    //@ assert \\elemtype(\\typeof(oa)) == \\typeof(o);
+                    //@ assert \\elemtype(\\type(Integer[])) == \\type(Integer);
+                    //@ assert \\elemtype(\\type(int[])) == \\type(int);
+                    // Object argument
+                    //@ assert \\elemtype(oa) == \\type(Object);
+                    //@ assert \\elemtype(oo) == \\typeof(o);
+                    //@ assert \\elemtype(ob) == \\type(Integer);
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testElemTypeN() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void m1(String[] args) {
+                    // Not allowed: non-array reference types
+                    Integer i = 0;
+                    //@ show \\elemtype(i);
+                  }
+                  public static void m2(String[] args) {
+                    // Not allowed: non-array reference types
+                    //@ show \\elemtype(\\type(Integer));
+                  }
+                  public static void m3(String[] args) {
+                    // not allowed: non-array primitive types
+                    int ii = 0;
+                    //@ show \\elemtype(\\typeof(ii));
+                  }
+                  public static void m4(String[] args) {
+                    // not allowed: non-array primitive types
+                    //@ show \\elemtype(\\type(int));
+                  }
+                  public static void m5(String[] args) {
+                    // not allowed: null values
+                    /*@ nullable */ Class<?> n = null;
+                    //@ show \\elemtype(n);
+                  }
+                  public static void m6(String[] args) {
+                    // not allowed: null values
+                    //@ show \\elemtype(null);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (IllegalArgument) in method m1", 23
+                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (IllegalArgument) in method m2", 23
+                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (IllegalArgument) in method m3", 23
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (IllegalArgument) in method m4", 23
+                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (NullArgument) in method m5", 24
+                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (NullArgument) in method m6", 24
+                );
+    }
+
+    @Test // Tests for type-checking errors in using \elemtype
+    public void testElemTypeIllegal() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                //@ nullable_by_default
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int i; Object o = new Object();
+                    //@ assert \\elemtype(i) == \\typeof(o); // Java primitive values are not allowed as arguments
+                    //@ ghost \\bigint z; // JML type values are not allowed as arguments
+                    //@ assert \\elemtype(z) == \\typeof(o);
+                    //@ ghost \\seq<Integer> s; // JML type values are not allowed as arguments
+                    //@ assert \\elemtype(s) == \\typeof(o);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not int", 26
+                ,"/tt/TestJava.java:8: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not \\bigint", 26
+                ,"/tt/TestJava.java:10: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not \\seq<java.lang.@org.jmlspecs.annotation.Nullable Integer>", 26
+                );
+    }
+
+    @Test // Tests information about formals
+    public void testIsArrayFormal() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void m1(Object[] a) {
+                    //@ assert \\isarray(\\typeof(a));
+                  }
+                  public static void m21(int[] a) {
+                    //@ assert \\isarray(\\typeof(a));
+                  }
+                  public static void m3(int a) {
+                    //@ assert !\\isarray(\\typeof(a));
+                  }
+                  public static void m4(Integer a) {
+                    //@ assert !\\isarray(\\typeof(a));
+                  }
+                  public static void m5(Object a) {
+                    //@ assert \\isarray(\\typeof(a));
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method m5", 9
+                );
+    }
+
+
 
 }

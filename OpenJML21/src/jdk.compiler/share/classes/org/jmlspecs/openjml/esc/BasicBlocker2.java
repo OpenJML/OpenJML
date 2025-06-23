@@ -1130,6 +1130,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case elemtypeID:
+                case isarrayID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);

@@ -51,19 +51,59 @@ public class FunctionLikeExpressions extends JmlExtension {
             }
             Type t = attr.syms.errType;
             if (n > 0) {
-            	for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, Type.noType);
+                for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, Type.noType);
                 Type tt = tree.args.get(0).type;
-            	if (tt == null) {
-                	System.out.println("NULLTYPE - Unexpected null type in \\elemtype");
+                if (tt == null) {
+                    error(tree,"jml.internal","No type value for \\elemtype: " + tr);
+                    // return errType
                 } else if (tt.isErroneous()) {
-                	t = tt;
+                    t = tt;
                 } else if (tt == TYPE) {
                     t = tt;
-                } else if (tt.tsym == attr.syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
-                    t = attr.syms.classType;
-                } else {
+                } else if (attr.jmltypes.isJmlType(tt) || tt.isPrimitive()) {
                     error(tree.args.get(0).pos(),"jml.elemtype.expects.classtype",tt.toString());
+                    // return errType
+                } else {
                     t = TYPE;
+                }
+            }
+            tree.type = t;
+            return t;
+        }
+
+        @Override
+        public void checkParse(JmlParser parser, JmlMethodInvocation e) {
+            checkOneArg(parser,e);
+        }
+    };
+
+    public static final String isarrayID = "\\isarray";
+    public static final IJmlClauseKind isarrayKind = new IJmlClauseKind.FunctionLikeExpressionKind(isarrayID) {
+
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tr, Env<AttrContext> localEnv) {
+            var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(attr.context);
+            JmlMethodInvocation tree = (JmlMethodInvocation)tr;
+            int n = tree.args.size();
+            if (n != 1) {
+                error(tree.pos(),"jml.one.arg",keyword,n);
+            }
+            Type t = attr.syms.booleanType;
+            if (n > 0) {
+                for (var arg: tree.args) arg.type = attr.attribExpr(arg, localEnv, Type.noType);
+                Type tt = tree.args.get(0).type;
+                if (tt == null) {
+                    error(tree,"jml.internal","No type value for \\elemtype: " + tr);
+                    // return errType
+                } else if (tt.isErroneous()) {
+                    t = tt;
+                } else if (tt == TYPE) {
+                    // OK
+                } else if (tt.tsym == attr.syms.classType.tsym) {  // FIXME - syms.classType is a parameterized type which is not equal to the argumet (particularly coming from \\typeof - using tsym works, but we ought to figure this out
+                    // OK
+                } else {
+                    error(tree.args.get(0).pos(),"jml.isarray.expects.classtype",tt.toString());
+                    // FIXME - make erroneous?
                 }
             }
             tree.type = t;

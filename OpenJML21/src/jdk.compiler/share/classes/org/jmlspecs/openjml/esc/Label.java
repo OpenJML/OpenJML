@@ -204,7 +204,13 @@ public class Label {
     /*@ non_null*/ public final static Label NULL_FORMAL = new Label("NullFormal");
     
     /** Used for assume or assert statements generated from non-null designations */
+    /*@ non_null*/ public final static Label NULL_ARGUMENT = new Label("NullArgument");
+    
+    /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_ELEMENT = new Label("NullElement");
+    
+    /** Used for situations in which an method argument is illegal for some reason other than a null values */
+    /*@ non_null*/ public final static Label ILLEGAL_ARGUMENT = new Label("IllegalArgument");
     
     /** Used for assume or assert statements for a cast to a NonNull type */
     /*@ non_null*/ public final static Label NULL_CAST = new Label("NullCast");
