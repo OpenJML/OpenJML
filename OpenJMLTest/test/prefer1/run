@@ -5,7 +5,8 @@ BIN=../../../OpenJML21
 if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 . ./runjava.sh &> actual
-diff actual expected || exit 1
+(diff actual expected  && rm -f actual) || exit 1
 . ./run.sh &> actual
+
 diff actual expected && rm -f actual
 exit $?
