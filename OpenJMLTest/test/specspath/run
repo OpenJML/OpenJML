@@ -5,8 +5,8 @@ BIN=../../../OpenJML21
 if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 rm -rf `find . -name C.class` actual; touch actual; 
-openjml --compile srct/C.java ; cp srct/C.class srctt/C.class
-openjml --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class
+$OJA --compile srct/C.java ; cp srct/C.class srctt/C.class
+$OJA --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class
 
 ## P.java with no specs at all
 echo Test P1 uses ppsrc/P.java for specs >> actual
