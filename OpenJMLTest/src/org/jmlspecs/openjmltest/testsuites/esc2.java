@@ -4257,5 +4257,29 @@ public class esc2 extends EscBase {
     			+ "}\n"
     			);
     }
+    
+    @Test
+    public void testBRC() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void m1() {
+                    //@ refining
+                    //@   returns true;
+                    //@   continues false;
+                    //@   breaks true;
+                    {}
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: Not implemented for static checking: returns clause", 11
+                ,"/tt/TestJava.java:6: warning: Not implemented for static checking: continues clause", 11
+                ,"/tt/TestJava.java:7: warning: Not implemented for static checking: breaks clause", 11
+                );
+        
+    }
+
+
 
 }

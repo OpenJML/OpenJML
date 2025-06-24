@@ -3582,4 +3582,28 @@ public class racnew extends RacBase {
                 );
         
     }
+    
+    @Test
+    public void testBRC() {
+        runrac = false;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String ... args) {
+                    //@ refining
+                    //@   returns true;
+                    //@   continues false;
+                    //@   breaks true;
+                    {}
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: Not implemented for runtime assertion checking: returns clause", 11
+                ,"/tt/TestJava.java:6: warning: Not implemented for runtime assertion checking: continues clause", 11
+                ,"/tt/TestJava.java:7: warning: Not implemented for runtime assertion checking: breaks clause", 11
+                );
+        
+    }
+
 }

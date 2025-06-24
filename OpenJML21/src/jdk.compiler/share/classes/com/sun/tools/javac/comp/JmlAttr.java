@@ -4029,9 +4029,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         Type t = null;
         switch (kw) {
-            case "recommends":
+            case recommendsID:
+            case returnsID:
+            case continuesID:
+            case breaksID:
                 t = tree.clauseKind.typecheck(this,tree,env);
                 break;
+
             case divergesID:
                 if (isPureMethod(jmlenv.enclosingMethodDecl.sym) && !treeutils.isFalseLit(tree.expression)) {
                     log.error(tree.pos, "jml.message", "pure methods must be terminating (explicitly diverges false)");
@@ -4047,17 +4051,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 break;
             case ensuresID:
-            case "when":
-            case "returns":
+            case whenID:
                 t = attribExpr(tree.expression, env, syms.booleanType);
                 break;
-                
-            case "continues":
-            case "breaks":
-                // FIXME - what about the label
-                t = attribExpr(tree.expression, env, syms.booleanType);
-                break;
-            case "callable":
+
+            case callableID:
                 // FIXME - should be implemented somewhere else
                 break;
                 

@@ -55,8 +55,7 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
     
     @Override
     public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-        // TODO Auto-generated method stub
-        return null;
+        return attr.attribExpr(((JmlMethodClauseExpr)expr).expression, env, attr.syms.booleanType);
     }
         
 }

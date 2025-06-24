@@ -1979,6 +1979,4 @@ public class escall3 extends EscBase {
                 );
     }
 
-
-
 }

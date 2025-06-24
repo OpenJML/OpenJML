@@ -1960,5 +1960,54 @@ public class typechecking extends TCBase {
                 );
     }
 
-    
+    @Test
+    public void testBRCLocation() {
+        expectedExit = 1;
+        helpTCF("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ public normal_behavior
+                  //@   returns true;
+                  //@   continues true;
+                  //@   breaks true;
+                  public static void m1(Object[] a) {
+                    //@ refining
+                    //@   returns true;
+                    //@   continues true;
+                    //@   breaks true;
+                    //@   {| returns true; |}
+                    {}
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: error: A returns clause may only be in a refining specification", 9
+                ,"/tt/TestJava.java:5: error: A continues clause may only be in a refining specification", 9
+                ,"/tt/TestJava.java:6: error: A breaks clause may only be in a refining specification", 9
+                );
+        
+    }
+
+    @Test
+    public void testBRC() {
+        expectedExit = 1;
+        helpTCF("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  public static void m1() {
+                    //@ refining
+                    //@   returns 0;
+                    //@   continues "";
+                    //@   breaks true;
+                    {}
+                  }
+                }
+                """
+                ,"/TestJava.java:5: error: incompatible types: int cannot be converted to boolean", 19
+                ,"/TestJava.java:6: error: incompatible types: java.lang.String cannot be converted to boolean", 21
+                );
+        
+    }
+
 }
