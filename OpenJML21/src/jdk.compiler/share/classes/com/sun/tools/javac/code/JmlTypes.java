@@ -94,31 +94,43 @@ public class JmlTypes extends Types {
         return t != s;
     }
     
+    boolean javaOnly = false;
+    public boolean isAssignable(boolean javaOnly, Type t, Type s, Warner warn) {
+        this.javaOnly = javaOnly;
+        try {
+            return isAssignable(t,s,warn);
+        } finally {
+            this.javaOnly = false;
+        }
+    }
+    
     /** Overrides Types.isAssignable with functionality for JML primitive types. */
     // is a t assignable to s, that is, is t a subtype of s
     @Override
     public boolean isAssignable(Type t, Type s, Warner warn) {
         if (s == t) return true;
         if (isSameType(s,t)) return true;
-        if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) {
-            if (isIntegral(t)) return true;
-            if (t.toString().contains("BigInteger")) return true;
-            return false;
-        }
-        if (s.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
-            if (isNumeric(t)) return true; 
-            if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) return true;
-            if (t.toString().contains("BigInteger")) return true;
-            return false;
-        }
-        if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
-        if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
-            Iterator<Type> siter = ((JmlListType)s).types.iterator();
-            Iterator<Type> titer = ((JmlListType)t).types.iterator();
-            if (siter.hasNext() && titer.hasNext()) {
-                if (!isAssignable(titer.next(), siter.next(), warn)) return false;
+        if (!javaOnly) {
+            if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) {
+                if (isIntegral(t)) return true;
+                if (t.toString().contains("BigInteger")) return true;
+                return false;
             }
-            if (!siter.hasNext() && !titer.hasNext()) return false;
+            if (s.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
+                if (isNumeric(t)) return true; 
+                if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) return true;
+                if (t.toString().contains("BigInteger")) return true;
+                return false;
+            }
+            if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
+            if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
+                Iterator<Type> siter = ((JmlListType)s).types.iterator();
+                Iterator<Type> titer = ((JmlListType)t).types.iterator();
+                if (siter.hasNext() && titer.hasNext()) {
+                    if (!isAssignable(titer.next(), siter.next(), warn)) return false;
+                }
+                if (!siter.hasNext() && !titer.hasNext()) return false;
+            }
         }
         
         return super.isAssignable(t, s, warn);
@@ -171,6 +183,7 @@ public class JmlTypes extends Types {
         return b;
     }
     
+    // FIXME - is this still used?
     public Type elemtype(Type t) {
         Type elemtype = super.elemtype(t);
         if (elemtype != null || !isArray(t)) return elemtype;
@@ -235,13 +248,12 @@ public class JmlTypes extends Types {
     	return super.unboxedType(t);
     }
 
-    /** Overrides Types.isSubtype with functionality for JML primitive types. */
-    @Override
-    public boolean isSubtype(Type t, Type s, boolean capture) {
-        if (t == s) return true;
-       // if (super.isSubtype(t, Utils.instance(context).interfaceForPrimitiveTypes()) || super.isSubtype(s, Utils.instance(context).interfaceForPrimitiveTypes())) return false;
-        return super.isSubtype(t, s, capture);
-    }
+//    /** Overrides Types.isSubtype with functionality for JML primitive types. */
+//    @Override
+//    public boolean isSubtype(Type t, Type s, boolean capture) {
+//        if (t == s) return true;
+//        return super.isSubtype(t, s, capture);
+//    }
     
     /** Overrides Types.containsType with functionality for JML primitive types. */
     @Override

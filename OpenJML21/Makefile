@@ -167,7 +167,7 @@ update-docs:
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
 
 push-docs:
-	( cd ../../openjml.github.io; git add OpenJMLUserGuide.pdf JML_Reference_Manual.pdf ${ZIPNAME} ; git commit -m "Updating docs"; git push )
+	( cd ../../openjml.github.io; git add documentation/OpenJMLUserGuide.pdf documentation/JML_Reference_Manual.pdf examples/${ZIPNAME} ; git commit -m "Updating docs"; git push )
 
 ## Smoke test of a newly constructed release
 trial: .FORCE

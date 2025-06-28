@@ -11,19 +11,22 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     final static public TYPE[] noargs = new TYPE[] {};
     final private static Map<TYPE,TYPE> internSet = new HashMap<TYPE,TYPE>();
     
-    public static TYPE of(Class<?> base) {
-        TYPE t = new TYPE(base, noargs);
+    public static TYPE of(Class<?> base) { // FIXME - get problems without this declaration, even though it should not be needed
+        TYPE t = new TYPE(base,noargs);
         return t.intern();
     }
     
     public static TYPE of(Class<?> base, TYPE ... args) {
-        TYPE t = new TYPE(base,args);
+        TYPE t = new TYPE(base,args.length == 0 ? noargs : args);
         return t.intern();
     }
     
     public String toString() {
         if (base == null) return "?"; // FIXME - really this is just unknown, not a wildcard
-        String s = base.toString();
+        int count = 0;
+        var b = base;
+        while (b.isArray()) { ++count; b = b.getComponentType(); }
+        String s = b.toString();
         if (args != null && args.length > 0) {
             s = s + "<";
             boolean first = true;
@@ -33,6 +36,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
             }
             s = s + ">";
         }
+        while (count > 0) { --count; s = s + "[]"; }
         return s;
     }
     
@@ -54,14 +58,25 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return args;
     }
     
+    public TYPE typearg0() {
+        if (args.length == 0) throw new IllegalArgumentException("\\TYPE value in call of typearg0 has no type arguments");
+        return args[0];
+    }
+    
+    public TYPE typearg(int n) {
+        if (n < 0 || n >= args.length) throw new IllegalArgumentException("\\TYPE value in call of typearg has an argument that is negative or not in range: 0 <= " + n + " < " + args.length);
+        return args[n];
+    }
+    
     public boolean eq(TYPE t) {
+        //System.out.println("EQ " + base + " " + t.base + " " + base.equals(t.base) + " " + args.length + " " + t.args.length);
         if (!base.equals(t.base)) return false;
         if (args.length != t.args.length) {
             if (args.length == 0) {
-                System.out.println("Warning: runtime type information has no type arguments: " + this);
+                System.out.println("Warning: runtime type information has no type arguments: " + this); // FIXME - use log.warning?
                 return true;
             } else if (t.args.length == 0) {
-                System.out.println("Warning: runtime type information has no type arguments: " + t);
+                System.out.println("Warning: runtime type information has no type arguments: " + t); // FIXME - use log.warning?
                 return true;
             }
             return false;
@@ -71,6 +86,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
             if (!a.eq(t.args[k])) return false;
             ++k;
         }
+        //System.out.println("   RETURNING true");
         return true;
     }
     
@@ -80,7 +96,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
 
     @Override
     public boolean equals(Object t) {
-        return eq((TYPE)t);
+        return t instanceof TYPE ty && eq(ty);
     }
     
     @Override
@@ -88,7 +104,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         if (base == null) return 0;
         int i = base.hashCode();
         int k = 0;
-        for (TYPE t: args) i = i + (t.hashCode()<< (++k));
+        for (TYPE t: args) i = i + (t.hashCode() << (++k));
         return i;
     }
 
@@ -96,17 +112,26 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return base;
     }
 
+    public TYPE arraytype() {
+        Class<?> c = java.lang.reflect.Array.newInstance(this.base,0).getClass();
+        return TYPE.of(c, this.args);
+    }
+
     public boolean isArray() {
         return base.isArray();
     }
 
     public boolean isSubtypeOf(TYPE t) {
-        return t.erasure().isAssignableFrom(this.base);
+        return t.erasure().isAssignableFrom(this.base);  // FIXME - should check for equality of type arguments
+    }
+    
+    public boolean isSubtypeOfProper(TYPE t) {
+        return isSubtypeOf(t) && !equals(t);  // FIXME - should check for equality of type arguments
     }
     
     public TYPE getComponentType() {
-        if (!base.isArray()) throw new IllegalArgumentException("Calling \\elemtype on a value that is not an (or does not have) array type");
-        return TYPE.of(base.getComponentType());
+        if (!base.isArray()) throw new IllegalArgumentException("Calling \\elemtype on a value that is not an (or does not have) array type: " + this);
+        return TYPE.of(base.getComponentType(), args);
     }
 
 //    @Override

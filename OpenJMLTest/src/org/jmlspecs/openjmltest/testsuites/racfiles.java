@@ -706,4 +706,10 @@ public class racfiles extends RacBase {
         helpCompileRun("ConsecutiveChecker");
     }
     
+    @Test
+    public void jmlTYPE() {
+        helpCompileRun("Test");
+    }
+
+    
 }

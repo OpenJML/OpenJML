@@ -514,79 +514,79 @@ public class expressions extends ParseBase {
                     JCIdent.class ,6,6,7,
                   JCIdent.class ,11,11,12);
     }
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof() {
-        helpExpr(" a == b <: c",
-                JCBinary.class, 1,3,12,
+        helpExpr(" a == b <:= c",
+                JCBinary.class, 1,3,13,
                   JCIdent.class, 1,1,2,
-                  JmlBinary.class, 6,8,12,
+                  JmlBinary.class, 6,8,13,
                     JCIdent.class ,6,6,7,
-                    JCIdent.class ,11,11,12);
+                    JCIdent.class ,12,12,13);
     }
 
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof2() {
-        helpExpr(" a <: b == c",
-                JCBinary.class, 1,8,12,
-                JmlBinary.class, 1,3,7,
+        helpExpr(" a <:= b == c",
+                JCBinary.class, 1,9,13,
+                JmlBinary.class, 1,3,8,
                   JCIdent.class, 1,1,2,
-                  JCIdent.class ,6,6,7,
-                JCIdent.class ,11,11,12);
+                  JCIdent.class, 7,7,8,
+                JCIdent.class ,12,12,13);
     }
     
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof3() {
-        helpExpr(" a <: b << c",
+        helpExpr(" a <:= b << c",
                 JmlBinary.class, 3,
                 JCIdent.class, 1,
-                JCBinary.class, 8,
-                JCIdent.class ,6,
-                JCIdent.class ,11);
+                JCBinary.class, 9,
+                JCIdent.class ,7,
+                JCIdent.class ,12);
     }
     
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof4() {
-        helpExpr(" a << b <: c",
+        helpExpr(" a << b <:= c",
                 JmlBinary.class, 8,
                 JCBinary.class, 3,
                 JCIdent.class, 1,
                 JCIdent.class ,6,
-                JCIdent.class ,11);
+                JCIdent.class ,12);
     }
     
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof5() {
-        helpExpr(" (a) <: c",
+        helpExpr(" (a) <:= c",
                 JmlBinary.class, 5,
                 JCParens.class, 1,
                 JCIdent.class, 2,
+                JCIdent.class ,9);
+    }
+    
+    /** Test precedence of <:= operator */
+    @Test
+    public void testSubTypeof6() {
+        helpExpr(" a <:= (c)",
+                JmlBinary.class, 3,
+                JCIdent.class, 1,
+                JCParens.class, 7,
                 JCIdent.class ,8);
     }
     
-    /** Test precedence of <: operator */
-    @Test
-    public void testSubTypeof6() {
-        helpExpr(" a <: (c)",
-                JmlBinary.class, 3,
-                JCIdent.class, 1,
-                JCParens.class, 6,
-                JCIdent.class ,7);
-    }
-    
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof7() {
-        helpExpr(" (a) <: (c)",
+        helpExpr(" (a) <:= (c)",
                 JmlBinary.class, 5,
                 JCParens.class, 1,
                 JCIdent.class, 2,
-                JCParens.class, 8,
-                JCIdent.class ,9);
+                JCParens.class, 9,
+                JCIdent.class ,10);
     }
     
     @Test
@@ -700,17 +700,17 @@ public class expressions extends ParseBase {
 
     @Test
     public void testMisc() {
-        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) "
-                ,JmlBinary.class ,0,13,40
+        helpExpr("(\\result==j) ==> \\typeof(o) <:= \\type(oo) "
+                ,JmlBinary.class ,0,13,41
                 ,JCParens.class, 0,0,12
                 ,JCBinary.class ,1,8,11
                 ,JmlSingleton.class ,1,1,8
                 ,JCIdent.class ,10,10,11
-                ,JmlBinary.class ,17,28,40 
+                ,JmlBinary.class ,17,28,41 
                 ,JmlMethodInvocation.class, 17,24,27 
                 ,JCIdent.class ,25,25,26
-                ,JmlMethodInvocation.class, 31,36,40
-                ,JCIdent.class ,37,37,39
+                ,JmlMethodInvocation.class, 32,37,41
+                ,JCIdent.class ,38,38,40
                 );
     }
     

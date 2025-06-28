@@ -166,7 +166,7 @@ public class bugs extends TCBase {
     public void testCollect() {
         helpTCF("A.java","import java.util.Vector;\n"
                 +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
-                +"  //@ invariant mm() && \type(Short) <: \type(java.lang.Long);\n"
+                +"  //@ invariant mm() && \type(Short) <:= \type(java.lang.Long);\n"
                 +"  public void m(java.lang.Integer i, Number b) {\n"
                 +"    Vector<Integer> v = new Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double ;\n"

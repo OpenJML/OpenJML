@@ -418,7 +418,6 @@ public abstract class IJmlClauseKind {
                 t = attr.check(e, t, KindSelector.VAL, resultInfo );
                 if (t.isErroneous()) ok = false;
                 if (e.type == null) Utils.dumpStack("Type not set for " + e + " " + args);
-              //  System.out.println("  ATTRIB " + t + " " + e.type);
             }
             return ok;
 //            ListBuffer<Type> argTypes = new ListBuffer<>();
