@@ -785,4 +785,9 @@ public class escfiles extends EscBaseFiles {
     public void jmlTYPE() {
         helpTG();
     }
+    
+    @Test
+    public void jmlreal() {
+        helpTG();
+    }
 }

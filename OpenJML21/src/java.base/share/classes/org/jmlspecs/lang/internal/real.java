@@ -32,8 +32,12 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     abstract public int compareTo(real r);
     
     public static real of(double v) { return proto.from(v); }
+    public static real of(float v) { return proto.from(v); }
     public static real of(long v) { return proto.from(v); }
     public static real of(int v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
+    public static real of(char v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
+    public static real of(short v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
+    public static real of(byte v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
     public static real of(bigint v) { return proto.from(v); }
     public static real of(java.math.BigInteger v) { return proto.from(v); }
     
@@ -43,9 +47,19 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     abstract protected real from(bigint v);
     abstract protected real from(java.math.BigInteger v);
     
+    @Override
+             public byte byteValue() { return (byte)intValue(); }
+    @Override
+             public short shortValue() { return (short)intValue(); }
+    
+             public char charValue() { return (char)intValue(); }
+    @Override
     abstract public int intValue();
+    @Override
     abstract public long longValue();
+    @Override
     abstract public float floatValue();
+    @Override
     abstract public double doubleValue();
     abstract public bigint bigintValue();
     
