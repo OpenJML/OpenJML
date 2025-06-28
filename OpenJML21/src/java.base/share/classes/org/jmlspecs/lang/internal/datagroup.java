@@ -21,6 +21,7 @@
 package org.jmlspecs.lang.internal;
 
 /** This type marks datagroups. It is always nullable and has no values other than null.
+ *  There are no operations on the values and it may not be the type of a formal parameter.
  *  It is never part of an expression, only a datagroup that is part of a frame set.
  */
 public /*@ spec_pure*/ final class datagroup implements org.jmlspecs.lang.IJmlPrimitiveType {

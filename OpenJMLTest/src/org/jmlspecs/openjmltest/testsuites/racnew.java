@@ -660,16 +660,16 @@ public class racnew extends RacBase {
                 " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
                 " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
                 "}"
-                ,"LABEL CLS = class [Ljava.lang.Object;"
+                ,"LABEL CLS = class java.lang.Object[]"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"/tt/TestJava.java:4: Associated declaration"
-                ,"LABEL CLS = class [Ljava.lang.Object;"
+                ,"LABEL CLS = class java.lang.Object[]"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class [Ljava.lang.Object;"
-                ,"LABEL CLS = class [Ljava.lang.String;"
+                ,"LABEL CLS = class java.lang.String[]"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"/tt/TestJava.java:4: Associated declaration"
-                ,"LABEL CLS = class [Ljava.lang.String;"
+                ,"LABEL CLS = class java.lang.String[]"
                 ,"/tt/TestJava.java:3: JML precondition is false"
                 ,"CLASS class [Ljava.lang.String;"
                 ,"END"
@@ -970,10 +970,10 @@ public class racnew extends RacBase {
                 ,"LABEL TYP2 = class java.lang.Object"
                 ,"LABEL TYP3 = class java.lang.String"
                 ,"LABEL TYP4 = class java.lang.String"
-                ,"LABEL TYP1 = class [Ljava.lang.String;"
-                ,"LABEL TYP2 = class [Ljava.lang.String;"
-                ,"LABEL TYP3 = class [[Ljava.lang.String;"
-                ,"LABEL TYP4 = class [[Ljava.lang.String;"
+                ,"LABEL TYP1 = class java.lang.String[]"
+                ,"LABEL TYP2 = class java.lang.String[]"
+                ,"LABEL TYP3 = class java.lang.String[][]"
+                ,"LABEL TYP4 = class java.lang.String[][]"
                 ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
                 ,"LABEL TRUE = true"
                 ,"LABEL TYP2 = class java.lang.Class<class java.lang.Integer>"
@@ -1028,10 +1028,10 @@ public class racnew extends RacBase {
                 ,"LABEL TYP2 = class java.lang.Object"
                 ,"LABEL TYP3 = class java.lang.String"
                 ,"LABEL TYP4 = class java.lang.String"
-                ,"LABEL TYP1 = class [Ljava.lang.String;"
-                ,"LABEL TYP2 = class [Ljava.lang.String;"
-                ,"LABEL TYP3 = class [[Ljava.lang.String;"
-                ,"LABEL TYP4 = class [[Ljava.lang.String;"
+                ,"LABEL TYP1 = class java.lang.String[]"
+                ,"LABEL TYP2 = class java.lang.String[]"
+                ,"LABEL TYP3 = class java.lang.String[][]"
+                ,"LABEL TYP4 = class java.lang.String[][]"
                 ,"LABEL TYP1 = class java.lang.Class<class java.lang.Integer>"
                 ,"END"
                 );
@@ -1050,28 +1050,28 @@ public class racnew extends RacBase {
                 "static Boolean b = Boolean.TRUE; \n" +
                 " static void m() { \n" +
                 "//@ ghost boolean c; \n" +
-                "//@ set c = o.getClass() <: o.getClass(); \n" + // Object <: Object  // Class
+                "//@ set c = o.getClass() <:= o.getClass(); \n" + // Object <:= Object  // Class
                 "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\typeof(o) <: \\typeof(o); \n" +  // Object <: Object // \TYPE
+                "//@ set c = \\typeof(o) <:= \\typeof(o); \n" +  // Object <:= Object // \TYPE
                 "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\typeof(o) <: \\typeof(oo); \n" + // Object <: String // \TYPE
+                "//@ set c = \\typeof(o) <:= \\typeof(oo); \n" + // Object <:= String // \TYPE
                 "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\typeof(oo) <: \\typeof(o); \n" + // String <: Object // \TYPE
+                "//@ set c = \\typeof(oo) <:= \\typeof(o); \n" + // String <:= Object // \TYPE
                 "//@ set c = (\\lbl TYP4 c); \n" +
-                "//@ set c = \\typeof(ob) <: \\typeof(oo); \n" + // Boolean <: String // \TYPE
+                "//@ set c = \\typeof(ob) <:= \\typeof(oo); \n" + // Boolean <:= String // \TYPE
                 "//@ set c = (\\lbl TYP5 c); \n" +
                 "}\n" +
                 " static void mm() { \n" +
                 "//@ ghost boolean c; \n" +
-                "//@ set c = s.getClass() <: b.getClass(); \n" + // String <: Boolean // Class
+                "//@ set c = s.getClass() <:= b.getClass(); \n" + // String <:= Boolean // Class
                 "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\typeof(s) <: \\typeof(b); \n" +  // String <: Boolean // \TYPE
+                "//@ set c = \\typeof(s) <:= \\typeof(b); \n" +  // String <:= Boolean // \TYPE
                 "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\type(int) <: \\typeof(o); \n" + // int <: Object // \TYPE
+                "//@ set c = \\type(int) <:= \\typeof(o); \n" + // int <:= Object // \TYPE
                 "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\type(int) <: \\type(int); \n" + // int <: int  // false
+                "//@ set c = \\type(int) <:= \\type(int); \n" + // int <:= int  // false
                 "//@ set c = (\\lbl TYP4 c); \n" +
-                "//@ set c = \\type(int) <: \\type(boolean); \n" + // int <: boolean
+                "//@ set c = \\type(int) <:= \\type(boolean); \n" + // int <:= boolean
                 "//@ set c = (\\lbl TYP5 c); \n" +
                 "}\n" +
                 "}"
@@ -3529,13 +3529,13 @@ public class racnew extends RacBase {
                 ,"/tt/TestJava.java:13: verify: JML actual argument may not be null"
                 ,"java.lang.NullPointerException: Cannot invoke \"Object.getClass()\" because \"null\" is null"
                 ,"/tt/TestJava.java:19: verify: JML actual argument has an illegal value"
-                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type: class java.lang.Integer"
                 ,"/tt/TestJava.java:25: verify: JML actual argument has an illegal value"
-                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type: int"
                 ,"/tt/TestJava.java:30: verify: JML actual argument has an illegal value"
-                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type: class java.lang.Integer"
                 ,"/tt/TestJava.java:35: verify: JML actual argument has an illegal value"
-                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type"
+                ,"java.lang.IllegalArgumentException: Calling \\elemtype on a value that is not an (or does not have) array type: int"
                 );
     }
 

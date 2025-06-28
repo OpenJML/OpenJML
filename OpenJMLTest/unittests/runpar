@@ -75,7 +75,7 @@ fi
 echo Completed
 sync
 set -o pipefail
-./retry |& tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
+./retry | 2>&1 tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
 ERR=$?
 if [ $ERR -eq 0 ]; then 
     echo Completed all retrys successfully

@@ -402,7 +402,7 @@ public class esc1 extends EscBase {
                     //@ loop_invariant values == v;
                     for (; it.hasNext(); values.add(k) ) {
                         k = it.next();  // k might be null -- default is nullable
-                        //@ assert k != null ==> \\typeof(k) <: \\type(Entry<String,String>);
+                        //@ assert k != null ==> \\typeof(k) <:= \\type(Entry<String,String>);
                     }
                   }
                   public TestJava() {}
@@ -3971,9 +3971,9 @@ public class esc1 extends EscBase {
 //        helpTCX("tt.TestJava",
 //                "package tt; \n" + "public class TestJava { \n" + "  public void m1(/*@non_null*/TestJava o) {\n"
 //                        + "    //@ assume \\typeof(o) == \\type(TestJava);\n"
-//                        + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n"
+//                        + "    //@ assert \\typeof(o) <:= \\type(Object);\n" + "  }\n"
 //                        + "  public void m2(/*@non_null*/TestJava o) {\n"
-//                        + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n" + "}");
+//                        + "    //@ assert \\typeof(o) <:= \\type(Object);\n" + "  }\n" + "}");
 //    }
 //
 //    @Test
@@ -4874,7 +4874,7 @@ public class esc1 extends EscBase {
 //                        + "public class TestJava  { \n" 
 //                        + "  public static class Key { public int k; } \n"
 //                        + "  //@ public normal_behavior \n"
-//                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+//                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <:= \\type(Key); \n"
 //                        + "  public static void m(Key[] k) {\n"
 //                        + "  //@   assert k != null; \n"
 //                        + "     Key[] kk = java.util.Arrays.copyOfRange(k,0,k.length);\n"
@@ -4893,7 +4893,7 @@ public class esc1 extends EscBase {
 //                        + "public class TestJava  { \n" 
 //                        + "  public static class Key { public int k; } \n"
 //                        + "  //@ public normal_behavior \n"
-//                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+//                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <:= \\type(Key); \n"
 //                        + "  public static void m(Key[] k) {\n"
 //                        + "     Key[] kk = java.util.Arrays.<Key>copyOfRange(k,0,k.length);\n"
 //                        + "     //@ assert kk != null;\n"

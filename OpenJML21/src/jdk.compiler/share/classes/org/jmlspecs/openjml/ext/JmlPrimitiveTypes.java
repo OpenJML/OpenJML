@@ -47,7 +47,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static class JmlTypeKind extends IJmlClauseKind {
         private String typename; // flat or unqualified type name
         public com.sun.tools.javac.util.Name name;
-        Symbol.ClassSymbol sym = null; // lazily filled in; depends on context; only  implemented for a single context
+        Symbol.ClassSymbol sym = null; // symbol of represetnatino type; lazily filled in; depends on context; only implemented for a single context
         Type type = null; // lazily filled in; depends on context; only  implemented for a single context
         Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 

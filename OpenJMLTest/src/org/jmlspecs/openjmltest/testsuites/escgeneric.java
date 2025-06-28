@@ -58,7 +58,7 @@ public class escgeneric extends EscBase {
                 +"public class TestJava { \n"
                 
                 +"  public void m(Integer i) {\n"
-                +"    //@ assert \\typeof(this) <: \\type(TestJava);\n"
+                +"    //@ assert \\typeof(this) <:= \\type(TestJava);\n"
                 +"  }\n"
                 +"  public void ma(Object o) {\n"
                 +"    //@ assume \\typeof(this) == \\type(Object);\n"
@@ -99,13 +99,13 @@ public class escgeneric extends EscBase {
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
                 +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\typeof(i) <: \\type(Object);\n" // Line 6
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(Object));\n"
-                +"    //@ assert \\typeof(i) <: \\type(T);\n"
+                +"    //@ assert \\typeof(i) <:= \\type(Object);\n" // Line 6
+                +"    //@ assert \\erasure(\\typeof(i)) <:= \\erasure(\\type(Object));\n"
+                +"    //@ assert \\typeof(i) <:= \\type(T);\n"
                 +"    //@ assert i instanceof B;\n"
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(B));\n"
-                +"    //@ assert \\typeof(i) <: \\type(B);\n" // Line 11
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n" // false
+                +"    //@ assert \\erasure(\\typeof(i)) <:= \\erasure(\\type(B));\n"
+                +"    //@ assert \\typeof(i) <:= \\type(B);\n" // Line 11
+                +"    //@ assert \\erasure(\\typeof(i)) <:= \\erasure(\\type(C));\n" // false
                +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
@@ -123,7 +123,7 @@ public class escgeneric extends EscBase {
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
                 +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\typeof(i) <: \\type(C);\n" // false
+                +"    //@ assert \\typeof(i) <:= \\type(C);\n" // false
                 +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
@@ -141,8 +141,8 @@ public class escgeneric extends EscBase {
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
                 +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\type(T) <: \\type(B);\n" // true
-                +"    //@ assert \\type(T) <: \\type(C);\n" // false
+                +"    //@ assert \\type(T) <:= \\type(B);\n" // true
+                +"    //@ assert \\type(T) <:= \\type(C);\n" // false
                 +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"

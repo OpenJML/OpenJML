@@ -4524,7 +4524,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.kind != null && tree.typeargs != null && tree.typeargs.size() != 0) {
             // At present the parser cannot produce anything with typeargs, but just in case
             // one squeaks through by some means or another
-        	System.out.println("METH "+ tree.meth);
         	utils.error(tree.typeargs.head,"jml.no.typeargs.for.fcn",tree.meth);
         }
         //System.out.println("VISIT JMLAPPLY " + tree);
@@ -4542,6 +4541,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
  //           if (tree.kind == null) System.out.println("JMLIN " + tree.getClass() + " " + tree.meth + " " + tree.args);
         	Type ttt;
         	if (tree.kind != null) {
+        	    // Type attribution is delegated to the class definitions in org.jmlspecs.openjml.ext
         		ttt = tree.kind.typecheck(this, tree, localEnv);
             	result = check(tree, ttt, KindSelector.VAL, resultInfo);
         	} else {
@@ -4596,10 +4596,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         int nerrors = log.nerrors;
     	try {
     		super.visitApply(tree);
-//    		if (tree.toString().contains("prepend")) {
-//    		    System.out.println("JML_VISITAPPLY " + tree + " " + tree.type + " " + TreeInfo.symbolFor(tree.meth));
-//    		    if (TreeInfo.symbolFor(tree.meth) != null) System.out.println("   TYPE " + ((MethodSymbol)TreeInfo.symbolFor(tree.meth)).getReturnType() + " " + TreeInfo.symbolFor(tree.meth).type + " " + TreeInfo.symbolFor(tree.meth).type.getReturnType());
-//    		}
     	} catch (Exception e) {
     		e.printStackTrace(System.out);
             System.out.println("VISIT APPLY EXCEPTION " + tree.type );
@@ -5100,7 +5096,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
                 if ((t == TYPE) != (tt == TYPE) && !errorAlready) {
-                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
+                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
                 }
                 if (t != TYPE) that.op = jsubtypeofKind; // Java subtyping
                 
@@ -5128,7 +5124,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
 //                }
 //                if ((t == jmltypes.TYPE) != (tt == jmltypes.TYPE) && !errorAlready) {
-//                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
+//                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
 //                }
                 // FIXME 
                 

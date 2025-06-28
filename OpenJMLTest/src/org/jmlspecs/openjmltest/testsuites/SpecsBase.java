@@ -229,12 +229,8 @@ public class SpecsBase extends TCBase {
     	if (classname.startsWith("Array")) return;
     	if (classname.startsWith("java.awt")) return;
     	if (classname.startsWith("javax.swing")) return;
-        int n = counts.get(classname);
-        if (verbose) System.out.println("JUnit SpecsBase: " + classname + " " + n);
-        if (n < typeargs.length) checkClass(classname, n);
-        else {
-            assertTrue("Not implemented for " + n + " + generic arguments: " + classname,false);
-        }
+        if (verbose) System.out.println("JUnit SpecsBase: " + classname);
+        checkClass(classname);
     }
     
     /** Finds all classes that have library specification files.
@@ -300,16 +296,27 @@ public class SpecsBase extends TCBase {
             if (f.isDirectory()) {
                 list.addAll(findAllFiles(f, root));
             } else {
-                String qualifiedName = f.toString().substring(root.length()+1);
-                int p = qualifiedName.lastIndexOf('.');
-                String baseName = qualifiedName.substring(0,p).replace(File.separatorChar,'.');
-                list.add(baseName);
-                int numArgs = countTypeArgs(f,baseName);
-                Integer nn = counts.get(baseName);
-                if (nn == null || numArgs > nn) counts.put(baseName, numArgs);
+                processFile(root, list, f);
             }
         }
         return list;
+    }
+
+    private static void processFile(String root, java.util.List<String> list, File f) {
+        String qualifiedName = f.toString().substring(root.length()+1);
+        int p = qualifiedName.lastIndexOf('.');
+        String baseName = qualifiedName.substring(0,p).replace(File.separatorChar,'.');
+        list.add(baseName);
+        int numArgs = countTypeArgs(f,baseName);
+        Integer nn = counts.get(baseName);
+        if (nn == null || numArgs > nn) counts.put(baseName, numArgs);
+    }
+    
+    public static int getCountArg(String baseName) {
+        Integer nn = counts.get(baseName);
+        if (nn != null) return nn;
+        System.out.println("No type argument count stored for " + baseName + ". Presuming 0.");
+        return 0;
     }
     
     public static int countTypeArgs(File f, String baseName) {
@@ -351,7 +358,12 @@ public class SpecsBase extends TCBase {
      * 
      * @param className the name of the class to test
      */
-    public void checkClass(String className, int n) {
+    public void checkClass(String className) {
+        int n = getCountArg(classname);
+        if (n > typeargs.length) {
+            assertTrue("Not implemented for " + n + " + generic arguments: " + classname,false);
+        }
+
         String program = "public class AJDK { "+ className + typeargs[n] + " o; }";
         // Do these because the classes are not public
         if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
@@ -369,7 +381,7 @@ public class SpecsBase extends TCBase {
     // FIXME - runs the single test repeatedly for each parameter
     // @Test
     public void testSingle() {
-        checkClass("org.hamcrest.Matcher", 0);
+        checkClass("org.hamcrest.Matcher");
     }
 
 }
