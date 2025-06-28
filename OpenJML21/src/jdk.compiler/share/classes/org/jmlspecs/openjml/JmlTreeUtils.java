@@ -1625,7 +1625,7 @@ public class JmlTreeUtils {
         // FIXME - I don't think the members() call gets superclass/interface methods
         // FIXME - this just needs to match methods that the translation builds in and needs to call in the runtime library, 
         // particularly including in the classes that implement JML types
-        boolean print = false;//name.toString().contains("erasure");
+        boolean print = print;//name.toString().contains("erasure");
         var ts = receiver.type.tsym;
         String s = "\tFor " + receiver.type + " " + (nargs.length==0? "" : (nargs[0].type.toString() + " ...")) + "\n";
         try {
@@ -1707,7 +1707,6 @@ public class JmlTreeUtils {
         }
         System.out.println("NO MATCH " + name + " " + receiver + " " + receiver.type + " " + nargs + " " + (nargs.length > 0 ? nargs[0].type.toString() : ""));
         utils.error(pos, "jml.internal", "No method " + name + " with " + nargs.length + " parameters of the requested types found in type " + receiver.type + "\n" + s);
-        if (print) Utils.dumpStack();
         return null;
 
     }

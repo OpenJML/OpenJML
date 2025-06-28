@@ -5078,12 +5078,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // and Class<Object> are different.  In this case, all we need 
                 // to know is that the operands are some type of Class.
                 // FIXME - what about subclasses of Class
+                
+                // Also, the JML syntax allows <: and <:= to operate on a pair of \TYPE
+                // or a pair of Class arguments. The operators are translated by the parser to subtype... IDs
+                // so in either case type attribution comes here. In the logic below, both use cases are allowed,
+                // but if the arguments have Class type, the operator is changed to the java version.
+                // SO then later compiler phases can treat the JML and Java operations independently.
                 attribExpr(that.lhs,env,Type.noType);
                 Type t = that.lhs.type;
+                boolean isJML =  (t == TYPE);
+                boolean isJava = t.tsym.equals(syms.classType.tsym);
                 boolean errorAlready = false;
                 if (t.isErroneous()) errorAlready = true;
-                else if (t != TYPE
-                        && !t.tsym.equals(syms.classType.tsym)) {
+                else if (!isJML
+                        && !isJava) {
                     errorAlready = true;
                     utils.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
                 }
@@ -5095,10 +5103,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     errorAlready = true;
                     utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
-                if ((t == TYPE) != (tt == TYPE) && !errorAlready) {
+                if (isJML != (tt == TYPE) && !errorAlready) {
                     utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
                 }
-                if (t != TYPE) that.op = jsubtypeofKind; // Java subtyping
+                if (isJava) that.op = that.op.keyword() == subtypeofeqID ? jsubtypeofeqKind : jsubtypeofKind; // Java subtyping
                 
                 result = syms.booleanType;
                 break;
