@@ -711,5 +711,10 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
 
+    @Test
+    public void jmlreal() {
+        helpCompileRun("Test");
+    }
+
     
 }
