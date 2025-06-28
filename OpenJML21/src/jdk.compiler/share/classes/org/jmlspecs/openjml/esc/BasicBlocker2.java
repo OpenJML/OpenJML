@@ -1131,6 +1131,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 } 
                 case elemtypeID:
                 case isarrayID:
+                case arraytypeID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);
@@ -1141,6 +1142,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 } 
                 case erasureID:
                 case typearg0ID:
+                case typeargsID:
+                case typeargID:
+                case TYPEofID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);

@@ -3125,27 +3125,27 @@ public class esc2 extends EscBase {
                 + "public class TestJava { \n"
                 + "  public void m1(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\typeof(o);\n" 
-                + "    //@ assert \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) <: \\type(Object);\n" 
-                + "    //@ assert \\typeof(o) <:= \\type(Object);\n" 
+                + "    //@ check \\typeof(o) == \\typeof(o);\n" 
+                + "    //@ check \\typeof(o) == \\type(Object);\n"
+                + "    //@ check !(\\typeof(o) <: \\type(Object));\n" 
+                + "    //@ check \\typeof(o) <:= \\type(Object);\n" 
                 + "  }\n"
                 + "  public void m1a(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) != \\type(Object);\n" 
+                + "    //@ check \\typeof(o) != \\type(Object);\n" 
                 + "  }\n"
                 + "  public void m2(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\type(Object);\n" 
+                + "    //@ check \\typeof(o) == \\type(Object);\n" 
                 + "  }\n"
                 + "  public void m2a(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\type(TestJava);\n" 
+                + "    //@ check \\typeof(o) == \\type(TestJava);\n" 
                 + "  }\n"
                 + "  public void m3(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\type(TestJava) <: \\typeof(o);\n" 
-                + "    //@ assert \\type(TestJava) <:= \\typeof(o);\n" 
+                + "    //@ check \\type(TestJava) <: \\typeof(o);\n" 
+                + "    //@ check \\type(TestJava) <:= \\typeof(o);\n" 
                 + "  }\n" 
                 + "}",
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m1a", 9,
@@ -3157,9 +3157,9 @@ public class esc2 extends EscBase {
         helpTCX("tt.TestJava",
                 "package tt; \n" + "public class TestJava { \n" + "  public void m1(/*@non_null*/TestJava o) {\n"
                         + "    //@ assume \\typeof(o) == \\type(TestJava);\n"
-                        + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n"
+                        + "    //@ assert \\typeof(o) <:= \\type(Object);\n" + "  }\n"
                         + "  public void m2(/*@non_null*/TestJava o) {\n"
-                        + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n" + "}");
+                        + "    //@ assert \\typeof(o) <:= \\type(Object);\n" + "  }\n" + "}");
     }
 
     @Test
@@ -4082,7 +4082,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  public static class Key { public int k; } \n"
                         + "  //@ public normal_behavior \n"
-                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <:= \\type(Key); \n"
                         + "  public static void m(Key[] k) {\n"
                         + "  //@   assert k != null; \n"
                         + "     Key[] kk = java.util.Arrays.copyOfRange(k,0,k.length);\n"
@@ -4101,7 +4101,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  public static class Key { public int k; } \n"
                         + "  //@ public normal_behavior \n"
-                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <:= \\type(Key); \n"
                         + "  public static void m(Key[] k) {\n"
                         + "     Key[] kk = java.util.Arrays.<Key>copyOfRange(k,0,k.length);\n"
                         + "     //@ assert kk != null;\n"
@@ -4257,5 +4257,29 @@ public class esc2 extends EscBase {
     			+ "}\n"
     			);
     }
+    
+    @Test
+    public void testBRC() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void m1() {
+                    //@ refining
+                    //@   returns true;
+                    //@   continues false;
+                    //@   breaks true;
+                    {}
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: Not implemented for static checking: returns clause", 11
+                ,"/tt/TestJava.java:6: warning: Not implemented for static checking: continues clause", 11
+                ,"/tt/TestJava.java:7: warning: Not implemented for static checking: breaks clause", 11
+                );
+        
+    }
+
+
 
 }

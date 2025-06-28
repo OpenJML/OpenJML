@@ -14,7 +14,7 @@ public class PP extends QQ {
     //@ invariant b || !b && (b ==> b) && ( b <==> b ) && ( b <=!=> b ) && (b <== b);
     //@ invariant (i & 1) + (i ^ 1) + (i | 1) + (~i) == 0;
     
-    //@ invariant \type(int) <: \typeof(o);
+    //@ invariant \type(int) <:= \typeof(o);
     //@ invariant \type(int) <#= \typeof(o);
     //@ invariant \type(int) <# \typeof(o);
     //@ invariant o instanceof java.lang.String;

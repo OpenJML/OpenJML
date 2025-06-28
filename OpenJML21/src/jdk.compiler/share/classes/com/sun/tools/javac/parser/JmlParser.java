@@ -95,6 +95,8 @@ public class JmlParser extends JavacParser {
     /** True only when we are parsing within a model program */
     public boolean       inModelProgram = false;
     
+    public boolean       inRefinementSpec = false;
+    
     public boolean       addOrgJmlspecsLang = true;
 
     public java.util.List<IJmlLineAnnotation> lineAnnotations = new java.util.LinkedList<>();

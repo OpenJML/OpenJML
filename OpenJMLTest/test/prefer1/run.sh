@@ -2,16 +2,16 @@
 
 rm -f src/A.class A.class
 ## Using src/A.java
-openjml --compile src/A.java Test.java
+$OJA --compile src/A.java Test.java
 
 ## Using ./A.java
-openjml A.java Test.java
+$OJA A.java Test.java
 
-openjml --rac src/A.java
+$OJA --rac src/A.java
 cp src/A.class .
 
 ## Using ./A.class, from src/A.java
-openjml -Xprefer:newer Test.java
+$OJA -Xprefer:newer Test.java
 
 ## Using ./A.java
-openjml -Xprefer:source Test.java
+$OJA -Xprefer:source Test.java

@@ -23,11 +23,11 @@ openjml-test: prep
 	-make tutorial-tests
 
 openjml-test-git: prep
-	-make -C ${TEST} release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
-	-make -C ${TEST} userguide-tests
-	-make -C ${TEST} json-tests
-	#make tutorial-tests
-	JOBS=8 time ${TEST}/unittests/runpar
+	make -C ${TEST} release-tests
+	-make -C ${TEST} userguide-tests-released
+	make -C ${TEST} json-tests
+	#-make tutorial-tests #At last check, these tests hung
+	JOBS=4 time ${TEST}/unittests/runpar -retrylog
 
 openjml-test-temp:
 	JOBS=4 time ${TEST}/unittests/runpar
@@ -69,6 +69,8 @@ tutorial-tests: Run.class .FORCE
 USERGUIDE=${TEST}/tempUserGuide
 OVERLEAFID=620c2512d552cc226f5f4c94
 TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
+# Downloads the userguide (from Overleaf) and tests all the example files
+# In a git action, this needs a password to login, and fails
 userguide-tests:
 	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
 	@ if [ -e ${TESTSCRIPT} ] ; then \
@@ -76,6 +78,14 @@ userguide-tests:
 	    ${TESTSCRIPT} ; \
 	    rm -rf ${USERGUIDE}; \
 	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
+
+# Obtains the zip of released example files from openjml.org, and tests the contained examples
+# (MacOS has curl and does not have wget without manual install)
+userguide-tests-released:
+	rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE};
+	( cd ${USERGUIDE}; curl -s -S -o examples.zip http://www.openjml.org/examples/userguide-examples.zip; unzip -q *.zip )
+	chmod +x ${USERGUIDE}/test-userguide-examples
+	${USERGUIDE}/test-userguide-examples
 
 release-tests: prep Run.class .FORCE
 	@ echo Running release tests with current development build

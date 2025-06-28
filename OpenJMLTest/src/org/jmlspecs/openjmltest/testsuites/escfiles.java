@@ -780,4 +780,9 @@ public class escfiles extends EscBaseFiles {
     public void modelImport7() {
         helpTCF("test/modelImports/Test7.java","test/modelImports/test7","--check","-cp","test/modelImports");
     }
+    
+    @Test
+    public void jmlTYPE() {
+        helpTG();
+    }
 }
