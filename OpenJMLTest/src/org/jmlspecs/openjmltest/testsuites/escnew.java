@@ -2124,13 +2124,13 @@ public class escnew extends EscBase {
                   //@   assignable j;
                   //@   ensures j == 0;
                   public static  void m( Class<?> clazz) {// Line 24
+                    //@ show clazz, Integer.class, Short.class, Boolean.class, String.class, clazz <:= Number.class, clazz <:= Boolean.class, clazz, Number.class.isAssignableFrom(clazz) == (clazz <:= Number.class);
                     //@ assert clazz <:= Number.class <==> Number.class.isAssignableFrom(clazz);
                     if (clazz == Integer.class) j = 200;
                     else if (clazz == Short.class) j = 201;
                     else if (clazz == Boolean.class) j = 100;
                     else if (Number.class.isAssignableFrom(clazz)) j = 202;
                     else j = 0;
-                    //@ show j, clazz, Integer.class, Short.class, Boolean.class, String.class, clazz <:= Number.class, clazz <:= Boolean.class, clazz, Number.class.isAssignableFrom(clazz) == (clazz <: Number.class);
                   }
                 }
                 """
