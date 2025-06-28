@@ -2,9 +2,8 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
 
-import org.jmlspecs.lang.internal.*;
 import java.math.BigDecimal;
 
 /** This class is what \real is mapped to for RAC execution. The translation is built-in to JmlAssertionAdder
@@ -17,7 +16,7 @@ import java.math.BigDecimal;
  * however is appropriate. These implementations are ***not*** implemented to tolerate mixed versions of real; that is,
  * in a given executable, all compilation units must use the same concrete implementation of 'real'.
  */
-public abstract class real extends Number implements IJmlPrimitiveType, Comparable<real> {
+public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimitiveType, Comparable<real> {
 
     private real() {}
     private static final long serialVersionUID = 1L;
