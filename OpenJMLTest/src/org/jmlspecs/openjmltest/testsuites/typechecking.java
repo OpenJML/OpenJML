@@ -527,45 +527,45 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testSubtype() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */Class c;\n//@ ensures t <: t;\nvoid m() {}}");
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t= \\type(int); */Class c;\n//@ ensures t <:= t;\nvoid m() {}}");
     }
     
     @Test public void testSubtype2() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class c;\n//@ ensures c <: c;\nvoid m() {}}");
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class c;\n//@ ensures c <:= c;\nvoid m() {}}");
     }
     
     @Test public void testSubtype2a() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures c <: c;\nvoid m() {}}");
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures c <:= c;\nvoid m() {}}");
     }
     
     @Test public void testSubtype2b() { // OK
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<? extends Object> c;\n//@ ensures c <: c;\nvoid m() {}}");
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<? extends Object> c;\n//@ ensures c <:= c;\nvoid m() {}}");
     }
     
     @Test public void testSubtype3() { // OK
         expectedExit = 0;
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures t <: \\typeof(o);\nvoid m() {}}"
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures t <:= \\typeof(o);\nvoid m() {}}"
                 );
     }
     
     @Test public void testSubtype4() { // OK
         expectedExit = 0;
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures o.getClass() <: Object.class;\nvoid m() {}}"
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures o.getClass() <:= Object.class;\nvoid m() {}}"
                 //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",22
                 );
     }
     
     @Test public void testSubtype5() {
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures JML.erasure(t) <: c;\nvoid m() {}}");
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures JML.erasure(t) <:= c;\nvoid m() {}}");
     }
     
     @Test public void testSubtype6() {
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures t <: 5;\nvoid m() {}}",
-                "/A.java:2: error: The type of the arguments of the subtype operator (<:) must be either \\TYPE or java.lang.Class, not int",18);
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures t <:= 5;\nvoid m() {}}",
+                "/A.java:2: error: The type of the arguments of the subtype operator (<:) must be either \\TYPE or java.lang.Class, not int",19);
     }
     
     @Test public void testSubtype7() {
-        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures true <: c;\nvoid m() {}}",
+        helpTCF("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures true <:= c;\nvoid m() {}}",
                 "/A.java:2: error: The type of the arguments of the subtype operator (<:) must be either \\TYPE or java.lang.Class, not boolean",13);
     }
     
@@ -1384,10 +1384,10 @@ public class typechecking extends TCBase {
     @Test
     public void typeserr() {
         helpTCF("A.java",
-           "class A { //@ ghost boolean b4 = \\type(java.util.Map<java.util.List<?>,?>) <: \\type(java.util.List<?>);\n}"
+           "class A { //@ ghost boolean b4 = \\type(java.util.Map<java.util.List<?>,?>) <:= \\type(java.util.List<?>);\n}"
                 ,"/A.java:1: error: Wildcards are not allowed within \\type expressions: java.util.Map<java.util.List<?>, ?>",69
                 ,"/A.java:1: error: Wildcards are not allowed within \\type expressions: java.util.Map<java.util.List<?>, ?>",72
-                ,"/A.java:1: error: Wildcards are not allowed within \\type expressions: java.util.List<?>",100
+                ,"/A.java:1: error: Wildcards are not allowed within \\type expressions: java.util.List<?>",101
            );
     }
         
@@ -1960,5 +1960,52 @@ public class typechecking extends TCBase {
                 );
     }
 
-    
+    @Test
+    public void testBRCLocation() {
+        expectedExit = 1;
+        helpTCF("TestJava.java",
+                """
+                public class TestJava {
+                  //@ public normal_behavior
+                  //@   returns true;
+                  //@   continues true;
+                  //@   breaks true;
+                  public static void m1(Object[] a) {
+                    //@ refining
+                    //@   returns true;
+                    //@   continues true;
+                    //@   breaks true;
+                    //@   {| returns true; |}
+                    {}
+                  }
+                }
+                """
+                ,"/TestJava.java:3: error: A returns clause may only be in a refining specification", 9
+                ,"/TestJava.java:4: error: A continues clause may only be in a refining specification", 9
+                ,"/TestJava.java:5: error: A breaks clause may only be in a refining specification", 9
+                );
+        
+    }
+
+    @Test
+    public void testBRC() {
+        expectedExit = 1;
+        helpTCF("TestJava.java",
+                """
+                public class TestJava {
+                  public static void m1() {
+                    //@ refining
+                    //@   returns 0;
+                    //@   continues "";
+                    //@   breaks true;
+                    {}
+                  }
+                }
+                """
+                ,"/TestJava.java:4: error: incompatible types: int cannot be converted to boolean", 19
+                ,"/TestJava.java:5: error: incompatible types: java.lang.String cannot be converted to boolean", 21
+                );
+        
+    }
+
 }

@@ -739,11 +739,12 @@ public class JmlSpecs {
      */
     //@ nullable
     public JavaFileObject findSpecFile(String classFlatName) {
+        boolean print = false; // qclassFlatName.equals("org.jmlspecs.lang.internal.TYPE");
         String suffix = Strings.specsSuffix; 
         String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
-        	if (false) System.out.println("parser+: TRYING " + dir + " " + s);
         	JavaFileObject j = dir.findFile(s);
+            if (print) System.out.println("parser+: TRYING " + dir + " " + s + " FOUND " + j);
         	if (j != null) return j;
         }
         return null;
@@ -1905,8 +1906,7 @@ public class JmlSpecs {
         boolean pr = false;// msym.name.toString().startsWith("StorageParameters");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
-        if (Types.instance(context).isSubtype(type, 
-                Symtab.instance(context).jmlPrimitiveType)) return true;
+        if (utils.isExtensionValueType(type)) return true;
         if (pr) System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;

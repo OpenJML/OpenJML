@@ -1623,52 +1623,89 @@ public class JmlTreeUtils {
     
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, Name name, JCExpression ... nargs) {
         // FIXME - I don't think the members() call gets superclass/interface methods
+        // FIXME - this just needs to match methods that the translation builds in and needs to call in the runtime library, 
+        // particularly including in the classes that implement JML types
+        boolean print = false;//name.toString().contains("erasure");
         var ts = receiver.type.tsym;
         String s = "\tFor " + receiver.type + " " + (nargs.length==0? "" : (nargs[0].type.toString() + " ...")) + "\n";
         try {
             Scope sc = ts.members();
-            if (sc == null) System.out.println("MMI  " + receiver + " " + receiver.type + " " + name + " " + sc);
+            if (sc == null || print) System.out.println("MMI  " + receiver + " " + receiver.type + " " + name + " " + sc);
+            MethodSymbol exactMatch = null;
+            MethodSymbol exactMatchWithVarargs = null;
             var iter = sc.getSymbolsByName(name).iterator();
             x: while (iter.hasNext()) {
                 Symbol sym = iter.next();
                 s += "\t\t" + sym.toString();
-                if (sym instanceof MethodSymbol ms && ms.getParameters().size() == nargs.length) {
-                    //System.out.println("MATCHING " + ms + java.util.Arrays.toString(nargs));
+                if (sym instanceof MethodSymbol ms) {
+                    boolean isVarArgs = ms.isVarArgs();
+                    int nformals = ms.getParameters().size();
+                    if (!(isVarArgs ? nargs.length >= nformals-1 : nformals == nargs.length)) continue;
+                    if (print) System.out.println("MATCHING-A " + ms + " " + java.util.Arrays.toString(nargs));
                     int k = 0;
                     // First try for exact match
+                    VarSymbol last = null;
                     for (var p: ms.getParameters()) {
-                        var t1 = p.type;
-                        var t2 = nargs[k].type;
+                        last = p;
+                        if (isVarArgs && k == nformals-1) break;
+                        Type t1 = p.type;
+                        Type t2 = nargs[k].type;
+                        boolean match = types.isSameType(t2, t1);
+                        if (print) System.out.println("ARG " + t2 + " " + t1 + " " + match);
+                        if (!match && t1.isParameterized() && t2.isParameterized()) {
+//                            if (print) System.out.println("DETAILS " + types.isSameType(t2, t1) + " " + 
+//                                    // types.isSameType(((Type.ForAll)t1).erasure(), t2.erasure()) + " " + // Need to compare head types
+//                                (t1.getTypeArguments().size() > 0 ? t1.getTypeArguments().get(0).isWildcard() : false));
+                            if (k == 0 && name == names.of) match = true; //  && t1.getTypeArguments().size() > 0 &&  t1.getTypeArguments().get(0).isWildcard()) match = true;
+                        }
+                        if (!match) continue x;
                         ++k;
-                        //System.out.println("   COMP " + t2 + " " + t1 + " " + types.isSameType(t2, t1));
-                        if (!types.isSameType(t2, t1)) continue x;
                     }
-                    //System.out.println("  MATCHED " + ms);
-                    return makeMethodInvocation(pos, receiver, ms, nargs);
+                    
+                    if (!isVarArgs) {
+                        exactMatch = ms; 
+                    } else {
+                        var t1 = ((Type.ArrayType)last.type).getComponentType();
+                        if (print) System.out.println("MATCHING VARARGS " + t1);
+                        while (k < nargs.length) {
+                            var t2 = nargs[k].type;
+                            if (print) System.out.println("   COMP " + t2 + " " + t1 + " " + types.isSameType(t2, t1));
+                            if (!types.isSameType(t2, t1)) continue x;
+                            ++k;
+                        }
+                        exactMatchWithVarargs = ms;
+                    }
+                    if (print) System.out.println("  MATCHED? " + ms.owner + " " + ms + " " + exactMatch + " " + exactMatchWithVarargs);
                 }
+                if (print) System.out.println("NOPE ON " + sym);
             }
+            if (print) System.out.println("  MATCHED?? " + exactMatch + " " + exactMatchWithVarargs);
+            if (exactMatch != null) return makeMethodInvocation(pos, receiver, exactMatch, nargs);
+            if (exactMatchWithVarargs != null) return makeMethodInvocation(pos, receiver, exactMatchWithVarargs, nargs);
             iter = sc.getSymbolsByName(name).iterator();
             y: while (iter.hasNext()) {
                 Symbol sym = iter.next();
                 s += "\t\t" + sym.toString();
                 if (sym instanceof MethodSymbol ms && ms.getParameters().size() == nargs.length) {
-                    //System.out.println("MATCHING " + ms + java.util.Arrays.toString(nargs));
+                    if (print) System.out.println("MATCHING-B " + ms + " " + java.util.Arrays.toString(nargs));
                     int k = 0;
                     // Then try for matches with implicit conversions
                     for (var p: ms.getParameters()) {
                         var t1 = p.type;
                         var t2 = nargs[k].type;
                         ++k;
-                        //System.out.println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(t2, t1));
+                        if (print) System.out.println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(utils.rac, t2, t1, null));
                         if (!types.isAssignable(t2, t1)) continue y; // FIXME - this is first match, not best match
                     }
-                    //System.out.println("  MATCHED " + ms);
+                    if (print) System.out.println("  MATCHED " + ms.owner + " " + ms);
                     return makeMethodInvocation(pos, receiver, ms, nargs);
                 }
+                if (print) System.out.println("NOPE-B ON " + sym);
             }
         } catch (java.util.NoSuchElementException e) {
             // fall through to error message
         }
+        System.out.println("NO MATCH " + name + " " + receiver + " " + receiver.type + " " + nargs + " " + (nargs.length > 0 ? nargs[0].type.toString() : ""));
         utils.error(pos, "jml.internal", "No method " + name + " with " + nargs.length + " parameters of the requested types found in type " + receiver.type + "\n" + s);
         return null;
 
@@ -1783,12 +1820,15 @@ public class JmlTreeUtils {
     /** Makes a JML \type expression, with the given expression as the argument */
     public JCExpression makeTypelc(JCExpression e) {
         var TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+        //System.out.println("TYPELIT " + e + " " + e.getClass());
         JmlMethodInvocation typeof = factory.at(e.pos).JmlMethodInvocation(typelcKind,e);
         typeof.type = TYPE;
         return typeof;
     }
     
-    /** Makes an equivalent of \erasure(\typeof ) expression, with the given expression as the argument */
+    /** Makes an equivalent of \type(typename) expression, with the given expression as the argument,
+        for a Java type name as the argument, and a Java type as a result; applies to simple and array type literals,
+        but not to parameterized ones. */
     public JCExpression makeJavaTypelc(JCExpression e) {
         JmlMethodInvocation type = factory.at(e.pos).JmlMethodInvocation(typelcKind,e);
         type.javaType = true;
@@ -1804,28 +1844,28 @@ public class JmlTreeUtils {
         return elem;
     }
     
-    public JmlMethodInvocation makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+    public JmlMethodInvocation makeSubtypeProper(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.subtypeofKind,e1,e2);
         //e.token = JmlTokenKind.SUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
-    public JmlMethodInvocation makeSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+    public JmlMethodInvocation makeSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.subtypeofeqKind,e1,e2);
         //e.token = JmlTokenKind.SUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
-    public JmlMethodInvocation makeJSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+    public JmlMethodInvocation makeJSubtypeProper(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.jsubtypeofKind,e1,e2);
         //e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;
         return e;
     }
     
-    public JmlMethodInvocation makeJSubtypeEq(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
+    public JmlMethodInvocation makeJSubtype(DiagnosticPosition pos, JCExpression e1, JCExpression e2) {
         JmlMethodInvocation e = factory.at(pos).JmlMethodInvocation(Operators.jsubtypeofeqKind,e1,e2);
         //e.token = JmlTokenKind.JSUBTYPE_OF;
         e.type = syms.booleanType;

@@ -4029,9 +4029,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         Type t = null;
         switch (kw) {
-            case "recommends":
+            case recommendsID:
+            case returnsID:
+            case continuesID:
+            case breaksID:
                 t = tree.clauseKind.typecheck(this,tree,env);
                 break;
+
             case divergesID:
                 if (isPureMethod(jmlenv.enclosingMethodDecl.sym) && !treeutils.isFalseLit(tree.expression)) {
                     log.error(tree.pos, "jml.message", "pure methods must be terminating (explicitly diverges false)");
@@ -4047,17 +4051,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 }
                 break;
             case ensuresID:
-            case "when":
-            case "returns":
+            case whenID:
                 t = attribExpr(tree.expression, env, syms.booleanType);
                 break;
-                
-            case "continues":
-            case "breaks":
-                // FIXME - what about the label
-                t = attribExpr(tree.expression, env, syms.booleanType);
-                break;
-            case "callable":
+
+            case callableID:
                 // FIXME - should be implemented somewhere else
                 break;
                 
@@ -4526,7 +4524,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tree.kind != null && tree.typeargs != null && tree.typeargs.size() != 0) {
             // At present the parser cannot produce anything with typeargs, but just in case
             // one squeaks through by some means or another
-        	System.out.println("METH "+ tree.meth);
         	utils.error(tree.typeargs.head,"jml.no.typeargs.for.fcn",tree.meth);
         }
         //System.out.println("VISIT JMLAPPLY " + tree);
@@ -4544,6 +4541,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
  //           if (tree.kind == null) System.out.println("JMLIN " + tree.getClass() + " " + tree.meth + " " + tree.args);
         	Type ttt;
         	if (tree.kind != null) {
+        	    // Type attribution is delegated to the class definitions in org.jmlspecs.openjml.ext
         		ttt = tree.kind.typecheck(this, tree, localEnv);
             	result = check(tree, ttt, KindSelector.VAL, resultInfo);
         	} else {
@@ -4598,10 +4596,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         int nerrors = log.nerrors;
     	try {
     		super.visitApply(tree);
-//    		if (tree.toString().contains("prepend")) {
-//    		    System.out.println("JML_VISITAPPLY " + tree + " " + tree.type + " " + TreeInfo.symbolFor(tree.meth));
-//    		    if (TreeInfo.symbolFor(tree.meth) != null) System.out.println("   TYPE " + ((MethodSymbol)TreeInfo.symbolFor(tree.meth)).getReturnType() + " " + TreeInfo.symbolFor(tree.meth).type + " " + TreeInfo.symbolFor(tree.meth).type.getReturnType());
-//    		}
     	} catch (Exception e) {
     		e.printStackTrace(System.out);
             System.out.println("VISIT APPLY EXCEPTION " + tree.type );
@@ -5084,12 +5078,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // and Class<Object> are different.  In this case, all we need 
                 // to know is that the operands are some type of Class.
                 // FIXME - what about subclasses of Class
+                
+                // Also, the JML syntax allows <: and <:= to operate on a pair of \TYPE
+                // or a pair of Class arguments. The operators are translated by the parser to subtype... IDs
+                // so in either case type attribution comes here. In the logic below, both use cases are allowed,
+                // but if the arguments have Class type, the operator is changed to the java version.
+                // SO then later compiler phases can treat the JML and Java operations independently.
                 attribExpr(that.lhs,env,Type.noType);
                 Type t = that.lhs.type;
+                boolean isJML =  (t == TYPE);
+                boolean isJava = t.tsym.equals(syms.classType.tsym);
                 boolean errorAlready = false;
                 if (t.isErroneous()) errorAlready = true;
-                else if (t != TYPE
-                        && !t.tsym.equals(syms.classType.tsym)) {
+                else if (!isJML
+                        && !isJava) {
                     errorAlready = true;
                     utils.error(that.lhs.pos(),"jml.subtype.arguments",that.lhs.type);
                 }
@@ -5101,10 +5103,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     errorAlready = true;
                     utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
-                if ((t == TYPE) != (tt == TYPE) && !errorAlready) {
-                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
+                if (isJML != (tt == TYPE) && !errorAlready) {
+                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
                 }
-                if (t != TYPE) that.op = jsubtypeofKind; // Java subtyping
+                if (isJava) that.op = that.op.keyword() == subtypeofeqID ? jsubtypeofeqKind : jsubtypeofKind; // Java subtyping
                 
                 result = syms.booleanType;
                 break;
@@ -5130,7 +5132,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                    utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
 //                }
 //                if ((t == jmltypes.TYPE) != (tt == jmltypes.TYPE) && !errorAlready) {
-//                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.rhs.type);
+//                    utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
 //                }
                 // FIXME 
                 

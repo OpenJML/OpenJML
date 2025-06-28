@@ -428,7 +428,7 @@ public class escCounterexamples extends EscBase {
                 +"      k = 65;\n"
                 +"      //@ set kk = \\old(k) - k;\n"
                 +"      //@ assume (k==k) && (\\lblpos X (k == 65));\n"
-                +"      //@ assume o!= null && \\typeof(o) <: \\type(Object);\n"
+                +"      //@ assume o!= null && \\typeof(o) <:= \\type(Object);\n"
                 +"      //@ unreachable;\n"
                 +"  }\n"
                 +"   public TestJava() { o = new Object(); }\n"

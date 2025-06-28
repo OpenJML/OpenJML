@@ -24,6 +24,10 @@ public class bigint implements IJmlPrimitiveType {
         return new bigint(BigInteger.valueOf(i));
     }
     
+    public static bigint of(int i) {
+        return new bigint(BigInteger.valueOf(i));
+    }
+    
     // The OpenJDK code uses valueOf by default for conversions
     public static bigint valueOf(long i) {
         return new bigint(BigInteger.valueOf(i));

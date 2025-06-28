@@ -36,6 +36,7 @@ else
     numjobs=$JOBS
 fi
 
+if [ "$1" == "-retrylog" ]; then OPT=$1 ; shift; fi
 
 make -C .. prep
 
@@ -74,7 +75,13 @@ fi
 echo Completed
 sync
 set -o pipefail
-./retry | tee logretry | grep -E 'Retry|FAILED|Unexpected|TIMEOUT|timeout' 
+./retry | 2>&1 tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
 ERR=$?
-if [ $ERR -eq 1 ]; then echo Completed retrys with remaining failures; else echo Completed all retrys successfully; fi
+if [ $ERR -eq 0 ]; then 
+    echo Completed all retrys successfully
+else
+    echo Completed retrys with remaining failures
+    if [ -n "$OPT" ]; then cat logretry; fi
+    grep -E 'FAILED|TIMEOUT|timeout' logretry
+fi
 exit $ERR

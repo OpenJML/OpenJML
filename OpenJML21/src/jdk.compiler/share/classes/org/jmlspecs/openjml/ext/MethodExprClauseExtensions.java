@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseBehaviors;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseExpr;
+import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -18,7 +19,6 @@ import com.sun.tools.javac.tree.JCTree.JCModifiers;
 public class MethodExprClauseExtensions extends JmlExtension {
     
     public static final String requiresID = "requires";
-    public static final String recommendsID = "recommends";
     public static final String ensuresID = "ensures";
     public static final String divergesID = "diverges";
     public static final String whenID = "when";
@@ -42,16 +42,64 @@ public class MethodExprClauseExtensions extends JmlExtension {
     public static final IJmlClauseKind continuesClauseKind = new MethodClauseExprType(continuesID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
+        // FIXME needs to take a optional label
+        @Override
+        public 
+        JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+            if (!parser.inRefinementSpec) {
+                Utils.instance(parser.context).error(parser.pos(), "jml.message", "A " + keyword + " clause may only be in a refining specification");
+            }
+            // FIXME - expression is optional; need to parse optional label
+            return super.parse(mods, keyword, clauseKind, parser);
+        }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+            org.jmlspecs.openjml.Utils.instance(attr.context).notImplemented(expr, "continues clause");
+            return super.typecheck(attr, expr, env);
+        }
     };
     
     public static final IJmlClauseKind breaksClauseKind = new MethodClauseExprType(breaksID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
+        // FIXME needs to take a optional label
+        @Override
+        public 
+        JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+            if (!parser.inRefinementSpec) {
+                Utils.instance(parser.context).error(parser.pos(), "jml.message", "A " + keyword + " clause may only be in a refining specification");
+            }
+            // FIXME - expression is optional; need to parse optional label
+            return super.parse(mods, keyword, clauseKind, parser);
+        }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+            org.jmlspecs.openjml.Utils.instance(attr.context).notImplemented(expr, "breaks clause");
+            return super.typecheck(attr, expr, env);
+        }
+
     };
     
     public static final IJmlClauseKind returnsClauseKind = new MethodClauseExprType(returnsID) {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return true; }
+        @Override
+        public 
+        JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
+            if (!parser.inRefinementSpec) {
+                Utils.instance(parser.context).error(parser.pos(), "jml.message", "A " + keyword + " clause may only be in a refining specification");
+            }
+            // FIXME - expression is optional
+            return super.parse(mods, keyword, clauseKind, parser);
+        }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
+            org.jmlspecs.openjml.Utils.instance(attr.context).notImplemented(expr, "returns clause");
+            return super.typecheck(attr, expr, env);
+        }
     };
     
     public static final String[] behaviorsCommands = { "complete", "disjoint", "local_complete", "local_disjoint", "implementable" }; // MUST BE SORTED

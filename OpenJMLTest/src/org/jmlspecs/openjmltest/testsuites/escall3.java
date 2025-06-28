@@ -1073,7 +1073,7 @@ public class escall3 extends EscBase {
 
                 +"  public void m5(A[] a, B i) {\n"
                 +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      //@ assume \\type(B) <: \\elemtype(\\typeof(a));\n"
+                +"      //@ assume \\type(B) <:= \\elemtype(\\typeof(a));\n"
                 +"      Object[] o = a;\n"
                 +"      o[0] = i;\n"
                 +"  }\n"
@@ -1978,7 +1978,5 @@ public class escall3 extends EscBase {
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method m5", 9
                 );
     }
-
-
 
 }
