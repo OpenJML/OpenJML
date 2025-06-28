@@ -256,7 +256,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String realId = "\\real";
 
-    public static final JmlTypeKind realTypeKind = new JmlTypeKind(realId,"real") {
+    public static final JmlTypeKind realTypeKind = new JmlTypeKind(realId,"org.jmlspecs.lang.internal.real") {
         
         public void initOps() {
             JmlTypes jt = JmlTypes.instance(context);
