@@ -803,8 +803,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
         }
-        if (utils.isExtensionValueType(tree.rhs.type) && !utils.isExtensionValueType(tree.lhs.type)) {
-//            System.out.println(tree.rhs + " " + tree.rhs.type + " " + tree.rhs.getClass() + " " + utils.isExtensionValueType(tree.rhs.type) + " " + tree.lhs.type + " " + !utils.isExtensionValueType(tree.lhs.type));
+        if (jmltypes.isJmlType(tree.rhs.type) && !jmltypes.isJmlType(tree.lhs.type)) {
+//            System.out.println(tree.rhs + " " + tree.rhs.type + " " + tree.rhs.getClass() + " " + jmltypes.isJmlType(tree.rhs.type) + " " + tree.lhs.type + " " + !jmltypes.isJmlType(tree.lhs.type));
 //            System.out.println(tree.rhs.type.isReference() + " " + jmltypes().isSubtype(ct, interfaceForPrimitiveTypes()));
             utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
         }
@@ -5034,7 +5034,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override 
     public Type jmlBinary(JCBinary that, OperatorSymbol operator, Type left, Type right) {
         Type rt = operator.getReturnType();
-        if (utils.isExtensionValueType(rt) || utils.isExtensionValueType(left) ||  utils.isExtensionValueType(right)) {
+        if (jmltypes.isJmlType(rt) || jmltypes.isJmlType(left) || jmltypes.isJmlType(right)) {
             // Treating this specially avoids attempts at unboxing for some operators
             // FIXME - this skips any implicit conversions?
             // FIXME - what about inferred type parameters
@@ -7817,7 +7817,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 
                     && !utils.isModel(that.sym)
-                    && utils.isExtensionValueType(that.type)) {
+                    && jmltypes.isJmlType(that.type)) {
                 String full = that.type.toString();
                 int k = full.indexOf('<');
                 var part = (k < 0 ? full : full.substring(0, k));
@@ -7847,7 +7847,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             // FIXME - should this be checking for error types?
             if (that.init != null && that.init.type != null && !that.init.type.isErroneous() &&
-                    utils.isExtensionValueType(that.init.type) && !utils.isExtensionValueType(that.type)) {
+                    jmltypes.isJmlType(that.init.type) && !jmltypes.isJmlType(that.type)) {
                 //System.out.println(that.init.type + " TO " + that.type + " " + that.init + " " + that.init.getClass());
                 utils.error(that, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
             }
@@ -7972,7 +7972,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // that.init.type can be null if there was an error already in attributing that.init
             if (that.init != null && that.init.type != null &&
-                    utils.isExtensionValueType(that.type) && !types.isSameType(that.type, that.init.type)) {
+                    jmltypes.isJmlType(that.type) && !types.isSameType(that.type, that.init.type)) {
                 if (types.isSameType(that.type, JmlPrimitiveTypes.stringTypeKind.getType(context))) {
                     JmlPrimitiveTypes.stringTypeKind.typecheck(this, that, env);
                 }
@@ -8420,7 +8420,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Utils.dumpStack();
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
-        if (utils.isExtensionValueType(resultInfo.pt)) {
+        if (jmltypes.isJmlType(resultInfo.pt)) {
             // These allow implicit casts
             
             // java.lang.String -> \string

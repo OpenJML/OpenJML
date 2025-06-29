@@ -193,6 +193,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** General utilities */
     final protected /*@non_null*/ Utils utils;
     
+    final protected JmlTypes types;
+    
     /** The factory used to create AST nodes, initialized in the constructor */
     final protected JmlTree./*@non_null*/ Maker factory;
 
@@ -291,6 +293,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         this.factory = JmlTree.Maker.instance(context);
         this.utils = Utils.instance(context);
+        this.types = JmlTypes.instance(context);
         this.scanMode = AST_JAVA_MODE;
         
         trueLiteral = treeutils.trueLit;
@@ -1934,7 +1937,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         scan(that.index);
         JCExpression index = result;
         JCIdent arr = null;
-        if (utils.isExtensionValueType(indexed.type)) {
+        if (types.isJmlType(indexed.type)) {
         	// continue;
         } else {
         	// Standard Java array
@@ -1998,7 +2001,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             scan(index); index = result;
             scan(right); right = result;
             
-            if (utils.isExtensionValueType(ex.type)) {
+            if (types.isJmlType(ex.type)) {
                 var oldex = ((JCArrayAccess)left).indexed;
                 if (oldex instanceof JCIdent id) {
                     JCIdent newid = newIdentIncarnation(id, sp);

@@ -234,6 +234,8 @@ public class JmlSpecs {
     /** The Utils tool for this context */
     final protected Utils utils;
     
+    final protected JmlTypes jmltypes;
+    
     /** The map giving the accumulated specifications for a given type */
     final protected Map<TypeSymbol,TypeSpecs> specsTypes = new HashMap<>();
     final protected Map<MethodSymbol,MethodSpecs> specsMethods = new HashMap<>();
@@ -261,6 +263,7 @@ public class JmlSpecs {
         log = Log.instance(context);
         utils = Utils.instance(context);
         names = Names.instance(context);
+        jmltypes = JmlTypes.instance(context);
     }
     
     /** Initializes the specs path given the current settings of options.
@@ -1896,7 +1899,7 @@ public class JmlSpecs {
 
     public boolean isCheckNonNullFormal(Type type, int i,  MethodSpecs calleeSpecs, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
-    	if (utils.isExtensionValueType(type)) return false;
+    	if (jmltypes.isJmlType(type)) return false;
     	if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
     	return isNonNullFormal(type, i, calleeSpecs, msym);
     }
@@ -1906,7 +1909,7 @@ public class JmlSpecs {
         boolean pr = false;// msym.name.toString().startsWith("StorageParameters");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
-        if (utils.isExtensionValueType(type)) return true;
+        if (jmltypes.isJmlType(type)) return true;
         if (pr) System.out.println("NNF-A " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
@@ -1943,7 +1946,7 @@ public class JmlSpecs {
     
 	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
     	// Extension type values are always non-null, but we do not check for that
-    	if (utils.isExtensionValueType(type)) return false;
+    	if (jmltypes.isJmlType(type)) return false;
     	{
     	    var s = type.toString();
     	    // FIXME - there must be a better way

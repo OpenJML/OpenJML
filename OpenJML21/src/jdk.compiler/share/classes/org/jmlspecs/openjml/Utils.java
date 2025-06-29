@@ -1055,31 +1055,23 @@ public class Utils {
         return ct.tsym == Symtab.instance(context).classType.tsym;
     }
 
-//    public Type firstTYPE = null;
     public boolean isExtensionValueType(Type ty) {
         if (!(ty instanceof Type.ClassType ct)) return false;
-//        if (ct.toString().contains("TYPE")) {
-//            if (firstTYPE != null) {
-//                System.out.println("SAME AS FIRST " + ct + " " + firstTYPE + " " + ct.hashCode() + " " + firstTYPE.hashCode() + " " + (ct == firstTYPE) + " " + (ct.tsym == firstTYPE.tsym));
-//            } else {
-//                firstTYPE = ct;
-//            }
-//        }
         var prim = interfaceForPrimitiveTypes();
-//        System.out.println("IEV-INT " + ct + " " + ct.tsym + " " + ((ClassSymbol)ct.tsym).getInterfaces() + " :: " + ct.interfaces_field + " " + jmltypes().interfaces(ct));
+        // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
+        // any JML types have IJmlPrimitiveType as a direct interface.
         for (var t: jmltypes().interfaces(ct)) {
-            //System.out.println("  IEV-L " + ct + " " + ct.hashCode() + " " + t.tsym + " " + (t.tsym == prim.tsym));
             if (t.tsym == prim.tsym) return true;
         }
-        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) return true; // A hack because for unknown reason the type symbol loses its intefaces
-        //System.out.println("IEV " + ct + " " + ct.hashCode() + " " + ct.tsym + " RET false");
+        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
+            // This hack was added ecause the check above did not used to always work.
+            // (FIXME) Now it is a test that the fix for th above does indeed work.
+            warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
+            return true;
+        }
         return false;
-//        return jmltypes().isSubtype(ct, interfaceForPrimitiveTypes());
     }
     
-//    public Type.ClassType extensionValueType(String name) {
-//        return (Type.ClassType)JmlAttr.instance(context).createClass(Strings.jmlSpecsPackage + "." + name).type;
-//    }
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {
