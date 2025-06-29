@@ -45,6 +45,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.ModuleSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds.KindName;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Type.ClassType;
@@ -151,12 +152,15 @@ public class JmlEnter extends Enter {
 	}
 
 	/** The context in which this instance was created. */
-	/* @non_null */
+	/* non_null */
 	final protected Context context;
 
 	/** A cached value of the Utils tool */
-	/* @non_null */
+	/* non_null */
 	final protected Utils utils;
+	
+    /* non_null */
+	final protected JmlTypes types;
 
 	/**
 	 * This is a toplevel environment used for resolving synthetic fully-qualified
@@ -175,7 +179,8 @@ public class JmlEnter extends Enter {
 	protected JmlEnter(Context context) {
 		super(context); // automatically registers the new object
 		this.context = context;
-		this.utils = Utils.instance(context);
+        this.utils = Utils.instance(context);
+        this.types = JmlTypes.instance(context);
 		var m = JmlTree.Maker.instance(context);
 		var q = (JCFieldAccess)m.QualIdent("org", "jmlspecs", "lang");
 		var p = m.PackageDecl(List.<JCAnnotation>nil(), q);
@@ -1836,7 +1841,7 @@ public class JmlEnter extends Enter {
 								+ binaryEnterTodo.contains(csymbol) + " " + csymbol.hashCode());
 					binaryEnterTodo.prepend(csymbol);
 					
-					if (!utils.isExtensionValueType(csymbol.type)) {
+					if (!types.isJmlType(csymbol.type)) {
 					    for (Type t : csymbol.getInterfaces()) {
 					        requestSpecs((ClassSymbol) t.tsym);
 					    }

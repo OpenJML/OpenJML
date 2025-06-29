@@ -564,7 +564,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         jmlTypeSort));
             }
 
-            if (utils.isExtensionValueType(ti) && !ti.toString().startsWith("org.jmlspecs.lang.")) {
+            if (jmltypes.isJmlType(ti) && !ti.toString().startsWith("org.jmlspecs.lang.")) {
                 tcommands.add(new C_declare_sort(
                         (ISymbol)javaTypeSymbol(ti),
                         F.numeral(ti.tsym.type.getTypeArguments().size())));
@@ -573,7 +573,7 @@ public class SMTTranslator extends JmlTreeScanner {
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
             if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
-            if (utils.isExtensionValueType(ti)) continue;
+            if (jmltypes.isJmlType(ti)) continue;
             // (declare-fun tjava () JavaTypeSort)
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (|`erasure| tjml) tjava))
@@ -598,7 +598,7 @@ public class SMTTranslator extends JmlTreeScanner {
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
             if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
-            if (utils.isExtensionValueType(ti)) continue;
+            if (jmltypes.isJmlType(ti)) continue;
             // (declare-fun tjava () JavaTypeSort)
             // (declare-fun tjml () JMLTypeSort)
             // (assert (= (|`erasure| tjml) tjava))
@@ -657,7 +657,7 @@ public class SMTTranslator extends JmlTreeScanner {
         tcommands.add(new C_assert(F.fcn(F.symbol("distinct"),jmltypesymbols)));
         
         for (Type ti: javaTypes) {
-            if (utils.isExtensionValueType(ti)) continue;
+            if (jmltypes.isJmlType(ti)) continue;
             if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
                     F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
         }
@@ -665,13 +665,13 @@ public class SMTTranslator extends JmlTreeScanner {
         for (Type ti: javaTypes) {
             if (ti.getTag() == TypeTag.TYPEVAR) continue; 
             if (ti.getTag() == TypeTag.WILDCARD) continue; 
-            if (utils.isExtensionValueType(ti)) continue;
+            if (jmltypes.isJmlType(ti)) continue;
             counti++;
             int countj = 0;
             for (Type tj: javaTypes) {
                 if (tj.getTag() == TypeTag.TYPEVAR) continue; 
                 if (tj.getTag() == TypeTag.WILDCARD) continue; 
-                if (utils.isExtensionValueType(tj)) continue;
+                if (jmltypes.isJmlType(tj)) continue;
                 countj++;
                 // (assert (javaSubType t1 t2)) - or assert the negation
                 // (assert (jmlSubType t1jml t2jml)) - or assert the negation
@@ -772,7 +772,7 @@ public class SMTTranslator extends JmlTreeScanner {
         
         List<IExpr> javatypelist = new LinkedList<IExpr>();
         for (Type t: javaTypes) {
-            if (utils.isExtensionValueType(t)) continue;
+            if (jmltypes.isJmlType(t)) continue;
             if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 javatypelist.add(javaTypeSymbol(t));
             }
@@ -1267,7 +1267,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** Returns an SMT IExpr representing the given JML type */
     public IExpr jmlTypeSymbol(Type t) {
         t = t.stripMetadata();
-        if (utils.isExtensionValueType(t)) {
+        if (jmltypes.isJmlType(t)) {
             //System.out.println("JMLTYPESYMBOL " + t + " " + t.tsym.getSimpleName().toString());
             if (!t.isParameterized()) return F.symbol(t.tsym.getSimpleName().toString());
             List<Type> params = t.getTypeArguments();
@@ -1388,7 +1388,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //                    javaParameterizedTypes.put(t.toString(),jmlTypeSymbol(t)); // FIXME - should we make an implicit argument?
                 }
 //            } else if (utils.isPrimitiveType(t)) {
-            } else if (utils.isExtensionValueType(t)) {
+            } else if (jmltypes.isJmlType(t)) {
                 // skip
             } else if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 //IExpr tt = F.fcn(F.symbol("_JMLT_0"),javaTypeSymbol(t));
@@ -1645,7 +1645,7 @@ public class SMTTranslator extends JmlTreeScanner {
             throw new RuntimeException();
         }
         TypeTag tag = t.getTag();
-        if (utils.isExtensionValueType(t)) {
+        if (jmltypes.isJmlType(t)) {
         	String ts = t.tsym.toString();
             if (t.tsym == JmlPrimitiveTypes.stringTypeKind.getSymbol(context)) {
                 return stringSort;
@@ -2514,8 +2514,8 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         }
         if (treeIsPrim == exprIsPrim) {
-            if (utils.isExtensionValueType(tree.type)) { 
-                if (utils.isExtensionValueType(tree.expr.type)) { 
+            if (jmltypes.isJmlType(tree.type)) { 
+                if (jmltypes.isJmlType(tree.expr.type)) { 
                     if (tree.type.tsym == REAL) {
                         if ( tree.expr.type.tsym == REAL) {
                             // \real to \real -- OK
@@ -2548,7 +2548,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // FIXME - error
                     }
                 } else {
-                    if ( tree.type.tsym == REAL) {
+                    if (tree.type.tsym == REAL) {
                         // float/double to \real -- OK
                     } else if (tree.type.tsym == BIGINT) {
                         // float/double to \bigint
@@ -2557,7 +2557,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // FIXME - error
                     }
                 }
-            } else if (utils.isExtensionValueType(tree.expr.type)) { 
+            } else if (jmltypes.isJmlType(tree.expr.type)) { 
                 if (treeutils.isIntegral(tagr)) {
                     if (tree.expr.type.tsym == REAL) {
                         // \real to int -- FIXME

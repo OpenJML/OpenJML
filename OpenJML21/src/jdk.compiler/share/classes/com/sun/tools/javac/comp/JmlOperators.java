@@ -32,8 +32,8 @@ public class JmlOperators extends Operators {
 
     public OperatorSymbol resolveBinary(DiagnosticPosition pos, JCTree.Tag tag, Type op1, Type op2) {
         JmlTypes jtype = JmlTypes.instance(context);
-        boolean b1 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op1);
-        boolean b2 = org.jmlspecs.openjml.Utils.instance(context).isExtensionValueType(op2);
+        boolean b1 = com.sun.tools.javac.code.JmlTypes.instance(context).isJmlType(op1);
+        boolean b2 = com.sun.tools.javac.code.JmlTypes.instance(context).isJmlType(op2);
         Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
 
