@@ -13847,22 +13847,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			result = eresult = id;
 		} else if (tag == JCTree.Tag.NEG) {
 			if (jmltypes.isSameType(that.arg.type, syms.doubleType) && that.arg instanceof JCLiteral lit) {
-				JCLiteral nlit = copy(lit);
-				nlit.value = -((Double) lit.value);
-				result = eresult = convertExpr(nlit);
+			    // FIXME - for unknown reason, trying to constant fold a negated literal into a new literal does not work
+                result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
+//			    System.out.println("DOUBLE LIT-A " + lit);
+//				JCLiteral nlit = treeutils.makeLit(lit.pos, lit.type, -(Double)lit.value);
+//				nlit.setType(lit.type);
+//                System.out.println("DOUBLE LIT-B " + nlit + " " + nlit.type);
+//				nlit.value = -((Double) lit.value);
+//                System.out.println("DOUBLE LIT-C " + nlit);
+//				result = eresult = convertExpr(nlit);
+//                System.out.println("DOUBLE LIT-D " + eresult + " " + eresult.getClass());
             } else if (jmltypes.isSameType(that.arg.type, syms.floatType) && that.arg instanceof JCLiteral lit) {
-                JCLiteral nlit = copy(lit);
-                nlit.value = -((Float) lit.value);
-                result = eresult = convertExpr(nlit);
+                // FIXME - for unknown reason, trying to constant fold a negated literal into a new literal does not work
+                result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
+//                JCLiteral nlit = copy(lit);
+//                nlit.value = -((Float) lit.value);
+//                result = eresult = convertExpr(nlit);
             } else if (utils.rac && jmltypes.isSameType(that.arg.type, REAL)) {
                 JCExpression arg = convertExpr(that.getExpression());
                 JCExpression e = treeutils.makeMethodInvocation(that, arg, names.fromString("negate"));
                 result = eresult = convertExpr(e);
-//            } else if (utils.rac && jmltypes.isSameType(that.arg.type, REALREP)) {
-//                System.out.println("NEGR " + that + " " + that.arg.type + " " + that.type);
-//                JCExpression e = treeutils.makeMethodInvocation(that, that.arg, names.fromString("negate"));
-//                System.out.println("NEGR-Z " + that + " " + e.type );
-//               result = eresult = convertExpr(e);
 			} else {
 				result = eresult = currentEnv.arithmeticMode.rewriteUnary(this, that);
 			}
