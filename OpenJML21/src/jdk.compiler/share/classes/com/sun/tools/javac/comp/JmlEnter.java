@@ -1609,6 +1609,7 @@ public class JmlEnter extends Enter {
 		return true;
 	}
 
+	// REVIEW - I believe this is adapted from TypeEnter in order to attribute classes in .jml files here
 	protected void attribSuperTypes(Env<AttrContext> env, Env<AttrContext> baseEnv) {
 		JmlAttr attr = JmlAttr.instance(context);
 		JCClassDecl tree = env.enclClass;
@@ -1617,43 +1618,43 @@ public class JmlEnter extends Enter {
 		// Determine supertype.
 		Type supertype;
 		JCExpression extending;
-		// if (org.jmlspecs.openjml.Utils.isJML())
-		// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES " +
-		// tree.name + " " + sym + " " + ct + " " + tree.extending + " : " +
-		// tree.implementing);
 
 		if (tree.extending != null) {
-			extending = clearTypeParams(tree.extending);
-			supertype = attr.attribBase(extending, baseEnv, tree, true, false, true);
-			if (supertype == syms.recordType) {
-				log.error(tree, Errors.InvalidSupertypeRecord(supertype.tsym));
-			}
-			tree.extending.type = supertype;
+            extending = clearTypeParams(tree.extending);
+            supertype = attr.attribBase(extending, baseEnv, tree, true, false, true);
+            if (supertype == syms.recordType) {
+                log.error(tree, Errors.InvalidSupertypeRecord(supertype.tsym));
+            }
+            if (tree.extending.type != supertype) {
+                utils.warning(tree.extending, "jml.message", "Declared superclass for " + sym + " already has a type: " + tree.extending.type);
+            }
+            tree.extending.type = supertype; // FIXME - is this necessary after attribBase?
+	        if (sym.getSuperclass().tsym != supertype.tsym) {
+                utils.error(tree.extending, "jml.message", "Super class declared in .jml does not match that in the .java file: " + supertype + " vs. " + sym.getSuperclass());
+	        }
 		} else {
 			extending = null;
 			supertype = ((tree.mods.flags & Flags.ENUM) != 0)
 					? attr.attribBase(enumBase(tree.pos, sym), baseEnv, tree, true, false, false)
 					: (sym.fullname == names.java_lang_Object) ? Type.noType
 							: sym.isRecord() ? syms.recordType : syms.objectType;
+            if (sym.getSuperclass().tsym != supertype.tsym && sym.getSuperclass() != Type.noType) {
+                utils.error(tree.extending, "jml.message", "No super class is declared in .jml for " + sym + ", but the .java file declares: " + sym.getSuperclass());
+            }
 		}
-		ct.supertype_field = supertype;
+		if (ct.supertype_field != null && ct.supertype_field.tsym != supertype.tsym) {
+		    utils.warning(tree, "jml.message", "Changing supertype " + sym + " " + ct.supertype_field + " " + supertype);
+		}
+		// FIXME - ct.supertype_field is already set, but not overwriting it here causes all manner of errors. Not sure why.
+        ct.supertype_field = supertype;
 
 		// Determine interfaces.
 		ListBuffer<Type> interfaces = new ListBuffer<>();
 		ListBuffer<Type> all_interfaces = null; // lazy init
 		List<JCExpression> interfaceTrees = tree.implementing;
 		for (JCExpression iface : interfaceTrees) {
-			// if (org.jmlspecs.openjml.Utils.isJML())
-			// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-A " + iface
-			// + " " + ct);
 			iface = clearTypeParams(iface);
-			// if (org.jmlspecs.openjml.Utils.isJML())
-			// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-B " + iface
-			// );
 			Type it = attr.attribBase(iface, baseEnv, tree, false, true, true);
-			// if (org.jmlspecs.openjml.Utils.isJML())
-			// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-C " + iface
-			// + " " + it);
 			iface.type = it;
 			if (it.hasTag(CLASS)) {
 				interfaces.append(it);
@@ -1662,7 +1663,6 @@ public class JmlEnter extends Enter {
 			} else {
 				if (all_interfaces == null)
 					all_interfaces = new ListBuffer<Type>().appendList(interfaces);
-				// all_interfaces.append(modelMissingTypes(baseEnv, it, iface, true));
 			}
 		}
 
@@ -1674,13 +1674,40 @@ public class JmlEnter extends Enter {
 //            permittedSubtypeSymbols.append(pt.tsym);
 //        }
 //
-		if ((sym.flags_field & Flags.ANNOTATION) != 0) {
-			ct.interfaces_field = List.of(syms.annotationType);
-			ct.all_interfaces_field = ct.interfaces_field;
+		// FIXME - We might be calling this method for a class declared in a JML file for which there exists 
+		// a Java or Binary class already. If we do not overwrite the fields of ct, we get all manner of 
+		// specification related errors, but overwriting with bad superclass or interface information also
+		// causes problems.		
+		
+		if (ct.interfaces_field == null) {
+		    System.out.println("Overwriting interface information: " + sym);
 		} else {
-			ct.interfaces_field = interfaces.toList();
-			ct.all_interfaces_field = (all_interfaces == null) ? ct.interfaces_field : all_interfaces.toList();
+		    // Compare ct.interfaces_field and interfaces
+		    x: for (var ifc: ct.interfaces_field) {
+		        for (var ifcc: interfaceTrees) {
+		            if (ifc.tsym == ifcc.type.tsym) continue x;
+		        }
+		        // FIXME - when were these introduced and do we need to care about them
+		        if (ifc.toString().equals("java.lang.constant.Constable")) {}
+		        else if (ifc.toString().equals("java.lang.constant.ConstantDesc")) {}
+		        else if (sym.isAnnotationType() && ifc.toString().equals("java.lang.annotation.Annotation")) {}
+		        else 
+		            utils.error(tree, "jml.message", "The .jml declaration of " + sym + " does not declare an interface declared by the Java class: " + ifc);
+		    }
+            y: for (var ifcc: interfaceTrees) {
+                for (var ifc: ct.interfaces_field) {
+                    if (ifc.tsym == ifcc.type.tsym) continue y;
+                }
+                utils.error(ifcc, "jml.message", "The .jml declaration of " + sym + " declares an interface not declared by the Java class: " + ifcc.type);
+            }
 		}
+        if ((sym.flags_field & Flags.ANNOTATION) != 0) {
+            ct.interfaces_field = List.of(syms.annotationType);
+            ct.all_interfaces_field = ct.interfaces_field;
+        } else {
+            ct.interfaces_field = interfaces.toList();
+            ct.all_interfaces_field = (all_interfaces == null) ? ct.interfaces_field : all_interfaces.toList();
+        }
 //
 //        /* it could be that there are already some symbols in the permitted list, for the case
 //         * where there are subtypes in the same compilation unit but the permits list is empty
