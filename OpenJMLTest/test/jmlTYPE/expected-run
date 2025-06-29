@@ -1,0 +1,17 @@
+OUT:
+LABEL JMLSHOW_1 = int
+LABEL JMLSHOW_2 = class java.lang.Integer
+LABEL JMLSHOW_3 = interface java.util.List<class java.lang.Integer>
+LABEL JMLSHOW_4 = int[]
+LABEL JMLSHOW_5 = class java.lang.Integer[]
+LABEL JMLSHOW_6 = interface java.util.List[]
+LABEL JMLSHOW_7 = interface java.util.List<class java.lang.Integer>[]
+LABEL JMLSHOW_8 = int
+LABEL JMLSHOW_9 = class java.lang.Integer
+LABEL JMLSHOW_10 = interface java.util.List<class java.lang.Integer>
+Warning: runtime type information has no type arguments: interface java.util.List
+LABEL JMLSHOW_11 = class java.lang.Integer[]
+LABEL JMLSHOW_12 = class java.lang.Integer[]
+Warning: runtime type information has no type arguments: class java.util.LinkedList
+
+ERR:
