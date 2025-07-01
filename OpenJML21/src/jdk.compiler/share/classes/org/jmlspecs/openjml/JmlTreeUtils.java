@@ -97,7 +97,7 @@ public class JmlTreeUtils {
     /** The qualified name of the Utils class that contains runtime utility methods */
     /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.runtime.Utils";
    // /*@non_null*/ final public static String runtimeClassQualifiedName = "org.jmlspecs.runtime.Runtime";
-    /*@non_null*/ final public static String TYPEClassQualifiedName = "org.jmlspecs.runtime.internal.TYPE";
+   // /*@non_null*/ final public static String TYPEClassQualifiedName = "org.jmlspecs.runtime.internal.TYPE";
 
     /** The Context in which this object was constructed */ 
     //@ non_null
@@ -131,8 +131,8 @@ public class JmlTreeUtils {
     final public /*@ non_null */ JmlTree.Maker factory;
 
     // Cached values of all of these symbols
-    public ClassSymbol utilsClass;  // Generated on demand
-    public JCIdent utilsClassIdent; // Generated on demand
+    private ClassSymbol utilsClass;  // Generated on demand using utilsClass()
+    private JCIdent utilsClassIdent; // Generated on demand using utilsClassIdent()
     public OperatorSymbol andSymbol;
     public OperatorSymbol orSymbol;
     public OperatorSymbol intbitandSymbol;

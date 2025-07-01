@@ -23,6 +23,7 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
 
     private static real proto = new RealUsingDouble();
     
+    // FIXME - should these be protected
     abstract public real add(real r);
     abstract public real subtract(real r);
     abstract public real multiply(real r);
@@ -70,7 +71,14 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     public boolean ge(real r) { return compareTo(r) >= 0; }
     public boolean le(real r) { return compareTo(r) <= 0; }
     
+    @Override
     abstract public String toString();
+    @Override
+    abstract public int hashCode();
+    
+    /** .equals is not supported for \\real -- use == instead */
+    @Override
+    public boolean equals(/*@ nullable */Object o) { throw new UnsupportedOperationException(); }
     
     public static class RealUsingDouble extends real {
         public static final long serialVersionUID = 1L;
@@ -115,18 +123,16 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         
         @Override
         public int compareTo(real o) {
-            return Double.valueOf(value).compareTo(Double.valueOf(((RealUsingDouble)o).value));
+            if (o == null) throw new NullPointerException("\\real.compareTo(null)");
+            if (o instanceof RealUsingDouble r) return ((Double)value).compareTo(r.value);
+            throw new IllegalArgumentException("\\real.compareTo called with a value that is not a RealUsingDouble");
         }
         
-        public RealUsingDouble from(double d) {
+        public RealUsingDouble from(double d) { // FIXME - check for NaN and infinity?
             return new RealUsingDouble(d);
         }
 
         public RealUsingDouble from(long d) {
-            return new RealUsingDouble((double)d);
-        }
-
-        public RealUsingDouble from(int d) {
             return new RealUsingDouble((double)d);
         }
 
@@ -167,6 +173,16 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         public String toString() {
             return Double.toString(value);
         }
+        
+        @Override
+        public int hashCode() {
+            return ((Double)value).hashCode();
+        }
+        
+//        @Override
+//        public boolean equals(/*@ nullable */ Object o) {
+//            return o instanceof RealUsingDouble d && value == d.value;
+//        }
     }
     
     public static class RealUsingBigDecimal extends real {
@@ -215,22 +231,19 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         }
 
         @Override
-        public int compareTo(real r) {
-            return value.compareTo(((RealUsingBigDecimal)r).value);
+        public int compareTo(real o) {
+            if (o == null) throw new NullPointerException("\\real.compareTo(null)");
+            if (o instanceof RealUsingBigDecimal r) return value.compareTo(r.value);
+            throw new IllegalArgumentException("\\real.compareTo called with a value that is not a RealUsingBigDecimal");
         }
         
         @Override
-        public RealUsingBigDecimal from(double v) {
+        public RealUsingBigDecimal from(double v) { // FIXME - check for NaN and infinity?
             return new RealUsingBigDecimal(new BigDecimal(v));
         }
 
         @Override
         public RealUsingBigDecimal from(long v) {
-            return new RealUsingBigDecimal(new BigDecimal(v));
-        }
-
-        @Override
-        public RealUsingBigDecimal from(int v) {
             return new RealUsingBigDecimal(new BigDecimal(v));
         }
 
@@ -273,110 +286,17 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         public String toString() {
             return value.toString();
         }
+        
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+
+//        @Override
+//        public boolean equals(/*@ nullable */Object o) {
+//            return o instanceof RealUsingBigDecimal r && value.equals(r.value);
+//        }
+
     }
-    
-//    private static final long serialVersionUID = 1L;
-//
-//    protected double _double;
-//    
-//    private real(double d) { _double = d; }
-//    
-//    public real add(real r) {
-//        return new real(_double + r._double);
-//    }
-//
-//    public real subtract(real r) {
-//        return new real(_double + r._double);
-//    }
-//
-//    public real multiply(real r) {
-//        return new real(_double * r._double);
-//    }
-//
-//    public real divide(real r) {
-//        return new real(_double / r._double);
-//    }
-//
-//    public real mod(real r) {
-//        return new real(_double % r._double);
-//    }
-//
-//    public boolean eq(real r) {
-//        return (_double == r._double);
-//    }
-//
-//    public boolean ne(real r) {
-//        return (_double != r._double);
-//    }
-//
-//    public boolean gt(real r) {
-//        return (_double > r._double);
-//    }
-//
-//    public boolean ge(real r) {
-//        return (_double >= r._double);
-//    }
-//
-//    public boolean lt(real r) {
-//        return (_double < r._double);
-//    }
-//
-//    public boolean le(real r) {
-//        return (_double <= r._double);
-//    }
-//
-//    public real negate() {
-//        return new real(-_double);
-//    }
-//
-//    static public real of(double d) {
-//        return new real(d);
-//    }
-//
-//    static public real of(long d) {
-//        return new real(d);
-//    }
-//
-//    static public real of(int d) {
-//        return new real(d);
-//    }
-//
-//    static public real valueOf(long d) {
-//        return new real(d);
-//    }
-//
-//    static public real of(java.math.BigInteger d) {
-//        return real.of(d.doubleValue());
-//    }
-//
-//    static public real of(org.jmlspecs.lang.internal.bigint d) {
-//        return real.of(d.bigValue().doubleValue());
-//    }
-//
-//    public double doubleValue() {
-//        return _double;
-//    }
-//
-//    public float floatValue() {
-//        return (float)_double;
-//    }
-//
-//    public long longValue() {
-//        return (long)_double;
-//    }
-//
-//    public int intValue() {
-//        return (int)_double;
-//    }
-//
-//    public int compareTo(real r) {
-//        return (_double == r._double) ? 0 : (_double < r._double) ? -1 : 1;
-//    }
-//    
-//    static public real ZERO = real.of(0.0);
-//    
-//    public String toString() {
-//        return Double.toString(_double);
-//    }
 
 }

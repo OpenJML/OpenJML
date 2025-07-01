@@ -2,6 +2,7 @@
 public class Test {
     
     public static void main(String... args) {
+        inits();
         //@ ghost \bigint a = 10;
         //@ ghost \bigint b = (\bigint)20;
         //@ set add(a,b);
@@ -15,15 +16,40 @@ public class Test {
         //@ set mod(-20, -15);
         //@ set shift(a);
         //@ set convert(a);
-        //@ assert a == a;
+        //@ check a == a;
         //@ set divzero();
         //@ set compare(a,b);
         //@ set bit(a,b);
         //@ set assignop(a,b);
-        //@ assert a + b == 40; // FALSE
+        //@ set test();
+        //@ check a + b == 40; // FALSE
+        misc();
         System.out.println("END");
     }
     
+    public static void inits() {
+        //@ ghost \bigint bint = (int)5;  check bint == 5; check bint == \bigint.of(5); check bint.intValue() == 5;
+        //@ ghost \bigint bshort = (short)5;  check bshort == 5; check bshort == \bigint.of((short)5); check bshort.shortValue() == 5;
+        //@ ghost \bigint blong = (long)5;  check blong == 5; check blong == \bigint.of(5L); check blong.longValue() == 5;
+        //@ ghost \bigint bbyte = (byte)5;  check bbyte == 5; check bbyte == \bigint.of((byte)5); check bbyte.byteValue() == 5;
+// FIXME        //@ ghost \bigint bchar= 'c';  check bchar == 'c'; check bchar == \bigint.of('c'); check bchar.charValue() == 'c';
+    }
+    
+    public static void misc() {
+        //@ ghost \bigint a = 45;
+        //@ ghost \bigint b = 45;
+        //@ check a == b;
+        //@ check a.compareTo(b) == 0;
+        //@ check a.compareTo(45) == 0;
+        //@ check a.hashCode() == b.hashCode();
+        //-ESC@ check a.toString().equals("45");
+        try {
+            //@ check a.equals(null);
+        } catch (Exception e) {
+            System.out.println (e);
+        }
+    }
+        
 /*@
     model public static void add(\bigint a, \bigint b) {
       var c = a + b;
@@ -33,20 +59,20 @@ public class Test {
     model public static void neg(\bigint a) {
       var c = -a;
       var d = -c;
-      assert d == a;
-      assert a == +a;
+      check d == a;
+      check a == +a;
     }
     model public static void convert(\bigint a) {
       \bigint k = 42;
-      assert 42 == (int)k;
-      assert 42 == (long)k;
-      assert 42 == (short)k;
-      assert 42 == (byte)k;
+      check 42 == (int)k;
+      check 42 == (long)k;
+      check 42 == (short)k;
+      check 42 == (byte)k;
     }
     requires a != 0;
     model public static void mul(\bigint a, \bigint b) {
-      assert \bigint.zero == (\bigint)0;
-      assert a != 0;
+      check \bigint.zero == (\bigint)0;
+      check a != 0;
       var c = a * b;
       var d = c / a;
       assert d == b;
@@ -76,46 +102,53 @@ public class Test {
     model public static void mod(\bigint a, \bigint b) {
       var c = a % b;
       var d = a / b;
-      assert a < 0 ==> c <= 0;
-      assert c < 0 ==> a < 0;
-      assert a == b * d + c;
+      check a < 0 ==> c <= 0;
+      check c < 0 ==> a < 0;
+      check a == b * d + c;
     }
     model public static void shift(\bigint a) {
       var c = a << 2;
       var d = c >> 2;
-      assert d == a;
-      assert c == a * 4;
+      check d == a;
+      check c == a * 4;
       c = -a << 2;
       d = c >> 2;
-      assert d == -a;
-      assert c == -a * 4;
-      assert (a << 0) == a;
-      assert (a >> 0) == a;
+      check d == -a;
+      check c == -a * 4;
+      check (a << 0) == a;
+      check (a >> 0) == a;
       d = c << -1;
-      assert d == c >> 1;
+      check d == c >> 1;
       d = c >> -1;
-      assert d == c << 1;
+      check d == c << 1;
     }
     model public static void compare(\bigint a, \bigint b) {
-      assert a < b <==> b > a;
-      assert a <= b <==> b >= a;
-      assert a <= b <==> (a < b | a == b);
-      assert (a < b | a > b) <==> a != b;
-      assert a==b <==> !(a != b);
+      check a < b <==> b > a;
+      check a <= b <==> b >= a;
+      check a <= b <==> (a < b | a == b);
+      check (a < b | a > b) <==> a != b;
+      check a==b <==> !(a != b);
     }
     model public static void bit(\bigint a, \bigint b) {
-      assert (a & b) == ~(~a | ~b);
+//      assert (a & b) == ~(~a | ~b);  // FIXME - test that this can't be translated
     }
 */
     @org.jmlspecs.annotation.Options("--escbv=auto")
     public static void bitesc(int a, int b) {
       assert (a & b) == ~(~a | ~b);
     }
+
 /*@
     model public static void assignop(\bigint a, \bigint b) {
       var c = a;
       set c += b;
-      assert c == a + b;
+      check c == a + b;
+    }
+    
+    model public static void test() {
+      \bigint b = -4242;
+      show b;
+      unreachable; // To force a show
     }
  */
 }

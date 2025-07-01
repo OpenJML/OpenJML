@@ -1057,6 +1057,7 @@ public class Utils {
 
     public boolean isExtensionValueType(Type ty) {
         if (!(ty instanceof Type.ClassType ct)) return false;
+        if (ty.isErroneous()) return false;
         var prim = interfaceForPrimitiveTypes();
         // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
         // any JML types have IJmlPrimitiveType as a direct interface.
@@ -1064,8 +1065,8 @@ public class Utils {
             if (t.tsym == prim.tsym) return true;
         }
         if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
-            // This hack was added ecause the check above did not used to always work.
-            // (FIXME) Now it is a test that the fix for th above does indeed work.
+            // This hack was added because the check above did not used to always work.
+            // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
             warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
             return true;
         }

@@ -4,8 +4,10 @@ import java.math.BigInteger;
 
 import org.jmlspecs.lang.IJmlPrimitiveType;
 
-public class bigint implements IJmlPrimitiveType {
-    
+public class bigint extends Number implements IJmlPrimitiveType {
+
+    private static final long serialVersionUID = 1L;
+
     final private BigInteger value;
     
     private bigint(BigInteger v) {
@@ -20,6 +22,10 @@ public class bigint implements IJmlPrimitiveType {
         return new bigint(i);
     }
     
+    public static bigint of(bigint i) {
+        return i;
+    }
+    
     public static bigint of(long i) {
         return new bigint(BigInteger.valueOf(i));
     }
@@ -28,7 +34,19 @@ public class bigint implements IJmlPrimitiveType {
         return new bigint(BigInteger.valueOf(i));
     }
     
-    // The OpenJDK code uses valueOf by default for conversions
+    public static bigint of(short i) {
+        return new bigint(BigInteger.valueOf(i));
+    }
+    
+    public static bigint of(char i) {
+        return new bigint(BigInteger.valueOf(i));
+    }
+    
+    public static bigint of(byte i) {
+        return new bigint(BigInteger.valueOf(i));
+    }
+    
+    // The OpenJDK code uses valueOf by default for conversions  // FIXME - change this
     public static bigint valueOf(long i) {
         return new bigint(BigInteger.valueOf(i));
     }
@@ -58,26 +76,18 @@ public class bigint implements IJmlPrimitiveType {
     }
     
     public bigint divide(bigint v) {
+        if (v.value.equals(BigInteger.ZERO)) throw new ArithmeticException("/ by zero");
         return new bigint(value.divide(v.value));
     }
     
     public bigint mod(bigint v) {
+        if (v.value.equals(BigInteger.ZERO)) throw new ArithmeticException("mod by zero");
         boolean neg = v.value.signum() < 0;
         return new bigint(value.remainder(v.value));
     }
     
     public boolean eq(bigint v) {
         return value.equals(v.value);
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        return (o instanceof bigint b && eq(b));
-    }
-    
-    @Override
-    public int hashCode() {
-        return value.hashCode();
     }
     
     public boolean ne(bigint v) {
@@ -134,6 +144,14 @@ public class bigint implements IJmlPrimitiveType {
         return value;
     }
 
+    public double doubleValue() {
+        return value.doubleValue();
+    }
+
+    public float floatValue() {
+        return value.floatValue();
+    }
+
     public long longValue() {
         return value.longValue();
     }
@@ -154,8 +172,26 @@ public class bigint implements IJmlPrimitiveType {
         return value.byteValue();
     }
 
-    public org.jmlspecs.lang.real realValue() {
-        return org.jmlspecs.lang.real.of(value);
+    public real realValue() {
+        return real.of(value);
     }
+    
+    public int compareTo(bigint b) {
+        if (b == null) throw new NullPointerException("\\bigint.compareTo(null)");
+        return value.compareTo(b.value);
+    }
+    
+    /**.equals is not supported for \\bigint -- use == */
+    @Override
+    public boolean equals(Object o) {
+        throw new UnsupportedOperationException(".equals is not supported for \\bigint");
+    }
+    
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+    
+
 
 }

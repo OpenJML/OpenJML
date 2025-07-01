@@ -12759,10 +12759,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    } else if (jmltypes.isIntegral(newtype)) {
 		        int p = pos.getPreferredPosition();
 		        JCExpression emax = treeutils.makeUtilsMethodCall(expr.pos, "bigint_le", expr,
-		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",
+		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",     // FIXME - does this exist?
 		                        treeutils.makeLongLiteral(pos, maxValue(pos, newtype.getTag()))));
 		        JCExpression emin = treeutils.makeUtilsMethodCall(expr.pos, "bigint_ge", expr,
-		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",
+		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",    // FIXME - does this exist?
 		                        treeutils.makeLongLiteral(pos, minValue(pos, newtype.getTag()))));
 		        addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
 		        addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
@@ -12784,15 +12784,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    if ((jmltypes.isSameType(newtype, BIGINT))
 		            && isPrim && !jmltypes.isJmlType(expr.type)) {
 		        // primitive to BigInteger
-		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf", expr);
+		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf", expr);    // FIXME - does this exist?
 		    } else if (jmltypes.isSameType(BIGINT, newtype) && !isPrim
 		            && !jmltypes.isJmlType(expr.type)) {
 		        // boxed primitive to BigInteger
 		        if (jmltypes.isSameType(newtype, expr.type))
 		            return expr;
-		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOfNumber", expr);
+		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOfNumber", expr);    // FIXME - does this exist?
 		    } else if (jmltypes.isSameTypeOrRep(REAL, newtype) && isPrim && !jmltypes.isJmlType(expr.type)) {
-		        return treeutils.makeUtilsMethodCall(expr.pos, "real_valueOf", expr);
+		        return treeutils.makeUtilsMethodCall(expr.pos, "real_valueOf", expr);      // FIXME - does this exist?
 		    } else if (expr.type.getKind() == TypeKind.NULL && newtype.getKind() != TypeKind.NULL) {
 		        expr = M.at(expr).TypeCast(newtype, expr);
 		        expr.type = newtype;
@@ -12804,7 +12804,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        // for an assignment
 		        if (rac) {
 		            if (newtype.getTag() == TypeTag.LONG)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tolong", expr)
+		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tolong", expr)    // FIXME - does this exist?, etc.
 		                .setType(syms.longType);
 		            else if (newtype.getTag() == TypeTag.FLOAT)
 		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tofloat", expr)

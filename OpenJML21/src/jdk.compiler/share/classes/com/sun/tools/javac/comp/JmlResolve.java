@@ -144,6 +144,13 @@ public class JmlResolve extends Resolve {
     }
     
     @Override
+    protected boolean allowInheritance(Type baseType, TypeSymbol s) {
+ //       if (baseType != null && ((JmlTypes)types).isJmlType(baseType) && baseType.tsym != s) return false;
+        return true;
+    }
+
+    
+    @Override
     Symbol findTypeGlobalDetails(Env<AttrContext> env, Name name, Symbol bestSoFar) {
         if (!env.tree.hasTag(Tag.IMPORT)) {
             Symbol sym;
@@ -398,6 +405,7 @@ public class JmlResolve extends Resolve {
             boolean abstractok) {
     	try {
     		for (Symbol s : sc.getSymbolsByName(name, new JmlLookupFilter(abstractok))) {
+//                if (!symbolOK(s)) continue;  // OPENJML
     			bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
     					bestSoFar, useVarargs, operator);
     		}
@@ -409,6 +417,7 @@ public class JmlResolve extends Resolve {
     	}
     }
     
+    // FIXME - this seems to duplicate symbolOK() -- an d we would not need to override Resolve.findMethodInScope
     /** This class extends Resolve.LookupFilter to disallow using variables declared in
      * JML within Java code
      */
