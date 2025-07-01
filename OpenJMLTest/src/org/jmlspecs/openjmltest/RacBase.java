@@ -97,7 +97,7 @@ public abstract class RacBase extends JmlTestSuite {
         addOptions("--rac","--rac-java-checks","--rac-check-assumptions");
         addOptions("--show-not-implemented");
         addOptions("--no-purity-check"); // System specs have a lot of purity errors, so turn this off for now
-        addOptions("--rac-show-source=none");
+        addOptions("--rac-show-source=none"); // To make the test output more stable and smaller
         expectedExit = 0;
         expectedRACExit = 0;
         expectedNotes = 2; // Two lines to ignore

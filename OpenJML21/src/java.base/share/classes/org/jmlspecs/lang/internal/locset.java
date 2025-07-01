@@ -1,6 +1,7 @@
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
+import org.jmlspecs.lang.*;
 
-//@ immutable pure 
+
 public abstract class locset implements IJmlPrimitiveType {
 	
 	private locset() {}

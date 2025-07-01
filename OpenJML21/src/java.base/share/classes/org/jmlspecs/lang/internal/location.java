@@ -1,4 +1,5 @@
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
+import org.jmlspecs.lang.*;
 
 //@ immutable pure 
 public class location implements IJmlPrimitiveType {

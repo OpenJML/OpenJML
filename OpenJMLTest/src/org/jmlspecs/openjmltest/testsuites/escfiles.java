@@ -801,4 +801,10 @@ public class escfiles extends EscBaseFiles {
     public void jmlreal() {
         helpTG();
     }
+    
+    @Test public void jmlstring() {
+        helpTG();
+    }
+    
+
 }

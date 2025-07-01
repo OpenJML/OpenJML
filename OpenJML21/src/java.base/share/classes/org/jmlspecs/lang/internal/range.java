@@ -1,6 +1,6 @@
 /** This class is the runtime representation of the JML built-in primitive \range type. */
-package org.jmlspecs.lang;
-import org.jmlspecs.lang.internal.bigint;
+package org.jmlspecs.lang.internal;
+import org.jmlspecs.lang.*;
 
 //@ immutable pure 
 public class range implements IJmlPrimitiveType {

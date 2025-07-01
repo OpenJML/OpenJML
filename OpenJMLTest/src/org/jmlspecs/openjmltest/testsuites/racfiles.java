@@ -142,6 +142,11 @@ public class racfiles extends RacBase {
         expectedRACExit = 1;
         helpTCF("test/Dzmz","test/Dzmz","Dzmz","--rac-java-checks");
     }
+    
+    @Test
+    public void gitbug869() {
+        helpCompileOnly("--specs-path=test/gitbug869");
+    }
 
     @Test
     public void racWithMethods() {
@@ -701,6 +706,10 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
 
+    public void jmlstring() {
+        helpCompileRun("TString");
+    }
+    
     @Test
     public void racbigint() { // FIXME - do these duplicate
         expectedExit = 0;
@@ -713,6 +722,4 @@ public class racfiles extends RacBase {
         helpTCF("test/racreal","test/racreal","real");
     }
 
-
-    
 }

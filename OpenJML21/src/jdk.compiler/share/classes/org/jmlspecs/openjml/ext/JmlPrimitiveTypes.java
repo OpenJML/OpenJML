@@ -358,7 +358,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String stringId = "\\string";
 
-    public static final JmlTypeKind stringTypeKind = new JmlTypeKind(stringId,"string") {
+    public static final JmlTypeKind stringTypeKind = new JmlTypeKind(stringId,"org.jmlspecs.lang.internal.string") {
         @Override
         public int numTypeArguments() { return 0; }
 
@@ -425,7 +425,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String rangeID = "\\range";
     
-    public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "range") {
+    public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "org.jmlspecs.lang.internal.range") {
         @Override
         public int numTypeArguments() { return 0; }
         @Override
@@ -437,7 +437,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
 	public static final String locsetId = "\\locset";
 
-	public static final JmlTypeKind locsetTypeKind = new JmlTypeKind(locsetId,"locset") {
+	public static final JmlTypeKind locsetTypeKind = new JmlTypeKind(locsetId,"org.jmlspecs.lang.internal.locset") {
         @Override
         public int numTypeArguments() { return 0; }
 		@Override
