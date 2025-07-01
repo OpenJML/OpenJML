@@ -3,22 +3,23 @@ public class TString {
     //@ spec_pure
     public static void test1() { // empty
         //@ ghost \string s;
-        //@ assert s.isEmpty();
-        //@ assert s.size() == 0;
+        //@ check s.isEmpty();
+        //@ check s.size() == 0;
     }
     
     //@ spec_pure
     public static void test2() { // empty
         //@ ghost \string s = \string.empty();
-        //@ assert s.isEmpty();
-        //@ assert s.size() == 0;
+        //@ check s.isEmpty();
+        //@ check s.size() == 0;
     }
 
     //@ spec_pure
     public static void test3() { // of, size, length
         //@ ghost \string s = \string.of("ABC");
-        //@ assert s.size() == 3;
-        // @ assert s.length == 3; // FIXME
+        //@ check s.size() == 3;
+        //@ check s.length() == 3;
+        // @ check s.length == 3; // FIXME
     }
 
     
@@ -27,48 +28,55 @@ public class TString {
         //@ ghost \string s1, s2;
         //@ havoc s1, s2;
         //@ ghost \string s = \string.concat(s1 , s2);
-        //@ assert s.size() == s1.size() + s2.size();  // FIXME - test content using substrings
+        //@ check s.size() == s1.size() + s2.size();  // FIXME - test content using substrings
     }
 
     //@ spec_pure
     public static void test5() { // []
         //@ ghost \string s = \string.of("ABC");
-        //-RAC@ assert s[1] == 'B';
-        //@ assert s.get(1) == 'B';
+        //-RAC@ check s[1] == 'B';
+        //@ check s.get(1) == 'B';
     }
     
     //@ spec_pure
     public static void test6() { // put
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.put(1,'D');
-        //@ assert ss.size() == 3;
-        //@ assert ss.get(0) == 'A' && ss.get(1) == 'D' && ss.get(2) == 'C';
+        //@ check ss.size() == 3;
+        //@ check ss.get(0) == 'A' && ss.get(1) == 'D' && ss.get(2) == 'C';
     }
     
     //@ spec_pure
     public static void test7() { // insert
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.insert(1,'D');
-        //@ assert ss.size() == 4;
-        //@ assert ss.get(0) == 'A' && ss.get(1) == 'D' && ss.get(2) == 'B';
+        //@ check ss.size() == 4;
+        //@ check ss.get(0) == 'A' && ss.get(1) == 'D' && ss.get(2) == 'B';
     }
     
     //@ spec_pure
     public static void test8() { // add
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.add('D');
-        //@ assert ss.size() == 4;
-        //@ assert ss.get(2) == 'C' && ss.get(3) == 'D';
-        //@ assert \string.eq(ss,\string.of("ABCD"));
+        //@ check ss.size() == 4;
+        //@ check ss.get(2) == 'C' && ss.get(3) == 'D';
+        //@ check ss == \string.of("ABCD");
     }
     
     //@ spec_pure
     public static void test9() { // remove
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.remove(1);
-        //@ assert ss.size() == 2;
-        //@ assert ss.get(0) == 'A' && ss.get(1) == 'C';
-        //@ assert \string.eq(ss,\string.of("AC"));
+        //@ check ss.size() == 2;
+        //@ check ss.get(0) == 'A' && ss.get(1) == 'C';
+        //@ check ss == \string.of("AC");
+    }
+    
+    //@ spec_pure
+    public static void test10() { // .eq
+        //@ ghost \string s = \string.of("ABC");
+        //@ ghost \string ss = "ABC";
+        //@ check \string.eq(s,ss);
     }
     
     public static void main(String... args) {
@@ -81,6 +89,7 @@ public class TString {
         test7();
         test8();
         test9();
+        test10();
         System.out.println("END");
     }
 }

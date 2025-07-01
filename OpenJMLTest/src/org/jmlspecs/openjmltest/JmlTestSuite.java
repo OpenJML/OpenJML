@@ -467,12 +467,14 @@ public abstract class JmlTestSuite {
     protected String recordedOut;
 
     /** Manages the capturing of output to System.out and System.err; call with argument=true to start
-     * capturing; call with the argument=false to stop capturing, at which point the Strings actualOut 
-     * and actualErr will contain the collected output (access them through output() and errorOutput() ).
+     * capturing; call with the argument=false to stop capturing, at which point the Strings recordedOut 
+     * and recordedErr will contain the collected output (access them through output() and errorOutput() ).
+     * 
+     * This facility is NOT THREAD-SAFE because it changes System.out and System.err within this process.
      */
     public void collectOutput(boolean collect) {
         if (collect) {
-        	if (bout != null) return; // Already collecting
+            if (bout != null) return; // Already collecting
             recordedOut = null;
             recordedErr = null;
             savederr = System.err;
@@ -480,7 +482,7 @@ public abstract class JmlTestSuite {
             System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
             System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
         } else {
-        	if (bout == null) return; // Already not collecting
+            if (bout == null) return; // Already not collecting
             System.err.flush();
             System.out.flush();
             recordedErr = berr.toString();
