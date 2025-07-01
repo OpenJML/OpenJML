@@ -213,24 +213,33 @@ public class JmlTypes extends Types {
     /** Overrides Types.isConvertible with functionality for JML primitive types. */
     @Override
     public boolean isConvertible(Type t, Type s, Warner warn) {
-        if (s instanceof JmlType) {
-            if (s == JmlPrimitiveTypes.bigintTypeKind.getType(context) && isIntegral(t)) return true;
-            if (s == JmlPrimitiveTypes.realTypeKind.getType(context) && isNumeric(t)) return true;
-            //if (s == REAL && repSym(REAL) == t.tsym) return true;
+        // For JML primitive types, these implicit conversions are allowed.
+        //  t -> t
+        //  integral -> \\bigint
+        //  numeric -> \\real
+        //  \\bigint -> \\real
+        if (isJmlType(s) || isJmlType(t)) {
+            if (t.tsym == s.tsym) return true;
+            if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getType(context).tsym) {
+                return isIntegral(t);
+            }
+            if (s.tsym == JmlPrimitiveTypes.realTypeKind.getType(context).tsym) {
+                if (isNumeric(t)) return true;
+                if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getType(context).tsym && isIntegral(t)) return true;
+                return false;
+            }
             return false;
         }
         return super.isConvertible(t, s, warn);
     }
     
     /** Overrides Types.isSubtypeUnchecked with functionality for JML primitive types. */
+    // This call affects whether actuals match formals (perhaps among other things).
+    // JML Primitive types are not considered subtypes of anything but themselves, not even of Object.
+    // Permitted implicit conversions are implemented in isConvertible().
     @Override
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
-        if (t == s) return true;
-        if (s == JmlPrimitiveTypes.realTypeKind.getType(context)) return isNumeric(t);
-        if (s instanceof JmlType) {
-            if (s == JmlPrimitiveTypes.bigintTypeKind.getType(context)) return isIntegral(t);
-            else return false;  // FIXME - not sure about the semantics and logic here
-        }
+        if (isJmlType(s) || isJmlType(t)) return (t.tsym == s.tsym);
         return super.isSubtypeUnchecked(t, s, warn);
     }
             
@@ -298,26 +307,24 @@ public class JmlTypes extends Types {
      * true if Type t is castable to Type s. */
     @Override
     public boolean isCastable(Type t, Type s, Warner warn) {
-        if (s == t) return true;
-        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
-        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-        if (s == BIGINT) {
-            if (isIntegral(t)) return true;
-            return false;
-        }
-        if (t == BIGINT) {
-            if (isIntegral(s)) return true;
-            return false;
-        }
-        if (s == REAL) {
-            if (isNumeric(t)) return true;
-            if (t == BIGINT) return true;
-            return false;
-        }
-        if (t == REAL) {
-            if (isNumeric(s)) return true;
-            if (s == BIGINT) return true;
-            return false;
+        if (isJmlType(s) || isJmlType(t)) {
+            if (s.tsym == t.tsym) return true;
+            var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+            var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+            if (s.tsym == BIGINT.tsym) {
+                return isIntegral(t) || t.tsym == REAL.tsym;
+            }
+            if (s.tsym == REAL.tsym) {
+                if (isNumeric(t)) return true;
+                if (t.tsym == BIGINT.tsym) return true;
+                return false;
+            }
+            if (t.tsym == BIGINT.tsym) {
+                return isIntegral(s);
+            }
+            if (t.tsym == REAL.tsym) {
+                return isNumeric(s);
+            }
         }
         return super.isCastable(t, s, warn);
     }

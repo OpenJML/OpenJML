@@ -2647,11 +2647,13 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
             }
         } else if (!treeIsPrim) {
+            System.out.println("TYPECAST-A " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
             // Cast from primitive to object
         	utils.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
         } else {
             // unboxing cast from object to primitive
-        	utils.error(tree,"jml.internal","Do not expect casts from reference type in expressions: " + JmlPretty.write(tree));
+            System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
+        	utils.error(tree,"jml.internal","Do not expect casts from reference type in expressions: " + tage + " -> " + tagr + " in " + JmlPretty.write(tree));
             TypeTag tag = tree.type.getTag();
             switch (tag) {
                 case INT:

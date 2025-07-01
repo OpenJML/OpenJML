@@ -1,19 +1,24 @@
 OUT:
-test/jmlbigint/Test.java:56: verify: JML Division by zero
+test/jmlbigint/Test.java:82: verify: JML Division by zero
       try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); }
                      ^
-BigInteger divide by zero
-test/jmlbigint/Test.java:57: verify: JML Division by zero
+/ by zero
+test/jmlbigint/Test.java:83: verify: JML Division by zero
       try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); }
                      ^
-BigInteger divide by zero
-test/jmlbigint/Test.java:58: verify: JML Division by zero
+/ by zero
+test/jmlbigint/Test.java:84: verify: JML Division by zero
       try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); }
                       ^
-BigInteger divide by zero
-test/jmlbigint/Test.java:23: verify: JML assertion is false
-        //@ assert a + b == 40; // FALSE
+mod by zero
+LABEL JMLSHOW_1 = -4242
+test/jmlbigint/Test.java:151: verify: JML unreachable statement reached
+      unreachable; // To force a show
+      ^
+test/jmlbigint/Test.java:25: verify: JML assertion is false
+        //@ check a + b == 40; // FALSE
             ^
+java.lang.UnsupportedOperationException: .equals is not supported for \bigint
 END
 
 ERR:

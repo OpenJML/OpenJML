@@ -13,7 +13,9 @@ public class Test {
       a = r; // ERROR
       int j = a; // ERROR
       j = (int)a; // OK
-      
+      //@ check a != null; // ERROR
+      //@ check a.compareTo(null) == 0; // ERROR
+      a = (\bigint)null; // ERROR
     }
  */
 }

@@ -782,6 +782,17 @@ public class escfiles extends EscBaseFiles {
     }
     
     @Test
+    public void jmlbigint() {
+        helpTG();
+    }
+    
+    @Test
+    public void jmlbigintBad() {
+        expectedExit = 1;
+        helpTG(); // FIXME try compiling with -Xdiags:verbose (but does not seem to work)
+    }
+    
+    @Test
     public void jmlTYPE() {
         helpTG();
     }

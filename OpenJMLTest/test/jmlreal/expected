@@ -7,4 +7,28 @@ Starting proof of Test.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.main(String...) with prover !!!! - no warnings
+Starting proof of Test.ops() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.ops() with prover !!!! - no warnings
+Starting proof of Test.compare() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.compare() with prover !!!! - no warnings
+Starting proof of Test.misc() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.misc() with prover !!!! - no warnings
+Starting proof of Test.errors() with prover !!!!
+test/jmlreal/Test.java:76: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors
+        //@ check rlong.equals(null);  // Not allowed
+                              ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/real.jml:47: warning: Associated declaration
+    public boolean equals(/*@ nullable */ Object o);
+                   ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/real.jml:46: warning: Precondition conjunct is false: false
+    //@ requires false; // Use == and not .equals for comparing \\real values
+                 ^
+Completed proof of Test.errors() with prover !!!! - with warnings
 Completed proving methods in Test
+3 warnings

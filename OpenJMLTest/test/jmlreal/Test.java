@@ -30,7 +30,14 @@ public class Test {
         BigInteger bb = BigInteger.valueOf(123);
         //@ ghost \real rb = \real.of(bb); check rb.bigintValue().bigValue().equals(bb);
         
-        
+        ops();
+        compare();
+        misc();
+        errors();
+    }
+    public static void ops() {
+        //@ ghost \real rlong = 4000L;
+        //@ ghost \real rint = 42;
         //@ check rlong + rint == 4042;
         //@ check rlong - rint == 3958;
         //@ check rint * rint == 1764;
@@ -40,11 +47,36 @@ public class Test {
         //@ check rlong % -rint == 10;
         //@ check -rlong % rint == -10;
         //@ check -rlong % -rint == -10;
-        
-        //@ check rlong.compareTo(rint) > 0;
+    }
+    
+    public static void compare() {
+        //@ ghost \real rlong = 4000L;
+        //@ ghost \real rint = 42;
         //@ check !(rlong < rint);
         //@ check rlong != rint;
         
+    }
+    public static void misc() {
+        //@ ghost \real rlong = 4000L;
+        //@ ghost \real rint = 42;
+        //@ check rlong.compareTo(rint) > 0;
+        //@ check rlong.compareTo((\real)(4000)) == 0;
+        //@ check rlong == \real.of(4000);
+        //@ check rlong.compareTo(\real.of(4000)) == 0;
+        //@ check rlong.hashCode() == ((\real)4000).hashCode();
+        //@ check rlong.hashCode() == \real.of(4000).hashCode();
+        //@ check rlong.eq(4000) == true;
+        //@ check (rlong == 4000) == true;
         //@ show rlong.toString(), rint;
     }
+    
+    public static void errors() {
+        //@ ghost \real rlong = 4000L;
+        try {
+        //@ check rlong.equals(null);  // Not allowed
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+    
 }

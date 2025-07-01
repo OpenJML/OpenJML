@@ -143,26 +143,6 @@ public class racfiles extends RacBase {
         helpTCF("test/Dzmz","test/Dzmz","Dzmz","--rac-java-checks");
     }
 
-
-
-    @Test
-    public void jmlbigint() {
-        expectedExit = 0;
-        helpTCF("test/jmlbigint","test/jmlbigint","Test");
-    }
-
-    @Test
-    public void racbigint() {
-        expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint");
-    }
-
-    @Test
-    public void racreal() {
-        expectedExit = 0;
-        helpTCF("test/racreal","test/racreal","real");
-    }
-
     @Test
     public void racWithMethods() {
         expectedExit = 0;
@@ -715,6 +695,24 @@ public class racfiles extends RacBase {
     public void jmlreal() {
         helpCompileRun("Test");
     }
+
+    @Test
+    public void jmlbigint() {
+        helpCompileRun("Test");
+    }
+
+    @Test
+    public void racbigint() { // FIXME - do these duplicate
+        expectedExit = 0;
+        helpTCF("test/racbigint","test/racbigint","bigint");
+    }
+
+    @Test
+    public void racreal() {  // FIXME - do these duplicate
+        expectedExit = 0;
+        helpTCF("test/racreal","test/racreal","real");
+    }
+
 
     
 }

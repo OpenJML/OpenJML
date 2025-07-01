@@ -5038,6 +5038,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Treating this specially avoids attempts at unboxing for some operators
             // FIXME - this skips any implicit conversions?
             // FIXME - what about inferred type parameters
+            if (jmltypes.isJmlType(left) && that.rhs instanceof JCLiteral lit && lit.getValue() == null) {
+                utils.error(that, "jml.message", "JML primitive types may not be compared to null");
+            }
+            if (jmltypes.isJmlType(right) && that.lhs instanceof JCLiteral lit && lit.getValue() == null) {
+                utils.error(that, "jml.message", "JML primitive types may not be compared to null");
+            }
             that.type = rt;
             return rt;
         }
@@ -7296,8 +7302,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public JCExpression autobox(JCExpression e, Type boxedtype) {
         jmlMaker.at(e.pos);
         //Type boxed = Types.instance(context).boxedClass(vartype).type;
-        Name valueof = names.fromString("valueOf");
-        JCExpression s = jmlMaker.Select(jmlMaker.Type(boxedtype),valueof);
+        JCExpression s = jmlMaker.Select(jmlMaker.Type(boxedtype),names.valueOf);
         s = jmlMaker.Apply(null,s,List.<JCExpression>of(e));
         return s;
     }
