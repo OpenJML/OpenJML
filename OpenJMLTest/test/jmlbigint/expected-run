@@ -1,18 +1,18 @@
 OUT:
-test/jmlbigint/Test.java:82: verify: JML Division by zero
-      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); }
-                     ^
-/ by zero
 test/jmlbigint/Test.java:83: verify: JML Division by zero
-      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); }
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
                      ^
 / by zero
 test/jmlbigint/Test.java:84: verify: JML Division by zero
-      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); }
+      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+                     ^
+/ by zero
+test/jmlbigint/Test.java:85: verify: JML Division by zero
+      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
                       ^
 mod by zero
 LABEL JMLSHOW_1 = -4242
-test/jmlbigint/Test.java:151: verify: JML unreachable statement reached
+test/jmlbigint/Test.java:152: verify: JML unreachable statement reached
       unreachable; // To force a show
       ^
 test/jmlbigint/Test.java:25: verify: JML assertion is false

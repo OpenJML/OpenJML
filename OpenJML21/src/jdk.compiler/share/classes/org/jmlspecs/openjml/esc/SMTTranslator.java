@@ -2507,10 +2507,19 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
             }
             if (tree.type.tsym == BIGINT) {
-                var k = ((Number)lit.getValue()).longValue();
+                var v = lit.getValue();
+                long k;
+                if (v instanceof Number n) {
+                    k = n.longValue();
+                } else if (v instanceof Character c) {
+                    k = (char)c;
+                } else {
+                    k = 0;
+                    // FIXME - unexpected kind of literal
+                }
                 result = useBV ? F.hex("00000000") : numeral(k);
                 return;
-            }
+            }    
         }
         if (result instanceof Numeral) {
             if (tree.type.tsym == REAL) {
