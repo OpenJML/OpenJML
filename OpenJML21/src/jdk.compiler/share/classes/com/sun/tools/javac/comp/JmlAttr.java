@@ -6111,22 +6111,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Type owntype = types.createErrorType(tree.type);
             Type atype = attribExpr(tree.indexed, env);
             Type t = attribExpr(tree.index, env);
-            if (jmltypes.isArray(atype))
-                owntype = jmltypes.elemtype(atype);
-            else if (!atype.hasTag(ERROR))
-                utils.error(tree.indexed, "array.req.but.found", atype);
             if (t == rangeTypeKind.getType(context)) {
-            	if (!(tree.index instanceof JmlRange)) {
-            		utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
-            	}
-            } else {
-            	if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
-            		utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t.toString());
-            	}
+                if (!(tree.index instanceof JmlRange)) {
+                    utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
+                }
+            } else if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
+                utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t.toString());
             }
-        	if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
-        	result = check(tree, owntype, KindSelector.VAR, resultInfo);
-
+            // FIXME - range in string [] ?
+            if (atype.tsym == stringTypeKind.getType(context).tsym) {
+                owntype = syms.charType;
+            } else if (jmltypes.isArray(atype)) {
+                owntype = jmltypes.elemtype(atype);
+            } else if (!atype.hasTag(ERROR)) {
+                utils.error(tree.indexed, "array.req.but.found", atype);
+            } else {
+                
+            }
+            // FIXME - review the next two lines
+            if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
+            result = check(tree, owntype, KindSelector.VAR, new ResultInfo(KindSelector.of(KindSelector.VAR), Infer.anyPoly));
         } else {
             super.visitIndexed(tree);
         }

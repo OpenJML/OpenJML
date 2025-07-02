@@ -191,6 +191,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final Symbol BIGINT;
     final Symbol STRING;
     final Symbol TYPE;
+    final Symbol RANGE;
     
     /** A counter used to make String literal identifiers unique */
     int stringCount = 0;
@@ -271,6 +272,7 @@ public class SMTTranslator extends JmlTreeScanner {
         BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
         REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
         TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
+        RANGE = JmlPrimitiveTypes.rangeTypeKind.getSymbol(context);
 
     }
     
@@ -292,23 +294,27 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
-    final public static String rangeTypeName = "|RANGE|";
-    final public static String rangefcn = "|range:of|";
-    final public static String rangelo = "|range:lo|";
-    final public static String rangehi = "|range:hi|";
-    final public static String rangeeq = "|range:eq|";
+    final public static String rangeTypeName = "|`RANGE|";
+    final public static String rangefcn = "|`range:of|";
+    final public static String rangelo = "|`range:lo|";
+    final public static String rangehi = "|`range:hi|";
+    final public static String rangeex = "|`range:ex|";
+    final public static String rangeeq = "|`range:eq|";
     
     protected void addRange(SMT smt) {
         addCommand(smt,"(declare-sort "+rangeTypeName+" 0)");
         addCommand(smt,"(declare-fun "+rangefcn+" (Int Int) "+rangeTypeName+")");
         addCommand(smt,"(declare-fun "+rangelo+" ("+rangeTypeName+") Int)");
         addCommand(smt,"(declare-fun "+rangehi+" ("+rangeTypeName+") Int)");
+        addCommand(smt,"(declare-fun "+rangeex+" ("+rangeTypeName+") Bool)");
         addCommand(smt,"(define-fun "+rangeeq+" (( p "+rangeTypeName+") (q "+rangeTypeName+")) "+boolSort+" (and (= ("+rangelo+" p) ("+rangelo+" q)) (= ("+rangehi+" p) ("+rangehi+" q))))");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+rangelo+" ("+rangefcn+" i j))))) ");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+rangehi+" ("+rangefcn+" i j))))) ");
+        addCommand(smt,"(assert (forall ((i Int)(j Int)) (not ("+rangeex+" ("+rangefcn+" i j))))) ");
         recordFcn(rangefcn);
         recordFcn(rangelo);
         recordFcn(rangehi);
+        recordFcn(rangeex);
         recordFcn(rangeeq);
         rangeSort = F.createSortExpression(F.symbol(rangeTypeName));
     }
@@ -1259,6 +1265,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     // Creates an SMT sort id for extension types (or maps to a SMT native sort)
     public ISymbol sortId(Type t) {
+        if (t.toString().equals("\\range")) return F.symbol(rangeTypeName);
         return F.symbol("S_" + t.tsym.toString());
     }
     
@@ -1342,6 +1349,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Records a new sort */
     public void addSort(Type t) {
+        if (t.toString().equals("\\range")) return; // FIXME - why do e have to avoid a duplicate here
         t = t.stripMetadata();
         Integer oldValue = newSorts.get(t);
         if (oldValue != null) return; // already defined
@@ -2820,12 +2828,14 @@ public class SMTTranslator extends JmlTreeScanner {
         if (tree.selected != null) {
             JCExpression object = tree.selected;
             Symbol field = tree.sym;
-            if (object.type.toString().startsWith("org.jmlspecs.lang.range")) {
+            if (object.type.tsym == RANGE) {
             	IExpr sel = convertExpr(object);
-            	if (field.name.toString().contains("lo")) {
+            	if (field.name.toString().equals("lo")) {
             		result = F.fcn(F.symbol(rangelo),sel);
-            	} else {
+            	} else if (field.name.toString().equals("hi")) {
             		result = F.fcn(F.symbol(rangehi),sel);
+            	} else {
+                    result = F.fcn(F.symbol(rangeex),sel);
             	}
             	// FIXME - why do arrays use this branch instead of the one at the bottom
             //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
@@ -2855,7 +2865,7 @@ public class SMTTranslator extends JmlTreeScanner {
                                 object == null ? thisSym: convertExpr(object)
                                 );
                 }
-            } else if (object.type.toString().equals("org.jmlspecs.lang.string")) {
+            } else if (object.type.toString().equals("org.jmlspecs.lang.internal.string")) {
             	// String length
             	IExpr sel = convertExpr(object);
             	result = F.fcn(stringLengthSym,sel);

@@ -218,6 +218,7 @@ public class JmlTypes extends Types {
         //  integral -> \\bigint
         //  numeric -> \\real
         //  \\bigint -> \\real
+        //  String -> \string
         if (isJmlType(s) || isJmlType(t)) {
             if (t.tsym == s.tsym) return true;
             if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getType(context).tsym) {
@@ -226,6 +227,10 @@ public class JmlTypes extends Types {
             if (s.tsym == JmlPrimitiveTypes.realTypeKind.getType(context).tsym) {
                 if (isNumeric(t)) return true;
                 if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getType(context).tsym && isIntegral(t)) return true;
+                return false;
+            }
+            if (s.tsym == JmlPrimitiveTypes.stringTypeKind.getType(context).tsym) {
+                if (t.tsym == syms.stringType.tsym) return true;
                 return false;
             }
             return false;
