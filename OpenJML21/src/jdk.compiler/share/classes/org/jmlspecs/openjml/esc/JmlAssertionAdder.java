@@ -13299,7 +13299,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// FIXME - review
 	@Override
 	public void visitAssign(JCAssign that) {
-		//System.out.println("VISITASSIGN " + oldenv);
 		if (that.lhs instanceof JmlTuple) {
 			java.util.List<JCExpression> lhss = new ArrayList<>();
 			for (JCExpression lhs : ((JmlTuple) that.lhs).values) {

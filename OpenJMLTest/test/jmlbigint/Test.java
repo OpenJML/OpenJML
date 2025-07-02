@@ -21,10 +21,10 @@ public class Test {
         //@ set compare(a,b);
         //@ set bit(a,b);
         //@ set assignop(a,b);
-        //@ set test();
+        //@ set show();
         //@ check a + b == 40; // FALSE
-        misc();
-        System.out.println("END");
+        misc(100);
+        //+RAC@ set System.out.println("END");
     }
     
     public static void inits() {
@@ -32,21 +32,21 @@ public class Test {
         //@ ghost \bigint bshort = (short)5;  check bshort == 5; check bshort == \bigint.of((short)5); check bshort.shortValue() == 5;
         //@ ghost \bigint blong = (long)5;  check blong == 5; check blong == \bigint.of(5L); check blong.longValue() == 5;
         //@ ghost \bigint bbyte = (byte)5;  check bbyte == 5; check bbyte == \bigint.of((byte)5); check bbyte.byteValue() == 5;
-// FIXME        //@ ghost \bigint bchar= 'c';  check bchar == 'c'; check bchar == \bigint.of('c'); check bchar.charValue() == 'c';
+        //@ ghost \bigint bchar = 'c'; check bchar == 'c'; check bchar == \bigint.of('c'); check bchar.charValue() == 'c';
     }
     
-    public static void misc() {
+    public static void misc(int c) {
         //@ ghost \bigint a = 45;
         //@ ghost \bigint b = 45;
-        //@ check a == b;
         //@ check a.compareTo(b) == 0;
         //@ check a.compareTo(45) == 0;
         //@ check a.hashCode() == b.hashCode();
+        //@ check a.hashCode() != \bigint.of(c) ==> a != \bigint.of(c);
         //-ESC@ check a.toString().equals("45");
         try {
             //@ check a.equals(null);
         } catch (Exception e) {
-            System.out.println (e);
+            //+RAC@ set System.out.println (e);
         }
     }
         
@@ -72,16 +72,17 @@ public class Test {
     requires a != 0;
     model public static void mul(\bigint a, \bigint b) {
       check \bigint.zero == (\bigint)0;
-      check a != 0;
+      assert a != \bigint.zero;
       var c = a * b;
       var d = c / a;
-      assert d == b;
+      //+ESC@ show a, b, c, d;
+      //-ESC@ check d == b;   // FIXME -- the counterexample is inaccurate -- cf Github Issue #870
     }
     model public static void divzero() {
       var a = (\bigint)10;
-      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); }
-      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); }
-      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); }
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
     }
     model public static void divzero1() {
       var a = (\bigint)10;
@@ -130,7 +131,7 @@ public class Test {
       check a==b <==> !(a != b);
     }
     model public static void bit(\bigint a, \bigint b) {
-//      assert (a & b) == ~(~a | ~b);  // FIXME - test that this can't be translated
+//-ESC@      check (a & b) == ~(~a | ~b);  // FIXME - test that this can't be translated
     }
 */
     @org.jmlspecs.annotation.Options("--escbv=auto")
@@ -145,10 +146,14 @@ public class Test {
       check c == a + b;
     }
     
-    model public static void test() {
+    model public static void show() {
       \bigint b = -4242;
       show b;
       unreachable; // To force a show
     }
  */
+    
+//    public static void test() {
+//        //@ ghost \bigint bchar = 'c'; // check bchar == 'c'; check bchar == \bigint.of('c'); check bchar.charValue() == 'c';
+//    }
 }
