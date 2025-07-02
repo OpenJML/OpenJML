@@ -367,6 +367,10 @@ public class JmlPrimitiveTypes extends JmlExtension {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
+            jt.enterBinop("<=", type, type, jt.syms.booleanType);
+            jt.enterBinop(">=", type, type, jt.syms.booleanType);
+            jt.enterBinop("<", type, type, jt.syms.booleanType);
+            jt.enterBinop(">", type, type, jt.syms.booleanType);
             jt.enterBinop("+", type, type, type);
             jt.enterBinop("+", type, jt.syms.charType, type);
         }
@@ -428,11 +432,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "org.jmlspecs.lang.internal.range") {
         @Override
         public int numTypeArguments() { return 0; }
-        @Override
-        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-            init(parser);
-            return null;
-        }
     };
 
 	public static final String locsetId = "\\locset";

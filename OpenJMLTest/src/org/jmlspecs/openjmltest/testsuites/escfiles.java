@@ -802,7 +802,13 @@ public class escfiles extends EscBaseFiles {
         helpTG();
     }
     
-    @Test public void jmlstring() {
+    @Test
+    public void jmlstring() {
+        helpTG();
+    }
+    
+    @Test
+    public void jmlrange() {
         helpTG();
     }
     

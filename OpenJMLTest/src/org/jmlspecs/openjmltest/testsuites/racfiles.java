@@ -706,7 +706,15 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
 
+    @Test
+    public void jmlrange() {
+        expectedExit = 0;
+        helpCompileRun("TestRange");
+    }
+    
+    @Test
     public void jmlstring() {
+        expectedExit = 0;
         helpCompileRun("TString");
     }
     

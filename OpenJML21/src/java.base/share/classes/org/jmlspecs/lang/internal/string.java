@@ -1,13 +1,14 @@
 package org.jmlspecs.lang.internal;
 
-import org.jmlspecs.lang.*;
+import org.jmlspecs.lang.IJmlIntArrayLike;
+import org.jmlspecs.lang.IJmlPrimitiveType;
 
 // This file provides RAC implementations for \\string functionality
 // Though \string is defined for arbitrary character sequences, this implementation only allows lengths up to Integer.MAX_VALUE
 
 public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Comparable<string> {
 
-    private String value = "";
+    private final String value;
     
     private string(String s) {
         value = s;
@@ -38,15 +39,14 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(s);
     }
     
-    /** Unchecked getChar -- out of range values are 'undefined' */
-    private char _get(bigint i) {
-        if (indexOK(i)) return value.charAt(i.intValue());
-        return (char)0;
-    }
-    
     public char get(bigint i) {
         if (indexOK(i)) return value.charAt(i.intValue());
         throw exc(i, "get");
+    }
+    
+    public char getUnchecked(bigint i) {
+        if (indexOK(i)) return value.charAt(i.intValue());
+        return 0;
     }
     
     // FIXME - remove
@@ -103,7 +103,7 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
     }
 
     public string put(bigint ii, char v) {
-        if (indexOK(ii)) throw exc(ii, "put");
+        if (!indexOK(ii)) throw exc(ii, "put");
         int i = ii.intValue();
         return new string(value.substring(0,i) + v + value.substring(i+1));
     }
@@ -118,6 +118,10 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(value.substring(0,i) + value.substring(i+1));
     }
 
+    public string substring(bigint start) {
+        return new string(value.substring(start.intValue()));
+    }
+    
     public string substring(bigint start, bigint end) {
         return new string(value.substring(start.intValue(), end.intValue()));
     }
@@ -127,6 +131,9 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
     
     private boolean indexOK(bigint i) {
         return i.ge(bigint.of(0)) && i.lt(bigint.of(value.length()));
+    }
+    private boolean indexOK(int i) {  // FIXME - complains that i won't convert to bigint when called
+        return i >= 0 && i < value.length();
     }
     private RuntimeException exc(bigint i, String method) {
         return new StringIndexOutOfBoundsException("index " + i.intValue() + " is not in 0 .. " + (value.length()-1) + " in call of " + method);

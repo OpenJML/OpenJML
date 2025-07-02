@@ -1,0 +1,7 @@
+OUT:
+java.lang.StringIndexOutOfBoundsException: index -1 is not in 0 .. 3 in call of get
+java.lang.StringIndexOutOfBoundsException: index 4 is not in 0 .. 3 in call of get
+java.lang.UnsupportedOperationException
+END
+
+ERR:
