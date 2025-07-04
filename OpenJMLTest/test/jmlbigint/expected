@@ -1,0 +1,107 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.main(String...) with prover !!!!
+test/jmlbigint/Test.java:25: warning: The prover cannot establish an assertion (Assert) in method main
+        //@ check a + b == 40; // FALSE
+            ^
+Completed proof of Test.main(String...) with prover !!!! - with warnings
+Starting proof of Test.inits() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.inits() with prover !!!! - no warnings
+Starting proof of Test.misc(int) with prover !!!!
+test/jmlbigint/Test.java:47: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
+            //@ check a.equals(null);
+                              ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:244: warning: Associated declaration
+    public boolean equals(/*@ nullable */ Object o);
+                   ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:242: warning: Precondition conjunct is false: false
+    //@ requires false; // .equals may not be called -- use == instead
+                 ^
+test/jmlbigint/Test.java:44: warning: The prover cannot establish an assertion (Assert) in method misc
+        //@ check a.hashCode() != \bigint.of(c) ==> a != \bigint.of(c);
+            ^
+Completed proof of Test.misc(int) with prover !!!! - with warnings
+Starting proof of Test.add(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.add(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test.neg(\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.neg(\bigint) with prover !!!! - no warnings
+Starting proof of Test.convert(\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.convert(\bigint) with prover !!!! - no warnings
+Starting proof of Test.mul(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mul(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test.divzero() with prover !!!!
+test/jmlbigint/Test.java:83: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method divzero
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+                     ^
+Completed proof of Test.divzero() with prover !!!! - with warnings
+Starting proof of Test.divzero1() with prover !!!!
+test/jmlbigint/Test.java:89: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method divzero1
+      var b = a/\bigint.zero; // ERROR
+               ^
+Completed proof of Test.divzero1() with prover !!!! - with warnings
+Starting proof of Test.divzero2() with prover !!!!
+test/jmlbigint/Test.java:93: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method divzero2
+      var c = a/0; // ERROR
+               ^
+Completed proof of Test.divzero2() with prover !!!! - with warnings
+Starting proof of Test.divzero3() with prover !!!!
+test/jmlbigint/Test.java:97: warning: The prover cannot establish an assertion (UndefinedDivideByZero) in method divzero3
+      var e = a % 0; // ERROR
+                ^
+Completed proof of Test.divzero3() with prover !!!! - with warnings
+Starting proof of Test.mod(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mod(int,int) with prover !!!! - no warnings
+Starting proof of Test.mod(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mod(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test.shift(\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.shift(\bigint) with prover !!!! - no warnings
+Starting proof of Test.compare(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.compare(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test.bit(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.bit(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test.bitesc(int,int) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.bitesc(int,int) with prover !!!! - no warnings
+Starting proof of Test.assignop(\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.assignop(\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test.show() with prover !!!!
+test/jmlbigint/Test.java:151: warning: Show statement expression b has value ( - 4242 )
+      show b;
+           ^
+test/jmlbigint/Test.java:152: warning: The prover cannot establish an assertion (Unreachable) in method show
+      unreachable; // To force a show
+      ^
+Completed proof of Test.show() with prover !!!! - with warnings
+Starting proof of Test.constants() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.constants() with prover !!!! - no warnings
+Completed proving methods in Test
+11 warnings

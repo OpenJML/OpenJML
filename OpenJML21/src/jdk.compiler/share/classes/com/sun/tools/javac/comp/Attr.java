@@ -660,7 +660,9 @@ public class Attr extends JCTree.Visitor {
             if (resultInfo.needsArgumentAttr(tree)) {
                 result = argumentAttr.attribArg(tree, env);
             } else {
+                //if (tree.toString().contains("seq") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("ACCEPT TREE " + tree + " " + tree.getClass());
                 tree.accept(this);
+                //if (tree.toString().contains("seq") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("ACCEPT TREE-Z " + tree + " " + tree.type + " " + result);
             }
             matchBindings = matchBindingsComputer.finishBindings(tree,
                                                                  matchBindings);
@@ -5083,6 +5085,7 @@ public class Attr extends JCTree.Visitor {
      */
     public void visitTypeApply(JCTypeApply tree) {
         Type owntype = types.createErrorType(tree.type);
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITTYPEAPPLY " + tree + " " + tree.clazz + " " + tree.clazz.getClass());
 
         // Attribute functor part of application and make sure it's a class.
         Type clazztype = chk.checkClassType(tree.clazz.pos(), attribType(tree.clazz, env));

@@ -273,7 +273,7 @@ public class SpecsBase extends TCBase {
         donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test does not find the junit library 
         donttest.add("java.lang.AbstractStringBuilder"); // FIXME - not public
         donttest.add("java.lang.StringCoding");
-        donttest.add("org.jmlspecs.lang.range"); // See specialized test below
+        donttest.add("org.jmlspecs.lang.internal.range"); // See specialized test below
     }
     
     static java.util.HashMap<String,Integer> counts = new java.util.HashMap<>();
@@ -368,7 +368,7 @@ public class SpecsBase extends TCBase {
         // Do these because the classes are not public
         if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
         if (className.equals("java.lang.StringCoding")) program = "package java.lang; " + program;
-        if (className.equals("org.jmlspecs.lang.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.range o) {} }"; // FIXME - needs better specs and tests
+        if (className.equals("org.jmlspecs.lang.internal.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.range o) {} }"; // FIXME - needs better specs and tests
         if (className.equals("org.jmlspecs.lang.internal.datagroup")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.datagroup o) {} }"; // FIXME - needs better specs and tests
         helpTCFile("AJDK.java",program,className);
     }

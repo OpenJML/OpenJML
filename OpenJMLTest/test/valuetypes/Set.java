@@ -1,14 +1,13 @@
-//@ model import org.jmlspecs.lang.set;
 
 //@ pure
 public class Set<T> {
     
     //@ public normal_behavior
-    //@   ensures set.<T>empty().isEmpty();
+    //@   ensures \set.<T>empty().isEmpty();
     //@ model public static <T> void newSetIsEmpty() {}
     
     //@ public normal_behavior
-    //@   ensures set.<T>empty().add(o).size() == 1;
+    //@   ensures \set.<T>empty().add(o).size() == 1;
     //@ model public static <T> void singleton(T o) {}
     
     //@ public normal_behavior

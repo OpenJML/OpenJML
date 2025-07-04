@@ -639,8 +639,8 @@ public class JmlTreeUtils {
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
         var ARRAY = JmlPrimitiveTypes.arrayTypeKind.getSymbol(context);
-        var emp = names.fromString("empty"); // NOT the same as names.empty!
-        if (utils.isExtensionValueType(type)) {
+        if (types.isJmlType(type)) {
+            var emp = names.fromString("empty"); // NOT the same as names.empty!
             if (type.tsym == BIGINT.tsym) {
                 JCExpression e = utils.rac ? makeMethodInvocation(dpos, makeType(dpos, BIGINT), names.of, zero)
                         : makeTypeCast(dpos, type, zero);
@@ -655,11 +655,13 @@ public class JmlTreeUtils {
                 return e;
 
             } else if (type.tsym == TYPE.tsym) {
+                // FIXME - could call empty?
                 JCExpression ty = makeType(dpos, type);
                 return makeMethodInvocation(dpos, ty, names.of, makeDotClass(dpos.getPreferredPosition(), syms.objectType));
 
             } else {
-                // These all call empty() 
+                // These all call empty()
+                // FIXME - calling empty is fine for RAC, but does it work for ESC?
                 var ct = (ClassType)type;
                 if (ct.getTypeArguments().size() == 0) {
                     JCMethodInvocation call = makeMethodInvocation(dpos, makeType(dpos, type), emp);
@@ -671,8 +673,7 @@ public class JmlTreeUtils {
                     call.typeargs = targs.toList();
                     return call;
                 }
-
-            }
+            }           
         } else {
         switch (type.getTag()) {
             case CHAR:

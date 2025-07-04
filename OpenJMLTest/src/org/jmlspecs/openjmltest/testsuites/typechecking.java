@@ -1945,18 +1945,18 @@ public class typechecking extends TCBase {
                   //@ ghost \\real rrrb = s;            // ERROR \\string -> \\real
                 }  // FIXME -  make all messages use backslash names
                 """
-                ,"/TestJava.java:4: error: incompatible types: org.jmlspecs.lang.string cannot be converted to java.lang.String",25
+                ,"/TestJava.java:4: error: incompatible types: \\string cannot be converted to java.lang.String",25
                 ,"/TestJava.java:6: error: incompatible types: \\real cannot be converted to double",24
                 ,"/TestJava.java:8: error: incompatible types: \\bigint cannot be converted to long",23
                 ,"/TestJava.java:9: error: incompatible types: java.lang.String cannot be converted to \\real", 25
                 ,"/TestJava.java:10: error: incompatible types: java.lang.String cannot be converted to \\bigint",26
-                ,"/TestJava.java:11: error: incompatible types: org.jmlspecs.lang.string cannot be converted to \\real",25
-                ,"/TestJava.java:12: error: incompatible types: org.jmlspecs.lang.string cannot be converted to \\bigint",26
+                ,"/TestJava.java:11: error: incompatible types: \\string cannot be converted to \\real",25
+                ,"/TestJava.java:12: error: incompatible types: \\string cannot be converted to \\bigint",26
                 ,"/TestJava.java:13: error: incompatible types: \\real cannot be converted to java.lang.String",26
-                ,"/TestJava.java:14: error: incompatible types: \\real cannot be converted to org.jmlspecs.lang.string",28
+                ,"/TestJava.java:14: error: incompatible types: \\real cannot be converted to \\string",28
                 ,"/TestJava.java:15: error: incompatible types: \\real cannot be converted to \\bigint",28
                 ,"/TestJava.java:17: error: incompatible types: java.lang.String cannot be converted to \\real",26
-                ,"/TestJava.java:18: error: incompatible types: org.jmlspecs.lang.string cannot be converted to \\real",26
+                ,"/TestJava.java:18: error: incompatible types: \\string cannot be converted to \\real",26
                 );
     }
 

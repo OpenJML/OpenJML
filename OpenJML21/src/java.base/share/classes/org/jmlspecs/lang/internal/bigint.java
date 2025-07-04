@@ -18,6 +18,8 @@ public class bigint extends Number implements IJmlPrimitiveType {
     
     public final static bigint one = bigint.of(1);
     
+    public static bigint empty() { return zero; }
+    
     public static bigint of(BigInteger i) {
         return new bigint(i);
     }

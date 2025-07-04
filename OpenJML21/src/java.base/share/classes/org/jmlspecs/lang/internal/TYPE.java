@@ -4,7 +4,7 @@ import java.util.*;
 
 public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     
-    public String bsName() { return "\\TYPE"; }
+    public String bsName() { return "\\TYPE"; } // FIXME - do we need this
 
     final private Class<?> base;
     final private TYPE[] args;
@@ -21,8 +21,12 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return t.intern();
     }
     
+    public static TYPE empty() {
+        return of(boolean.class);
+    }
+    
     public String toString() {
-        if (base == null) return "?"; // FIXME - really this is just unknown, not a wildcard
+        if (base == null) return "???"; // This is a defensive output, not any wildcard
         int count = 0;
         var b = base;
         while (b.isArray()) { ++count; b = b.getComponentType(); }
@@ -86,7 +90,6 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
             if (!a.eq(t.args[k])) return false;
             ++k;
         }
-        //System.out.println("   RETURNING true");
         return true;
     }
     
@@ -96,7 +99,9 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
 
     @Override
     public boolean equals(Object t) {
-        return t instanceof TYPE ty && eq(ty);
+        // Unsupported externally, but have to support it here to enable interning Maps
+        return (t instanceof TYPE tt) && this.eq(tt);
+        //throw new UnsupportedOperationException("\\TYPE.equals is not supported; use ==");
     }
     
     @Override
@@ -122,27 +127,21 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     }
 
     public boolean isSubtypeOf(TYPE t) {
-        return t.erasure().isAssignableFrom(this.base);  // FIXME - should check for equality of type arguments
+        if (!t.erasure().isAssignableFrom(this.base)) return false;
+        if (this.args.length != t.args.length) return false;
+        for (int i=0; i< args.length; i++) {
+            if (!this.args[i].eq(t.args[i])) return false;
+        }
+        return true;
     }
     
     public boolean isSubtypeOfProper(TYPE t) {
-        return isSubtypeOf(t) && !equals(t);  // FIXME - should check for equality of type arguments
+        return isSubtypeOf(t) && !eq(t);
     }
     
     public TYPE getComponentType() {
         if (!base.isArray()) throw new IllegalArgumentException("Calling \\elemtype on a value that is not an (or does not have) array type: " + this);
         return TYPE.of(base.getComponentType(), args);
     }
-
-//    @Override
-//    public boolean equals(IJMLTYPE t) {
-//        // TODO Auto-generated method stub
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isSubtypeOf(IJMLTYPE t) {
-//        return isSubtypeOf((TYPE)t);
-//    }
 
 }

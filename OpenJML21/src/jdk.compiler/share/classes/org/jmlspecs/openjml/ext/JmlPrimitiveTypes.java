@@ -54,7 +54,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public JmlTypeKind(String keyword, String typename) {
             super(keyword);
             this.typename = typename;
-            
         }
         
         public void clear() {
@@ -81,7 +80,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
             } else {
                 fqname = "org.jmlspecs.lang." + typename;
             }
-            //System.out.println("GETTING " + fqname + " " + type + " " + context.hashCode());
             var nm = Names.instance(context).fromString("java.base");
             com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
             sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
@@ -109,7 +107,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         }
         
         public void initAll(Context context) {
-            //System.out.println("INITING ALL " + context.hashCode());
+            //System.out.println("INIT ALL");
             TYPETypeKind.init(context);
             bigintTypeKind.init(context);
             arrayTypeKind.init(context);
@@ -300,14 +298,14 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String arrayId = "\\array";
 
-    public static final JmlTypeKind arrayTypeKind = new JmlTypeKind(arrayId,"array") {
+    public static final JmlTypeKind arrayTypeKind = new JmlTypeKind(arrayId,"org.jmlspecs.lang.internal.array") {
         @Override
         public int numTypeArguments() { return 1; }
     };
 
     public static final String seqId = "\\seq";
 
-    public static final JmlTypeKind seqTypeKind = new JmlTypeKind(seqId,"seq") {
+    public static final JmlTypeKind seqTypeKind = new JmlTypeKind(seqId,"org.jmlspecs.lang.internal.seq") {
         @Override
         public int numTypeArguments() { return 1; }
         
@@ -326,14 +324,14 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String setId = "\\set";
 
-    public static final JmlTypeKind setTypeKind = new JmlTypeKind(setId,"set") {
+    public static final JmlTypeKind setTypeKind = new JmlTypeKind(setId,"org.jmlspecs.lang.internal.set") {
         @Override
         public int numTypeArguments() { return 1; }
     };
 
     public static final String mapId = "\\map";
 
-    public static final JmlTypeKind mapTypeKind = new JmlTypeKind(mapId,"map") {
+    public static final JmlTypeKind mapTypeKind = new JmlTypeKind(mapId,"org.jmlspecs.lang.internal.map") {
         @Override
         public int numTypeArguments() { return 2; }
 
@@ -341,7 +339,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String intmapId = "\\intmap";
 
-    public static final JmlTypeKind intmapTypeKind = new JmlTypeKind(intmapId,"intmap") {
+    public static final JmlTypeKind intmapTypeKind = new JmlTypeKind(intmapId,"org.jmlspecs.lang.internal.intmap") {
         @Override
         public int numTypeArguments() { return 1; }
         
@@ -354,7 +352,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String intsetId = "\\intset";
 
-    public static final JmlTypeKind intsetTypeKind = new JmlTypeKind(intsetId,"intset");
+    public static final JmlTypeKind intsetTypeKind = new JmlTypeKind(intsetId,"org.jmlspecs.lang.internal.intset");
 
     public static final String stringId = "\\string";
 

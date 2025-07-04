@@ -6116,7 +6116,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
                 }
             } else if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
-                utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t.toString());
+                utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t + ", for indexable type " + atype);
             }
             // FIXME - range in string [] ?
             if (atype.tsym == stringTypeKind.getType(context).tsym) {
@@ -6421,7 +6421,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 Type atype = tree.selected.type;
                 if (atype instanceof Type.ArrayType) { 
                     Type elemtype = ((Type.ArrayType)atype).elemtype;
-                    Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.array")).type;
+                    Type at = ClassReader.instance(context).enterClass(names.fromString("org.jmlspecs.lang.internal.array")).type;
                     t = new ClassType(Type.noType,List.<Type>of(elemtype),at.tsym);
                 } else if (atype.isErroneous()) {
                     t = atype;
@@ -6432,8 +6432,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
             } else {
             	// <package>.array, or something illegal or the normal case
+                if (print) System.out.println("SELECT " + tree );
                 super.visitSelect(tree);
-                if (print) System.out.println("SELECT " + tree + " " + tree.sym + " " + tree.sym.type + " " + result + " " + tree.selected.type + " " + tree.type);
+                if (print) System.out.println("SELECT-Z " + tree + " " + tree.sym + " " + tree.sym.type + " " + result + " " + tree.selected.type + " " + tree.type);
 
                 // The super call does not always call check... (which assigns the
                 // determined type to tree.type, particularly if an error occurs,
@@ -6504,20 +6505,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = tree.type;
 //    }
     
-    @Override
-    public void visitTypeApply(JCTypeApply tree) {
-        if (tree.clazz instanceof JCIdent id) {
-            IJmlClauseKind ck = Extensions.findKeyword(id.name);
-            if (ck instanceof JmlTypeKind jtk) {
-                Name saved = id.name;
-                id.name = jtk.name;
-                super.visitTypeApply(tree);
-                id.name = saved;
-                return;
-            }
-        }
-        super.visitTypeApply(tree);
-    }
+//    @Override
+//    public void visitTypeApply(JCTypeApply tree) {
+//        if (tree.clazz instanceof JCIdent id) {
+//            IJmlClauseKind ck = Extensions.findKeyword(id.name);
+//            if (ck instanceof JmlTypeKind jtk) {
+//                Name saved = id.name;
+//                id.name = jtk.name;
+//                super.visitTypeApply(tree);
+//                id.name = saved;
+//                return;
+//            }
+//        }
+//        super.visitTypeApply(tree);
+//    }
         
     /** Attributes an array-element-range (a[1 .. 2]) store-ref expression */
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
@@ -7824,34 +7825,51 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
+            // FIXME - move this default initialization to JmlAssertionAdder
             if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 
                     && !utils.isModel(that.sym)
                     && jmltypes.isJmlType(that.type)) {
-                String full = that.type.toString();
-                int k = full.indexOf('<');
-                var part = (k < 0 ? full : full.substring(0, k));
-                String name = part.substring(part.lastIndexOf('.')+1);
-                if (name.equals("string")) {
-                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
-                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
-                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
-                    that.init = e;
-                    attribExpr(e,env); // FIXME - spec env?
-                } else if (name.endsWith("seq") || name.endsWith("set") || name.endsWith("map")) {
-                    // FIXME - THis (and string above) should be delgated to makeZeroEquivalentLit
-                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
-                    id.type = that.type;
-                    id.sym = that.type.tsym;
-                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
-                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
-                    // FIXME - do we need the method symbol?
-                    // FIXME - do we need to add the type arguments?
-                    //e.type = that.type;
-                    that.init = e;
-                    attribExpr(e,env); // FIXME - spec env?
-                } else {
-                    that.init = treeutils.makeZeroEquivalentLit(that, that.type);
-                }
+//                String full = that.type.toString();
+//                int k = full.indexOf('<');
+//                var part = (k < 0 ? full : full.substring(0, k));
+//                String name = part.substring(part.lastIndexOf('.')+1);
+//                if (name.equals("string")) {
+//                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
+//                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
+//                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
+//                    that.init = e;
+//                    attribExpr(e,env); // FIXME - spec env?
+//                } else if (name.endsWith("seq") || name.endsWith("set") || name.endsWith("map")) {
+//                    // FIXME - THis (and string above) should be delgated to makeZeroEquivalentLit
+//                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
+//                    id.type = that.type;
+//                    id.sym = that.type.tsym;
+//                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
+//                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
+//                    // FIXME - do we need the method symbol?
+//                    // FIXME - do we need to add the type arguments?
+//                    //e.type = that.type;
+//                    that.init = e;
+//                    attribExpr(e,env,that.type); // FIXME - spec env?
+//                } else {
+//                    that.init = treeutils.makeZeroEquivalentLit(that, that.type);
+//                }
+                
+                // FIXME - why do we want to add default initializers in JmlAttr
+                // But without them we get lots of flow-checking errors, that we should sort out
+                that.init = treeutils.makeZeroEquivalentLit(that, that.type);
+
+//                if (that.type.tsym == jmltypes.BIGINTsym(context) || that.type.tsym == jmltypes.REALsym(context)) {
+//                    that.init = treeutils.makeZeroEquivalentLit(that, that.type);
+//                } else {
+//                    // Everything except bigint and real above is initialized with a call of empty()
+//                    var id = treeutils.makeType(that, that.type);
+//                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
+//                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
+//                    that.init = e;
+//                    attribExpr(e,env, that.type); // FIXME - spec env?
+//                    //System.out.println("NEEDS EMPTY " + that + " " + that.type + " " + that.init);
+//                }
             }
 
             // FIXME - should this be checking for error types?

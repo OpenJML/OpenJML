@@ -23,6 +23,8 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
 
     private static real proto = new RealUsingDouble();
     
+    public static real empty() { return proto.from(0); }
+    
     // FIXME - should these be protected
     abstract public real add(real r);
     abstract public real subtract(real r);
@@ -141,7 +143,7 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         }
 
         public RealUsingDouble from(java.math.BigInteger d) {
-            return from((double)(d.longValue())); // FIXME - could do better?
+            return from(d.doubleValue());
         }
 
         @Override
@@ -166,7 +168,7 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         
         @Override
         public bigint bigintValue() {
-            return bigint.of((long)value); // FIXME - need to do better
+            return bigint.of(java.math.BigDecimal.valueOf(value).toBigInteger());
         }
         
         @Override

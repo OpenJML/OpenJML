@@ -1,12 +1,13 @@
-package org.jmlspecs.lang;
-
+package org.jmlspecs.lang.internal;
+import org.jmlspecs.lang.IJmlPrimitiveType;
+import org.jmlspecs.lang.IJmlIntArrayLike;
 import java.util.*;
 import org.jmlspecs.lang.internal.bigint;
 import java.math.BigInteger;
 
 /** value-based map from \bigint to V */
 
-//@ immutable pure 
+//@ immutable no_state 
 public class intmap<V> implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     private Map<BigInteger, V> value = new HashMap<>();
