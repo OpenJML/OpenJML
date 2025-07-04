@@ -1,6 +1,7 @@
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
 
-import org.jmlspecs.lang.internal.bigint;
+import org.jmlspecs.lang.IJmlPrimitiveType;
+import org.jmlspecs.lang.IJmlIntArrayLike;
 
 //@ immutable no_state 
 public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {

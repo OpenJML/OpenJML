@@ -1,9 +1,10 @@
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
 
 import java.util.*;
-import org.jmlspecs.lang.internal.*;
+import org.jmlspecs.lang.IJmlPrimitiveType;
+import org.jmlspecs.lang.IJmlIntArrayLike;
 
-//@ immutable pure 
+//@ immutable no_state 
 public class intset implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     private Set<bigint> value = new HashSet<>();

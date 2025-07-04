@@ -1,7 +1,7 @@
 package org.jmlspecs.lang.internal;
 import org.jmlspecs.lang.*;
 
-//@ immutable pure 
+//@ immutable no_state 
 public class location implements IJmlPrimitiveType {
     public location() {}    
 }

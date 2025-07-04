@@ -21,7 +21,7 @@ public class Test {
         //@ set compare(a,b);
         //@ set bit(a,b);
         //@ set assignop(a,b);
-        //@ set show();
+        //@ set constants(); set show();
         //@ check a + b == 40; // FALSE
         misc(100);
         //+RAC@ set System.out.println("END");
@@ -150,6 +150,11 @@ public class Test {
       \bigint b = -4242;
       show b;
       unreachable; // To force a show
+    }
+    
+    model public static void constants() {
+        //@ check \bigint.zero == 0;
+        //@ check \bigint.one == 1;
     }
  */
     

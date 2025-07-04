@@ -1,8 +1,10 @@
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
 
+import org.jmlspecs.lang.IJmlPrimitiveType;
+import org.jmlspecs.lang.IJmlArrayLike;
 import java.util.*;
 
-//@ immutable pure non_null_by_default
+//@ immutable no_state non_null_by_default
 public class map<K,V> implements IJmlPrimitiveType, IJmlArrayLike {
     
     private HashMap<K,V> value = new HashMap<>();

@@ -139,11 +139,10 @@ escfileslist1.test[gitbug755]
 escfileslist1.test[gitbug759]
 escfileslist2.test[gitbug814]
 escfileslist2.test[gitbug814d]
-escfileslist2.test[jmlbigint]
-escfileslist2.test[jmlstring]
 escfileslist2.test[listNullity]
 escfileslist2.test[locsetTests]
 escfileslist3.test[rangeTest1]
+escfileslist3.test[rangeTest2]
 escfileslist3.test[record2]
 escfileslist3.test[textBlock4b]
 escfileslist3.test[verifythis-2019-1]
@@ -165,6 +164,7 @@ racfiles.gitbug547c
 racfiles.gitbug547d
 racfiles.gitbug860
 racfiles.gitbug861
+racfiles.gitbug869
 racfiles.rac1
 racfiles.racbug1
 racfiles.rangeTest

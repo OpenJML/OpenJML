@@ -34,16 +34,16 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testArrayType() {
-        helpTC(" class A { void m() { //@ ghost array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
+        helpTC(" class A { void m() { //@ ghost \\array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
         		);
     }
 
     @Test public void testIntsetType() {
-        helpTC(" class A { void m() { //@ ghost intset b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
+        helpTC(" class A { void m() { //@ ghost \\intset b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
     }
 
     @Test public void testIntmapType() {
-        helpTC(" class A { void m() { //@ ghost intmap<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+        helpTC(" class A { void m() { //@ ghost \\intmap<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
     }
 
     @Test public void testSeqType() {
@@ -51,11 +51,11 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testMapType() {
-        helpTC(" class A { void m() {  //@ ghost map<\\string,\\string> b ;   ghost \\string o ; set b[o] = o; ghost \\string bb = b[o]; \n}}");
+        helpTC(" class A { void m() {  //@ ghost \\map<\\string,\\string> b ;   ghost \\string o ; set b[o] = o; ghost \\string bb = b[o]; \n}}");
     }
 
     @Test public void testMap2Type() {
-        helpTC(" class A { void m() { //@ ghost map<Object,Object> b ;  ghost Object o = new Object(); set b[o] = o; ghost Object bb = b[o]; \n}}");
+        helpTC(" class A { void m() { //@ ghost \\map<Object,Object> b ;  ghost Object o = new Object(); set b[o] = o; ghost Object bb = b[o]; \n}}");
     }
 
     @Test public void testSetType() {

@@ -1664,51 +1664,51 @@ public class SMTTranslator extends JmlTreeScanner {
                 return realSort;
             } else if (t.tsym == TYPE) {
                 return jmlTypeSort;
-            } else if (ts.startsWith("org.jmlspecs.lang.map") || ts.startsWith("\\map")) {
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.map") || ts.startsWith("\\map")) {
                 Type t1 = t.getTypeArguments().head;
                 Type t2 = t.getTypeArguments().tail.head;
                 ISort s1 = convertSort(t1);
                 ISort s2 = convertSort(t2);
                 return F.createSortExpression(arraySym, s1, s2);
-            } else if (ts.startsWith("org.jmlspecs.lang.set") || ts.startsWith("\\set")) {
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.set") || ts.startsWith("\\set")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 return F.createSortExpression(arraySym, s1, boolSort);
-            } else if (ts.startsWith("org.jmlspecs.lang.array") || ts.startsWith("\\array")) {
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.array") || ts.startsWith("\\array")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 return F.createSortExpression(arraySym, intSort, s1);
-            } else if (ts.startsWith("org.jmlspecs.lang.seq") || ts.startsWith("\\seq")) {
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.seq") || ts.startsWith("\\seq")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 var sort = F.createSortExpression(seqSym, s1);
                 //System.out.println("CONVERTING " + ts + " TO " + sort);
                 return sort;
-            } else if (ts.startsWith("org.jmlspecs.lang.set") || ts.startsWith("\\set")) {
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.set") || ts.startsWith("\\set")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 var sort = F.createSortExpression(setSym, s1);
                 //System.out.println("CONVERTING " + ts + " TO " + sort);
                 return sort;
-            } else if (ts.startsWith("org.jmlspecs.lang.map") || ts.startsWith("\\map")) {
-                Type t1 = t.getTypeArguments().head;
-                ISort s1 = convertSort(t1);
-                var sort = F.createSortExpression(mapSym, s1);
-                //System.out.println("CONVERTING " + ts + " TO " + sort);
-                return sort;
-            } else if (ts.startsWith("org.jmlspecs.lang.array") || ts.startsWith("\\array")) {
+//            } else if (ts.startsWith("org.jmlspecs.lang.internal.map") || ts.startsWith("\\map")) {
+//                Type t1 = t.getTypeArguments().head;
+//                ISort s1 = convertSort(t1);
+//                var sort = F.createSortExpression(mapSym, s1);
+//                //System.out.println("CONVERTING " + ts + " TO " + sort);
+//                return sort;
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.array") || ts.startsWith("\\array")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 var sort = F.createSortExpression(ARRAYSym, s1);
                 //System.out.println("CONVERTING " + ts + " TO " + sort);
                 return sort;
-            } else if (ts.startsWith("org.jmlspecs.lang.intmap") || ts.equals("\\intmap")) {
+            } else if (ts.startsWith("org.jmlspecs.lang.internal.intmap") || ts.equals("\\intmap")) {
                 Type t1 = t.getTypeArguments().head;
                 ISort s1 = convertSort(t1);
                 return F.createSortExpression(arraySym, intSort, s1);
-            } else if (ts.equals("org.jmlspecs.lang.intset") || ts.equals("\\intset")) {
+            } else if (ts.equals("org.jmlspecs.lang.internal.intset") || ts.equals("\\intset")) {
                 return intsetSort;
-            } else if (t == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
+            } else if (t.tsym == JmlPrimitiveTypes.rangeTypeKind.getSymbol(context)) {
                 return rangeSort;
             } else if (t.isParameterized()) {
                 List<ISort> args = new LinkedList<ISort>();
@@ -2848,7 +2848,7 @@ public class SMTTranslator extends JmlTreeScanner {
             	}
             	// FIXME - why do arrays use this branch instead of the one at the bottom
             //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
-            } else if (field.name != names.length || !(tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
+            } else if (field.name != names.length || !(tree.selected.type.tsym.toString().startsWith("org.jmlspecs.lang"))) {
                 // Non-length selection
                 String encName;
                 if (Utils.instance(context).isJMLStatic(field) || true) {
@@ -2874,12 +2874,12 @@ public class SMTTranslator extends JmlTreeScanner {
                                 object == null ? thisSym: convertExpr(object)
                                 );
                 }
-            } else if (object.type.toString().equals("org.jmlspecs.lang.internal.string")) {
+            } else if (object.type.tsym.toString().equals("org.jmlspecs.lang.internal.string")) {
             	// String length
             	IExpr sel = convertExpr(object);
             	result = F.fcn(stringLengthSym,sel);
             	return;
-            } else if (object.type.toString().startsWith("org.jmlspecs.lang.seq")) {
+            } else if (object.type.tsym.toString().startsWith("org.jmlspecs.lang.internal.seq")) {
         		Type t = object.type.getTypeArguments().head;
         		Integer v = seqLengths.get(t);
             	if (v == null) {
@@ -2891,7 +2891,7 @@ public class SMTTranslator extends JmlTreeScanner {
             	IExpr sel = convertExpr(object);
             	result = F.fcn(F.symbol("seqLength"+v),sel);
             	return;
-            } else if (object.type.toString().startsWith("org.jmlspecs.lang.array")) {
+            } else if (object.type.tsym.toString().startsWith("org.jmlspecs.lang.internal.array")) {
         		Type t = object.type.getTypeArguments().head;
         		Integer v = arrLengths.get(t);
             	if (v == null) {

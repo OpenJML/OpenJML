@@ -22,19 +22,26 @@ public class range implements IJmlPrimitiveType {
         // is compiled with normal Java, not with OpenJML
     }
 
-    /** Creates a \\range value from its limits */
+    /** Creates a \\range value from its non-exclusive limits */
     public static range of(bigint lo, bigint hi) {
         return new range(lo, hi, false);
     }
 
+    /** Creates a \\range value from its limits */
+    public static range of(bigint lo, bigint hi, boolean isExclusive) {
+        return new range(lo, hi, isExclusive);
+    }
+
     /** Tests whether a \\range value is empty */
     public boolean isEmpty() {
-        return hiIsExclusive ? (hi.le(lo)) : (hi.lt(lo));
+        return hiIsExclusive ? hi.le(lo) : hi.lt(lo);
     }
 
     /** Tests whether two ranges are equal (same limits) */
     public boolean eq(range r) {
-        return lo.eq(r.lo) && hi.eq(r.hi) && hiIsExclusive == r.hiIsExclusive;
+        return lo.eq(r.lo) && ((hiIsExclusive == r.hiIsExclusive && hi.eq(r.hi))
+                || (hiIsExclusive  && !r.hiIsExclusive && hi.eq(r.hi.add(bigint.one)))
+                || (!hiIsExclusive  && r.hiIsExclusive && hi.eq(r.hi.subtract(bigint.one))));
     }
 
     /** Negation of eq */
@@ -52,8 +59,19 @@ public class range implements IJmlPrimitiveType {
         throw new UnsupportedOperationException();
     }
     
+    private range toHiEx() {
+        if (hiIsExclusive) return this;
+        return new range(lo, hi.add(bigint.one), true);
+    }
+    
+    private range toNonEx() {
+        if (!hiIsExclusive) return this;
+        return new range(lo, hi.subtract(bigint.one), false);
+    }
+    
     /** Computes a hashCode for the range value */
+    // Caution: must produce equal hashCodes for equal range values
     @Override
-    public int hashCode() { return lo.hashCode() + hi.hashCode()*3 + (hiIsExclusive ? 19:29); }
+    public int hashCode() { return hiIsExclusive ? toNonEx().hashCode() : (lo.hashCode() + hi.hashCode()*3 + 42); }
 
 }

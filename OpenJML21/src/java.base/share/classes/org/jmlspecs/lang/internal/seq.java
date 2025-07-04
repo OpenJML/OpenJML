@@ -1,6 +1,7 @@
-package org.jmlspecs.lang;
+package org.jmlspecs.lang.internal;
 import java.util.*;
-import org.jmlspecs.lang.internal.*;
+import org.jmlspecs.lang.IJmlPrimitiveType;
+import org.jmlspecs.lang.IJmlIntArrayLike;
 
 //@ immutable pure 
 public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {

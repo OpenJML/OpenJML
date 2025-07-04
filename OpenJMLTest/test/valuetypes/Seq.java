@@ -1,10 +1,9 @@
-//import org.jmlspecs.lang.seq;
 
 //@ pure
 public class Seq<T> {
     
-    //@ ensures seq.<T>empty().isEmpty();
-    //@ ensures seq.<T>empty().size() == 0;
+    //@ ensures \seq.<T>empty().isEmpty();
+    //@ ensures \seq.<T>empty().size() == 0;
     //@ model public static <T> void newSeqIsEmpty() {}
     
     //@ ensures s.add(k).length == 1 + s.length;
@@ -23,16 +22,16 @@ public class Seq<T> {
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.size();
-    //@   ensures seq.equals(s.insert(i,t).remove(i), s);
+    //@   ensures \seq.equals(s.insert(i,t).remove(i), s);
     //@ model public static <T> void addRemove(seq<T> s, T t, \bigint i) {}
     
     //@ public normal_behavior
-    //@   ensures !seq.equals(s.add(t), s);
+    //@   ensures !\seq.equals(s.add(t), s);
     //@ model public static <T> void addNotEqual(seq<T> s, T t) {}
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.size();
-    //@   ensures !seq.equals(s.insert(i,t), s);
+    //@   ensures !\seq.equals(s.insert(i,t), s);
     //@ model public static <T> void addNotEqual1(seq<T> s, T t, \bigint i) {}
     
 }

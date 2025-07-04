@@ -68,6 +68,11 @@ public class JmlTypes extends Types {
         super(context);
         this.context = context;
     }
+        
+    public Symbol.TypeSymbol BIGINTsym(Context context) { return JmlPrimitiveTypes.bigintTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol REALsym(Context context) { return JmlPrimitiveTypes.realTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol STRINGsym(Context context) { return JmlPrimitiveTypes.stringTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol SETsym(Context context) { return JmlPrimitiveTypes.setTypeKind.getSymbol(context); }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override
@@ -111,14 +116,14 @@ public class JmlTypes extends Types {
         if (s == t) return true;
         if (isSameType(s,t)) return true;
         if (!javaOnly) {
-            if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) {
+            if (s.tsym == BIGINTsym(context)) {
                 if (isIntegral(t)) return true;
                 if (t.toString().contains("BigInteger")) return true;
                 return false;
             }
-            if (s.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
+            if (s.tsym == REALsym(context)) {
                 if (isNumeric(t)) return true; 
-                if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) return true;
+                if (t.tsym == BIGINTsym(context)) return true;
                 if (t.toString().contains("BigInteger")) return true;
                 return false;
             }
@@ -139,13 +144,13 @@ public class JmlTypes extends Types {
     /** True if the Java tag is a numeric type (not for JML types). */
     public boolean isNumeric(Type t) {
         int i = t.getTag().ordinal();  // FIXME - should not have bigint here -- those calls should use isAnyNumeric
-        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context) || t.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context);
+        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t.tsym == BIGINTsym(context) || t.tsym == REALsym(context);
     }
     
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyNumeric(Type t) {
         if (isAnyIntegral(t)) return true;
-        if (t.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) return true;
+        if (t.tsym == REALsym(context)) return true;
         if (t instanceof Type.TypeVar) return false;
         t = unboxedTypeOrType(t);
         return isNumeric(t);
@@ -158,13 +163,14 @@ public class JmlTypes extends Types {
     
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyIntegral(Type t) {
-        if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getSymbol(context)) return true;
+        if (t.tsym ==BIGINTsym(context)) return true;
         if (t instanceof Type.TypeVar) return false;
         if (t.toString().equals("java.math.BigInteger")) return true;
         t = unboxedTypeOrType(t);
         return isIntegral(t);
     }
     
+    /** Returns true if the type allows indexing by some type */
     public boolean isArray(Type t) {
         boolean b = super.isArray(t);
         if (!b && t.isReference()) {
@@ -174,6 +180,7 @@ public class JmlTypes extends Types {
         return b;
     }
     
+    /** Returns true if the type allows indexing by integer indices */
     public boolean isIntArray(Type t) {
         boolean b = super.isArray(t);
         if (!b && t.isReference()) {
@@ -183,21 +190,17 @@ public class JmlTypes extends Types {
         return b;
     }
     
-    // FIXME - is this still used?
     public Type elemtype(Type t) {
         Type elemtype = super.elemtype(t);
         if (elemtype != null || !isArray(t)) return elemtype;
         List<Type> args = t.getTypeArguments();
         int n = args.length();
-        String tt = t.tsym.toString().substring("org.jmlspecs.lang.".length());
         if (n == 0) {
-            if (tt.equals("string")) return syms.charType;
+            if (t.tsym == STRINGsym(context)) return syms.charType;
             return syms.booleanType; // intset
         } else if (n == 1) {
-            if (tt.equals("array")) return args.head;
-            if (tt.equals("intmap")) return args.head;
-            if (tt.equals("seq")) return args.head;
-            return syms.booleanType; // set
+            if (t.tsym == SETsym(context)) return syms.booleanType;
+            return args.head;
         } else {
             return args.last();    // map
         }
@@ -221,15 +224,15 @@ public class JmlTypes extends Types {
         //  String -> \string
         if (isJmlType(s) || isJmlType(t)) {
             if (t.tsym == s.tsym) return true;
-            if (s.tsym == JmlPrimitiveTypes.bigintTypeKind.getType(context).tsym) {
+            if (s.tsym == BIGINTsym(context)) {
                 return isIntegral(t);
             }
-            if (s.tsym == JmlPrimitiveTypes.realTypeKind.getType(context).tsym) {
+            if (s.tsym == REALsym(context)) {
                 if (isNumeric(t)) return true;
-                if (t.tsym == JmlPrimitiveTypes.bigintTypeKind.getType(context).tsym && isIntegral(t)) return true;
+                if (t.tsym == BIGINTsym(context) && isIntegral(t)) return true;
                 return false;
             }
-            if (s.tsym == JmlPrimitiveTypes.stringTypeKind.getType(context).tsym) {
+            if (s.tsym == STRINGsym(context)) {
                 if (t.tsym == syms.stringType.tsym) return true;
                 return false;
             }
