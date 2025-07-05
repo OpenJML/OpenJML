@@ -72,7 +72,11 @@ public class JmlTypes extends Types {
     public Symbol.TypeSymbol BIGINTsym(Context context) { return JmlPrimitiveTypes.bigintTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol REALsym(Context context) { return JmlPrimitiveTypes.realTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol STRINGsym(Context context) { return JmlPrimitiveTypes.stringTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol RANGEsym(Context context) { return JmlPrimitiveTypes.rangeTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol SETsym(Context context) { return JmlPrimitiveTypes.setTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol SEQsym(Context context) { return JmlPrimitiveTypes.seqTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol MAPsym(Context context) { return JmlPrimitiveTypes.mapTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol ARRAYsym(Context context) { return JmlPrimitiveTypes.arrayTypeKind.getSymbol(context); }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override

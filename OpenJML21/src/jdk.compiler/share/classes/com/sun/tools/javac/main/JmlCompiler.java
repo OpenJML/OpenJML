@@ -255,18 +255,12 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     public void writeJson(ListBuffer<Env<AttrContext>> results, boolean includeTypeInfo) {
-        String dest = options.get("-d");
-        if (dest != null && !dest.equals("-") && !new java.io.File(dest).exists() && !new java.io.File(dest).mkdirs()) {
-            utils.error("jml.message", "Failed to create output directories: " + dest);
-            return;
-        }
-        var json = new org.jmlspecs.openjml.JmlJson(context);
+        ListBuffer<JCCompilationUnit> cus = new ListBuffer<>();
         for (var env: results) {
-            var cu = (JmlClassDecl)env.tree;
-            if (utils.isSpecFile(cu.source())) continue; // TODO - for now, because too much of Java/JML is not yet implemented
-            //System.out.println("JSON FOR " + cu.name + " " + cu.sourcefile);
-            writeJson(dest, json, cu, cu.name.toString(), includeTypeInfo);
+            if (utils.isSpecFile(((JmlCompilationUnit)env.toplevel).source())) continue; // FIXME - when spec files are processed take care that the library specs are not processed
+            cus.add(env.toplevel);
         }
+        writeJson(cus.toList(), includeTypeInfo);
     }
     
     public void writeJson(List<JCCompilationUnit> compunits, boolean includeTypeInfo) {
@@ -278,7 +272,7 @@ public class JmlCompiler extends JavaCompiler {
 
         var json = new org.jmlspecs.openjml.JmlJson(context);
         for (var cu: compunits) {
-            //System.out.println("JSON FOR " + cu.sourcefile);
+            //System.out.println("JSON FOR " + includeTypeInfo + " " + cu.sourcefile);
             writeJson(dest, json, cu, null, includeTypeInfo);
         }
     }

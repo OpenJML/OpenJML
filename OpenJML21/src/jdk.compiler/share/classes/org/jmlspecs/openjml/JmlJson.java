@@ -105,11 +105,13 @@ public class JmlJson {
     // FIXME - add a version number
     public String toJson(JCTree tree, boolean includeTypeInfo) {
         this.includeTypeInfo = includeTypeInfo;
+        //System.out.println("TOJSON " + this.includeTypeInfo);
         return gson.toJson(tree);
     }
     
     public JsonElement toJsonTree(JCTree tree, boolean includeTypeInfo) {
         this.includeTypeInfo = includeTypeInfo;
+        //System.out.println("TOJSONTREE " + this.includeTypeInfo);
         return gson.toJsonTree(tree);
     }
 
@@ -280,8 +282,7 @@ public class JmlJson {
 
     /** Entry point to convert a String representation of JSON into a JML/Java AST */
     public Object toJava(String s) {
-        @SuppressWarnings("deprecation")
-        var res = new JsonParser().parse(s);
+        var res = JsonParser.parseString(s);
         var tree = toJava(res);
         return tree;
     }
@@ -398,11 +399,39 @@ public class JmlJson {
             }
         }
         
+        public void addSymbols(JsonObject obj, T src) {
+            JCTree t = (JCTree)src;
+            try {
+                for (var f: t.getClass().getFields()) { // Only public fields
+                    if (Symbol.class.isAssignableFrom(f.getType())) {
+                        var value = f.get(t);
+                        if (value != null) {
+                            //System.out.println("SYMBOL FIELD: " + src.getClass() + " " + f.getName() + " " + f.getType() + " " + value + " " + value.getClass());
+                            JsonObject oo = new JsonObject();
+                            oo.add(classTag, str(value.getClass()));
+                            addId(oo, value);
+                            obj.add(f.getName(), oo);
+                        }
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                System.out.println(e);
+            }
+        }
+        
          /** Default serializing routine for all values of JCTree subclasses */
         public JsonElement serialize(T src, java.lang.reflect.Type type, JsonSerializationContext context) {
             try {
                 if (src instanceof JCTree t) {
                     var obj = newgson(t, context);
+                    if (includeTypeInfo && src instanceof JCExpression ex) {
+                        // Some expressions, such as JCFieldAcess in qualified names, may have null types
+                        if (ex.type != null) obj.add("type", str(ex.type.toString()));
+                    }
+                    if (includeTypeInfo) {
+                        addSymbols(obj,src);
+                    }
+
                     for (var s: fields()) {
                         java.lang.reflect.Field f = getField(t.getClass(), s);
                         if (f == null) {

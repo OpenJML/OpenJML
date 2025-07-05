@@ -2828,7 +2828,7 @@ public class SMTTranslator extends JmlTreeScanner {
     /** A set of names of fields that are already defined */
     protected java.util.Set<String> defined = new java.util.HashSet<>();
     
-    protected java.util.HashMap<Type,Integer> seqLengths = new HashMap<>();
+    protected java.util.HashMap<String,Integer> seqLengths = new HashMap<>(); // FIXME - could change String to a sort expression when we have equals and a=hashCode for sort expressions
     protected java.util.HashMap<Type,Integer> arrLengths = new HashMap<>();
     
     @Override
@@ -2881,11 +2881,12 @@ public class SMTTranslator extends JmlTreeScanner {
             	return;
             } else if (object.type.tsym.toString().startsWith("org.jmlspecs.lang.internal.seq")) {
         		Type t = object.type.getTypeArguments().head;
-        		Integer v = seqLengths.get(t);
+        		var sort = convertSort(t);
+        		Integer v = seqLengths.get(sort.toString());
             	if (v == null) {
             		v = seqLengths.size();
-            		seqLengths.put(t, v);
-            		addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array Int " + convertSort(t) + ")) Int)");
+            		seqLengths.put(sort.toString(), v);
+            		addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array Int " + sort + ")) Int)");
             	}
             	// Sequence length
             	IExpr sel = convertExpr(object);

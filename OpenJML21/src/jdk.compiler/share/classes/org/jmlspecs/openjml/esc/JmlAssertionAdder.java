@@ -8567,8 +8567,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Type currentArgType = null;
 		boolean usedVarArgs = args.size() == 0 && argtypes.size() != 0 && hasVarArgs;
 		for (JCExpression a : args) {
-			if (iter.hasNext())
+			if (iter.hasNext()) {
 				currentArgType = iter.next(); // handles varargs
+				if (!iter.hasNext() && hasVarArgs) currentArgType = ((Type.ArrayType)currentArgType).getComponentType();
+			}
 			last = !iter.hasNext();
 			if (currentArgType != null && isFunctional(currentArgType) && a instanceof JCMemberReference) { // FIXME -
 																											// some bug
@@ -12664,8 +12666,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// literals so we can't hide them behind a cast, but FIXME: does this cause
 		// other problems, what about for MemberReferences?
 	    if (true) {
-	        //System.out.println("IMPL " + annotatedNewtype + " " + expr.type + " " + expr);
-	    return addConversion(pos, annotatedNewtype, expr, false, true);
+	        if (types.isSameType(annotatedNewtype, expr.type)) return expr;
+	        return addConversion(pos, annotatedNewtype, expr, false, true);
 	    } else {
 		Type newtype = annotatedNewtype.stripMetadata();
 		Type origtype = convertType(expr.type); // Substitutes type variables
@@ -14960,6 +14962,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (esc) {
                     eresult = castexpr;
                 }
+            } else if (types.erasure(oldtype).tsym == types.SEQsym(context)) {
+                eresult = expr;
             } else {
                 if (types.isSameType(oldtype, BIGINT) && newtype.isPrimitive() && checkRange) {
                     addRangeConstraints(pos, true, newtype, expr);
@@ -21326,8 +21330,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					try {
 					    //System.out.println("CONVERTING " + that.init + " " + that.init.getClass());
 						init = convertJML(that.init);
-						if (init != null)
+						if (init != null && !types.isSameType(that.type, init.type)) {
+						    System.out.println("CONVERTING INIT " + that.type + " " + init.type + " " + that);
 							init = addImplicitConversion(init, that.type, init);
+						}
 
 						stat = M.at(that).VarDef(that.sym, init);
 						stat.ident = newident;

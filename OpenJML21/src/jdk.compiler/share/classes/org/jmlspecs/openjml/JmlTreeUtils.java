@@ -671,6 +671,7 @@ public class JmlTreeUtils {
                     for (var tt: ct.getTypeArguments()) targs.add(makeType(dpos, tt));
                     JCMethodInvocation call = makeMethodInvocation(dpos, makeType(dpos, type), emp);
                     call.typeargs = targs.toList();
+                    call.type = type;
                     return call;
                 }
             }           
@@ -1708,6 +1709,7 @@ public class JmlTreeUtils {
         }
         System.out.println("NO MATCH " + name + " " + receiver + " " + receiver.type + " " + nargs + " " + (nargs.length > 0 ? nargs[0].type.toString() : ""));
         utils.error(pos, "jml.internal", "No method " + name + " with " + nargs.length + " parameters of the requested types found in type " + receiver.type + "\n" + s);
+        Utils.dumpStack();
         return null;
 
     }
