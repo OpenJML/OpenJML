@@ -719,6 +719,12 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void jmlseq() {
+        expectedExit = 0;
+        helpCompileRun("TSeq");
+    }
+    
+    @Test
     public void racbigint() { // FIXME - do these duplicate
         expectedExit = 0;
         helpTCF("test/racbigint","test/racbigint","bigint");

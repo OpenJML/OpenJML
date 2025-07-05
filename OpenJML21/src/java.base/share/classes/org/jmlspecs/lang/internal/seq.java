@@ -10,7 +10,7 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     private seq() { value = new ArrayList<>(); }
     
-    public <T>seq<T> seq() { return new seq<T>(); }
+    //public <T> seq<T> seq() { return new seq<T>(); }
     
     public bigint size() { return bigint.of(value.size()); }
     
@@ -22,7 +22,7 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     static public <T> seq<T> empty() { return new seq<T>(); }
 
-    static public <T> seq<T> of(T t) { var a = new seq<T>(); a.value.add(t); return a; }
+    //static public <T> seq<T> of(T t) { seq<T> a = new seq<T>(); a.value.add(t); return a; }
     
     static public seq<Integer> of(int[] t) { var a = new seq<Integer>(); for (int k=0; k<t.length; k++) a.value.add(t[k]); return a; }
     
@@ -56,7 +56,7 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
 
     public seq<T> sub(bigint i, bigint j) { var a = new seq<T>(); a.value.addAll(this.value.subList(i.intValue(), j.intValue())); return a; }
 
-    public seq<T> head(long i) { var a = new seq<T>(); a.value.addAll(this.value.subList(0, (int)i)); return a; }
+    public seq<T> head(bigint i) { var a = new seq<T>(); a.value.addAll(this.value.subList(0, i.intValue())); return a; }
 
-    public seq<T> tail(long i) { var a = new seq<T>(); a.value.addAll(this.value.subList(this.value.size() - (int)i, this.value.size())); return a; }
+    public seq<T> tail(bigint i) { var a = new seq<T>(); a.value.addAll(this.value.subList(this.value.size() - i.intValue(), this.value.size())); return a; }
 }

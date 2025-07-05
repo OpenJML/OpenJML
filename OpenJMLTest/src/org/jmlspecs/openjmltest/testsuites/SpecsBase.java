@@ -306,7 +306,8 @@ public class SpecsBase extends TCBase {
         String qualifiedName = f.toString().substring(root.length()+1);
         int p = qualifiedName.lastIndexOf('.');
         String baseName = qualifiedName.substring(0,p).replace(File.separatorChar,'.');
-        list.add(baseName);
+        if (qualifiedName.substring(p).equals(".jml")) list.add(baseName);
+        else System.out.println("IGNORING FILE " + qualifiedName + " in " + root);
         int numArgs = countTypeArgs(f,baseName);
         Integer nn = counts.get(baseName);
         if (nn == null || numArgs > nn) counts.put(baseName, numArgs);
