@@ -23,4 +23,8 @@ Starting proof of TSeq.test5() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSeq.test5() with prover !!!! - no warnings
+Starting proof of TSeq.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.main(String...) with prover !!!! - no warnings
 Completed proving methods in TSeq
