@@ -34,9 +34,15 @@ public class typecheckingJmlTypes extends TCBase {
     }
 
     @Test public void testArrayType() {
-        helpTC(" class A { void m() { //@ ghost \\array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
-        		);
+        helpTC(" class A { void m() { //@ ghost \\array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set var bb = b.put(i,o); \n}}"
+                );
     }
+
+    // FIXME - do we allow direct assignment?
+//    @Test public void testArrayType() {
+//        helpTC(" class A { void m() { //@ ghost \\array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
+//                );
+//    }
 
     @Test public void testIntsetType() {
         helpTC(" class A { void m() { //@ ghost \\intset b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");

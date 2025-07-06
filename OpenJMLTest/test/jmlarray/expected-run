@@ -1,0 +1,9 @@
+OUT:
+java.lang.ArrayIndexOutOfBoundsException
+java.lang.ArrayIndexOutOfBoundsException
+java.lang.ArrayIndexOutOfBoundsException
+java.lang.ArrayIndexOutOfBoundsException
+java.lang.UnsupportedOperationException: \array<T>.equals not supported; use == or .eq instead
+END
+
+ERR:

@@ -725,6 +725,12 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void jmlarray() {
+        expectedExit = 0;
+        helpCompileRun("Tarray");
+    }
+    
+    @Test
     public void racbigint() { // FIXME - do these duplicate
         expectedExit = 0;
         helpTCF("test/racbigint","test/racbigint","bigint");

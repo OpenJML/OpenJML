@@ -38,7 +38,7 @@ public class TSeq {
         Object o = new Object();
         Object oo = new Object();
         //@ ghost \seq<Object> s = \seq.of(o,oo,o);
-        //-RAC@ assert s[1] == oo;
+        //@ assert s[1] == oo;
         //@ assert s.get(1) == oo;
     }
     

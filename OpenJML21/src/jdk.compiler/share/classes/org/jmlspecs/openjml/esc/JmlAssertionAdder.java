@@ -14246,7 +14246,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             return;
         }
-        if (equality && (utils.isExtensionValueType(that.lhs.type) || utils.isExtensionValueType(that.rhs.type))) {
+        if (equality && (types.isJmlType(that.lhs.type) || types.isJmlType(that.rhs.type))) {
             //System.out.println("EQUALITY " + that);
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
@@ -14257,7 +14257,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.rac) {
                 var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
                 e = makeMethodInvocation(that, lhs, nm, rhs);
-                //System.out.println("RAC EQUALITY " + that + " " + e);
             } else if (lhs.type == rhs.type && lhs.type == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
                 if (lhs instanceof JCParens p) lhs = p.expr;
                 if (rhs instanceof JCParens p) rhs = p.expr;
@@ -14963,6 +14962,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eresult = castexpr;
                 }
             } else if (types.erasure(oldtype).tsym == types.SEQsym(context)) {
+                // In this and the following, the oldtype and newtype are not equal because typically the newtype is \seq<T>
+                // But we know there can be no needed conversions because these types do not participate in conversions
+                eresult = expr;
+            } else if (types.erasure(oldtype).tsym == types.SETsym(context)) {
+                eresult = expr;
+            } else if (types.erasure(oldtype).tsym == types.MAPsym(context)) {
+                eresult = expr;
+            } else if (types.erasure(oldtype).tsym == types.ARRAYsym(context)) {
                 eresult = expr;
             } else {
                 if (types.isSameType(oldtype, BIGINT) && newtype.isPrimitive() && checkRange) {
@@ -15647,12 +15654,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// So nothing to do here except convert the index
 			index = convertExpr(that.index);
 			if (rac) {
-			    if (indexed.type.tsym == stringTypeKind.getType(context).tsym) {
-			        index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
-			        result = eresult = makeMethodInvocation(that, indexed, "getUnchecked", index);
-			        eresult.type = that.type;
-			        return;
-			    }
+                if (indexed.type.tsym == stringTypeKind.getType(context).tsym) {
+                    index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
+                    result = eresult = makeMethodInvocation(that, indexed, "getUnchecked", index);
+                    eresult.type = that.type;
+                    return;
+                }
+                if (indexed.type.tsym == seqTypeKind.getType(context).tsym) {
+                    index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
+                    result = eresult = makeMethodInvocation(that, indexed, "get", index);
+                    eresult.type = that.type;
+                    return;
+                }
+                if (indexed.type.tsym == arrayTypeKind.getType(context).tsym) {
+                    index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
+                    result = eresult = makeMethodInvocation(that, indexed, "get", index);
+                    eresult.type = that.type;
+                    return;
+                }
 			}
 		}
 

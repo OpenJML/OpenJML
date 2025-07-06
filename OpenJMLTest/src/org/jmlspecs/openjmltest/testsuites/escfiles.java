@@ -814,6 +814,12 @@ public class escfiles extends EscBaseFiles {
     
 
     @Test
+    public void jmlarray() {
+        helpTG();
+    }
+    
+
+    @Test
     public void jmlrange() {
         helpTG();
     }

@@ -82,6 +82,6 @@ if [ $ERR -eq 0 ]; then
 else
     echo Completed retrys with remaining failures
     if [ -n "$OPT" ]; then cat logretry; fi
-    grep -E 'FAILED|TIMEOUT|timeout' logretry
+    grep -E 'FAILED' logretry
 fi
 exit $ERR
