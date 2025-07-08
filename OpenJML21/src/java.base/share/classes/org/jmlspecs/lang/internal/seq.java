@@ -27,7 +27,15 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     static public seq<Integer> of(int[] t) { var a = new seq<Integer>(); for (int k=0; k<t.length; k++) a.value.add(t[k]); return a; }
     
     @SuppressWarnings("unchecked")
-    static public <T> seq<T> of(T ... t) { var a = new seq<T>(); a.value.addAll(java.util.Arrays.asList(t)); return a; }
+    static public <T> seq<T> of(T ... data) { 
+        //System.out.println("OF " + data.getClass() + " " + data.length);
+        // FIXME - it appears that the wrapping of the varargs into a new TT[]{} call and making that a new argument for 'of(TT ...)'
+        // is followed by an implicit further cast of the TT[] into an Object and then into a singleton Object[]
+        if (data.length == 1 && data[0].getClass().isArray()) data = (T[])data[0];
+        //System.out.println("OF=Z " + data.getClass() + " " + data.length);
+        var a = new seq<T>(); a.value.addAll(java.util.Arrays.asList(data));
+        return a;
+    }
     
     public static <T> boolean equals(seq<T> s, seq<T> ss) {
         if (s.size() != ss.size()) return false;

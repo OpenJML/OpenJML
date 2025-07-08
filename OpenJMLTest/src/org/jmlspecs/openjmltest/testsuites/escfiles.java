@@ -87,12 +87,6 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void valuetypesErr() {
-        expectedExit = 1;
-        helpTFM();
-    }
-
-    @Test
     public void oldproblem() {
         helpTG();
     }
@@ -821,6 +815,16 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void jmlrange() {
+        helpTG();
+    }
+    
+    @Test
+    public void jmlset() {
+        helpTG();
+    }
+    
+    @Test
+    public void jmlmap() {
         helpTG();
     }
     

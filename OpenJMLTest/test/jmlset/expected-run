@@ -1,0 +1,5 @@
+OUT:
+java.lang.UnsupportedOperationException: \set.equals
+END
+
+ERR:

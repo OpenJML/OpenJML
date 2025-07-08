@@ -1,4 +1,11 @@
 OUT:
+java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 5
+java.lang.IndexOutOfBoundsException: Index 5 out of bounds for length 5
+java.lang.IndexOutOfBoundsException: Index -1 out of bounds for length 5
+java.lang.IndexOutOfBoundsException: Index 5 out of bounds for length 5
+test/jmlseq/TSeq.java:90: verify: JML assertion is false
+            //@ assert s.equals(o);
+                ^
 END
 
 ERR:

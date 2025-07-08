@@ -125,6 +125,7 @@ public class Tarray {
     }
     
     public static void main(String... args) {
+        //-ESC@ set System.out.println("START");
         test1();
         test2();
         test3();

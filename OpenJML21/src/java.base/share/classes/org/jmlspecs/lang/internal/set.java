@@ -8,18 +8,31 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     
     private final Set<T> value;
     
+    private set() { value = new HashSet<>(); }
+
     private set(Set<T> data) { value = data; }
     
     private set<T> copy() {
         return new set<T>(new HashSet<T>(value));
     }
 
-    public set() { value = new HashSet<>(); }
-    
     static public <T> set<T> empty() { return new set<T>(); }
 
-    public long size() { return value.size(); }
+    public bigint size() { return bigint.of(value.size()); }
 
+    @SafeVarargs
+    @SuppressWarnings("unchecked")
+    static public <X> set<X> of(X ... data) {
+        //System.out.println("OF " + data.getClass() + " " + data.length);
+        // FIXME - it appears that the wrapping of the varargs into a new TT[]{} call and making that a new argument for 'of(TT ...)'
+        // is followed by an implicit further cast of the TT[] into an Object and then into a singleton Object[]
+        if (data.length == 1 && data[0].getClass().isArray()) data = (X[])(Object)data[0];
+        //System.out.println("OF=Z " + data.getClass() + " " + data.length);
+        var s = new set<X>();
+        for (var i: data) s.value.add(i);
+        return s;
+    }
+    
     public boolean eq(set<T> ss) {
         return value.equals(ss.value); // FIXME - what kind of equals to use
     }
@@ -34,18 +47,17 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     }
 
     public boolean isEmpty() {
-        return size() == 0;
+        return size().eq(bigint.zero);
     }
     
-    @SafeVarargs
-    static public <X> set<X> of(X ... t) {
-        var s = new set<X>();
-        for (var i: t) s.value.add(i);
-        return s;
-    }
-
-    public boolean equals(set<T> s) {
+    @Override
+    public boolean equals(Object s) {
         throw new UnsupportedOperationException("\\set.equals");
+    }
+    
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 
     public boolean isSubsetOf(set<T> s) {
@@ -72,6 +84,24 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     }
     
     private set<T> put(T x, boolean b) { return this; } // FIXME
+    
+    
+    public set<T> union(set<T> s) {
+        var r = this.copy();
+        r.value.addAll(s.value);
+        return r;
+    }
 
+    public set<T> intersect(set<T> s) {
+        var r = this.copy();
+        r.value.retainAll(s.value);
+        return r;
+    }
+
+    public set<T> subtract(set<T> s) {
+        var r = this.copy();
+        r.value.removeAll(s.value);
+        return r;
+    }
 
 }

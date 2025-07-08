@@ -2829,7 +2829,7 @@ public class SMTTranslator extends JmlTreeScanner {
     protected java.util.Set<String> defined = new java.util.HashSet<>();
     
     protected java.util.HashMap<String,Integer> seqLengths = new HashMap<>(); // FIXME - could change String to a sort expression when we have equals and a=hashCode for sort expressions
-    protected java.util.HashMap<Type,Integer> arrLengths = new HashMap<>();
+    protected java.util.HashMap<String,Integer> arrLengths = new HashMap<>();
     
     @Override
     public void visitSelect(JCFieldAccess tree) {
@@ -2881,11 +2881,11 @@ public class SMTTranslator extends JmlTreeScanner {
             	return;
             } else if (object.type.tsym.toString().startsWith("org.jmlspecs.lang.internal.seq")) {
         		Type t = object.type.getTypeArguments().head;
-        		var sort = convertSort(t);
-        		Integer v = seqLengths.get(sort.toString());
+        		var sort = convertSort(t).toString();
+        		Integer v = seqLengths.get(sort);
             	if (v == null) {
             		v = seqLengths.size();
-            		seqLengths.put(sort.toString(), v);
+            		seqLengths.put(sort, v);
             		addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array Int " + sort + ")) Int)");
             	}
             	// Sequence length
@@ -2894,11 +2894,12 @@ public class SMTTranslator extends JmlTreeScanner {
             	return;
             } else if (object.type.tsym.toString().startsWith("org.jmlspecs.lang.internal.array")) {
         		Type t = object.type.getTypeArguments().head;
-        		Integer v = arrLengths.get(t);
+                var sort = convertSort(t).toString();
+        		Integer v = arrLengths.get(sort);
             	if (v == null) {
             		v = arrLengths.size();
-            		arrLengths.put(t, v);
-            		addCommand(smt,"(declare-fun " + "arrLength"+v + "((Array Int " + convertSort(t) + ")) Int)");
+            		arrLengths.put(sort, v);
+            		addCommand(smt,"(declare-fun " + "arrLength"+v + "((Array Int " + sort + ")) Int)");
             	}
             	// Sequence length
             	IExpr sel = convertExpr(object);

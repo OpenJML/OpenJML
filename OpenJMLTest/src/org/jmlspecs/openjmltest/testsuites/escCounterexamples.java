@@ -444,71 +444,73 @@ public class escCounterexamples extends EscBase {
     @Test
     public void testCE15() {
         main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName()+"=1");
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
                 
-                +"  //@ ensures false; \n"
-                +"  public void m1(int i) {\n"
-                +"    int k = 9 - 9;\n"
-                +"    try {\n"
-                +"      k = 1 + 2 + 3 - 1;\n"
-                +"      try {\n"
-                +"         k = 7;\n"
-                +"         return;\n"
-                +"      } finally {\n"
-                +"         k = 9;\n"
-                +"      }\n"
-                +"    } finally {\n"
-                +"       k = 13;\n"
-                +"       return;\n"
-                +"    }\n"
-                +"  }\n"
+                  //@ ensures false;
+                  public void m1(int i) {
+                    int k = 9 - 9;
+                    try {
+                      k = 1 + 2 + 3 - 1;
+                      try {
+                         k = 7;
+                         return;
+                      } finally {
+                         k = 9;
+                      }
+                    } finally {
+                       k = 13;
+                       return;
+                    }
+                  }
                 
-                +"  //@ requires i != 0; ensures false; \n" //Line 19
-                +"  public void m2(int i) throws Exception {\n"
-                +"    int k = 0;\n"
-                +"    try {\n"
-                +"      k = 5;\n"
-                +"      try {\n"
-                +"         k = 7;\n"
-                +"         if (i==0) throw new RuntimeException();\n"
-                +"         return;\n"
-                +"      } catch (Exception e) {\n"
-                +"         k = 25;\n"
-                +"         throw e;\n"
-                +"      } finally {\n"
-                +"         k = 9;\n"
-                +"      }\n"
-                +"    } catch (RuntimeException e) {\n"
-                +"       k = 27;\n"
-                +"    } finally {\n"
-                +"       k = 13;\n"
-                +"    }\n"
-                +"  }\n"
+                  //@ requires i != 0; ensures false; //Line 19
+                  public void m2(int i) throws Exception {
+                    int k = 0;
+                    try {
+                      k = 5;
+                      try {
+                         k = 7;
+                         if (i==0) throw new RuntimeException();
+                         return;
+                      } catch (Exception e) {
+                         k = 25;
+                         throw e;
+                      } finally {
+                         k = 9;
+                      }
+                    } catch (RuntimeException e) {
+                       k = 27;
+                    } finally {
+                       k = 13;
+                    }
+                  }
                 
-                +"  //@ requires i == 0; ensures false; \n" // Line 40
-                +"  public void m3(int i) throws Exception {\n"
-                +"    int k = 0;\n"
-                +"    try {\n"
-                +"      k = 5;\n"
-                +"      try {\n"
-                +"         k = 7;\n"
-                +"         if (i==0) throw new RuntimeException();\n"
-                +"         return;\n"
-                +"      } catch (Exception e) {\n"
-                +"         k = 25;\n"
-                +"         throw e;\n"
-                +"      } finally {\n"
-                +"         k = 9;\n"
-                +"      }\n"
-                +"    } catch (RuntimeException e) {\n"
-                +"       k = 27;\n"
-                +"    } finally {\n"
-                +"       k = 13;\n"
-                +"    }\n"
-                +"  }\n"
-                +"}\n"
-                
+                  //@ requires i == 0; ensures false; // Line 40
+                  public void m3(int i) throws Exception {
+                    int k = 0;
+                    try {
+                      k = 5;
+                      try {
+                         k = 7;
+                         if (i==0) throw new RuntimeException();
+                         return;
+                      } catch (Exception e) {
+                         k = 25;
+                         throw e;
+                      } finally {
+                         k = 9;
+                      }
+                    } catch (RuntimeException e) {
+                       k = 27;
+                    } finally {
+                       k = 13;
+                    }
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
                 ,"/tt/TestJava.java:3: warning: Associated declaration",7
                 ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
