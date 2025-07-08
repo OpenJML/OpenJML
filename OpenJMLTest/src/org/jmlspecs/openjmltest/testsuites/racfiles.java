@@ -731,6 +731,18 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void jmlset() {
+        expectedExit = 0;
+        helpCompileRun("TSet");
+    }
+    
+    @Test
+    public void jmlmap() {
+        expectedExit = 0;
+        helpCompileRun("Tmap");
+    }
+    
+    @Test
     public void racbigint() { // FIXME - do these duplicate
         expectedExit = 0;
         helpTCF("test/racbigint","test/racbigint","bigint");

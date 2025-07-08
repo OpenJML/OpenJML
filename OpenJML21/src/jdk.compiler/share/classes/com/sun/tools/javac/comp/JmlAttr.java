@@ -116,6 +116,8 @@ import com.sun.tools.javac.comp.MatchBindingsComputer.MatchBindings;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlTokenizer;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
+import com.sun.tools.javac.resources.CompilerProperties.Fragments;
 import com.sun.tools.javac.tree.EndPosTable;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.Pretty;
@@ -1673,6 +1675,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         x: for (var a: annotations) {
             if (a instanceof JmlAnnotation jmla) {
                 // Annotations have already been attributed, so jmla.type != null 
+                if (jmla.type == null) System.out.println("NO SYMBOL FOR " + jmla + " " + jmla.type);
                 if (jmla.type.tsym.owner != annotationPackageSymbol) {
                     remaining.add(jmla);
                 } else {
@@ -7244,6 +7247,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 setSyntheticVariableType(tree.var, inferredType);
             }
             attribStat(tree.var, loopEnv);
+            //System.out.println("ENFOR " + tree + " " + elemtype + " " + tree.var + " " + tree.var.sym);
+            //utils.warning(tree, "jml.message", "ENFOR " + tree + " " + elemtype + " " + tree.var + " " + tree.var.sym);
             chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
             loopEnv.tree = tree; // before, we were not in loop!
             trForeachLoop(tree,tree.var.sym.type); // DRC - added
@@ -7786,8 +7791,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
+        if (that.name == names.error) {
+            utils.error(that, "jml.message", "Error in parsed declaration, or misspelled keyword: " + that);
+            return; // This can happen if, for example, we are parsing 'require true' (with the typo)
+        }
         if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-        if (utils.verbose()) utils.note("Attributing " + that.vartype + " " + that.name + " " + that.getClass() + " " + that + " MODS:" + that.mods);
         if (env.enclMethod != null) {
             if (that.vartype instanceof JCTypeApply ft) {
                 var nn = specs.defaultNullity(env.enclClass.sym);
@@ -7809,6 +7817,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.specsDecl != null) newMods = that.mods = that.specsDecl.mods;
 
             // FIXME - we should not need these two lines I think, but otherwise we get NPE faults on non_null field declarations
+            //System.out.println("VJVD-A " + that + " " + that.mods + " :: " + that.mods.annotations);
+
             attribAnnotationTypes(that.mods.annotations,env); 
             annotate.flush(); // FIXME _ this does not do anything if annotations are blocked
             for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
@@ -7820,10 +7830,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     lintEnv = lintEnv.next;
                 env.info.lint = lintEnv.info.lint;
             }
-
+            //System.out.println("VJVD-K " + that);
             visitVarDef(that);
+            //System.out.println("VJVD-J " + that);
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
+            //System.out.println("VJVD-Z " + that);
             
             // FIXME - move this default initialization to JmlAssertionAdder
             if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 

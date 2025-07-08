@@ -102,6 +102,12 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug869() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
     public void importProblem() {
         helpTCG();
     }

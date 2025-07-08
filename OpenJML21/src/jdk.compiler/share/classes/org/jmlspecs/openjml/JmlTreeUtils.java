@@ -1636,6 +1636,14 @@ public class JmlTreeUtils {
             MethodSymbol exactMatch = null;
             MethodSymbol exactMatchWithVarargs = null;
             var iter = sc.getSymbolsByName(name).iterator();
+            if (iter.hasNext()) {
+                Symbol sym = iter.next();
+                if (!iter.hasNext() && sym instanceof MethodSymbol ms) {
+                    // There is just one symbol -- use it
+                    return makeMethodInvocation(pos, receiver, ms, nargs);
+                }
+            }
+            iter = sc.getSymbolsByName(name).iterator();
             x: while (iter.hasNext()) {
                 Symbol sym = iter.next();
                 s += "\t\t" + sym.toString();

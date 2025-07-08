@@ -2619,6 +2619,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
     public JCExpression newTempIfNeeded(JCExpression expr) {
         if (expr == null) return null;
+        //System.out.println("NEWTEMPIF " + expr.type + " " + expr + " " + expr.getClass());
         if (expr instanceof JCLiteral) return expr;
         if (expr instanceof JCIdent id && id.sym.owner == null) return id;
         return newTemp(uniqueTempString(), expr);
@@ -8309,9 +8310,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         var methtype = that.meth.type;
 		if (!translatingJML)
 			checkThatMethodIsCallable(that, treeutils.getSym(that.meth));
+
+		int actualVarArgsCount = -1;
+		if (methsym.isVarArgs()) {
+		    int actualLength = that.args.length();
+		    int formalLength = methsym.type.asMethodType().argtypes.length(); // msym.params can be null if there are
+		    // varargs
+		    Type varargType = methtype.getParameterTypes().last();
+		    //System.out.println("VARARGS " + formalLength + " " + actualLength+ " " + varargType);
+		    if (actualLength != formalLength || (!types.isSameType(that.args.last().type, varargType)
+		            && !(that.args.last().type instanceof Type.ArrayType))) {
+		        int p = that.meth.pos;
+		        JCExpression len = treeutils.makeIntLiteral(p, actualLength + 1 - formalLength);
+		        Type compType = ((Type.ArrayType) varargType).getComponentType();
+		        JCExpression ty = treeutils.makeType(p, compType);
+		        ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
+		        ListBuffer<JCExpression> varargs = new ListBuffer<JCExpression>();
+		        Iterator<JCExpression> iter = that.args.iterator();
+		        int i = formalLength - 1;
+		        while ((i--) > 0)
+		            newargs.add(iter.next());
+		        while (iter.hasNext())
+		            varargs.add(iter.next());
+		        JCNewArray array = M.at(p).NewArray(ty, List.<JCExpression>nil(), varargs.toList());
+		        array.elemtype = treeutils.makeType(that.pos,compType);
+		        array.type = varargType;
+		        newargs.add(array);
+		        that.args = newargs.toList();
+		        actualVarArgsCount = actualLength - formalLength + 1;
+		        //System.out.println("VARARGS-Z " + that + " " + actualVarArgsCount);
+		    }
+		}
+
 		if (translatingJML && rac) {
-			// FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
-            currentEnv = currentEnv.pushEnvCopy();
+		    // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
+		    currentEnv = currentEnv.pushEnvCopy();
 		    if (currentEnv.stateLabel != null) {
 		        if (!utils.hasModifier(methsym, Modifiers.NO_STATE)) {
 		            currentEnv.localsForbidden = true;
@@ -8322,7 +8355,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             var formals = methsym.type.asMethodType().argtypes;
             List<JCExpression> typeargs = convertExprList(that.typeargs);
             JCExpression meth = convertExpr(that.meth);
-            List<JCExpression> args = convertArgs(that, that.args, formals, methsym.isVarArgs());
+            List<JCExpression> args = convertArgs(that, that.args, formals);
             currentEnv = currentEnv.popEnv();
 		    if (!inline) {
 		        JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
@@ -8332,7 +8365,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		            JCIdent id = newTemp(app);
 		            result = eresult = id;
 		        }
-	            return;
 		    } else {
 		        var mspecs = specs.get(methsym);
 		        if (mspecs.modelBody == null) {
@@ -8350,69 +8382,55 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		            
 		            // if (!splitExpressions) ... PROBLEM FIXME, also model methods
 		        }
+		    }
+
+		} else {
+
+		    if (!rac && methsym.name == names.clone && methsym.owner.name == names.fromString("Array")) {
+		        // Change the symbol so that we get the specifications in Object.clone.
+		        // However, having the wrong symbol causes rac to crash (cf. gitbug866)
+		        // FIXME - perhaps we should just register the specs for Array.clone as well.
+		        ((JCFieldAccess) that.meth).sym = syms.objectType.tsym.members().findFirst(names.fromString("clone"));
+		    }
+		    if (classDecl.sym.isEnum() && methodDecl.sym.isConstructor() && that.meth instanceof JCIdent id
+		            && id.name.equals(names._super)) {
+		        // OpenJDK inserts default constructors in classes and
+		        // inserts super() calls in constructors. For enums, this
+		        // super() call seems incorrect, since java.lang.Enum does not
+		        // have such a constructor. The effect of the constructor is to
+		        // set the name and ordinal fields.
+		        // TODO: For now we avoid processing the erroneous? super call.
+
 		        return;
 		    }
+		    if (that.meth instanceof JCIdent) {
+		        if (methsym.isStatic()) {
+		            that.meth = M.at(that).Select(M.at(that).Type(methsym.owner.type), methsym);
+		        } else {
+		            // TODO _ substitute the QTHIS argument
+		        }
+		    }
+		    Map<Symbol, Symbol> saved = pushMapSymbols();
+		    try {
+		        //System.out.println("CALLING APPLYHELPER " + that);
+		        //System.out.println("CALLING APPLYHELPER TPS " + methsym.getTypeParameters() + " :: " + that.meth.type + " :: " + methsym.type);
+		        applyHelper(that);
+		        //System.out.println("END APPLYHELPER " + that);
+		        addFeasibilityCheck(that, currentStatements, Strings.feas_call, "after call");
+		    } finally {
+		        popMapSymbols(saved);
+		    }
 		}
-		if (methsym.isVarArgs()) {
-			int actualLength = that.args.length();
-			int formalLength = methsym.type.asMethodType().argtypes.length(); // msym.params can be null if there are
-																			// varargs
-            Type varargType = methtype.getParameterTypes().last();
-			if (actualLength != formalLength || (!types.isSameType(that.args.last().type, varargType)
-					&& !(that.args.last().type instanceof Type.ArrayType))) {
-				int p = that.meth.pos;
-				JCExpression len = treeutils.makeIntLiteral(p, actualLength + 1 - formalLength);
-				Type compType = ((Type.ArrayType) varargType).getComponentType();
-				JCExpression ty = treeutils.makeType(p, compType);
-				ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
-				ListBuffer<JCExpression> varargs = new ListBuffer<JCExpression>();
-				Iterator<JCExpression> iter = that.args.iterator();
-				int i = formalLength - 1;
-				while ((i--) > 0)
-					newargs.add(iter.next());
-				while (iter.hasNext())
-					varargs.add(iter.next());
-				JCExpression array = M.at(p).NewArray(ty, List.<JCExpression>nil(), varargs.toList());
-				array.type = varargType;
-				newargs.add(array);
-				that.args = newargs.toList();
-			}
-		}
-		
-		if (!rac && methsym.name == names.clone && methsym.owner.name == names.fromString("Array")) {
-		    // Change the symbol so that we get the specifications in Object.clone.
-		    // However, having the wrong symbol causes rac to crash (cf. gitbug866)
-		    // FIXME - perhaps we should just register the specs for Array.clone as well.
-			((JCFieldAccess) that.meth).sym = syms.objectType.tsym.members().findFirst(names.fromString("clone"));
-		}
-		if (classDecl.sym.isEnum() && methodDecl.sym.isConstructor() && that.meth instanceof JCIdent id
-				&& id.name.equals(names._super)) {
-			// OpenJDK inserts default constructors in classes and
-			// inserts super() calls in constructors. For enums, this
-			// super() call seems incorrect, since java.lang.Enum does not
-			// have such a constructor. The effect of the constructor is to
-			// set the name and ordinal fields.
-			// TODO: For now we avoid processing the erroneous? super call.
-
-			return;
-		}
-		if (that.meth instanceof JCIdent) {
-			if (methsym.isStatic()) {
-				that.meth = M.at(that).Select(M.at(that).Type(methsym.owner.type), methsym);
-			} else {
-				// TODO _ substitute the QTHIS argument
-			}
-		}
-		Map<Symbol, Symbol> saved = pushMapSymbols();
-		try {
-            //System.out.println("CALLING APPLYHELPER " + that);
-            //System.out.println("CALLING APPLYHELPER TPS " + methsym.getTypeParameters() + " :: " + that.meth.type + " :: " + methsym.type);
-			applyHelper(that);
-            //System.out.println("END APPLYHELPER " + that);
-	        addFeasibilityCheck(that, currentStatements, Strings.feas_call, "after call");
-		} finally {
-			popMapSymbols(saved);
-		}
+        if (eresult != null && actualVarArgsCount >= 0 && types.isJmlType(eresult.type) && eresult.type.tsym == types.ARRAYsym(context)) {
+            JCFieldAccess fa = treeutils.makeSelect(that.pos, eresult, names.length);
+            fa.sym = eresult.type.tsym.members().findFirst(names.length);
+            fa.type = syms.intType;
+            if (!rac) {
+                var lengthAssumption = treeutils.makeEquality(that.pos, fa, treeutils.makeIntLiteral(that.pos, actualVarArgsCount));
+                addAssume(that, Label.IMPLICIT_ASSUME, lengthAssumption);
+            }
+        }
+        return;
 	}
 
 
@@ -8555,21 +8573,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return false;
 	}
 
-	protected List<JCExpression> convertArgs(DiagnosticPosition pos, List<JCExpression> args, List<Type> argtypes,
-			boolean hasVarArgs) {
+	protected List<JCExpression> convertArgs(DiagnosticPosition pos, List<JCExpression> args, List<Type> argtypes) {
 		// Note: because the declaration may have a last varargs element,
 		// args.size() may be greater than argtypes.size() But since everything
 		// has typechecked OK, it is OK to implicitly use the last element of
 		// argtypes for any additional args.
+	    //System.out.println("CONVERTING ARGS " + args + " :: " + argtypes);
 		ListBuffer<JCExpression> out = new ListBuffer<JCExpression>();
 		Iterator<Type> iter = argtypes.iterator();
 		boolean last = false;
 		Type currentArgType = null;
-		boolean usedVarArgs = args.size() == 0 && argtypes.size() != 0 && hasVarArgs;
+		//boolean usedVarArgs = args.size() == 0 && argtypes.size() != 0 && hasVarArgs;
 		for (JCExpression a : args) {
 			if (iter.hasNext()) {
 				currentArgType = iter.next(); // handles varargs
-				if (!iter.hasNext() && hasVarArgs) currentArgType = ((Type.ArrayType)currentArgType).getComponentType();
+//				if (!iter.hasNext() && hasVarArgs) currentArgType = ((Type.ArrayType)currentArgType).getComponentType();
 			}
 			last = !iter.hasNext();
 			if (currentArgType != null && isFunctional(currentArgType) && a instanceof JCMemberReference) { // FIXME -
@@ -8633,24 +8651,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			out.add(a);
 		}
-		if (usedVarArgs) {
-			ListBuffer<JCExpression> newout = new ListBuffer<JCExpression>();
-			int n = argtypes.length() - 1;
-			while (--n >= 0) {
-				newout.add(out.remove());
-			}
-			// create an array with the rest
-			currentArgType = ((Type.ArrayType) argtypes.last()).getComponentType();
-			List<JCExpression> dims = List.<JCExpression>nil(); // FIXME - what if the array is multi-dimensional
-			int p = pos.getPreferredPosition();
-			JCExpression t = treeutils.makeType(p, currentArgType);
-			JCExpression e = M.at(p).NewArray(t, dims, out.toList());
-			e.type = argtypes.last();
-			if (esc || infer)
-				e = convertExpr(e);
-			newout.add(newTemp(e)); // FIXME - see comment above about newTemp
-			out = newout;
-		}
+//		if (usedVarArgs) {
+//			ListBuffer<JCExpression> newout = new ListBuffer<JCExpression>();
+//			int n = argtypes.length() - 1;
+//			while (--n >= 0) {
+//				newout.add(out.remove());
+//			}
+//			// create an array with the rest
+//			currentArgType = ((Type.ArrayType) argtypes.last()).getComponentType();
+//			List<JCExpression> dims = List.<JCExpression>nil(); // FIXME - what if the array is multi-dimensional
+//			int p = pos.getPreferredPosition();
+//			JCExpression t = treeutils.makeType(p, currentArgType);
+//			JCExpression e = M.at(p).NewArray(t, dims, out.toList());
+//			e.type = argtypes.last();
+//			if (esc || infer)
+//				e = convertExpr(e);
+//			newout.add(newTemp(e)); // FIXME - see comment above about newTemp
+//			out = newout;
+//		}
 		return out.toList();
 	}
 
@@ -8999,8 +9017,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				isThisCall = id.name.equals(names._this);
 
 				typeargs = convert(typeargs);
-				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,
-						((MethodSymbol)id.sym).isVarArgs());
+				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes);
 
 				calleeMethodSym = (MethodSymbol) id.sym;
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
@@ -9059,9 +9076,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here
 												// and elsewhere
 				if (print) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
-                addStat(comment("Converting arguments for " + that));
-				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes,
-						(fa.sym.flags() & Flags.VARARGS) != 0); // FIXME - this is a different test for varargs than in the branch above
+				addStat(comment("Converting arguments for " + that));
+				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes);
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
 				// newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null,
 				// meth.type.asMethodType());
@@ -9130,8 +9146,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!typeargs.isEmpty()) addStat(comment("Converting type arguments"));
 				typeargs = convert(typeargs);
                 addStat(comment("Converting arguments for " + that));
-				trArgs = convertArgs(that, untrArgs, calleeMethodSym.type.asMethodType().argtypes,
-						(calleeMethodSym.flags() & Flags.VARARGS) != 0);
+				trArgs = convertArgs(that, untrArgs, calleeMethodSym.type.asMethodType().argtypes);
 
 				JCNewClass expr = M.at(that).NewClass(convertedReceiver, typeargs, convert(newclass.clazz), trArgs,
 						convert(newclass.def)); // This call will recursively translate the methods in the body of the
@@ -15672,6 +15687,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     eresult.type = that.type;
                     return;
                 }
+                if (indexed.type.tsym == setTypeKind.getType(context).tsym) {
+                    index = addConversion(index,syms.objectType, index, false,false);
+                    result = eresult = makeMethodInvocation(that, indexed, "contains", index);
+                    eresult.type = that.type;
+                    return;
+                }
+                if (indexed.type.tsym == mapTypeKind.getType(context).tsym) {
+                    index = addConversion(index,syms.objectType, index, false,false);
+                    result = eresult = makeMethodInvocation(that, indexed, "get", index);
+                    eresult.type = that.type;
+                    return;
+                }
 			}
 		}
 
@@ -21350,7 +21377,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    //System.out.println("CONVERTING " + that.init + " " + that.init.getClass());
 						init = convertJML(that.init);
 						if (init != null && !types.isSameType(that.type, init.type)) {
-						    System.out.println("CONVERTING INIT " + that.type + " " + init.type + " " + that);
+						    //System.out.println("CONVERTING INIT " + that.type + " " + init.type + " " + that);
 							init = addImplicitConversion(init, that.type, init);
 						}
 

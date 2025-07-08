@@ -3344,7 +3344,11 @@ public class JmlParser extends JavacParser {
 //        }
         T list = super.variableDeclarators(mods,type,vdefs,localDecl);
         {
-            for (Object decl: list) insertReplacementType(decl,replacementType);
+            for (Object obj: list) {
+                //System.out.println("VDeCLS " + obj.getClass() + " " + obj);
+                if (obj instanceof JCVariableDecl decl && (decl.name == names.error || decl.name == null)) utils.error(decl, "jml.message", "Error in parsed declaration, or misspelled keyword: "+ obj);
+                insertReplacementType(obj,replacementType);
+            }
             replacementType = null;
         }
         return list;

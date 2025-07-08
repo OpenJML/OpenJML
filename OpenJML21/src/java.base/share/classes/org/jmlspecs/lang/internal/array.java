@@ -10,13 +10,21 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     public final bigint length;
     
     private array() { value = null; length = bigint.zero; }
-    private array(T[] v) { value = v; length = bigint.of(value.length); }
+    private array(T[] v) { value = v; length = bigint.of(v.length); }
     
     public static <TT> array<TT> empty() { return new array<TT>(); }
 
     @SafeVarargs
-    @SuppressWarnings("unchecked")
-    public static <TT> array<TT> of(TT ... data) { return new array<TT>(data); }
+    @SuppressWarnings({"varargs","unchecked"})
+    public static <TT> array<TT> of(TT ... data) {
+        //System.out.println("OF " + data.getClass() + " " + data.length);
+        // FIXME - it appears that the wrapping of the varargs into a new TT[]{} call and making that a new argument for 'of(TT ...)'
+        // is followed by an implicit further cast of the TT[] into an Object and then into a singleton Object[]
+        if (data.length == 1 && data[0].getClass().isArray()) data = (TT[])data[0];
+        //System.out.println("OF=Z " + data.getClass() + " " + data.length);
+        return new array<TT>(data);
+    }
+//    public static <TT> array<TT> of(TT[] data, int len) { return new array<TT>(data); }
 
     public array<T> copy() { 
         if (value == null) return array.<T>empty();
@@ -24,12 +32,12 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     }
 
     public T get(bigint i) {
-        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException();
+        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException(i + " vs. " + length);
         return value[i.intValue()];
     }
     
     public array<T> put(bigint i, T v) {
-        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException();
+        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException(i + " vs. " + length);
         var c = copy();
         c.value[i.intValue()] = v;
         return c;
