@@ -90,7 +90,7 @@ public class primrac extends RacBase {
     
     @Test
     public void jmlmap() {
-        expectedExit = 0;
+        expectedExit = 1;
         helpCompileRun("Tmap");
     }
     

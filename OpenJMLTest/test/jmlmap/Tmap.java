@@ -16,15 +16,25 @@ public class Tmap {
         //@ check s.size() == 0;
     }
 
-//    //@ spec_pure
-//    public static void test3() { // of, size, contains
-//        Object o = new Object();
-//        Object oo = new Object();
-//        //@ ghost \map<Object,Integer> s = \map.of(o,oo);
-//        //@ check s.size() == 2;
-//        //@ check s.contains(o);
-//        //@ check s.contains(oo);
-//    }
+    //@ spec_pure
+    public static void test3() { //putAll, remove
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        Object oooo = new Object();
+        //@ ghost \map<Object,Integer> s = \map.<Object,Integer>empty().put(o,1).put(oo,2);
+        //@ ghost \map<Object,Integer> ss = \map.<Object,Integer>empty().put(oo,12).put(ooo,13);
+        //@ ghost \map<Object,Integer> sss = s.putAll(ss);
+        //@ check (int)sss[o] == 1;
+        //@ check (int)sss[oo] == 12;
+        //@ check (int)sss[ooo] == 13;
+        //@ check !ssss.has(oooo);
+        //@ set sss = s.remove(o);
+        //@ check sss.has(oo);
+        //@ check !sss.has(o);
+        //@ check !sss.has(ooo);
+        
+    }
 
     //@ spec_pure
     public static void test4() {
@@ -67,7 +77,7 @@ public class Tmap {
     public static void main(String... args) {
         test1();
         test2();
-//        test3();
+        test3();
         test4();
         test5();
         errors5();

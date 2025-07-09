@@ -127,21 +127,6 @@ public class Utils {
         return jmltypes;
     }
     
-    private Type interfaceForPrimitiveTypes;
-    public Type interfaceForPrimitiveTypes() {
-    	try {
-    		if (interfaceForPrimitiveTypes == null) {
-    			Names n = Names.instance(context);
-    			Symbol.ModuleSymbol m = Symtab.instance(context).getModule(n.fromString("java.base"));
-        	    interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(m,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
-    		}
-    		return interfaceForPrimitiveTypes;
-    	} finally {
-    		if (interfaceForPrimitiveTypes==null) {
-    			this.error("jml.internal", "Unsuccessful loading of org.jmlspecs.lang.IJmlPrimitiveType");
-    		}
-    	}
-    }
 
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
@@ -1039,15 +1024,15 @@ public class Utils {
     }
 
     public boolean isJavaOrJmlPrimitiveType(Type ct) {
-        return ct.isPrimitive() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+        return ct.isPrimitive() || jmltypes().isJmlType(ct);
     }
 
     public boolean isJavaOrJmlPrimitiveOrVoidType(Type ct) {
-        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct);
     }
 
     public boolean isPrimitiveOrVoidType(Type ct) {
-        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct) || isExtensionValueType(ct);
+        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct);
     }
     
     /** A special method to check the type of arguments; isSameType might fail because of different wildcard type arguments of Class<>. */
@@ -1055,23 +1040,23 @@ public class Utils {
         return ct.tsym == Symtab.instance(context).classType.tsym;
     }
 
-    public boolean isExtensionValueType(Type ty) {
-        if (!(ty instanceof Type.ClassType ct)) return false;
-        if (ty.isErroneous()) return false;
-        var prim = interfaceForPrimitiveTypes();
-        // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
-        // any JML types have IJmlPrimitiveType as a direct interface.
-        for (var t: jmltypes().interfaces(ct)) {
-            if (t.tsym == prim.tsym) return true;
-        }
-        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
-            // This hack was added because the check above did not used to always work.
-            // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
-            warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
-            return true;
-        }
-        return false;
-    }
+//    public boolean isExtensionValueType(Type ty) {
+//        if (!(ty instanceof Type.ClassType ct)) return false;
+//        if (ty.isErroneous()) return false;
+//        var prim = interfaceForPrimitiveTypes();
+//        // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
+//        // any JML types have IJmlPrimitiveType as a direct interface.
+//        for (var t: jmltypes().interfaces(ct)) {
+//            if (t.tsym == prim.tsym) return true;
+//        }
+//        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
+//            // This hack was added because the check above did not used to always work.
+//            // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
+//            warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
+//            return true;
+//        }
+//        return false;
+//    }
     
 
     // Includes self
