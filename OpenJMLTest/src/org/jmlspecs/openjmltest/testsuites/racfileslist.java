@@ -44,6 +44,7 @@ public class racfileslist extends RacBase {
     }
     
     public static String[] testsuites = new String[]{
+            "org.jmlspecs.openjmltest.testsuites.primrac",
             "org.jmlspecs.openjmltest.testsuites.racfiles",
             "org.jmlspecs.openjmltest.testsuites.racfilesmodels"
     };

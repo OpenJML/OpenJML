@@ -1073,7 +1073,7 @@ public class escall3 extends EscBase {
 
                 +"  public void m5(A[] a, B i) {\n"
                 +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      //@ assume \\type(B) <: \\elemtype(\\typeof(a));\n"
+                +"      //@ assume \\type(B) <:= \\elemtype(\\typeof(a));\n"
                 +"      Object[] o = a;\n"
                 +"      o[0] = i;\n"
                 +"  }\n"
@@ -1938,17 +1938,17 @@ public class escall3 extends EscBase {
                 public class TestJava {
                   public static void main(String[] args) {
                     int i; Object o = new Object();
-                    //@ assert \\elemtype(i) == \\typeof(o); // Java primitive values are not allowed as arguments
+                    //@ check \\elemtype(i) == \\typeof(o); // Java primitive values are not allowed as arguments
                     //@ ghost \\bigint z; // JML type values are not allowed as arguments
-                    //@ assert \\elemtype(z) == \\typeof(o);
+                    //@ check \\elemtype(z) == \\typeof(o);
                     //@ ghost \\seq<Integer> s; // JML type values are not allowed as arguments
-                    //@ assert \\elemtype(s) == \\typeof(o);
+                    //@ check \\elemtype(s) == \\typeof(o);
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not int", 26
-                ,"/tt/TestJava.java:8: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not \\bigint", 26
-                ,"/tt/TestJava.java:10: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not \\seq<java.lang.@org.jmlspecs.annotation.Nullable Integer>", 26
+                ,"/tt/TestJava.java:6: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not int", 25
+                ,"/tt/TestJava.java:8: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not \\bigint", 25
+                ,"/tt/TestJava.java:10: error: The argument of \\elemtype must have type \\TYPE or be a Java reference object, not \\seq<java.lang.@org.jmlspecs.annotation.Nullable Integer>", 25
                 );
     }
 
