@@ -81,14 +81,16 @@ public class JmlTypes extends Types {
     /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override
     public boolean isSameType(Type t, Type s) {
-        if (t == s) return true;
-        if (t instanceof JmlType || s instanceof JmlType) return false;
-        return super.isSameType(t, s);
-    }
-    
-    /** Returns true if t and s are the same type or t is the repType of a JML type s */
-    public boolean isSameTypeOrRep(Type t, Type s) {
-        if (t == s) return true;
+        if (isJmlType(t) || isJmlType(s)) {
+            if (t.tsym != s.tsym) return false;
+            var titer = t.getTypeArguments().iterator();
+            var siter = s.getTypeArguments().iterator();
+            while (titer.hasNext() && siter.hasNext()) {
+                if (!isSameType(titer.next(),siter.next())) return false;
+            }
+            return !titer.hasNext() && !siter.hasNext();
+
+        }
         return super.isSameType(t, s);
     }
     
@@ -115,8 +117,10 @@ public class JmlTypes extends Types {
     
     /** Overrides Types.isAssignable with functionality for JML primitive types. */
     // is a t assignable to s, that is, is t a subtype of s
+    // FIXME - not sure when this is called
     @Override
     public boolean isAssignable(Type t, Type s, Warner warn) {
+        //if (isJmlType(s) || isJmlType(t)) System.out.println("ISASSIGNABLE " + t + " " + s);
         if (s == t) return true;
         if (isSameType(s,t)) return true;
         if (!javaOnly) {
@@ -167,7 +171,7 @@ public class JmlTypes extends Types {
     
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyIntegral(Type t) {
-        if (t.tsym ==BIGINTsym(context)) return true;
+        if (t.tsym == BIGINTsym(context)) return true;
         if (t instanceof Type.TypeVar) return false;
         if (t.toString().equals("java.math.BigInteger")) return true;
         t = unboxedTypeOrType(t);
@@ -176,22 +180,20 @@ public class JmlTypes extends Types {
     
     /** Returns true if the type allows indexing by some type */
     public boolean isArray(Type t) {
-        boolean b = super.isArray(t);
-        if (!b && t.isReference()) {
+        if (isJmlType(t)) {
             Type arrayLikeType = JmlAttr.instance(context).JMLArrayLike;
             return isSubtype(t, arrayLikeType);
         }
-        return b;
+        return super.isArray(t);
     }
     
     /** Returns true if the type allows indexing by integer indices */
     public boolean isIntArray(Type t) {
-        boolean b = super.isArray(t);
-        if (!b && t.isReference()) {
+        if (isJmlType(t)) {
             Type arrayLikeType = JmlAttr.instance(context).JMLIntArrayLike;
             return isSubtype(t, arrayLikeType);
         }
-        return b;
+        return super.isArray(t);
     }
     
     public Type elemtype(Type t) {
@@ -258,14 +260,14 @@ public class JmlTypes extends Types {
     /** Overrides Types.boxedClass with functionality for JML primitive types. */
     @Override
     public ClassSymbol boxedClass(Type t) {
-        if (Utils.instance(context).isExtensionValueType(t)) return (ClassSymbol)t.tsym;
+        if (isJmlType(t)) return (ClassSymbol)t.tsym;
         return super.boxedClass(t);
     }
 
     /** Overrides Types.unboxedType with functionality for JML primitive types. */
     @Override
     public Type unboxedType(Type t) {
-        if (Utils.instance(context).isExtensionValueType(t)) return t;
+        if (isJmlType(t)) return t;
     	return super.unboxedType(t);
     }
 
@@ -280,7 +282,7 @@ public class JmlTypes extends Types {
     @Override
     public boolean containsType(Type t, Type s) {
         if (t == s) return true;
-        if (Utils.instance(context).isExtensionValueType(t) || Utils.instance(context).isExtensionValueType(t)) return false;
+        if (isJmlType(t) || isJmlType(s)) return false;
         return super.containsType(t, s);
     }
     
@@ -350,9 +352,40 @@ public class JmlTypes extends Types {
         }
     }
     
+    private Type interfaceForPrimitiveTypes;
+    public Type interfaceForPrimitiveTypes() {
+        try {
+            if (interfaceForPrimitiveTypes == null) {
+                Names n = Names.instance(context);
+                Symbol.ModuleSymbol m = Symtab.instance(context).getModule(n.fromString("java.base"));
+                interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(m,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+            }
+            return interfaceForPrimitiveTypes;
+        } finally {
+            if (interfaceForPrimitiveTypes==null) {
+                Utils.instance(context).error("jml.internal", "Unsuccessful loading of org.jmlspecs.lang.IJmlPrimitiveType");
+            }
+        }
+    }
+
     /** Returns true if the given type is any JML primitive type. */
-    public boolean isJmlType(Type t) {
-        return Utils.instance(context).isExtensionValueType(t);
+    public boolean isJmlType(Type ty) {
+        if (!(ty instanceof Type.ClassType ct)) return false;
+        if (ty.isErroneous()) return false;
+        var prim = interfaceForPrimitiveTypes();
+        // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
+        // any JML types have IJmlPrimitiveType as a direct interface.
+        for (var t: interfaces(ct)) {
+            if (t.tsym == prim.tsym) return true;
+        }
+        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
+            // This hack was added because the check above did not used to always work.
+            // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
+            Utils.instance(context).warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
+            return true;
+        }
+        return false;
+        //return Utils.instance(context).isExtensionValueType(t);
     }
     
 
@@ -368,9 +401,9 @@ public class JmlTypes extends Types {
         //return t.toString().contains("JMLDataGroup"); // FIXME - implement a better way
     }
     
+    /** Return true if this method is JML or declared in a JML file */
     @Override
     public boolean checkJML(MethodSymbol msym) { 
-    	// Return true if this method is JML or declared in a JML file
         if (Utils.instance(context).isJML(msym.flags())) return true;
     	var e = com.sun.tools.javac.comp.Enter.instance(context).getEnv((Symbol.TypeSymbol)msym.owner);
     	if (e == null || e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return true; 
