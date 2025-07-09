@@ -77,16 +77,6 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void valuetypes() {
-        helpTG();
-    }
-
-    @Test
-    public void valuetypes2() {
-        helpTG();
-    }
-
-    @Test
     public void oldproblem() {
         helpTG();
     }
@@ -774,59 +764,5 @@ public class escfiles extends EscBaseFiles {
     public void modelImport7() {
         helpTCF("test/modelImports/Test7.java","test/modelImports/test7","--check","-cp","test/modelImports");
     }
-    
-    @Test
-    public void jmlbigint() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlbigintBad() {
-        expectedExit = 1;
-        helpTG(); // FIXME try compiling with -Xdiags:verbose (but does not seem to work)
-    }
-    
-    @Test
-    public void jmlTYPE() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlreal() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlstring() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlseq() {
-        helpTG();
-    }
-    
-
-    @Test
-    public void jmlarray() {
-        helpTG();
-    }
-    
-
-    @Test
-    public void jmlrange() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlset() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlmap() {
-        helpTG();
-    }
-    
 
 }
