@@ -220,6 +220,8 @@ public class JmlTypes extends Types {
     }
     
     /** Overrides Types.isConvertible with functionality for JML primitive types. */
+    // FIXME - not sure when this is called
+    // Called at least to check whether an actual argument of a method call can be converted to a formal argument
     @Override
     public boolean isConvertible(Type t, Type s, Warner warn) {
         // For JML primitive types, these implicit conversions are allowed.
@@ -229,7 +231,12 @@ public class JmlTypes extends Types {
         //  \\bigint -> \\real
         //  String -> \string
         if (isJmlType(s) || isJmlType(t)) {
-            if (t.tsym == s.tsym) return true;
+            if (isSameType(t,s)) return true;
+            //System.out.println("ISCONVERTIBLE " + t + " " + s);
+            if (t.tsym == s.tsym) {
+                if (t.getTypeArguments().nonEmpty()) return isSameType(t,s);
+                return true;
+            }
             if (s.tsym == BIGINTsym(context)) {
                 return isIntegral(t);
             }
@@ -253,7 +260,7 @@ public class JmlTypes extends Types {
     // Permitted implicit conversions are implemented in isConvertible().
     @Override
     public boolean isSubtypeUnchecked(Type t, Type s, Warner warn) {
-        if (isJmlType(s) || isJmlType(t)) return (t.tsym == s.tsym);
+        if (isJmlType(s) || isJmlType(t)) return isSameType(t, s);  // FIXME - should this use the Warner?
         return super.isSubtypeUnchecked(t, s, warn);
     }
             
@@ -278,11 +285,11 @@ public class JmlTypes extends Types {
 //        return super.isSubtype(t, s, capture);
 //    }
     
-    /** Overrides Types.containsType with functionality for JML primitive types. */
+    /** Overrides Types.containsType with functionality for JML primitive types. */  // FIXME - what is this for?
     @Override
     public boolean containsType(Type t, Type s) {
         if (t == s) return true;
-        if (isJmlType(t) || isJmlType(s)) return false;
+        if (isJmlType(t) || isJmlType(s)) return false;  // FIXME - this is not correct
         return super.containsType(t, s);
     }
     
@@ -319,30 +326,35 @@ public class JmlTypes extends Types {
     
     /** Overrides Types.isCastable with functionality for JML primitive types;
      * true if Type t is castable to Type s. */
+    // FIXME - not sure when this is called
     @Override
     public boolean isCastable(Type t, Type s, Warner warn) {
         if (isJmlType(s) || isJmlType(t)) {
-            if (s.tsym == t.tsym) return true;
-            var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
-            var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
-            if (s.tsym == BIGINT.tsym) {
-                return isIntegral(t) || t.tsym == REAL.tsym;
+            //System.out.println("ISCASTABLE " + t + " " + s);
+            if (isConvertible(t,s)) return true;
+            if (t.tsym == s.tsym) return false;
+            // allow explicit cast (that are not already allowed implicitly)
+            var BIGINT = BIGINTsym(context);
+            var REAL = REALsym(context);
+            if (s.tsym == BIGINT) {
+                return isIntegral(t) || t.tsym == REAL;
             }
-            if (s.tsym == REAL.tsym) {
+            if (s.tsym == REAL) {
                 if (isNumeric(t)) return true;
-                if (t.tsym == BIGINT.tsym) return true;
+                if (t.tsym == BIGINT) return true;
                 return false;
             }
-            if (t.tsym == BIGINT.tsym) {
+            if (t.tsym == BIGINT) {
                 return isIntegral(s);
             }
-            if (t.tsym == REAL.tsym) {
+            if (t.tsym == REAL) {
                 return isNumeric(s);
             }
         }
         return super.isCastable(t, s, warn);
     }
     
+    /** Returns the class symbol for the given fully qualified name,creating and interning it if it does not already exist */
     public ClassSymbol createClass(String fqName) {
         try {
         return ClassReader.instance(context).enterClass(Names.instance(context).fromString(fqName));
