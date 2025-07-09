@@ -38,7 +38,7 @@ public class map<K,V> implements IJmlPrimitiveType, IJmlArrayLike {
     }
     
     
-    public map<K,V> combine(map<K,V> m) {
+    public map<K,V> putAll(map<K,V> m) {
         var c = new HashMap<K,V>(value);
         c.putAll(m.value);
         return new map<K,V>(c);
