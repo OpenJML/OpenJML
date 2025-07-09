@@ -511,12 +511,12 @@ public class escCounterexamples extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
-                ,"/tt/TestJava.java:19: warning: Associated declaration",24
-                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (Postcondition) in method m3",10
-                ,"/tt/TestJava.java:40: warning: Associated declaration",24
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
+                ,"/tt/TestJava.java:21: warning: Associated declaration",24
+                ,"/tt/TestJava.java:54: warning: The prover cannot establish an assertion (Postcondition) in method m3",10
+                ,"/tt/TestJava.java:43: warning: Associated declaration",24
                 );
     }
 

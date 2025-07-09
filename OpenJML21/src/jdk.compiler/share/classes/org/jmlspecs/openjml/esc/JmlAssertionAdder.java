@@ -2193,7 +2193,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			treeutils.copyEndPosition(st, translatedExpr); // Note that the position of the expression may be that of
 															// the associatedPos, not of the original assert, if there
 															// even is one
-			
 			if ((label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION)
 					&& callStack.size() > 1) {
 				String cat = String.join("\n", callStack);
@@ -10176,6 +10175,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// addStat(treeutils.makeUtilsMethodStat(that.pos, "reportBoolean",
 						// treeutils.makeStringLiteral(that.pos, "D"), combinedPrecondition));
 						var prev = log.useSource(methodDecl != null ? methodDecl.sourcefile : classDecl.sourcefile); // FIXME - probably should be the containing clause sourcefile
+						//var prev = log.useSource(loc != null ? loc.source() : methodDecl != null ? methodDecl.sourcefile : classDecl.sourcefile);
+						//System.out.println("ADDASSERT " + (loc !=null ? loc.source() : "null") + " " + log.currentSourceFile().getName());
 						JCStatement stat = loc != null
 								? addAssert(that, translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,
 										combinedPrecondition, (DiagnosticPosition) loc, loc.source())
@@ -23307,6 +23308,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						.makeBinary(rhs.pos, JCTree.Tag.NE, treeutils.intneqSymbol, sub.copy(rhs), treeutils.zero)
 						.setType(syms.booleanType);
 				JmlStatementExpr a = treeutils.makeAssert(rhs, Label.UNDEFINED_DIV0, ee);
+				a.sourcefile = log.currentSourceFile();
 				e = combine(e, a);
 			} else if (op == JCTree.Tag.AND) {
 				JCExpression copy = sub.copy(lhs);
