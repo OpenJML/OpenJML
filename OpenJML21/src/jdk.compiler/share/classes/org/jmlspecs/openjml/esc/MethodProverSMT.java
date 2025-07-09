@@ -754,19 +754,20 @@ public class MethodProverSMT {
 
                     // FIXME - decide how to show counterexamples when there is no tracing
                     if (showCounterexample) {
+                        var names = com.sun.tools.javac.util.Names.instance(context);
                         log.getWriter(WriterKind.NOTICE).println("\nCOUNTEREXAMPLE");
                         for (VarSymbol v: basicBlocker.premap.keySet()) {
                             Name n = basicBlocker.premap.getName(v);
                             String ns = n.toString();
+                            if (n == names._this) continue; // FIXME - use symbols for these
+                            if (n == names.length) continue;
+                            if (ns.equals("_alloc__")) continue;
+                            if (ns.equals("_heap__")) continue;
                             if (v.owner instanceof Symbol.ClassSymbol) {
                                 String ostr = v.owner.toString();
                                 if (!ns.startsWith(ostr)) ns = ostr + "_" + ns;
                             }
-                            if (ns.equals("this")) continue; // FIXME - use symbols for these
-                            if (ns.equals("length")) continue;
-                            if (ns.equals("_alloc__")) continue;
-                            if (ns.equals("_heap__")) continue;
-
+                            //System.out.println("SEEkING " + v + " " + n  + " " + ns + " " + v.owner + " " + (v.owner != null ? v.owner.getClass().toString() : "" ));
                             String s = getValue(ns,smt,solver);
                             log.getWriter(WriterKind.NOTICE).println(ns + " = " + s);
                         }
@@ -1001,8 +1002,12 @@ public class MethodProverSMT {
                     if (comment != null && comment.contains("Assignable assertion:")) {
 // FIXME                           System.out.println("");             
                     }
-                    ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
+                    ifstat: if (origStat != null || stat instanceof JmlStatementExpr) {
+                        //System.out.println("TRACING " + stat + " " + stat.getClass() + " " + (stat instanceof JmlStatementExpr estat ? (estat.sourcefile == null ? "null" : estat.toString()) : ""));
                         String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
+//                        String loc = origStat == null ? "" :
+//                            origStat instanceof JmlStatementExpr sstat ? utils.locationString(origStat.getStartPosition(), sstat.sourcefile)
+//                                    : utils.locationString(origStat.getStartPosition());
                         //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
                         int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
                         int spanType = Span.NORMAL;

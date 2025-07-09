@@ -195,6 +195,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     final protected JmlTypes types;
     
+    final protected Names names;
+    
     /** The factory used to create AST nodes, initialized in the constructor */
     final protected JmlTree./*@non_null*/ Maker factory;
 
@@ -294,6 +296,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         this.factory = JmlTree.Maker.instance(context);
         this.utils = Utils.instance(context);
         this.types = JmlTypes.instance(context);
+        this.names = Names.instance(context);
         this.scanMode = AST_JAVA_MODE;
         
         trueLiteral = treeutils.trueLit;
@@ -2441,11 +2444,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            boolean print = vsym.name.toString().equals("length");
-//            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
-//            + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
+            boolean print = false; // vsym.name.toString().equals("length");
+            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
+            + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
             if (vsym == lengthSym) {
-                return vsym.name; // Just for array lengths
+                return vsym.name; // Just for Java array lengths
+            }
+            if (vsym.name == names.length && vsym.owner instanceof ClassSymbol cs && types.isJmlType(cs.type)) {
+                return vsym.name;
             }
             if (s == null) {
                 // If there was no mapping at all, we add the name to 
