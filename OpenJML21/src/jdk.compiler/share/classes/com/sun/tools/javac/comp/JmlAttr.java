@@ -4595,7 +4595,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     @Override
     public void visitApply(JCTree.JCMethodInvocation tree) {
-    	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("VISITAPPLY " + tree);
+    	//if (org.jmlspecs.openjml.Main.useJML && tree.meth.toString().contains("putAll")) System.out.println("VISITAPPLY " + tree);
         int nerrors = log.nerrors;
     	try {
     		super.visitApply(tree);
@@ -6113,23 +6113,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (jmlresolve.allowJML()) {
             Type owntype = types.createErrorType(tree.type);
             Type atype = attribExpr(tree.indexed, env);
-            Type t = attribExpr(tree.index, env);
-            if (t == rangeTypeKind.getType(context)) {
+            Type indexType = attribExpr(tree.index, env);
+            if (indexType == rangeTypeKind.getType(context)) {
                 if (!(tree.index instanceof JmlRange)) {
                     utils.error(tree.index,"jml.message", "Index ranges are implemented only for explicit range expressions (using ..)");
                 }
-            } else if (jmltypes.isIntArray(atype) && !jmltypes.isAnyIntegral(t) && !t.isErroneous()) {
-                utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + t + ", for indexable type " + atype);
+            } else if (indexType.isErroneous()) {
+                result = owntype; 
+            } else if (jmltypes.isIntArray(atype)) {
+                if (!jmltypes.isAnyIntegral(indexType)) utils.error(tree.index, "jml.message", "Expected an integral type as an index, not " + indexType + ", for indexable type " + atype);
+            } else if (jmltypes.isArray(atype)) {
+                Type req = jmltypes.indexType(atype);
+                if (!jmltypes.isConvertible(indexType, req)) {
+                    utils.error(tree.index, "jml.message", "Expected an index type of " + req + ", not " + indexType);
+                }
             }
             // FIXME - range in string [] ?
-            if (atype.tsym == stringTypeKind.getType(context).tsym) {
-                owntype = syms.charType;
-            } else if (jmltypes.isArray(atype)) {
+            if (jmltypes.isArray(atype)) {
                 owntype = jmltypes.elemtype(atype);
             } else if (!atype.hasTag(ERROR)) {
                 utils.error(tree.indexed, "array.req.but.found", atype);
-            } else {
-                
             }
             // FIXME - review the next two lines
             if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
