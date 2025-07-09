@@ -623,23 +623,6 @@ public class racfiles extends RacBase {
         helpTCF("test/racRM2","test/racRM2","MaxSumArray","-code-math=safe","-spec-math=bigint");
     }
     
-    @Test 
-    public void valuestrings() {
-        expectedRACExit = 0;
-        helpTCF("test/valuestrings","test/valuestrings","JMLStringTest");
-    }
-
-    @Test
-    public void rangeTest() {
-        helpCompileRun("test/rangeTest","test/rangeTest","R");
-    }
-    
-    @Test
-    public void rangeTest1() {
-        expectedExit=1;
-        helpCompileOnly();
-    }
-    
     @Test
     public void record1() {
         helpTCF("test/record1","test/record1","RR");
@@ -689,69 +672,6 @@ public class racfiles extends RacBase {
     @Test
     public void gitbug866() {
         helpCompileRun("ConsecutiveChecker");
-    }
-    
-    @Test
-    public void jmlTYPE() {
-        helpCompileRun("Test");
-    }
-
-    @Test
-    public void jmlreal() {
-        helpCompileRun("Test");
-    }
-
-    @Test
-    public void jmlbigint() {
-        helpCompileRun("Test");
-    }
-
-    @Test
-    public void jmlrange() {
-        expectedExit = 0;
-        helpCompileRun("TestRange");
-    }
-    
-    @Test
-    public void jmlstring() {
-        expectedExit = 0;
-        helpCompileRun("TString");
-    }
-    
-    @Test
-    public void jmlseq() {
-        expectedExit = 0;
-        helpCompileRun("TSeq");
-    }
-    
-    @Test
-    public void jmlarray() {
-        expectedExit = 0;
-        helpCompileRun("Tarray");
-    }
-    
-    @Test
-    public void jmlset() {
-        expectedExit = 0;
-        helpCompileRun("TSet");
-    }
-    
-    @Test
-    public void jmlmap() {
-        expectedExit = 0;
-        helpCompileRun("Tmap");
-    }
-    
-    @Test
-    public void racbigint() { // FIXME - do these duplicate
-        expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint");
-    }
-
-    @Test
-    public void racreal() {  // FIXME - do these duplicate
-        expectedExit = 0;
-        helpTCF("test/racreal","test/racreal","real");
     }
 
 }

@@ -1090,7 +1090,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    // FIXME - the above setting for enums very likely has to be fixed.
 //                }
 				if (callingSuper && iter != null && iter.hasNext()) {
-					if (utils.isExtensionValueType(methodDecl.sym.owner.type)) {
+					if (types.isJmlType(methodDecl.sym.owner.type)) {
 						iter.next(); // Don't do superclass
 						callingThis = callingSuper = false;
 					}
@@ -3001,7 +3001,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			boolean isPost, boolean assume, boolean isReturn, Label invariantLabel, Object... invariantDescription) {
 		TypeSymbol basecsym = basetype.tsym;
 		ListBuffer<JCStatement> prevStats = currentStatements;
-		if (utils.isExtensionValueType(basetype)) {
+		if (types.isJmlType(basetype)) {
 			// FIXME - should the following be a more general type/allocation condition? --
 			// not if translates to an SMT type other than REF
 			if (receiver != null && !utils.isJavaOrJmlPrimitiveType(receiver.type)) {
@@ -12740,7 +12740,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
 		}
-        if (utils.isExtensionValueType(origtype)) {
+        if (types.isJmlType(origtype)) {
             // New type is not a JML type
             if (utils.rac) { 
                 // FIXME -- need the implementatino type, not realT
@@ -12813,7 +12813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        if (jmltypes.isSameType(newtype, expr.type))
 		            return expr;
 		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOfNumber", expr);    // FIXME - does this exist?
-		    } else if (jmltypes.isSameTypeOrRep(REAL, newtype) && isPrim && !jmltypes.isJmlType(expr.type)) {
+		    } else if (jmltypes.isSameType(REAL, newtype) && isPrim && !jmltypes.isJmlType(expr.type)) {
 		        return treeutils.makeUtilsMethodCall(expr.pos, "real_valueOf", expr);      // FIXME - does this exist?
 		    } else if (expr.type.getKind() == TypeKind.NULL && newtype.getKind() != TypeKind.NULL) {
 		        expr = M.at(expr).TypeCast(newtype, expr);
@@ -12845,7 +12845,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		            expr.type = newtype;
 		        }
 		        return expr;
-		    } else if (newIsPrim && jmltypes.isSameTypeOrRep(REAL, expr.type) && !isPrim
+		    } else if (newIsPrim && jmltypes.isSameType(REAL, expr.type) && !isPrim
 		            && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
 		        // In BIGINT mode, we can be required to cast a real value back to a primitive
 		        // for an assignment
@@ -13373,7 +13373,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (!utils.isJMLStatic(fa.sym)) {
 				//System.out.println("VISIT-ASSIGN_FA " + that + " " + oldenv);
 				JCExpression obj = convertExpr(fa.selected);
-				if (!utils.isExtensionValueType(fa.selected.type)) {
+				if (!types.isJmlType(fa.selected.type)) {
 					JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nullLit);
 					addJavaCheck(that.lhs, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
 							"java.lang.NullPointerException");
@@ -14457,7 +14457,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Type maxJmlType = lhs.type;
 			boolean lhsIsPrim = lhs.type.isPrimitive() && lhs.type.getTag() != TypeTag.BOT;
 			boolean rhsIsPrim = rhs.type.isPrimitive() && rhs.type.getTag() != TypeTag.BOT;
-			if (utils.isExtensionValueType(rhs.type) )
+			if (types.isJmlType(rhs.type) )
 				maxJmlType = rhs.type;
 			// The following is only valid for numeric types
 			if (lhsIsPrim && rhsIsPrim)
@@ -14750,7 +14750,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JCExpression makeBin(JCTree that, JCTree.Tag tag, OperatorSymbol opSym, JCExpression lhs, JCExpression rhs,
 			Type maxJmlType) {
-		if (rac && utils.isExtensionValueType(maxJmlType)) {
+		if (rac && types.isJmlType(maxJmlType)) {
 			boolean bi = maxJmlType.tsym == BIGINT.tsym;
 			if (bi || maxJmlType.tsym == REAL.tsym ) {// FIXME|| maxJmlType.tsym == jmltypes.repSym(REAL)) {
 				String fcn; // FIXME - should use the names in JmlPrimitiveTypes
@@ -15183,7 +15183,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //			result = eresult = convertExpr(e);
 //			return;
 //		}
-//		if (rac && utils.isExtensionValueType(origType)) {
+//		if (rac && types.isJmlType(origType)) {
 //
 ////		    if (jmltypes.isSameType(that.type, origType)) {
 ////				result = eresult = arg; // No-op
@@ -15202,7 +15202,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		    result = eresult = addConversion(that, (JCExpression)clazz, arg);
 //			return;
 //		}
-//        if (rac && argType.isPrimitive() && utils.isExtensionValueType(that.type)) {
+//        if (rac && argType.isPrimitive() && types.isJmlType(that.type)) {
 ////            if (jmltypes.isSameType(origType, that.type)) {
 ////                result = eresult = arg; // No-op since the representation type is the same as the argument type
 ////            } else  {
@@ -15807,7 +15807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
         if (print) System.out.println("VISITSELECT-A " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + that.sym.owner + " " + trexpr + " " + trexpr.type);
         //System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + that.type + " " + that.selected.type + " " + s + " " + trexpr  + " " + trexpr.type);
-        if (!utils.rac && utils.isExtensionValueType(trexpr.type)) {
+        if (!utils.rac && types.isJmlType(trexpr.type)) {
             // This case is for immutable fields of built-in primitive JML types that are translated into
             // built-in SMT functions. Being a primitive value, the argument is guaranteed non-null, and is not
             // subject to readability rules.
@@ -21768,7 +21768,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		java.util.List<Type> classes = new LinkedList<Type>();
 		Type targetClass = targetClassWithMetadata.stripMetadata();
-		if (utils.isExtensionValueType(targetClass)) {
+		if (types.isJmlType(targetClass)) {
 			classes.add(targetClass);
 			return classes;
 		}

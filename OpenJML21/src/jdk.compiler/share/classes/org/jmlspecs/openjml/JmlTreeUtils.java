@@ -999,7 +999,7 @@ public class JmlTreeUtils {
      * @return the new node
      */
     public JCExpression makeTrBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        if (utils.rac && (utils.isExtensionValueType(lhs.type) || utils.isExtensionValueType(rhs.type))) {
+        if (utils.rac && (types.isJmlType(lhs.type) || types.isJmlType(rhs.type))) {
             String s = "";
             if (types.isSameType(lhs.type, JmlPrimitiveTypes.bigintTypeKind.getType(context))) s = JmlPrimitiveTypes.bigintTypeKind.opName(optag);
             else if (types.isSameType(lhs.type, JmlPrimitiveTypes.realTypeKind.getType(context))) s = JmlPrimitiveTypes.realTypeKind.opName(optag);
