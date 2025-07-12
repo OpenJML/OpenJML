@@ -60,7 +60,7 @@ public class generics extends TCBase {
                 );
     }
 
-    /** Test with a binary class - type name not matching*/ // FIXME
+    /** Test with a binary class - type name not matching*/ // FIXME -- with Z not found, the model field \seq<Z> still shows symbols without errors, but isJmlType() is false
     @Test
     public void testBinaryGeneric3c() {
         JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});

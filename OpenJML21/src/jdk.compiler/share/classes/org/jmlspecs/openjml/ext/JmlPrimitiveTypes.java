@@ -314,10 +314,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
-            //jt.enterBinop(">", REALP, REALP, jt.syms.booleanType);
-            //jt.enterBinop("<", REALP, REALP, jt.syms.booleanType);
-            //jt.enterBinop("<=", REALP, REALP, jt.syms.booleanType);
-            //jt.enterBinop(">=", REALP, REALP, jt.syms.booleanType);
             jt.enterBinop("+", type, type, type);
         }
     };

@@ -6132,6 +6132,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (jmltypes.isArray(atype)) {
                 owntype = jmltypes.elemtype(atype);
             } else if (!atype.hasTag(ERROR)) {
+                //System.out.println("VISIT INDEXED " + atype + " " + jmltypes.isJmlType(atype) + " " + jmltypes.isArray(atype) + " " + atype.tsym + " " + atype.getTypeArguments().head.tsym);
                 utils.error(tree.indexed, "array.req.but.found", atype);
             }
             // FIXME - review the next two lines
