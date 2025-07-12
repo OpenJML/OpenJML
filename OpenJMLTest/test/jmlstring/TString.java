@@ -4,46 +4,51 @@ public class TString {
     public static void test1() { // empty
         //@ ghost \string s;
         //@ check s.isEmpty();
-        //@ check s.size() == 0;
+        //@ check s.length() == 0;
     }
     
     //@ spec_pure
     public static void test2() { // empty
         //@ ghost \string s = \string.empty();
         //@ check s.isEmpty();
-        //@ check s.size() == 0;
+        //@ check s.length() == 0;
     }
 
     //@ spec_pure
     public static void test3() { // of, size, length
         //@ ghost \string s = \string.of("ABC");
-        //@ check s.size() == 3;
         //@ check s.length() == 3;
-        //-RAC@ check s.length == 3; // no model field for RAC -- perhaps need represents clause? FIXME
+        //-RAC@ check s.length == 3;
     }
 
-    
-    //@ public normal_behavior
-    //@   requires true;
+    /*@
     //@ spec_pure
-    /*@ model public static void test4(\string s1, \string s2) { // concat
+    model public static void test4(\string s1, \string s2) { // concat
         //@ ghost \string s = \string.concat(s1 , s2);
-        //@ check s.size() == s1.size() + s2.size();  // FIXME - test content using substrings
+        //@ check s.length() == s1.length() + s2.length();
+        //@ check s.substring(0,s1.length()) == s1;
+        //@ check s.substring(s1.length(),s.length()) == s2;
+        //@ check s.head(s1.length()) == s1;
+        //@ check s.tail(s1.length()) == s2;
+        //@ check !s.isEmpty() ==> s.tail() == s.substring(1);
+        //@ check !s.isEmpty() ==> s.head() == s1.head();
+        
     }
-    @*/
+    */
 
     //@ spec_pure
     public static void test5() { // [] get
         //@ ghost \string s = \string.of("ABC");
         //@ check s[1] == 'B';
-        // @ check s.get(1) == 'B';   // FIXME - needs fixing
+        //@ check s.get(1) == 'B';
+        //@ check s.head() == 'A';
     }
     
     //@ spec_pure
     public static void test6() { // put
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.put(1,'D');
-        //@ check ss.size() == 3;
+        //@ check ss.length() == 3;
         //@ check ss[0] == 'A' && ss[1] == 'D' && ss[2] == 'C';
     }
     
@@ -51,7 +56,7 @@ public class TString {
     public static void test7() { // insert
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.insert(1,'D');
-        //@ check ss.size() == 4;
+        //@ check ss.length() == 4;
         //@ check ss[0] == 'A' && ss[1] == 'D' && ss[2] == 'B';
     }
     
@@ -59,7 +64,7 @@ public class TString {
     public static void test8() { // add
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.add('D');
-        //@ check ss.size() == 4;
+        //@ check ss.length() == 4;
         //@ check ss[2] == 'C' && ss[3] == 'D';
         //@ check ss == \string.of("ABCD");
     }
@@ -68,7 +73,7 @@ public class TString {
     public static void test9() { // remove
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = s.remove(1);
-        //@ check ss.size() == 2;
+        //@ check ss.length() == 2;
         //@ check ss[0] == 'A' && ss[1] == 'C';
         //@ check ss == \string.of("AC");
     }
@@ -77,7 +82,7 @@ public class TString {
     public static void test10() { // .eq
         //@ ghost \string s = \string.of("ABC");
         //@ ghost \string ss = "ABC";
-        //@ check \string.eq(s,ss);
+        //@ check s.eq(ss);
     }
     
     //@ spec_pure
@@ -86,7 +91,14 @@ public class TString {
     }
     
     //@ spec_pure
-    public static void misc() { // == and cast
+    public static void test12() { // == and cast
+        //@ check (\string)"ACZ" == \string.of("ABC").add('Z').remove(1);
+        //@ check \string.of("ABC").insert(2,'Z') == \string.of("ABZC");
+        //@ check (\string)"ABCXYZ" == \string.of("ABC").append("XYZ");
+    }
+    
+    //@ spec_pure
+    public static void misc() { // hashCode, compareTo, equalst
         String st = "ABC";
         //@ ghost \string s = st;
         //@ ghost \string t = "ABC";
@@ -166,12 +178,47 @@ public class TString {
         }
     }
     
+    //@ spec_pure
+    public static void zerrors9() { // out of bounds
+        //@ ghost \string s = "ABCD";
+        try {
+            //@ check \string.empty().head() == ' ';
+        } catch (RuntimeException e) {
+          //+RAC@ set System.out.println(e);
+        }
+        try {
+            //@ check \string.empty().tail().isEmpty();
+        } catch (RuntimeException e) {
+          //+RAC@ set System.out.println(e);
+        }
+        try {
+            //@ check s.head(-1).isEmpty();
+        } catch (RuntimeException e) {
+          //+RAC@ set System.out.println(e);
+        }
+        try {
+            //@ check s.head(5).isEmpty();
+        } catch (RuntimeException e) {
+          //+RAC@ set System.out.println(e);
+        }
+        try {
+            //@ check s.tail(-1).isEmpty();
+        } catch (RuntimeException e) {
+          //+RAC@ set System.out.println(e);
+        }
+        try {
+            //@ check s.tail(5).isEmpty();
+        } catch (RuntimeException e) {
+          //+RAC@ set System.out.println(e);
+        }
+    }
+        
     public static void main(String... args) {
         test1();
         test2();
         test3();
-        // @ set test4("A","BC");   // FIXME -- calling model methods crashes -- looks like a lemma
-        // @ set test4("",\string.empty());
+        //@ set test4("A","BC");
+        //@ set test4("",\string.empty());
         test5();
         test6();
         test7();
@@ -179,6 +226,7 @@ public class TString {
         test9();
         test10();
         test11();
+        test12();
         misc();
         zerrors1();
         zerrors2();
@@ -188,6 +236,7 @@ public class TString {
         zerrors6();
         zerrors7();
         zerrors8();
+        zerrors9();
         System.out.println("END");
     }
 }

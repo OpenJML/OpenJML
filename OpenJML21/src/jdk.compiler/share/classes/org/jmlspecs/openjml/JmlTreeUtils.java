@@ -1627,7 +1627,7 @@ public class JmlTreeUtils {
         // FIXME - I don't think the members() call gets superclass/interface methods
         // FIXME - this just needs to match methods that the translation builds in and needs to call in the runtime library, 
         // particularly including in the classes that implement JML types
-        boolean print = false;//name.toString().contains("erasure");
+        boolean print = false; // name.toString().contains("append");
         var ts = receiver.type.tsym;
         String s = "\tFor " + receiver.type + " " + (nargs.length==0? "" : (nargs[0].type.toString() + " ...")) + "\n";
         try {
@@ -1705,7 +1705,7 @@ public class JmlTreeUtils {
                         var t2 = nargs[k].type;
                         ++k;
                         if (print) System.out.println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(utils.rac, t2, t1, null));
-                        if (!types.isAssignable(t2, t1)) continue y; // FIXME - this is first match, not best match
+                        if (t2.tsym != t1.tsym && !types.isAssignable(t2, t1)) continue y; // FIXME - this is first match, not best match
                     }
                     if (print) System.out.println("  MATCHED " + ms.owner + " " + ms);
                     return makeMethodInvocation(pos, receiver, ms, nargs);

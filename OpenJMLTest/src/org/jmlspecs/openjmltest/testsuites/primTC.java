@@ -43,7 +43,42 @@ public class primTC extends TCBase {
     // string tests
     
     @Test public void jmlstring() {
-        helpTC(" class A { void m() {  //@ ghost \\string b; ghost char c = 'a'; set b[c] = 'b'; ghost char bb = b[c]; \n}}");
+        helpTC(
+                """
+                class A {
+                  void m() {
+                    Object o = new Object();
+                    //@ ghost \\string b;
+                    //@ var cc = b.get(o);
+                    //@ set b = b.add(0);
+                    //@ set b = b.put(o,0);
+                    //@ set b = b.remove(o);
+                    //@ set b = b.insert(o,42);
+                    //@ set b = b.append(123);
+                    //@ set b = \\string.concat(o,o);
+                    //@ ghost \\string x = b.head();
+                    //@ ghost char c = b.head(1);
+                    //@ set b = \\string.of(123);
+                    //@ ghost boolean z = b.compareTo("zz"); // OK
+                    //@ ghost boolean y = b.compareTo(o); // OK
+                    //@ set b = b.substring(o,o);
+                  }
+                }
+                """
+                ,"/TEST.java:5: error: incompatible types: java.lang.Object cannot be converted to \\bigint",24
+                ,"/TEST.java:6: error: incompatible types: possible lossy conversion from int to char",23
+                ,"/TEST.java:7: error: incompatible types: java.lang.Object cannot be converted to \\bigint",23
+                ,"/TEST.java:8: error: incompatible types: java.lang.Object cannot be converted to \\bigint",26
+                ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to \\bigint",26
+                ,"/TEST.java:10: error: incompatible types: int cannot be converted to \\string",26
+                ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to \\string",32
+                ,"/TEST.java:12: error: incompatible types: char cannot be converted to \\string",33
+                ,"/TEST.java:13: error: incompatible types: \\string cannot be converted to char",30
+                ,"/TEST.java:14: error: incompatible types: int cannot be converted to java.lang.String",28
+                ,"/TEST.java:15: error: incompatible types: int cannot be converted to boolean",38
+                ,"/TEST.java:16: error: incompatible types: java.lang.Object cannot be converted to \\string",39
+                ,"/TEST.java:17: error: incompatible types: java.lang.Object cannot be converted to \\bigint",29
+                );
     }
 
     // array tests
@@ -55,13 +90,98 @@ public class primTC extends TCBase {
     // Seq tests
 
     @Test public void jmlseq() {
-        helpTC(" class A { void m() { //@ ghost \\seq<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+        helpTC(
+                """
+                class A {
+                  void m() {
+                    Object o = new Object();
+                    //@ ghost \\seq<Integer> b;
+                    //@ ghost \\seq<Boolean> bb;
+                    //@ var cc = b.get(o);
+                    //@ set b = b.append(true);
+                    //@ set b = b.prepend(true);
+                    //@ set b = b.put(o,0);
+                    //@ set b = b.remove(o);
+                    //@ set b = b.insert(o,42);
+                    //@ set b = b.append(bb);
+                    //@ set b = b.prepend(bb);
+                    //@ check b == bb && b.eq(bb); check b != bb && b.ne(bb);
+                    //@ ghost Boolean x = b.head();
+                    //@ ghost char c = b.head(1);
+                    //@ ghost char cc = b.tail();
+                    //@ ghost char ccc = b.tail(o);
+                    //@ set b = \\seq.<Integer>of(true);
+                    //@ set bb = b;
+                    //@ ghost boolean z = b.get(0);
+                    //@ ghost boolean y = b[0];
+                    //@ ghost var w = b + bb;
+                    //@ set bb = b.subseq(0,0);
+                    //@ set bb = b.subseq(o,o);
+                    //@ check seq.<Integer>empty().equals(seq.<Boolean>empty());
+                  }
+                }
+                """
+                ,"/TEST.java:6: error: incompatible types: java.lang.Object cannot be converted to \\bigint",24
+                ,"""
+                 /TEST.java:7: error: no suitable method found for append(boolean)
+                     method org.jmlspecs.lang.internal.seq.append(\\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>) is not applicable
+                       (argument mismatch; boolean cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>)
+                     method org.jmlspecs.lang.internal.seq.append(@org.jmlspecs.annotation.NonNull java.lang.Integer) is not applicable
+                       (argument mismatch; boolean cannot be converted to @org.jmlspecs.annotation.NonNull java.lang.Integer)""",18
+                ,"""
+                 /TEST.java:8: error: no suitable method found for prepend(boolean)
+                     method org.jmlspecs.lang.internal.seq.prepend(@org.jmlspecs.annotation.NonNull java.lang.Integer) is not applicable
+                       (argument mismatch; boolean cannot be converted to @org.jmlspecs.annotation.NonNull java.lang.Integer)
+                     method org.jmlspecs.lang.internal.seq.prepend(\\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>) is not applicable
+                       (argument mismatch; boolean cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>)""",18
+                ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to \\bigint",23
+                ,"/TEST.java:10: error: incompatible types: java.lang.Object cannot be converted to \\bigint",26
+                ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to \\bigint",26
+                ,"""
+                 /TEST.java:12: error: no suitable method found for append(\\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean>)
+                     method org.jmlspecs.lang.internal.seq.append(\\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>) is not applicable
+                       (argument mismatch; \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean> cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>)
+                     method org.jmlspecs.lang.internal.seq.append(@org.jmlspecs.annotation.NonNull java.lang.Integer) is not applicable
+                       (argument mismatch; \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean> cannot be converted to @org.jmlspecs.annotation.NonNull java.lang.Integer)""",18
+                ,"""
+                 /TEST.java:13: error: no suitable method found for prepend(\\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean>)
+                     method org.jmlspecs.lang.internal.seq.prepend(@org.jmlspecs.annotation.NonNull java.lang.Integer) is not applicable
+                       (argument mismatch; \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean> cannot be converted to @org.jmlspecs.annotation.NonNull java.lang.Integer)
+                     method org.jmlspecs.lang.internal.seq.prepend(\\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>) is not applicable
+                       (argument mismatch; \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean> cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>)""",18
+                ,"/TEST.java:14: error: incompatible types: \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean> cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>",31
+                ,"/TEST.java:14: error: incompatible types: \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean> cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer>",58
+                ,"/TEST.java:15: error: incompatible types: @org.jmlspecs.annotation.NonNull java.lang.Integer cannot be converted to java.lang.Boolean",33
+                ,"/TEST.java:16: error: incompatible types: \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer> cannot be converted to char",30
+                ,"/TEST.java:17: error: incompatible types: \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer> cannot be converted to char",31
+                ,"/TEST.java:18: error: incompatible types: java.lang.Object cannot be converted to \\bigint",33
+                ,"""
+                 /TEST.java:19: error: no suitable method found for of(boolean)
+                     method org.jmlspecs.lang.internal.seq.of(int[]) is not applicable
+                       (argument mismatch; boolean cannot be converted to int[])
+                     method org.jmlspecs.lang.internal.seq.<T>of(T...) is not applicable
+                       (varargs mismatch; boolean cannot be converted to java.lang.Integer)""",21
+                ,"/TEST.java:20: error: incompatible types: \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer> cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean>",18
+                ,"/TEST.java:21: error: incompatible types: @org.jmlspecs.annotation.NonNull java.lang.Integer cannot be converted to boolean",32
+                ,"/TEST.java:24: error: incompatible types: \\seq<@org.jmlspecs.annotation.NonNull java.lang.Integer> cannot be converted to \\seq<@org.jmlspecs.annotation.NonNull java.lang.Boolean>",26
+                ,"/TEST.java:25: error: incompatible types: java.lang.Object cannot be converted to \\bigint",27
+                ,"""
+                 /TEST.java:26: error: cannot find symbol
+                   symbol:   variable seq
+                   location: class A""",43
+                ,"""
+                 /TEST.java:26: error: cannot find symbol
+                   symbol:   variable seq
+                   location: class A""",15
+
+    );
     }
     
     // Set tests
     
     @Test public void jmlset() {
-        helpTC(" class A { void m() {  //@ ghost \\set<Object> b ; ghost Object o = new Object(); set b[o] = true; ghost boolean bb = b[o]; \n}}");
+        helpTC(" class A {"
+                + "void m() {  //@ ghost \\set<Object> b ; ghost Object o = new Object(); set b[o] = true; ghost boolean bb = b[o]; \n}}");
     }
 
     

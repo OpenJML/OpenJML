@@ -22,12 +22,7 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return value.isEmpty();
     }
     
-    // FIXME - which to use size or length?
     public bigint length() {
-        return bigint.of(value.length());
-    }
-    
-    public bigint size() {
         return bigint.of(value.length());
     }
     
@@ -47,11 +42,6 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
     public char getUnchecked(bigint i) {
         if (indexOK(i)) return value.charAt(i.intValue());
         return 0;
-    }
-    
-    // FIXME - remove
-    public static boolean eq(string s, string ss) {
-        return s.value.equals(ss.value);
     }
     
     public int compareTo(string s) {
@@ -86,8 +76,16 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return value.charAt(0);
     }
     
+    public string head(bigint k) {
+        return new string(value.substring(0,k.intValue()));
+    }
+    
     public string tail() {
         return new string(value.substring(1));
+    }
+    
+    public string tail(bigint k) {
+        return new string(value.substring(k.intValue()));
     }
     
     public string add(char v) {
@@ -119,23 +117,26 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
     }
 
     public string substring(bigint start) {
-        return new string(value.substring(start.intValue()));
+        return substring(start, length());
     }
     
     public string substring(bigint start, bigint end) {
+        if (start.lt(bigint.zero) || end.lt(start) || length().lt(end)) throw new StringIndexOutOfBoundsException("\\string.substring: out of range indices: " + start + " " + end + " " + length());
         return new string(value.substring(start.intValue(), end.intValue()));
     }
     
-    public boolean equals(Object o) { throw new UnsupportedOperationException(); }
+    public boolean equals(string s) { return value.equals(s.value); }
+    public boolean equals(Object o) { return o instanceof string s ? equals(s) : (o instanceof String st && this.eq(string.of(st))) ; }
+
     public int hashCode() { return value.hashCode(); }
     
     private boolean indexOK(bigint i) {
         return i.ge(bigint.of(0)) && i.lt(bigint.of(value.length()));
     }
-    private boolean indexOK(int i) {  // FIXME - complains that i won't convert to bigint when called
+    private boolean indexOK(int i) { // Conversions to bigint do not happen in pure Java
         return i >= 0 && i < value.length();
     }
     private RuntimeException exc(bigint i, String method) {
-        return new StringIndexOutOfBoundsException("index " + i.intValue() + " is not in 0 .. " + (value.length()-1) + " in call of " + method);
+        return new StringIndexOutOfBoundsException("index " + i + " is not in 0 .. " + (value.length()-1) + " in call of " + method);
     }
 }

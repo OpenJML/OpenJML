@@ -14273,6 +14273,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             if (utils.rac) {
                 var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
                 e = makeMethodInvocation(that, lhs, nm, rhs);
+                //System.out.println("EQUALITY " + that + " " + e);
             } else if (lhs.type == rhs.type && lhs.type == JmlPrimitiveTypes.rangeTypeKind.getType(context)) {
                 if (lhs instanceof JCParens p) lhs = p.expr;
                 if (rhs instanceof JCParens p) rhs = p.expr;
@@ -14289,8 +14290,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             result = eresult = e;
             return;
-        }
-		if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
+        } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
 			if ((infer || esc)) {
 				Symbol s = utils.findStaticMember(syms.stringType.tsym, "concat");
 				if (s == null) {
@@ -14333,6 +14333,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
 				return;
 			}
+        } else if (optag == JCTree.Tag.PLUS && that.type.tsym == jmltypes.SEQsym(context)) {
+            JCExpression lhs = convertExpr(that.getLeftOperand());
+            JCExpression rhs = convertExpr(that.getRightOperand());
+            result = eresult = treeutils.makeMethodInvocation(that, lhs, "append", rhs);
+            eresult.type = lhs.type;
+            return;
 		} else if (optag == JCTree.Tag.AND || optag == JCTree.Tag.OR) {
 			JCExpression prev = condition;
 			try {
