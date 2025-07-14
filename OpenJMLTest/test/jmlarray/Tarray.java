@@ -13,18 +13,21 @@ public class Tarray {
     }
 
     //@ spec_pure
-    public static void test3() { // of, size
+    public static void test3() { // of, length
         Object o = new Object();
         Object oo = new Object();
         //@ ghost \array<Object> s = \array.of(o,oo);
         //@ check s.length == \bigint.of(2);
+// FIXME        //@ check \array.<Integer>empty() == \array.<Integer>of();
     }
 
     //@ spec_pure
-    public static void test4() { // of, size
+    public static void test4() { // of, length
         Object[] o = new Object[4];
         //@ ghost \array<Object> s = \array.of(o);
         //@ check s.length == 4;
+        //@ set s = \array.of();
+        //@ check s.length == 0;
     }
 
     
@@ -51,7 +54,32 @@ public class Tarray {
     }
     
     //@ spec_pure
-    public static void test7() { // put
+    public static void test7() { // equals
+        Object o = new Object();
+        Object oo = new Object();
+        //@ ghost \array<Object> s1 = \array.of(o,oo,o);
+        //@ ghost \array<Object> s2 = \array.of(o,oo,o);
+        //@ ghost \array<Object> s3 = \array.of(o,oo);
+        //@ ghost \array<Object> s4 = \array.of(o,oo,oo);
+        //@ check s1 == s1;
+        //@ check s1.equals(s1);
+        //@ check s1.eq(s1);
+        //@ check s1 == s2;
+        //@ check s1.equals(s2);
+        //@ check s1.eq(s2);
+        //@ check s1 != s3;
+        //@ check !s1.equals(s3);
+        //@ check s1.ne(s3);
+        //@ check s3.ne(s1);
+        //@ check s1 != s4;
+        //@ check !s1.equals(s4);
+        //@ check s1.ne(s4);
+        //@ check s4.ne(s1);
+        //@ check s1.hashCode() == s2.hashCode();
+    }
+    
+    //@ spec_pure
+    public static void test8() { // equality
         Object o = new Object();
         Object oo = new Object();
         Object ooo = new Object();
@@ -132,6 +160,7 @@ public class Tarray {
         test5();
         test6();
         test7();
+        test8();
         errors1();
         errors2();
         errors3();

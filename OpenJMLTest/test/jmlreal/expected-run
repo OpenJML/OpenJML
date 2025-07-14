@@ -1,6 +1,8 @@
 OUT:
 LABEL JMLSHOW_1 = 4000.0
 LABEL JMLSHOW_2 = 42.0
-java.lang.UnsupportedOperationException
+test/jmlreal/Test.java:76: verify: JML assertion is false
+        //@ check rlong.equals(null);  // Not allowed
+            ^
 
 ERR:

@@ -15,23 +15,26 @@ public class TString {
     }
 
     //@ spec_pure
-    public static void test3() { // of, size, length
+    public static void test3() { // of, length
         //@ ghost \string s = \string.of("ABC");
         //@ check s.length() == 3;
         //-RAC@ check s.length == 3;
     }
 
     /*@
+    //@ public normal_behavior
+    //@   requires true;
     //@ spec_pure
-    model public static void test4(\string s1, \string s2) { // concat
-        //@ ghost \string s = \string.concat(s1 , s2);
+    model public static void test4(\string s1, \string s2) { // append, head, tail
+        //@ ghost \string s = s1.append(s2);
         //@ check s.length() == s1.length() + s2.length();
         //@ check s.substring(0,s1.length()) == s1;
-        //@ check s.substring(s1.length(),s.length()) == s2;
+        //@ check s.substring(s1.length()) == s2;
         //@ check s.head(s1.length()) == s1;
         //@ check s.tail(s1.length()) == s2;
         //@ check !s.isEmpty() ==> s.tail() == s.substring(1);
         //@ check !s.isEmpty() ==> s.head() == s1.head();
+        //@ check s == s1.append(s2);
         
     }
     */
@@ -42,6 +45,7 @@ public class TString {
         //@ check s[1] == 'B';
         //@ check s.get(1) == 'B';
         //@ check s.head() == 'A';
+        //@ check s.tail() == (\string)"BC";
     }
     
     //@ spec_pure
@@ -61,9 +65,9 @@ public class TString {
     }
     
     //@ spec_pure
-    public static void test8() { // add
+    public static void test8() { // append
         //@ ghost \string s = \string.of("ABC");
-        //@ ghost \string ss = s.add('D');
+        //@ ghost \string ss = s.append('D');
         //@ check ss.length() == 4;
         //@ check ss[2] == 'C' && ss[3] == 'D';
         //@ check ss == \string.of("ABCD");
@@ -92,7 +96,7 @@ public class TString {
     
     //@ spec_pure
     public static void test12() { // == and cast
-        //@ check (\string)"ACZ" == \string.of("ABC").add('Z').remove(1);
+        //@ check (\string)"ACZ" == \string.of("ABC").append('Z').remove(1);
         //@ check \string.of("ABC").insert(2,'Z') == \string.of("ABZC");
         //@ check (\string)"ABCXYZ" == \string.of("ABC").append("XYZ");
     }
@@ -102,10 +106,10 @@ public class TString {
         String st = "ABC";
         //@ ghost \string s = st;
         //@ ghost \string t = "ABC";
-        //@ check s.hashCode() == t.hashCode();
+        // @ check s.hashCode() == t.hashCode();
         //@ check s.compareTo(t) == 0;
-        //@ check s == t;
-        //@ check t.toString().equals(st);
+        // @ check s == t;
+        // @ check t.toString().equals(st);
     }
     
     //@ spec_pure
@@ -130,8 +134,8 @@ public class TString {
     //@ spec_pure
     public static void zerrors3() { // out of range
         //@ ghost \string s = "ABCD";
-        //@ check s[-1] != 'A'; // no checking, just undefined
-        //@ check s[4] != 'A'; // no checking, just undefined
+        //@ check s[-1] != 'A'; // no checking, just undefined // ERROR
+        //@ check s[4] != 'A'; // no checking, just undefined // ERROR
     }
     //@ spec_pure
     public static void zerrors4() { // null argument

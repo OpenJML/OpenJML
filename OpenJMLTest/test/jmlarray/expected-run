@@ -1,10 +1,12 @@
 OUT:
 START
-java.lang.ArrayIndexOutOfBoundsException: -1 vs. 5
-java.lang.ArrayIndexOutOfBoundsException: 5 vs. 5
-java.lang.ArrayIndexOutOfBoundsException: -1 vs. 5
-java.lang.ArrayIndexOutOfBoundsException: 5 vs. 5
-java.lang.UnsupportedOperationException: \array<T>.equals not supported; use == or .eq instead
+java.lang.ArrayIndexOutOfBoundsException: get: -1 for length 5
+java.lang.ArrayIndexOutOfBoundsException: get: 5 for length 5
+java.lang.ArrayIndexOutOfBoundsException: put: -1 for length 5
+java.lang.ArrayIndexOutOfBoundsException: put: 5 for length 5
+test/jmlarray/Tarray.java:149: verify: JML assertion is false
+            //@ assert s.equals(o);
+                ^
 END
 
 ERR:

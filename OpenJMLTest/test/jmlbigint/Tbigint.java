@@ -1,5 +1,5 @@
 @org.jmlspecs.annotation.Options("--escbv=false")
-public class Test {
+public class Tbigint {
     
     public static void main(String... args) {
         inits();
@@ -36,17 +36,19 @@ public class Test {
     }
     
     public static void misc(int c) {
+        //@ check \bigint.empty() == \bigint.zero;
+        //@ check \bigint.zero + 1 == \bigint.one;
         //@ ghost \bigint a = 45;
         //@ ghost \bigint b = 45;
         //@ check a.compareTo(b) == 0;
         //@ check a.compareTo(45) == 0;
         //@ check a.hashCode() == b.hashCode();
-        //@ check a.hashCode() != \bigint.of(c) ==> a != \bigint.of(c);
+        //@ check a.hashCode() != \bigint.of(c).hashCode() ==> a != \bigint.of(c);
         //-ESC@ check a.toString().equals("45");
         try {
             //@ check a.equals(null);
         } catch (Exception e) {
-            //+RAC@ set System.out.println (e);
+            //+RAC@ set System.out.println(e);
         }
     }
         
@@ -55,12 +57,16 @@ public class Test {
       var c = a + b;
       var d = c - a;
       assert d == b;
+      check a + b == a.add(b);
+      check a - b == a.subtract(b);
     }
     model public static void neg(\bigint a) {
       var c = -a;
       var d = -c;
       check d == a;
       check a == +a;
+      check -a == a.negate();
+      check +a == a;
     }
     model public static void convert(\bigint a) {
       \bigint k = 42;
@@ -73,6 +79,8 @@ public class Test {
     model public static void mul(\bigint a, \bigint b) {
       check \bigint.zero == (\bigint)0;
       assert a != \bigint.zero;
+      check a * b == a.multiply(b);
+      check b/a == b.divide(a);
       var c = a * b;
       var d = c / a;
       //+ESC@ show a, b, c, d;
@@ -80,9 +88,9 @@ public class Test {
     }
     model public static void divzero() {
       var a = (\bigint)10;
-      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
-      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
-      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e); } // ERROR
+      try { var c = a/0; } catch (Exception e) { System.out.println(e); } // ERROR
+      try { var e = a % 0; } catch (Exception e) { System.out.println(e); } // ERROR
     }
     model public static void divzero1() {
       var a = (\bigint)10;
@@ -106,22 +114,26 @@ public class Test {
       check a < 0 ==> c <= 0;
       check c < 0 ==> a < 0;
       check a == b * d + c;
+      check c == a.mod(b);
     }
     model public static void shift(\bigint a) {
       var c = a << 2;
       var d = c >> 2;
       check d == a;
-      check c == a * 4;
+      //-ESC@ check c == a * 4;
       c = -a << 2;
       d = c >> 2;
       check d == -a;
-      check c == -a * 4;
+      //-ESC@ check c == -a * 4;
       check (a << 0) == a;
       check (a >> 0) == a;
       d = c << -1;
       check d == c >> 1;
       d = c >> -1;
       check d == c << 1;
+      check (c << 4) == c.shiftLeft(4);
+      check (c >> 4) == c.shiftRight(4);
+      //-ESC@ check c << 1 == c*2;
     }
     model public static void compare(\bigint a, \bigint b) {
       check a < b <==> b > a;
@@ -129,9 +141,19 @@ public class Test {
       check a <= b <==> (a < b | a == b);
       check (a < b | a > b) <==> a != b;
       check a==b <==> !(a != b);
+      check a < b == a.lt(b);
+      check a > b == a.gt(b);
+      check a >= b == a.ge(b);
+      check a <= b == a.le(b);
+      check a != b == a.ne(b);
+      check a == b == a.eq(b);
     }
     model public static void bit(\bigint a, \bigint b) {
-//-ESC@      check (a & b) == ~(~a | ~b);  // FIXME - test that this can't be translated
+//-ESC@      check (a & b) == ~(~a | ~b);
+       check ~a == -a-1;
+       check ~a == a.comp();
+//-ESC@       check (a | b) == a.or(b);
+//-ESC@       check (a & b) == a.and(b);
     }
 */
     @org.jmlspecs.annotation.Options("--escbv=auto")

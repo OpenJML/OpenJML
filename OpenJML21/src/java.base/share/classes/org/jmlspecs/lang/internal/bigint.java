@@ -125,7 +125,7 @@ public class bigint extends Number implements IJmlPrimitiveType {
     }
     
     public bigint comp() {
-        return new bigint(BigInteger.valueOf(-1).subtract(value));
+        return new bigint(value.not());
     }
     
     // A negative shift is a positive shift in the other direction, at least in RAC
@@ -183,17 +183,17 @@ public class bigint extends Number implements IJmlPrimitiveType {
         return value.compareTo(b.value);
     }
     
-    /**.equals is not supported for \\bigint -- use == */
     @Override
     public boolean equals(Object o) {
-        throw new UnsupportedOperationException(".equals is not supported for \\bigint");
+        return o instanceof bigint b && this.eq(b);
+    }
+    
+    public boolean equals(bigint o) {
+        return this.eq(o);
     }
     
     @Override
     public int hashCode() {
         return value.hashCode();
     }
-    
-
-
 }

@@ -360,6 +360,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public void initOps() {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
+            jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
             jt.enterBinop("<=", type, type, jt.syms.booleanType);
             jt.enterBinop(">=", type, type, jt.syms.booleanType);
@@ -369,16 +370,18 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("+", type, jt.syms.charType, type);
         }
 
-        public Type getType(Context context) {
-            var t = super.getType(context);
-            JmlTypes.instance(context).enterBinop("+", t, t, t);
-            return t;
-        }
+//        public Type getType(Context context) {
+//            var t = super.getType(context);
+//            JmlTypes.instance(context).enterBinop("+", t, t, t);
+//            return t;
+//        }
         
+        
+        // FIXME - don't think these are needed or used
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
             if (tree instanceof JmlTree.JmlVariableDecl vd) {
-                if (vd.init == null) test(vd.init.type, attr, tree);
+                if (vd.init != null) test(vd.init.type, attr, tree);
             } else if (tree instanceof JCTree.JCTypeCast tc) {
                 test(tc.expr.type, attr, tree);
             } else if (tree instanceof JCTree.JCAssign as) {
@@ -391,14 +394,9 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         private void test(Type t, JmlAttr attr, DiagnosticPosition p) {
             JmlTypes types = JmlTypes.instance(context);
-            if (types.isSameType(t, stringTypeKind.type) || types.isSameType(t, attr.syms.stringType)) return;
-            utils.error(p, "jml.message", "Cannot convert " + t + "to \string");
+            if (types.isSameType(t, stringTypeKind.type) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
+            utils.error(p, "jml.message", "Cannot convert " + t + " to \\string");
         }
-
-//        public void initType(Context context) {
-//            Type t = getType(context);
-//            JmlTypes.instance(context).enterBinop("+", t, t, t);
-//        }
     };
     
 

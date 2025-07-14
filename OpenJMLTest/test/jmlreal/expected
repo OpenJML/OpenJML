@@ -1,34 +1,34 @@
-Proving methods in Test
-Starting proof of Test.Test() with prover !!!!
+Proving methods in Treal
+Starting proof of Treal.Treal() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.Test() with prover !!!! - no warnings
-Starting proof of Test.main(String...) with prover !!!!
+Completed proof of Treal.Treal() with prover !!!! - no warnings
+Starting proof of Treal.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.main(String...) with prover !!!! - no warnings
-Starting proof of Test.ops() with prover !!!!
+Completed proof of Treal.main(String...) with prover !!!! - no warnings
+Starting proof of Treal.ops(int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.ops() with prover !!!! - no warnings
-Starting proof of Test.compare() with prover !!!!
+Completed proof of Treal.ops(int,int) with prover !!!! - no warnings
+Starting proof of Treal.compare(int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.compare() with prover !!!! - no warnings
-Starting proof of Test.misc() with prover !!!!
+Completed proof of Treal.compare(int,int) with prover !!!! - no warnings
+Starting proof of Treal.misc() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of Test.misc() with prover !!!! - no warnings
-Starting proof of Test.errors() with prover !!!!
-test/jmlreal/Test.java:76: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors
+Completed proof of Treal.misc() with prover !!!! - no warnings
+Starting proof of Treal.errors() with prover !!!!
+test/jmlreal/Treal.java:94: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors
         //@ check rlong.equals(null);  // Not allowed
                               ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/real.jml:47: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/real.jml:52: warning: Associated declaration
     public boolean equals(/*@ nullable */ Object o);
                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/real.jml:46: warning: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/real.jml:51: warning: Precondition conjunct is false: false
     //@ requires false; // Use == and not .equals for comparing \\real values
                  ^
-Completed proof of Test.errors() with prover !!!! - with warnings
-Completed proving methods in Test
+Completed proof of Treal.errors() with prover !!!! - with warnings
+Completed proving methods in Treal
 3 warnings

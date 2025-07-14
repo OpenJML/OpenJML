@@ -34,6 +34,10 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(s);
     }
     
+    public static string of(char c) {
+        return new string(String.valueOf(c));
+    }
+    
     public char get(bigint i) {
         if (indexOK(i)) return value.charAt(i.intValue());
         throw exc(i, "get");
@@ -88,18 +92,22 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(value.substring(k.intValue()));
     }
     
-    public string add(char v) {
-        return new string(value.concat(String.valueOf(v)));
+    public string append(char v) {
+        return this.append(string.of(v));
     }
 
-    public static string concat(string s, string ss) {
-        return new string(s.value + ss.value);
+    public string append(String s) {
+        return this.append(string.of(s));
     }
- 
+
     public string append(string s) {
-        return concat(this,s);
+        return new string(this.value + s.value);
     }
 
+//    public static string concat(string s, string ss) {
+//        return new string(s.value + ss.value);
+//    }
+ 
     public string put(bigint ii, char v) {
         if (!indexOK(ii)) throw exc(ii, "put");
         int i = ii.intValue();
@@ -126,7 +134,7 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
     }
     
     public boolean equals(string s) { return value.equals(s.value); }
-    public boolean equals(Object o) { return o instanceof string s ? equals(s) : (o instanceof String st && this.eq(string.of(st))) ; }
+    public boolean equals(Object o) { return o instanceof string s ? equals(s) : (o instanceof String st && this.value.equals(st)) ; }
 
     public int hashCode() { return value.hashCode(); }
     

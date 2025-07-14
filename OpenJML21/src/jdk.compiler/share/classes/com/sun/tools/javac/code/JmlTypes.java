@@ -238,7 +238,7 @@ public class JmlTypes extends Types {
                 return true;
             }
             if (s.tsym == BIGINTsym(context)) {
-                return isIntegral(t);
+                return isIntegral(t) || t.tsym == syms.bigIntegerType.tsym;
             }
             if (s.tsym == REALsym(context)) {
                 if (isNumeric(t)) return true;
@@ -247,6 +247,7 @@ public class JmlTypes extends Types {
             }
             if (s.tsym == STRINGsym(context)) {
                 if (t.tsym == syms.stringType.tsym) return true;
+                if (t.tsym == syms.charType.tsym) return true;
                 return false;
             }
             return false;

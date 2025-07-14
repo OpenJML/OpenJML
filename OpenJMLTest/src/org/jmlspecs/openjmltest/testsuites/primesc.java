@@ -42,12 +42,6 @@ public class primesc extends EscBaseFiles {
     }
     
     @Test
-    public void jmlbigintBad() {
-        expectedExit = 1;
-        helpTG(); // FIXME try compiling with -Xdiags:verbose (but does not seem to work)
-    }
-    
-    @Test
     public void jmlTYPE() {
         helpTG();
     }
@@ -89,8 +83,23 @@ public class primesc extends EscBaseFiles {
         helpTG();
     }
     
-    // TODO: Review these two and incorporate them with the above, if appropriate.
+    // TODO: Review the following and incorporate them with the above, as appropriate.
     
+    @Test
+    public void rangeTest() {
+        helpTG();
+    }
+
+    @Test
+    public void rangeTest1() {
+        helpTG();
+    }
+
+    @Test
+    public void rangeTest2() {
+        helpTG();
+    }
+
     @Test
     public void valuetypes() {
         helpTG();

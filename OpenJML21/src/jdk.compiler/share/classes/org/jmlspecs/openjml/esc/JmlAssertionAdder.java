@@ -270,6 +270,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
     final public Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
+    final public Type SEQ = JmlPrimitiveTypes.seqTypeKind.getType(context);
 
 
     /**
@@ -14243,22 +14244,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             return;
         }
-        if (that.type == STRING  || that.lhs.type == STRING ) {
-            JCExpression lhs = convertExpr(that.getLeftOperand());
-            JCExpression rhs = convertExpr(that.getRightOperand());
-            Name nm = names.fromString(
-                    switch (optag) {
-                    case EQ -> "eq";
-                    case NE -> "ne";
-                    case PLUS -> rhs.type == STRING ? "append" : "add";
-                    default -> "";
-            });
-            if (optag == JCTree.Tag.PLUS || !utils.esc) {
+//        if (that.type == STRING  || that.lhs.type == STRING ) {
+//            JCExpression lhs = convertExpr(that.getLeftOperand());
+//            JCExpression rhs = convertExpr(that.getRightOperand());
+//            Name nm = names.fromString(
+//                    switch (optag) {
+//                    case EQ -> "eq";
+//                    case NE -> "ne";
+//                    case PLUS -> "append";
+//                    default -> "";
+//            });
+//            if (optag == JCTree.Tag.PLUS || !utils.esc) {
+//                JCExpression e = makeMethodInvocation(that, lhs, nm, rhs);
+//                result = eresult = convertExpr(e);
+//            } else {
+//                // built-in
+//                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+//            }
+//            return;
+//        }
+        if (that.type.tsym == SEQ.tsym || that.type == STRING || that.lhs.type.tsym == SEQ.tsym || that.lhs.type.tsym == STRING.tsym
+                || that.rhs.type.tsym == SEQ.tsym || that.rhs.type.tsym == STRING.tsym) {
+            if (optag == JCTree.Tag.PLUS) {
+                JCExpression lhs = (that.getLeftOperand());
+                JCExpression rhs = (that.getRightOperand());
+                // Just convert to append and use the specs in seq.jml or string.jml
+                // Don't convert the arguments, because that will be done when visitApply is called for the 'append' call
+                Name nm = names.fromString("append");
                 JCExpression e = makeMethodInvocation(that, lhs, nm, rhs);
                 result = eresult = convertExpr(e);
             } else {
-                // built-in
-                result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+                JCExpression lhs = convertExpr(that.getLeftOperand());
+                JCExpression rhs = convertExpr(that.getRightOperand());
+                // Do any implicit conversions -- only String -> string and char -> string
+                if (that.type == STRING) {
+                    if (lhs.type != STRING) lhs = addImplicitConversion(lhs, STRING, lhs);
+                    if (rhs.type != STRING) rhs = addImplicitConversion(rhs, STRING, rhs);
+                }
+                if (!utils.esc) {
+                    Name nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
+                    JCExpression e = makeMethodInvocation(that, lhs, nm, rhs);
+                    result = eresult = convertExpr(e);
+                } else {
+                    // built-in
+                    result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+                }
             }
             return;
         }
@@ -15805,13 +15835,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // OK
     @Override
     public void visitSelect(JCFieldAccess that) {
-        boolean print = false;//that.toString().contains("Integer.class");
+        boolean print = false; // that.toString().contains("append");
         JCExpression selected;
 
         Symbol s = convertSymbol(that.sym);
         JCExpression trexpr = that.getExpression();
         if (!(s instanceof Symbol.TypeSymbol)) trexpr = convertExpr(trexpr);
-        if (print) System.out.println("VISITSELECT-A " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + that.sym.owner + " " + trexpr + " " + trexpr.type);
+        if (print) System.out.println("VISITSELECT-A " + that + " " + that.type + " " + s + " " + s.getClass() + " " + that.sym + " " + that.sym.type + " " + that.sym.owner + " " + trexpr + " " + trexpr.type);
         //System.out.println("VISIT-SELECT " + that + " " + that.sym + " " + that.type + " " + that.selected.type + " " + s + " " + trexpr  + " " + trexpr.type);
         if (!utils.rac && types.isJmlType(trexpr.type)) {
             // This case is for immutable fields of built-in primitive JML types that are translated into
@@ -15828,9 +15858,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 result = eresult = e;
                 return;
             }
+            if (n == names.length) {
+                JCFieldAccess newfa = treeutils.makeSelect(that.pos, trexpr, that.sym);
+                result = eresult = newfa;
+                return;
+            }
         }
 
-	    if (print) System.out.println("VISITSELECT-A " + that + " " + trexpr + " " + s + " " + s.owner + " " + (s==that.sym));
+	    if (print) System.out.println("VISITSELECT-AA " + that + " " + trexpr + " " + s + " " + s.owner + " " + (s==that.sym));
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
 		JCExpression eee = null;
@@ -15848,7 +15883,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				utils.note(true, "No invariants created for " + that);
 			}
 		}
-		if (esc && sym == syms.lengthVar && jmltypes.isArray(trexpr.type)) {
+		if (esc && sym == syms.lengthVar && jmltypes.isArray(trexpr.type)) {  // lengthVar only applies to Java arrays
 	        if (print) System.out.println("VISITSELECT-ARRAYLIKE " + that + " " + trexpr);
 			JCExpression ntrExpr = copy(trexpr);
 			JCExpression newfaa = treeutils.makeSelect(that.pos, ntrExpr, sym);
@@ -15973,6 +16008,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 			selected = copy(trexpr);
 			boolean var = false;
+//			System.out.println("VISITSEL " + that + " " + s + " " + s.owner + " " + (s.owner instanceof ClassSymbol) + " " + treeutils.isATypeTree(selected));
 			if (treeutils.isATypeTree(selected) && s.name == names._this) {
 				if (rac) {
 					result = eresult = that;
@@ -16057,7 +16093,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// checkAccess(JmlToken.ACCESSIBLE, that, that, (VarSymbol)currentThisId.sym,
 			// (VarSymbol)currentThisId.sym);
 			JCFieldAccess fa = treeutils.makeSelect(that.pos, selected, s);
-            if (print) System.out.println("VISITSELECT-X " + that + " " + fa + " " + trexpr);
+            if (print) System.out.println("VISITSELECT-X " + that + " " + fa + " " + trexpr  + " " + selected);
 			fa.type = that.type; // in rac the type can be changed to a representation type
 //	        if (!translatingJML && (sym.flags() & Flags.VOLATILE) != 0 && sym.owner instanceof ClassSymbol) {
 //	            boolean constructorField = fa.sym.owner instanceof TypeSymbol && methodDecl.sym.isConstructor()
@@ -16069,6 +16105,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (currentEnv.stateLabel != null && !translatingLHS) {
 				eee = makeOld(that.pos, eee, currentEnv.stateLabel); // FIXME - will make overly nested \old expressions
 			}
+//			System.out.println("EEE-A " + eee);
+//			if (!utils.isJMLStatic(s) && !types.isJmlType(that.selected.type)) eee = convertExpr(eee);
+//            System.out.println("EEE-Z " + eee);
 			eee = (!var || convertingAssignable || !splitExpressions || rac) ? eee : newTemp(eee);
 		}
 		treeutils.copyEndPosition(result, that);
@@ -17508,17 +17547,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(that.expr, Label.NULL_ELEMENT, e4);
 				}
 			} else {
-				JCExpression e = that.expr;
+				JCExpression e = convertExpr(that.expr);
 				Name niter = names.fromString("values");
 				JCFieldAccess fa = M.at(that.expr).Select(e, niter);
-				fa.sym = syms.iterableType.tsym.members().findFirst(niter);
+				fa.sym = syms.iterableType.tsym.members().findFirst(niter, sf -> sf instanceof VarSymbol);
 				fa.type = typevarValue(fa.sym.type, typevarMapping);
 				//System.out.println("CALLED TYPEVARVALUE-A " + e.type + " " + fa.sym.type + " " + fa.type + " " + typevarMapping);
-				var lensym = fa.type.tsym.members().findFirst(names.length);
+				var lensym = fa.type.tsym.members().findFirst(names.length, sf -> sf instanceof VarSymbol);
 				fa = M.at(that.expr).Select(fa, names.length);
 				fa.sym = lensym;
 				fa.type = BIGINT;
-				lengthExpr = convertJML(fa);
+				lengthExpr = fa;  // FIXME - why do we need the convertExpr at the top of this block when we have this 
+				// convertJML here -- or should this be convertExpr
 			}
 
 			// Test that invariants hold before entering loop

@@ -28,7 +28,7 @@ public class Tmap {
         //@ check (int)sss[o] == 1;
         //@ check (int)sss[oo] == 12;
         //@ check (int)sss[ooo] == 13;
-        //@ check !ssss.has(oooo);
+        //@ check !sss.has(oooo);
         //@ set sss = s.remove(o);
         //@ check sss.has(oo);
         //@ check !sss.has(o);

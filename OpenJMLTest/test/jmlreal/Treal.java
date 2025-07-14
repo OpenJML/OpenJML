@@ -1,7 +1,7 @@
 // This file tests (both esc and rac) simple cases of all the functionality of \real
 import java.math.BigInteger;
 
-public class Test {
+public class Treal {
     
     public static void main(String... args) {
         int i = 42;
@@ -30,12 +30,12 @@ public class Test {
         BigInteger bb = BigInteger.valueOf(123);
         //@ ghost \real rb = \real.of(bb); check rb.bigintValue().bigValue().equals(bb);
         
-        ops();
-        compare();
+        ops(42,43);
+        compare(42,43);
         misc();
         errors();
     }
-    public static void ops() {
+    public static void ops(int a, int b) {
         //@ ghost \real rlong = 4000L;
         //@ ghost \real rint = 42;
         //@ check rlong + rint == 4042;
@@ -47,14 +47,31 @@ public class Test {
         //@ check rlong % -rint == 10;
         //@ check -rlong % rint == -10;
         //@ check -rlong % -rint == -10;
+        //@ ghost \real ra = a;
+        //@ ghost \real rb = b;
+        //@ check (+ra) == ra;
+        //@ check (-ra) == ra.negate();
+        //@ check (ra + rb) == ra.add(rb);
+        //@ check (ra - rb) == ra.subtract(rb);
+        //@ check (ra * rb) == ra.multiply(rb);
+        //@ check (rb != 0) ==> (ra / rb) == ra.divide(rb);
+        //@ check (rb != 0) ==> (ra % rb) == ra.mod(rb);
     }
     
-    public static void compare() {
+    public static void compare(int a, int b) {
         //@ ghost \real rlong = 4000L;
         //@ ghost \real rint = 42;
         //@ check !(rlong < rint);
         //@ check rlong != rint;
-        
+        //@ ghost \real ra = a;
+        //@ ghost \real rb = b;
+        //@ check (ra < rb) == ra.lt(rb);
+        //@ check (ra > rb) == ra.gt(rb);
+        //@ check (ra <= rb) == ra.le(rb);
+        //@ check (ra >= rb) == ra.ge(rb);
+        //@ check (ra != rb) == ra.ne(rb);
+        //@ check (ra == rb) == ra.eq(rb);
+        //@ check (ra == rb) == ra.equals(rb);
     }
     public static void misc() {
         //@ ghost \real rlong = 4000L;
@@ -67,6 +84,7 @@ public class Test {
         //@ check rlong.hashCode() == \real.of(4000).hashCode();
         //@ check rlong.eq(4000) == true;
         //@ check (rlong == 4000) == true;
+        //@ check \real.empty() == 0;
         //@ show rlong.toString(), rint;
     }
     
