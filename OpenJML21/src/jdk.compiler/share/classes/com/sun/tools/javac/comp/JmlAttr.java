@@ -5039,13 +5039,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         Type rt = operator.getReturnType();
         if (jmltypes.isJmlType(rt) || jmltypes.isJmlType(left) || jmltypes.isJmlType(right)) {
             // Treating this specially avoids attempts at unboxing for some operators
-            // FIXME - this skips any implicit conversions?
             // FIXME - what about inferred type parameters
             if (jmltypes.isJmlType(left) && that.rhs instanceof JCLiteral lit && lit.getValue() == null) {
                 utils.error(that, "jml.message", "JML primitive types may not be compared to null");
             }
             if (jmltypes.isJmlType(right) && that.lhs instanceof JCLiteral lit && lit.getValue() == null) {
                 utils.error(that, "jml.message", "JML primitive types may not be compared to null");
+            }
+            if (!jmltypes.isConvertible(left, right) && !jmltypes.isConvertible(right,left)) {
+                // FIXME - fix how to get a type with the type variable resolved
+                if (left.getTypeArguments().length() > 0 && left.getTypeArguments().get(0) instanceof Type.TypeVar) {
+                } else if (right.getTypeArguments().length() > 0 && right.getTypeArguments().get(0) instanceof Type.TypeVar) {
+                } else if (left.tsym == jmltypes.STRINGsym(context) && right.tsym == syms.charType.tsym) {
+                    // FIXME - ought to be able to avoid a particular test because the operator is allowed
+                } else {
+                utils.error(that, "jml.message", "No allowed implicit conversion permits this operation on JML types: " + left + " " + operator.name + " " + right);
+                }
             }
             that.type = rt;
             return rt;
@@ -6137,7 +6146,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             // FIXME - review the next two lines
             if (!pkind().contains(KindSelector.VAR)) owntype = types.capture(owntype);
-            result = check(tree, owntype, KindSelector.VAR, new ResultInfo(KindSelector.of(KindSelector.VAR), Infer.anyPoly));
+            result = check(tree, owntype, KindSelector.VAR, resultInfo);
         } else {
             super.visitIndexed(tree);
         }

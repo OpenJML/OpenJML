@@ -154,6 +154,10 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String nonnullelements = "nonnullelements";
     public static final String arrayElemType = "__arrayElemType";
     public static final String isarray = "__isarray";
+    public static final String stringlt = "|`stringlt|";
+    public static final String stringle = "|`stringle|";
+    public static final String stringgt = "|`stringgt|";
+    public static final String stringge = "|`stringge|";
 
     /** A convenience declaration, to avoid calling the constructor for every empty list */
     public static final List<ISort> emptyList = new LinkedList<ISort>();
@@ -192,6 +196,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final Symbol STRING;
     final Symbol TYPE;
     final Symbol RANGE;
+    final Symbol SEQ;
     
     /** A counter used to make String literal identifiers unique */
     int stringCount = 0;
@@ -242,7 +247,7 @@ public class SMTTranslator extends JmlTreeScanner {
         seqSym = F.symbol("SEQ");
         setSym = F.symbol("SET");
         mapSym = F.symbol("MAP");
-        stringSym = F.symbol("STRINGJML"); // STRING is a reserved work in SMT-LIB
+        stringSym = F.symbol("STRINGJML"); // STRING is a reserved word in SMT-LIB
         ARRAYSym = F.symbol("ARRAY"); // for the JML \array type
         stringSort = F.createSortExpression(stringSym);
         intsetSort = F.createSortExpression(arraySym, intSort, boolSort);
@@ -273,6 +278,7 @@ public class SMTTranslator extends JmlTreeScanner {
         REAL = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
         TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
         RANGE = JmlPrimitiveTypes.rangeTypeKind.getSymbol(context);
+        SEQ = JmlPrimitiveTypes.seqTypeKind.getSymbol(context);
 
     }
     
@@ -889,6 +895,19 @@ public class SMTTranslator extends JmlTreeScanner {
         // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
         c = new C_declare_fun(F.symbol(concat),Arrays.asList(stringSort,stringSort), stringSort);
         startCommands.add(c);
+        c = new C_declare_fun(F.symbol(stringlt),Arrays.asList(stringSort,stringSort), boolSort);
+        startCommands.add(c);
+        {
+            var decls = new LinkedList<IDeclaration>();
+            decls.add(F.declaration(F.symbol("i"), stringSort));
+            decls.add(F.declaration(F.symbol("j"), stringSort));
+            c = new C_define_fun(F.symbol(stringle),decls, boolSort, F.fcn(orSym, F.fcn(eqSym, F.symbol("i"), F.symbol("j")), F.fcn(F.symbol(stringlt), F.symbol("i"), F.symbol("j"))));
+            startCommands.add(c);
+            c = new C_define_fun(F.symbol(stringgt),decls, boolSort, F.fcn(F.symbol(stringlt), F.symbol("j"), F.symbol("i")));
+            startCommands.add(c);
+            c = new C_define_fun(F.symbol(stringge),decls, boolSort, F.fcn(F.symbol(stringle), F.symbol("j"), F.symbol("i")));
+            startCommands.add(c);
+        }
         {
         	// define stringLength: (declare-fun stringLength (String) Int)
         	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(stringSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
@@ -2175,6 +2194,7 @@ public class SMTTranslator extends JmlTreeScanner {
         TypeTag trhs = tree.rhs.type.getTag();
         boolean isReal = false;
         boolean isInt = false;
+        boolean isSeq = tree.type.tsym == SEQ;
         boolean isString = tree.lhs.type.tsym == STRING || tree.rhs.type.tsym == STRING;
         if (tree.lhs.type.tsym == REAL || tree.rhs.type.tsym == REAL) {
             isReal = true;
@@ -2221,34 +2241,42 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(orSym, args);
                 break;
             case LT:
-                if (isReal) {
+                if (isReal)
                     result = F.fcn(F.symbol("<"), args);
-                } else if (useBV) 
+                else if (useBV) 
                     result = F.fcn(F.symbol("bvslt"), args);
+                else if (isString)
+                    result = F.fcn(F.symbol(stringlt), args);
                 else
                     result = F.fcn(F.symbol("<"), args);
                 break;
             case LE:
-                if (isReal) {
+                if (isReal)
                     result = F.fcn(F.symbol("<="), args);
-                } else if (useBV) 
+                else if (useBV) 
                     result = F.fcn(F.symbol("bvsle"), args);
+                else if (isString)
+                    result = F.fcn(F.symbol(stringle), args);
                 else
                     result = F.fcn(F.symbol("<="), args);
                 break;
             case GT:
-                if (isReal) {
+                if (isReal)
                     result = F.fcn(F.symbol(">"), args);
-                } else if (useBV) 
+                else if (useBV) 
                     result = F.fcn(F.symbol("bvsgt"), args);
+                else if (isString)
+                    result = F.fcn(F.symbol(stringgt), args);
                 else
                     result = F.fcn(F.symbol(">"), args);
                 break;
             case GE:
-                if (isReal) {
+                if (isReal)
                     result = F.fcn(F.symbol(">="), args);
-                } else if (useBV) 
+                else if (useBV) 
                     result = F.fcn(F.symbol("bvsge"), args);
+                else if (isString)
+                    result = F.fcn(F.symbol(stringge), args);
                 else
                     result = F.fcn(F.symbol(">="), args);
                 break;

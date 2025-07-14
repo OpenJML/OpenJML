@@ -1,24 +1,26 @@
 OUT:
-test/jmlbigint/Test.java:83: verify: JML Division by zero
-      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+test/jmlbigint/Tbigint.java:91: verify: JML Division by zero
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e); } // ERROR
                      ^
-/ by zero
-test/jmlbigint/Test.java:84: verify: JML Division by zero
-      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+java.lang.ArithmeticException: / by zero
+test/jmlbigint/Tbigint.java:92: verify: JML Division by zero
+      try { var c = a/0; } catch (Exception e) { System.out.println(e); } // ERROR
                      ^
-/ by zero
-test/jmlbigint/Test.java:85: verify: JML Division by zero
-      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); } // ERROR
+java.lang.ArithmeticException: / by zero
+test/jmlbigint/Tbigint.java:93: verify: JML Division by zero
+      try { var e = a % 0; } catch (Exception e) { System.out.println(e); } // ERROR
                       ^
-mod by zero
+java.lang.ArithmeticException: mod by zero
 LABEL JMLSHOW_1 = -4242
-test/jmlbigint/Test.java:152: verify: JML unreachable statement reached
+test/jmlbigint/Tbigint.java:174: verify: JML unreachable statement reached
       unreachable; // To force a show
       ^
-test/jmlbigint/Test.java:25: verify: JML assertion is false
+test/jmlbigint/Tbigint.java:25: verify: JML assertion is false
         //@ check a + b == 40; // FALSE
             ^
-java.lang.UnsupportedOperationException: .equals is not supported for \bigint
+test/jmlbigint/Tbigint.java:49: verify: JML assertion is false
+            //@ check a.equals(null);
+                ^
 END
 
 ERR:

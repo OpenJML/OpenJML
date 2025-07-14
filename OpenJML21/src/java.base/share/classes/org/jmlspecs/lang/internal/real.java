@@ -78,9 +78,10 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     @Override
     abstract public int hashCode();
     
-    /** .equals is not supported for \\real -- use == instead */
+    public boolean equals(real r) { return eq(r); }
+    
     @Override
-    public boolean equals(/*@ nullable */Object o) { throw new UnsupportedOperationException(); }
+    public boolean equals(/*@ nullable */Object o) { return o instanceof real r && eq(r); }
     
     public static class RealUsingDouble extends real {
         public static final long serialVersionUID = 1L;
@@ -180,11 +181,6 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         public int hashCode() {
             return ((Double)value).hashCode();
         }
-        
-//        @Override
-//        public boolean equals(/*@ nullable */ Object o) {
-//            return o instanceof RealUsingDouble d && value == d.value;
-//        }
     }
     
     public static class RealUsingBigDecimal extends real {
@@ -293,12 +289,6 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         public int hashCode() {
             return value.hashCode();
         }
-
-//        @Override
-//        public boolean equals(/*@ nullable */Object o) {
-//            return o instanceof RealUsingBigDecimal r && value.equals(r.value);
-//        }
-
     }
 
 }

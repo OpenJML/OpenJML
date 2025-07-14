@@ -11,6 +11,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
+// FIXME - this file likely duplicates tests in primesc
+
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class primesc2 extends EscBase {

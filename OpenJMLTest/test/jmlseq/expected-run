@@ -16,7 +16,7 @@ java.lang.IndexOutOfBoundsException: \seq.subseq: 6 5 vs. 5
 java.lang.IndexOutOfBoundsException: \seq.subseq: -1 5 vs. 5
 java.lang.IndexOutOfBoundsException: \seq.subseq: 0 6 vs. 5
 java.lang.IndexOutOfBoundsException: \seq.subseq: 1 0 vs. 5
-test/jmlseq/TSeq.java:185: verify: JML assertion is false
+test/jmlseq/TSeq.java:280: verify: JML assertion is false
             //@ assert s.equals(o);
                 ^
 END

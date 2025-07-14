@@ -55,7 +55,7 @@ public class primrac extends RacBase {
 
     @Test
     public void jmlbigint() {
-        helpCompileRun("Test");
+        helpCompileRun("Tbigint");
     }
 
     @Test
@@ -90,7 +90,7 @@ public class primrac extends RacBase {
     
     @Test
     public void jmlmap() {
-        expectedExit = 1;
+        expectedExit = 0;
         helpCompileRun("Tmap");
     }
     
@@ -122,6 +122,12 @@ public class primrac extends RacBase {
     
     @Test
     public void rangeTest1() {
+        expectedExit=1;
+        helpCompileOnly();
+    }
+    
+    @Test
+    public void rangeTest2() {
         expectedExit=1;
         helpCompileOnly();
     }

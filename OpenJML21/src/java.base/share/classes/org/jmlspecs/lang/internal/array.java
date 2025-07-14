@@ -24,23 +24,27 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
         //System.out.println("OF=Z " + data.getClass() + " " + data.length);
         return new array<TT>(data);
     }
-//    public static <TT> array<TT> of(TT[] data, int len) { return new array<TT>(data); }
 
-    public array<T> copy() { 
+    private array<T> copy() { 
         if (value == null) return array.<T>empty();
         return array.<T>of(java.util.Arrays.copyOf(value, value.length));
     }
 
     public T get(bigint i) {
-        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException(i + " vs. " + length);
+        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException("get: " + i + " for length " + length);
         return value[i.intValue()];
     }
     
     public array<T> put(bigint i, T v) {
-        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException(i + " vs. " + length);
+        if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException("put: " + i + " for length " + length);
         var c = copy();
         c.value[i.intValue()] = v;
         return c;
+    }
+    
+    public array<T> subarray(bigint i, bigint j) {
+        if (!(bigint.zero.le(i) && i.le(j) && j.le(this.length))) throw new java.lang.ArrayIndexOutOfBoundsException("subarray: " + i + " " + j + " for length " + length);
+        return array.<T>of(java.util.Arrays.copyOfRange(value, i.intValue(), j.intValue()));
     }
     
     public boolean eq(array<T> a) { 
@@ -60,11 +64,16 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     public T[] value() { return value; }
     
     public int hashCode() {
-        return value == null ? 0 : value.hashCode();
+        return value == null ? 0 : java.util.Arrays.hashCode(value);
     }
     
+    public boolean equals(array<T> a) {
+        return eq(a);
+    }
+    
+    @SuppressWarnings({"unchecked","rawtypes"})
     public boolean equals(Object o) {
-        throw new UnsupportedOperationException("\\array<T>.equals not supported; use == or .eq instead");
+        return o instanceof array a && eq(a);
     }
 
 }

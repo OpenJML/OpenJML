@@ -19,10 +19,8 @@ Starting proof of Tarray.test4() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tarray.test4() with prover !!!! - no warnings
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of Tarray.test4() with prover !!!! - no warnings
 Starting proof of Tarray.test5() with prover !!!!
+
 
 
 Completed proof of Tarray.test5() with prover !!!! - no warnings
@@ -32,55 +30,72 @@ Feasibility check - at program exit : OK
 Completed proof of Tarray.test6() with prover !!!! - no warnings
 Starting proof of Tarray.test7() with prover !!!!
 
+
+
+
+
+
+
+
+
+
+
+
+Completed proof of Tarray.test7() with prover !!!! - with warnings
+Starting proof of Tarray.test8() with prover !!!!
+
+
+
+
+
+
+Completed proof of Tarray.test8() with prover !!!! - with warnings
 Starting proof of Tarray.errors1() with prover !!!!
-test/jmlarray/Tarray.java:81: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
+test/jmlarray/Tarray.java:109: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
             //@ ghost var o = s.get(-1);
                                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:32: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:34: warning: Associated declaration
     public T get(bigint i);
              ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:29: warning: Precondition conjunct is false: \bigint.zero <= i
-    //@   requires \bigint.zero <= i & i < length;
-                                ^
+$SPECS/org/jmlspecs/lang/internal/array.jml:31: warning: Precondition conjunct is false: \bigint.zero <= i < length
+    //@   requires \bigint.zero <= i < length;
+                                     ^
 Completed proof of Tarray.errors1() with prover !!!! - with warnings
 Starting proof of Tarray.errors2() with prover !!!!
-test/jmlarray/Tarray.java:91: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
+test/jmlarray/Tarray.java:119: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
             //@ ghost var o = s.get(5);
                                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:32: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:34: warning: Associated declaration
     public T get(bigint i);
              ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:29: warning: Precondition conjunct is false: i < length
-    //@   requires \bigint.zero <= i & i < length;
-                                         ^
 Completed proof of Tarray.errors2() with prover !!!! - with warnings
 Starting proof of Tarray.errors3() with prover !!!!
-test/jmlarray/Tarray.java:101: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors3
+test/jmlarray/Tarray.java:129: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors3
             //@ ghost var o = s.put(-1, oo);
                                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:40: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:42: warning: Associated declaration
     public array<T> put(bigint i, T t);
                     ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:35: warning: Precondition conjunct is false: \bigint.zero <= i
-    //@   requires \bigint.zero <= i & i < length;
-                                ^
+$SPECS/org/jmlspecs/lang/internal/array.jml:37: warning: Precondition conjunct is false: \bigint.zero <= i < length
+    //@   requires \bigint.zero <= i < length;
+                                     ^
 Completed proof of Tarray.errors3() with prover !!!! - with warnings
 Starting proof of Tarray.errors4() with prover !!!!
-test/jmlarray/Tarray.java:111: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors4
+test/jmlarray/Tarray.java:139: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors4
             //@ ghost var o = s.put(5, oo);
                                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:40: warning: Associated declaration
+/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:42: warning: Associated declaration
     public array<T> put(bigint i, T t);
                     ^
 Completed proof of Tarray.errors4() with prover !!!! - with warnings
 Starting proof of Tarray.errors5() with prover !!!!
-test/jmlarray/Tarray.java:121: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+test/jmlarray/Tarray.java:149: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
             //@ assert s.equals(o);
                                ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:57: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:64: warning: Associated declaration
     public boolean equals(Object o);
                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:55: warning: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/array.jml:62: warning: Precondition conjunct is false: false
     //@   requires false; 
                    ^
 Completed proof of Tarray.errors5() with prover !!!! - with warnings
@@ -89,6 +104,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tarray.main(String...) with prover !!!! - no warnings
 Completed proving methods in Tarray
-Note: /Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml uses unchecked or unsafe operations.
-Note: Recompile with -Xlint:unchecked for details.
-27 warnings
+13 warnings
