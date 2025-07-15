@@ -6789,7 +6789,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(_case, currentStatements, Strings.feas_switch, "after case condition");
 	            convert(_case.stats); // This might change 'continuation'
 	            if (isArrow && _case.completesNormally) {
-	                addStat(M.at(_case).Break(null));
+	                JCBreak brk = M.at(_case).Break(null);
+	                brk.target = newswitch;
+	                addStat(brk);
 	            }
 	            JCBlock bl = popBlock(_case);
 	            // Have to be careful about blocks

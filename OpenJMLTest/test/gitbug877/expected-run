@@ -1,0 +1,28 @@
+OUT:
+test/gitbug877/ZZ.java:7: verify: JML argument to numeric cast is out of range of the target type
+            case 0 -> { /*@ show (byte)(z+Byte.MAX_VALUE); */} 
+                                 ^
+JML argument to numeric cast is out of range of the target type: 137 to byte
+LABEL JMLSHOW_1 = -119
+test/gitbug877/ZZ.java:8: verify: JML argument to numeric cast is out of range of the target type
+            case 1 -> { /*@ show (short)(z+Short.MAX_VALUE); */}
+                                 ^
+JML argument to numeric cast is out of range of the target type: 32777 to short
+LABEL JMLSHOW_2 = -32759
+test/gitbug877/ZZ.java:9: verify: JML argument to numeric cast is out of range of the target type
+            case 2 -> { /*@ show (char)(z+Character.MAX_VALUE); */}
+                                 ^
+JML argument to numeric cast is out of range of the target type: 65545 to char
+LABEL JMLSHOW_3 = 	
+test/gitbug877/ZZ.java:10: verify: JML argument to numeric cast is out of range of the target type
+            case 3 -> { /*@ show (int)(z+Integer.MAX_VALUE); */}
+                                 ^
+JML argument to numeric cast is out of range of the target type: 2147483657 to int
+LABEL JMLSHOW_4 = -2147483639
+test/gitbug877/ZZ.java:11: verify: JML argument to numeric cast is out of range of the target type
+            default -> { /*@ show (long)(z+Long.MAX_VALUE); */}
+                                  ^
+JML argument to numeric cast is out of range of the target type: 9223372036854775817 to long
+LABEL JMLSHOW_5 = -9223372036854775799
+
+ERR:
