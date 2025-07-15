@@ -12,21 +12,20 @@ public class Treal {
         //@ set rlong = (\real)l; check rlong == 4000L; check rlong == \real.of(4000L);
         short s = 3;
         //@ ghost \real rshort = s; check rshort == 3; check rshort.shortValue() == 3; check (short)rshort == 3;
-        //@ set rshort = (\real)s; check rshort == 3; check rshort == \real.of((int)3);
+        //@ set rshort = (\real)s; check rshort == 3; check rshort == \real.of((short)3);
         byte b = -7;
         //@ ghost \real rbyte = b; check rbyte == -7; check rbyte.byteValue() == -7; check (byte)rbyte == -7;
-        //@ set rbyte = (\real)b; check rbyte == -7; check rbyte == \real.of((int)-7);
+        //@ set rbyte = (\real)b; check rbyte == -7; check rbyte == \real.of((byte)-7);
         char c = 'a';
         //@ ghost \real rchar = c; check rchar == 'a'; check rchar.charValue() == 'a'; check (char)rchar == 'a';
-        //@ set rchar = (\real)c; check rchar == 'a'; check rchar == \real.of((int)'a');
-        float f = 45.0f;
+        //@ set rchar = (\real)c; check rchar == 'a'; check rchar == \real.of('a');
+        float f = 45.0f; //@ assume Float.isFinite(f);
         //@ ghost \real rfloat = f; check rfloat == 45.0f; check rfloat.floatValue() == 45.0f; check (float)rfloat == 45.0f;
-        double d = -56.0d;
+        double d = -56.0d; //@ assume Double.isFinite(d);
         //@ ghost \real rdouble = d; check rdouble == -56.0d; check rdouble.doubleValue() == -56.0d; check (double)rdouble == -56.0d;
         //@ ghost \bigint g = 100;
         //@ ghost \real rbig = g; check rbig == 100; check rbig.bigintValue() == 100; check (\bigint)rbig == g;
-        //@ set rbig = (\real)g; check rbig == 100; check rbig == \real.of(100);
-        
+        //@ set rbig = (\real)g; check rbig == 100; check rbig == \real.of(100);        
         BigInteger bb = BigInteger.valueOf(123);
         //@ ghost \real rb = \real.of(bb); check rb.bigintValue().bigValue().equals(bb);
         
@@ -34,6 +33,7 @@ public class Treal {
         compare(42,43);
         misc();
         errors();
+        Tcasts.main(args);
     }
     public static void ops(int a, int b) {
         //@ ghost \real rlong = 4000L;

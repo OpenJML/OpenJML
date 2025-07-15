@@ -34,8 +34,14 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     abstract public real negate();
     abstract public int compareTo(real r);
     
-    public static real of(double v) { return proto.from(v); }
-    public static real of(float v) { return proto.from(v); }
+    public static real of(double v) {
+        if (!Double.isFinite(v)) org.jmlspecs.runtime.Utils.assertionFailure("JML double value cast to real is not finite");
+        return proto.from(v);
+    }
+    public static real of(float v) {
+        if (!Float.isFinite(v)) org.jmlspecs.runtime.Utils.assertionFailure("JML float value cast to real is not finite");
+        return proto.from(v);
+    }
     public static real of(long v) { return proto.from(v); }
     public static real of(int v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
     public static real of(char v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
@@ -51,11 +57,17 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     abstract protected real from(java.math.BigInteger v);
     
     @Override
-             public byte byteValue() { return (byte)intValue(); }
+             public byte byteValue() {
+                return (byte)intValue();
+            }
     @Override
-             public short shortValue() { return (short)intValue(); }
+             public short shortValue() { 
+                return (short)intValue();
+             }
     
-             public char charValue() { return (char)intValue(); }
+             public char charValue() {
+                     return (char)intValue();
+             }
     @Override
     abstract public int intValue();
     @Override
@@ -236,7 +248,7 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         }
         
         @Override
-        public RealUsingBigDecimal from(double v) { // FIXME - check for NaN and infinity?
+        public RealUsingBigDecimal from(double v) {
             return new RealUsingBigDecimal(new BigDecimal(v));
         }
 
@@ -256,12 +268,32 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
        }
 
         @Override
+        public byte byteValue() {
+            if (of(Byte.MIN_VALUE).gt(this) || of(Byte.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to byte");
+            return (byte)value.intValue();
+        }
+
+        @Override
+        public char charValue() {
+            if (of(Character.MIN_VALUE).gt(this) || of(Character.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to char");
+            return (char)value.intValue();
+        }
+
+        @Override
+        public short shortValue() {
+            if (of(Short.MIN_VALUE).gt(this) || of(Short.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to short");
+            return (short)value.intValue();
+        }
+
+        @Override
         public int intValue() {
+            if (of(Integer.MIN_VALUE).gt(this) || of(Integer.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to int");
             return value.intValue();
         }
 
         @Override
         public long longValue() {
+            if (of(Long.MIN_VALUE).gt(this) || of(Long.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to long");
             return value.longValue();
         }
 

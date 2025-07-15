@@ -155,22 +155,27 @@ public class bigint extends Number implements IJmlPrimitiveType {
     }
 
     public long longValue() {
+        if (of(Long.MIN_VALUE).gt(this) || of(Long.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to long");
         return value.longValue();
     }
 
     public int intValue() {
+        if (of(Integer.MIN_VALUE).gt(this) || of(Integer.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to int");
         return value.intValue();
     }
 
     public short shortValue() {
+        if (of(Short.MIN_VALUE).gt(this) || of(Short.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to short");
         return value.shortValue();
     }
 
     public char charValue() {
+        if (of(Character.MIN_VALUE).gt(this) || of(Character.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to char");
         return (char)value.intValue();
     }
 
     public byte byteValue() {
+        if (of(Byte.MIN_VALUE).gt(this) || of(Byte.MAX_VALUE).lt(this)) org.jmlspecs.runtime.Utils.assertionFailure("JML argument to numeric cast is out of range of the target type: " + this + " to byte");
         return value.byteValue();
     }
 

@@ -42,6 +42,11 @@ public class primesc extends EscBaseFiles {
     }
     
     @Test
+    public void jmlbigintCasts() {
+        helpTG("--spec-math=java");
+    }
+    
+    @Test
     public void jmlTYPE() {
         helpTG();
     }
