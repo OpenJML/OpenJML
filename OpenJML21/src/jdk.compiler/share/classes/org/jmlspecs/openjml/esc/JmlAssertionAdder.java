@@ -12787,8 +12787,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        JCExpression emin = treeutils.makeUtilsMethodCall(expr.pos, "bigint_ge", expr,
 		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",    // FIXME - does this exist?
 		                        treeutils.makeLongLiteral(pos, minValue(pos, newtype.getTag()))));
-		        addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
-		        addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
+		        addCheck(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
+		        addCheck(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
 		    }
 		}
 		//        if (esc && !useBV && expr.type.getTag() == TypeTag.NONE && newtype.getTag() != TypeTag.NONE) {
