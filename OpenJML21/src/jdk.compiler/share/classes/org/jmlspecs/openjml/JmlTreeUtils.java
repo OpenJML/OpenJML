@@ -1719,7 +1719,36 @@ public class JmlTreeUtils {
         utils.error(pos, "jml.internal", "No method " + name + " with " + nargs.length + " parameters of the requested types found in type " + receiver.type + "\n" + s);
         Utils.dumpStack();
         return null;
-
+    }
+    
+    public JCExpression makeMinLit(DiagnosticPosition p, Type target) {
+        return makeLongLiteral(p.getPreferredPosition(), 
+                switch (target.getTag()) {
+                    case LONG -> Long.MIN_VALUE;
+                    case INT -> Integer.MIN_VALUE;
+                    case SHORT -> Short.MIN_VALUE;
+                    case CHAR -> Character.MIN_VALUE;
+                    case BYTE -> Byte.MIN_VALUE;
+                    default -> 0;
+                });
+    }
+    
+    public JCExpression makeMaxLit(DiagnosticPosition p, Type target) {
+        return makeLongLiteral(p.getPreferredPosition(), 
+                switch (target.getTag()) {
+                    case LONG -> Long.MAX_VALUE;
+                    case INT -> Integer.MAX_VALUE;
+                    case SHORT -> Short.MAX_VALUE;
+                    case CHAR -> Character.MAX_VALUE;
+                    case BYTE -> Byte.MAX_VALUE;
+                    default -> 0;
+                });
+    }
+    
+    public JCExpression makeRangeCheck(Type target, JCExpression v) {
+        JCExpression e1 = makeBinary(v.pos, JCTree.Tag.GE, v, makeMinLit(v, target));
+        JCExpression e2 = makeBinary(v.pos, JCTree.Tag.LE, v, makeMaxLit(v, target));
+        return makeBitAnd(v.pos, e1, e2);
     }
     
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, String name, JCExpression ... nargs) {

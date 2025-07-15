@@ -50,7 +50,7 @@ public class primrac extends RacBase {
 
     @Test
     public void jmlreal() {
-        helpCompileRun("Test");
+        helpCompileRun("Treal");
     }
 
     @Test

@@ -1,6 +1,5 @@
 @org.jmlspecs.annotation.Options("--escbv=false")
 public class Tbigint {
-    
     public static void main(String... args) {
         inits();
         //@ ghost \bigint a = 10;
@@ -24,6 +23,7 @@ public class Tbigint {
         //@ set constants(); set show();
         //@ check a + b == 40; // FALSE
         misc(100);
+        Tcasts.main(args);
         //+RAC@ set System.out.println("END");
     }
     

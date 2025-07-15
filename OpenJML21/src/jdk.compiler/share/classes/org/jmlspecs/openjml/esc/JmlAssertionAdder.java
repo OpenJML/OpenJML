@@ -15024,8 +15024,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else if (types.erasure(oldtype).tsym == types.ARRAYsym(context)) {
                 eresult = expr;
             } else {
-                if (types.isSameType(oldtype, BIGINT) && newtype.isPrimitive() && checkRange) {
+                if (types.isSameType(oldtype, BIGINT) && newtype.isIntegral() && checkRange) {
                     addRangeConstraints(pos, true, newtype, expr);
+                }
+                if (types.isSameType(oldtype, REAL)) {
+                    if (newtype.isIntegral() && checkRange) {
+                        addRangeConstraints(pos, true, newtype, expr);
+                    }
                 }
                 if (rac) {
                     if (newtype.tsym == syms.objectType.tsym) {
@@ -15051,6 +15056,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (types.isJmlType(newtype)) {
             // oldtype must be non-JML
             // Any conversions must be implemented using JMLTYPE.of() for the given JMLTYPE
+            if ((oldtype == syms.floatType || oldtype == syms.doubleType) && newtype == REAL) {
+                String nm = (newtype == syms.doubleType ? "Double":"Float");
+                ClassSymbol cls = attr.createClass("java.lang." + nm);
+                JCIdent id = treeutils.makeIdent(expr.pos, names.fromString(nm), cls);
+                JCExpression e = treeutils.makeMethodInvocation(expr, id, "isFinite", expr);
+                // FIXME - enable this check when finiteness of double values is propagated more effectively
+                //addAssert(expr, Label.ARITHMETIC_CAST_RANGE, e); // FIXME - could be a clearer message - that is call out Infinty/Nan specifically
+            }
             if (rac) {
                 //System.out.println("CONVERTING-RAC " + oldtype + " " + newtype + " " + expr);
                 JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), newtype);
@@ -15195,8 +15208,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         if (isAssert) {
-            addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emax);
-            addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
         } else {
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);
@@ -20384,9 +20397,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (target == BIGINT)
 				return arg;
 			else if (isNewPrim) {
+			    //if (currentEnv.arithmeticMode.mode() != Arithmetic.Mode.JAVA) addCheck(arg, Label.ARITHMETIC_CAST_RANGE, treeutils.makeRangeCheck(target, arg));
 				return treeutils.makeMethodInvocation(arg, arg, target.toString() + "Value");
 			} else {
 				Type t = types.unboxedType(target);
+                //if (currentEnv.arithmeticMode.mode() != Arithmetic.Mode.JAVA) addCheck(arg, Label.ARITHMETIC_CAST_RANGE, treeutils.makeRangeCheck(t, arg));
 				JCExpression e = treeutils.makeMethodInvocation(arg, arg, t.toString() + "Value");
 				return treeutils.makeTypeCast(arg, target, e);
 			}
