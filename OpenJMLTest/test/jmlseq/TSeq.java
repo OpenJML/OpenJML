@@ -209,7 +209,7 @@ public class TSeq {
         //@ check s.length() == 2;
     }
     
-    // FIXME - out of bounds; 
+
 
     /*@
     //@ public normal_behavior

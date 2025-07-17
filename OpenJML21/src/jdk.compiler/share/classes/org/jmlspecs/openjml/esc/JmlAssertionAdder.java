@@ -8294,6 +8294,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
+//	    boolean print = that.toString().contains("of(");
+//	    if (print) {
+//	        var sym = (MethodSymbol)treeutils.getSym(that.meth);
+//	        System.out.println("APPLY-OF " + that + " " + that.meth.type + " " + sym + " " + sym.isVarArgs() + " " + that.varargsElement);
+//	    }
 	    if (that.meth.type == null) {
 	        System.out.println("APPLY " + that);
 	    } else if (that.meth.type.isErroneous()) {
@@ -8316,16 +8321,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		int actualVarArgsCount = -1;
 		if (methsym.isVarArgs()) {
+		    // If the method is varargs, we collect the argument list into an array of the varargs element type.
+		    // We do this here so that (1) we don't have to have special cases in applyHelper
+		    // and (2) we can do any specs translation just as if it were a call to m(new T{}{...}).
+		    // Since we are doing this manually, we have to set the 'that.varargsElement' field to null, otherwise
+		    // OpenJDK's code generation will also do the wrapping into a NewArray (again), leading to a crash 
+		    // when executing the generated code (the crash is an attempt to cast the T[] (the constructed array) 
+		    // into the T expected as a varargs argument).
 		    int actualLength = that.args.length();
-		    int formalLength = methsym.type.asMethodType().argtypes.length(); // msym.params can be null if there are
-		    // varargs
-		    Type varargType = methtype.getParameterTypes().last();
-		    //System.out.println("VARARGS " + formalLength + " " + actualLength+ " " + varargType);
-		    if (actualLength != formalLength || (!types.isSameType(that.args.last().type, varargType)
-		            && !(that.args.last().type instanceof Type.ArrayType))) {
+		    int formalLength = methsym.type.asMethodType().argtypes.length(); // msym.params can be null if there are varargs
+		    Type varargType = that.varargsElement; // methtype.getParameterTypes().last();
+		    if (varargType != null) {
+//		        System.out.println("VARARGS " + varargType + " " + methtype.getParameterTypes().last());
 		        int p = that.meth.pos;
 		        JCExpression len = treeutils.makeIntLiteral(p, actualLength + 1 - formalLength);
-		        Type compType = ((Type.ArrayType) varargType).getComponentType();
+		        Type varargArrayType = methtype.getParameterTypes().last();
+		        Type compType = varargType; // ((Type.ArrayType) varargType).getComponentType();
 		        JCExpression ty = treeutils.makeType(p, compType);
 		        ListBuffer<JCExpression> newargs = new ListBuffer<JCExpression>();
 		        ListBuffer<JCExpression> varargs = new ListBuffer<JCExpression>();
@@ -8337,10 +8348,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		            varargs.add(iter.next());
 		        JCNewArray array = M.at(p).NewArray(ty, List.<JCExpression>nil(), varargs.toList());
 		        array.elemtype = treeutils.makeType(that.pos,compType);
-		        array.type = varargType;
+		        array.type = types.makeArrayType(compType);
 		        newargs.add(array);
 		        that.args = newargs.toList();
-		        actualVarArgsCount = actualLength - formalLength + 1;
+		        that.varargsElement = null;
+		        //actualVarArgsCount = actualLength - formalLength + 1;
 		        //System.out.println("VARARGS-Z " + that + " " + actualVarArgsCount);
 		    }
 		}

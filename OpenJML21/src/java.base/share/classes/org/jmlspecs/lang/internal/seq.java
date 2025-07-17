@@ -21,11 +21,6 @@ public class seq<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     
     @SuppressWarnings("unchecked")
     static public <T> seq<T> of(T ... data) { 
-        //System.out.println("OF " + data.getClass() + " " + data.length);
-        // FIXME - it appears that the wrapping of the varargs into a new TT[]{} call and making that a new argument for 'of(TT ...)'
-        // is followed by an implicit further cast of the TT[] into an Object and then into a singleton Object[]
-        if (data.length == 1 && data[0].getClass().isArray()) data = (T[])data[0];
-        //System.out.println("OF=Z " + data.getClass() + " " + data.length);
         return new seq<T>(data);
     }
     
