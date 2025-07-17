@@ -3,6 +3,87 @@ Starting proof of TString.TString() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.TString() with prover !!!! - no warnings
+Starting proof of TString.errors1() with prover !!!!
+test/jmlstring/TString.java:7: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
+        //@ check s.get(-1) == 'A';
+                       ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:70: warning: Associated declaration
+    public char get(bigint i);
+                ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:68: warning: Precondition conjunct is false: 0 <= i < length
+    //-RAC@   requires 0 <= i < length;
+                              ^
+Completed proof of TString.errors1() with prover !!!! - with warnings
+Starting proof of TString.errors2() with prover !!!!
+test/jmlstring/TString.java:16: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
+        //@ check s.get(4) == 'A';
+                       ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:70: warning: Associated declaration
+    public char get(bigint i);
+                ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:68: warning: Precondition conjunct is false: 0 <= i < length
+    //-RAC@   requires 0 <= i < length;
+                              ^
+Completed proof of TString.errors2() with prover !!!! - with warnings
+Starting proof of TString.errors3() with prover !!!!
+test/jmlstring/TString.java:26: warning: The prover cannot establish an assertion (Assert) in method errors3
+        //@ check s[4] != 'A'; // no checking, just undefined // ERROR
+            ^
+test/jmlstring/TString.java:25: warning: The prover cannot establish an assertion (Assert) in method errors3
+        //@ check s[-1] != 'A'; // no checking, just undefined // ERROR
+            ^
+Completed proof of TString.errors3() with prover !!!! - with warnings
+Starting proof of TString.errors4() with prover !!!!
+test/jmlstring/TString.java:32: warning: The prover cannot establish an assertion (NullFormal) in method errors4: arg0 in of(String)
+        //@ ghost \string ss = sn;
+                               ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:58: warning: Associated declaration
+    public static string of(String s);
+                            ^
+Completed proof of TString.errors4() with prover !!!! - with warnings
+Starting proof of TString.errors5() with prover !!!!
+test/jmlstring/TString.java:41: warning: The prover cannot establish an assertion (NullFormal) in method errors5: arg0 in of(String)
+        //@ ghost \string ss = (\string)sn;
+                                        ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:58: warning: Associated declaration
+    public static string of(String s);
+                            ^
+Completed proof of TString.errors5() with prover !!!! - with warnings
+Starting proof of TString.errors6() with prover !!!!
+test/jmlstring/TString.java:50: warning: The prover cannot establish an assertion (NullFormal) in method errors6: arg0 in of(String)
+        //@ ghost \string ss = \string.of(sn);
+                                          ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:58: warning: Associated declaration
+    public static string of(String s);
+                            ^
+Completed proof of TString.errors6() with prover !!!! - with warnings
+Starting proof of TString.errors7() with prover !!!!
+test/jmlstring/TString.java:58: warning: The prover cannot establish an assertion (NullFormal) in method errors7: arg0 in of(String)
+        //@ ghost \string ss = \string.of(null);
+                                          ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:58: warning: Associated declaration
+    public static string of(String s);
+                            ^
+Completed proof of TString.errors7() with prover !!!! - with warnings
+Starting proof of TString.errors8() with prover !!!!
+test/jmlstring/TString.java:67: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
+        //@ check s.equals("ABCD");
+                          ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:209: warning: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:208: warning: Precondition conjunct is false: false
+    //@ requires false; // Not defined for JML primitive types. Use eq.
+                 ^
+Completed proof of TString.errors8() with prover !!!! - with warnings
+Starting proof of TString.errors9() with prover !!!!
+test/jmlstring/TString.java:77: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
+            //@ check \string.empty().head() == ' ';
+                                          ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:122: warning: Associated declaration
+    public char head();
+                ^
+Completed proof of TString.errors9() with prover !!!! - with warnings
 Starting proof of TString.test1() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -18,73 +99,26 @@ Completed proof of TString.test3() with prover !!!! - no warnings
 Starting proof of TString.test4(\string,\string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Completed proof of TString.test4(\string,\string) with prover !!!! - no warnings
 Starting proof of TString.test5() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
-
-
-
-
-
-
-
 Completed proof of TString.test5() with prover !!!! - no warnings
 Starting proof of TString.test6() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
 Completed proof of TString.test6() with prover !!!! - no warnings
 Starting proof of TString.test7() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
-
-
-
 Completed proof of TString.test7() with prover !!!! - no warnings
 Starting proof of TString.test8() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
-
-
-
 Completed proof of TString.test8() with prover !!!! - no warnings
 Starting proof of TString.test9() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
-
-
-
 Completed proof of TString.test9() with prover !!!! - no warnings
 Starting proof of TString.test10() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -97,104 +131,14 @@ Completed proof of TString.test11() with prover !!!! - no warnings
 Starting proof of TString.test12() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-
-
-
-
-
-
-
-
-
 Completed proof of TString.test12() with prover !!!! - no warnings
 Starting proof of TString.misc() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.misc() with prover !!!! - no warnings
-Starting proof of TString.zerrors1() with prover !!!!
-test/jmlstring/TString.java:119: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method zerrors1
-        //@ check s.get(-1) == 'A';
-                       ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:58: warning: Associated declaration
-    public char get(bigint i);
-                ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:56: warning: Precondition conjunct is false: 0 <= i < length
-    //@   requires 0 <= i < length;
-                          ^
-Completed proof of TString.zerrors1() with prover !!!! - with warnings
-Starting proof of TString.zerrors2() with prover !!!!
-test/jmlstring/TString.java:128: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method zerrors2
-        //@ check s.get(4) == 'A';
-                       ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:58: warning: Associated declaration
-    public char get(bigint i);
-                ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:56: warning: Precondition conjunct is false: 0 <= i < length
-    //@   requires 0 <= i < length;
-                          ^
-Completed proof of TString.zerrors2() with prover !!!! - with warnings
-Starting proof of TString.zerrors3() with prover !!!!
-test/jmlstring/TString.java:138: warning: The prover cannot establish an assertion (Assert) in method zerrors3
-        //@ check s[4] != 'A'; // no checking, just undefined // ERROR
-            ^
-test/jmlstring/TString.java:137: warning: The prover cannot establish an assertion (Assert) in method zerrors3
-        //@ check s[-1] != 'A'; // no checking, just undefined // ERROR
-            ^
-Completed proof of TString.zerrors3() with prover !!!! - with warnings
-Starting proof of TString.zerrors4() with prover !!!!
-test/jmlstring/TString.java:144: warning: The prover cannot establish an assertion (NullFormal) in method zerrors4: arg0 in of(String)
-        //@ ghost \string ss = sn;
-                               ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:54: warning: Associated declaration
-    public static string of(String s);
-                            ^
-Completed proof of TString.zerrors4() with prover !!!! - with warnings
-Starting proof of TString.zerrors5() with prover !!!!
-test/jmlstring/TString.java:153: warning: The prover cannot establish an assertion (NullFormal) in method zerrors5: arg0 in of(String)
-        //@ ghost \string ss = (\string)sn;
-                                        ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:54: warning: Associated declaration
-    public static string of(String s);
-                            ^
-Completed proof of TString.zerrors5() with prover !!!! - with warnings
-Starting proof of TString.zerrors6() with prover !!!!
-test/jmlstring/TString.java:162: warning: The prover cannot establish an assertion (NullFormal) in method zerrors6: arg0 in of(String)
-        //@ ghost \string ss = \string.of(sn);
-                                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:54: warning: Associated declaration
-    public static string of(String s);
-                            ^
-Completed proof of TString.zerrors6() with prover !!!! - with warnings
-Starting proof of TString.zerrors7() with prover !!!!
-test/jmlstring/TString.java:170: warning: The prover cannot establish an assertion (NullFormal) in method zerrors7: arg0 in of(String)
-        //@ ghost \string ss = \string.of(null);
-                                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:54: warning: Associated declaration
-    public static string of(String s);
-                            ^
-Completed proof of TString.zerrors7() with prover !!!! - with warnings
-Starting proof of TString.zerrors8() with prover !!!!
-test/jmlstring/TString.java:179: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method zerrors8
-        //@ check s.equals("ABCD");
-                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:176: warning: Associated declaration
-    public boolean equals(Object o);
-                   ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:175: warning: Precondition conjunct is false: false
-    //@ requires false; // Not defined for JML primitive types. Use eq.
-                 ^
-Completed proof of TString.zerrors8() with prover !!!! - with warnings
-Starting proof of TString.zerrors9() with prover !!!!
-test/jmlstring/TString.java:189: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method zerrors9
-            //@ check \string.empty().head() == ' ';
-                                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:109: warning: Associated declaration
-    public char head();
-                ^
-Completed proof of TString.zerrors9() with prover !!!! - with warnings
 Starting proof of TString.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.main(String...) with prover !!!! - no warnings
 Completed proving methods in TString
-10 warnings
+21 warnings

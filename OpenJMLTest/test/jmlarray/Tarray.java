@@ -18,7 +18,7 @@ public class Tarray {
         Object oo = new Object();
         //@ ghost \array<Object> s = \array.of(o,oo);
         //@ check s.length == \bigint.of(2);
-// FIXME        //@ check \array.<Integer>empty() == \array.<Integer>of();
+        //+ESC@ check \array.<Integer>empty() == \array.<Integer>of();
     }
 
     //@ spec_pure

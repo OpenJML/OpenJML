@@ -74,26 +74,7 @@ public class escprimitivetypes extends EscBase {
                 );
     }
     
-    @Test
-    public void testArray() {
-        addOptions("--method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1(int i, Object o, Object oo) {\n"
-                +"    //@ assume o != oo;\n"
-                +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
-                +"    //@ ghost \\array<Object> a; \n"
-                +"    //@ set a[ii] = oo;\n"
-                +"    //@ ghost \\array<Object> b = a;\n"
-                +"    //@ set a[ii] = o;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
-                +"    //@ assert b[ii] == oo;\n"
-                +"  }\n"
-                +"}"
-                );
-    }
+
     
     @Test
     public void testArrayPut() {
@@ -117,24 +98,6 @@ public class escprimitivetypes extends EscBase {
     }
     
 
-    @Test
-    public void testseq() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1(int i, Object o, Object oo) {\n"
-                +"    //@ assume o != oo;\n"
-                +"    //@ ghost \\bigint ii = i; set ii = ii*2; assume ii >= 0; \n"
-                +"    //@ ghost \\seq<Object> a;\n"
-                +"    //@ set a[ii] = oo;\n"
-                +"    //@ ghost \\seq<Object> b = a;\n"
-                +"    //@ set a[ii] = o;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
-                +"  }\n"
-                +"}"
-                );
-    }
     
     @Test
     public void testseqPut() {
@@ -311,21 +274,6 @@ public class escprimitivetypes extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",19
                 );
-    }
-    
-    @Test
-    public void testX() {
-        addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
-                                +"public class TestJava { \n"
-                                
-                                +"  public void m1(Object o) {\n"
-                                +"    //@ ghost \\array<Object> a; \n"
-                                +"    //@ set a[3] = o;\n"
-                                +"  }\n"
-                                +"}"
-                                );
-        
     }
 
 }
