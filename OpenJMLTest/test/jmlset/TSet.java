@@ -11,9 +11,10 @@ public class TSet {
     
     //@ spec_pure
     public static void test2() { // empty
-        //@ ghost var s = \set.<Object>empty();
+        //@ ghost var s = \set.<Integer>empty();
         //@ check s.isEmpty();
         //@ check s.size() == 0;
+        //@ check s == \set.<Integer>of();
     }
 
     //@ spec_pure
@@ -51,25 +52,108 @@ public class TSet {
         //@ check !s.contains(oo);
     }
     
-
-    public static void errors5() {
-        Object[] a = new Object[5];
-        //@ ghost var s = \set.<Object>of(a);
-        try {
-            Object o = new Object();
-            //@ assert s.equals(o);
-        } catch (Exception e) {
-            //-ESC@ set System.out.println(e);
-        }
+    //@ spec_pure
+    public static void test6() { // add, remove
+        Object o = new Object();
+        Object oo = new Object();
+        //@ ghost \set<Object> s = \set.of();
+        //@ set s = s.add(o);
+        //@ check s.contains(o);
+        //@ check !s.contains(oo);
+        //@ check !s.isEmpty();
+        //@ check s.size() == 1;
+        //@ set s = s.remove(o);
+        //@ check !s.contains(o);
+        //@ check s.size() == 0;
+        //@ check s.isEmpty();
     }
     
+    //@ spec_pure
+    public static void test7() { // subset
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \set<Object> s0 = \set.of(o);
+        //@ ghost \set<Object> s1 = \set.of(o,oo);
+        //@ ghost \set<Object> s2 = \set.of(o,ooo);
+        //@ check s0.isSubsetOf(s2);
+        //@ check s0.isProperSubsetOf(s2);
+        //@ check !s1.isSubsetOf(s2);
+        //@ check \set.<Object>of(o).isSubsetOf(s0);
+        //@ check !\set.<Object>of(o).isProperSubsetOf(s0);
+        //@ check \set.<Object>of(o) <= s0;
+        //@ check !(s0 < s0);
+        //@ check !(s0 < \set.<Object>of(o));
+ // FIXME       //@ check !((\set.<Object>of(o)) < s0);  // FIXME - this does not parse, with or without the inner parentheses
+    }
+    
+    //@ spec_pure
+    public static void test8() { // union, intersection, subtract
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \set<Object> s0 = \set.of(o);
+        //@ ghost \set<Object> s1 = \set.of(o,oo);
+        //@ ghost \set<Object> s2 = \set.of(o,ooo);
+        //@ check s1.union(s2) == \set.<Object>of(o,oo,ooo);
+        //@ check s1.intersect(s2) == s0;
+        //@ check s1.subtract(s2) == \set.<Object>of(oo);
+        //@ check s1.union(s2) == (s1 | s2);
+        //@ check s1.intersect(s2) == (s1 & s2);
+        //@ check s1.subtract(s2) == (s1 - s2);
+    }
+    
+    //@ spec_pure
+    public static void test9() { // filter
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \set<Object> s0 = \set.of(o);
+        //@ ghost \set<Object> s1 = \set.of(o,oo);
+        //@ ghost \set<Object> s2 = \set.of(o,ooo);
+//FIXME        //@ check s1.filter(x -> (x == oo)) == \set.<Object>of(oo); // These crash during code generation
+//FIXME        //@ check s2.filter(x -> (x != oo)) == s2;
+    }
+    
+    //@ spec_pure
+    public static void misc() { // equals
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \set<Object> s1 = \set.of(o,oo,o);
+        //@ ghost \set<Object> s2 = \set.of(o,oo,o);
+        //@ ghost \set<Object> s3 = \set.of(o,ooo);
+        //@ ghost \set<Object> s4 = \set.of(o,oo,oo);
+        //@ check s1 == s1;
+        //@ check s1.equals(s1);
+        //@ check s1.eq(s1);
+        //@ check s1 == s2;
+        //@ check s1.equals(s2);
+        //@ check s1.eq(s2);
+        //@ check s1 != s3;
+        //@ check !s1.equals(s3);
+        //@ check s1.ne(s3);
+        //@ check s3.ne(s1);
+        //@ check s1 == s4;
+        //@ check s1.equals(s4);
+        //@ check !s1.ne(s4);
+        //@ check !s4.ne(s1);
+        //@ check s1.hashCode() == s2.hashCode();
+        //-ESC@ show s1, \set.<Integer>empty().toString();
+        //@ check !s1.equals(o);
+    }
+
     public static void main(String... args) {
         test1();
         test2();
         test3();
         test4();
         test5();
-        errors5();
+        test6();
+        test7();
+        test8();
+        test9();
+        misc();
         //-ESC@ set System.out.println("END");
     }
 

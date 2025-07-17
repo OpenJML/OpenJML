@@ -301,8 +301,8 @@ public class JmlTypes extends Types {
                 Names.instance(context).fromString(name),
                 new MethodType(List.of(left, right), res,
                         List.<Type>nil(), null),
-                        ByteCodes.nop,
-                        Symtab.instance(context).predefClass);
+                ByteCodes.nop,
+                Symtab.instance(context).predefClass);
 
         Symtab.instance(context).predefClass.members().enter(opsym);
         return opsym;

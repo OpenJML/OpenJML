@@ -323,6 +323,18 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static final JmlTypeKind setTypeKind = new JmlTypeKind(setId,"org.jmlspecs.lang.internal.set") {
         @Override
         public int numTypeArguments() { return 1; }
+
+        @Override
+        public void initOps() {
+            JmlTypes jt = JmlTypes.instance(context);
+            jt.enterBinop("==", type, type, jt.syms.booleanType);
+            jt.enterBinop("!=", type, type, jt.syms.booleanType);
+            jt.enterBinop("|", type, type, type);
+            jt.enterBinop("&", type, type, type);
+            jt.enterBinop("-", type, type, type);
+            jt.enterBinop("<", type, type, jt.syms.booleanType);
+            jt.enterBinop("<=", type, type, jt.syms.booleanType);
+        }
     };
 
     public static final String mapId = "\\map";

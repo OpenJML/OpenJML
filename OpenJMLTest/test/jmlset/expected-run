@@ -1,5 +1,6 @@
 OUT:
-java.lang.UnsupportedOperationException: \set.equals
+LABEL JMLSHOW_1 = [java.lang.Object@########, java.lang.Object@########]
+LABEL JMLSHOW_2 = []
 END
 
 ERR:
