@@ -1,104 +1,5 @@
 public class TSeq {
     
-    //@ spec_pure
-    public static void test1() { // empty
-        //@ ghost \seq<Object> s;
-        //@ check s.isEmpty();
-        //@ check s.length == 0;
-        //@ check s.length() == 0;
-    }
-    
-    //@ spec_pure
-    public static void test2() { // empty
-        //@ ghost var s = \seq.<Object>empty();
-        //@ check s.isEmpty();
-        //@ check s.length == 0;
-        //@ check s.length() == 0;
-    }
-
-    //@ spec_pure
-    public static void test3() { // of, length
-        Object o = new Object();
-        Object oo = new Object();
-        //@ ghost \seq<Object> s = \seq.of(o,oo);
-        //-RAC@ check s.length == 2;
-        //@ check s.length() == 2;
-    }
-    
-    // FIXME - out of bounds; 
-
-    /*@
-    //@ public normal_behavior
-    //@   requires true;
-    //@ spec_pure
-    model public static void test4(\seq<Object> s1,\seq<Object> s2) { // append, head, tail
-        //@ ghost \seq<Object> s = s1.append(s2);
-        //@ check s.length == s1.length + s2.length;
-        //@ check s.length() == s1.length() + s2.length();
-        //@ check s.head(s1.length()) == s1;
-        //@ check s.tail(s1.length()) == s2;
-        //@ check !s1.isEmpty() ==> s.head() == s1.head();
-        //@ check s1.isEmpty() && !s2.isEmpty()==> s.head() == s2.head();
-        //@ check s1.isEmpty() ==> s == s2; 
-    }*/
-    /*@
-    //@ public normal_behavior
-    //@   requires true;
-    //@ spec_pure
-    model public static void test4a(\seq<Object> s1,\seq<Object> s2) { // append, head, tail
-        //@ ghost \seq<Object> s = s1.append(s2);
-        //@ check !s.isEmpty() ==> s.tail().prepend(s.head()) == s;
-        //@ check s.tail(s1.length()) == s.subseq(s1.length(), s.length());
-        //@ check s.subseq(0,0).isEmpty();
-        //@ check s2.prepend(s1) == s;
-        //@ check s1 != s2 <==> s1.ne(s2);
-        //@ check s1 == s2 <==> s1.eq(s2);
-        //@ check s1 != s2 <==> !s1.eq(s2);
-    }*/
-
-    //@ spec_pure
-    public static void test5() { // []
-        Object o = new Object();
-        Object oo = new Object();
-        //@ ghost \seq<Object> s = \seq.of(o,oo,o);
-        //@ check s[1] == oo;
-        //@ check s.get(1) == oo;
-    }
-    
-    //@ spec_pure
-    public static void test6() { // eq, ne, equals
-        Object o = new Object();
-        Object oo = new Object();
-        //@ ghost \seq<Object> s1 = \seq.of(o,oo);
-        //@ ghost \seq<Object> s = \seq.of(o);
-        //@ set s = s.append(oo);
-        //@ check s.eq(s1);
-        //@ check !s.ne(s1);
-        //@ check s.equals(s1);
-    }
-    
-    //@ spec_pure
-    public static void test7() { // append, insert, remove, put
-        Object o = new Object();
-        Object oo = new Object();
-        Object ooo = new Object();
-        //@ ghost \seq<Object> s = \seq.of(o,oo);
-        //@ check s.append(ooo) == \seq.<Object>of(o,oo,ooo);
-        //@ check s.insert(1,ooo) == \seq.<Object>of(o,ooo,oo);
-        //@ check s.insert(2,ooo) == \seq.<Object>of(o,oo,ooo);
-        //@ check s.put(1,ooo) == \seq.<Object>of(o,ooo);
-        //@ check s.remove(0) == \seq.<Object>of(oo);
-    }
-    
-    //@ spec_pure
-    public static void test8() { // +
-        Object o = new Object();
-        Object oo = new Object();
-        Object ooo = new Object();
-        //@ ghost \seq<Object> s = \seq.of(o,oo);
-        //@ check \seq.<Object>empty().append(o) + \seq.<Object>of(oo) == s;
-    }
-    
     public static void errors1() {
         Object oo = new Object();
         Object[] a = new Object[5];
@@ -282,6 +183,131 @@ public class TSeq {
             //-ESC@ set System.out.println(e);
         }
     }
+
+    //@ spec_pure
+    public static void test1() { // empty
+        //@ ghost \seq<Object> s;
+        //@ check s.isEmpty();
+        //@ check s.length == 0;
+        //@ check s.length() == 0;
+    }
+    
+    //@ spec_pure
+    public static void test2() { // empty
+        //@ ghost var s = \seq.<Object>empty();
+        //@ check s.isEmpty();
+        //@ check s.length == 0;
+        //@ check s.length() == 0;
+    }
+
+    //@ spec_pure
+    public static void test3() { // of, length
+        Object o = new Object();
+        Object oo = new Object();
+        //@ ghost \seq<Object> s = \seq.of(o,oo);
+        //-RAC@ check s.length == 2;
+        //@ check s.length() == 2;
+    }
+    
+    // FIXME - out of bounds; 
+
+    /*@
+    //@ public normal_behavior
+    //@   requires true;
+    //@ spec_pure
+    model public static void test4(\seq<Object> s1,\seq<Object> s2) { // append, head, tail
+        //@ ghost \seq<Object> s = s1.append(s2);
+        //@ check s.length == s1.length + s2.length;
+        //@ check s.length() == s1.length() + s2.length();
+        //@ check s.head(s1.length()) == s1;
+        //@ check s.tail(s1.length()) == s2;
+        //@ check !s1.isEmpty() ==> s.head() == s1.head();
+        //@ check s1.isEmpty() && !s2.isEmpty()==> s.head() == s2.head();
+        //@ check s1.isEmpty() ==> s == s2; 
+    }*/
+    /*@
+    //@ public normal_behavior
+    //@   requires true;
+    //@ spec_pure
+    model public static void test4a(\seq<Object> s1,\seq<Object> s2) { // append, head, tail
+        //@ ghost \seq<Object> s = s1.append(s2);
+        //@ check !s.isEmpty() ==> s.tail().prepend(s.head()) == s;
+        //@ check s.tail(s1.length()) == s.subseq(s1.length(), s.length());
+        //@ check s.subseq(0,0).isEmpty();
+        //@ check s2.prepend(s1) == s;
+        //@ check s1 != s2 <==> s1.ne(s2);
+        //@ check s1 == s2 <==> s1.eq(s2);
+        //@ check s1 != s2 <==> !s1.eq(s2);
+    }*/
+
+    //@ spec_pure
+    public static void test5() { // []
+        Object o = new Object();
+        Object oo = new Object();
+        //@ ghost \seq<Object> s = \seq.of(o,oo,o);
+        //@ check s[1] == oo;
+        //@ check s.get(1) == oo;
+    }
+    
+    //@ spec_pure
+    public static void test6() { // eq, ne, equals
+        Object o = new Object();
+        Object oo = new Object();
+        //@ ghost \seq<Object> s1 = \seq.of(o,oo);
+        //@ ghost \seq<Object> s = \seq.of(o);
+        //@ set s = s.append(oo);
+        //@ check s.eq(s1);
+        //@ check !s.ne(s1);
+        //@ check s.equals(s1);
+    }
+    
+    //@ spec_pure
+    public static void test7() { // append, insert, remove, put
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \seq<Object> s = \seq.of(o,oo);
+        //@ check s.append(ooo) == \seq.<Object>of(o,oo,ooo);
+        //@ check s.insert(1,ooo) == \seq.<Object>of(o,ooo,oo);
+        //@ check s.insert(2,ooo) == \seq.<Object>of(o,oo,ooo);
+        //@ check s.put(1,ooo) == \seq.<Object>of(o,ooo);
+        //@ check s.remove(0) == \seq.<Object>of(oo);
+    }
+    
+    //@ spec_pure
+    public static void test8() { // +
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \seq<Object> s = \seq.of(o,oo);
+        //@ check \seq.<Object>empty().append(o) + \seq.<Object>of(oo) == s;
+    }
+    
+    //@ spec_pure
+    public static void test9() { // equals
+        Object o = new Object();
+        Object oo = new Object();
+        //@ ghost \seq<Object> s1 = \seq.of(o,oo,o);
+        //@ ghost \seq<Object> s2 = \seq.of(o,oo,o);
+        //@ ghost \seq<Object> s3 = \seq.of(o,oo);
+        //@ ghost \seq<Object> s4 = \seq.of(o,oo,oo);
+        //@ check s1 == s1;
+        //@ check s1.equals(s1);
+        //@ check s1.eq(s1);
+        //@ check s1 == s2;
+        //@ check s1.equals(s2);
+        //@ check s1.eq(s2);
+        //@ check s1 != s3;
+        //@ check !s1.equals(s3);
+        //@ check s1.ne(s3);
+        //@ check s3.ne(s1);
+        //@ check s1 != s4;
+        //@ check !s1.equals(s4);
+        //@ check s1.ne(s4);
+        //@ check s4.ne(s1);
+        //@ check s1.hashCode() == s2.hashCode();
+    }
+
     
     public static void main(String... args) {
         Object o = new Object();
@@ -296,6 +322,7 @@ public class TSeq {
         test6();
         test7();
         test8();
+        test9();
         errors1();
         errors2();
         errors3();

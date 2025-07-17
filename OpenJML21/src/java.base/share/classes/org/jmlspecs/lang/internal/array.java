@@ -35,6 +35,10 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
         return value[i.intValue()];
     }
     
+    public T getUnchecked(bigint i) {
+        return value[i.intValue()];
+    }
+    
     public array<T> put(bigint i, T v) {
         if (value == null || i.lt(bigint.zero) || i.ge(length)) throw new java.lang.ArrayIndexOutOfBoundsException("put: " + i + " for length " + length);
         var c = copy();
@@ -48,10 +52,9 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     }
     
     public boolean eq(array<T> a) { 
-        if (value == null && a.value == null) return true;
-        if (value == null || a.value == null) return false;
-        if (value.length != a.value.length) return false;
-        for (int i=0; i<value.length; ++i) {
+        if (length.ne(a.length)) return false;
+        if (length.eq(bigint.zero)) return true;
+        for (int i=0; i < value.length; ++i) {
             if (value[i] != a.value[i]) return false;
         }
         return true;

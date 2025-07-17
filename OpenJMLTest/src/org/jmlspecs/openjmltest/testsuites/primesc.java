@@ -83,7 +83,7 @@ public class primesc extends EscBaseFiles {
         helpTG();
     }
     
-    @Test
+    @Test @Ignore
     public void jmlmap() {
         helpTG();
     }

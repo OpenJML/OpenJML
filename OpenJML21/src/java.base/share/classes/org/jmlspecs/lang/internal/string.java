@@ -10,6 +10,10 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
 
     private final String value;
     
+    private final static String emptyString = "";
+
+    public final static string empty = of(emptyString);
+    
     private string(String s) {
         value = s;
     }

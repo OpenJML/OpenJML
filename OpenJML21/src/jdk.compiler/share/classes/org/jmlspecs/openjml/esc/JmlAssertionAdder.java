@@ -269,6 +269,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final public Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
+    final public Type ARRAY = JmlPrimitiveTypes.arrayTypeKind.getType(context);
     final public Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
     final public Type SEQ = JmlPrimitiveTypes.seqTypeKind.getType(context);
 
@@ -12429,6 +12430,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected void addArrayElementAssumptions(DiagnosticPosition p, JCIdent array, ListBuffer<JCExpression> dims,
 			ListBuffer<JCExpression> elems) {
+	    addStat(comment(null, "Array element assumptions", null));
 		JCExpression size = null;
 		int pos = p.getPreferredPosition();
 		if (dims != null && dims.length() > 0) {
@@ -14267,35 +14269,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        }
         if (that.type.tsym == SEQ.tsym || that.type == STRING || that.lhs.type.tsym == SEQ.tsym || that.lhs.type.tsym == STRING.tsym
                 || that.rhs.type.tsym == SEQ.tsym || that.rhs.type.tsym == STRING.tsym) {
-            if (optag == JCTree.Tag.PLUS) {
-                JCExpression lhs = (that.getLeftOperand());
-                JCExpression rhs = (that.getRightOperand());
-                // Just convert to append and use the specs in seq.jml or string.jml
-                // Don't convert the arguments, because that will be done when visitApply is called for the 'append' call
-                Name nm = names.fromString("append");
-                JCExpression e = makeMethodInvocation(that, lhs, nm, rhs);
-                result = eresult = convertExpr(e);
-            } else {
-                JCExpression lhs = convertExpr(that.getLeftOperand());
-                JCExpression rhs = convertExpr(that.getRightOperand());
-                // Do any implicit conversions -- only String -> string and char -> string
-                if (that.type == STRING) {
-                    if (lhs.type != STRING) lhs = addImplicitConversion(lhs, STRING, lhs);
-                    if (rhs.type != STRING) rhs = addImplicitConversion(rhs, STRING, rhs);
-                }
-                if (!utils.esc) {
-                    Name nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
-                    JCExpression e = makeMethodInvocation(that, lhs, nm, rhs);
-                    result = eresult = convertExpr(e);
-                } else {
-                    // built-in
-                    result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
-                }
-            }
+            Name nm = names.fromString(optag == JCTree.Tag.PLUS ? "append" : optag == JCTree.Tag.EQ ? "eq" : "ne");
+
+            // Convert to a function and use the specs in seq.jml or string.jml
+            // Don't convert the arguments, because that will be done when visitApply is called for call
+            JCExpression e = makeMethodInvocation(that, that.lhs, nm, that.rhs);
+            result = eresult = convertExpr(e);
             return;
         }
         if (equality && (types.isJmlType(that.lhs.type) || types.isJmlType(that.rhs.type))) {
-            //System.out.println("EQUALITY " + that);
+            if (types.isSameType(that.lhs.type,that.rhs.type) && that.lhs.type.tsym == ARRAY.tsym) {
+                var nm = names.fromString(optag == JCTree.Tag.EQ ? "eq" : "ne");
+                JCExpression e = makeMethodInvocation(that, that.lhs, nm, that.rhs);
+                result = eresult = convertExpr(e);
+                return;
+            }
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             //System.out.println("EQUALITY ARGS " + lhs + " " + lhs.type + " " + lhs.type.hashCode() + " " + rhs + " " + rhs.type + " " + rhs.type.hashCode());
@@ -15629,6 +15617,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void visitIndexed(JCArrayAccess that) {
 	    boolean print = false; //that.toString().contains("values");
 	    var ntype = rac ? that.type : convertType(that.type);
+        if (that.indexed.type.tsym == ARRAY.tsym) {
+            result = eresult = convertExpr(makeMethodInvocation(that, that.indexed, "getUnchecked", that.index));
+            eresult.type = ntype;
+            return;
+        }
 	    
 		JCExpression indexed = convertExpr(that.indexed);
         if (print) {
@@ -15735,7 +15728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 if (indexed.type.tsym == arrayTypeKind.getType(context).tsym) {
                     index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
-                    result = eresult = makeMethodInvocation(that, indexed, "get", index);
+                    result = eresult = makeMethodInvocation(that, indexed, "getUnchecked", index);
                     eresult.type = that.type;
                     return;
                 }
@@ -15764,7 +15757,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression save = (translatingJML || convertingAssignable) ? aa : newTemp(aa);
 
 			if (types.isJmlType(that.indexed.type)) {
-				// continue
+			    // continue
 			} else if (esc && localVariables.isEmpty()) {
 				if (utils.isJavaOrJmlPrimitiveType(that.type)) {
 					if (that.type == syms.byteType) {
