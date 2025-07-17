@@ -17,11 +17,6 @@ public class array<T> implements IJmlPrimitiveType, IJmlIntArrayLike {
     @SafeVarargs
     @SuppressWarnings({"varargs","unchecked"})
     public static <TT> array<TT> of(TT ... data) {
-        //System.out.println("OF " + data.getClass() + " " + data.length);
-        // FIXME - it appears that the wrapping of the varargs into a new TT[]{} call and making that a new argument for 'of(TT ...)'
-        // is followed by an implicit further cast of the TT[] into an Object and then into a singleton Object[]
-        if (data.length == 1 && data[0].getClass().isArray()) data = (TT[])data[0];
-        //System.out.println("OF=Z " + data.getClass() + " " + data.length);
         return new array<TT>(data);
     }
 

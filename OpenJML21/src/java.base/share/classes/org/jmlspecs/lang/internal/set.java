@@ -23,11 +23,6 @@ public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     @SafeVarargs
     @SuppressWarnings("unchecked")
     static public <X> set<X> of(X ... data) {
-        //System.out.println("OF " + data.getClass() + " " + data.length);
-        // FIXME - it appears that the wrapping of the varargs into a new TT[]{} call and making that a new argument for 'of(TT ...)'
-        // is followed by an implicit further cast of the TT[] into an Object and then into a singleton Object[]
-        if (data.length == 1 && data[0].getClass().isArray()) data = (X[])(Object)data[0];
-        //System.out.println("OF=Z " + data.getClass() + " " + data.length);
         var s = new set<X>();
         for (var i: data) s.value.add(i);
         return s;
