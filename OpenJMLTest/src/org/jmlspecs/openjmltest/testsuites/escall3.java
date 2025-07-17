@@ -1979,7 +1979,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test
+    @Test // cf. gitbug877 -- was a bug in RAC, but included an ESC test here for good measure - here instead of escfiles because of indeterminate output order
     public void testSwitch() {
         helpTCX("tt.ZZ",
         """

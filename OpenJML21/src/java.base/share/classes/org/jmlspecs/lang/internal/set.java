@@ -4,99 +4,179 @@ import org.jmlspecs.lang.IJmlPrimitiveType;
 import org.jmlspecs.lang.IJmlArrayLike;
 
 //@ immutable no_state 
-public class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
+public abstract class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     
-    private final Set<T> value;
+    private set() {}
     
-    private set() { value = new HashSet<>(); }
+    private static <X> set<X> proto() { return new UsingHashSet<X>(); }
+        
+    @SuppressWarnings("unchecked")
+    static public <T> set<T> empty() { return set.<T>proto().from(); }
 
-    private set(Set<T> data) { value = data; }
-    
-    private set<T> copy() {
-        return new set<T>(new HashSet<T>(value));
-    }
-
-    static public <T> set<T> empty() { return new set<T>(); }
-
-    public bigint size() { return bigint.of(value.size()); }
-
-    @SafeVarargs
+//    @SafeVarargs
     @SuppressWarnings("unchecked")
     static public <X> set<X> of(X ... data) {
-        var s = new set<X>();
-        for (var i: data) s.value.add(i);
-        return s;
+        return set.<X>proto().from(data);
     }
     
-    public boolean eq(set<T> ss) {
-        return value.equals(ss.value); // FIXME - what kind of equals to use
-    }
+    abstract public bigint size();
+
+    @SuppressWarnings("unchecked")
+    abstract protected set<T> from(T ... data);
+    
+    abstract public boolean contains(T x);
+
+    abstract public boolean isEmpty();
+    
+    abstract public boolean eq(set<T> ss);
     
     public boolean ne(set<T> ss) {
-        return !value.equals(ss.value); // FIXME - what kind of equals to use
+        return !eq(ss);
     }
     
- 
-    public boolean contains(T x) {
-        return value.contains(x);
-    }
-
-    public boolean isEmpty() {
-        return size().eq(bigint.zero);
-    }
+    public boolean equals(set<T> s) { return eq(s); }
     
+    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object s) {
-        throw new UnsupportedOperationException("\\set.equals");
+        return s instanceof set<?> ss && eq((set<T>)ss);
     }
     
     @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
+    abstract public int hashCode();
+    
+    @Override
+    abstract public String toString();
 
-    public boolean isSubsetOf(set<T> s) {
-        for (var k: s.value) if (!s.value.contains(k)) return false;
-        return true;
-    }
+    /** true if this is an improper subset of s */
+    abstract public boolean isSubsetOf(set<T> s);
     
-    public set<T> add(T x) {
-        var c = this.copy();
-        c.value.add(x);
-        return c;
-    }
+    /** true if this is an improper subset of s */
+    abstract public boolean isProperSubsetOf(set<T> s);
     
-    public set<T> remove(T x) {
-        var c = this.copy();
-        c.value.remove(x);
-        return c;
-    }
+    abstract public set<T> add(T x);
+    
+    abstract public set<T> remove(T x);
 
-    public set<T> filter(java.util.function.Predicate<T> p) {
-        var c = new set<T>();
-        for (var x: this.value) if (p.test(x)) c.value.add(x);
-        return c;
-    }
+    abstract public set<T> filter(java.util.function.Predicate<T> p);
     
-    private set<T> put(T x, boolean b) { return this; } // FIXME
-    
-    
-    public set<T> union(set<T> s) {
-        var r = this.copy();
-        r.value.addAll(s.value);
-        return r;
-    }
+    abstract public set<T> union(set<T> s);
 
-    public set<T> intersect(set<T> s) {
-        var r = this.copy();
-        r.value.retainAll(s.value);
-        return r;
-    }
+    abstract public set<T> intersect(set<T> s);
 
-    public set<T> subtract(set<T> s) {
-        var r = this.copy();
-        r.value.removeAll(s.value);
-        return r;
+    abstract public set<T> subtract(set<T> s);
+    
+    public static class UsingHashSet<T> extends set<T> {
+
+        private final java.util.Set<T> value;
+        
+        private UsingHashSet() { value = new java.util.HashSet<T>(); }
+
+        private UsingHashSet(java.util.Set<T> data) { value = data; }
+        
+        private UsingHashSet<T> copy() {
+            return new UsingHashSet<T>(new java.util.HashSet<T>(value));
+        }
+
+        static public <T> set<T> empty() { return new UsingHashSet<T>(); }
+
+        @Override
+        public bigint size() { return bigint.of(value.size()); }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public set<T> from(T ... data) {
+            var s = new UsingHashSet<T>();
+            for (var i: data) s.value.add(i);
+            return s;
+        }
+        
+        @Override
+        public boolean eq(set<T> ss) {
+            return value.equals(((UsingHashSet)ss).value); // FIXME - what kind of equals to use
+        }
+        
+        @Override
+        public boolean ne(set<T> ss) {
+            return !eq(ss);
+        }
+        
+     
+        @Override
+        public boolean contains(T x) {
+            return value.contains(x);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return size().eq(bigint.zero);
+        }
+        
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+
+        @Override
+        public boolean isSubsetOf(set<T> s) {
+            for (var k: this.value) if (!((UsingHashSet)s).value.contains(k)) return false;
+            return true;
+        }
+        
+        @Override
+        public boolean isProperSubsetOf(set<T> s) {
+            return size().lt(s.size()) && isSubsetOf(s);
+        }
+        
+        @Override
+        public set<T> add(T x) {
+            var c = this.copy();
+            c.value.add(x);
+            return c;
+        }
+        
+        @Override
+        public set<T> remove(T x) {
+            var c = this.copy();
+            c.value.remove(x);
+            return c;
+        }
+
+        @Override
+        public set<T> filter(java.util.function.Predicate<T> p) {
+            var c = new UsingHashSet<T>();
+            for (var x: this.value) if (p.test(x)) c.value.add(x);
+            return c;
+        }
+        
+        @SuppressWarnings("unchecked")
+        @Override
+        public set<T> union(set<T> s) {
+            var r = this.copy();
+            r.value.addAll(((UsingHashSet)s).value);
+            return r;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public set<T> intersect(set<T> s) {
+            var r = this.copy();
+            r.value.retainAll(((UsingHashSet)s).value);
+            return r;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public set<T> subtract(set<T> s) {
+            var r = this.copy();
+            r.value.removeAll(((UsingHashSet)s).value);
+            return r;
+        }
+        
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
 }

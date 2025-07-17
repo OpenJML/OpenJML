@@ -1,30 +1,46 @@
-Proving methods in TSeq
-Starting proof of TSeq.TSeq() with prover !!!!
+Proving methods in TSet
+Starting proof of TSet.TSet() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.TSeq() with prover !!!! - no warnings
-Starting proof of TSeq.test1() with prover !!!!
+Completed proof of TSet.TSet() with prover !!!! - no warnings
+Starting proof of TSet.test1() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.test1() with prover !!!! - no warnings
-Starting proof of TSeq.test2() with prover !!!!
+Completed proof of TSet.test1() with prover !!!! - no warnings
+Starting proof of TSet.test2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.test2() with prover !!!! - no warnings
-Starting proof of TSeq.test3() with prover !!!!
+Completed proof of TSet.test2() with prover !!!! - no warnings
+Starting proof of TSet.test3() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.test3() with prover !!!! - no warnings
-Starting proof of TSeq.test4() with prover !!!!
+Completed proof of TSet.test3() with prover !!!! - no warnings
+Starting proof of TSet.test4() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.test4() with prover !!!! - no warnings
-Starting proof of TSeq.test5() with prover !!!!
+Completed proof of TSet.test4() with prover !!!! - no warnings
+Starting proof of TSet.test5() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.test5() with prover !!!! - no warnings
-Starting proof of TSeq.main(String...) with prover !!!!
+Completed proof of TSet.test5() with prover !!!! - no warnings
+Starting proof of TSet.test6() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.main(String...) with prover !!!! - no warnings
-Completed proving methods in TSeq
+Completed proof of TSet.test6() with prover !!!! - no warnings
+Starting proof of TSet.test7() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test7() with prover !!!! - no warnings
+Starting proof of TSet.test8() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test8() with prover !!!! - no warnings
+Starting proof of TSet.test9() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test9() with prover !!!! - no warnings
+Starting proof of TSet.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.main(String...) with prover !!!! - no warnings
+Completed proving methods in TSet

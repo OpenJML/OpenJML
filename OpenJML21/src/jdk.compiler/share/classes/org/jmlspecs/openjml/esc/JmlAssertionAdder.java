@@ -272,6 +272,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final public Type ARRAY = JmlPrimitiveTypes.arrayTypeKind.getType(context);
     final public Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
     final public Type SEQ = JmlPrimitiveTypes.seqTypeKind.getType(context);
+    final public Type SET = JmlPrimitiveTypes.setTypeKind.getType(context);
 
 
     /**
@@ -14284,6 +14285,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             Name nm = names.fromString(optag == JCTree.Tag.PLUS ? "append" : optag == JCTree.Tag.EQ ? "eq" : "ne");
 
             // Convert to a function and use the specs in seq.jml or string.jml
+            // Don't convert the arguments, because that will be done when visitApply is called for call
+            JCExpression e = makeMethodInvocation(that, that.lhs, nm, that.rhs);
+            result = eresult = convertExpr(e);
+            return;
+        }
+        if (that.type.tsym == SET.tsym || that.lhs.type.tsym == SET.tsym || that.rhs.type.tsym == SET.tsym) {
+            Name nm = names.fromString(
+                    switch (optag) { 
+                        case EQ -> "eq";
+                        case NE -> "ne";
+                        case BITOR -> "union";
+                        case BITAND -> "intersect";
+                        case MINUS -> "subtract";
+                        case LT -> "isProperSubsetOf";
+                        case LE -> "isSubsetOf";
+                        default -> "eq"; // Should never happen (should not typecheck) // FIXME - throw an exception?
+                    });
+            // Convert to a function and use the specs in set.jml
             // Don't convert the arguments, because that will be done when visitApply is called for call
             JCExpression e = makeMethodInvocation(that, that.lhs, nm, that.rhs);
             result = eresult = convertExpr(e);

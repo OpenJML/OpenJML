@@ -411,8 +411,56 @@ public class primTC extends TCBase {
     // Set tests
     
     @Test public void jmlset() {
-        helpTC(" class A {"
-                + "void m() {  //@ ghost \\set<Object> b ; ghost Object o = new Object(); set b[o] = true; ghost boolean bb = b[o]; \n}}");
+        helpTC(
+                """
+                class A {
+                    void test() {
+                        //@ ghost \\set<\\string> m = 7; // ERROR
+                        //@ ghost \\string s = "";
+                        Object o = new Object();
+                        //@ ghost int x = m[o]; // ERROR
+                        //@ ghost int xx = m[s]; // ERROR
+                        //@ ghost var z = \\set.<Boolean>of(o, 5); // ERROR
+                        //@ check m.contains(o);
+                        //@ ghost var s1 = m.add(o); // ERROR
+                        //@ ghost var s2 = m.remove(o); // ERROR
+                        //@ ghost \\set<\\bigint> mb;
+                        //@ check m.isSubsetOf(mb);// ERROR
+                        //@ check m.isProperSubsetOf(mb);// ERROR
+                        //@ check m.union(mb).isEmpty();// ERROR
+                        //@ check m.intersect(mb).isEmpty();// ERROR
+                        //@ check m.subtract(mb).isEmpty();// ERROR
+                        //@ check m.eq(mb);
+                        //@ check m.ne(mb);
+                        //@ check m == mb;
+                        //@ check m != mb;
+                        // FIXME - other operators - | & < <=
+                    }
+                }
+                """
+                ,"/TEST.java:3: error: incompatible types: int cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>",37
+                ,"/TEST.java:6: error: Expected an index type of \\@org.jmlspecs.annotation.NonNull string, not java.lang.Object",29
+                ,"/TEST.java:6: error: incompatible types: boolean cannot be converted to int",28
+                ,"/TEST.java:7: error: incompatible types: boolean cannot be converted to int",29
+                ,"""
+                 /TEST.java:8: error: method of in class \\set<T> cannot be applied to given types;
+                   required: X[]
+                   found:    java.lang.Object,int
+                   reason: varargs mismatch; java.lang.Object cannot be converted to java.lang.Boolean""",31
+                ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 30
+                ,"/TEST.java:10: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 34
+                ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 37
+                ,"/TEST.java:13: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 32
+                ,"/TEST.java:14: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 38
+                ,"/TEST.java:15: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 27
+                ,"/TEST.java:16: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 31
+                ,"/TEST.java:17: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 30
+                ,"/TEST.java:18: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 24
+                ,"/TEST.java:19: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 24
+                ,"/TEST.java:20: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> == \\set<\\@org.jmlspecs.annotation.NonNull bigint>", 21
+                ,"/TEST.java:21: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> != \\set<\\@org.jmlspecs.annotation.NonNull bigint>", 21
+
+                );
     }
 
     
