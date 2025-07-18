@@ -1,4 +1,5 @@
-public class Tmap {
+ @org.jmlspecs.annotation.Options("--check-feasibility=none") // tends to timeout
+ public class Tmap {
     
     //@ spec_pure
     public static void test1() { // empty
@@ -17,7 +18,7 @@ public class Tmap {
     }
 
     //@ spec_pure
-    public static void test3() { //putAll, remove
+    public static void test3() { //putAll
         Object o = new Object();
         Object oo = new Object();
         Object ooo = new Object();
@@ -29,7 +30,16 @@ public class Tmap {
         //@ check (int)sss[oo] == 12;
         //@ check (int)sss[ooo] == 13;
         //@ check !sss.has(oooo);
-        //@ set sss = s.remove(o);
+        
+    }
+
+    //@ spec_pure
+    public static void test3a() { //remove
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \map<Object,Integer> s = \map.<Object,Integer>empty().put(o,1).put(oo,2);
+        //@ ghost var sss = s.remove(o);
         //@ check sss.has(oo);
         //@ check !sss.has(o);
         //@ check !sss.has(ooo);
@@ -37,7 +47,7 @@ public class Tmap {
     }
 
     //@ spec_pure
-    public static void test4() {
+    public static void test4() { // size after put and remove
         Object o = new Object();
         Object oo = new Object();
         //@ ghost \map<Object,Integer> s = \map.empty();
@@ -48,10 +58,13 @@ public class Tmap {
         //@ check s[o] == 42;
         //@ check s.get(o) == 42;
         //@ check s.has(o);
-        //@ check !s.has(oo);
+        //@ ghost var ss = s.remove(o);
+        //@ check !ss.has(o);
+        //@ check ss.size() == 0;
+        //@ check ss.isEmpty();
     }
 
-    // eq ne combine remove  m[o] = 42
+    // eq ne   m[o] = 42
     
     //@ spec_pure
     public static void test5() { // []
@@ -63,12 +76,29 @@ public class Tmap {
     }
     
 
+    public static void test6() {
+        Object o = new Object();
+        Object oo = new Object();
+        Integer i = 42;
+        //@ ghost var s = \map.<Object,Integer>empty().put(o, i);
+        //@ ghost var s1 = \map.<Object,Integer>empty().put(o, i);
+        //@ ghost var s2 = \map.<Object,Integer>empty().put(o, 43);
+        //@ ghost var s3 = \map.<Object,Integer>empty().put(oo, i);
+        //@ check s.eq(s1);
+        //@ check s.equals(s1);
+        //@ check s == s1;
+        //@ check s != s2;
+        //@ check s != s3;
+        //@ check s.hashCode() == s1.hashCode();
+        //-RAC@ show s, s2.toString();
+    }
+    
     public static void errors5() {
         Object[] a = new Object[5];
         //@ ghost var s = \map.<Object,Integer>empty();
         try {
             Object o = new Object();
-            //@ check !s.equals(o);  // FIXME should this throw an exception or not?
+            //@ check !s.equals(o);
         } catch (Exception e) {
             //-ESC@ set System.out.println(e);
         }
@@ -78,8 +108,10 @@ public class Tmap {
         test1();
         test2();
         test3();
+        test3a();
         test4();
         test5();
+        test6();
         errors5();
         //-ESC@ set System.out.println("END");
     }

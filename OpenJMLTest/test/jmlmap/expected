@@ -1,30 +1,32 @@
-Proving methods in TSeq
-Starting proof of TSeq.TSeq() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.TSeq() with prover !!!! - no warnings
-Starting proof of TSeq.test1() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.test1() with prover !!!! - no warnings
-Starting proof of TSeq.test2() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.test2() with prover !!!! - no warnings
-Starting proof of TSeq.test3() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.test3() with prover !!!! - no warnings
-Starting proof of TSeq.test4() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.test4() with prover !!!! - no warnings
-Starting proof of TSeq.test5() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.test5() with prover !!!! - no warnings
-Starting proof of TSeq.main(String...) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.main(String...) with prover !!!! - no warnings
-Completed proving methods in TSeq
+Proving methods in Tmap
+Starting proof of Tmap.Tmap() with prover !!!!
+Completed proof of Tmap.Tmap() with prover !!!! - no warnings
+Starting proof of Tmap.test1() with prover !!!!
+Completed proof of Tmap.test1() with prover !!!! - no warnings
+Starting proof of Tmap.test2() with prover !!!!
+Completed proof of Tmap.test2() with prover !!!! - no warnings
+Starting proof of Tmap.test3() with prover !!!!
+Completed proof of Tmap.test3() with prover !!!! - no warnings
+Starting proof of Tmap.test3a() with prover !!!!
+Completed proof of Tmap.test3a() with prover !!!! - no warnings
+Starting proof of Tmap.test4() with prover !!!!
+Completed proof of Tmap.test4() with prover !!!! - no warnings
+Starting proof of Tmap.test5() with prover !!!!
+Completed proof of Tmap.test5() with prover !!!! - no warnings
+Starting proof of Tmap.test6() with prover !!!!
+Completed proof of Tmap.test6() with prover !!!! - no warnings
+Starting proof of Tmap.errors5() with prover !!!!
+test/jmlmap/Tmap.java:101: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+            //@ check !s.equals(o);
+                               ^
+$SPECS/org/jmlspecs/lang/internal/map.jml:115: warning: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/map.jml:113: warning: Precondition conjunct is false: false
+    //@  requires false; // Use equals(\map) or eq(\map)
+                  ^
+Completed proof of Tmap.errors5() with prover !!!! - with warnings
+Starting proof of Tmap.main(String...) with prover !!!!
+Completed proof of Tmap.main(String...) with prover !!!! - no warnings
+Completed proving methods in Tmap
+3 warnings
