@@ -692,6 +692,26 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void gitbug872() {
+        helpCompileRun("BitRotator");
+    }
+    
+    @Test
+    public void gitbug873() {
+        helpCompileRun("StringUtils");
+    }
+    
+    @Test
+    public void gitbug874() {
+        helpCompileRun("SequenceUtilsTest");
+    }
+    
+    @Test
+    public void gitbug875() {
+        helpCompileRun("TestSets");
+    }
+    
+    @Test
     public void jmlTYPE() {
         helpCompileRun("Test");
     }

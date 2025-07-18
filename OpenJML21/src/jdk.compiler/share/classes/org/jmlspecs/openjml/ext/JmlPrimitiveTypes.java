@@ -215,8 +215,10 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("%", type, type, type);
             jt.enterBinop("<<", type, type, type);
             jt.enterBinop(">>", type, type, type);
+            jt.enterBinop(">>>", type, type, type);
             jt.enterBinop("<<", type, jt.syms.longType, type);
             jt.enterBinop(">>", type, jt.syms.longType, type);
+            jt.enterBinop(">>>", type, jt.syms.longType, type);
             // Assign-op operators are automatically defined based on the simple operator
             
             // bit operators
@@ -243,6 +245,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
             case LT -> "lt";
             case SL -> "shiftLeft";
             case SR -> "shiftRight";
+            case USR -> "shiftRight";
             case BITAND -> "and";
             case BITOR -> "or";
             case BITXOR -> "xor";
