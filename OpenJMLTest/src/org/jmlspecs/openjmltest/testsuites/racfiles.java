@@ -684,5 +684,88 @@ public class racfiles extends RacBase {
     public void gitbug866() {
         helpCompileRun("ConsecutiveChecker");
     }
+    
+    @Test
+    public void gitbug872() {
+        helpCompileRun("BitRotator");
+    }
+    
+    @Test
+    public void gitbug873() {
+        helpCompileRun("StringUtils");
+    }
+    
+    @Test
+    public void gitbug874() {
+        helpCompileRun("SequenceUtilsTest");
+    }
+    
+    @Test
+    public void gitbug875() {
+        helpCompileRun("TestSets");
+    }
+    
+    @Test
+    public void jmlTYPE() {
+        helpCompileRun("Test");
+    }
+
+    @Test
+    public void jmlreal() {
+        helpCompileRun("Test");
+    }
+
+    @Test
+    public void jmlbigint() {
+        helpCompileRun("Test");
+    }
+
+    @Test
+    public void jmlrange() {
+        expectedExit = 0;
+        helpCompileRun("TestRange");
+    }
+    
+    @Test
+    public void jmlstring() {
+        expectedExit = 0;
+        helpCompileRun("TString");
+    }
+    
+    @Test
+    public void jmlseq() {
+        expectedExit = 0;
+        helpCompileRun("TSeq");
+    }
+    
+    @Test
+    public void jmlarray() {
+        expectedExit = 0;
+        helpCompileRun("Tarray");
+    }
+    
+    @Test
+    public void jmlset() {
+        expectedExit = 0;
+        helpCompileRun("TSet");
+    }
+    
+    @Test
+    public void jmlmap() {
+        expectedExit = 0;
+        helpCompileRun("Tmap");
+    }
+    
+    @Test
+    public void racbigint() { // FIXME - do these duplicate
+        expectedExit = 0;
+        helpTCF("test/racbigint","test/racbigint","bigint");
+    }
+
+    @Test
+    public void racreal() {  // FIXME - do these duplicate
+        expectedExit = 0;
+        helpTCF("test/racreal","test/racreal","real");
+    }
 
 }
