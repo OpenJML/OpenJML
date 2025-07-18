@@ -3718,6 +3718,18 @@ public class Lower extends TreeTranslator {
                                                 .restype.type));
         result = tree;
     }
+    
+    @Override
+    public void visitLabelled(JCLabeledStatement tree) {
+        // OPENJML - this extra processing could be in a JmlLower class, but we don't add that just for this material
+        if (tree instanceof org.jmlspecs.openjml.JmlTree.JmlLabeledStatement jtree) {
+            var newbuf = new ListBuffer<JCStatement>();
+            newbuf.addAll(translate(jtree.extraStatements.toList()));
+            jtree.extraStatements = newbuf;
+        }
+        super.visitLabelled(tree);
+        result = tree;
+    }
 
     public void visitSwitch(JCSwitch tree) {
         List<JCCase> cases = tree.patternSwitch ? addDefaultIfNeeded(tree.patternSwitch,
