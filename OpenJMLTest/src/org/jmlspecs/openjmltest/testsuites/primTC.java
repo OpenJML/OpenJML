@@ -430,11 +430,15 @@ public class primTC extends TCBase {
                         //@ check m.union(mb).isEmpty();// ERROR
                         //@ check m.intersect(mb).isEmpty();// ERROR
                         //@ check m.subtract(mb).isEmpty();// ERROR
-                        //@ check m.eq(mb);
-                        //@ check m.ne(mb);
-                        //@ check m == mb;
-                        //@ check m != mb;
-                        // FIXME - other operators - | & < <=
+                        //@ check m.eq(mb); // ERROR
+                        //@ check m.ne(mb); // ERROR
+                        //@ check m == mb; // ERROR
+                        //@ check m != mb; // ERROR
+                        //@ ghost var w1 = m | o; // ERROR
+                        //@ ghost var w2 = o & m; // ERROR
+                        //@ ghost var w3 = o - m; // ERROR
+                        //@ ghost var w4 = m < \\set.<Boolean>empty(); // ERROR
+                        //@ ghost var w5 = m <= \\set.<Boolean>empty(); // ERROR
                     }
                 }
                 """
@@ -443,10 +447,11 @@ public class primTC extends TCBase {
                 ,"/TEST.java:6: error: incompatible types: boolean cannot be converted to int",28
                 ,"/TEST.java:7: error: incompatible types: boolean cannot be converted to int",29
                 ,"""
-                 /TEST.java:8: error: method of in class \\set<T> cannot be applied to given types;
-                   required: X[]
-                   found:    java.lang.Object,int
-                   reason: varargs mismatch; java.lang.Object cannot be converted to java.lang.Boolean""",31
+                 /TEST.java:8: error: no suitable method found for of(java.lang.Object,int)
+                     method org.jmlspecs.lang.internal.set.<X>of(X...) is not applicable
+                       (varargs mismatch; java.lang.Object cannot be converted to java.lang.Boolean)
+                     method org.jmlspecs.lang.internal.set.<X>of(X,X) is not applicable
+                       (argument mismatch; java.lang.Object cannot be converted to java.lang.Boolean)""", 31
                 ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 30
                 ,"/TEST.java:10: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 34
                 ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 37
@@ -459,6 +464,11 @@ public class primTC extends TCBase {
                 ,"/TEST.java:19: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 24
                 ,"/TEST.java:20: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> == \\set<\\@org.jmlspecs.annotation.NonNull bigint>", 21
                 ,"/TEST.java:21: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> != \\set<\\@org.jmlspecs.annotation.NonNull bigint>", 21
+                ,"/TEST.java:22: error: No operator for \\set<\\@org.jmlspecs.annotation.NonNull string> | java.lang.Object", 30
+                ,"/TEST.java:23: error: No operator for java.lang.Object & \\set<\\@org.jmlspecs.annotation.NonNull string>", 30
+                ,"/TEST.java:24: error: No operator for java.lang.Object - \\set<\\@org.jmlspecs.annotation.NonNull string>", 30
+                ,"/TEST.java:25: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> < \\set<java.lang.Boolean>", 30
+                ,"/TEST.java:26: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> <= \\set<java.lang.Boolean>", 30
 
                 );
     }

@@ -1037,7 +1037,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else { // Nested model type declaration
             allAllowed(specsModifiers,allowedNestedModelTypeModifiers,"nested model type declaration");
         }
-        if (!isImmutable(classSymbol)) {
+        if (!isImmutable(classSymbol) && specsDecl != null) { // FIXME - should make the default immutable if the superclass is immutable
         	var sc = classSymbol.getSuperclass();
         	if (sc != null && sc.tsym instanceof ClassSymbol cs && isImmutable(cs)) {
                 utils.error(specsDecl.sourcefile, specsDecl, "jml.message", "A class with an immutable superclass must itself be immutable: " + classSymbol);

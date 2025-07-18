@@ -18,7 +18,16 @@ public abstract class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
     static public <X> set<X> of(X ... data) {
         return set.<X>proto().from(data);
     }
+
+    // These alternate version of 'of' make for simpler reasoning about the method's effects,
+    // particularly relating to the resulting size of the set.
+
+    static public <X> set<X> of(X e) { return set.<X>empty().add(e); }
     
+    static public <X> set<X> of(X e, X ee) { return set.<X>empty().add(e).add(ee); }
+
+    static public <X> set<X> of(X e, X ee, X eee) { return set.<X>empty().add(e).add(ee).add(eee); }
+
     abstract public bigint size();
 
     @SuppressWarnings("unchecked")
