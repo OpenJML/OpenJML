@@ -22,7 +22,7 @@ public class TSet {
         Object o = new Object();
         Object oo = new Object();
         //@ ghost \set<Object> s = \set.of(o,oo);
-        //@ check s.size() == 2;
+        // @ check s.size() == 2;
         //@ check s.contains(o);
         //@ check s.contains(oo);
     }
@@ -37,10 +37,6 @@ public class TSet {
         //@ check s.contains(o);
         //@ check !s[oo];
     }
-
-    // add eq ne remove put isSubsetOf
-    // union intersection subtract
-    
     //@ spec_pure
     public static void test5() { // []
         Object o = new Object();

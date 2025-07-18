@@ -39,8 +39,20 @@ Starting proof of TSet.test9() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSet.test9() with prover !!!! - no warnings
+Starting proof of TSet.misc() with prover !!!!
+test/jmlset/TSet.java:139: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
+        //@ check !s1.equals(o);
+                            ^
+$SPECS/org/jmlspecs/lang/internal/set.jml:85: warning: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/set.jml:83: warning: Precondition conjunct is false: false
+    //@   requires false;
+                   ^
+Completed proof of TSet.misc() with prover !!!! - with warnings
 Starting proof of TSet.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSet.main(String...) with prover !!!! - no warnings
 Completed proving methods in TSet
+3 warnings

@@ -15653,6 +15653,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eresult.type = ntype;
             return;
         }
+        if (esc) {
+            if (that.indexed.type.tsym == setTypeKind.getType(context).tsym) {
+                result = eresult = convertExpr(makeMethodInvocation(that, that.indexed, "contains", that.index));
+                eresult.type = that.type;
+                return;
+            }
+        }
 	    
 		JCExpression indexed = convertExpr(that.indexed);
         if (print) {
@@ -15776,6 +15783,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     return;
                 }
 			}
+
 		}
 
 		{
