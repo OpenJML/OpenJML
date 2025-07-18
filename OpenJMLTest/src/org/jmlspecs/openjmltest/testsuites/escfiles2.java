@@ -110,6 +110,12 @@ public class escfiles2 extends EscBaseFiles {
     // gitbug877 is in escall3 as testSwitch
     
     @Test
+    public void gitbug879() {
+        expectedExit = 1;
+        helpTCG();
+    }
+
+    @Test
     public void importProblem() {
         helpTCG();
     }

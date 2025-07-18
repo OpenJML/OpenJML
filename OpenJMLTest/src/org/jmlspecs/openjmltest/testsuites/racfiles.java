@@ -154,6 +154,12 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void gitbug879() {
+        expectedRACExit = 1;
+        helpCompileRun("ArrayUtils","--rac-compile-to-java-assert");
+    }
+    
+    @Test
     public void racWithMethods() {
         expectedExit = 0;
         helpTCF("test/racWithMethods","test/racWithMethods","TestInv");

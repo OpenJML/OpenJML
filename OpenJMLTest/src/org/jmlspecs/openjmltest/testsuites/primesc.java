@@ -111,7 +111,7 @@ public class primesc extends EscBaseFiles {
     }
 
     @Test
-    public void valuetypes2() {
+    public void locsetTests2() {
         helpTG();
     }
 
