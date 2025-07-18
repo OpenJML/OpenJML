@@ -5037,7 +5037,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override 
     public Type jmlBinary(JCBinary that, OperatorSymbol operator, Type left, Type right) {
         Type rt = operator.getReturnType();
-        if (jmltypes.isJmlType(rt) || jmltypes.isJmlType(left) || jmltypes.isJmlType(right)) {
+        JCTree.Tag tag = that.getTag();
+        if (tag == JCTree.Tag.SR || tag == JCTree.Tag.SL || tag == JCTree.Tag.USR) {
+            // don't promote to common type -- just use lhs
+        } else if (jmltypes.isJmlType(rt) || jmltypes.isJmlType(left) || jmltypes.isJmlType(right)) {
             // Treating this specially avoids attempts at unboxing for some operators
             // FIXME - what about inferred type parameters
             if (jmltypes.isJmlType(left) && that.rhs instanceof JCLiteral lit && lit.getValue() == null) {

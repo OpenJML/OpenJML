@@ -14248,6 +14248,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (utils.rac) nonzero = convertExpr(nonzero);
                 addAssert(that, Label.UNDEFINED_DIV0, nonzero);
             }
+            if (optag == JCTree.Tag.USR) {
+                JCExpression zero = treeutils.makeZeroEquivalentLit(that, BIGINT);
+                JCExpression nonnegative = treeutils.makeBinary(that, JCTree.Tag.GE, lhs, zero);
+                if (utils.rac) nonnegative = convertExpr(nonnegative);
+                addAssert(that, Label.UNDEFINED_USR, nonnegative);
+            }
             if (utils.rac) { 
                 if (nm == null) {
                     log.error(that.pos, "jml.internal", "No \bigint method defined for operator " + optag);
@@ -14842,16 +14848,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				case EQ:
 					fcn = "eq";
 					break;
-				case NE:
-					fcn = "ne";
-					break;
-				// FIXME - need shift types
-				default: {
+                case NE:
+                    fcn = "ne";
+                    break;
+                case SL:
+                    fcn = "shiftLeft";
+                    break;
+                case SR:
+                    fcn = "shiftRight";
+                    break;
+                case USR:
+                    fcn = "shiftRight";
+                    break;
+				default:
 					String msg = "Unexpected operation tag in JmlAssertionAdder.makeBin: " + tag + " "
 							+ JmlPretty.write(that);
 					log.error(that.pos, "jml.internal", msg);
-	                throw new PropagatedException(new JmlInternalException(msg));
-				}
+	                fcn = "add";
+	                break;
 				}
 				if (lhs.type != maxJmlType)
 					lhs = addImplicitConversion(lhs, maxJmlType, lhs);
