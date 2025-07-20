@@ -1563,7 +1563,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				super.scan(tree);
 				if (rac && eresult != null && eresult.type != null && eresult.type != Type.noType
 						&& jmltypes.isJmlType(eresult.type)) {
-					if (!(eresult.type instanceof JmlType)) {
+					if (!types.isJmlType(eresult.type)) {
 						System.out.println("BAD CONVERSION " + tree + " " + receiver + " " + eresult.type + " "
 								+ eresult.type.getClass());
 						Utils.dumpStack();
@@ -18458,7 +18458,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				name = "reportByte";
 			} else if (tag == TypeTag.BOT) {
 				name = "reportObject";
-			} else if (t instanceof JmlType) {
+			} else if (types.isJmlType(t)) {
 				name = "reportObject";
 			} else {
 				// this is a type error - should never get here
@@ -19946,7 +19946,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				// The accumulator variable
 				Type t = that.type;
-                if (utils.rac && that.type instanceof JmlType  && key != qchooseID)
+                if (utils.rac && types.isJmlType(that.type) && key != qchooseID)
 					t = syms.longType; // FIXME - stopgap until RAC is working properly on quantifiers
 				Name n = names.fromString("_JML$val$$" + nextUnique());
 				// methodDecl is null if we are in a type specification clause (e.g. invariant)
@@ -21417,7 +21417,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //				}
 			} else if (rac) {
 				// FIXME - should alo be copyint the symbol
-				if (that.type instanceof JmlType) {// FIXME - should really be copying the AST
+				if (types.isJmlType(that.type)) {// FIXME - should really be copying the AST
 					that.sym.type = that.type;
 				}
 				if (specs.fieldSpecHasModifier(that.sym, Modifiers.SPEC_PUBLIC)) {
