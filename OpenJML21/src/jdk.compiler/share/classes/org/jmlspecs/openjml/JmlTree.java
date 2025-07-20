@@ -30,7 +30,6 @@ import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 
 import com.sun.source.tree.*;
 import static com.sun.source.tree.CaseTree.*;
-import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Scope.NamedImportScope;
 import com.sun.tools.javac.code.Scope.StarImportScope;
@@ -458,11 +457,11 @@ public class JmlTree {
             return new JmlPrimitiveTypeTree(pos,kind,id);
         }
         
-        @Override
-        public JCExpression Type(Type t) {
-            if (!(t instanceof JmlType)) return super.Type(t);
-            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlClauseKind(), t.tsym.name); // FIXME - not sure this is right primitive types
-        }
+//        @Override
+//        public JCExpression Type(Type t) {
+//            if (!(t instanceof JmlType)) return super.Type(t);
+//            return new JmlPrimitiveTypeTree(pos,((JmlType)t).jmlClauseKind(), t.tsym.name); // FIXME - not sure this is right primitive types
+//        }
 
         @Override
         public JmlRange JmlRange(JCExpression lo, JCExpression hi) {

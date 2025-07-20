@@ -98,8 +98,8 @@ public class JmlTypes extends Types {
     // FIXME - this is not a correct implementation given the comment on the overridden method
     @Override
     public boolean disjointType(Type t, Type s) {
-        boolean bt = t instanceof JmlType;
-        boolean bs = s instanceof JmlType;
+        boolean bt = isJmlType(t);
+        boolean bs = isJmlType(s);
         if (bt != bs) return true;
         if (!bt) return super.disjointType(t, s);
         return t != s;
