@@ -1,10 +1,10 @@
 public class Tarray {
 
-    //@ ghost public static \array<Object> q;
+    //@ ghost public static \array<Object> q ; // = \array.<Object>empty();
 
     //@ spec_pure
     public static void test1() { // empty
-//        //@ check q.length == \bigint.zero;
+        //@ check q.length == \bigint.zero;
     }
     
     //@ spec_pure
