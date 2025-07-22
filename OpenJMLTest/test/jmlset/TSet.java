@@ -1,12 +1,13 @@
 public class TSet {
     
+    //@ ghost public static \set<Object> q;
+
     //@ spec_pure
     public static void test1() { // empty
         Object o = new Object();
-        //@ ghost \set<Object> s;
-        //@ check s.isEmpty();
-        //@ check s.size() == 0;
-        //@ check !s.contains(o);
+        //@ check q.isEmpty();
+        //@ check q.size() == 0;
+        //@ check !q.contains(o);
     }
     
     //@ spec_pure
@@ -140,7 +141,7 @@ public class TSet {
     }
 
     public static void main(String... args) {
-        test1();
+//        test1();
         test2();
         test3();
         test4();

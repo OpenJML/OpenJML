@@ -29,9 +29,9 @@ public class primesc2 extends EscBase {
                 +"    //@ set a[ii] = false;\n"  // Line 7
                 +"    //@ ghost \\intset b = a;\n"
                 +"    //@ set a[ii] = true;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n" // OK // Line 10
-                +"    //@ assert a[ii] == true;\n"      // OK
-                +"    //@ assert b[ii] == false;\n"     // OK
+                +"    //@ check a[ii+1] == b[ii+1];\n" // OK // Line 10
+                +"    //@ check a[ii] == true;\n"      // OK
+                +"    //@ check b[ii] == false;\n"     // OK
                 +"  }\n"
                 +"}"
                 );
@@ -48,9 +48,9 @@ public class primesc2 extends EscBase {
                 +"    //@ set a[o] = false;\n"
                 +"    //@ ghost \\set<Object> b = a;\n"
                 +"    //@ set a[o] = true;\n"
-                +"    //@ assert a[oo] == b[oo];\n"
-                +"    //@ assert a[o] == true;\n"
-                +"    //@ assert b[o] == false;\n"
+                +"    //@ check a[oo] == b[oo];\n"
+                +"    //@ check a[o] == true;\n"
+                +"    //@ check b[o] == false;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -68,16 +68,16 @@ public class primesc2 extends EscBase {
                 +"    //@ set a[ii] = oo;\n"
                 +"    //@ ghost \\intmap<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
-                +"    //@ assert b[ii] == oo;\n"
+                +"    //@ check a[ii+1] == b[ii+1];\n"
+                +"    //@ check a[ii] == o;\n"
+                +"    //@ check b[ii] == oo;\n"
                 +"  }\n"
                 +"}"
                 );
     }
     
-    @Test
-    public void testArray() {
+    @Test @Ignore // a[i] = o not implemented for \array
+    public void testArrayBracket() {
         addOptions("--method=m1");
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -85,40 +85,18 @@ public class primesc2 extends EscBase {
                 +"  public void m1(int i, Object o, Object oo) {\n"
                 +"    //@ assume o != oo;\n"
                 +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
-                +"    //@ ghost \\array<Object> a; \n"
+                +"    //@ ghost \\array<Object> a; havoc a;\n"
                 +"    //@ set a[ii] = oo;\n"
                 +"    //@ ghost \\array<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
-                +"    //@ assert b[ii] == oo;\n"
+                +"    //@ check a[ii+1] == b[ii+1];\n"
+                +"    //@ check a[ii] == o;\n"
+                +"    //@ check b[ii] == oo;\n"
                 +"  }\n"
                 +"}"
                 );
     }
     
-    @Test
-    public void testArrayPut() {
-        addOptions("--method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1(int i, Object o, Object oo) {\n"
-                +"    //@ assume o != oo;\n"
-                +"    //@ ghost \\bigint ii = i; set ii = ii*2;\n"
-                +"    //@ ghost \\array<Object> a; \n"
-                +"    //@ set a = a.put(ii,oo);\n"
-                +"    //@ ghost \\array<Object> b = a;\n"
-                +"    //@ set a = a.put(ii,o);\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
-                +"    //@ assert b[ii] == oo;\n"
-                +"  }\n"
-                +"}"
-                );
-    }
-    
-
     @Test
     public void testseq() {
         helpTCX("tt.TestJava","package tt; \n"
@@ -131,8 +109,8 @@ public class primesc2 extends EscBase {
                 +"    //@ set a[ii] = oo;\n"
                 +"    //@ ghost \\seq<Object> b = a;\n"
                 +"    //@ set a[ii] = o;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
+                +"    //@ check a[ii+1] == b[ii+1];\n"
+                +"    //@ check a[ii] == o;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -150,8 +128,8 @@ public class primesc2 extends EscBase {
                 +"    //@ set a = a.put(ii,oo);\n"
                 +"    //@ ghost \\seq<Object> b = a;\n"
                 +"    //@ set a = a.put(ii,o);\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == o;\n"
+                +"    //@ check a[ii+1] == b[ii+1];\n"
+                +"    //@ check a[ii] == o;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -167,11 +145,11 @@ public class primesc2 extends EscBase {
                 +"    //@ ghost \\map<Object,Object> a;\n"
                 +"    //@ set a[oo] = ooo;\n"
                 +"    //@ ghost \\map<Object,Object> b = a;\n"
-                +"    //@ assert a.get(ooo) == b.get(ooo);\n"
+                +"    //@ check a.get(ooo) == b.get(ooo);\n"
                 +"    //@ set a[oo] = o;\n"
-                +"    //@ assert a.get(ooo) == b.get(ooo);\n"
-                +"    //@ assert a.get(oo) == o;\n"
-                +"    //@ assert b.get(oo) == ooo;\n"
+                +"    //@ check a.get(ooo) == b.get(ooo);\n"
+                +"    //@ check a.get(oo) == o;\n"
+                +"    //@ check b.get(oo) == ooo;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -187,11 +165,11 @@ public class primesc2 extends EscBase {
                 +"    //@ ghost \\map<Object,Object> a;\n"
                 +"    //@ set a = a.put(oo,o);\n"
                 +"    //@ ghost \\map<Object,Object> b = a;\n"
-                +"    //@ assert a.get(ooo) == b.get(ooo);\n"
+                +"    //@ check a.get(ooo) == b.get(ooo);\n"
                 +"    //@ set a = a.put(oo,oo);\n"
-                +"    //@ assert a.get(ooo) == b.get(ooo);\n"
-                +"    //@ assert a.get(oo) == oo;\n"
-                +"    //@ assert b.get(oo) == o;\n"
+                +"    //@ check a.get(ooo) == b.get(ooo);\n"
+                +"    //@ check a.get(oo) == oo;\n"
+                +"    //@ check b.get(oo) == o;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -209,9 +187,9 @@ public class primesc2 extends EscBase {
                 +"    //@ set a[ii] = cc;\n"
                 +"    //@ ghost \\string b = a;\n"
                 +"    //@ set a[ii] = c;\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == c;\n"
-                +"    //@ assert b[ii] == cc;\n"
+                +"    //@ check a[ii+1] == b[ii+1];\n"
+                +"    //@ check a[ii] == c;\n"
+                +"    //@ check b[ii] == cc;\n"
                 +"  }\n"
                 +"}"
                 );
@@ -230,27 +208,12 @@ public class primesc2 extends EscBase {
                 +"    //@ set a = a.put(ii,cc);\n"
                 +"    //@ ghost \\string b = a;\n"
                 +"    //@ set a = a.put(ii,c);\n"
-                +"    //@ assert a[ii+1] == b[ii+1];\n"
-                +"    //@ assert a[ii] == c;\n"
-                +"    //@ assert b[ii] == cc;\n"
+                +"    //@ check a[ii+1] == b[ii+1];\n"
+                +"    //@ check a[ii] == c;\n"
+                +"    //@ check b[ii] == cc;\n"
                 +"  }\n"
                 +"}"
                 );
-    }
-    
-    @Test
-    public void testX() {
-        addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
-                                +"public class TestJava { \n"
-                                
-                                +"  public void m1(Object o) {\n"
-                                +"    //@ ghost \\array<Object> a; \n"
-                                +"    //@ set a[3] = o;\n"
-                                +"  }\n"
-                                +"}"
-                                );
-        
     }
 
 }

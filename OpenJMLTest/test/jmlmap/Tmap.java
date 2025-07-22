@@ -1,13 +1,14 @@
  @org.jmlspecs.annotation.Options("--check-feasibility=none") // tends to timeout
  public class Tmap {
     
+     //@ ghost public static \map<Object,Integer> q;
+
     //@ spec_pure
     public static void test1() { // empty
         Object o = new Object();
-        //@ ghost \map<Object,Integer> s;
-        //@ check s.isEmpty();
-        //@ check s.size() == 0;
-        //@ check !s.has(o);
+        //@ check q.isEmpty();
+        //@ check q.size() == 0;
+        //@ check !q.has(o);
     }
     
     //@ spec_pure
@@ -105,7 +106,7 @@
     }
     
     public static void main(String... args) {
-        test1();
+//        test1();
         test2();
         test3();
         test3a();

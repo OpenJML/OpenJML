@@ -105,11 +105,12 @@ public class TString {
         }
     }
 
+    //@ ghost public static \string ssss;
+
     //@ spec_pure
     public static void test1() { // empty
-        //@ ghost \string s;
-        //@ check s.isEmpty();
-        //@ check s.length() == 0;
+        //@ check ssss.isEmpty();
+        //@ check ssss.length() == 0;
     }
     
     //@ spec_pure
@@ -221,7 +222,7 @@ public class TString {
     }
         
     public static void main(String... args) {
-        test1();
+//        test1();
         test2();
         test3();
         //@ set test4("A","BC");

@@ -34,6 +34,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeMaker;
+import com.sun.tools.javac.util.Bits;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
@@ -74,12 +75,14 @@ public class JmlFlow extends Flow  {
         
     /** The compilation context of this instance */
     protected Context context;
+    protected Utils utils;
     
     
     /** A constructor, but use instance() to generate new instances of this class. */
     protected JmlFlow(Context context) {
         super(context);
         this.context = context;
+        this.utils = Utils.instance(context);
     }
     
  
@@ -507,6 +510,11 @@ public class JmlFlow extends Flow  {
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         	if (that.meth != null) {
         		visitApply(that);
+        	} else if (that.kind == org.jmlspecs.openjml.ext.StateExpressions.oldKind ||
+                    that.kind == org.jmlspecs.openjml.ext.StateExpressions.preKind ||
+                    that.kind == org.jmlspecs.openjml.ext.StateExpressions.pastKind) {
+        	    // FIXME Could scan the first argument, but don't have a way to determine whether any ids are
+        	    // assigned in that program state. So just skipping the check for now.
         	} else {
         		that.args.forEach(a -> { if (a.type != null) scan(a); });
         	}
@@ -537,7 +545,12 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlClassDecl(JmlClassDecl that) {
-            visitClassDef(that);
+            var prev = log.useSource(that.sourcefile);
+            try {
+                visitClassDef(that);
+            } finally {
+                log.useSource(prev);
+            }
         }
 
         @Override
@@ -614,7 +627,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlStatementShow(JmlStatementShow that) {
-        	// pure expressions - no assignments // TODO - but should be initialized?
+            scan(that.expressions);
         }
 
         @Override
@@ -624,7 +637,22 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementExpr(JmlStatementExpr that) {
-        	// pure expressions - no assignments // TODO - but should be initialized?
+            // JML assert, assume, check, comment. loop_decreases, loop_invariant, split, use, reachable, unreachable, halt
+            if (that.expression == null) return; // for unreachable, reachable, halt, split statements
+            // Adapting code from Flow.visitAssert
+            final Bits initsExit = new Bits(inits);
+            final Bits uninitsExit = new Bits(uninits);
+            scanCond(that.expression);
+            uninitsExit.andSet(uninitsWhenTrue);
+            if (that.optionalExpression != null) {
+                // assert, assume statements can have a secondary statement -- an informational string, 
+                // only used when the primary expression is false, just like a Java assert
+                inits.assign(initsWhenFalse);
+                uninits.assign(uninitsWhenFalse);
+                scanExpr(that.optionalExpression);
+            }
+            inits.assign(initsExit);
+            uninits.assign(uninitsExit);
         }
 
         @Override
@@ -649,7 +677,16 @@ public class JmlFlow extends Flow  {
         @Override
         public void visitJmlVariableDecl(JmlVariableDecl that) {
             try {
-                visitVarDef(that);
+                if (that.sym.kind == com.sun.tools.javac.code.Kinds.Kind.TYP 
+                        && log.currentSourceFile().getKind() != JavaFileObject.Kind.SOURCE
+                        && utils.isGhostOrModel(that.sym)) {
+                    // This is a field declaration in a .jml file matching a Java declaration (perhaps in a .class file)
+                    // There should be no initialization expression and we don't count it as needing initialization
+                    // FIXME - are we allowed to have a declaration that mimics the Java value if compiled?
+                    // FIXME - should we check this so that we catch duplicate initializations?
+                } else {
+                    visitVarDef(that);
+                }
             } catch (Exception e) {
                 System.out.println("Exception flow-checking " + that);
                 e.printStackTrace(System.out);
@@ -693,24 +730,10 @@ public class JmlFlow extends Flow  {
             quantDeclStack.remove(0);
         }
         
-        Utils utils;
-        
         @Override
         public void visitIdent(JCIdent that) {
             if (that.sym == null) System.out.println("NULL SYM FOR " + that);
-//            for (List<JCVariableDecl> list: quantDeclStack) {
-//                for (JCVariableDecl decl: list) {
-//                    if (decl.sym.equals(that.sym)) return;
-//                }
-//            }
-//            if (utils == null) utils = Utils.instance(context);
-//            if (utils.isJML(that.sym.flags()) && utils.isJMLTop(that.sym.flags()) && (that.sym.flags() & Flags.HASINIT) != 0) {
-//                // Skip check for initialization -- this is a JML declaration with an initializer
-//                // so includes old clauses in spec cases
-//                referenced(that.sym);
-//            } else {
-                super.visitIdent(that);
-//            }
+            super.visitIdent(that);
         }
 
         @Override
@@ -721,37 +744,6 @@ public class JmlFlow extends Flow  {
             }
         }
 
-
-        public void visitVarDef(JCVariableDecl tree) {
-            super.visitVarDef(tree);
-            if (tree.init == null) {
-            	if (tree.type.tsym.toString().startsWith("org.jmlspecs.lang")) {
-            		//if (tree.type instanceof org.jmlspecs.lang.IJmlPrimitiveType) { // package does not exist in first compilation round
-            		letInit(tree.pos(), tree.sym);
-            	}
-            }
-            
-//                Lint lintPrev = lint;
-//                lint = lint.augment(tree.sym);
-//                try{
-//                    boolean track = trackable(tree.sym);
-//                    if (track && (tree.sym.owner.kind == MTH || tree.sym.owner.kind == VAR)) {
-//                        newVar(tree);
-//                    }
-//                    if (tree.init != null || tree.type.toString().startsWith("org.jmlspecs.lang")) {
-//                        scanExpr(tree.init);
-//                        if (track) {
-//                            letInit(tree.pos(), tree.sym);
-//                        }
-//                    } else {
-//                    	System.out.println("NOT INIT " + tree.type.toString());
-//                    }
-//                } finally {
-//                    lint = lintPrev;
-//                }
-        }
-
-
         @Override
         public void visitJmlSetComprehension(JmlSetComprehension that) {
             // FIXME: Skipping set comprehension - check elsewhere in this file also
@@ -759,7 +751,7 @@ public class JmlFlow extends Flow  {
 
         @Override
         public void visitJmlStatementSpec(JmlStatementSpec that) {
-            // No need to scxan specs
+            // No need to scan specs
             scan(that.statements);
         }
 

@@ -1788,7 +1788,7 @@ public class escall3 extends EscBase {
                 package tt;
                 public class TestJava {
                   public static void main(String[] args) {
-                    int i;
+                    int i = 0;
                     Object oo = new Object();
                     int[] x = new int[1];
                     Object o = new Object[2];

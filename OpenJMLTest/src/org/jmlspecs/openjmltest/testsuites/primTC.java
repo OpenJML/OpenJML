@@ -120,6 +120,23 @@ public class primTC extends TCBase {
         );
     }
 
+    @Test public void jmlbigintFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\bigint s; ghost var ss = s;
+            //@ ghost \\bigint a; check a == 0;
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 41
+        ,"/TEST.java:5: error: variable a might not have been initialized", 32
+        );
+    }
+
+
     // real tests
     
     @Test public void jmlreal() {
@@ -190,6 +207,23 @@ public class primTC extends TCBase {
                 ,"/TEST.java:22: error: No allowed implicit conversion permits this operation on JML types: boolean > \\real", 20
         );
     }
+
+    @Test public void jmlrealFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\real s; ghost var ss = s;
+            //@ ghost \\real a; check a == 0;
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 39
+        ,"/TEST.java:5: error: variable a might not have been initialized", 30
+        );
+    }
+
 
     // TYPE tests
     
@@ -265,6 +299,23 @@ public class primTC extends TCBase {
                 ,"/TEST.java:26: error: incompatible types: char cannot be converted to boolean",33
                 );
     }
+    
+    @Test public void jmlstringFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\string s; ghost var ss = s;
+            //@ ghost \\string a; check a.put(0,' ') == a;
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 41
+        ,"/TEST.java:5: error: variable a might not have been initialized", 32
+        );
+    }
+
 
     // array tests
 
@@ -274,8 +325,8 @@ public class primTC extends TCBase {
                 class A {
                   void m() {
                     Object o = new Object();
-                    //@ ghost \\array<Integer> b;
-                    //@ ghost \\array<Boolean> bb;
+                    //@ ghost \\array<Integer> b; havoc b;
+                    //@ ghost \\array<Boolean> bb; havoc bb;
                     //@ check b != bb;
                     //@ check !(b == bb);
                     //@ check b.ne(bb);
@@ -314,6 +365,23 @@ public class primTC extends TCBase {
                        (argument mismatch; \\array<java.lang.Boolean> cannot be converted to java.lang.Object)""",38
                 );
     }
+
+    @Test public void jmlarrayFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\array<Short> s; ghost var ss = s;
+            //@ ghost \\array<Object> a; set a[3] = o;
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 47
+        ,"/TEST.java:5: error: variable a might not have been initialized", 37
+        );
+    }
+
     // Seq tests
 
     @Test public void jmlseq() {
@@ -407,7 +475,24 @@ public class primTC extends TCBase {
 
     );
     }
-    
+
+    @Test public void jmlseqFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\seq<Short> s; ghost var ss = s;
+            //@ ghost \\seq<Object> a; set a[3] = o;
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 45
+        ,"/TEST.java:5: error: variable a might not have been initialized", 35
+        );
+    }
+
+
     // Set tests
     
     @Test public void jmlset() {
@@ -473,7 +558,21 @@ public class primTC extends TCBase {
                 );
     }
 
-    
+    @Test public void jmlsetFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\set<Short> s; ghost var ss = s;
+            //@ ghost \\set<Object> a; set a.add(o);
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 45
+        ,"/TEST.java:5: error: variable a might not have been initialized", 35
+        );
+    }
 
     // Map tests
 
@@ -509,6 +608,22 @@ public class primTC extends TCBase {
         );
     }
 
+    @Test public void jmlmapFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\map<Short,Integer> s; ghost var ss = s;
+            //@ ghost \\map<Object,Integer> a; set a.put(o,2);
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 53
+        ,"/TEST.java:5: error: variable a might not have been initialized", 43
+        );
+    }
+
 
     // TODO: Review the following
 
@@ -519,11 +634,11 @@ public class primTC extends TCBase {
 //    }
 
     @Test public void testIntsetType() {
-        helpTC(" class A { void m() { //@ ghost \\intset b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
+        helpTC(" class A { void m() { //@ ghost \\intset b; havoc b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
     }
 
     @Test public void testIntmapType() {
-        helpTC(" class A { void m() { //@ ghost \\intmap<Object> b ; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+        helpTC(" class A { void m() { //@ ghost \\intmap<Object> b; havoc b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
     }
 
    // FIXME - need to be able to initialize JML types

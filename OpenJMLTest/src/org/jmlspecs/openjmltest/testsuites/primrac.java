@@ -45,7 +45,7 @@ public class primrac extends RacBase {
     
     @Test
     public void jmlTYPE() {
-        helpCompileRun("Tbigint");
+        helpCompileRun("Test");
     }
 
     @Test

@@ -7853,52 +7853,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             //System.out.println("VJVD-Z " + that);
             
-            // FIXME - move this default initialization to JmlAssertionAdder
-            if (that.init == null && (that.sym.flags() & Flags.PARAMETER) == 0 
-                    && !utils.isModel(that.sym)
-                    && jmltypes.isJmlType(that.type)) {
-//                String full = that.type.toString();
-//                int k = full.indexOf('<');
-//                var part = (k < 0 ? full : full.substring(0, k));
-//                String name = part.substring(part.lastIndexOf('.')+1);
-//                if (name.equals("string")) {
-//                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
-//                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
-//                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
-//                    that.init = e;
-//                    attribExpr(e,env); // FIXME - spec env?
-//                } else if (name.endsWith("seq") || name.endsWith("set") || name.endsWith("map")) {
-//                    // FIXME - THis (and string above) should be delgated to makeZeroEquivalentLit
-//                    var id = jmlMaker.at(that.pos).Ident("\\" + name);
-//                    id.type = that.type;
-//                    id.sym = that.type.tsym;
-//                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
-//                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
-//                    // FIXME - do we need the method symbol?
-//                    // FIXME - do we need to add the type arguments?
-//                    //e.type = that.type;
-//                    that.init = e;
-//                    attribExpr(e,env,that.type); // FIXME - spec env?
-//                } else {
-//                    that.init = treeutils.makeZeroEquivalentLit(that, that.type);
-//                }
-                
-                // FIXME - why do we want to add default initializers in JmlAttr
-                // But without them we get lots of flow-checking errors, that we should sort out
-                that.init = treeutils.makeZeroEquivalentLit(that, that.type);
-
-//                if (that.type.tsym == jmltypes.BIGINTsym(context) || that.type.tsym == jmltypes.REALsym(context)) {
-//                    that.init = treeutils.makeZeroEquivalentLit(that, that.type);
-//                } else {
-//                    // Everything except bigint and real above is initialized with a call of empty()
-//                    var id = treeutils.makeType(that, that.type);
-//                    var fa = jmlMaker.at(that.pos).Select(id, names.fromString("empty"));
-//                    var e = jmlMaker.at(that.pos).Apply(null, fa, List.<JCExpression>nil());
-//                    that.init = e;
-//                    attribExpr(e,env, that.type); // FIXME - spec env?
-//                    //System.out.println("NEEDS EMPTY " + that + " " + that.type + " " + that.init);
-//                }
-            }
 
             // FIXME - should this be checking for error types?
             if (that.init != null && that.init.type != null && !that.init.type.isErroneous() &&
