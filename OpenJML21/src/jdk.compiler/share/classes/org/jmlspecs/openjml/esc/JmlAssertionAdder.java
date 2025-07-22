@@ -21396,6 +21396,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JavaFileObject prevSource = log.useSource(that.source());
 
 		try {
+		    
+//		    if (that.init == null && that.sym.owner.kind == Kinds.Kind.TYP) {
+//		        that.init = treeutils.makeZeroEquivalentLit(that, that.type);
+//                System.out.println("JVD " + that);
+//		    }
 
 			JCIdent newident = null;
 			if (esc || infer) {
@@ -21416,7 +21421,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //					}
 //				}
 			} else if (rac) {
-				// FIXME - should alo be copyint the symbol
+				// FIXME - should also be copying the symbol
 				if (types.isJmlType(that.type)) {// FIXME - should really be copying the AST
 					that.sym.type = that.type;
 				}

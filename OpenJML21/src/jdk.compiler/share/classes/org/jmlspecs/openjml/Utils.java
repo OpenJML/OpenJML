@@ -364,8 +364,13 @@ public class Utils {
     }
     
     public boolean isGhost(/*@non_null*/ VarSymbol symbol) {
-    	var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
-    	return fs != null && hasModifier(fs.mods, Modifiers.GHOST);
+        var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
+        return fs != null && hasModifier(fs.mods, Modifiers.GHOST);
+    }
+    
+    public boolean isGhostOrModel(/*@non_null*/ VarSymbol symbol) {
+        var fs = JmlSpecs.instance(context).getLoadedSpecs(symbol);
+        return fs != null && hasModifier(fs.mods, Modifiers.GHOST, Modifiers.MODEL);
     }
     
     public boolean isModel(/*@non_null*/ Symbol symbol) {

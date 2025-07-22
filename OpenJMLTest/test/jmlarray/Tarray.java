@@ -1,9 +1,10 @@
 public class Tarray {
-    
+
+    //@ ghost public static \array<Object> q;
+
     //@ spec_pure
     public static void test1() { // empty
-        //@ ghost \array<Object> s;
-        //@ check s.length == \bigint.zero;
+//        //@ check q.length == \bigint.zero;
     }
     
     //@ spec_pure
@@ -29,7 +30,6 @@ public class Tarray {
         //@ set s = \array.of();
         //@ check s.length == 0;
     }
-
     
     //@ spec_pure
     public static void test5() { // []
@@ -53,6 +53,18 @@ public class Tarray {
         //@ check ss.get(1) == ooo;
     }
     
+//    public static void test6a(int i, Object o, Object oo) {
+//        //@ assume o != oo;
+//        //@ ghost \bigint ii = i; set ii = ii*2;
+//        //@ ghost \array<Object> a; havoc a;
+//        //@ set a = a.put(ii,oo);
+//        //@ ghost \array<Object> b = a;
+//        //@ set a = a.put(ii,o);
+//        //@ check a[ii+1] == b[ii+1];
+//        //@ check a[ii] == o;
+//        //@ check b[ii] == oo;
+//    }
+
     //@ spec_pure
     public static void test7() { // equals
         Object o = new Object();
@@ -159,6 +171,8 @@ public class Tarray {
         test3();
         test5();
         test6();
+        Object o = new Object(); Object oo = new Object();
+        // -RAC@ set test6a(0, o, oo);
         test7();
         test8();
         errors1();

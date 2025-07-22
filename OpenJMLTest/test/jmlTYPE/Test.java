@@ -25,7 +25,7 @@ public class Test {
         //@ check \typeof(o) == \type(Integer[]);
         o = new java.util.LinkedList<Boolean>();
         //@ check \typeof(o) == \type(java.util.LinkedList<Boolean>);
-        int i; 
+        int i = 0; 
         //@ check \typeof(i) == \type(int);
         showTest();
         errors1();
