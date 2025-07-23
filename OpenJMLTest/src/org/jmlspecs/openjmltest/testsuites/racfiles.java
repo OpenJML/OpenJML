@@ -166,28 +166,28 @@ public class racfiles extends RacBase {
     }
 
     @Test @Ignore // FIXME
-    public void racAddng() {
+    public void racaddng() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
     }
 
     @Test @Ignore // FIXME
-    public void racAddng2() {
+    public void racaddng2() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng/Add_InstanceStrategy.java","test/racaddng2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
     }
 
     @Test @Ignore // FIXME
-    public void racAddngall() {
+    public void racaddngall() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng","test/racaddngall","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=java","-spec-math=java");
     }
 
     @Test @Ignore // FIXME
-    public void racAddngall2() {
+    public void racaddngall2() {
     	setRacng();
         expectedExit = 0;
         helpTCF("test/racaddng","test/racaddngall2","Add_JML_Test","-cp","../OpenJML/bin-runtime"+z+"test/racaddngall"+z+"test/racaddng"+z+"test/racaddng/jmlunitng.jar","-jmltesting","-code-math=safe","-spec-math=bigint");
@@ -333,7 +333,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void racHans4() {
+    public void racHansStorage() {
     	expectedRACExit = 1;
     	setRacngEA();
     	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage");
@@ -341,7 +341,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void racHans4a() {
+    public void racHansStorageA() {
     	expectedRACExit = 0;
     	setRacngEA();
     	helpTCF("test/racHansStorage/StorageParameters.java","test/racHansStorageA","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage","--nullable-by-default");
@@ -349,7 +349,7 @@ public class racfiles extends RacBase {
     }
 
     @Test
-    public void racHans4b() {
+    public void racHansStorageB() {
         expectedRACExit = 1;
     	setRacngEA();
     	helpTCF("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageB");
@@ -357,7 +357,7 @@ public class racfiles extends RacBase {
     }
 
     @Test // Bug in that some annotations had to be in the .java file, not the .jml, fixed
-    public void racHans4c() {
+    public void racHansStorageC() {
         expectedRACExit = 0;
     	setRacngEA();
     	helpTCF("test/racHansStorageC/StorageParameters.java","test/racHansStorageC","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageC");
@@ -365,7 +365,7 @@ public class racfiles extends RacBase {
     }
 
     @Test  // Bug in that import statements must be in .java files, not .jml // FIXME - partially fixed - .jml imports are merged into .java imports
-    public void racHans4d() {
+    public void racHansStorageD() {
         expectedRACExit = 0;
     	setRacngEA();
     	helpTCF("test/racHansStorageD/StorageParameters.java","test/racHansStorageD","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageD");

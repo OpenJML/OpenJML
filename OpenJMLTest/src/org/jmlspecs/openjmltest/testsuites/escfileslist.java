@@ -12,8 +12,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjmltest.EscBaseFiles;
+import org.jmlspecs.openjmltest.*;
+
 import org.junit.Assume;
 import org.junit.FixMethodOrder;
 import org.junit.Ignore;
@@ -38,8 +38,9 @@ import org.openjml.runners.ParameterizedWithNames;
  * </UL>
  */
 
-public class escfileslist extends EscBaseFiles {
+public class escfileslist extends EscBaseFiles implements Utils {
     
+    /** A list of test suites whose test are excluded from the list generated here */
     public static String[] testsuites = new String[]{
             "org.jmlspecs.openjmltest.testsuites.escfpfiles",
             "org.jmlspecs.openjmltest.testsuites.jmldoctests",
@@ -52,63 +53,72 @@ public class escfileslist extends EscBaseFiles {
             "org.jmlspecs.openjmltest.testsuites.SFBugs"
     };
     
-    static boolean hasJavaFile(File d) {
-        for (var f: d.listFiles()) {
-            if (f.isDirectory()) {
-                if (hasJavaFile(f)) return true;
-            } else {
-                if (f.getName().endsWith(".java")) return true;
-            }
-        }
-        return false;
-    }
-    
+    /** A routine that computes a List of one-element String arrays, where each of those elements is a 
+     * test directory that is not already used in a test by any of the testsuites in the 'testsuites' array above.
+     */
     public static java.util.List<String[]> alldata() { 
-        var tests = new java.util.LinkedList<String>();
-        var dir = new File("test");
-        for (var f: dir.listFiles()) {
-            String nm = f.getName();
-            if (!f.isDirectory()) continue;
-            if (!new java.io.File(f, "skip").exists() && !new java.io.File(f, "run").exists() && !nm.startsWith("rac")) {
-                if (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) {
-                    tests.add(nm);
-                }
-            }
-        }
-        for (var suite: testsuites) {
-            try {
-                var escfiles = Class.forName(suite);
-                var methods = java.util.Arrays.stream(escfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
-                        .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-                tests.removeAll(methods);
-            } catch (Exception e) {
-                System.out.println("FAILED TO FIND TESTS IN " + suite);
-            }
-        }
-        tests.sort((e1,e2)->e1.compareTo(e2));
-        for (var nn: tests) {
-            if (!hasJavaFile(new File(dir,nn))) {
-                System.out.println("No source files " + nn);
-            }
-            //System.out.println("ORPHANED " + tests);
-        }
-        var params = tests.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
-        return params;
+        return Utils.findTests((File f, String nm) -> f.isDirectory() &&
+                (!new java.io.File(f, "skip").exists() && !new java.io.File(f, "run").exists() && !nm.startsWith("rac"))
+                && (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) ,
+                testsuites);
     }
 
+//        var tests = new java.util.LinkedList<String>();
+//        var dir = new File("test");
+//        for (var f: dir.listFiles()) {
+//            String nm = f.getName();
+//            if (!f.isDirectory()) continue;
+//            if (!new java.io.File(f, "skip").exists() && !new java.io.File(f, "run").exists() && !nm.startsWith("rac")) {
+//                if (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) {
+//                    tests.add(nm);
+//                }
+//            }
+//        }
+//        for (var suite: testsuites) {
+//            try {
+//                var escfiles = Class.forName(suite);
+//                var methods = java.util.Arrays.stream(escfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
+//                        .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
+//                tests.removeAll(methods);
+//            } catch (Exception e) {
+//                System.out.println("FAILED TO FIND TESTS IN " + suite);
+//            }
+//        }
+//        tests.sort((e1,e2)->e1.compareTo(e2));
+//        for (var nn: tests) {
+//            if (!hasJavaFile(new File(dir,nn))) {
+//                System.out.println("No source files " + nn);
+//            }
+//            //System.out.println("ORPHANED " + tests);
+//        }
+//        var params = tests.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
+//        return params;
+//    }
+
+    /** The name of the test, which is also the name of the directory (in OpenJMLTest/test), filled in from the
+     * Parameters array for each individual test.
+     */
     String testName;
     
-    public escfileslist(String testName) {
+    /** A constructor to allow running listTests() below as a test */
+    public escfileslist() {}
+    
+    /** A constructor used by subclass test suites, along with suitable Parameters */
+    protected escfileslist(String testName) {
         this.testName = testName;
     }
+    
+    /** Common JUnit test setup routine */
     @Override
     public void setUp() throws Exception {
         super.setUp();
         ignoreNotes = true;
     }
     
+    /** An empty options list, to avoid always creating one when needed */
     static String[] noargs = new String[] {};
     
+    /** Returns a list of options from the 'testName'/config file, returning an empty list if the file does not exist or contains no options */
     String[] getOptions() {
         String config = "test/"+testName+"/config";
         String args = null;
@@ -129,4 +139,17 @@ public class escfileslist extends EscBaseFiles {
         return args == null ? noargs : args.split(" ");
     }
     
+    /** This test just lists, for information, the tests that will be done by escfileslist1,2,3
+        We do not want this test to be inherited and executed by those subclass suites, or at least
+        not to emit any output.*/
+    @Test
+    public void listTests() {
+        if (getClass() != escfileslist.class) return;
+        for (var d: escfileslist1.data()) System.out.print(d[0] + " ");
+        System.out.println(";");
+        for (var d: escfileslist2.data()) System.out.print(d[0] + " ");
+        System.out.println(";");
+        for (var d: escfileslist3.data()) System.out.print(d[0] + " ");
+        System.out.println(";");
+    }
 }
