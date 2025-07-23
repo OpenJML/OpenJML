@@ -7244,7 +7244,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
 	                    addStat(treeutils.makeAssignStat(that.truepart.pos, id, tres));
 	                } finally {
+	                    try {
 	                    trueblock = popBlock(that.truepart, checkA);
+	                    } catch (RuntimeException e) {
+	                        System.out.println("POPBLOCK " + that.truepart);
+	                        throw e;
+	                    }
 	                }
 
 	                checkA = pushBlock();
@@ -8295,7 +8300,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
-//	    boolean print = that.toString().contains("of(");
+	    boolean print = false; // that.toString().contains("of(sn)");
 //	    if (print) {
 //	        var sym = (MethodSymbol)treeutils.getSym(that.meth);
 //	        System.out.println("APPLY-OF " + that + " " + that.meth.type + " " + sym + " " + sym.isVarArgs() + " " + that.varargsElement);
@@ -8333,7 +8338,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    int formalLength = methsym.type.asMethodType().argtypes.length(); // msym.params can be null if there are varargs
 		    Type varargType = that.varargsElement; // methtype.getParameterTypes().last();
 		    if (varargType != null) {
-//		        System.out.println("VARARGS " + varargType + " " + methtype.getParameterTypes().last());
+		        if (print) System.out.println("VARARGS " + varargType + " " + methtype.getParameterTypes().last());
 		        int p = that.meth.pos;
 		        JCExpression len = treeutils.makeIntLiteral(p, actualLength + 1 - formalLength);
 		        Type varargArrayType = methtype.getParameterTypes().last();
@@ -8359,6 +8364,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (translatingJML && rac) {
+		    if (print) System.out.println("RAC CALL IN GHOST CODE " + that);
 		    // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
 		    currentEnv = currentEnv.pushEnvCopy();
 		    if (currentEnv.stateLabel != null) {
@@ -8428,7 +8434,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		    Map<Symbol, Symbol> saved = pushMapSymbols();
 		    try {
-		        //System.out.println("CALLING APPLYHELPER " + that);
+		        if (print) System.out.println("CALLING APPLYHELPER " + that);
 		        //System.out.println("CALLING APPLYHELPER TPS " + methsym.getTypeParameters() + " :: " + that.meth.type + " :: " + methsym.type);
 		        applyHelper(that);
 		        //System.out.println("END APPLYHELPER " + that);
@@ -20509,7 +20515,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitJmlSingleton(JmlSingleton that) {
 		if (!translatingJML) {
-			error(that, "Unexpected call of JmlAssertionAdder.visitJmlSingleton: " + that.getClass());
+			error(that, "Unexpected call of JmlAssertionAdder.visitJmlSingleton: " + that);
 			return;
 		}
 		IJmlClauseKind k = that.kind;
@@ -21533,8 +21539,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// boolean pv = checkAccessEnabled;
 					// checkAccessEnabled = enclosingMethod != null; // FIXME - decide how to handle
 					// initialization of class fields
-					// try {
-					init = convertExpr(that.init);
+//					try {
+					init = attr.isGhost(that.mods) ? convertJML(that.init) : convertExpr(that.init);
+//					} catch (Utils.JmlNotImplementedException e) {
+//					    throw e;
+//					} catch (Exception e) {
+//					    System.out.println("Exception in " + that + " " + attr.isGhost(that.mods) + " " + that.type + " " + that.init.type);
+//					    throw e;
+//					}
 					// } finally {
 					// checkAccessEnabled = pv;
 					// }
@@ -21559,6 +21571,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 						// FIXME - should have an associated position
 					}
+                } catch (JmlNotImplementedException e) {
+                    if (attr.isGhost(that.mods)) notImplemented("ghost declaration containing ", e, that.source());
+                    else  notImplemented("declaration initialization containing ", e, that.source());
+                    init = null;
 				} catch (PropagatedException e) {
 					throw e;
 				} catch (Exception e) {

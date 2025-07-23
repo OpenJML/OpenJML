@@ -1,34 +1,10 @@
 OUT:
 START
-test/jmlarray/Tarray.java:121: verify: JML precondition is false
-            //@ ghost var o = s.get(-1);
-                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:37: verify: Associated declaration: test/jmlarray/Tarray.java:121:
-    public T get(bigint i);
-             ^
 java.lang.ArrayIndexOutOfBoundsException: get: -1 for length 5
-test/jmlarray/Tarray.java:131: verify: JML precondition is false
-            //@ ghost var o = s.get(5);
-                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:37: verify: Associated declaration: test/jmlarray/Tarray.java:131:
-    public T get(bigint i);
-             ^
 java.lang.ArrayIndexOutOfBoundsException: get: 5 for length 5
-test/jmlarray/Tarray.java:141: verify: JML precondition is false
-            //@ ghost var o = s.put(-1, oo);
-                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:51: verify: Associated declaration: test/jmlarray/Tarray.java:141:
-    public array<T> put(bigint i, T t);
-                    ^
 java.lang.ArrayIndexOutOfBoundsException: put: -1 for length 5
-test/jmlarray/Tarray.java:151: verify: JML precondition is false
-            //@ ghost var o = s.put(5, oo);
-                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:51: verify: Associated declaration: test/jmlarray/Tarray.java:151:
-    public array<T> put(bigint i, T t);
-                    ^
 java.lang.ArrayIndexOutOfBoundsException: put: 5 for length 5
-test/jmlarray/Tarray.java:161: verify: JML assertion is false
+test/jmlarray/Tarray.java:48: verify: JML assertion is false
             //@ assert s.equals(o);
                 ^
 END

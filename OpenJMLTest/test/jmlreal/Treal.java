@@ -35,7 +35,7 @@ public class Treal {
         errors();
         Tcasts.main(args);
     }
-    public static void ops(int a, int b) {
+    /*@ pure */ public static void ops(int a, int b) {
         //@ ghost \real rlong = 4000L;
         //@ ghost \real rint = 42;
         //@ check rlong + rint == 4042;
@@ -58,7 +58,7 @@ public class Treal {
         //@ check (rb != 0) ==> (ra % rb) == ra.mod(rb);
     }
     
-    public static void compare(int a, int b) {
+    /*@ pure */ public static void compare(int a, int b) {
         //@ ghost \real rlong = 4000L;
         //@ ghost \real rint = 42;
         //@ check !(rlong < rint);
@@ -73,7 +73,7 @@ public class Treal {
         //@ check (ra == rb) == ra.eq(rb);
         //@ check (ra == rb) == ra.equals(rb);
     }
-    public static void misc() {
+    /*@ pure */ public static void misc() {
         //@ ghost \real rlong = 4000L;
         //@ ghost \real rint = 42;
         //@ check rlong.compareTo(rint) > 0;
@@ -88,7 +88,7 @@ public class Treal {
         //@ show rlong.toString(), rint;
     }
     
-    public static void errors() {
+    /*@ pure */ public static void errors() {
         //@ ghost \real rlong = 4000L;
         try {
         //@ check rlong.equals(null);  // Not allowed
@@ -96,5 +96,4 @@ public class Treal {
             System.out.println(e);
         }
     }
-    
 }

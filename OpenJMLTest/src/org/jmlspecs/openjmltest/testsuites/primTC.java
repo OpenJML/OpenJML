@@ -623,6 +623,23 @@ public class primTC extends TCBase {
         ,"/TEST.java:5: error: variable a might not have been initialized", 43
         );
     }
+    
+    @Test public void jmlrangeFlow() {// Flow tests (won't be detected if there are typechecking errors)
+        helpTC(
+        """
+        class A {
+          void m() {
+             Object o = new Object();
+            //@ ghost \\range s; ghost var ss = s;
+            //@ ghost \\range a; check a.isEmpty();
+         }
+        }
+        """
+        ,"/TEST.java:4: error: variable s might not have been initialized", 40
+        ,"/TEST.java:5: error: variable a might not have been initialized", 31
+        );
+    }
+
 
 
     // TODO: Review the following

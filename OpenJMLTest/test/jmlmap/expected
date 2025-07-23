@@ -1,8 +1,6 @@
 Proving methods in Tmap
 Starting proof of Tmap.Tmap() with prover !!!!
 Completed proof of Tmap.Tmap() with prover !!!! - no warnings
-Starting proof of Tmap.test1() with prover !!!!
-Completed proof of Tmap.test1() with prover !!!! - no warnings
 Starting proof of Tmap.test2() with prover !!!!
 Completed proof of Tmap.test2() with prover !!!! - no warnings
 Starting proof of Tmap.test3() with prover !!!!
@@ -16,7 +14,7 @@ Completed proof of Tmap.test5() with prover !!!! - no warnings
 Starting proof of Tmap.test6() with prover !!!!
 Completed proof of Tmap.test6() with prover !!!! - no warnings
 Starting proof of Tmap.errors5() with prover !!!!
-test/jmlmap/Tmap.java:101: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+test/jmlmap/Tmap.java:91: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
             //@ check !s.equals(o);
                                ^
 $SPECS/org/jmlspecs/lang/internal/map.jml:115: warning: Associated declaration

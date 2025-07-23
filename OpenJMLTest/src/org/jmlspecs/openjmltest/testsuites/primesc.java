@@ -88,6 +88,11 @@ public class primesc extends EscBaseFiles {
         helpTG();
     }
     
+    @Test
+    public void jmlinit() {
+        helpTG();
+    }
+    
     // TODO: Review the following and incorporate them with the above, as appropriate.
     
     @Test
