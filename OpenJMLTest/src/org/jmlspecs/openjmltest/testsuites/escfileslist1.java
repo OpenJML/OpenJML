@@ -23,14 +23,9 @@ public class escfileslist1 extends escfileslist {
     public escfileslist1(String testName) {
         super(testName);
     }
-    
 
-    
     @Test
     public void test() {
         helpTF(testName, getOptions());
     }
-
-    
-
 }

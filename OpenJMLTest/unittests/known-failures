@@ -139,7 +139,7 @@ escfileslist1.test[gitbug755]
 escfileslist2.test[gitbug759]
 escfileslist2.test[gitbug814]
 escfileslist2.test[gitbug814d]
-escfileslist2.test[listNullity]
+escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
 escfileslist3.test[textBlock4b]
@@ -171,13 +171,4 @@ primesc.rangeTest2
 primrac.rangeTest
 primrac.rangeTest1
 primrac.rangeTest2
-racfileslist.test[racHansStorage]
-racfileslist.test[racHansStorageA]
-racfileslist.test[racHansStorageB]
-racfileslist.test[racHansStorageC]
-racfileslist.test[racHansStorageD]
-racfileslist.test[racaddng]
-racfileslist.test[racaddng2]
-racfileslist.test[racaddngall]
-racfileslist.test[racaddngall2]
 runscripts.nowarn
