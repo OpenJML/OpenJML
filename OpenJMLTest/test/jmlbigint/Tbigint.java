@@ -27,7 +27,7 @@ public class Tbigint {
         //+RAC@ set System.out.println("END");
     }
     
-    public static void inits() {
+    /*@ pure */ public static void inits() {
         //@ ghost \bigint bint = (int)5;  check bint == 5; check bint == \bigint.of(5); check bint.intValue() == 5;
         //@ ghost \bigint bshort = (short)5;  check bshort == 5; check bshort == \bigint.of((short)5); check bshort.shortValue() == 5;
         //@ ghost \bigint blong = (long)5;  check blong == 5; check blong == \bigint.of(5L); check blong.longValue() == 5;
@@ -35,7 +35,7 @@ public class Tbigint {
         //@ ghost \bigint bchar = 'c'; check bchar == 'c'; check bchar == \bigint.of('c'); check bchar.charValue() == 'c';
     }
     
-    public static void misc(int c) {
+    /*@ pure */ public static void misc(int c) {
         //@ check \bigint.empty() == \bigint.zero;
         //@ check \bigint.zero + 1 == \bigint.one;
         //@ ghost \bigint a = 45;
@@ -53,14 +53,14 @@ public class Tbigint {
     }
         
 /*@
-    model public static void add(\bigint a, \bigint b) {
+    pure model public static void add(\bigint a, \bigint b) {
       var c = a + b;
       var d = c - a;
       assert d == b;
       check a + b == a.add(b);
       check a - b == a.subtract(b);
     }
-    model public static void neg(\bigint a) {
+    pure model public static void neg(\bigint a) {
       var c = -a;
       var d = -c;
       check d == a;
@@ -68,7 +68,7 @@ public class Tbigint {
       check -a == a.negate();
       check +a == a;
     }
-    model public static void convert(\bigint a) {
+    pure model public static void convert(\bigint a) {
       \bigint k = 42;
       check 42 == (int)k;
       check 42 == (long)k;
@@ -76,7 +76,7 @@ public class Tbigint {
       check 42 == (byte)k;
     }
     requires a != 0;
-    model public static void mul(\bigint a, \bigint b) {
+    pure model public static void mul(\bigint a, \bigint b) {
       check \bigint.zero == (\bigint)0;
       assert a != \bigint.zero;
       check a * b == a.multiply(b);
@@ -86,17 +86,17 @@ public class Tbigint {
       //+ESC@ show a, b, c, d;
       //-ESC@ check d == b;   // FIXME -- the counterexample is inaccurate -- cf Github Issue #870
     }
-    model public static void divzero() {
+    pure model public static void divzero() {
       var a = (\bigint)10;
       try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e); } // ERROR
       try { var c = a/0; } catch (Exception e) { System.out.println(e); } // ERROR
       try { var e = a % 0; } catch (Exception e) { System.out.println(e); } // ERROR
     }
-    model public static void divzero1() {
+    pure model public static void divzero1() {
       var a = (\bigint)10;
       var b = a/\bigint.zero; // ERROR
     }
-    model public static void divzero2() {
+    pure model public static void divzero2() {
       var a = (\bigint)10;
       var c = a/0; // ERROR
     }
@@ -106,9 +106,9 @@ public class Tbigint {
     }
     
     requires b != 0;
-    model public static void mod(int a, int b) { mod((\bigint)a, (\bigint)b); }
+    pure model public static void mod(int a, int b) { mod((\bigint)a, (\bigint)b); }
     requires b != 0;
-    model public static void mod(\bigint a, \bigint b) {
+    pure model public static void mod(\bigint a, \bigint b) {
       var c = a % b;
       var d = a / b;
       check a < 0 ==> c <= 0;
@@ -116,7 +116,7 @@ public class Tbigint {
       check a == b * d + c;
       check c == a.mod(b);
     }
-    model public static void shift(\bigint a) {
+    pure model public static void shift(\bigint a) {
       var c = a << 2;
       var d = c >> 2;
       check d == a;
@@ -135,7 +135,7 @@ public class Tbigint {
       check (c >> 4) == c.shiftRight(4);
       //-ESC@ check c << 1 == c*2;
     }
-    model public static void compare(\bigint a, \bigint b) {
+    pure model public static void compare(\bigint a, \bigint b) {
       check a < b <==> b > a;
       check a <= b <==> b >= a;
       check a <= b <==> (a < b | a == b);
@@ -148,7 +148,7 @@ public class Tbigint {
       check a != b == a.ne(b);
       check a == b == a.eq(b);
     }
-    model public static void bit(\bigint a, \bigint b) {
+    pure model public static void bit(\bigint a, \bigint b) {
 //-ESC@      check (a & b) == ~(~a | ~b);
        check ~a == -a-1;
        check ~a == a.comp();
@@ -157,7 +157,7 @@ public class Tbigint {
     }
 */
     @org.jmlspecs.annotation.Options("--escbv=auto")
-    public static void bitesc(int a, int b) {
+    /*@ pure */ public static void bitesc(int a, int b) {
       assert (a & b) == ~(~a | ~b);
     }
 

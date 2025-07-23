@@ -1,10 +1,8 @@
 public class TestRange {
     
     public static void main(String... args) {
-        //@ ghost \range r;
-        //@ check r.isEmpty();
         //@ check \range.empty().isEmpty();
-        //@ set r = \range.of(5,8);
+        //@ ghost var r = \range.of(5,8);
         //@ check r.lo <= r.hi+1;
         //@ check !r.hiIsExclusive;
         //@ check !r.isEmpty();

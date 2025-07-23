@@ -94,6 +94,12 @@ public class primrac extends RacBase {
         helpCompileRun("Tmap");
     }
     
+    @Test
+    public void jmlinit() {
+        expectedExit = 0;
+        helpCompileRun("Tinit");
+    }
+    
     // TODO: Review the remainder of these and incorporate them in the above as appropriate.
     
     @Test

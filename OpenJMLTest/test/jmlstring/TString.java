@@ -104,14 +104,6 @@ public class TString {
           //+RAC@ set System.out.println(e);
         }
     }
-
-    //@ ghost public static \string ssss;
-
-    //@ spec_pure
-    public static void test1() { // empty
-        //@ check ssss.isEmpty();
-        //@ check ssss.length() == 0;
-    }
     
     //@ spec_pure
     public static void test2() { // empty
@@ -222,7 +214,6 @@ public class TString {
     }
         
     public static void main(String... args) {
-//        test1();
         test2();
         test3();
         //@ set test4("A","BC");

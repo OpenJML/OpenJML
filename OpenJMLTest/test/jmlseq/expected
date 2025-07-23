@@ -170,10 +170,6 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:64: warning: Precondition conjunct is 
     //@   requires false;
                    ^
 Completed proof of TSeq.errors18() with prover !!!! - with warnings
-Starting proof of TSeq.test1() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TSeq.test1() with prover !!!! - no warnings
 Starting proof of TSeq.test2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

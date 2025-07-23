@@ -184,15 +184,6 @@ public class TSeq {
         }
     }
 
-    //@ ghost public static \seq<Object> q;
-
-    //@ spec_pure
-    public static void test1() { // empty
-        //@ check q.isEmpty();
-        //@ check q.length == 0;
-        //@ check q.length() == 0;
-    }
-    
     //@ spec_pure
     public static void test2() { // empty
         //@ ghost var s = \seq.<Object>empty();
@@ -312,7 +303,6 @@ public class TSeq {
     
     public static void main(String... args) {
         Object o = new Object();
-//        test1();
         test2();
         test3();
         //@ ghost var s1 = \seq.<Object>of(o,o);

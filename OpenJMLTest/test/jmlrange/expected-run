@@ -1,6 +1,8 @@
 OUT:
 LABEL JMLSHOW_1 = (5..8)
 LABEL JMLSHOW_2 = (5..9)
-java.lang.UnsupportedOperationException
+test/jmlrange/TestRange.java:28: verify: JML assertion is false
+            //@ check r1.equals(null);
+                ^
 
 ERR:

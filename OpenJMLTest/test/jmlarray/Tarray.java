@@ -1,12 +1,56 @@
 public class Tarray {
 
-    //@ ghost public static \array<Object> q ; // = \array.<Object>empty();
-
-    //@ spec_pure
-    public static void test1() { // empty
-        //@ check q.length == \bigint.zero;
+    public static void errors1() {
+        Object oo = new Object();
+        Object[] a = new Object[5];
+        //@ ghost var s = \array.<Object>of(a);
+        try {
+            //@ ghost var o = s.get(-1);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            //-ESC@ set System.out.println(e);
+        }
     }
-    
+    public static void errors2() {
+        Object oo = new Object();
+        Object[] a = new Object[5];
+        //@ ghost var s = \array.<Object>of(a);
+        try {
+            //@ ghost var o = s.get(5);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            //-ESC@ set System.out.println(e);
+        }
+    }
+    public static void errors3() {
+        Object oo = new Object();
+        Object[] a = new Object[5];
+        //@ ghost var s = \array.<Object>of(a);
+        try {
+            //@ ghost var o = s.put(-1, oo);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            //-ESC@ set System.out.println(e);
+        }
+    }
+    public static void errors4() {
+        Object oo = new Object();
+        Object[] a = new Object[5];
+        //@ ghost var s = \array.<Object>of(a);
+        try {
+            //@ ghost var o = s.put(5, oo);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            //-ESC@ set System.out.println(e);
+        }
+    }
+    public static void errors5() {
+        Object[] a = new Object[5];
+        //@ ghost var s = \array.<Object>of(a);
+        try {
+            Object o = new Object();
+            //@ assert s.equals(o);
+        } catch (Exception e) {
+            //-ESC@ set System.out.println(e);
+        }
+    }
+
     //@ spec_pure
     public static void test2() { // empty
         //@ ghost var s = \array.<Object>empty();
@@ -112,61 +156,9 @@ public class Tarray {
         //@ check \array.<Object>empty().ne(s1);
         //@ check \array.<Object>empty().eq(\array.<Object>empty());
     }
-    
-    public static void errors1() {
-        Object oo = new Object();
-        Object[] a = new Object[5];
-        //@ ghost var s = \array.<Object>of(a);
-        try {
-            //@ ghost var o = s.get(-1);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            //-ESC@ set System.out.println(e);
-        }
-    }
-    public static void errors2() {
-        Object oo = new Object();
-        Object[] a = new Object[5];
-        //@ ghost var s = \array.<Object>of(a);
-        try {
-            //@ ghost var o = s.get(5);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            //-ESC@ set System.out.println(e);
-        }
-    }
-    public static void errors3() {
-        Object oo = new Object();
-        Object[] a = new Object[5];
-        //@ ghost var s = \array.<Object>of(a);
-        try {
-            //@ ghost var o = s.put(-1, oo);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            //-ESC@ set System.out.println(e);
-        }
-    }
-    public static void errors4() {
-        Object oo = new Object();
-        Object[] a = new Object[5];
-        //@ ghost var s = \array.<Object>of(a);
-        try {
-            //@ ghost var o = s.put(5, oo);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            //-ESC@ set System.out.println(e);
-        }
-    }
-    public static void errors5() {
-        Object[] a = new Object[5];
-        //@ ghost var s = \array.<Object>of(a);
-        try {
-            Object o = new Object();
-            //@ assert s.equals(o);
-        } catch (Exception e) {
-            //-ESC@ set System.out.println(e);
-        }
-    }
-    
+        
     public static void main(String... args) {
         //-ESC@ set System.out.println("START");
-        test1();
         test2();
         test3();
         test5();

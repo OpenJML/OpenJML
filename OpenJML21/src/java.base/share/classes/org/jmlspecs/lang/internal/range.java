@@ -53,10 +53,14 @@ public class range implements IJmlPrimitiveType {
     @Override
     public String toString() { return "(" + lo + ".." + hi + ")"; }
     
+    public boolean equals(range r) {
+        return eq(r);
+    }
+
     /** Object.equals is not supported on JML primitive types -- use == or eq() instead */
     @Override
     public boolean equals(Object o) {
-        throw new UnsupportedOperationException();
+        return o instanceof range r && eq(r);
     }
     
     private range toHiEx() {

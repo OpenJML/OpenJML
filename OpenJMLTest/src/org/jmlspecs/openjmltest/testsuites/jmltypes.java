@@ -53,7 +53,7 @@ public class jmltypes extends TCBase {
                 "import java.util.Vector; public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost \\TYPE t;\n" + // initialized with some arbitrary v alue
+                "  //@ ghost \\TYPE t;\n" + // not initialilzed
                 "  //@ ghost \\TYPE tt = \\type(Object);\n" +
                 "  //@ set tt = \\type(int);\n" +
                 "  //@ set tt = \\type(Vector<Integer>);\n" +
@@ -65,7 +65,7 @@ public class jmltypes extends TCBase {
                 "  //@ set b = tt <:= ttt;\n" +
                 " }\n" +
                 "}\n"
-                //,"/A.java:11: error: variable t might not have been initialized",27
+                ,"/A.java:11: error: variable t might not have been initialized",27
                 );
     }
 
