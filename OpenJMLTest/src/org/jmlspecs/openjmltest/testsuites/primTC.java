@@ -675,6 +675,41 @@ public class primTC extends TCBase {
         );
     }
 
+    @Test public void jmldatagroup() {
+        helpTC(
+        """
+        class A {
+          //@ public model \\datagroup d; // OK
+          //@ public ghost \\datagroup dd = d; // ERROR - initialization not permitted
+            void m() {
+              //@ ghost \\datagroup da; // ERROR - local \\datagroup declarations not allowed
+              //@ set mmm(d); // ERROR
+              //@ set d = d; // ERROR
+              //@ set d += d; // ERROR
+              //@ ghost \\set<\\datagroup> ss; // ERROR
+              Object o;
+              //@ ghost Object oo = (\\datagroup)o;
+            }
+
+            //@ model void mm(\\datagroup d);  // ERRORS - no formal \\datagroup arguments
+            //@ model \\datagroup mr();  // ERRORS - no \\datagroup return type
+
+            //@ model void mmm(Object o) {}
+        }
+        """
+        ,"/TEST.java:3: error: \\datagroup declarations may not have initializers", 31
+        ,"/TEST.java:5: error: \\datagroup declarations are not permitted as local or formal declarations", 28
+        ,"/TEST.java:6: error: incompatible types: \\datagroup cannot be converted to java.lang.Object", 19
+        ,"/TEST.java:7: error: \\datagroup fields may not be assigned", 17
+        ,"/TEST.java:8: error: No operator for \\datagroup + \\datagroup", 17
+        ,"/TEST.java:8: error: \\datagroup fields may not be assigned", 17
+        ,"/TEST.java:9: error: \\datatype is not allowed as a type argument", 21
+        ,"/TEST.java:11: error: A java.lang.Object may not be cast to a \\datagroup", 41
+        ,"/TEST.java:14: error: \\datagroup declarations are not permitted as local or formal declarations", 34
+        ,"/TEST.java:15: error: a method return type may not be \\datagroup", 26
+        );
+    }
+    
 
 
     // TODO: Review the following

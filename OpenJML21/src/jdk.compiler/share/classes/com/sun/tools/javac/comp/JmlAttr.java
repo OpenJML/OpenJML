@@ -800,6 +800,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitAssign(JCAssign tree) {
         super.visitAssign(tree);
+        if (tree.toString().contains("datagroup")) System.out.println("DG " + tree + " " + tree.lhs.type);
         if (jmlenv.inPureEnvironment) {
             // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
@@ -809,6 +810,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            System.out.println(tree.rhs + " " + tree.rhs.type + " " + tree.rhs.getClass() + " " + jmltypes.isJmlType(tree.rhs.type) + " " + tree.lhs.type + " " + !jmltypes.isJmlType(tree.lhs.type));
 //            System.out.println(tree.rhs.type.isReference() + " " + jmltypes().isSubtype(ct, interfaceForPrimitiveTypes()));
             utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
+        }
+        if (tree.lhs.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+            utils.error(tree, "jml.message", "\\datagroup fields may not be assigned");
         }
         // FIXME
 //        if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
@@ -890,6 +894,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
+        }
+        if (tree.lhs.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+            utils.error(tree, "jml.message", "\\datagroup fields may not be assigned");
         }
         // FIXME - fix the test here - cannot reference org.jmlspecs.lang directly in the JDK compiler code
         //if (tree.lhs instanceof JCArrayAccess && ((JCArrayAccess)tree.lhs).indexed.type instanceof org.jmlspecs.lang.IJmlArrayLike) {
@@ -6501,7 +6508,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return true;
     }
 
-    
+    @Override
+    public void visitTypeParameter(JCTypeParameter tree) {
+        super.visitTypeParameter(tree);
+    }
 //    @Override
 //    public void visitTypeArray(JCArrayTypeTree tree) {
 //        super.visitTypeArray(tree);
@@ -6524,20 +6534,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = tree.type;
 //    }
     
-//    @Override
-//    public void visitTypeApply(JCTypeApply tree) {
-//        if (tree.clazz instanceof JCIdent id) {
-//            IJmlClauseKind ck = Extensions.findKeyword(id.name);
-//            if (ck instanceof JmlTypeKind jtk) {
-//                Name saved = id.name;
-//                id.name = jtk.name;
-//                super.visitTypeApply(tree);
-//                id.name = saved;
-//                return;
-//            }
-//        }
-//        super.visitTypeApply(tree);
-//    }
+    @Override
+    public void visitTypeApply(JCTypeApply tree) {
+        super.visitTypeApply(tree);
+        for (var a: tree.arguments) {
+            var t = a.type;
+            if (a instanceof JCAnnotatedType an) t = an.underlyingType.type;
+            if (t.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(tree, "jml.message", "\\datatype is not allowed as a type argument");
+            }            
+        }
+    }
         
     /** Attributes an array-element-range (a[1 .. 2]) store-ref expression */
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
@@ -7749,6 +7756,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
         try {
             visitMethodDef(that);
+            if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(that, "jml.message", "a method return type may not be \\datagroup");
+            }
         } catch (PropagatedException e) {
             throw e;
         } catch (Exception e) {
@@ -7987,6 +7997,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JmlPrimitiveTypes.stringTypeKind.typecheck(this, that, env);
                 }
             }
+            if (that.sym.owner.kind == Kinds.Kind.MTH && that.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(that, "jml.message", "\\datagroup declarations are not permitted as local or formal declarations");
+            } else if (that.init != null && that.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(that, "jml.message", "\\datagroup declarations may not have initializers");
+            }
+
             if (that.init != null && !utils.isJML(that.mods.flags)) {
                 Object v = that.sym.getConstValue();
                 JCExpression initExpr = that.init;
