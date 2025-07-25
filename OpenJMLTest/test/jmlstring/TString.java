@@ -120,7 +120,7 @@ public class TString {
         //@ check s == \string.of("ABC");
     }
 
-    /*@
+    /*-RAC@  // FIXME - reimplement this for RAC -- but it seems RAC needs length() but ESC prefers length
     //@ public normal_behavior
     //@   requires \invariant_for(s1) && \invariant_for(s2);
     //@ spec_pure
@@ -218,8 +218,8 @@ public class TString {
     public static void main(String... args) {
         test2();
         test3();
-        //@ set test4("A","BC");
-        //@ set test4("",\string.empty());
+        //-RAC@ set test4("A","BC");
+        //-RAC@ set test4("",\string.empty());
         test5();
         test6();
         test7();
