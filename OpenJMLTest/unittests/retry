@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cat known-failures  | sed -e '/^\#/d' | awk '{print$1}' | sort > known-failures-sorted
+cat known-failures  | sed -e '/^\#/d' | awk '{print $1}' | sort > known-failures-sorted
 newfailures=`grep FAILED log-*  | sed -e 's/.*testsuites[.]//' | sort | comm -13 known-failures-sorted -`
 newsuccesses=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | sort | comm -23 known-failures-sorted -`
 rm known-failures-sorted
