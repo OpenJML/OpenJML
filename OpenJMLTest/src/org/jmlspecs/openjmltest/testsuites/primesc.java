@@ -96,26 +96,6 @@ public class primesc extends EscBaseFiles {
     // TODO: Review the following and incorporate them with the above, as appropriate.
     
     @Test
-    public void rangeTest() {
-        helpTG();
-    }
-
-    @Test
-    public void rangeTest1() {
-        helpTG();
-    }
-
-    @Test
-    public void rangeTest2() {
-        helpTG();
-    }
-
-    @Test
-    public void valuetypes() {
-        helpTG();
-    }
-
-    @Test
     public void locsetTests2() {
         helpTG();
     }

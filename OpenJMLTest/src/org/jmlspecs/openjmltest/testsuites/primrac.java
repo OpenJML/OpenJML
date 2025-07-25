@@ -61,7 +61,7 @@ public class primrac extends RacBase {
     @Test
     public void jmlrange() {
         expectedExit = 0;
-        helpCompileRun("TestRange");
+        helpCompileRun("Trange");
     }
     
     @Test
@@ -121,23 +121,6 @@ public class primrac extends RacBase {
         helpTCF("test/valuestrings","test/valuestrings","JMLStringTest");
     }
 
-    @Test
-    public void rangeTest() {
-        helpCompileRun("test/rangeTest","test/rangeTest","R");
-    }
-    
-    @Test
-    public void rangeTest1() {
-        expectedExit=1;
-        helpCompileOnly();
-    }
-    
-    @Test
-    public void rangeTest2() {
-        expectedExit=1;
-        helpCompileOnly();
-    }
-    
 
 
 }

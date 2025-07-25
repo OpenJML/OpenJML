@@ -94,6 +94,17 @@
         }
     }
     
+    public static class Axioms {  // FIXME - run these with RAC?
+        //@ ensures ! \map.<K,V>empty().has(k) ;
+        //@ model public static <K,V> void newMapIsEmpty(K k) {}
+        
+        //@ ensures s.put(k,v).get(k) == v;
+        //@ model public static <K,V> void putGet(\map<K,V> s, K k, V v) {}
+        
+        //@ ensures k != kk && s.has(kk) ==> s.put(k,v).get(kk) == s.get(kk);
+        //@ model public static <K,V> void putGet2(\map<K,V> s, K k, V v, K kk) {}
+    }
+    
     public static void main(String... args) {
         test2();
         test3();

@@ -206,6 +206,44 @@ Starting proof of TSeq.test9() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSeq.test9() with prover !!!! - no warnings
+Proving methods in TSeq.Axioms
+Starting proof of TSeq.Axioms.Axioms() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.Axioms() with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>newSeqIsEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>newSeqIsEmpty() with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>appendBumpsSize(\seq<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>appendBumpsSize(\seq<T>,T) with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>appendBumpsSize1(\seq<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>appendBumpsSize1(\seq<T>,T) with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>insertBumpsSize2(\seq<T>,T,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>insertBumpsSize2(\seq<T>,T,\bigint) with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>removeLowersLength(\seq<T>,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>removeLowersLength(\seq<T>,int) with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>insertRemove(\seq<T>,T,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>insertRemove(\seq<T>,T,\bigint) with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>appendNotEqual(\seq<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>appendNotEqual(\seq<T>,T) with prover !!!! - no warnings
+Starting proof of TSeq.Axioms.<T>insertNotEqual1(\seq<T>,T,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSeq.Axioms.<T>insertNotEqual1(\seq<T>,T,\bigint) with prover !!!! - no warnings
+Completed proving methods in TSeq.Axioms
 Starting proof of TSeq.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
