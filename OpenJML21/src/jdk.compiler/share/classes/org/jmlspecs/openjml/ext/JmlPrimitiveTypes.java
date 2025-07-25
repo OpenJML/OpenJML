@@ -432,6 +432,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public void initOps() {
             // intentionally no operations, not even ==
         }
+        
     };
 
     public static final String rangeID = "\\range";
