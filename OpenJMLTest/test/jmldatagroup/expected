@@ -15,5 +15,9 @@ test/jmldatagroup/Tdatagroup.java:13: warning: Associated declaration
     //@ assigns m;
         ^
 Completed proof of Tdatagroup.qbad() with prover !!!! - with warnings
+Starting proof of Tdatagroup.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tdatagroup.main(String...) with prover !!!! - no warnings
 Completed proving methods in Tdatagroup
 2 warnings

@@ -14,4 +14,8 @@ public class Tdatagroup {
     public void qbad() {
         j = 0; // ERROR
     }
+    
+    public static void main(String ... args) {
+        new Tdatagroup().q(); new Tdatagroup().qbad();
+    }
 }

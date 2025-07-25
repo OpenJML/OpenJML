@@ -59,6 +59,12 @@ public class primrac extends RacBase {
     }
 
     @Test
+    public void jmldatagroup() {
+        expectedExit = 0;
+        helpCompileRun("Tdatagroup");
+    }
+    
+    @Test
     public void jmlrange() {
         expectedExit = 0;
         helpCompileRun("Trange");

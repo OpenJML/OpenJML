@@ -52,6 +52,11 @@ public class primesc extends EscBaseFiles {
     }
     
     @Test
+    public void jmldatagroup() {
+        helpTG();
+    }
+    
+    @Test
     public void jmlreal() {
         helpTG();
     }
