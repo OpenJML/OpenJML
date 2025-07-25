@@ -1,7 +1,0 @@
-test/rangeTest1/R.java:4: error: Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed
-    //@ assert 2 .. 3 == 2 .. 3; // Parsing precedence error
-                           ^
-test/rangeTest1/R.java:4: error: Incorrectly formed or terminated assert statement near here
-    //@ assert 2 .. 3 == 2 .. 3; // Parsing precedence error
-                           ^
-2 errors
