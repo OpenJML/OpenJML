@@ -51,6 +51,11 @@ public class map<K,V> implements IJmlPrimitiveType, IJmlArrayLike {
         return new map<K,V>(c);
     }
     
+    /** Returns the domain of the map (the set of all keys)*/
+    public set<K> keys() {
+        return set.<K>of(this.value.keySet());
+    }
+    
     /** Returns true iff the receiver and argument have all the same mappings */
     public boolean eq(map<K,V> m) { return value.equals(m.value); }
     

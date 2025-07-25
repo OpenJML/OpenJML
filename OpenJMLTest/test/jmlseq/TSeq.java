@@ -299,6 +299,61 @@ public class TSeq {
         //@ check s4.ne(s1);
         //@ check s1.hashCode() == s2.hashCode();
     }
+    
+    public static class Axioms {
+
+        //@ ensures \seq.<T>empty().isEmpty();
+        //@ ensures \seq.<T>empty().length == 0;
+        //@ model public static <T> void newSeqIsEmpty() {}
+        
+        //@ ensures s.append(k).length == 1 + s.length;
+        //@ model public static <T> void appendBumpsSize(\seq<T> s, T k) {}
+        
+        //@ ensures s.append(k).length() == 1 + s.length();
+        //@ model public static <T> void appendBumpsSize1(\seq<T> s, T k) {}
+        
+        //@ requires 0 <= i <= s.length();
+        //@ ensures s.insert(i,k).length() == 1 + s.length();
+        //@ model public static <T> void insertBumpsSize2(\seq<T> s, T k, \bigint i) {}
+        
+        //@ requires 0 <= k < s.length();
+        //@ ensures s.remove(k).length() == s.length() - 1;
+        //@ model public static <T> void removeLowersLength(\seq<T> s, int k) { show s.length(), k; }
+        
+        //@ public normal_behavior
+        //@   requires 0 <= i <= s.length();
+        //@   ensures s.insert(i,t).remove(i).equals(s);
+        //@ model public static <T> void insertRemove(\seq<T> s, T t, \bigint i) {}
+        
+        //@ public normal_behavior
+        //@   ensures !s.append(t).equals(s);
+        //@ model public static <T> void appendNotEqual(\seq<T> s, T t) {}
+        
+        //@ public normal_behavior
+        //@   requires 0 <= i <= s.length();
+        //@   ensures !s.insert(i,t).equals(s);
+        //@ model public static <T> void insertNotEqual1(\seq<T> s, T t, \bigint i) {}
+    }
+    
+  //class SeqTest { // FIXME - do something with these?
+//  
+//  
+//  //@ requires s.size() > 100;
+//  /*@ model public void m(\seq<\bigint> s) {
+//      //@ ghost \bigint b1 = s.get(0);
+//      //@ ghost \bigint b2 = s.get(0);
+//      //@ assert b1 == b2;
+//  }*/
+//  
+//  //@ requires s.size() > 100;
+//  /*@ model public void mm(\seq<long> s) {
+//      //@ ghost long b1 = s.get(0);
+//      //@ ghost long b2 = s.get(0);
+//      //@ assert b1 == b2;
+//  }*/
+//  
+//
+//}
 
     
     public static void main(String... args) {

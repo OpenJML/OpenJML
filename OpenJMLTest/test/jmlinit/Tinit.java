@@ -35,5 +35,6 @@ public class Tinit {
         //@ check zset.isEmpty();
         //@ check zmap.isEmpty();
         //@ check zrange.isEmpty();
+        TinitFinal.main(args);
     }
 }

@@ -313,7 +313,11 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun "+rangelo+" ("+rangeTypeName+") Int)");
         addCommand(smt,"(declare-fun "+rangehi+" ("+rangeTypeName+") Int)");
         addCommand(smt,"(declare-fun "+rangeex+" ("+rangeTypeName+") Bool)");
-        addCommand(smt,"(define-fun "+rangeeq+" (( p "+rangeTypeName+") (q "+rangeTypeName+")) "+boolSort+" (and (= ("+rangelo+" p) ("+rangelo+" q)) (= ("+rangehi+" p) ("+rangehi+" q))))");
+        addCommand(smt,"(define-fun "+rangeeq+" (( p "+rangeTypeName+") (q "+rangeTypeName+")) "+boolSort+" (or "
+                + "(and (= ("+rangeex+" p) ("+rangeex+" q)) (= ("+rangelo+" p) ("+rangelo+" q)) (= ("+rangehi+" p) ("+rangehi+" q)))"
+                + "(and ("+rangeex+" p) (not ("+rangeex+" q)) (= ("+rangelo+" p) ("+rangelo+" q)) (= ("+rangehi+" p) (+ 1 ("+rangehi+" q))))"
+                + "(and (not ("+rangeex+" p)) ("+rangeex+" q) (= ("+rangelo+" p) ("+rangelo+" q)) (= (+ 1 ("+rangehi+" p)) ("+rangehi+" q)))"
+                + "))");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= i ("+rangelo+" ("+rangefcn+" i j))))) ");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (= j ("+rangehi+" ("+rangefcn+" i j))))) ");
         addCommand(smt,"(assert (forall ((i Int)(j Int)) (not ("+rangeex+" ("+rangefcn+" i j))))) ");
@@ -1560,7 +1564,19 @@ public class SMTTranslator extends JmlTreeScanner {
                             JCExpression nm = mcall.meth;
                             JCExpression rhs = ((JCTree.JCBinary)ex).rhs;
                             addFunctionDefinition(nm.toString(),mcall.args,rhs);
+                        } else if (s.label == Label.ASSIGNMENT && (s.expression instanceof JCBinary bin)) {
+                            // This is an assumption that lhs == rhs because of an assignment.
+                            // It is translated as an identiity equality
+                            var lhs = convertExpr(bin.lhs);
+                            var rhs = convertExpr(bin.rhs);
+                            IExpr exx = F.fcn(eqSym, lhs, rhs);
+                            ISymbol newsym = F.symbol(blockid + "__A" + (++count));
+                            commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
+                            stack.push(newsym);
                         } else {
+                            // This is an assumption of an arbitrary expression. It is a binary equality it
+                            // may be translated to use an equality comparison appropriate to the types of the arguments.
+                            // For example |`range:eq| for \range arguments.
                             IExpr exx = convertExpr(s.expression);
                             ISymbol newsym = F.symbol(blockid + "__A" + (++count));
                             commands.add(new C_define_fun(newsym,new LinkedList<IDeclaration>(),boolSort,exx));
@@ -2221,14 +2237,14 @@ public class SMTTranslator extends JmlTreeScanner {
         args.add(rhs);
         switch (op) {
             case EQ:
-                if (tree.lhs.type.toString().equals("\\range")) { // FIXME - do better than a string match
+                if (tree.lhs.type.tsym == RANGE) {
                     result = F.fcn(F.symbol(rangeeq), args);
                 } else {
                     result = F.fcn(eqSym, args);
                 }
                 break;
             case NE:
-                if (tree.lhs.type.toString().equals("\\range")) {// FIXME - do better than a string match
+                if (tree.lhs.type.tsym == RANGE) {
                     result = F.fcn(notSym,F.fcn(F.symbol(rangeeq), args));
                 } else {
                     result = F.fcn(distinctSym, args);

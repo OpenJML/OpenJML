@@ -28,11 +28,15 @@ public abstract class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
 
     static public <X> set<X> of(X e, X ee, X eee) { return set.<X>empty().add(e).add(ee).add(eee); }
 
+    static protected <X> set<X> of(java.util.Collection<X> s) { return set.<X>proto().from(s); }
+
     abstract public bigint size();
 
     @SuppressWarnings("unchecked")
     abstract protected set<T> from(T ... data);
     
+    abstract protected set<T> from(java.util.Collection<T> data);
+
     abstract public boolean contains(T x);
 
     abstract public boolean isEmpty();
@@ -98,6 +102,10 @@ public abstract class set<T> implements IJmlPrimitiveType, IJmlArrayLike {
             var s = new UsingHashSet<T>();
             for (var i: data) s.value.add(i);
             return s;
+        }
+        
+        public set<T> from(java.util.Collection<T> data) {
+            return new UsingHashSet<T>(new HashSet<T>(data));
         }
         
         @Override

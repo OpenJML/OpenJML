@@ -2578,9 +2578,12 @@ public class esc1 extends EscBase {
                 ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst3a",43
                 ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Postcondition) in method inst3b",34
                 ,"/tt/TestJava.java:12: warning: Associated declaration",9
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst3c",43
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Postcondition) in method inst3c",34
-                ,"/tt/TestJava.java:14: warning: Associated declaration",9
+                ,anyorder(
+                    seq("/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst3c",43)
+                    ,seq(
+                            "/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Postcondition) in method inst3c",34
+                            ,"/tt/TestJava.java:14: warning: Associated declaration",9
+                    ))
                 ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (PossiblyLargeShift) in method inst4",42
                 ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method inst5",37
                 );

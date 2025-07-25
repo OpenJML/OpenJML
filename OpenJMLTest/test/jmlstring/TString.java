@@ -122,12 +122,14 @@ public class TString {
 
     /*@
     //@ public normal_behavior
-    //@   requires true;
+    //@   requires \invariant_for(s1) && \invariant_for(s2);
     //@ spec_pure
     model public static void test4(\string s1, \string s2) { // append, head, tail
+        //@ check s1.length >= 0 && s2.length >= 0;
         //@ ghost \string s = s1.append(s2);
-        //@ check s.length() == s1.length() + s2.length();
-        //@ check s.substring(0,s1.length()) == s1;
+        //@ check s.length == s1.length + s2.length;
+        //@ check s.length >= s1.length;
+        //@ check s.substring(0,s1.length) == s1;
         //@ check s.substring(s1.length()) == s2;
         //@ check !s.isEmpty() ==> s.head(s1.length()) == s1;
         //@ check !s.isEmpty() ==> s.tail(s1.length()) == s2;

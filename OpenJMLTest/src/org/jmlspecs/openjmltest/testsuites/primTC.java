@@ -639,6 +639,27 @@ public class primTC extends TCBase {
         ,"/TEST.java:5: error: variable a might not have been initialized", 31
         );
     }
+    
+    @Test public void jmlrangeFinal() {
+        helpTC(
+        """
+          class A {
+          //@ ghost public static \\range r = 2 .. 3 ;
+
+          //@ writes a[r];
+          void m(int[] a) {
+            //@ set var rr = r;
+            //@ set var k = r.lo;
+            //@ set r.lo = 5;
+          }
+        }
+        """
+        ,"/TEST.java:4: error: Index ranges are implemented only for explicit range expressions (using ..)", 16
+        ,"/TEST.java:8: error: cannot assign a value to final variable lo", 14
+        ,"/TEST.java:8: error: Fields of an object with immutable type may not be modified: r.lo (\\range)", 18
+        ,"$SPECS/org/jmlspecs/lang/internal/range.jml:4: error: Associated declaration: /TEST.java:8:", 5
+        );
+    }
 
 
 

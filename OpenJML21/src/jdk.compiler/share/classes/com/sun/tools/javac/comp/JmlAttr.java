@@ -7093,7 +7093,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // FIXME - check when this happens - is it because we have not attributed the relevant class (and we should) or just because there are no specs
             return false;
         }
-        return utils.findModifier(mspecs.mods,Modifiers.NO_STATE) != null;
+        var token = specs.determinePurity(symbol);
+        return token != null && token.jmlclausekind == Modifiers.NO_STATE;
     }
     
     public boolean isImmutable(ClassSymbol symbol) {
