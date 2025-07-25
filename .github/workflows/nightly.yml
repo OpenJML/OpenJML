@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os: [ ubuntu-22.04, macos-13 ]
+        os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
     steps:
