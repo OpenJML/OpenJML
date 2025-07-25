@@ -227,26 +227,19 @@ public abstract class RacBase extends JmlTestSuite {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
-                	//out.println("ERR-ACT: " + actual);
-                	if (i < list.length) {
-                		String expected = list[i].toString();
-                		expected = expected.replace("#DEMO", OpenJMLDemoPath);
-                		//out.println("ERR-EXP: " + expected);
+                    //out.println("ERR-ACT: " + actual);
+                    if (i < list.length) {
+                        String expected = list[i].toString();
+                        expected = expected.replace("#DEMO", OpenJMLDemoPath);
+                        //out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
-                		//out.println("ERR-EXP: " + expected);
-//                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
-//                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
-//                		if (!actual.matches(".*:[0-9]+:$")) 
-//                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
-                		//out.println("ERR-EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
-                		//out.println("ERR-EXP: " + expected);
+                        //out.println("ERR-EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
-                	}
+                    }
                     i++;
                 }
-                if (isMac && i < list.length && list[i].equals(macstring)) i++;
             }
 
             if (i != list.length && !print) { // if print, then we already printed

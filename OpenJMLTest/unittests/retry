@@ -6,7 +6,7 @@ newsuccesses=`grep FAILED log-* | sed -e 's/.*testsuites[.]//' | sort | comm -23
 rm known-failures-sorted
 echo Unexpected successes: $newsuccesses
 echo Unexpected failures: $newfailures
-if [ "$1" == "-show" ]; then exit 0; fi
+if [ "$1" != "-run" ]; then echo "Use 'retry -run' to retry unexpectedly failing tests"; exit 0; fi
 
 ERR=0
 for t in $newfailures ; do
