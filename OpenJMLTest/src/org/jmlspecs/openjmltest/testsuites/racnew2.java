@@ -1593,7 +1593,6 @@ public class racnew2 extends RacBase {
                     ,"java.lang.ExceptionInInitializerError"
                     ,"Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"tt.A.ii\" is null"
                     ,"\tat tt.A.<clinit>(A.java:13)"
-                    ,"Exception in thread \"main\" "
                 );
     }
 
