@@ -660,6 +660,20 @@ public class primTC extends TCBase {
         ,"$SPECS/org/jmlspecs/lang/internal/range.jml:4: error: Associated declaration: /TEST.java:8:", 5
         );
     }
+    
+    @Test public void jmlrangeParse() {
+        helpTC(
+        """
+        public class R {
+          void m() {
+            //@ assert 2 .. 3 == 2 .. 3; // Parsing precedence error
+          }
+        }
+        """
+        ,"/TEST.java:3: error: Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed",28
+        ,"/TEST.java:3: error: Incorrectly formed or terminated assert statement near here",28
+        );
+    }
 
 
 

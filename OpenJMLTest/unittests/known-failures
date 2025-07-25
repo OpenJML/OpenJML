@@ -166,3 +166,8 @@ racfiles.gitbug869
 racfiles.rac1
 racfiles.racbug1
 runscripts.nowarn
+generics.testBinaryGeneric3c
+escfiles.sfbug420e
+escfileslist2.test[gitbug876]
+escfileslist2.test[gitbug878]
+escfileslist2.test[gitbug880]
