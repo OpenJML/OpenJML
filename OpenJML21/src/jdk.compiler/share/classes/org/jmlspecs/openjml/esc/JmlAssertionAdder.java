@@ -17086,7 +17086,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} else {
 					// \TYPE <:/<:= \TYPE
 					if (rac) {
-					    String method = that.op.keyword() == subtypeofeqID ? "isSubtypeOf" : "isSubtypeOfProper";
+					    String method = that.op.keyword() == subtypeofeqID ? "isSubtypeOf" : "isProperSubtypeOf";
 						JCExpression c = makeMethodInvocation(that, lhs, names.fromString(method), rhs);
 						eresult = splitExpressions ? newTemp(c) : c;
 					} else {
@@ -19316,21 +19316,45 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg", arg1);
                 } else {
                     result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, arg0, arg1);
-                    var t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit); // FIXME - is this needed?
-                    addAssume(t, Label.IMPLICIT_ASSUME, t);
+                    //var t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit); // FIXME - is this needed?
+                    //addAssume(t, Label.IMPLICIT_ASSUME, t);
                 }
                 break;
             }
 
-            case typearg0ID: {
+            case typearg1ID: {
                 JCExpression arg0 = convertExpr(that.args.get(0));
                 // FIXME - check that there is an argument
                 if (rac) {
-                    result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg0");
+                    result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg1");
                 } else {
-                    result = eresult = treeutils.makeJmlMethodInvocation(that, typearg0Kind, that.type, arg0);
-                    var t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit); // FIXME - is this needed?
-                    addAssume(t, Label.IMPLICIT_ASSUME, t);
+                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, arg0);
+                    //var t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit); // FIXME - is this needed?
+                    //addAssume(t, Label.IMPLICIT_ASSUME, t);
+                }
+                break;
+            }
+
+            case typearg2ID: {
+                JCExpression arg0 = convertExpr(that.args.get(0));
+                // FIXME - check that there is an argument
+                if (rac) {
+                    result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg2");
+                } else {
+                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, arg0);
+                    //var t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit); // FIXME - is this needed?
+                    //addAssume(t, Label.IMPLICIT_ASSUME, t);
+                }
+                break;
+            }
+
+            case typearg3ID: {
+                JCExpression arg0 = convertExpr(that.args.get(0));
+                // FIXME - check that there is an argument
+                if (rac) {
+                    result = eresult = treeutils.makeMethodInvocation(that, arg0, "typearg3");
+                } else {
+                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, arg0);
                 }
                 break;
             }
@@ -19342,19 +19366,38 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = eresult = treeutils.makeMethodInvocation(that, t, "typeargs");
                 } else {
                     result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, t);
-                    t = treeutils.makeNeqObject(eresult.pos, eresult, treeutils.nullLit); // FIXME - is this needed?
-                    addAssume(t, Label.IMPLICIT_ASSUME, t);
                 }
                 break;
             }
 
             case TYPEofID: {
-                var args = convertExprList(that.args);
+                // FIXME  check for non-nullity?
                 if (rac) {
+                    var args = convertExprList(that.args);
                     var argsArray = args.toArray(new JCExpression[args.size()]);
                     result = eresult = treeutils.makeMethodInvocation(that, treeutils.makeType(that, TYPE), names.of, argsArray);
                } else {
-                    result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, args);
+                    int nargs = that.args.size();
+                    var arg0 = convertExpr(that.args.get(0));
+                    if (nargs == 1) {
+                        result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, List.<JCExpression>of(arg0));
+                    } else {
+                        var newargs = new ListBuffer<JCExpression>();
+                        newargs.add(arg0);
+                        //System.out.println("JAA - TYPEOF - ARRAY " + that.args.get(1).type + " " + that.args.get(1).getClass());
+                        //if (that.args.get(1).type.isArrayType()) {
+                        if (false ) {
+                            //System.out.println("JAA - TYPEOF - ARRAY " + that);
+                         //   Type[] ar = that.args.get(1);
+                            //for (int i = 1; i<nargs; i++) newargs.add(convertExpr(ar[i-1]));
+                            
+                        } else {
+                            //System.out.println("JAA - TYPEOF - LIST " + that);
+                            for (int i = 1; i<nargs; i++) newargs.add(convertExpr(that.args.get(i)));
+                        }
+                        result = eresult = treeutils.makeJmlMethodInvocation(that, that.kind, that.type, newargs.toList());
+                        //System.out.println("JAA_RES " + eresult);
+                    }
                 }
                 break;
             }

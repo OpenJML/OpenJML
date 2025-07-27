@@ -510,11 +510,19 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
     protected void appendAnnotationsString(StringBuilder sb) {
         appendAnnotationsString(sb, false);
     }
+    
+    public String jmlrep() { // OPENJML - in order to render backslash type names in JML form instead of the Java class used to implement them
+        return org.jmlspecs.openjml.ext.JmlPrimitiveTypes.jmlName(this.tsym);
+    }
 
     /** The Java source which this type represents.
      */
     @DefinedBy(Api.LANGUAGE_MODEL)
     public String toString() {
+        var jmlrep = this.jmlrep();
+        if (jmlrep != null) {
+            return jmlrep;
+        }
         StringBuilder sb = new StringBuilder();
         appendAnnotationsString(sb);
         if (tsym == null || tsym.name == null) {
@@ -1064,7 +1072,10 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
         @DefinedBy(Api.LANGUAGE_MODEL)
         public String toString() {
             StringBuilder buf = new StringBuilder();
-            if (getEnclosingType().hasTag(CLASS) && tsym.owner.kind == TYP) {
+            var jmlrep = this.jmlrep();
+            if (jmlrep != null) {
+                buf.append(jmlrep);
+            } else if (getEnclosingType().hasTag(CLASS) && tsym.owner.kind == TYP) {
                 buf.append(getEnclosingType().toString());
                 buf.append(".");
                 appendAnnotationsString(buf);
@@ -1095,10 +1106,7 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
                 buf.append(getTypeArguments().toString());
                 buf.append(">");
             }
-            var s = buf.toString();
-            s = s.replace("org.jmlspecs.lang.internal.", "\\"); // OPENJML -- should have a better way to go back to JML token; also does not work with annotations
-            s = s.replace("org.jmlspecs.lang.", "\\"); // OPENJML -- should have a better way to go back to JML token
-            return s;
+            return buf.toString();
         }
 //where
             private String className(Symbol sym, boolean longform) {

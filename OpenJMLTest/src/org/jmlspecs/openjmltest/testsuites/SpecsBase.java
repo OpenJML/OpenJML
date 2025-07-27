@@ -25,6 +25,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
@@ -142,6 +143,14 @@ public class SpecsBase extends TCBase {
 
     java.util.List<String> jars;
     String jarString;
+    
+    @BeforeClass
+    public static void clean() {
+        var ts = new File("testspecs");
+        if (ts.exists()) {
+            for (var f : ts.listFiles((ff,nm)->nm.endsWith("-actual"))) f.delete();
+        }
+    }
 
     @Override
     public void setUp() throws Exception {
@@ -369,8 +378,8 @@ public class SpecsBase extends TCBase {
         // Do these because the classes are not public
         if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
         if (className.equals("java.lang.StringCoding")) program = "package java.lang; " + program;
-        if (className.equals("org.jmlspecs.lang.internal.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.range o) {} }"; // FIXME - needs better specs and tests
-        if (className.equals("org.jmlspecs.lang.internal.datagroup")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.datagroup o) {} }"; // FIXME - needs better specs and tests
+        if (className.equals("org.jmlspecs.lang.internal.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.range o) {} }"; // cf. primesc.jmldatagroup, primrac.jmldatagroup for full tests
+        if (className.equals("org.jmlspecs.lang.internal.datagroup")) program = "public class AJDK { /*@ model public \\datagroup d; */ }"; // cf. primesc.jmldatagroup, primrac.jmldatagroup, primTC.jmldatagroup for full tests
         helpTCFile("AJDK.java",program,className);
     }
 

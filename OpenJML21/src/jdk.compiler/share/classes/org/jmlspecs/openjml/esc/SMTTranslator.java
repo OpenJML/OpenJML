@@ -101,6 +101,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort intsetSort;
           protected ISort rangeSort;
     final protected IExpr.ISymbol distinctSym;
+    final protected IExpr.ISymbol iteSym;
     final protected IExpr.ISymbol andSym;
     final protected IExpr.ISymbol orSym;
     final protected IExpr.ISymbol notSym;
@@ -158,6 +159,7 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String stringle = "|`stringle|";
     public static final String stringgt = "|`stringgt|";
     public static final String stringge = "|`stringge|";
+    public static final String numargs = "|`numargs|";
 
     /** A convenience declaration, to avoid calling the constructor for every empty list */
     public static final List<ISort> emptyList = new LinkedList<ISort>();
@@ -253,6 +255,7 @@ public class SMTTranslator extends JmlTreeScanner {
         intsetSort = F.createSortExpression(arraySym, intSort, boolSort);
         eqSym = F.symbol("="); // Name determined by SMT Core theory
         leSym = F.symbol("<="); // Name determined by SMT Ints theory
+        iteSym = F.symbol("ite"); // Name determined by SMT Core theory
         andSym = F.symbol("and"); // Name determined by SMT Core theory
         orSym = F.symbol("or"); // Name determined by SMT Core theory
         notSym = F.symbol("not"); // Name determined by SMT Core theory
@@ -360,17 +363,11 @@ public class SMTTranslator extends JmlTreeScanner {
         // (declare-fun jmlTypeOf (REF) JMLTYPESORT))
         c = new C_declare_fun(F.symbol("jmlTypeOf"),args, jmlTypeSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("typearg1_1"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
+        c = new C_declare_fun(F.symbol("typearg1"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("typearg2_1"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
+        c = new C_declare_fun(F.symbol("typearg2"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
         commands.add(c);
-        c = new C_declare_fun(F.symbol("typearg2_2"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("typearg3_1"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("typearg3_2"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
-        commands.add(c);
-        c = new C_declare_fun(F.symbol("typearg3_3"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
+        c = new C_declare_fun(F.symbol("typearg3"), Arrays.asList(new ISort[]{jmlTypeSort}), jmlTypeSort);
         commands.add(c);
 
         // (declare-fun JAVASUBTYPE (JAVATYPESORT JAVATYPESORT) Bool)
@@ -401,6 +398,7 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun _JMLT_1 ("+JAVATYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(declare-fun _JMLT_2 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
         addCommand(smt,"(declare-fun _JMLT_3 ("+JAVATYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+" "+JMLTYPESORT+") "+JMLTYPESORT+")");
+        addCommand(smt,"(declare-fun |`numargs| ("+JMLTYPESORT+") "+intSort+")");
 
         if (quantOK) addCommand(smt,"(assert (forall ((o REF)) (= (|`erasure_java| (javaTypeOf o)) (javaTypeOf o))))");
         if (quantOK) addCommand(smt,"(assert (forall ((o REF)) (= (|`erasure| (jmlTypeOf o)) (javaTypeOf o))))");
@@ -519,24 +517,30 @@ public class SMTTranslator extends JmlTreeScanner {
 //                                    )));
 //            commands.add(c);
             
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")) (= (|`numargs| (_JMLT_0 JVT)) 0)))");
+
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (distinct (_JMLT_0 JVT) (_JMLT_1 JVT2 JMLT))))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (distinct (_JMLT_0 JVT) (_JMLT_2 JVT2 JMLT JMLT2))))");
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (distinct (_JMLT_1 JVT JMLT3) (_JMLT_2 JVT2 JMLT JMLT2))))");
 
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JVT2 "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (= (_JMLT_1 JVT JMLT) (_JMLT_1 JVT2 JMLT2)) (and (= JVT JVT2) (= JMLT JMLT2)))))");
 
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (= (|`erasure| (_JMLT_1 JVT JMLT)) JVT)))");
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT "+JMLTYPESORT+")) (= (typearg1_1 (_JMLT_1 JVT JMLT)) JMLT)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")) (= (|`erasure| (_JMLT_1 JVT JMLT1)) JVT)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")) (= (typearg1 (_JMLT_1 JVT JMLT1)) JMLT1)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")) (= (|`numargs| (_JMLT_1 JVT JMLT1)) 1)))");
+            
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (=> (= (_JMLT_1 JVT JMLT1)(_JMLT_1 JVT JMLT2)) (= JMLT1 JMLT2))))");
 
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (|`erasure| (_JMLT_2 JVT JMLT1 JMLT2)) JVT)))");
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (typearg2_1 (_JMLT_2 JVT JMLT1 JMLT2)) JMLT1)))");
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (typearg2_2 (_JMLT_2 JVT JMLT1 JMLT2)) JMLT2)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (typearg1 (_JMLT_2 JVT JMLT1 JMLT2)) JMLT1)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (typearg2 (_JMLT_2 JVT JMLT1 JMLT2)) JMLT2)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")) (= (|`numargs| (_JMLT_2 JVT JMLT1 JMLT2)) 2)))");
             
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (|`erasure| (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JVT)))");
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3_1 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT1)))");
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3_2 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT2)))");
-            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3_3 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT3)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg1 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT1)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg2 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT2)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (typearg3 (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) JMLT3)))");
+            addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (|`numargs| (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) 3)))");
             
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (=> (= (_JMLT_1 T1 J1)(_JMLT_1 T2 J2)) (and (= T1 T2) (= J1 J2)))))");
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")) (=> ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1) ))))"); // FIXME - this is true for collections, but necessarily always true?
@@ -2042,20 +2046,28 @@ public class SMTTranslator extends JmlTreeScanner {
             result = that.javaType ? javaTypeSymbol(t) : jmlTypeSymbol(t);
             return;
         }
+        if (that.kind == TYPEofKind) {
+            int n = that.args.size()-1;
+            //System.out.println("TYPEOF " + that.args.getClass() + " " + that.args.size() + " " + that.args);
+            List<IExpr> newargs = convertExprList(that.args);
+            IExpr head = newargs.get(0);
+            switch (n) {
+              case 0: result = F.fcn(F.symbol("_JMLT_" + n), head); break;
+              case 1: result = F.fcn(F.symbol("_JMLT_" + n), head, newargs.get(1)); break;
+              case 2: result = F.fcn(F.symbol("_JMLT_" + n), head, newargs.get(1), newargs.get(2)); break;
+              case 3: result = F.fcn(F.symbol("_JMLT_" + n), head, newargs.get(1), newargs.get(2), newargs.get(3)); break;
+              default: {
+                System.out.println("SMTTranslator not implemented for more than 3 type arguments: " + n);
+                result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0), newargs.get(1), newargs.get(2));
+                break;
+              }
+            }
+            return;
+        }
         List<IExpr> newargs = convertExprList(that.args);
         if (that.kind == typeofKind) {
             ISymbol s = that.javaType ? F.symbol("javaTypeOf") : F.symbol("jmlTypeOf");
             result = F.fcn(s, newargs);
-        } else if (that.kind == TYPEofKind) {
-            int n = that.args.length()-1;
-            switch (n) {
-            case 0: result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0)); break;
-            case 1: result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0), newargs.get(1)); break;
-            case 2: result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0), newargs.get(1), newargs.get(2)); break;
-            case 3: result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0), newargs.get(1), newargs.get(2), newargs.get(3)); break;
-            default: System.out.println("SMTTranslator not implemented for more than 3 type arguments: " + n);
-                    result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0), newargs.get(1), newargs.get(2)); break;
-            }
         } else if (that.kind == nonnullelementsKind) {
             result = F.fcn(F.symbol(nonnullelements), newargs);
         } else if (that.kind == elemtypeKind) {
@@ -2083,18 +2095,36 @@ public class SMTTranslator extends JmlTreeScanner {
                 log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
                 result = null;
             }
-        } else if (that.kind == typearg0Kind) {
+        } else if (that.kind == typearg1Kind) {
             if (that.args.get(0).type.tsym == TYPE) {
-                // FIXME: NEEDS WORK
-                result = F.fcn(F.symbol("typearg1_1"), newargs);
+                result = F.fcn(F.symbol("typearg1"), newargs);
             } else {
                 log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
                 result = null;
             }
+        } else if (that.kind == typearg2Kind) {
+            if (that.args.get(0).type.tsym == TYPE) {
+                result = F.fcn(F.symbol("typearg2"), newargs);
+            } else {
+                log.error("jml.internal","Unexpected argument type " + that.args.get(1).type + " " + that);
+                result = null;
+            }
+        } else if (that.kind == typearg3Kind) {
+            if (that.args.get(0).type.tsym == TYPE) {
+                result = F.fcn(F.symbol("typearg3"), newargs);
+            } else {
+                log.error("jml.internal","Unexpected argument type " + that.args.get(2).type + " " + that);
+                result = null;
+            }
         } else if (that.kind == typeargKind) {
             if (that.args.get(0).type.tsym == TYPE) {
-                // FIXME: NEEDS WORK
-                result = F.fcn(F.symbol("typearg1_1"), newargs.get(0));
+                // FIXME: Needs a default option
+                result = F.fcn(iteSym, F.fcn(eqSym, newargs.get(1), F.numeral(1)),
+                            F.fcn(F.symbol("typearg1"), newargs.get(0)),
+                        F.fcn(iteSym, F.fcn(eqSym, newargs.get(1), F.numeral(2)), 
+                            F.fcn(F.symbol("typearg2"), newargs.get(0)),
+                            F.fcn(F.symbol("typearg3"), newargs.get(0)))
+                        );
             } else {
                 log.error("jml.internal","Unexpected argument type " + that.args.get(0).type + " " + that);
                 result = null;
@@ -2339,7 +2369,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 else {
                     // div truncates towards minus infinity, java / truncates towards 0
                     // lhs / rhs ===  lhs >= 0 ? lhs div rhs : (-lhs) div (-rhs)
-//                    result = F.fcn(F.symbol("ite"), 
+//                    result = F.fcn(iteSym, 
 //                            F.fcn(F.symbol(">="),  args.get(0), zero), 
 //                            F.fcn(F.symbol("div"), args),
 //                            F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
@@ -2355,20 +2385,20 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (useBV && !isReal)
                     result = F.fcn(F.symbol("bvsrem"), args);
                 else if (isReal) {
-                    result = F.fcn(F.symbol("ite"), 
+                    result = F.fcn(iteSym, 
                             F.fcn(F.symbol("="), F.fcn(F.symbol(">="),  args.get(0), F.decimal("0.0")), F.fcn(F.symbol(">="),  args.get(1), F.decimal("0.0"))), 
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("/"), args))))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("-"), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("-"), F.fcn(F.symbol("/"), args)))))))
                             );
                 } else {  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
-                    result = F.fcn(F.symbol("ite"), 
+                    result = F.fcn(iteSym, 
                             F.fcn(F.symbol(">="),  args.get(0), zero), 
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
                             );
                     //result = F.fcn(F.symbol("|#cmod#|"), args);
                 }
-//                result = F.fcn(F.symbol("ite"), 
+//                result = F.fcn(iteSym, 
 //                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
 //                        F.fcn(F.symbol("mod"), args),
 //                        F.fcn(F.symbol("-"), F.fcn(F.symbol("mod"), F.fcn(F.symbol("-"), args.get(0)), args.get(1)))
@@ -2506,7 +2536,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     args.add(powToNumeral((int)i));
                     args2.add(F.fcn(F.symbol("+"), lhs, F.fcn(F.symbol("*"), F.numeral(1L<<32), F.numeral(1L<<32)) ));
                     args2.add(F.numeral(1L<<i));
-                    result = F.fcn(F.symbol("ite"), F.fcn(F.symbol(">="), lhs, F.numeral(0)), 
+                    result = F.fcn(iteSym, F.fcn(F.symbol(">="), lhs, F.numeral(0)), 
                             F.fcn(F.symbol("div"), args),  // LHS / (1<<SHIFT)
                             F.fcn(F.symbol("div"), args2)); // (LHS + (1<<64)) / (1<<SHIFT)
                 } else {
@@ -2861,7 +2891,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     @Override 
     public void visitConditional(JCConditional that) { 
-        result = F.fcn(F.symbol("ite"), 
+        result = F.fcn(iteSym, 
                 convertExpr(that.cond), 
                 convertExpr(that.truepart), 
                 convertExpr(that.falsepart)
@@ -2890,6 +2920,8 @@ public class SMTTranslator extends JmlTreeScanner {
             	} else {
                     result = F.fcn(F.symbol(rangeex),sel);
             	}
+            } else if (object.type.tsym == TYPE && field.name.toString().equals("numargs")) {
+                result = F.fcn(F.symbol(numargs), convertExpr(object));
             	// FIXME - why do arrays use this branch instead of the one at the bottom
             //} else if (field.name != names.length || !(tree.selected.type instanceof Type.ArrayType || tree.selected.type.toString().startsWith("org.jmlspecs.lang"))) {
             } else if (field.name != names.length || !(tree.selected.type.tsym.toString().startsWith("org.jmlspecs.lang"))) {

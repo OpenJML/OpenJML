@@ -1147,7 +1147,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case erasureID:
-                case typearg0ID:
+                case typearg1ID:
+                case typearg2ID:
+                case typearg3ID:
                 case typeargsID:
                 case typeargID:
                 case TYPEofID:

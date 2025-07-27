@@ -34,11 +34,13 @@ public class Test {
         errors4();
         errors5();
         errors6();
+        numargTests();
+        misc();
     }
     
     public static void errors1() {
         try {
-            //@ ghost var c = \typearg0(\type(Integer)); // ERROR
+            //@ ghost var c = \typearg1(\type(Integer)); // ERROR in RAC, undefined in ESC
         } catch (Exception e) {
             //-ESC@ set System.out.println(e);
         }
@@ -46,7 +48,7 @@ public class Test {
     
     public static void errors2() {
         try {
-            //@ ghost var c = \typearg(\type(Integer), 2); // ERROR
+            //@ ghost var c = \typearg(\type(Integer), 2); // ERROR in RAC, undefined in ESC
         } catch (Exception e) {
             //-ESC@ set System.out.println(e);
         }
@@ -54,7 +56,7 @@ public class Test {
     
     public static void errors3() {
         try {
-            //@ ghost var c = \typearg(\type(List<Integer>), 2); // ERROR
+            //@ ghost var c = \typearg(\type(List<Integer>), 2); // ERROR in RAC, undefined in ESC
         } catch (Exception e) {
             //-ESC@ set System.out.println(e);
         }
@@ -83,13 +85,17 @@ public class Test {
             //-ESC@ set System.out.println(e);
         }
     }
+    public static void errors7() {
+        /*@ nullable */ Class<?> c = null;
+        //@ ghost \TYPE t = \TYPE.of(c);
+    }
     
     /*@
     model public static void eqTests(\TYPE t, \TYPE tt) {
         check t.eq(tt) <==> (t == tt);
         check t.ne(tt) <==> (t != tt);
         check t.isSubtypeOf(tt) <==> (t <:= tt);
-        check t.isSubtypeOfProper(tt) <==> (t <: tt);
+        check t.isProperSubtypeOf(tt) <==> (t <: tt);
         check \isarray(\arraytype(t));
         check \elemtype(\arraytype(t)) == t;
     }
@@ -134,16 +140,39 @@ public class Test {
     }
     
     public static void typeargTests() {
-        //@ check \typearg0(\type(List<Boolean>)) == \type(Boolean);
-        //@ check \typearg(\type(List<Boolean>), 0) == \type(Boolean);
-        //@ check \typearg0(\type(Map<Integer,Boolean>)) == \type(Integer);
-        //@ check \typearg(\type(Map<Integer,Boolean>), 1) == \type(Boolean);        
+        //@ check \typearg1(\type(List<Boolean>)) == \type(Boolean);
+        //@ check \typearg(\type(List<Boolean>), 1) == \type(Boolean);
+        //@ check \typearg1(\type(Map<Integer,Boolean>)) == \type(Integer);
+        //@ check \typearg2(\type(Map<Integer,Boolean>)) == \type(Boolean);
+        //@ check \typearg(\type(Map<Integer,Boolean>), 2) == \type(Boolean);        
     }
     
-    public static void test() {
-        // @ check \type(List<Integer>) == \TYPEof(java.util.List.class, \type(Integer));
-        //-RAC-ESC@ check \type(List<Integer>[]) == \TYPEof(java.util.List.class, \type(Integer));
+    public static void numargTests() {
+        //@ check \type(Boolean).numargs() == 0;
+        //@ check \type(List<Integer>).numargs() == 1;
+        //@ check \type(Map<Integer,Boolean>).numargs() == 2;
+        //@ check \TYPE.of(Boolean.class).numargs() == 0;
+        //@ check \TYPE.of(List.class, \type(Boolean)).numargs() == 1;
+        //@ check \TYPE.of(Map.class, \type(Boolean), \type(Boolean)).numargs() == 2;
+        //-RAC@ check \TYPE.of(List.class, \type(Boolean)).numargs == 1;
+        //-RAC@ check \TYPE.of(Map.class, \type(Boolean), \type(Boolean)).numargs == 2;
     }
+    
+    public static void misc() {
+        //@ check \type(Boolean).hashCode() == \TYPE.of(Boolean.class).hashCode();
+        //@ check \type(List<Integer>).hashCode() == \TYPE.of(List.class, \TYPE.of(Integer.class)).hashCode();
+        //@ ghost \TYPE t = \TYPE.empty();
+        try {
+        //-ESC@ set t = \TYPE.of(Boolean.class, null); // Treats as a null array  // FIXME - crashes in ESC
+        } catch (NullPointerException e) {
+            //-ESC@ set System.out.println(e);
+        }
+    }
+    
+//    public static void test() {
+//        // @ check \type(List<Integer>) == \TYPEof(java.util.List.class, \type(Integer));
+//        //-RAC-ESC@ check \type(List<Integer>[]) == \TYPEof(java.util.List.class, \type(Integer));
+//    }
         
 
 }
@@ -152,11 +181,8 @@ public class Test {
 // NOTE: Cannot apply .class to a parameterized type name, as in List<Integer>.class
 // Loss of type arguments when writing \type(List<Boolean>[])
 // typeargs is no yet implemented
-// need tests of typearg0, \typearg(t,n)
-// ESC - show statements and toString()
 // RAC - two argument \TYPEof
 // settle wheteher one can apply \erasure to Class values
 // \TYPE.of is not working for ESC or RAC; \TYPEof does
 // When using \TYPE.of there are duplicate statements in the translated program
-// Fix <:= in escgeneric.testGenericType2
 

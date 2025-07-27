@@ -1,30 +1,31 @@
 OUT:
-Warning: runtime type information has no type arguments: interface java.util.List
-Warning: runtime type information has no type arguments: class java.util.LinkedList
+Warning: runtime type information has no type arguments: java.util.List
+Warning: runtime type information has no type arguments: java.util.LinkedList
 LABEL JMLSHOW_1 = int
-LABEL JMLSHOW_2 = class java.lang.Integer
-LABEL JMLSHOW_3 = interface java.util.List<class java.lang.Integer>
+LABEL JMLSHOW_2 = java.lang.Integer
+LABEL JMLSHOW_3 = java.util.List<java.lang.Integer>
 LABEL JMLSHOW_4 = int[]
-LABEL JMLSHOW_5 = class java.lang.Integer[]
-LABEL JMLSHOW_6 = interface java.util.List[]
-LABEL JMLSHOW_7 = interface java.util.List<class java.lang.Integer>[]
+LABEL JMLSHOW_5 = java.lang.Integer[]
+LABEL JMLSHOW_6 = java.util.List[]
+LABEL JMLSHOW_7 = java.util.List<java.lang.Integer>[]
 LABEL JMLSHOW_8 = int
-LABEL JMLSHOW_9 = class java.lang.Integer
-LABEL JMLSHOW_10 = interface java.util.List<class java.lang.Integer>
-LABEL JMLSHOW_11 = class java.lang.Integer[]
-LABEL JMLSHOW_12 = class java.lang.Integer[]
+LABEL JMLSHOW_9 = java.lang.Integer
+LABEL JMLSHOW_10 = java.util.List<java.lang.Integer>
+LABEL JMLSHOW_11 = java.lang.Integer[]
+LABEL JMLSHOW_12 = java.lang.Integer[]
 LABEL JMLSHOW_13 = int
-LABEL JMLSHOW_14 = interface java.util.List<class java.lang.Integer>
-LABEL JMLSHOW_15 = interface java.util.List[][]
-java.lang.IllegalArgumentException: \TYPE value in call of typearg0 has no type arguments
-java.lang.IllegalArgumentException: \TYPE value in call of typearg has an argument that is negative or not in range: 0 <= 2 < 0
-java.lang.IllegalArgumentException: \TYPE value in call of typearg has an argument that is negative or not in range: 0 <= 2 < 1
-java.lang.IllegalArgumentException: Calling \elemtype on a value that is not an (or does not have) array type: class java.lang.Integer
-test/jmlTYPE/Test.java:73: verify: JML assertion is false
+LABEL JMLSHOW_14 = java.util.List<java.lang.Integer>
+LABEL JMLSHOW_15 = java.util.List[][]
+java.lang.IllegalArgumentException: \TYPE value in call of typearg1 has no type arguments
+java.lang.IllegalArgumentException: \TYPE value in call of typearg has an out of range argument: 0 < 2 <= 0
+java.lang.IllegalArgumentException: \TYPE value in call of typearg has an out of range argument: 0 < 2 <= 1
+java.lang.IllegalArgumentException: Calling \elemtype on a value that is not an (or does not have) array type: java.lang.Integer
+test/jmlTYPE/Test.java:75: verify: JML assertion is false
             //@ check \type(Integer).equals(null); // ERROR
                 ^
-test/jmlTYPE/Test.java:81: verify: JML assertion is false
+test/jmlTYPE/Test.java:83: verify: JML assertion is false
             //@ check \type(Integer).equals(o); // ERROR
                 ^
+java.lang.NullPointerException: Cannot read the array length because "args" is null
 
 ERR:

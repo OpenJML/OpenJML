@@ -16,21 +16,40 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return t.intern();
     }
     
+    public static TYPE of(Class<?> base, TYPE t1) {
+        TYPE t = new TYPE(base,new TYPE[] {t1});
+        return t.intern();
+    }
+    
+    public static TYPE of(Class<?> base, TYPE t1, TYPE t2) {
+        TYPE t = new TYPE(base,new TYPE[] {t1, t2});
+        return t.intern();
+    }
+    
+    public static TYPE of(Class<?> base, TYPE t1, TYPE t2, TYPE t3) {
+        TYPE t = new TYPE(base,new TYPE[] {t1, t2, t3});
+        return t.intern();
+    }
+    
     public static TYPE of(Class<?> base, TYPE ... args) {
+        // CAUTION: holding a reference to a mutable array
         TYPE t = new TYPE(base,args.length == 0 ? noargs : args);
         return t.intern();
     }
     
+    /** Returns a value thta serves as a zero-equivalent value of \TYPE (since there are no null values) */
     public static TYPE empty() {
         return of(boolean.class);
     }
     
+    /** Returns a conventional String representation of the type */
     public String toString() {
         if (base == null) return "???"; // This is a defensive output, not any wildcard
         int count = 0;
         var b = base;
         while (b.isArray()) { ++count; b = b.getComponentType(); }
         String s = b.toString();
+        s = s.substring(s.indexOf(' ')+1); // remove any leading 'class' or 'interface' etc.
         if (args != null && args.length > 0) {
             s = s + "<";
             boolean first = true;
@@ -44,6 +63,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return s;
     }
     
+    // FIXME - do we need to, or is it helpful to, use interning
     private TYPE intern() {
         TYPE tt = internSet.get(this);
         if (tt == null) {
@@ -62,14 +82,28 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return args;
     }
     
-    public TYPE typearg0() {
-        if (args.length == 0) throw new IllegalArgumentException("\\TYPE value in call of typearg0 has no type arguments");
+    public int numargs() {
+        return args.length;
+    }
+    
+    public TYPE typearg1() {
+        if (args.length == 0) throw new IllegalArgumentException("\\TYPE value in call of typearg1 has no type arguments");
         return args[0];
     }
     
+    public TYPE typearg2() {
+        if (args.length < 2) throw new IllegalArgumentException("\\TYPE value in call of typearg2 has only " + args.length + " type arguments");
+        return args[1];
+    }
+    
+    public TYPE typearg3() {
+        if (args.length == 0) throw new IllegalArgumentException("\\TYPE value in call of typearg3 has only " + args.length + " type arguments");
+        return args[2];
+    }
+    
     public TYPE typearg(int n) {
-        if (n < 0 || n >= args.length) throw new IllegalArgumentException("\\TYPE value in call of typearg has an argument that is negative or not in range: 0 <= " + n + " < " + args.length);
-        return args[n];
+        if (n <= 0 || n > args.length) throw new IllegalArgumentException("\\TYPE value in call of typearg has an out of range argument: 0 < " + n + " <= " + args.length);
+        return args[n-1];
     }
     
     public boolean eq(TYPE t) {
@@ -96,6 +130,8 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     public boolean ne(TYPE t) {
         return !this.eq(t);
     }
+    
+    public boolean equals(TYPE t) { return eq(t); }
 
     @Override
     public boolean equals(Object t) {
@@ -107,16 +143,14 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     @Override
     public int hashCode() {
         if (base == null) return 0;
-        int i = base.hashCode();
-        int k = 0;
-        for (TYPE t: args) i = i + (t.hashCode() << (++k));
-        return i;
+        return base.hashCode() + 3 * java.util.Arrays.hashCode(args);
     }
 
     public Class<?> erasure() {
         return base;
     }
 
+    /** Returns a TYPE that represents an array with the receiver as element type */
     public TYPE arraytype() {
         Class<?> c = java.lang.reflect.Array.newInstance(this.base,0).getClass();
         return TYPE.of(c, this.args);
@@ -135,8 +169,8 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
         return true;
     }
     
-    public boolean isSubtypeOfProper(TYPE t) {
-        return isSubtypeOf(t) && !eq(t);
+    public boolean isProperSubtypeOf(TYPE t) {
+        return isSubtypeOf(t) && base != t.base;
     }
     
     public TYPE getComponentType() {
