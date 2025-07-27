@@ -167,3 +167,4 @@ escfiles.sfbug420e
 escfileslist2.test[gitbug876]
 escfileslist2.test[gitbug878]
 escfileslist2.test[gitbug880] # Needs better reasoning about String length
+primesc.locsetTests2

@@ -5114,7 +5114,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // SO then later compiler phases can treat the JML and Java operations independently.
                 attribExpr(that.lhs,env,Type.noType);
                 Type t = that.lhs.type;
-                boolean isJML =  (t == TYPE);
+                boolean isJML =  (t.tsym == TYPE.tsym);
                 boolean isJava = t.tsym.equals(syms.classType.tsym);
                 boolean errorAlready = false;
                 if (t.isErroneous()) errorAlready = true;
@@ -5126,12 +5126,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.rhs,env,Type.noType);
                 Type tt = that.rhs.type;
                 if (tt.isErroneous()) errorAlready = true;
-                else if (tt != TYPE
+                else if (tt.tsym != TYPE.tsym
                         && !tt.tsym.equals(syms.classType.tsym)) {
                     errorAlready = true;
                     utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
-                if (isJML != (tt == TYPE) && !errorAlready) {
+                if (isJML != (tt.tsym == TYPE.tsym) && !errorAlready) {
                     utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
                 }
                 if (isJava) that.op = that.op.keyword() == subtypeofeqID ? jsubtypeofeqKind : jsubtypeofKind; // Java subtyping

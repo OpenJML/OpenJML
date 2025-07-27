@@ -69,6 +69,7 @@ public class JmlTypes extends Types {
         this.context = context;
     }
         
+    public Symbol.TypeSymbol TYPEsym(Context context) { return JmlPrimitiveTypes.TYPETypeKind.getSymbol(context); }
     public Symbol.TypeSymbol BIGINTsym(Context context) { return JmlPrimitiveTypes.bigintTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol REALsym(Context context) { return JmlPrimitiveTypes.realTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol STRINGsym(Context context) { return JmlPrimitiveTypes.stringTypeKind.getSymbol(context); }
@@ -135,6 +136,7 @@ public class JmlTypes extends Types {
                 if (t.toString().contains("BigInteger")) return true;
                 return false;
             }
+            // FIXME - should get rid of the following - not sure why it is here
             if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
             if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
                 Iterator<Type> siter = ((JmlListType)s).types.iterator();
@@ -232,6 +234,8 @@ public class JmlTypes extends Types {
         //  String -> \string
         if (isJmlType(s) || isJmlType(t)) {
             if (isSameType(t,s)) return true;
+             if (t.getTag() == TypeTag.BOT) return false;
+            
             //System.out.println("ISCONVERTIBLE " + t + " " + s);
             if (t.tsym == s.tsym) {
                 if (t.getTypeArguments().nonEmpty()) return isSameType(t,s);
@@ -331,7 +335,6 @@ public class JmlTypes extends Types {
     @Override
     public boolean isCastable(Type t, Type s, Warner warn) {
         if (isJmlType(s) || isJmlType(t)) {
-            //System.out.println("ISCASTABLE " + t + " " + s);
             if (isConvertible(t,s)) return true;
             if (t.tsym == s.tsym) return false;
             // allow explicit cast (that are not already allowed implicitly)
