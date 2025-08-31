@@ -12,6 +12,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     final private static Map<TYPE,TYPE> internSet = new HashMap<TYPE,TYPE>();
     
     public static TYPE of(Class<?> base) { // FIXME - get problems without this declaration, even though it should not be needed
+        if (base == null) throw new NullPointerException("base may not be null in \\TYPE.of");
         TYPE t = new TYPE(base,noargs);
         return t.intern();
     }
@@ -33,6 +34,7 @@ public class TYPE implements org.jmlspecs.lang.IJmlPrimitiveType {
     
     public static TYPE of(Class<?> base, TYPE ... args) {
         // CAUTION: holding a reference to a mutable array
+        if (args == null) throw new NullPointerException("argument list may not be null in \\TYPE.of");
         TYPE t = new TYPE(base,args.length == 0 ? noargs : args);
         return t.intern();
     }

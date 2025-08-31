@@ -236,6 +236,7 @@ public class primTC extends TCBase {
                 //@ set t = \\TYPE.of(Boolean.class, Integer.class);
                 //@ set t = \\TYPE.of(Boolean.class, null, Integer.class);
                 //@ set t = \\TYPE.of(null, Integer.class);
+                //@ set t = \\TYPE.of(Boolean.class, null);
               }
             }
             """
@@ -258,6 +259,7 @@ public class primTC extends TCBase {
                    (argument mismatch; java.lang.Class<java.lang.Integer> cannot be converted to \\TYPE)
                  method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE...) is not applicable
                    (varargs mismatch; java.lang.Class<java.lang.Integer> cannot be converted to \\TYPE)""", 22
+            ,"/TEST.java:7: error: the value for a varargs array may not be null", 41
         );
     }
     

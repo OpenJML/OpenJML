@@ -2501,10 +2501,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				classDefs.add(st);
 			stt = st;
 			if (label != Label.FEASIBILITY_CHECK  && currentStatements != null && feasibilityContains(Strings.feas_debug)) {
+			    // FIXME - perhaps don't check assignment like assumptions
 			    addFeasibilityCheck(translatedExpr, currentStatements, "Extra-Assume");
 			}
 		}
-		if (rac && methodEnv.racCheckAssumeStatements) {
+		if (rac && methodEnv.racCheckAssumeStatements && label != null && label.racChecked) {
+		    // FIXME - don't check all assumptions, e.g. not ones that are just assignments
 			stt = addAssert(true, pos, label, translatedExpr, associatedPosition, associatedSource, info, args);
 		}
 		return stt;
@@ -2964,9 +2966,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						e = treeutils.makeImplies(pos, e1, e2);
 					}
 					if (assume)
-						addAssume(pos, Label.POSSIBLY_NULL_FIELD, e, null, null); // FIXME - no associated position?
+						addAssume(pos, Label.NULL_FIELD, e, null, null); // FIXME - no associated position?
 					else
-						addAssert(pos, Label.POSSIBLY_NULL_FIELD, e, null, null); // FIXME - no associated position?
+						addAssert(pos, Label.NULL_FIELD, e, null, null); // FIXME - no associated position?
 
 				}
 			}
@@ -3290,9 +3292,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression e = treeutils.makeNotNull(pos.getStartPosition(), field); // FIXME - position not right
 					if (specs.isNonNull(v)) {
 						if (assume)
-							addAssume(pos, Label.POSSIBLY_NULL_FIELD, e, null, null); // FIXME - no associated position?
+							addAssume(pos, Label.NULL_FIELD, e, null, null); // FIXME - no associated position?
 						else
-							addAssert(pos, Label.POSSIBLY_NULL_FIELD, e, null, null); // FIXME - no associated position?
+							addAssert(pos, Label.NULL_FIELD, e, null, null); // FIXME - no associated position?
 					}
 					if (assume) {
 						addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeDynamicTypeInEquality(pos, field, vartype),
@@ -7559,6 +7561,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				retValue = treeutils.makeIdent(p, resultSym);
 			}
 			if (resultSym == null && !translatingLambda) {
+			    // FIXME - does this ever happen???
+	            utils.error(that, "jml.internal", "Do not expect this branch to ever be taken");
 				addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, retValue);
 			}
 		}
@@ -8324,11 +8328,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
-	    boolean print = false; // that.toString().contains("of(sn)");
-//	    if (print) {
-//	        var sym = (MethodSymbol)treeutils.getSym(that.meth);
-//	        System.out.println("APPLY-OF " + that + " " + that.meth.type + " " + sym + " " + sym.isVarArgs() + " " + that.varargsElement);
-//	    }
+	    boolean print = false; // that.toString().contains("TYPE.of");
+	    if (print) {
+	        var sym = (MethodSymbol)treeutils.getSym(that.meth);
+	        System.out.println("APPLY-OF " + that + " " + that.meth.type + " " + sym + " " + sym.isVarArgs() + " " + that.varargsElement);
+	    }
 	    if (that.meth.type == null) {
 	        System.out.println("APPLY " + that);
 	    } else if (that.meth.type.isErroneous()) {
@@ -8384,6 +8388,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        that.varargsElement = null;
 		        //actualVarArgsCount = actualLength - formalLength + 1;
 		        //System.out.println("VARARGS-Z " + that + " " + actualVarArgsCount);
+		    } else if (that.args.length() > 0) {
+		        // Need to do this for the converted actual argument
+//		        var nn = treeutils.makeNotNull(that.args.last(), that.args.last());
+//		        addJavaCheck(that.args.last(), nn, Label.NULL_FORMAL, Label.NULL_FORMAL, "java.lang.NullPointerException", "varargs argument");
 		    }
 		}
 
@@ -8515,8 +8523,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                     var a = treeutils.makeImplies(clause, precondition, treeutils.makeBinary(clause, JCTree.Tag.LT, newValue, origValue));
                                     var b = treeutils.makeImplies(clause, precondition, treeutils.makeBinary(clause, JCTree.Tag.LE, treeutils.zero, newValue));
                                     var prev = log.useSource(speccase.sourcefile);
-                                    addAssert(metric, Label.TERMINATION, a, that, prev);
-                                    addAssert(metric, Label.TERMINATIONNONNEG, b, that, prev);
+                                    addAssert(metric, Label.TERMINATION_DECREASES, a, that, prev);
+                                    addAssert(metric, Label.TERMINATION_NONNEG, b, that, prev);
                                     log.useSource(prev);
                                 }
                             }
@@ -12497,7 +12505,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Set the size if it is known, either from the dimension or the array of
 			// initializer elements
 			// array.length == size
-			addAssume(array, Label.IMPLICIT_ASSUME,
+			addAssume(array, Label.ARRAY_INIT,
 					treeutils.makeEquality(array.pos, treeutils.makeLength(array, copy(array)), convert(size)));
 		}
 		if (elems != null) {
@@ -12513,7 +12521,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				aa.arraysId = null;
 
 				JCBinary b = treeutils.makeEquality(e.pos, aa, e);
-				addAssume(e.pos(), Label.IMPLICIT_ASSUME, b);
+				addAssume(e.pos(), Label.ARRAY_INIT, b);
 				++i;
 			}
 		}
@@ -15602,7 +15610,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public void addJavaCheck(DiagnosticPosition p, JCExpression cond, Label javaLabel, Label jmlLabel,
-			String exception) {
+			String exception, Object ... args) {
 		// FIXME - what if the dereference happens in a spec in a different file -
 		// ,that,log.currentSourceFile());
 		// FIXME- what should we do if !split, in particular what if this comes from
@@ -15611,7 +15619,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			ClassSymbol csym = attr.createClass(exception);
 			if (translatingJML) { // allow, forbid, ignore do not apply to JML
 				cond = conditionedAssertion(p, cond);
-				addAssert(p, jmlLabel, cond);
+				addAssert(p, jmlLabel, cond, args);
 			} else {
 				long line = JCDiagnostic.Factory.instance(context).error(null, log.currentSource(), p, "jml.message")
 						.getLineNumber();
@@ -15647,7 +15655,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (!rac)
 						conditionalException(p, cond, csym); // For rac, Java throws the exception
 				} else {
-					addAssert(p, javaLabel, cond);
+					addAssert(p, javaLabel, cond, args);
 				}
 			}
 		}
@@ -18784,12 +18792,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    System.out.println("OPENJML does not currently implement wildcard arguments in a \\type expression");
 			return methodCallUtilsExpression(targ, "makeTYPEQ");
 			// FIXME - need to handle more subtypes differently, I'm sure
-//		} else if (targ instanceof JCArrayTypeTree) {
-//			// FIXME - this not handled
-//			JCTree.JCFieldAccess f = M.Select(targ, names._class);
-//			f.type = syms.classType;
-//			f.sym = f.type.tsym;
-//            return makeMethodInvocation(targ, ty, names.of, f);
+		} else if (targ instanceof JCArrayTypeTree atree) {
+		    JCExpression e = translateTypeArgRAC(atree.elemtype);
+            return makeMethodInvocation(targ, e, "arraytype");
 		} else { // JCPrimitiveTypeTree, JCFieldAccess, JCIdent, JCArrayTypeTree
 			JCTree.JCFieldAccess f = M.Select(targ, names._class);
 			f.type = syms.classType;
@@ -18887,6 +18892,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean pv = checkAccessEnabled;
 		checkAccessEnabled = false;
 		try {
+		    if (arg instanceof JCArrayTypeTree atree) {
+	            JCExpression e = translateTypeArgEsc(atree.elemtype, isJavaType);
+                return treeutils.makeJmlMethodInvocation(arg, arraytypeKind, TYPE, e);
+		    }
 			return isJavaType ? treeutils.makeJavaTypelc(arg) : treeutils.makeTypelc(arg);
 		} finally {
 			checkAccessEnabled = pv;
@@ -19082,7 +19091,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (arg.type.tsym == TYPE.tsym) {
                         // Check (in JML land) whether the argument has an array type (dynamically)
                         JCExpression isarray = makeMethodInvocation(that, arg, "isArray");
-                        addJavaCheck(arg, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
+                        addJavaCheck(that, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
                         // Compute (in JML land) the TYPE value corresponding to the dynamic element type
                         JCExpression c = makeMethodInvocation(that, arg, "getComponentType");
                         result = eresult = c;
@@ -19094,7 +19103,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         // Check (in Java land) whether the argument has an array type (dynamically)
                         arg = methodCallgetClass(arg);
                         JCExpression isarray = makeMethodInvocation(that, arg, "isArray");
-                        addJavaCheck(arg, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
+                        addJavaCheck(that, isarray, Label.ILLEGAL_ARGUMENT, Label.ILLEGAL_ARGUMENT, "java.lang.IllegalArgumentException");
                         // Compute (in JML land) the TYPE value corresponding to the dynamic element type
                         var ty = treeutils.makeType(arg, JmlPrimitiveTypes.TYPETypeKind.getType(context));
                         JCExpression c = makeMethodInvocation(arg, ty, names.of, arg);
