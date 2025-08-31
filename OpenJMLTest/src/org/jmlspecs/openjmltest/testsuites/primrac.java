@@ -45,7 +45,7 @@ public class primrac extends RacBase {
     
     @Test
     public void jmlTYPE() {
-        helpCompileRun("Test");
+        helpCompileRun("Test","--rac-java-checks");
     }
 
     @Test

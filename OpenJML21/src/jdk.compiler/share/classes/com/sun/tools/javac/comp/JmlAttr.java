@@ -4621,6 +4621,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     "jml.message", "strictly_pure methods may only call strictly_pure methods");
             }
         }
+        var methsym = treeutils.getSym(tree.meth);
+        if (methsym instanceof MethodSymbol m && m.isVarArgs() && m.getParameters().length() == tree.args.length() && tree.args.last().type.getTag() == TypeTag.BOT) {
+            // If the varargs method has a single actual argument for the varargs formal argument, that argument may not be a null literal
+            // The null literal is actually ambiguous -- is it a singleton array consisting of a null element or is it an array that is null
+            utils.error(log.currentSourceFile(), tree.args.last(),
+                    "jml.message", "the value for a varargs array may not be null");
+        }
         if (result.isErroneous() && nerrors == log.nerrors) {
             // Some resolution errors are discovered during speculative attribution and not reported then.
             // FIXME: But sometimes not ever reported (cf. linkedBugs test), though that seems either a bug in OpenJDK or

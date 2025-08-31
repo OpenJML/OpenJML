@@ -48,7 +48,7 @@ public class primesc extends EscBaseFiles {
     
     @Test
     public void jmlTYPE() {
-        helpTG();
+        helpTG("--method=typelcTests","--show");
     }
     
     @Test
