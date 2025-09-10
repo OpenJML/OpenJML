@@ -63,38 +63,33 @@ public class Label {
         return map.get(s);
     }
     
+    // Used for ESC/RAC assertions and for ESC assumptions that are asserted in RAC using --rac-check-assumptions
+    /** Used for explicit, user-specified assert statements */
+    /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
+    
     /** Used for explicit, user-provided JML assume statements */
-    /*@ non_null*/ public final static Label EXPLICIT_ASSUME = new Label("Assume");
-    
-    /** Used for implicit, miscellaneous JML assume statements */
-    /*@ non_null*/ public final static Label IMPLICIT_ASSUME = new Label("ImplicitAssume");
-    
-    /** Used for implicit, miscellaneous JML assume statements */
-    /*@ non_null*/ public final static Label METHOD_DEFINITION = new Label("MethodDefinition");
-    
-    /** Used for implicit, miscellaneous JML assume statements */
-    /*@ non_null*/ public final static Label METHOD_ASSUME = new Label("MethodAssume");
+    /*@ non_null */ public final static Label EXPLICIT_ASSUME = new Label("Assume");
     
     /** Used for assume statements generated from preconditions */
-    /*@ non_null*/ public final static Label PRECONDITION = new Label("Precondition");
+    /*@ non_null */ public final static Label PRECONDITION = new Label("Precondition");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null*/ public final static Label INVARIANT = new Label("Invariant");
+    /*@ non_null */ public final static Label INVARIANT = new Label("Invariant");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null*/ public final static Label INVARIANT_REENTER_CALLER = new Label("InvariantReenterCaller");
+    /*@ non_null */ public final static Label INVARIANT_REENTER_CALLER = new Label("InvariantReenterCaller");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null*/ public final static Label INVARIANT_ENTRANCE = new Label("InvariantEntrance");
+    /*@ non_null */ public final static Label INVARIANT_ENTRANCE = new Label("InvariantEntrance");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null*/ public final static Label INVARIANT_EXIT = new Label("InvariantExit");
+    /*@ non_null */ public final static Label INVARIANT_EXIT = new Label("InvariantExit");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null*/ public final static Label INVARIANT_EXCEPTION_EXIT = new Label("InvariantExceptionExit");
+    /*@ non_null */ public final static Label INVARIANT_EXCEPTION_EXIT = new Label("InvariantExceptionExit");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null*/ public final static Label INVARIANT_EXIT_CALLER = new Label("InvariantLeaveCaller");
+    /*@ non_null */ public final static Label INVARIANT_EXIT_CALLER = new Label("InvariantLeaveCaller");
     
     /** Out-of-range numerical conversion */
     /*@ non_null */ public final static Label ARITHMETIC_OP_RANGE = new Label("ArithmeticOperationRange");
@@ -102,38 +97,11 @@ public class Label {
     /** Out-of-range numerical conversion */
     /*@ non_null */ public final static Label ARITHMETIC_CAST_RANGE = new Label("ArithmeticCastRange");
     
-    /** Used for assume or assert statements generated from axiom clauses */
-    /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");
-    
-    /** Used for assume statements generated to guard a catch block */
-    /*@ non_null*/ public final static Label CATCH_CONDITION = new Label("CatchCondition");
-
-    /** Used for assume statements generated to capture the switch value, in ESC only */
-    /*@ non_null*/ public final static Label SWITCH_VALUE = new Label("SwitchValue");
-    
-    /** Used for assume statements generated to initialize a new array, only in ESC */
-    /*@ non_null*/ public final static Label ARRAY_INIT = new Label("ArrayInit");
-//    
-//    /** Used for assume statements generated to capture the return value */
-//    /*@ non_null*/ public final static Label RETURN = new Label("Return");
-    
     /** Used for assert statements testing that termination metric decreases */
     /*@ non_null*/ public final static Label TERMINATION_DECREASES = new Label("TerminationDecreases");
     
     /** Used for assert statements testing that termination metric decreases */
     /*@ non_null*/ public final static Label TERMINATION_NONNEG = new Label("TerminationNonNegative");
-    
-    /** Used for assume statements generated to define auxiliary variables */
-    /*@ non_null*/ public final static Label SYN = new Label("Synthetic");
-
-    /** Used for assume statements generated to adjust DSA variables  -- only in ESC (BasicBlocker)*/
-    /*@ non_null*/ public final static Label DSA = new Label("DSA", false);
-
-    /** Used for assume statements generated to adjust DSA variables */
-    /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK", false);
-
-    /** Used for explicit, user-specified assert statements */
-    /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
     
     /** Used for precondition completeness assert statements */
     /*@ non_null*/ public final static Label COMPLETENESS = new Label("CompletePreconditions");
@@ -174,22 +142,19 @@ public class Label {
     /** Used for asserts generated from callable clauses */
     /*@ non_null*/ public final static Label CALLABLE = new Label("Callable");
     
-    /** Used for assume or assert statements generated from non-null designations */
-    /*@ non_null*/ public final static Label NULL_CHECK = new Label("NullCheck");
-    
-    /** Used for assume or assert statements generated from non-null designations */
+    /** Used for assume or assert statements generated from non-null designations on fields */
     /*@ non_null*/ public final static Label NULL_FIELD = new Label("NullField");
     
-    /** Used for assume or assert statements generated from non-null designations */
-    /*@ non_null*/ public final static Label NULL_FORMAL = new Label("NullFormal");
+    /** Used for assume or assert statements generated from non-null designations on formal parameters */
+    /*@ non_null*/ public final static Label NULL_FORMAL = new Label("NullFormal");  // FIXME - clarify difference between NULL_FORMAL and NULL_ARGUMENT
     
     /** Used for assume or assert statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_ARGUMENT = new Label("NullArgument");
     
-    /** Used for assume or assert statements generated from non-null designations */
+    /** Used for assume or assert statements generated from non-null designations on array elements */
     /*@ non_null*/ public final static Label NULL_ELEMENT = new Label("NullElement");
     
-    /** Used for situations in which an method argument is illegal for some reason other than a null values */
+    /** Used for situations in which an method argument is illegal for some reason other than a null value */
     /*@ non_null*/ public final static Label ILLEGAL_ARGUMENT = new Label("IllegalArgument");
     
     /** Used for assume or assert statements for a cast to a NonNull type */
@@ -197,6 +162,9 @@ public class Label {
     
     /** Used for assume or assert statements generated when checking static initialization */
     /*@ non_null*/ public final static Label STATIC_INIT = new Label("StaticInit");
+    
+    /** Used for assume or assert statements generated when checking static initialization */
+    /*@ non_null*/ public final static Label STATIC_INVARIANT = new Label("StaticInvariant");
     
     /** Used for assert statements generated from postcondition checks */
     /*@ non_null*/ public final static Label POSTCONDITION = new Label("Postcondition");
@@ -207,16 +175,13 @@ public class Label {
     /** Used for assert statements generated from signals_only checks */
     /*@ non_null*/ public final static Label SIGNALS_ONLY = new Label("ExceptionList");
     
-    /** Used for assume statements generated from uses of pure methods in specifications */
-    /*@ non_null*/ public final static Label METHODAXIOM = new Label("MethodAxiom", false);
-    
     /** Used for assert statements generated from constraint checks */
     /*@ non_null*/ public final static Label CONSTRAINT = new Label("Constraint");
     
     /** Used for assert statements generated from initially checks */
     /*@ non_null*/ public final static Label INITIALLY = new Label("Initially");
     
-    /** Used for assert statements generated to check that assume statements are feasible */
+    /** Used for assert statements generated to check that assume statements are feasible (ESC only) */
     /*@ non_null*/ public final static Label FEASIBILITY_CHECK = new Label("FeasibilityCheck");
     
     /** Used for the loop invariant assumption at beginning of loop body. */
@@ -225,10 +190,10 @@ public class Label {
     /** Used for the loop invariant assertion at end of loop body. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT = new Label("LoopInvariant");
     
-    /** Used for the loop invariant assertion or assumption. */
+    /** Used for the loop invariant assertion before a loop. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT_PRELOOP = new Label("LoopInvariantBeforeLoop");
     
-    /** Used for the loop invariant assertion or assumption. */
+    /** Used for the loop invariant assertion after a loop. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT_ENDLOOP = new Label("LoopInvariantAfterLoop");
     
     /** Used for the assertion that the loop variant is decreasing. */
@@ -237,7 +202,7 @@ public class Label {
     /** Used for the assertion that the loop variant is never negative prior to executing a loop iteration. */
     /*@ non_null*/ public final static Label LOOP_DECREASES_NEGATIVE = new Label("LoopDecreasesNonNegative");
     
-    /** Used to designate the conditional test of a loop, only in a do-while loop */
+    /** Used to designate an assumption about the conditional test of a loop, only in a do-while loop */
     /*@ non_null*/ public final static Label LOOP = new Label("LoopCondition");
     
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
@@ -305,6 +270,8 @@ public class Label {
     
     /** Used to designate a potentially large shift value */
     /*@ non_null*/ public final static Label POSSIBLY_LARGESHIFT = new Label("PossiblyLargeShift");
+    
+    // FIXME - should we check for LARGESHIFT within JML expressions
 
     /** Used to designate a possible exception because of a cast of a reference value to a type that is not the type of the dynamic value */
     /*@ non_null*/ public final static Label POSSIBLY_BADCAST = new Label("PossiblyBadCast");
@@ -321,6 +288,37 @@ public class Label {
     /** Used for cases that likely indicate an internal error or unimplemented option */
     /*@ non_null*/ public final static Label UNKNOWN = new Label("Unknown");
 
+    // TODO: Categorize
+    
+    /** Used for assume or assert statements generated from axiom clauses */
+    /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");
+    
+    /** Used for assume statements generated to capture the switch value, in ESC only */
+    /*@ non_null*/ public final static Label SWITCH_VALUE = new Label("SwitchValue");
+    
+
+ 
+    // The following are used only for assumptions, which may be checked in RAC if --rac-check-assumptions is enabled
+    
+    /** Used for implicit, miscellaneous JML assume statements */
+    /*@ non_null */ public final static Label IMPLICIT_ASSUME = new Label("ImplicitAssume");
+    
+    /** Used for assume statements generated from non-null designations */
+    /*@ non_null*/ public final static Label NULL_CHECK = new Label("NullCheck");
+    
+    // ESC only
+
+    /** Used for assume statements corresponding to a new array allocation and initialization, only in ESC */
+    /*@ non_null*/ public final static Label ARRAY_INIT = new Label("ArrayInit");
+    
+    /** Used to mark method axioms; SMT then creates corresponding function definitions */
+    /*@ non_null*/ public final static Label METHOD_DEFINITION = new Label("MethodDefinition");
+    
+    /** Used to mark assumptions related to method determinism */
+    /*@ non_null*/ public final static Label METHOD_ASSUME = new Label("MethodAssume");
+    
+    /** Used for assume statements generated from uses of pure methods in specifications */ // FIXME - might be present in RAC
+    /*@ non_null*/ public final static Label METHODAXIOM = new Label("MethodAxiom", false);
 
     // The following labels are used in BasicBlocker in converting Java control flow statements to basic blocks.
     // They are only used as assumptions and only in ESC. Their names are significant because they are used in 
@@ -338,9 +336,18 @@ public class Label {
     /** Used for assume statements generated from case statements in switch statements -- only used internally in ESC (BasicBlocker) */
     /*@ non_null*/ public final static Label CASECONDITION = new Label("Case", false);
     
+    /** Used for assume statements generated to guard a catch block */
+    /*@ non_null*/ public final static Label CATCH_CONDITION = new Label("CatchCondition", false); // FIXME - used??
+
+    /** Used for assume statements generated to adjust DSA variables  -- only in ESC (BasicBlocker)*/
+    /*@ non_null*/ public final static Label DSA = new Label("DSA", false);
+
     /** Used for assume statements generated from assignable clauses  -- only in ESC (BasicBlocker)*/
     /*@ non_null*/ public final static Label HAVOC = new Label("Havoc", false);
     
+    /** Used for assume statements generated to adjust DSA variables */
+    /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK", false);
+
     
 
 }
