@@ -2171,7 +2171,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			/* @nullable */ JavaFileObject associatedSource, /* @nullable */ JCExpression info, Object... args) {
 
 		if (label != Label.FEASIBILITY_CHECK && feasibilityContains(Strings.feas_debug)) {
-		    addFeasibilityCheck(translatedExpr, currentStatements, "Extra-Assert");
+		    addFeasibilityCheck(translatedExpr, currentStatements, "FeasibilityDebugAssert");
 		}
 
 		boolean isTrue = treeutils.isTrueLit(translatedExpr);
@@ -2502,7 +2502,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			stt = st;
 			if (label != Label.FEASIBILITY_CHECK  && currentStatements != null && feasibilityContains(Strings.feas_debug)) {
 			    // FIXME - perhaps don't check assignment like assumptions
-			    addFeasibilityCheck(translatedExpr, currentStatements, "Extra-Assume");
+			    addFeasibilityCheck(translatedExpr, currentStatements, "FeasibilityDebugAssume");
 			}
 		}
 		if (rac && methodEnv.racCheckAssumeStatements && label != null && label.racChecked) {
@@ -3308,34 +3308,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 
-	protected void assertInvariants(JCExpression expr, JCExpression currentThis) {
-		JCExpression saved = currentEnv.currentReceiver;
-		currentEnv.currentReceiver = currentThis;
-		ListBuffer<JCStatement> check10 = pushBlock();
-		try {
-			for (JmlTypeClause t : specs.getAttrSpecs((ClassSymbol) expr.type.tsym).clauses) {
-				if (t.clauseType != invariantClause)
-					continue;
-				JavaFileObject prev = log.useSource(t.sourcefile);
-				try {
-					JCExpression e = convertJML(copy((JmlTypeClauseExpr) t).expression); // FIXME - why copy the
-																								// caluse
-					addAssert(t, Label.INVARIANT, e); // FIXME - CHnage the position to point to end point of method,
-														// and associated position to invariant
-				} finally {
-					log.useSource(prev);
-				}
-			}
-		} finally {
-			JCBlock bl = popBlock(expr, check10);
-			if (!bl.stats.isEmpty()) {
-				JCExpression nn = treeutils.makeNeqObject(expr.pos, expr, treeutils.nullLit);
-				JCStatement st = M.at(expr.pos).If(newTempIfNeeded(nn), bl, null);
-				addStat(st);
-			}
-			currentEnv.currentReceiver = saved;
-		}
-	}
+//	protected void assertInvariants(JCExpression expr, JCExpression currentThis) {
+//		JCExpression saved = currentEnv.currentReceiver;
+//		currentEnv.currentReceiver = currentThis;
+//		ListBuffer<JCStatement> check10 = pushBlock();
+//		try {
+//			for (JmlTypeClause t : specs.getAttrSpecs((ClassSymbol) expr.type.tsym).clauses) {
+//				if (t.clauseType != invariantClause)
+//					continue;
+//				JavaFileObject prev = log.useSource(t.sourcefile);
+//				try {
+//					JCExpression e = convertJML(copy((JmlTypeClauseExpr) t).expression); // FIXME - why copy the
+//																								// caluse
+//					addAssert(t, Label.INVARIANT, e); // FIXME - CHnage the position to point to end point of method,
+//														// and associated position to invariant
+//				} finally {
+//					log.useSource(prev);
+//				}
+//			}
+//		} finally {
+//			JCBlock bl = popBlock(expr, check10);
+//			if (!bl.stats.isEmpty()) {
+//				JCExpression nn = treeutils.makeNeqObject(expr.pos, expr, treeutils.nullLit);
+//				JCStatement st = M.at(expr.pos).If(newTempIfNeeded(nn), bl, null);
+//				addStat(st);
+//			}
+//			currentEnv.currentReceiver = saved;
+//		}
+//	}
 
 	protected void addRecInvariants(boolean assume, boolean staticOnly, boolean fieldInvariants, boolean helper,
 			DiagnosticPosition d, TypeSymbol tsym, JCExpression currentThis) {
@@ -17434,7 +17434,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		checkAccessEnabled = false;
 		try {
 			addInvariants(classDecl, classDecl.sym.type, null, currentStatements, true, false, false, false, true,
-					false, Label.STATIC_INIT, "invariant is false");
+					false, Label.STATIC_INVARIANT);
 			clearInvariants();
 		} finally {
 			checkAccessEnabled = pv;

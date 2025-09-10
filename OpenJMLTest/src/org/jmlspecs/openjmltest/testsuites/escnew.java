@@ -1582,14 +1582,16 @@ public class escnew extends EscBase {
 
     @Test
     public void testAsList() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"import java.util.List; public class TestJava  { \n"
-                +"  public enum E { A}; \n"
-                
-                +"  public static void m1() {\n"
-                +"    List<E> m = java.util.Arrays.asList(new E[]{E.A});\n"
-                +"  }\n"
-                +"}\n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                import java.util.List; public class TestJava  {
+                  public enum E { A};
+                  public static void m1() {
+                    List<E> m = java.util.Arrays.asList(new E[]{E.A});
+                  }
+                }
+                """
                 );
         }
 
