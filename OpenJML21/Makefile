@@ -149,18 +149,23 @@ post: .FORCE
 
 
 USERGUIDE=tempUserGuide
-OVERLEAFID=620c2512d552cc226f5f4c94
+REFMANID=5ceee26404c2854a1590029f
+USERGUIDEID=620c2512d552cc226f5f4c94
 ZIPNAME=userguide-examples.zip
 userguide-examples:
-	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
-	@ if [ -e ${USERGUIDE}/${OVERLEAFID}/examples ] ; then \
-	        (cd ${USERGUIDE}/${OVERLEAFID}; zip -rq $(ZIPNAME) installLocation test-userguide-examples examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
+	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; )
+	@ if [ -e ${USERGUIDE}/${USERGUIDEID}/examples ] ; then \
+	        (cd ${USERGUIDE}/${USERGUIDEID}; zip -rq $(ZIPNAME) installLocation test-userguide-examples examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
 	        rm -rf ${USERGUIDE}; ls -la ../../openjml.github.io/examples/${ZIPNAME}; \
 	else echo Userguide examples are not available; fi
 
+TEMPDOCS=tempDocs
 DOWNLOADS=~/Desktop
 update-docs:
+	rm -rf ${DOWNLOADS}/OpenJMLUserGuide.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf 
 	make userguide-examples
+	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${REFMANID} ; cd ${REFMANID}; pdflatex JMLReferenceManual.tex --interaction batchmode ; bibtex JMLReferenceManual ; pdflatex JMLReferenceManual.tex --interaction batchmode; pdflatex JMLReferenceManual.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf; )
+	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; cd ${USERGUIDEID} ; pdflatex OpenJMLUserGuide.tex --interaction batchmode; bibtex OpenJMLUserGuide; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}; )
 	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf ../../openjml.github.io/documentation
 	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf $(RELFILES)
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf ../../openjml.github.io/documentation
@@ -172,7 +177,7 @@ push-docs:
 ## Smoke test of a newly constructed release
 trial: .FORCE
 	$(TEMP)/openjml -version
-	$(TEMP)/openjml -esc -progress $(TEMP)/demos/Max.java
+	$(T-EMP)/openjml -esc -progress $(TEMP)/demos/Max.java
 
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE
