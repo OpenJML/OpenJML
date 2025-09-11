@@ -421,6 +421,9 @@ public class SMTTranslator extends JmlTreeScanner {
         //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJAVAARRAYTYPE+" T)) T)))");
         }
         if (quants && quantOK) {
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= (_JMLT_0 (" +MAKEJAVAARRAYTYPE+ " T)) ( "+MAKEJMLARRAYTYPE+" (_JMLT_0 T))  ) ))");
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")(T1 "+JMLTYPESORT+")) (= (_JMLT_1 (" +MAKEJAVAARRAYTYPE+ " T) T1) ( "+MAKEJMLARRAYTYPE+" (_JMLT_1 T T1))  ) ))");
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")(T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (= (_JMLT_2 (" +MAKEJAVAARRAYTYPE+ " T) T1 T2) ( "+MAKEJMLARRAYTYPE+" (_JMLT_2 T T1 T2))  ) ))");
             addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (=> (_isJMLArrayType (_JMLT_0 T)) (_isArrayType T)) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (=> (_isArrayType (|`erasure| T)) (_isJMLArrayType T) ) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJMLARRAYTYPE+" T)) T)))");
@@ -1230,6 +1233,7 @@ public class SMTTranslator extends JmlTreeScanner {
             ICommand c = cf.smtFactory.createParser(cf,cf.smtFactory.createSource(command,null)).parseCommand();
             return c;
         } catch (Exception e) {
+            System.out.println("BAD COMMAND: " + command);
             throw new RuntimeException(e);
         }
     }
@@ -1259,14 +1263,6 @@ public class SMTTranslator extends JmlTreeScanner {
         //System.out.println("TYPESTRING " + t + " " + t.tsym + " " + t.tsym.name + " " + r);
         return r.replace('.', '_');
     }
-    
-//    public String arrayOf(Type t) {
-//        return "T_" + typeString(t) + "_A_";
-//    }
-//    
-//    public String jmlarrayOf(Type t) {
-//        return "JMLT_" + typeString(t) + "_A_";
-//    }
     
     /** Returns an SMT Symbol representing the given Java type */
     public IExpr javaTypeSymbol(Type t) {

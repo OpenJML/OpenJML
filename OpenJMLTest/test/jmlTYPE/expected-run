@@ -20,7 +20,7 @@ ERRORS2 java.lang.IllegalArgumentException: \TYPE value in call of typearg has a
 ERRORS3 java.lang.IllegalArgumentException: \TYPE value in call of typearg has an out of range argument: 0 < 2 <= 1
 test/jmlTYPE/Test.java:71: verify: JML actual argument has an illegal value
             //@ ghost var c = \elemtype(\type(Integer)); // ERROR
-                                              ^
+                                       ^
 ERRORS4 java.lang.IllegalArgumentException: Calling \elemtype on a value that is not an (or does not have) array type: java.lang.Integer
 test/jmlTYPE/Test.java:79: verify: JML assertion is false
             //@ check \type(Integer).equals(null); // ERROR
@@ -31,9 +31,6 @@ test/jmlTYPE/Test.java:87: verify: JML assertion is false
 LABEL JMLSHOW_16 = java.util.List<java.lang.Boolean>[]
 LABEL JMLSHOW_17 = java.util.List<java.lang.Boolean>
 java.lang.NullPointerException: base may not be null in \TYPE.of
-test/jmlTYPE/Test.java:177: verify: JML formal argument may be null: varargs argument
-            //@ ghost \TYPE tt = \TYPE.of(List.class, a); // ERROR -- a is null
-                                                      ^
 java.lang.NullPointerException: argument list may not be null in \TYPE.of
 
 ERR:
