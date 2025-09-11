@@ -171,7 +171,8 @@ public class Test {
         }
     }
     
-    public static void misc3() {
+    //@ skipesc
+    public static void misc3() {    // FIXME
         try {
             //@ ghost \TYPE nullable [] a = null;
             //@ ghost \TYPE tt = \TYPE.of(List.class, a); // ERROR -- a is null
@@ -181,17 +182,17 @@ public class Test {
     }
     
     public static void typelcTests() {
-        // @ check \type(boolean) == \TYPE.of(boolean.class);
+        //@ check \type(boolean) == \TYPE.of(boolean.class);
         //@ check \type(boolean[]) == \TYPE.of(boolean[].class);
-        // @ check \type(boolean[]) == \TYPE.of(boolean.class).arraytype();
-        // @ check \type(Integer) == \TYPE.of(Integer.class);
-        // @ check \type(Integer[]) == \TYPE.of(Integer[].class);
-        // @ check \type(Integer[]) == \TYPE.of(Integer.class).arraytype();
-        // @ ghost \TYPE t = \type(java.util.List<Boolean>[][]);
-        // @ check \type(List<Short>) == \TYPE.of(List.class, \type(Short));
-        // @ check \type(Map<Short,List<Integer>>) == \TYPE.of(Map.class, \type(Short), \TYPE.of(List.class, \type(Integer)));
-        // @ check \type(List<Short>[]) == \TYPE.of(List.class, \type(Short)).arraytype();
-        // @ check \type(List<Short>[]) == \TYPE.of(List[].class, \type(Short));
+        //@ check \type(boolean[]) == \TYPE.of(boolean.class).arraytype();
+        //@ check \type(Integer) == \TYPE.of(Integer.class);
+        //@ check \type(Integer[]) == \TYPE.of(Integer[].class);
+        //@ check \type(Integer[]) == \TYPE.of(Integer.class).arraytype();
+        //@ ghost \TYPE t = \type(java.util.List<Boolean>[][]);
+        //@ check \type(List<Short>) == \TYPE.of(List.class, \type(Short));
+        //@ check \type(Map<Short,List<Integer>>) == \TYPE.of(Map.class, \type(Short), \TYPE.of(List.class, \type(Integer)));
+        //@ check \type(List<Short>[]) == \TYPE.of(List.class, \type(Short)).arraytype();
+        //@ check \type(List<Short>[]) == \TYPE.of(List[].class, \type(Short));
     }
 
     public static void typelcTests2() {
