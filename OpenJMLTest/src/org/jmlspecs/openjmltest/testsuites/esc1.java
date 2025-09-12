@@ -1784,58 +1784,53 @@ public class esc1 extends EscBase {
     @Test
     public void testJava() {
         addOptions("--check-feasibility=precondition");
-        helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n" + "  public static boolean bstatic;\n"
-                + "  public boolean binstance;\n" + "  public boolean binstance2;\n" + "  /*@ non_null */ Object o;\n"
-                + "  //@ ghost nullable Object oo;\n" + "  //@ public static invariant bstatic;\n"
-                + "  //@ public invariant binstance;\n" + "  //@ public initially binstance2;\n"
-                + "  //@ public constraint binstance2 == \\old(binstance2);\n"
-                + "  //@ public static constraint bstatic == \\old(bstatic);\n"
-
-                + "  public static void main(/*@ non_null*/ String[] args) {  }\n"
-
-                + "  //@ requires true;\n" + "  //@ ensures \\result;\n"
-                + "  public static boolean b(boolean bb) { return true; }\n"
-
-                + "  //@ requires false;\n" + "  //@ ensures true;\n" + "  public static int i(int ii) { return 0; }\n"
-
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public Object inst(int ii) { binstance = ii == 0; o = null; /*@ set oo = null;*/ return null; }\n"
-
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public /*@ nullable */ Object insx(int ii) { binstance = true;           /*@ set oo = null;*/ return null; }\n"
-
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public Object insy(int ii) { binstance = ii == 0;            return null; }\n"
-
-                + "  //@ requires ii == 10;\n" + "  //@ ensures true;\n"
-                + "  public Object insz(int ii) { binstance = ii == 0;            return o; }\n" + "}" // FIXME
-                                                                                                        // -
-                                                                                                        // use
-                                                                                                        // Optional
-                                                                                                        // etc.
-                ,anyorder(  // FIXME - review this expected output
-//                optional("/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8 // nothing sets bstatic true
-//                ,"/tt/TestJava.java:8: warning: Associated declaration", 21
-//                ,"/tt/TestJava.java:9: warning: Associated declaration", 14
-//                )
-//                ,optional("/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Initially) in method TestJava",8 // nothing sets binstance2 true
-//                ,"/tt/TestJava.java:10: warning: Associated declaration", 14
-//                ),
-                seq("/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8 // nothings sets binstance true
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static boolean bstatic;
+                  public boolean binstance;
+                  public boolean binstance2;
+                  /*@ non_null */ Object o;
+                  //@ ghost nullable Object oo;
+                  //@ public static invariant bstatic;  // FIXME - static initialization should fail
+                  //@ public invariant binstance;
+                  //@ public initially binstance2;  // Line 10
+                  //@ public constraint binstance2 == \\old(binstance2);
+                  //@ public static constraint bstatic == \\old(bstatic);
+                  public static void main(/*@ non_null*/ String[] args) {  } // OK
+                  //@ requires true;
+                  //@ ensures \\result;
+                  public static boolean b(boolean bb) { return true; } // OK
+                  //@ requires false;
+                  //@ ensures true;
+                  public static int i(int ii) { return 0; } // ERROR: precondition not feasible
+                  //@ requires ii == 10;  // Line 20
+                  //@ ensures true;
+                  public Object inst(int ii) { binstance = ii == 0; o = null; /*@ set oo = null;*/ return null; } // ERROR: null assignments
+                  //@ requires ii == 10;\
+                  //@ ensures true;
+                  public /*@ nullable */ Object insx(int ii) { binstance = true;           /*@ set oo = null;*/ return null; }
+                  //@ requires ii == 10;
+                  //@ ensures true;
+                  public Object insy(int ii) { binstance = ii == 0;            return null; }
+                  //@ requires ii == 10;
+                  //@ ensures true;
+                  public Object insz(int ii) { binstance = ii == 0;            return o; }
+                  public TestJava() { binstance = true; } // ERROR: binstance2 not true
+                  public TestJava(int i) { binstance2 = true; } // ERROR: binstance not true
+                }
+                """
+                ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.i(int)",21 // precondition is false
+                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55
+                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (InvariantExit) in method insy",64 // binstance is false
                 ,"/tt/TestJava.java:9: warning: Associated declaration", 14
-//                ,"/tt/TestJava.java:10: warning: Associated declaration", 14
-                )
-                ,seq("/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.i(int)",21 // precondition is false
-                )
-                ,seq("/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method inst",55
-                )
-                ,seq("/tt/TestJava.java:28: warning: The prover cannot establish an assertion (InvariantExit) in method insy",64 // binstance is false
+                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (InvariantExit) in method insz",64 // binstance is false
                 ,"/tt/TestJava.java:9: warning: Associated declaration", 14
-                )
-                ,seq("/tt/TestJava.java:31: warning: The prover cannot establish an assertion (InvariantExit) in method insz",64 // binstance is false
+                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Initially) in method TestJava",10 // nothing sets binstance2 true
+                ,"/tt/TestJava.java:10: warning: Associated declaration", 14
+                ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10 // nothing sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration", 14
-                )
-                )
                 );
     }
 
