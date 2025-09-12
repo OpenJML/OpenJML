@@ -73,23 +73,29 @@ public class Label {
     /** Used for assume statements generated from preconditions */
     /*@ non_null */ public final static Label PRECONDITION = new Label("Precondition");
     
-    /** Used for assume or assert statements generated from invariants */
+    /** Used for assert statements generated from invariants */
     /*@ non_null */ public final static Label INVARIANT = new Label("Invariant");
     
-    /** Used for assume or assert statements generated from invariants */
-    /*@ non_null */ public final static Label INVARIANT_REENTER_CALLER = new Label("InvariantReenterCaller");
+    /** Used for assume statements generated from invariants */
+    /*@ non_null */ public final static Label INVARIANT_ASSUME = new Label("InvariantAssume");
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null */ public final static Label INVARIANT_ENTRANCE = new Label("InvariantEntrance");
     
     /** Used for assume or assert statements generated from invariants */
+    /*@ non_null */ public final static Label INVARIANT_ENTRANCE_ASSUMED = new Label("InvariantEntranceAssumed");
+    
+    /** Used for assume or assert statements generated from invariants */
     /*@ non_null */ public final static Label INVARIANT_EXIT = new Label("InvariantExit");
+    
+    /** Used for assume or assert statements generated from invariants */
+    /*@ non_null */ public final static Label INVARIANT_EXIT_ASSUMED = new Label("InvariantExitAssumed");
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null */ public final static Label INVARIANT_EXCEPTION_EXIT = new Label("InvariantExceptionExit");
     
     /** Used for assume or assert statements generated from invariants */
-    /*@ non_null */ public final static Label INVARIANT_EXIT_CALLER = new Label("InvariantLeaveCaller");
+    /*@ non_null */ public final static Label INVARIANT_EXCEPTION_EXIT_ASSUMED = new Label("InvariantExceptionExitAssumed");
     
     /** Out-of-range numerical conversion */
     /*@ non_null */ public final static Label ARITHMETIC_OP_RANGE = new Label("ArithmeticOperationRange");
