@@ -2793,6 +2793,8 @@ public class JmlTree {
          */
         public JmlMethodDecl decl = null;
         
+        public JmlMethodClauseInvariants invariants = null;
+        
         /** The standard specification cases */
         public List<JmlSpecificationCase> cases;
         

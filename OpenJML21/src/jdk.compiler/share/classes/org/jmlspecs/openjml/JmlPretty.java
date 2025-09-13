@@ -517,6 +517,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+        if (that.invariants != null) that.invariants.accept(this);
         if (that.cases.isEmpty()) return;
         try {
             if (useJMLComments) { align(); print("/*@"); println(); }

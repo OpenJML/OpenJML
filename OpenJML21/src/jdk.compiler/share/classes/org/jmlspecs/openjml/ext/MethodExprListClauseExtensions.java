@@ -19,7 +19,7 @@ public class MethodExprListClauseExtensions extends JmlExtension {
     
     public static final String invariantsID = "invariants";
         
-    public static final IJmlClauseKind invariantsClauseKind = new IJmlClauseKind.MethodSpecClauseKind(invariantsID) {
+    public static final IJmlClauseKind.MethodSpecClauseKind invariantsClauseKind = new IJmlClauseKind.MethodSpecClauseKind(invariantsID) {
         public boolean oldNoLabelAllowed() { return false; }
         public boolean preOrOldWithLabelAllowed() { return false; }
 
@@ -27,8 +27,8 @@ public class MethodExprListClauseExtensions extends JmlExtension {
         public 
         JmlMethodClauseInvariants parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             init(parser);
-            if (mods != null) {
-                error(mods.pos(), "jml.message", "a " + keyword + " clause may not have modifiers");
+            if (!utils.hasNone(mods)) {
+                error(mods.pos(), "jml.message", "a " + keyword + " clause may not have modifiers: " + mods);
                 return null;
             }
             
