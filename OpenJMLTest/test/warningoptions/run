@@ -12,5 +12,8 @@ $OJA --warn=missing-specs --warn=reset --warn=list >> actual 2>&1
 $OJA --warn=all --warn=list    >> actual 2>&1
 $OJA --warn=none --warn=list   >> actual 2>&1
 $OJA --no-warn=all --warn=list >> actual 2>&1
+$OJA --warn=zzz >> actual 2>&1
+$OJA "--warn= " >> actual 2>&1
+$OJA --warn= >> actual 2>&1
 
 diff actual expected && rm -rf actual

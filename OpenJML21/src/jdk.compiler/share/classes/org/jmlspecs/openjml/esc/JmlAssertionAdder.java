@@ -9270,7 +9270,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    if (info.specCase.callee_only) continue;
 			    pushArithMode(info.parentMethodSymbol, true);
 			    try {
-			    x: if (!calleeIsPure && WarningCategory.instance(context).allowed(WarningCategory.IMPLICIT_EVERYTHING) != WarningCategory.WarnAction.QUIET) {
+			    x: if (!calleeIsPure && WarningCategory.instance(context).action(WarningCategory.IMPLICIT_EVERYTHING) != WarningCategory.WarnAction.QUIET) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
 			        boolean isEverything = true;

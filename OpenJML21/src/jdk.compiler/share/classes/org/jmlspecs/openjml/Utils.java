@@ -1782,7 +1782,7 @@ public class Utils {
     }
 
     public void warningCategory(String category, int pos, String message) {
-        var wt = WarningCategory.instance(context).allowed(category);
+        var wt = WarningCategory.instance(context).action(category);
         switch (wt) {
         case WARN:
             log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
@@ -1794,7 +1794,7 @@ public class Utils {
     }
 
     public void warningCategory(String category, String message) {
-        var wt = WarningCategory.instance(context).allowed(category);
+        var wt = WarningCategory.instance(context).action(category);
         switch (wt) {
         case WARN:
             log().warning(JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
@@ -1806,7 +1806,7 @@ public class Utils {
     }
 
     public void warningCategory(String category, DiagnosticPosition pos, String message) {
-        var wt = WarningCategory.instance(context).allowed(category);
+        var wt = WarningCategory.instance(context).action(category);
         switch (wt) {
         case WARN:
             log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
@@ -1818,7 +1818,7 @@ public class Utils {
     }
 
     public void warningCategory(String category, JavaFileObject source, DiagnosticPosition pos, String message) {
-        var wt = WarningCategory.instance(context).allowed(category);
+        var wt = WarningCategory.instance(context).action(category);
         switch (wt) {
         case WARN: {
             var prev = log().useSource(source);
@@ -1836,7 +1836,7 @@ public class Utils {
     }
 
     public void warningCategory(String category, JavaFileObject source, DiagnosticPosition pos, JavaFileObject asource, DiagnosticPosition apos, String message) {
-        var wt = WarningCategory.instance(context).allowed(category);
+        var wt = WarningCategory.instance(context).action(category);
         Log log = log();
         switch (wt) {
         case WARN: {

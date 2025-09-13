@@ -2326,26 +2326,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return make.Literal(type.getTag(), value).setType(litType(type.getTag()).constType(value));
     }
 
-    // FIXME - is there a faster way to do this?
-    /** Returns a Symbol (in the current compilation context) for the given operator
-     * with the given (lhs) type
-     * @param op the operator (e.g. JCTree.AND)
-     * @param type the type of the lhs, for disambiguation
-     * @return the method Symbol for the operation
-     */
-    protected Symbol predefBinOp(JCTree.Tag op, Type type) {
-		Name n = names.fromString(Pretty.operatorName(op));
-        var e = syms.predefClass.members().getSymbolsByName(n);
-        for (Symbol sym: e) {
-            if (sym instanceof MethodSymbol) {
-                MethodSymbol msym = (MethodSymbol)sym;
-                Type t = msym.getParameters().head.type;
-                if (t == type || (!type.isPrimitive() && t == syms.objectType)) return sym;
-            }
-        }
-        return null;
-    }
-
     
     /** Does a custom desugaring of the method specs.  It adds in the type
      * restrictions (non_null) and purity, desugars lightweight and heavyweight
