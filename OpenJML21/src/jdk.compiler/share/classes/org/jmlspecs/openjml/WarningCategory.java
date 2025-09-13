@@ -60,15 +60,6 @@ public class WarningCategory {
         return sb.toString();
     }
 
-    public WarnAction allowed(String key) {
-        WarnAction b = warningKeys.get(key);
-        if (b != null) {
-            return b;
-        }
-        Utils.instance(context).error("jml.internal.not.so.bad","Invalid warning key: " + key);
-        return WarnAction.WARN;
-    }
-
     public WarnAction action(String key) {
         WarnAction b = warningKeys.get(key);
         if (b != null) {

@@ -47,6 +47,7 @@ public interface IAPI {
     public boolean isOptionSet(String key);
     public String getOption(String key);
     
+//    @SuppressWarnings("exports")
 //    public Context context();
 //     
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
