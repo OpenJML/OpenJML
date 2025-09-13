@@ -28,6 +28,7 @@ import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
+import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodResourceClauseExtension.*;
 import static org.jmlspecs.openjml.ext.CallableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nonnullelementsKind;
@@ -2788,6 +2789,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (count > 0) {
                     log.error(m.pos,"jml.multiple.signalsonly");
                 }
+            } else if (t == invariantsClauseKind) {
+                log.error(m.pos,"jml.misplaced.clause","invariants","any");
+                continue;
             } else if (desugaringPure && t == assignableClauseKind) {
                 JmlMethodClauseStoreRef asg = (JmlMethodClauseStoreRef)m;
                 if (msym.isConstructor()) {
@@ -4434,6 +4438,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
         try {
+            if (tree.invariants != null) tree.invariants.accept(this);
         	for (JmlSpecificationCase c: tree.cases) {
         		try {
 //        		    long viz = c.modifiers.flags & Flags.AccessFlags;
