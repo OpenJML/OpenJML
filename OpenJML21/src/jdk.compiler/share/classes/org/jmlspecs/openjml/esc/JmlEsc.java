@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
@@ -168,6 +169,9 @@ public class JmlEsc extends JmlTreeScanner {
             for (JCTree d: arr) {
                 scan(d);
             }
+            if (node instanceof JmlClassDecl cd) {
+                scan(cd.staticInitializerMethod);
+            }
         } else {
             super.visitClassDef(node);
         }
@@ -190,19 +194,21 @@ public class JmlEsc extends JmlTreeScanner {
     @Override
     public void visitMethodDef(/*@non_null*/ JCMethodDecl decl) {
         // System.out.println("JMLESC VISITING METHOD " + decl.sym.owner + " " + decl.sym);
-        if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
-            // Constructors for anonymous classes are not explicit. They are checked
-            // in the course of instantiating the anonymous object.
-            return;
-        }
-
         if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
-        // We do prove generated constructors in general, because they include all the initialization
-        if ((decl.sym.flags() & Flags.GENERATEDCONSTR) != 0 && (decl.sym.flags() & Flags.RECORD) != 0) return; // Don't do generated code (particularly record constructors)
-        if ((decl.sym.flags() & Flags.GENERATED_MEMBER) != 0) return; // Don't do generated code (particularly record constructors)
-        if (!(decl instanceof JmlMethodDecl)) {
-            utils.warning("jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.abbrevMethodSig(decl.sym));
-            return;
+        if (decl.sym != null) {
+            if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
+                // Constructors for anonymous classes are not explicit. They are checked
+                // in the course of instantiating the anonymous object.
+                return;
+            }
+
+            // We do prove generated constructors in general, because they include all the initialization
+            if ((decl.sym.flags() & Flags.GENERATEDCONSTR) != 0 && (decl.sym.flags() & Flags.RECORD) != 0) return; // Don't do generated code (particularly record constructors)
+            if ((decl.sym.flags() & Flags.GENERATED_MEMBER) != 0) return; // Don't do generated code (particularly record constructors)
+            if (!(decl instanceof JmlMethodDecl)) {
+                utils.warning("jml.internal","Unexpected non-JmlMethodDecl in JmlEsc - not checking " + utils.abbrevMethodSig(decl.sym));
+                return;
+            }
         }
         JmlMethodDecl methodDecl = (JmlMethodDecl)decl;
 

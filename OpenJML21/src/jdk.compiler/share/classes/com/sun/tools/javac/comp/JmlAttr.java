@@ -8727,8 +8727,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		for (var clause: tspecs.clauses) {
     			attrTypeClause(clause, tspecs.specsEnv, ri);
     		}
-    		attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
-    		attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
+    		if (tspecs.initializerSpec != null) attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
+    		if (tspecs.staticInitializerSpec != null) attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
 		} catch (PropagatedException e) {
 		    throw e;
     	} catch (Exception e) {

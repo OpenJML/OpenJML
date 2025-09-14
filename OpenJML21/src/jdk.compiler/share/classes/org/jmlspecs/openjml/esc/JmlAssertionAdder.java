@@ -4422,7 +4422,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	}
 
-	protected void assumeStaticInvariants(ClassSymbol csym) {
+	protected void addStaticInvariants(ClassSymbol csym, boolean assume, Label label) {
 		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 		if (tspecs == null) {
 			utils.error("jml.internal", "Null class specs for " + csym);
@@ -4438,16 +4438,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 				if (!utils.jmlvisible(null, methodDecl.sym.owner, csym, t.modifiers.flags, methodDecl.mods.flags))
 					continue;
-				addAssume(methodDecl, Label.INVARIANT_ENTRANCE_ASSUMED,
+				if (assume) 
+				    addAssume(methodDecl, label,
 						convertJML(((JmlTypeClauseExpr) t).expression),
 						t, t.source(), utils.qualifiedMethodSig(methodDecl.sym));
+				else
+                    addAssert(methodDecl, label,
+                            convertJML(((JmlTypeClauseExpr) t).expression),
+                            t, t.source(), utils.qualifiedMethodSig(methodDecl.sym));
 			}
 		} finally {
 			endInvariants(csym);
 		}
 		for (Symbol ccsym : csym.getEnclosedElements()) {
 			if (ccsym instanceof ClassSymbol) {
-				assumeStaticInvariants((ClassSymbol) ccsym);
+			    addStaticInvariants((ClassSymbol) ccsym, assume, label);
 			}
 		}
 	}
@@ -4468,14 +4473,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	};
 	public final IClassOp staticInitializerAdder = new IClassOp() {
 		public void classOp(ClassSymbol cs) {
-			addStaticInitialization(cs);
+			addStaticInitialization(cs, true);
 		}
 	};
-	public final IClassOp staticInvariantAdder = new IClassOp() {
-		public void classOp(ClassSymbol cs) {
-			assumeStaticInvariants(cs);
-		}
-	};
+    public final IClassOp staticInvariantAssumer = new IClassOp() {
+        public void classOp(ClassSymbol cs) {
+            addStaticInvariants(cs, true, Label.INVARIANT_ENTRANCE_ASSUMED);
+        }
+    };
+
+    public final IClassOp staticInvariantAsserter = new IClassOp() {
+        public void classOp(ClassSymbol cs) {
+            addStaticInvariants(cs, false, Label.INVARIANT_EXIT);
+        }
+    };
 
 	protected void addFormals(ListBuffer<JCStatement> initialStats) {
 		pushBlock(initialStats);
@@ -4735,7 +4746,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addStat(comment(methodDecl, "Method is helper so not assuming static invariants", null));
 				} else {
 					addStat(comment(methodDecl, "Assume static invariants", null));
-					addForClasses(collector.classes, staticInvariantAdder);
+					addForClasses(collector.classes, staticInvariantAssumer);
 				}
 				addStat(comment(methodDecl, "Assume static final constant fields", null));
 				addForClasses(collector.classes, finalStaticFieldAdder);
@@ -4743,7 +4754,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addForClasses(collector.classes, staticInitializerAdder);
 				{
 					addStat(comment(methodDecl.pos(), "Static initialization", log.currentSourceFile()));
-					addStaticInitialization((ClassSymbol) methodDecl.sym.owner);
+					addStaticInitialization((ClassSymbol) methodDecl.sym.owner, true);
 				}
 			}
 
@@ -6134,9 +6145,93 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				convert(t);
 			}
 		}
-	}
+    }
 
-	protected void addStaticInitialization(ClassSymbol csym) {
+    protected JmlMethodDecl addMethodToVerifyStaticInitialization(JCClassDecl that, ClassSymbol csym) {
+
+        var saved = topEnclosingMethod;
+        var savedDecl = methodDecl;
+        
+        ClassCollector collector;
+        HashSet<ClassSymbol> classes = new HashSet<>();
+        classes.add(csym);
+        
+        // This method might be called to add static initializers while processing some class
+        // If so, we have to temporarily reset topEnclosingMethod to avoid detecting spurious recursion.
+        // However, this does go against the intended meaning of topEnclosingMethod
+        try {
+            JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
+            topEnclosingMethod = null;
+
+            M.at(0); // FIXME - set to start of class
+            Name nm = names.fromString("`_static_initialization");
+            var flags = Flags.STATIC|Flags.PUBLIC;
+            var modifiers = M.Modifiers(flags);
+            var mt = new Type.MethodType(List.<Type>nil(),
+                    syms.voidType,
+                    List.<Type>nil(),
+                    csym);
+            var msym = new Symbol.MethodSymbol(flags, nm, mt, csym);
+            msym.params = List.<VarSymbol>nil();
+            
+            var md = M.MethodDef(modifiers, nm,
+                    M.TypeIdent(TypeTag.VOID), List.<JCTypeParameter>nil(), null, List.<JCVariableDecl>nil(), List.<JCExpression>nil(), null, null);
+            md.sym = msym;
+            methodDecl = md;
+            pushBlock();
+
+            initialize2(flags);
+
+            // Add this class's axioms?
+
+            addStat(comment(methodDecl, "Assume axioms", null));
+            addForClasses(classes, axiomAdder);
+
+            // Add static final field initializations
+
+            addStat(comment(methodDecl, "Assume static final constant fields", null));
+            addForClasses(classes, finalStaticFieldAdder);
+
+            // Add non-compiler-constant initializations and initializer blocks, in order
+
+            addStat(comment(methodDecl, "Assume static initialization", null));
+            addForClasses(classes, staticInitializerAdder);
+
+            // Assert static invariants
+            addStat(comment(methodDecl, "Assert static invariants", null));
+            addForClasses(classes, staticInvariantAsserter);
+
+            // Assert static initializer clauses
+
+            addStat(comment(methodDecl.pos(), "Static initialization", log.currentSourceFile()));
+            addStaticInitialization(csym, false);
+            
+            // FIXME - need to handle verification of intialization expressions
+            // FIXME - need to handle references to other classes
+            // FIXME - need to handle different results based on order of initialization -- perhaps a reads clause
+            
+            JCBlock bl = popBlock(that);
+            md.body = bl;
+            
+            Translations t = new Translations(context);
+            methodBiMap.put(md, t);
+            t.addTranslation("", md);
+            
+            JmlSpecs.MethodSpecs methodSpecs = new JmlSpecs.MethodSpecs(modifiers, tspecs.staticInitializerSpec.specs);
+            methodSpecs.javaSym = methodSpecs.specSym = msym;
+            methodSpecs.javaDecl = methodSpecs.specDecl = methodDecl;
+            
+            specs.putSpecs(msym,methodSpecs);
+            
+            return md;
+        } finally {
+            topEnclosingMethod = saved;
+            methodDecl = savedDecl;
+        }
+    }
+
+
+	protected void addStaticInitialization(ClassSymbol csym, boolean assume) {
 	    // This method might be called to add static initializers while processing some class
 	    // If so, we have to temporarily reset topEnclosingMethod to avoid detecting spurious recursion.
 	    // However, this does go against the intended meaning of topEnclosingMethod
@@ -6168,7 +6263,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						}
 						if (post == null)
 							post = treeutils.trueLit;
-						addAssume(tci, Label.POSTCONDITION, post);
+						if (assume) addAssume(tci, Label.POSTCONDITION, post); else addAssert(tci, Label.POSTCONDITION, post);
 					}
 					log.useSource(prev);
 			        topEnclosingMethod = saved;
@@ -17333,6 +17428,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			JCBlock bl = checkStaticInitialization();
 			if (bl != null) this.classDefs.add(bl);
+			
+			if (esc) {
+			    that.staticInitializerMethod = addMethodToVerifyStaticInitialization(that, that.sym);
+			}
 
 			JmlSpecs.TypeSpecs tyspecs = that.typeSpecs;
 			if (!rac)

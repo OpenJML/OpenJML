@@ -1296,6 +1296,8 @@ public class JmlTree {
         public Env<AttrContext> initializerBlockEnv;
         public JCBlock staticInitializerBlock;
         public Env<AttrContext> staticInitializerBlockEnv;
+        public JmlMethodDecl initializerMethod; // synthetic method for ESC verification of instance initialization
+        public JmlMethodDecl staticInitializerMethod; // synthetic method for ESC verification of static initialization
         
         public java.util.List<ExceptionLineAnnotation> lineAnnotations;
         
