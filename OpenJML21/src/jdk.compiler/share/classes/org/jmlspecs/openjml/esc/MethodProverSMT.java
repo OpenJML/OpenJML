@@ -1177,7 +1177,7 @@ public class MethodProverSMT {
                         	utils.verify(assertStat.sourcefile,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
                             loc = utils.locationString(pos,assertStat.sourcefile);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
+                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_ARGUMENT_LOC || label == Label.NULL_ARGUMENT) {
                                 try {
                                     Name nm = ((JCIdent)assertStat.expression).sym.name;                                    // FIXME - need to fix why assertion names are getting invocation suffixes
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);

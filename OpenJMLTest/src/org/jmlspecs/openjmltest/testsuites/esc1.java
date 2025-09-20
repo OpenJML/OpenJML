@@ -1817,8 +1817,9 @@ public class esc1 extends EscBase {
                   //@ requires ii == 10;
                   //@ ensures true;
                   public Object insz(int ii) { binstance = ii == 0;            return o; }
-                  public TestJava() { binstance = true; } // ERROR: binstance2 not true
-                  public TestJava(int i) { binstance2 = true; } // ERROR: binstance not true
+                  public TestJava() { o = new Object(); binstance = true; } // ERROR: binstance2 not true
+                  public TestJava(int i) { o = new Object(); binstance2 = true; } // ERROR: binstance not true
+                  public TestJava(double d) { binstance = binstance2 = true; } // ERROR: o is null
                 }
                 """
                 ,"/tt/TestJava.java:19: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.i(int)",21 // precondition is false
@@ -1831,6 +1832,7 @@ public class esc1 extends EscBase {
                 ,"/tt/TestJava.java:10: warning: Associated declaration", 14
                 ,"/tt/TestJava.java:32: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10 // nothing sets binstance true
                 ,"/tt/TestJava.java:9: warning: Associated declaration", 14
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (NullField) in method TestJava", 26
                 );
     }
 

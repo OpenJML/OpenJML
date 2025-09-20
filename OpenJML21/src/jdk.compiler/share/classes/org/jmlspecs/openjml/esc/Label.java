@@ -65,7 +65,7 @@ public class Label {
     
     // Used for ESC/RAC assertions and for ESC assumptions that are asserted in RAC using --rac-check-assumptions
     /** Used for explicit, user-specified assert statements */
-    /*@ non_null*/ public final static Label EXPLICIT_ASSERT = new Label("Assert");
+    /*@ non_null */ public final static Label EXPLICIT_ASSERT = new Label("Assert");
     
     /** Used for explicit, user-provided JML assume statements */
     /*@ non_null */ public final static Label EXPLICIT_ASSUME = new Label("Assume");
@@ -93,9 +93,6 @@ public class Label {
     
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null */ public final static Label INVARIANT_EXCEPTION_EXIT = new Label("InvariantExceptionExit");
-    
-    /** Used for assume or assert statements generated from invariants */
-    /*@ non_null */ public final static Label INVARIANT_EXCEPTION_EXIT_ASSUMED = new Label("InvariantExceptionExitAssumed");
     
     /** Out-of-range numerical conversion */
     /*@ non_null */ public final static Label ARITHMETIC_OP_RANGE = new Label("ArithmeticOperationRange");
@@ -151,11 +148,11 @@ public class Label {
     /** Used for assume or assert statements generated from non-null designations on fields */
     /*@ non_null*/ public final static Label NULL_FIELD = new Label("NullField");
     
-    /** Used for assume or assert statements generated from non-null designations on formal parameters */
-    /*@ non_null*/ public final static Label NULL_FORMAL = new Label("NullFormal");  // FIXME - clarify difference between NULL_FORMAL and NULL_ARGUMENT
-    
-    /** Used for assume or assert statements generated from non-null designations */
+    /** Used for assume or assert statements generated from non-null tests of actual arguments of methods or JML functions */
     /*@ non_null*/ public final static Label NULL_ARGUMENT = new Label("NullArgument");
+    
+    /** Used for assume or assert statements generated from non-null tests of actual arguments of methods or JML functions */
+    /*@ non_null*/ public final static Label NULL_ARGUMENT_LOC = new Label("NullFormal");
     
     /** Used for assume or assert statements generated from non-null designations on array elements */
     /*@ non_null*/ public final static Label NULL_ELEMENT = new Label("NullElement");
@@ -190,9 +187,6 @@ public class Label {
     /** Used for assert statements generated to check that assume statements are feasible (ESC only) */
     /*@ non_null*/ public final static Label FEASIBILITY_CHECK = new Label("FeasibilityCheck");
     
-    /** Used for the loop invariant assumption at beginning of loop body. */
-    /*@ non_null*/ public final static Label LOOP_INVARIANT_ASSUMPTION = new Label("LoopInvariantAssumption");
-    
     /** Used for the loop invariant assertion at end of loop body. */
     /*@ non_null*/ public final static Label LOOP_INVARIANT = new Label("LoopInvariant");
     
@@ -207,9 +201,6 @@ public class Label {
     
     /** Used for the assertion that the loop variant is never negative prior to executing a loop iteration. */
     /*@ non_null*/ public final static Label LOOP_DECREASES_NEGATIVE = new Label("LoopDecreasesNonNegative");
-    
-    /** Used to designate an assumption about the conditional test of a loop, only in a do-while loop */
-    /*@ non_null*/ public final static Label LOOP = new Label("LoopCondition");
     
     /** Used to designate an undefined pure expression because of a failed precondition in a called method */
     /*@ non_null*/ public final static Label UNDEFINED_PRECONDITION = new Label("UndefinedCalledMethodPrecondition");
@@ -274,11 +265,9 @@ public class Label {
     /** Used to designate an undefined pure expression because of a potential unsigned shift on negative bigint */
     /*@ non_null*/ public final static Label UNDEFINED_USR = new Label("UndefinedBigintUSR");
     
-    /** Used to designate a potentially large shift value */
+    /** Used to designate a potentially large shift value (in either Java or JML expressions) */
     /*@ non_null*/ public final static Label POSSIBLY_LARGESHIFT = new Label("PossiblyLargeShift");
     
-    // FIXME - should we check for LARGESHIFT within JML expressions
-
     /** Used to designate a possible exception because of a cast of a reference value to a type that is not the type of the dynamic value */
     /*@ non_null*/ public final static Label POSSIBLY_BADCAST = new Label("PossiblyBadCast");
 
@@ -294,20 +283,13 @@ public class Label {
     /** Used for cases that likely indicate an internal error or unimplemented option */
     /*@ non_null*/ public final static Label UNKNOWN = new Label("Unknown");
 
-    // TODO: Categorize
-    
-    /** Used for assume or assert statements generated from axiom clauses */
-    /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");
-    
-    /** Used for assume statements generated to capture the switch value, in ESC only */
-    /*@ non_null*/ public final static Label SWITCH_VALUE = new Label("SwitchValue");
-    
-
- 
     // The following are used only for assumptions, which may be checked in RAC if --rac-check-assumptions is enabled
     
     /** Used for implicit, miscellaneous JML assume statements */
     /*@ non_null */ public final static Label IMPLICIT_ASSUME = new Label("ImplicitAssume");
+    
+    /** Used for the loop invariant assumption at beginning of loop body. */
+    /*@ non_null*/ public final static Label LOOP_INVARIANT_ASSUMPTION = new Label("LoopInvariantAssumption");
     
     /** Used for assume statements generated from non-null designations */
     /*@ non_null*/ public final static Label NULL_CHECK = new Label("NullCheck");
@@ -316,6 +298,9 @@ public class Label {
 
     /** Used for assume statements corresponding to a new array allocation and initialization, only in ESC */
     /*@ non_null*/ public final static Label ARRAY_INIT = new Label("ArrayInit");
+    
+    /** Used for assume or assert statements generated from axiom clauses */
+    /*@ non_null*/ public final static Label AXIOM = new Label("Axiom");
     
     /** Used to mark method axioms; SMT then creates corresponding function definitions */
     /*@ non_null*/ public final static Label METHOD_DEFINITION = new Label("MethodDefinition");
@@ -343,7 +328,7 @@ public class Label {
     /*@ non_null*/ public final static Label CASECONDITION = new Label("Case", false);
     
     /** Used for assume statements generated to guard a catch block */
-    /*@ non_null*/ public final static Label CATCH_CONDITION = new Label("CatchCondition", false); // FIXME - used??
+    /*@ non_null*/ public final static Label CATCH_CONDITION = new Label("CatchCondition", false);
 
     /** Used for assume statements generated to adjust DSA variables  -- only in ESC (BasicBlocker)*/
     /*@ non_null*/ public final static Label DSA = new Label("DSA", false);
@@ -351,9 +336,15 @@ public class Label {
     /** Used for assume statements generated from assignable clauses  -- only in ESC (BasicBlocker)*/
     /*@ non_null*/ public final static Label HAVOC = new Label("Havoc", false);
     
+    /** Used to designate assumptions about the loop index and the conditional test of a loop */
+    /*@ non_null*/ public final static Label LOOP = new Label("LoopCondition");
+    
     /** Used for assume statements generated to adjust DSA variables */
     /*@ non_null*/ public final static Label SOURCEBLOCK = new Label("SOURCEBLOCK", false);
 
+    /** Used for assume statements generated to capture the switch value, in ESC only */
+    /*@ non_null*/ public final static Label SWITCH_VALUE = new Label("SwitchValue");
     
+
 
 }

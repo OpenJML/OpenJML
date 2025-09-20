@@ -1136,7 +1136,7 @@ public class escall2 extends EscBase {
                 +"  public void m9b(TestJava o) {\n"
                 +"    o.a = 0;\n"  // BAD
                 +"  }\n"
-                
+                +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }\n"
                 +"}"
                 ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
