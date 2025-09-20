@@ -1291,8 +1291,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
-    	//if (msym.owner.toString().startsWith("java.")) return; // FIXME - need to fix type parameters in binary files
-    	utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+        //if (msym.owner.toString().startsWith("java.")) return; // FIXME - need to fix type parameters in binary files
+        utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+    }
+   
+    protected void nonPureError(DiagnosticPosition pos, MethodSymbol msym) {
+        utils.error(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
     }
    
     boolean noBodyOK = false;
@@ -4641,7 +4645,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 boolean isAllowed = specs.isSpecOKMethod(msym);
                 isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
                 if (!isAllowed) {
-                    nonPureWarning(tree, msym);
+                    // FIXME - really need to check for recursion at any level. Alternately just make missing purity always an error
+                    if (enclosingMethodEnv.enclMethod.sym == msym) {
+                        nonPureError(tree, msym);
+                    } else {
+                        nonPureWarning(tree, msym);
+                    }
                 }
                 if (isAllowed && jmlenv.currentClauseKind == invariantClause
                         && msym.owner == enclosingClassEnv.enclClass.sym
