@@ -182,7 +182,7 @@ public class racnew extends RacBase {
                 " static public void m(/*@non_null*/ Object o, int i) {\n" +
                 " }\n" +
                 "}"
-                ,"/tt/TestJava.java:3: JML formal argument may be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
+                ,"/tt/TestJava.java:3: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
                 ," m(null,1); "
                 ,"   ^"
                 ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
@@ -213,7 +213,7 @@ public class racnew extends RacBase {
                     static public void m(/*@ non_null*/ Object o, int i) {}
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: JML formal argument may be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
+                ,"/tt/TestJava.java:4: verify: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:4: verify: JML precondition is false"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
@@ -3342,7 +3342,7 @@ public class racnew extends RacBase {
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: JML actual argument may not be null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"java.lang.Class.isArray()\" because \"<local5>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"java.lang.Class.isArray()\" because \"<local4>\" is null"
                 ,"\tat tt.TestJava.main(TestJava.java:6)"
                 );
         
@@ -3395,7 +3395,7 @@ public class racnew extends RacBase {
                 }
                 """
                 ,"/tt/TestJava.java:8: verify: JML actual argument may not be null"
-                ,"java.lang.NullPointerException: Cannot invoke \"Object.getClass()\" because \"<local8>\" is null"
+                ,"java.lang.NullPointerException: Cannot invoke \"Object.getClass()\" because \"<local7>\" is null"
                 ,"/tt/TestJava.java:13: verify: JML actual argument may not be null"
                 ,"java.lang.NullPointerException: Cannot invoke \"Object.getClass()\" because \"null\" is null"
                 ,"/tt/TestJava.java:19: verify: JML actual argument has an illegal value"

@@ -38,6 +38,7 @@ public class escm extends EscBase {
                     //@ assert false;
                 }
             }
+
             /*@ pure */ public TestJava() { t = new TestJava(); }
         }
         """
@@ -120,7 +121,7 @@ public class escm extends EscBase {
                 +"     public void m2() {\n"
                 +"     }\n"
                 +"  }\n"
-                
+
                 +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
                 
                 +"}"
@@ -174,7 +175,7 @@ public class escm extends EscBase {
                 +"     pure public void m2() {\n"  // Invariant is not satisfiable on entrance
                 +"     }*/\n"
                 +"  }"
-                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
+                +"  /*@ public normal_behavior ensures t != null; *//*@ pure */ public TestJava() { t = new TestJava(); }\n"
                 +"}"
                 +"  /*@ model class B {\n" // Invariant is false on exit
                 +"     public invariant false; \n"
