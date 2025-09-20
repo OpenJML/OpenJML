@@ -9686,10 +9686,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				JCExpression e = assertDeterminismCall(that, print, calleeMethodSym, newThisExpr, resultType,
                         effectivelySpecPure, includeDeterminism, extendedArgs);
-				result = eresult = e;
-				currentEnv.currentReceiver = newThisExpr;
-                if (print) System.out.println("APPLYHELPER-IZ " + calleeMethodSym );
-				return;
+				if (e != null) {
+				    result = eresult = e;
+	                currentEnv.currentReceiver = newThisExpr;
+	                if (print) System.out.println("APPLYHELPER-IZ " + calleeMethodSym );
+	                return;
+				}
+				// If the method erroneously is not marked as spec_pure, then e may be null
 			}
 
 			if (print) System.out.println("APPLYHELPER-J " + calleeMethodSym.owner + " " + calleeMethodSym);
@@ -11659,6 +11662,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression newThisExpr, Type resultType, boolean effectivelySpecPure, boolean includeDeterminism,
             List<JCExpression> extendedArgs) {
         JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
+        if (e == null) return null; // This can happen if the method is not pure
         e.type = resultType; // In case the determinism call has a typevar output
         if (print) System.out.println("DETERMINISM CALL FOR " + includeDeterminism + " " + calleeMethodSym + " " + e);
         if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
