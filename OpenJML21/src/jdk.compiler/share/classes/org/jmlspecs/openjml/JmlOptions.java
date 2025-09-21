@@ -124,12 +124,13 @@ public class JmlOptions extends Options {
         newargs.addAll(files);
         // Separate out .jml files from the list of files, because Java will object to them
         File f;
+        var utils = Utils.instance(context);
         iter = newargs.iterator();
         while (iter.hasNext()) {
             String s = iter.next();
-            if (s.endsWith(Strings.specsSuffix)) {
+            if (utils.hasSpecSuffix(s)) {
                 if (jmlfiles != null) jmlfiles.add(new File(s));
-                else Utils.instance(context).warning("jml.message", ".jml files on the command-line are ignored: " + s);
+                else utils.warning("jml.message", ".jml files on the command-line are ignored: " + s);
                 iter.remove();
             }
         }

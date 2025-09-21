@@ -53,7 +53,7 @@ public class jmltypes extends TCBase {
                 "import java.util.Vector; public class A { \n" +
                 " void m() {\n" +
                 "  Class<?> c = Object.class; Object o = c; \n" +
-                "  //@ ghost \\TYPE t;\n" + // not initialilzed
+                "  //@ ghost \\TYPE t;\n" + // not initialized
                 "  //@ ghost \\TYPE tt = \\type(Object);\n" +
                 "  //@ set tt = \\type(int);\n" +
                 "  //@ set tt = \\type(Vector<Integer>);\n" +

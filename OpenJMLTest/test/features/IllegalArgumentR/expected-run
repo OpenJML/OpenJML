@@ -1,0 +1,10 @@
+OUT:
+../../OpenJMLDemo/src/features/IllegalArgument.java:11: verify: JML actual argument has an illegal value
+        //@ check \elemtype(\type(Object)) == \type(boolean);
+                           ^
+
+ERR:
+Exception in thread "main" java.lang.IllegalArgumentException: Calling \elemtype on a value that is not an (or does not have) array type: java.lang.Object
+	at java.base/org.jmlspecs.lang.internal.TYPE.getComponentType(TYPE.java:179)
+	at features.IllegalArgument.test(IllegalArgument.java:11)
+	at features.IllegalArgument.main(IllegalArgument.java:6)

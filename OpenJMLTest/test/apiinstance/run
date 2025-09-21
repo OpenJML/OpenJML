@@ -4,5 +4,5 @@ cd $(dirname "$BASH_SOURCE[0]" )
 BIN="../../../OpenJML21"
 if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
-($BIN/openjml-compile --compile Run.java && $BIN/openjml-run Run) |& diff - RUN.out
+($BIN/openjml-compile --compile Run.java && $BIN/openjml-run Run) | 2>&1  diff - RUN.out
 exit $?

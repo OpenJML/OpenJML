@@ -496,6 +496,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     @Override
     public JCTree visitJmlMethodSpecs(JmlMethodSpecs that, Void p) {
         JmlMethodSpecs copy = M.at(that.pos).JmlMethodSpecs(copy(that.cases,p));
+        copy.invariants = copy(that.invariants, p);
         copy.impliesThatCases = copy(that.impliesThatCases,p);
         copy.forExampleCases = copy(that.forExampleCases,p);
         copy.feasible = copy(that.feasible,p);

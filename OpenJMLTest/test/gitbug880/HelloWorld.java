@@ -13,6 +13,7 @@ public class HelloWorld {
     public static boolean test1() {
         Date date = new Date("5", "21", "31", "14:00:00");
         String result = getFormat(date);
+        //-ESC@ set System.out.println("TEST1 " + result + " " + date.year.length());
         if (!result.startsWith("y-")) {
             return false;
         }
@@ -24,6 +25,8 @@ public class HelloWorld {
     //@ assignable \everything;
     public static boolean test2() {
         Date date = new Date("25", "21", "31", "14:00:00");
+        //@ assert date.year == "25";
+        //@ assert date.year.length() == 2;
         String result = getFormat(date);
         if (!result.startsWith("yy-")) {
             return false;
@@ -37,6 +40,8 @@ public class HelloWorld {
     public static boolean test3() {
         Date date = new Date("025", "21", "31", "14:00:00");
         String result = getFormat(date);
+        //@ assert date.year == "025";
+        //@ assert date.year.length() == 3;
         if (!result.startsWith("yyyy-")) {
             return false;
         }
@@ -77,6 +82,7 @@ public class HelloWorld {
         result = result + getDayFormat(tokenLen); 
         tokenLen = date.time.length();
         result = result + getTimeFormat(tokenLen); 
+        //@ show date.year, date.year.length();
         return result;
     }
 
@@ -148,6 +154,10 @@ class Date {
     }
 
     // Constructor with parameters
+    //@ ensures this.year == year;
+    //@ ensures this.month == month;
+    //@ ensures this.day == day;
+    //@ ensures this.time == time;
     public Date(String year, String month, String day, String time) {
         this.year = year;
         this.month = month;

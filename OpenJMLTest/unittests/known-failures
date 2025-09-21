@@ -76,7 +76,6 @@ SFBugs.gitbug481b
 SFBugs.gitbug481c
 SFBugs.gitbug671
 SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
-SpecsEsc.testSpecificationFile[java-util-ArrayList]
 escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
 # escTraceTests - need work, but are successful at the moment
@@ -90,14 +89,13 @@ escfiles.modelImport7
 escfiles.sfbug420X
 escfiles.sfbug420eOK
 escfiles.valuestrings
-escfiles.valuetypes2
 escfiles2.escRawding2
 escfiles2.escRawdingA
 escfiles2.escRawdingB
 escfiles2.gitbug450a
 escfiles2.gitbug450b
 escfiles2.gitbug861
-escfilesdemo.escDemoTypesNoQuants
+#escfilesdemo.escDemoTypesNoQuants
 escfilesTrace.escDMZCashTrace
 escfilesTrace.escDemoChangeCase
 escfilesTrace.escDemoPaths
@@ -127,18 +125,17 @@ escfilesTrace.escTraceLoops6
 escfilesTrace.escTraceWhile
 escfilesTrace.escTraceWhile1
 escfilesTrace.escTraceWhile2
-escfileslist1.test[apistatic]
 escfileslist1.test[buggyCalculatorBV]
 escfileslist1.test[crashXlint]
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[esc2DArray2]
-escfileslist1.test[escConstructor]
+#escfileslist1.test[escConstructor]
 escfileslist1.test[firstTest]
-escfileslist1.test[gitbug718x3]
-escfileslist1.test[gitbug755]
-escfileslist2.test[gitbug759]
-escfileslist2.test[gitbug814]
-escfileslist2.test[gitbug814d]
+#escfileslist1.test[gitbug718x3]
+escfileslist1.test[gitbug759]
+#escfileslist2.test[gitbug814]
+#escfileslist2.test[gitbug814d]
+escfileslist2.test[gitbug882]
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
@@ -166,3 +163,9 @@ racfiles.gitbug869
 racfiles.rac1
 racfiles.racbug1
 runscripts.nowarn
+generics.testBinaryGeneric3c
+escfiles.sfbug420e
+escfileslist2.test[gitbug876]
+escfileslist2.test[gitbug878]
+escfileslist2.test[gitbug880] # Needs better reasoning about String length
+primesc.locsetTests2

@@ -45,7 +45,7 @@ public class primrac extends RacBase {
     
     @Test
     public void jmlTYPE() {
-        helpCompileRun("Test");
+        helpCompileRun("Test","--rac-java-checks");
     }
 
     @Test
@@ -58,6 +58,12 @@ public class primrac extends RacBase {
         helpCompileRun("Tbigint");
     }
 
+    @Test
+    public void jmldatagroup() {
+        expectedExit = 0;
+        helpCompileRun("Tdatagroup");
+    }
+    
     @Test
     public void jmlrange() {
         expectedExit = 0;

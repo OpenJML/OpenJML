@@ -167,6 +167,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlMethodSpecs(JmlMethodSpecs tree)           {
+        scan(tree.invariants);
         scan(tree.cases);
         scan(tree.impliesThatCases);
         scan(tree.forExampleCases);

@@ -76,6 +76,12 @@ public class racfeatures extends RacBase {
     }
 
     @Test
+    public void IllegalArgument() {
+        expectedRACExit = 1;
+        helpFeature();
+    }
+
+    @Test
     public void IndexOutOfRange() {
         expectedRACExit = 1;
         helpFeature();

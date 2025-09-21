@@ -517,6 +517,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
+        if (that.invariants != null) that.invariants.accept(this);
         if (that.cases.isEmpty()) return;
         try {
             if (useJMLComments) { align(); print("/*@"); println(); }
@@ -557,9 +558,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             print(" "); //$NON-NLS-1$
             boolean first = true;
             for (JCTree.JCVariableDecl n: that.decls) {
-                if (!first) print(", "); //$NON-NLS-1$
-                else first = false;
-                n.accept(this);
+                if (!first) {
+                    // Presumes all the declarations have the same type
+                    print(", "); //$NON-NLS-1$
+                    print(n.name);
+                } else {
+                    first = false;
+                    n.accept(this);
+                }
             }
             print("; "); //$NON-NLS-1$
             if (that.range != null) printExpr(that.range);

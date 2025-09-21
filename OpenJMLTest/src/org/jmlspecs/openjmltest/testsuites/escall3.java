@@ -1234,7 +1234,7 @@ public class escall3 extends EscBase {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  public byte[] b;\n"
+                +"  public byte /*@ nullable */ [] b;\n"
                 +"  //@ public invariant b != null && b.length == 20;\n"
 
                 +"  public TestJava() {\n"

@@ -28,6 +28,7 @@ import static org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodDeclClauseExtension.*;
+import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.MethodResourceClauseExtension.*;
 import static org.jmlspecs.openjml.ext.CallableClauseExtension.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.nonnullelementsKind;
@@ -800,6 +801,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitAssign(JCAssign tree) {
         super.visitAssign(tree);
+        if (tree.toString().contains("datagroup")) System.out.println("DG " + tree + " " + tree.lhs.type);
         if (jmlenv.inPureEnvironment) {
             // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
@@ -809,6 +811,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            System.out.println(tree.rhs + " " + tree.rhs.type + " " + tree.rhs.getClass() + " " + jmltypes.isJmlType(tree.rhs.type) + " " + tree.lhs.type + " " + !jmltypes.isJmlType(tree.lhs.type));
 //            System.out.println(tree.rhs.type.isReference() + " " + jmltypes().isSubtype(ct, interfaceForPrimitiveTypes()));
             utils.error(tree, "jml.message", "A JML primitive type may not be assigned or cast to a non-JML type");
+        }
+        if (tree.lhs.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+            utils.error(tree, "jml.message", "\\datagroup fields may not be assigned");
         }
         // FIXME
 //        if (tree.lhs instanceof JCArrayAccess && jmltypes.isSubtype(((JCArrayAccess)tree.lhs).indexed.type, JMLArrayLike)) {
@@ -890,6 +895,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // The following checks that the assignment is local (the symbol being assigned is owned by the method)
             if (tree.lhs instanceof JCIdent && ((JCIdent)tree.lhs).sym.owner.kind == MTH) return;
             log.error(tree.pos,"jml.no.assign.in.pure");
+        }
+        if (tree.lhs.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+            utils.error(tree, "jml.message", "\\datagroup fields may not be assigned");
         }
         // FIXME - fix the test here - cannot reference org.jmlspecs.lang directly in the JDK compiler code
         //if (tree.lhs instanceof JCArrayAccess && ((JCArrayAccess)tree.lhs).indexed.type instanceof org.jmlspecs.lang.IJmlArrayLike) {
@@ -1283,8 +1291,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
-    	//if (msym.owner.toString().startsWith("java.")) return; // FIXME - need to fix type parameters in binary files
-    	utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+        //if (msym.owner.toString().startsWith("java.")) return; // FIXME - need to fix type parameters in binary files
+        utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
+    }
+   
+    protected void nonPureError(DiagnosticPosition pos, MethodSymbol msym) {
+        utils.error(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
     }
    
     boolean noBodyOK = false;
@@ -2319,26 +2331,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return make.Literal(type.getTag(), value).setType(litType(type.getTag()).constType(value));
     }
 
-    // FIXME - is there a faster way to do this?
-    /** Returns a Symbol (in the current compilation context) for the given operator
-     * with the given (lhs) type
-     * @param op the operator (e.g. JCTree.AND)
-     * @param type the type of the lhs, for disambiguation
-     * @return the method Symbol for the operation
-     */
-    protected Symbol predefBinOp(JCTree.Tag op, Type type) {
-		Name n = names.fromString(Pretty.operatorName(op));
-        var e = syms.predefClass.members().getSymbolsByName(n);
-        for (Symbol sym: e) {
-            if (sym instanceof MethodSymbol) {
-                MethodSymbol msym = (MethodSymbol)sym;
-                Type t = msym.getParameters().head.type;
-                if (t == type || (!type.isPrimitive() && t == syms.objectType)) return sym;
-            }
-        }
-        return null;
-    }
-
     
     /** Does a custom desugaring of the method specs.  It adds in the type
      * restrictions (non_null) and purity, desugars lightweight and heavyweight
@@ -2801,6 +2793,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (count > 0) {
                     log.error(m.pos,"jml.multiple.signalsonly");
                 }
+            } else if (t == invariantsClauseKind) {
+                log.error(m.pos,"jml.misplaced.clause","invariants","any");
+                continue;
             } else if (desugaringPure && t == assignableClauseKind) {
                 JmlMethodClauseStoreRef asg = (JmlMethodClauseStoreRef)m;
                 if (msym.isConstructor()) {
@@ -4447,6 +4442,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
         jmlenv.inPureEnvironment = true;
         try {
+            if (tree.invariants != null) tree.invariants.accept(this);
         	for (JmlSpecificationCase c: tree.cases) {
         		try {
 //        		    long viz = c.modifiers.flags & Flags.AccessFlags;
@@ -4614,6 +4610,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     "jml.message", "strictly_pure methods may only call strictly_pure methods");
             }
         }
+        var methsym = treeutils.getSym(tree.meth);
+        if (methsym instanceof MethodSymbol m && m.isVarArgs() && m.getParameters().length() == tree.args.length() && tree.args.last().type.getTag() == TypeTag.BOT) {
+            // If the varargs method has a single actual argument for the varargs formal argument, that argument may not be a null literal
+            // The null literal is actually ambiguous -- is it a singleton array consisting of a null element or is it an array that is null
+            utils.error(log.currentSourceFile(), tree.args.last(),
+                    "jml.message", "the value for a varargs array may not be null");
+        }
         if (result.isErroneous() && nerrors == log.nerrors) {
             // Some resolution errors are discovered during speculative attribution and not reported then.
             // FIXME: But sometimes not ever reported (cf. linkedBugs test), though that seems either a bug in OpenJDK or
@@ -4642,7 +4645,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 boolean isAllowed = specs.isSpecOKMethod(msym);
                 isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
                 if (!isAllowed) {
-                    nonPureWarning(tree, msym);
+                    // FIXME - really need to check for recursion at any level. Alternately just make missing purity always an error
+                    if (enclosingMethodEnv.enclMethod.sym == msym) {
+                        nonPureError(tree, msym);
+                    } else {
+                        nonPureWarning(tree, msym);
+                    }
                 }
                 if (isAllowed && jmlenv.currentClauseKind == invariantClause
                         && msym.owner == enclosingClassEnv.enclClass.sym
@@ -4936,7 +4944,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = that.type = Type.noType;
 //    }
     
-    public final String[] predefinedLabels = { "Pre", "Old", "Here"};
+    public final String[] predefinedLabels = { "Pre", "Old", "Here", "LoopBody", "LoopInit"}; // Initial backslash removed
     
     public Name checkLabel(JCTree tr) {
         if (tr.getTag() != JCTree.Tag.IDENT) {
@@ -5107,7 +5115,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // SO then later compiler phases can treat the JML and Java operations independently.
                 attribExpr(that.lhs,env,Type.noType);
                 Type t = that.lhs.type;
-                boolean isJML =  (t == TYPE);
+                boolean isJML =  (t.tsym == TYPE.tsym);
                 boolean isJava = t.tsym.equals(syms.classType.tsym);
                 boolean errorAlready = false;
                 if (t.isErroneous()) errorAlready = true;
@@ -5119,12 +5127,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 attribExpr(that.rhs,env,Type.noType);
                 Type tt = that.rhs.type;
                 if (tt.isErroneous()) errorAlready = true;
-                else if (tt != TYPE
+                else if (tt.tsym != TYPE.tsym
                         && !tt.tsym.equals(syms.classType.tsym)) {
                     errorAlready = true;
                     utils.error(that.rhs.pos(),"jml.subtype.arguments",that.rhs.type);
                 }
-                if (isJML != (tt == TYPE) && !errorAlready) {
+                if (isJML != (tt.tsym == TYPE.tsym) && !errorAlready) {
                     utils.error(that.rhs.pos(),"jml.subtype.arguments.same",that.op.keyword(), t, tt);
                 }
                 if (isJava) that.op = that.op.keyword() == subtypeofeqID ? jsubtypeofeqKind : jsubtypeofKind; // Java subtyping
@@ -6501,7 +6509,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	return true;
     }
 
-    
+    @Override
+    public void visitTypeParameter(JCTypeParameter tree) {
+        super.visitTypeParameter(tree);
+    }
 //    @Override
 //    public void visitTypeArray(JCArrayTypeTree tree) {
 //        super.visitTypeArray(tree);
@@ -6524,20 +6535,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = tree.type;
 //    }
     
-//    @Override
-//    public void visitTypeApply(JCTypeApply tree) {
-//        if (tree.clazz instanceof JCIdent id) {
-//            IJmlClauseKind ck = Extensions.findKeyword(id.name);
-//            if (ck instanceof JmlTypeKind jtk) {
-//                Name saved = id.name;
-//                id.name = jtk.name;
-//                super.visitTypeApply(tree);
-//                id.name = saved;
-//                return;
-//            }
-//        }
-//        super.visitTypeApply(tree);
-//    }
+    @Override
+    public void visitTypeApply(JCTypeApply tree) {
+        super.visitTypeApply(tree);
+        for (var a: tree.arguments) {
+            var t = a.type;
+            if (a instanceof JCAnnotatedType an) t = an.underlyingType.type;
+            if (t.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(tree, "jml.message", "\\datatype is not allowed as a type argument");
+            }            
+        }
+    }
         
     /** Attributes an array-element-range (a[1 .. 2]) store-ref expression */
     public void visitJmlStoreRefArrayRange(JmlStoreRefArrayRange that) {
@@ -7573,14 +7581,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             savedSpecOK = true;
             attribStats(tree.init, loopEnv);
             Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
-            saveEnvForLabel(names.fromString("LoopInit"),labelenvi);
+            saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
     		if (tree.cond != null) {
     			attribExpr(tree.cond, loopEnv, syms.booleanType);
     			// include condition's bindings when true in the body and step:
     			condBindings = matchBindings;
     		}
             loopEnv.tree = tree; // before, we were not in loop!
-            saveEnvForLabel(names.fromString("LoopBodyBegin"),loopEnv);
+            saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
 
 
             attribLoopSpecs(tree.loopSpecs, loopEnv);
@@ -7749,6 +7757,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
         try {
             visitMethodDef(that);
+            if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(that, "jml.message", "a method return type may not be \\datagroup");
+            }
         } catch (PropagatedException e) {
             throw e;
         } catch (Exception e) {
@@ -7987,6 +7998,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     JmlPrimitiveTypes.stringTypeKind.typecheck(this, that, env);
                 }
             }
+            if (that.sym.owner.kind == Kinds.Kind.MTH && that.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(that, "jml.message", "\\datagroup declarations are not permitted as local or formal declarations");
+            } else if (that.init != null && that.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+                utils.error(that, "jml.message", "\\datagroup declarations may not have initializers");
+            }
+
             if (that.init != null && !utils.isJML(that.mods.flags)) {
                 Object v = that.sym.getConstValue();
                 JCExpression initExpr = that.init;
@@ -8394,6 +8411,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     return false;
                 }
             }
+            if (tree instanceof JmlChained) return true;
             utils.error(tree,"jml.internal", "Unimplemented option in JmlAttr:isBooleanOrNumeric -- "  + tree.getClass());
             return false;
         }

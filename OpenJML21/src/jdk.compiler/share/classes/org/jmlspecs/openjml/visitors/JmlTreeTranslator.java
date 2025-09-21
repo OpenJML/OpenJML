@@ -323,6 +323,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
         // FIXME - decl, desugared
         JmlMethodSpecs r = that;
+        r.invariants = translate(that.invariants);
         r.cases = translate(that.cases);
         r.impliesThatCases = translate(that.impliesThatCases);
         r.forExampleCases = translate(that.forExampleCases);
