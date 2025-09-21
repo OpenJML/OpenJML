@@ -8411,6 +8411,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     return false;
                 }
             }
+            if (tree instanceof JmlChained) return true;
             utils.error(tree,"jml.internal", "Unimplemented option in JmlAttr:isBooleanOrNumeric -- "  + tree.getClass());
             return false;
         }
