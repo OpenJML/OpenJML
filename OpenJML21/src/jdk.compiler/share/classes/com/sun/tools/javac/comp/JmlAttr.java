@@ -4944,7 +4944,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        result = that.type = Type.noType;
 //    }
     
-    public final String[] predefinedLabels = { "Pre", "Old", "Here"};
+    public final String[] predefinedLabels = { "Pre", "Old", "Here", "LoopBody", "LoopInit"}; // Initial backslash removed
     
     public Name checkLabel(JCTree tr) {
         if (tr.getTag() != JCTree.Tag.IDENT) {
@@ -7581,14 +7581,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             savedSpecOK = true;
             attribStats(tree.init, loopEnv);
             Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
-            saveEnvForLabel(names.fromString("LoopInit"),labelenvi);
+            saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
     		if (tree.cond != null) {
     			attribExpr(tree.cond, loopEnv, syms.booleanType);
     			// include condition's bindings when true in the body and step:
     			condBindings = matchBindings;
     		}
             loopEnv.tree = tree; // before, we were not in loop!
-            saveEnvForLabel(names.fromString("LoopBodyBegin"),loopEnv);
+            saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
 
 
             attribLoopSpecs(tree.loopSpecs, loopEnv);
