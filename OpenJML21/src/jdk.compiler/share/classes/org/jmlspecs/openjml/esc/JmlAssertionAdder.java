@@ -3958,7 +3958,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
                         if (specs.isNonNull(compType, enclosingClass)) {
-                            JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id), false);
+                            JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id));
                             e3 = treeutils.makeAnd(pos, e3, e4);
                         }
                     }
@@ -18382,10 +18382,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //			}
 		}
 
-		JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopbodyLabelName, null, null);
-		recordLabel(loopbodyLabelName, lstat);
-		addStat(lstat);
-
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
 
 		// Compute the condition, recording any side-effects
@@ -18411,8 +18407,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Have to do some footwork to get the Block object before constructing its
 		// contents
 
-		if (doRemainderOfLoop)
+		if (doRemainderOfLoop) {
+	        JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopbodyLabelName, null, null);
+	        recordLabel(loopbodyLabelName, lstat);
+	        addStat(lstat);
+
 			loopHelperMakeBody(that.body);
+		}
 
 		if (that.step != null && doRemainderOfLoop)
 			scan(that.step);
@@ -19019,7 +19020,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression conj = null;
 					for (JCExpression arg : that.args) {
 						JCExpression e = convertExpr(arg);
-						e = wrapTranslatedNonnullelements(arg,e,false);
+						e = wrapTranslatedNonnullelements(arg,e);
 						conj = conj == null ? e : treeutils.makeAnd(arg.pos, conj, e);
 					}
 					result = eresult = conj;
@@ -19549,7 +19550,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 
-    private JCExpression wrapTranslatedNonnullelements(JCExpression arg, JCExpression convertedArg, boolean nofresh) {
+    private JCExpression wrapTranslatedNonnullelements(JCExpression arg, JCExpression convertedArg) {
         if (rac) {
         	convertedArg = methodCallUtilsExpression(arg, "nonnullElementCheck", convertedArg);
         } else {
