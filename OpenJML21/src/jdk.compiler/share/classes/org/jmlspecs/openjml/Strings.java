@@ -260,7 +260,7 @@ public class Strings {
     public final static String oldLabelBuiltin = "\\Old";
     public final static String hereLabelBuiltin = "\\Here";
     public final static String loopinitLabelBuiltin = "\\LoopInit";
-    public final static String loopbodyLabelBuiltin = "LoopBodyBegin";
+    public final static String loopbodyLabelBuiltin = "\\LoopBody";
     
     
     /** Text used to describe the program position at the end of the preconditions */

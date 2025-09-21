@@ -510,7 +510,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
-        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
+        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition)); // bumps and uses 'unique'
         n.type = vsym.type;
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name,unique); // unique is used as the new version number
@@ -1147,7 +1147,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case erasureID:
-                case typearg0ID:
+                case typearg1ID:
+                case typearg2ID:
+                case typearg3ID:
                 case typeargsID:
                 case typeargID:
                 case TYPEofID:
@@ -2444,7 +2446,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            boolean print = false; // vsym.name.toString().equals("length");
+            boolean print = false; //vsym.name.toString().equals("i");
             if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
             + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
             if (vsym == lengthSym) {

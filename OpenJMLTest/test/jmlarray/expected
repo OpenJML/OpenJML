@@ -37,7 +37,7 @@ Starting proof of Tarray.errors4() with prover !!!!
 test/jmlarray/Tarray.java:38: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors4
             //@ ghost var o = s.put(5, oo);
                                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/array.jml:51: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:51: warning: Associated declaration
     public array<T> put(bigint i, T t);
                     ^
 Completed proof of Tarray.errors4() with prover !!!! - with warnings

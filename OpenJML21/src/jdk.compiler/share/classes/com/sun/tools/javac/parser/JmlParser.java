@@ -38,6 +38,7 @@ import org.jmlspecs.openjml.ext.MatchExt;
 import org.jmlspecs.openjml.ext.MiscExpressions;
 import org.jmlspecs.openjml.ext.Modifiers;
 
+import static org.jmlspecs.openjml.ext.MethodExprListClauseExtensions.*;
 import static org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 import static org.jmlspecs.openjml.ext.MiscExtensions.*;
 import static org.jmlspecs.openjml.ext.StateExpressions.*;
@@ -1812,6 +1813,11 @@ public class JmlParser extends JavacParser {
     // parsed a sequence of modifiers
     public JmlMethodSpecs parseMethodSpecs(JCModifiers mods) {
         // Method specifications are a sequence of specification cases
+        JmlMethodClauseInvariants invariants = null;
+        if (token.kind == TokenKind.IDENTIFIER && token.name().toString().equals(invariantsID)) {
+            invariants = (JmlMethodClauseInvariants)invariantsClauseKind.parse(mods, invariantsID, invariantsClauseKind, this);
+            mods = modifiersOpt();
+        }
         ListBuffer<JmlSpecificationCase> cases = new ListBuffer<JmlSpecificationCase>();
         JmlSpecificationCase c;
         int pos = pos();
@@ -1822,6 +1828,7 @@ public class JmlParser extends JavacParser {
             mods = modifiersOpt();
         }
         JmlMethodSpecs sp = jmlF.at(pos).JmlMethodSpecs(cases.toList());
+        sp.invariants = invariants;
         // end position set below
         IJmlClauseKind ext = methodSpecKeyword();
         if (ext == feasibleBehaviorClause) {

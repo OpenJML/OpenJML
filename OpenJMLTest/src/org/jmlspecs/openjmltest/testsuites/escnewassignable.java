@@ -365,7 +365,7 @@ public class escnewassignable extends EscBase {
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                +"  public int[] z;\n"
+                +"  public int /*@ nullable */ [] z;\n"
                 +"  //@ public invariant z != null && z.length > 10;\n"
                 
                 +"  //@ requires a != null && a.length > 10; assignable a[1]; \n"
@@ -422,7 +422,6 @@ public class escnewassignable extends EscBase {
                 +"  public void m4bad1(int i, int[] a) {\n"
                 +"    a[1] = 0 ;\n"
                 +"  }\n"
-
                 +"}"
                 ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
                 ,"/tt/TestJava.java:4: warning: Associated declaration",14

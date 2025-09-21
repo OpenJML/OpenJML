@@ -228,7 +228,55 @@ public class primTC extends TCBase {
     // TYPE tests
     
     @Test public void jmlTYPE() {
-        helpTC(" class A { //@ ghost \\TYPE b ; \n}");
+        helpTC(
+            """
+            class A {
+              public static void m() {
+                //@ ghost \\TYPE t = Boolean.class;
+                //@ set t = \\TYPE.of(Boolean.class, Integer.class);
+                //@ set t = \\TYPE.of(Boolean.class, null, Integer.class);
+                //@ set t = \\TYPE.of(null, Integer.class);
+                //@ set t = \\TYPE.of(Boolean.class, null);
+              }
+            }
+            """
+            ,"/TEST.java:3: error: incompatible types: java.lang.Class<java.lang.Boolean> cannot be converted to \\TYPE",32
+            ,"""
+             /TEST.java:4: error: no suitable method found for of(java.lang.Class<java.lang.Boolean>,java.lang.Class<java.lang.Integer>)
+                 method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE) is not applicable
+                   (argument mismatch; java.lang.Class<java.lang.Integer> cannot be converted to \\TYPE)
+                 method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE...) is not applicable
+                   (varargs mismatch; java.lang.Class<java.lang.Integer> cannot be converted to \\TYPE)""", 22
+            ,"""
+             /TEST.java:5: error: no suitable method found for of(java.lang.Class<java.lang.Boolean>,<nulltype>,java.lang.Class<java.lang.Integer>)
+                 method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE,\\TYPE) is not applicable
+                   (argument mismatch; <nulltype> cannot be converted to \\TYPE)
+                 method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE...) is not applicable
+                   (varargs mismatch; <nulltype> cannot be converted to \\TYPE)""", 22
+            ,"""
+             /TEST.java:6: error: no suitable method found for of(<nulltype>,java.lang.Class<java.lang.Integer>)
+                 method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE) is not applicable
+                   (argument mismatch; java.lang.Class<java.lang.Integer> cannot be converted to \\TYPE)
+                 method org.jmlspecs.lang.internal.TYPE.of(java.lang.Class<?>,\\TYPE...) is not applicable
+                   (varargs mismatch; java.lang.Class<java.lang.Integer> cannot be converted to \\TYPE)""", 22
+            ,"/TEST.java:7: error: the value for a varargs array may not be null", 41
+        );
+    }
+    
+    @Test public void jmlTYPEFlow() {
+        helpTC(
+            """
+            class A {
+              //@ ghost \\TYPE b ;
+              public void m() {
+                //@ ghost \\TYPE bb;
+                //@ ghost \\TYPE bbb = b;
+                //@ set bbb = bb;
+              }
+            }
+            """
+            ,"/TEST.java:6: error: variable bb might not have been initialized", 19
+        );
     }
     
     // string tests
@@ -506,7 +554,7 @@ public class primTC extends TCBase {
                         //@ ghost int x = m[o]; // ERROR
                         //@ ghost int xx = m[s]; // ERROR
                         //@ ghost var z = \\set.<Boolean>of(o, 5); // ERROR
-                        //@ check m.contains(o);
+                        //@ check m.contains(o); // ERROR
                         //@ ghost var s1 = m.add(o); // ERROR
                         //@ ghost var s2 = m.remove(o); // ERROR
                         //@ ghost \\set<\\bigint> mb;
@@ -527,8 +575,8 @@ public class primTC extends TCBase {
                     }
                 }
                 """
-                ,"/TEST.java:3: error: incompatible types: int cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>",37
-                ,"/TEST.java:6: error: Expected an index type of \\@org.jmlspecs.annotation.NonNull string, not java.lang.Object",29
+                ,"/TEST.java:3: error: incompatible types: int cannot be converted to \\set<\\string>",37
+                ,"/TEST.java:6: error: Expected an index type of \\string, not java.lang.Object",29
                 ,"/TEST.java:6: error: incompatible types: boolean cannot be converted to int",28
                 ,"/TEST.java:7: error: incompatible types: boolean cannot be converted to int",29
                 ,"""
@@ -537,23 +585,23 @@ public class primTC extends TCBase {
                        (varargs mismatch; java.lang.Object cannot be converted to java.lang.Boolean)
                      method org.jmlspecs.lang.internal.set.<X>of(X,X) is not applicable
                        (argument mismatch; java.lang.Object cannot be converted to java.lang.Boolean)""", 31
-                ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 30
-                ,"/TEST.java:10: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 34
-                ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 37
-                ,"/TEST.java:13: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 32
-                ,"/TEST.java:14: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 38
-                ,"/TEST.java:15: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 27
-                ,"/TEST.java:16: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 31
-                ,"/TEST.java:17: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 30
-                ,"/TEST.java:18: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 24
-                ,"/TEST.java:19: error: incompatible types: \\set<@org.jmlspecs.annotation.NonNull \\bigint> cannot be converted to \\set<@org.jmlspecs.annotation.NonNull \\string>", 24
-                ,"/TEST.java:20: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> == \\set<\\@org.jmlspecs.annotation.NonNull bigint>", 21
-                ,"/TEST.java:21: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> != \\set<\\@org.jmlspecs.annotation.NonNull bigint>", 21
-                ,"/TEST.java:22: error: No operator for \\set<\\@org.jmlspecs.annotation.NonNull string> | java.lang.Object", 30
-                ,"/TEST.java:23: error: No operator for java.lang.Object & \\set<\\@org.jmlspecs.annotation.NonNull string>", 30
-                ,"/TEST.java:24: error: No operator for java.lang.Object - \\set<\\@org.jmlspecs.annotation.NonNull string>", 30
-                ,"/TEST.java:25: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> < \\set<java.lang.Boolean>", 30
-                ,"/TEST.java:26: error: No allowed implicit conversion permits this operation on JML types: \\set<\\@org.jmlspecs.annotation.NonNull string> <= \\set<java.lang.Boolean>", 30
+                ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to \\string", 30
+                ,"/TEST.java:10: error: incompatible types: java.lang.Object cannot be converted to \\string", 34
+                ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to \\string", 37
+                ,"/TEST.java:13: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 32
+                ,"/TEST.java:14: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 38
+                ,"/TEST.java:15: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 27
+                ,"/TEST.java:16: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 31
+                ,"/TEST.java:17: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 30
+                ,"/TEST.java:18: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 24
+                ,"/TEST.java:19: error: incompatible types: \\set<\\bigint> cannot be converted to \\set<\\string>", 24
+                ,"/TEST.java:20: error: No allowed implicit conversion permits this operation on JML types: \\set<\\string> == \\set<\\bigint>", 21
+                ,"/TEST.java:21: error: No allowed implicit conversion permits this operation on JML types: \\set<\\string> != \\set<\\bigint>", 21
+                ,"/TEST.java:22: error: No operator for \\set<\\string> | java.lang.Object", 30
+                ,"/TEST.java:23: error: No operator for java.lang.Object & \\set<\\string>", 30
+                ,"/TEST.java:24: error: No operator for java.lang.Object - \\set<\\string>", 30
+                ,"/TEST.java:25: error: No allowed implicit conversion permits this operation on JML types: \\set<\\string> < \\set<java.lang.Boolean>", 30
+                ,"/TEST.java:26: error: No allowed implicit conversion permits this operation on JML types: \\set<\\string> <= \\set<java.lang.Boolean>", 30
 
                 );
     }
@@ -596,15 +644,15 @@ public class primTC extends TCBase {
                 }
             }
             """
-            ,"/TEST.java:3: error: incompatible types: int cannot be converted to \\map<@org.jmlspecs.annotation.NonNull \\string,@org.jmlspecs.annotation.NonNull \\string>", 45
-            ,"/TEST.java:6: error: Expected an index type of \\@org.jmlspecs.annotation.NonNull string, not java.lang.Object", 34
-            ,"/TEST.java:6: error: incompatible types: @org.jmlspecs.annotation.NonNull \\string cannot be converted to \\bigint", 33
+            ,"/TEST.java:3: error: incompatible types: int cannot be converted to \\map<\\string,\\string>", 45
+            ,"/TEST.java:6: error: Expected an index type of \\string, not java.lang.Object", 34
+            ,"/TEST.java:6: error: incompatible types: \\string cannot be converted to \\bigint", 33
             ,"/TEST.java:8: error: Expected an index type of java.lang.@org.jmlspecs.annotation.NonNull Number, not java.lang.Object", 35
             ,"/TEST.java:9: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull java.lang.Number", 29
-            ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 28 
-            ,"/TEST.java:12: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 31 
-            ,"/TEST.java:13: error: incompatible types: \\map<@org.jmlspecs.annotation.NonNull java.lang.Number,@org.jmlspecs.annotation.NonNull \\string> cannot be converted to \\map<@org.jmlspecs.annotation.NonNull \\string,@org.jmlspecs.annotation.NonNull \\string>",30
-            ,"/TEST.java:14: error: incompatible types: java.lang.Object cannot be converted to @org.jmlspecs.annotation.NonNull \\string", 30
+            ,"/TEST.java:11: error: incompatible types: java.lang.Object cannot be converted to \\string", 28 
+            ,"/TEST.java:12: error: incompatible types: java.lang.Object cannot be converted to \\string", 31 
+            ,"/TEST.java:13: error: incompatible types: \\map<@org.jmlspecs.annotation.NonNull java.lang.Number,\\string> cannot be converted to \\map<\\string,\\string>",30
+            ,"/TEST.java:14: error: incompatible types: java.lang.Object cannot be converted to \\string", 30
         );
     }
 
@@ -660,7 +708,56 @@ public class primTC extends TCBase {
         ,"$SPECS/org/jmlspecs/lang/internal/range.jml:4: error: Associated declaration: /TEST.java:8:", 5
         );
     }
+    
+    @Test public void jmlrangeParse() {
+        helpTC(
+        """
+        public class R {
+          void m() {
+            //@ assert 2 .. 3 == 2 .. 3; // Parsing precedence error
+          }
+        }
+        """
+        ,"/TEST.java:3: error: Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed",28
+        ,"/TEST.java:3: error: Incorrectly formed or terminated assert statement near here",28
+        );
+    }
 
+    @Test public void jmldatagroup() {
+        helpTC(
+        """
+        class A {
+          //@ public model \\datagroup d; // OK
+          //@ public ghost \\datagroup dd = d; // ERROR - initialization not permitted
+            void m() {
+              //@ ghost \\datagroup da; // ERROR - local \\datagroup declarations not allowed
+              //@ set mmm(d); // ERROR
+              //@ set d = d; // ERROR
+              //@ set d += d; // ERROR
+              //@ ghost \\set<\\datagroup> ss; // ERROR
+              Object o;
+              //@ ghost Object oo = (\\datagroup)o;
+            }
+
+            //@ model void mm(\\datagroup d);  // ERRORS - no formal \\datagroup arguments
+            //@ model \\datagroup mr();  // ERRORS - no \\datagroup return type
+
+            //@ model void mmm(Object o) {}
+        }
+        """
+        ,"/TEST.java:3: error: \\datagroup declarations may not have initializers", 31
+        ,"/TEST.java:5: error: \\datagroup declarations are not permitted as local or formal declarations", 28
+        ,"/TEST.java:6: error: incompatible types: \\datagroup cannot be converted to java.lang.Object", 19
+        ,"/TEST.java:7: error: \\datagroup fields may not be assigned", 17
+        ,"/TEST.java:8: error: No operator for \\datagroup + \\datagroup", 17
+        ,"/TEST.java:8: error: \\datagroup fields may not be assigned", 17
+        ,"/TEST.java:9: error: \\datatype is not allowed as a type argument", 21
+        ,"/TEST.java:11: error: A java.lang.Object may not be cast to a \\datagroup", 41
+        ,"/TEST.java:14: error: \\datagroup declarations are not permitted as local or formal declarations", 34
+        ,"/TEST.java:15: error: a method return type may not be \\datagroup", 26
+        );
+    }
+    
 
 
     // TODO: Review the following

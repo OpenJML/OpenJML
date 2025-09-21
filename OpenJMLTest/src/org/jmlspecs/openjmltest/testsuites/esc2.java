@@ -4000,16 +4000,16 @@ public class esc2 extends EscBase {
                         );
     }
 
-    @Test
+    @Test // tests show statement; watch out for nondeterministic behavior
     public void testShowStatementESC() {
         expectedExit = 0;
-        addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
+        addOptions("--code-math=java","--method=m","--esc-max-warnings=1");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
                         + "  public static class Key { public int k; } \n"
                         + "  //@ public normal_behavior \n"
-                        + "  //@   requires true; \n"
+                        + "  //@   requires i <= 1 && j >= 0; \n"
                         + "  public static void m(int i, int j) {\n"
                         + "     //@ show i, j+1;\n"
                         + "     int k = i+j;\n"
@@ -4017,7 +4017,7 @@ public class esc2 extends EscBase {
                         + "     //@ assert k > 0;\n"
                         + "     int m = i-j;\n"
                         + "     //@ show m,k;\n"
-                        + "     //@ assert m > 0;\n"
+                        + "     //@ assert m >= 0;\n"
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: Show statement expression i has value 0",15
@@ -4032,7 +4032,7 @@ public class esc2 extends EscBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        addOptions("-lang=jml");
+        addOptions("--lang=jml");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4044,7 +4044,6 @@ public class esc2 extends EscBase {
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
-                        //,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                   ); 
     }
 

@@ -29,11 +29,13 @@ import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlPrimitiveTypes extends JmlExtension {
-//    Context context;
-//    
-//    public JmlPrimitiveTypes(Context context) {
-//        this.context = context;
-//    }
+    
+    public static java.util.Map<String,String> jmlNames = new java.util.HashMap<>();
+    
+    public static String jmlName(Symbol sym) {
+        return jmlNames.get(sym.toString());
+    }
+
     public JmlPrimitiveTypes(Context context) {
         // FIXME - why is this called so many times
         // And why do we have to clear a type to get it to reload its operators for a new context?
@@ -54,6 +56,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public JmlTypeKind(String keyword, String typename) {
             super(keyword);
             this.typename = typename;
+            jmlNames.put(typename, keyword);
         }
         
         public void clear() {
@@ -74,12 +77,8 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         public void init(Context context) {
             this.context = context;
-            String fqname;
-            if (typename.contains(".")) {
-                fqname = typename;
-            } else {
-                fqname = "org.jmlspecs.lang." + typename;
-            }
+            String fqname = typename;
+
             var nm = Names.instance(context).fromString("java.base");
             com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
             sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
@@ -432,6 +431,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public void initOps() {
             // intentionally no operations, not even ==
         }
+        
     };
 
     public static final String rangeID = "\\range";

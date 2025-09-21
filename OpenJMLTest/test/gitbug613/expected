@@ -1,6 +1,6 @@
 Proving methods in Test
 Starting proof of Test.Test(int) with prover !!!!
-test/gitbug613/Test.java:16: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method Test
+test/gitbug613/Test.java:16: warning: The prover cannot establish an assertion (InvariantExit) in method Test
 		if (i < 0) throw new RuntimeException();
 		           ^
 test/gitbug613/Test.java:5: warning: Associated declaration
