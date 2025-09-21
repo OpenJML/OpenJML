@@ -3820,6 +3820,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //	protected void addInvariantsForVar(JCExpression thisExpr) {
 //		assertInvariants(thisExpr, thisExpr);
 //	}
+	
+	protected boolean addingAssumptionsForFormals = false;
+
+
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
     protected boolean addNullnessAllocationTypeConditionFormal(DiagnosticPosition d, VarSymbol sym,
@@ -3837,7 +3841,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 //System.out.println("NULLNESS " + sym + " " + sym.type + " " + isNonNull + " " + owner);
             }
         }
-        return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
+        try {
+            addingAssumptionsForFormals = true;
+            return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
+        } finally {
+            addingAssumptionsForFormals = false;
+        }
     }
 
     /** Returns true iff the declaration is explicitly or implicitly non_null */
@@ -3949,7 +3958,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
                         if (specs.isNonNull(compType, enclosingClass)) {
-                            JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id));
+                            JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id), false);
                             e3 = treeutils.makeAnd(pos, e3, e4);
                         }
                     }
@@ -4475,7 +4484,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			assumeStaticInvariants(cs);
 		}
 	};
-
+	
 	protected void addFormals(ListBuffer<JCStatement> initialStats) {
 		pushBlock(initialStats);
 		/*
@@ -15860,8 +15869,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} else { // FIXME - we perhaps need quantified sstatements if we are within a qunatified
 							// scope
 					// assume \typeof(eresult) <: \elemtype(\typeof(indexed));
-					JCExpression e1 = treeutils.makeTypeof(save);
-					JCExpression e2 = treeutils.makeElemtype(treeutils.makeTypeof(indexed));
+					JCExpression e1 = treeutils.makeTypeof(copy(save));
+					JCExpression e2 = treeutils.makeElemtype(treeutils.makeTypeof(copy(indexed)));
 					e1 = treeutils.makeSubtype(e1, e1, e2);
 					addAssume(that, Label.IMPLICIT_ASSUME, e1);
 				}
@@ -17910,11 +17919,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean useDefaultModifies = true;
 		if (loopSpecs != null)
 			for (JmlStatementLoop spec : loopSpecs) {
-				if (spec instanceof JmlStatementLoopModifies) {
-					for (JCExpression stref : ((JmlStatementLoopModifies) spec).storerefs) {
-						newlist.add(spec.translated ? copy(stref) : convertNoSplit(stref));
+				if (spec instanceof JmlStatementLoopModifies loopmod) {
+					for (JCExpression stref : loopmod.storerefs) {
+						newlist.add(spec.translated ? copy(stref) : convertNoSplit(copy(stref)));
 					}
-					if (initlist != null)
+					if (initlist != null) {
 						for (JCTree t : initlist) {
 							// FIXME - might be already present; if the loop_modifies was added by an
 							// inlining sepc it certainly would not be
@@ -17922,6 +17931,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								newlist.add(convertNoSplit(((JmlVariableDecl) t).ident));
 							}
 						}
+					}
 					useDefaultModifies = false;
 				}
 			}
@@ -18318,7 +18328,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 
-		Name loopLabelInit = names.fromString("LoopInit");
+		Name loopLabelInit = names.fromString(Strings.loopinitLabelBuiltin);
 		JmlLabeledStatement istat = M.at(that.body.pos).JmlLabeledStatement(loopLabelInit, null, null);
 		recordLabel(loopLabelInit, istat);
 		addStat(istat);
@@ -19009,7 +19019,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression conj = null;
 					for (JCExpression arg : that.args) {
 						JCExpression e = convertExpr(arg);
-						e = wrapTranslatedNonnullelements(arg,e);
+						e = wrapTranslatedNonnullelements(arg,e,false);
 						conj = conj == null ? e : treeutils.makeAnd(arg.pos, conj, e);
 					}
 					result = eresult = conj;
@@ -19539,7 +19549,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 
-    private JCExpression wrapTranslatedNonnullelements(JCExpression arg, JCExpression convertedArg) {
+    private JCExpression wrapTranslatedNonnullelements(JCExpression arg, JCExpression convertedArg, boolean nofresh) {
         if (rac) {
         	convertedArg = methodCallUtilsExpression(arg, "nonnullElementCheck", convertedArg);
         } else {
@@ -19581,6 +19591,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         		JCExpression element = treeutils.makeArrayElement(p, id0,
         				treeutils.makeIdent(p, vd.sym));
         		JCExpression nnull = treeutils.makeNotNull(p, element);
+        		if (addingAssumptionsForFormals) {
+        	          JCExpression notfr = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.makeSelect(p, element, allocSym),
+        	                    treeutils.makeIntLiteral(p, 0));
+        	          nnull = treeutils.makeAnd(p, nnull, notfr);
+        		}
         		JCExpression ex = M.JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd),
         				treeutils.makeAnd(p, a, b), nnull);
         		ex.pos = p;
@@ -19689,7 +19704,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (label == names.empty) {
 				ac = 0;
 				utils.error(trarg,  "jml.internal", "Obsolete empty label string");
-			} else if (label.toString().equals("LoopBodyBegin")) {
+			} else if (label.toString().equals(Strings.loopbodyLabelBuiltin)) {
 				// Happens when a fresh expression referencing this label is in a loop_invariant
 				// The checking of the loop invariant before the loop begins occurs before the
 				// label

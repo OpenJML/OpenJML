@@ -201,5 +201,7 @@ public class SingletonExpressions extends JmlExtension {
     public static final LabelKind oldLabelKind = new LabelKind(oldLabelID);
     public static final String hereLabelID = "\\Here";
     public static final LabelKind hereLabelKind = new LabelKind(hereLabelID);
+    public static final String loopinitLabelID = "\\LoopInit";
+    public static final LabelKind loopinitLabelKind = new LabelKind(loopinitLabelID);
 }
 
