@@ -1,21 +1,10 @@
 Proving methods in LC
-Starting proof of LC.LC() with prover z3_4_3
-Method assertions are validated [1.10 secs]
-Completed proof of LC.LC() with prover z3_4_3 - no warnings [1.20 secs]
-Starting proof of LC.main(String...) with prover z3_4_3
-Method assertions are validated [1.08 secs]
-Completed proof of LC.main(String...) with prover z3_4_3 - no warnings [1.10 secs]
-Completed proving methods in LC [2.31 secs]
-Summary:
-  Valid:        2
-  Invalid:      0
-  Infeasible:   0
-  Timeout:      0
-  Error:        0
-  Skipped:      0
- TOTAL METHODS: 2
- Classes:       1 proved of 1
- Model Classes: 0
- Model methods: 0 proved of 0
- DURATION:          2.4 secs
-
+Starting proof of LC.LC() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of LC.LC() with prover !!!! - no warnings
+Starting proof of LC.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of LC.main(String...) with prover !!!! - no warnings
+Completed proving methods in LC
