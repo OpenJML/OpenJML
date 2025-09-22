@@ -12748,7 +12748,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// other problems, what about for MemberReferences?
 	    if (true) {
 	        if (types.isSameType(annotatedNewtype, expr.type)) return expr;
-	        return addConversion(pos, annotatedNewtype, expr, false, true);
+	        return addConversion(pos, annotatedNewtype, expr, false, esc || splitExpressions); // FIXME -- need to add in RAC checks as expressions
 	    } else {
 		Type newtype = annotatedNewtype.stripMetadata();
 		Type origtype = convertType(expr.type); // Substitutes type variables
@@ -18954,10 +18954,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						try {
 							currentEnv.stateLabel = evalStateLabel = null;
 							heapCount = lp.heapCount;
-							if (!convertingAssignable && arg instanceof JCArrayAccess
-									&& (((JCArrayAccess) arg).indexed instanceof JCIdent
-											|| ((JCArrayAccess) arg).indexed instanceof JCFieldAccess)) {
-								JCArrayAccess aa = (JCArrayAccess) arg;
+							if (!convertingAssignable && arg instanceof JCArrayAccess aa
+									&& (aa.indexed instanceof JCIdent
+											|| aa.indexed instanceof JCFieldAccess)) {
 								Symbol sym = treeutils.getSym(aa.indexed);
 								JCExpression ad = convertExpr(aa.indexed);
 								JCExpression a = treeutils.copyArray(that.pos, ad);
