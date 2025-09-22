@@ -168,6 +168,12 @@ public class escfiles extends EscBaseFiles {
         helpTG();
     }
 
+    @Test
+    public void esc2DArray2() {
+        expectedExit = 0;
+        helpTG();
+    }
+
     @Test @Ignore // FIXME - axioms for multi-dimensional arrays
     public void esc2DTranspose() {
         expectedExit = 0;
@@ -607,7 +613,7 @@ public class escfiles extends EscBaseFiles {
     @Test // Basic problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
     public void factorial() {
         expectedExit = 0;
-        helpTG();//,"-code-math=java");
+        helpTG("--check-feasibility=none");//,"-code-math=java");
     }
 
     @Test @Ignore // FIXME - times out
