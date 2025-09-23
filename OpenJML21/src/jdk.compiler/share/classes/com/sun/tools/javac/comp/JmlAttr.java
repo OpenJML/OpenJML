@@ -7228,11 +7228,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected int loopIndexCount = 0;
 
     /** Attributes the specs for a do-while loop */
-    public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
-        loopStack.add(0,treeutils.makeIdent(that.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
-        attribLoopSpecs(that.loopSpecs,env);
-        super.visitDoLoop(that);
-        loopStack.remove(0);
+    public void visitJmlDoWhileLoop(JmlDoWhileLoop tree) {
+        loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
+        Env<AttrContext> loopEnv = env;
+//        Env<AttrContext> loopEnv =
+//                env.dup(env.tree, env.info.dup(env.info.scope.dup()));
+        try {
+        Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
+        saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
+        saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
+            attribLoopSpecs(tree.loopSpecs,env);
+            super.visitDoLoop(tree);
+            loopStack.remove(0);
+        } finally {
+//            loopEnv.info.scope.leave();
+        }
     }
     
     public java.util.List<JCIdent> loopStack = new java.util.LinkedList<JCIdent>();
@@ -7272,10 +7282,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 setSyntheticVariableType(tree.var, inferredType);
             }
             attribStat(tree.var, loopEnv);
+            Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
+            saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
             //System.out.println("ENFOR " + tree + " " + elemtype + " " + tree.var + " " + tree.var.sym);
             //utils.warning(tree, "jml.message", "ENFOR " + tree + " " + elemtype + " " + tree.var + " " + tree.var.sym);
             chk.checkType(tree.expr.pos(), elemtype, tree.var.sym.type);
             loopEnv.tree = tree; // before, we were not in loop!
+            saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
             trForeachLoop(tree,tree.var.sym.type); // DRC - added
             attribStat(tree.body, loopEnv);
             attribLoopSpecs(tree.loopSpecs,loopEnv); // DRC - added
@@ -7616,11 +7629,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    	}
     }
 
-    public void visitJmlWhileLoop(JmlWhileLoop that) {
-        loopStack.add(0,treeutils.makeIdent(that.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
-        attribLoopSpecs(that.loopSpecs,env);
-        super.visitWhileLoop(that);
-        loopStack.remove(0);
+    public void visitJmlWhileLoop(JmlWhileLoop tree) {
+        loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
+        Env<AttrContext> loopEnv = env;
+//        Env<AttrContext> loopEnv =
+//                env.dup(env.tree, env.info.dup(env.info.scope.dup()));
+        try {
+            Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
+            saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
+            saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
+            attribLoopSpecs(tree.loopSpecs,env);
+            super.visitWhileLoop(tree);
+            loopStack.remove(0);
+        } finally {
+//            loopEnv.info.scope.leave();
+        }
     }
 
     public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {

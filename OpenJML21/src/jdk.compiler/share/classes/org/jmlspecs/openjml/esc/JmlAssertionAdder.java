@@ -17499,6 +17499,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		pushBlock();
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
+		addLoopInitLabel(that.body);
 
 		java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -17541,6 +17542,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Then translate the original loop body
 
+		addLoopBodyLabel(that.body);
 		loopHelperMakeBody(that.body);
 
 		// Now compute any side-effects of the loop condition
@@ -17564,6 +17566,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Finish up the output block
 		loopHelperFinish(loop, that);
 		addStat(popBlock(that));
+        labelPropertiesStore.pop(loopbodyLabelName);
+        labelPropertiesStore.pop(loopinitLabelName);
 	}
 	
     public boolean isNonNullLocal(Type t) {
@@ -17633,6 +17637,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression array = null;
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
+        addLoopInitLabel(that.body);
 
 		java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -17722,8 +17727,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			doRemainderOfLoop = splitInfo == null || splitInfo;
 
 			// Now in the loop, so check that the variants are non-negative
-			if (doRemainderOfLoop)
+			if (doRemainderOfLoop) {
 				loopHelperCheckNegative(decreasesIDs, that);
+			}
 
 			if (isArray) {
 				JCExpression aa = new JmlBBArrayAccess(null, array, treeutils.makeIdent(that.pos, indexDecl.sym));
@@ -17870,8 +17876,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Then translate the original loop body
 		// Have to do some footwork to get the Block object before constructing its
 		// contents
-		if (doRemainderOfLoop)
-			loopHelperMakeBody(that.body);
+		if (doRemainderOfLoop) {
+            addLoopBodyLabel(that.body);
+            loopHelperMakeBody(that.body);
+		}
 
 		// increment the index
 		if (doRemainderOfLoop)
@@ -17891,6 +17899,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
+        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
+        labelPropertiesStore.pop(loopinitLabelName);
 	}
 
 	/**
@@ -18300,6 +18310,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		treeMap.remove(that);
 		indexStack.remove(0);
 	}
+	
+    private void addLoopInitLabel(DiagnosticPosition pos) {
+        Name loopLabelInit = loopinitLabelName;
+        JmlLabeledStatement istat = M.at(pos).JmlLabeledStatement(loopLabelInit, null, null);
+        recordLabel(loopLabelInit, istat);
+        addStat(istat);
+    }
+
+    private void addLoopBodyLabel(DiagnosticPosition pos) {
+        Name loopLabelBody = loopbodyLabelName;
+        JmlLabeledStatement istat = M.at(pos).JmlLabeledStatement(loopLabelBody, null, null);
+        recordLabel(loopLabelBody, istat);
+        addStat(istat);
+    }
 
 	// OK
 	@Override
@@ -18328,11 +18352,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 
-		Name loopLabelInit = names.fromString(Strings.loopinitLabelBuiltin);
-		JmlLabeledStatement istat = M.at(that.body.pos).JmlLabeledStatement(loopLabelInit, null, null);
-		recordLabel(loopLabelInit, istat);
-		addStat(istat);
-
+		addLoopInitLabel(that.body);
+		
 		if (mostRecentInlinedLoop != null) {
 			for (JmlStatementLoop stat : mostRecentInlinedLoop.translatedSpecs) {
 				if (stat instanceof JmlStatementLoopExpr) {
@@ -18408,9 +18429,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// contents
 
 		if (doRemainderOfLoop) {
-	        JmlLabeledStatement lstat = M.at(that.body.pos).JmlLabeledStatement(loopbodyLabelName, null, null);
-	        recordLabel(loopbodyLabelName, lstat);
-	        addStat(lstat);
+		    addLoopBodyLabel(that.body);
 
 			loopHelperMakeBody(that.body);
 		}
@@ -18437,8 +18456,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
-		labelPropertiesStore.pop(loopbodyLabelName);
-		labelPropertiesStore.pop(loopLabelInit);
+		if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
+		labelPropertiesStore.pop(loopinitLabelName);
 	}
 
 	@Override
@@ -21767,6 +21786,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		pushBlock();
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
+		addLoopInitLabel(that.body);
 
 		java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -21803,14 +21823,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean doRemainderOfLoop = splitInfo == null || splitInfo;
 
 		// Now in the loop, so check that the variants are non-negative
-		if (doRemainderOfLoop)
-			loopHelperCheckNegative(decreasesIDs, that);
+		if (doRemainderOfLoop) {
+		    loopHelperCheckNegative(decreasesIDs, that);
+		}
 
 		// Then translate the original loop body
 		// Have to do some footwork to get the Block object before constructing its
 		// contents
-		if (doRemainderOfLoop)
-			loopHelperMakeBody(that.body);
+		if (doRemainderOfLoop) {
+		    addLoopBodyLabel(that.body);
+		    loopHelperMakeBody(that.body);
+		}
 
 		// increment the index
 		if (doRemainderOfLoop)
@@ -21828,6 +21851,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
+        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
+        labelPropertiesStore.pop(loopinitLabelName);
 
         currentEnv = currentEnv.popEnv();
 		heapCount = savedHeapCount;

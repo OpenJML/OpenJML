@@ -79,22 +79,22 @@ SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
 escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
 # escTraceTests - need work, but are successful at the moment
-escfiles.customPrimitiveTypes
-escfiles.datatype
-escfiles.esc2DArray
-escfiles.factorial
-escfiles.modelImport5 # static model import needs implementation
-escfiles.modelImport6
-escfiles.modelImport7
+escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
+escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
+escfiles.esc2DArray		# <<<<<	problems with havocing arrays and array elements
+escfiles.esc2DArray2		# <<<<< problems with havocing arrays and array elements
+escfiles.modelImport5 		#	static model import needs implementation
+escfiles.modelImport6           #	static model import needs implementation
+escfiles.modelImport7           #	static model import needs implementation
 escfiles.sfbug420X
 escfiles.sfbug420eOK
 escfiles.valuestrings
 escfiles2.escRawding2
 escfiles2.escRawdingA
 escfiles2.escRawdingB
-escfiles2.gitbug450a
-escfiles2.gitbug450b
-escfiles2.gitbug861
+escfiles2.gitbug450a		#	feasibility problems
+escfiles2.gitbug450b		#	feasibility problems
+escfiles2.gitbug861		#	needs checks within a compiler constat static initializer
 #escfilesdemo.escDemoTypesNoQuants
 escfilesTrace.escDMZCashTrace
 escfilesTrace.escDemoChangeCase
@@ -125,21 +125,17 @@ escfilesTrace.escTraceLoops6
 escfilesTrace.escTraceWhile
 escfilesTrace.escTraceWhile1
 escfilesTrace.escTraceWhile2
-escfileslist1.test[buggyCalculatorBV]
 escfileslist1.test[crashXlint]
 escfileslist1.test[dynamicFrames]
-escfileslist1.test[esc2DArray2]
-#escfileslist1.test[escConstructor]
-escfileslist1.test[firstTest]
-#escfileslist1.test[gitbug718x3]
-escfileslist1.test[gitbug759]
-#escfileslist2.test[gitbug814]
-#escfileslist2.test[gitbug814d]
-escfileslist2.test[gitbug882]
+escfileslist1.test[escConstructor5]	# Feasibility problem
+escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
+escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
+escfileslist2.test[gitbug882]a	#	Java complaint about uninitialized variable
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
-escfileslist3.test[textBlock4b]
+escfileslist3.test[textBlock4]  #       Handling of String, timeout
+escfileslist3.test[textBlock4b]	#	Handling of String, timeout
 escfileslist3.test[verifythis-2019-1]
 escfilesmodels.gitbug431
 escfilesmodels.gitbug461
@@ -151,21 +147,20 @@ escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
 escm.havocInit
-escnew3.testCast1
-racfiles.gitbug534
-racfiles.gitbug547a
-racfiles.gitbug547b
-racfiles.gitbug547c
-racfiles.gitbug547d
-racfiles.gitbug860
-racfiles.gitbug861
-racfiles.gitbug869
-racfiles.rac1
-racfiles.racbug1
-runscripts.nowarn
+racfiles.gitbug534		# <<<<< recursive call -- imcorrect rac translation 
+racfiles.gitbug547a		# <<<<< problem with transation of an interface with static ghost field
+racfiles.gitbug547b		# <<<<< same for an instance field
+racfiles.gitbug547c		# <<<<< translation of interface, model field
+racfiles.gitbug547d		# <<<<< translation of model field
+racfiles.gitbug860		#       bad translation for method call in static initializer
+racfiles.gitbug861		#	missing check in compiler constant static initializer
+racfiles.gitbug869		#	could use better error messages
+racfiles.rac1			# <<<<< review/improve error messages
+racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
+runscripts.nowarn		#	java options are recorded too late to setup internal shortcuts
 generics.testBinaryGeneric3c
 escfiles.sfbug420e
-escfileslist2.test[gitbug876]
-escfileslist2.test[gitbug878]
-escfileslist2.test[gitbug880] # Needs better reasoning about String length
+escfileslist2.test[gitbug876]	#	attempt at a Prime checker -- problems with modulo
+escfileslist2.test[gitbug878]	#	problem with type inference
+escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
 primesc.locsetTests2
