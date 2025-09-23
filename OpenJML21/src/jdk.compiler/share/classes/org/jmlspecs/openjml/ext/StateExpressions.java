@@ -104,8 +104,11 @@ public class StateExpressions extends JmlExtension {
                 	if (label != null) t = null;
                 }
             }
-            if (label == attr.hereLabel) label = null;
-            if (label == attr.oldLabel) label = attr.jmlenv.currentOldLabel;
+            if (label == attr.oldLabel) {
+                label = attr.jmlenv.currentOldLabel;
+            } else if (label == attr.hereLabel) {
+                label = null;
+            }
 
             //System.out.println("OLD " + label + " " + attr.jmlenv.currentOldLabel + " " + that);
             
