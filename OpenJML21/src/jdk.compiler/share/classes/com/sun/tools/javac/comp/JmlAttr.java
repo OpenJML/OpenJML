@@ -1349,8 +1349,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv.enclosingMethodDecl = javaMethodDecl;
         
         JmlMethodDecl jmethod = javaMethodDecl;
-        Map<Name,Env<AttrContext>> prevLabelEnvs = labelEnvs;
-        labelEnvs = new HashMap<Name,Env<AttrContext>>();
+        var prevLabelEnvs = labelEnvs;
+        labelEnvs = new HashMap<Name,LinkedList<Env<AttrContext>>>();
 
         var savedEnclosingMethodEnv = enclosingMethodEnv;
         enclosingMethodEnv = env; // FIXME - not the method env that super.visitMethodDef creates
@@ -4428,7 +4428,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            }
         } finally {
         	// FIXME - why might env be null?
-            if (env != null) labelEnvs.put(tree.name,env.dup(tree,env.info.dupUnshared()));
+            if (env != null) saveEnvForLabel(tree.name,env);
             if (prevEnv != localEnv) localEnv.info.scope.leave();
             env = prevEnv;
             jmlenv = jmlenv.pop();
@@ -4512,7 +4512,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     // FIXME - limit these to a method body
-    public Map<Name,Env<AttrContext>> labelEnvs = new HashMap<Name,Env<AttrContext>>();
+    public Map<Name,LinkedList<Env<AttrContext>>> labelEnvs = new HashMap<>();
     
     public void visitLabelled(JCLabeledStatement tree) {
         saveEnvForLabel(tree.label, env);
@@ -4551,16 +4551,30 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public void saveEnvForLabel(Name label, Env<AttrContext> env) {
-        labelEnvs.put(label,env.dup(env.enclMethod,env.info.dupUnshared()));
+        //System.out.println("SAVING " + label + " " + env);
+        var stack = labelEnvs.get(label);
+        if (stack == null) labelEnvs.put(label, stack = new LinkedList<Env<AttrContext>>());
+        stack.addFirst(env.dup(env.enclMethod,env.info.dupUnshared()));
+    }
+    
+    public void popLabelEnv(Name label) {
+        //System.out.println("POPPING " + label);
+        var stack = labelEnvs.get(label);
+        stack.removeFirst();
     }
     
     public Env<AttrContext> envForLabel(DiagnosticPosition pos, Name label, Env<AttrContext> oldenv) {
+        var stack = labelEnvs.get(label);
         if (enclosingMethodEnv == null) {
             // Just a precaution
             utils.warning(pos,"jml.internal","Unsupported context for pre-state reference (anonymous class? initializer block?): " + label + ".  Please report the program.");
+        } else if (stack == null || stack.isEmpty()) {
+            //System.out.println("NO LABEL" + label);
+            utils.error(pos,"jml.unknown.label",label);
         } else if (label != null) {
-            Env<AttrContext> labelenv = labelEnvs.get(label);
+            Env<AttrContext> labelenv = stack.getFirst();
             if (labelenv == null) {
+                //System.out.println("NO LABEL" + label);
                 utils.error(pos,"jml.unknown.label",label);
             } else {
                 oldenv = labelenv;
@@ -7231,17 +7245,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlDoWhileLoop(JmlDoWhileLoop tree) {
         loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         Env<AttrContext> loopEnv = env;
-//        Env<AttrContext> loopEnv =
-//                env.dup(env.tree, env.info.dup(env.info.scope.dup()));
         try {
-        Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
-        saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
-        saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
+            Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
+            saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
+            saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
             attribLoopSpecs(tree.loopSpecs,env);
             super.visitDoLoop(tree);
-            loopStack.remove(0);
         } finally {
-//            loopEnv.info.scope.leave();
+            popLabelEnv(names.fromString(Strings.loopbodyLabelBuiltin));
+            popLabelEnv(names.fromString(Strings.loopinitLabelBuiltin));
+            loopStack.remove(0);
         }
     }
     
@@ -7328,6 +7341,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         
         } finally {
+            popLabelEnv(names.fromString(Strings.loopbodyLabelBuiltin));
+            popLabelEnv(names.fromString(Strings.loopinitLabelBuiltin));
             loopEnv.info.scope.leave();
             loopStack.remove(0);
             foreachLoopStack.remove(0);
@@ -7616,9 +7631,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			bodyEnv.info.scope.leave();
     		}
     		result = null;
-            loopStack.remove(0);
     	}
     	finally {
+            loopStack.remove(0);
+            popLabelEnv(names.fromString(Strings.loopbodyLabelBuiltin));
+            popLabelEnv(names.fromString(Strings.loopinitLabelBuiltin));
     		loopEnv.info.scope.leave();
     	}
     	// FIXME - not sure where this came from
@@ -7632,17 +7649,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlWhileLoop(JmlWhileLoop tree) {
         loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
         Env<AttrContext> loopEnv = env;
-//        Env<AttrContext> loopEnv =
-//                env.dup(env.tree, env.info.dup(env.info.scope.dup()));
         try {
             Env<AttrContext> labelenvi = env.dup(tree,loopEnv.info.dupUnshared());
             saveEnvForLabel(names.fromString(Strings.loopinitLabelBuiltin),labelenvi);
             saveEnvForLabel(names.fromString(Strings.loopbodyLabelBuiltin),loopEnv);
             attribLoopSpecs(tree.loopSpecs,env);
             super.visitWhileLoop(tree);
-            loopStack.remove(0);
         } finally {
-//            loopEnv.info.scope.leave();
+            popLabelEnv(names.fromString(Strings.loopbodyLabelBuiltin));
+            popLabelEnv(names.fromString(Strings.loopinitLabelBuiltin));
+            loopStack.remove(0);
         }
     }
 

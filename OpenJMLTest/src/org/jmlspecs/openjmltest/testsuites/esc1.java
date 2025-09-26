@@ -5108,5 +5108,23 @@ public class esc1 extends EscBase {
                 );
     }
 
-
+    @Test
+    public void testStaticInvariant1() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                    public static int i;
+                    //@ public static invariant i == 0;
+                    public static void m(boolean b) {
+                        i = 1;
+                        if (b) throw new RuntimeException();
+                        i = 0;
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m",16
+                ,"/tt/TestJava.java:4: warning: Associated declaration",23
+                );
+    }
 }

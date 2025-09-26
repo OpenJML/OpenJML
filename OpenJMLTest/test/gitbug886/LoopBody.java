@@ -4,6 +4,7 @@ public class LoopBody {
     LoopInit.m();
     int i = 100;
     //@ loop_invariant 0 <= i <= 10;
+    //@ loop_invariant i == \count;
     for (i = 0; i < 10; i++) {
       //@ assert \old(i, \LoopBody) == i;
       i++;
@@ -11,7 +12,6 @@ public class LoopBody {
       for (int j = 0; j < 5; j++) {
         //@ assert \old(i,\LoopBody) == i;
       }
-      //@ show i, \old(i, \LoopBody);
       //@ assert \old(i, \LoopBody) + 1 == i;
       i--;
       //@ assert \old(i,\LoopBody) == i;

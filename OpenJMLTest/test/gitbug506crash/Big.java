@@ -1,3 +1,5 @@
+// This variant of gitbug506/Big.java causes a crash
+
 import java.math.BigInteger;
 public class Big {
   public final BigInteger z = BigInteger.valueOf(0);

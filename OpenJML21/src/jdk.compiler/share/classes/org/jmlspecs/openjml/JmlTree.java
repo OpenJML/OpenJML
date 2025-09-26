@@ -1937,6 +1937,7 @@ public class JmlTree {
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
         boolean isSplit();
         void setSplit(boolean s);
+        default public DiagnosticPosition pos() { return (DiagnosticPosition)this; }
         JCStatement body();
     }
     
