@@ -284,6 +284,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final protected Name hereLabelName;
     final protected Name loopinitLabelName;
     final protected Name loopbodyLabelName;
+    final protected LinkedList<IJmlLoop> loopStack = new LinkedList<>();
 
     /** A tree-visitor that copies an AST, including types; symbols do not change */ // FIXME - break targets?
 	final protected Copier copier;
@@ -17499,7 +17500,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		pushBlock();
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
-		addLoopInitLabel(that.body);
+		addLoopInitLabel(that);
 
 		java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -17542,7 +17543,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Then translate the original loop body
 
-		addLoopBodyLabel(that.body);
+		addLoopBodyLabel(that);
 		loopHelperMakeBody(that.body);
 
 		// Now compute any side-effects of the loop condition
@@ -17566,8 +17567,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Finish up the output block
 		loopHelperFinish(loop, that);
 		addStat(popBlock(that));
-        labelPropertiesStore.pop(loopbodyLabelName);
-        labelPropertiesStore.pop(loopinitLabelName);
+//        labelPropertiesStore.pop(loopbodyLabelName);
+//        labelPropertiesStore.pop(loopinitLabelName);
+        var x = loopStack.removeFirst();
+        if (x != that) {
+            utils.error(that, "jml.internal", "Mismatched loop");
+        }
 	}
 	
     public boolean isNonNullLocal(Type t) {
@@ -17637,7 +17642,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression array = null;
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
-        addLoopInitLabel(that.body);
+        addLoopInitLabel(that);
 
 		java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -17877,7 +17882,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Have to do some footwork to get the Block object before constructing its
 		// contents
 		if (doRemainderOfLoop) {
-            addLoopBodyLabel(that.body);
+            addLoopBodyLabel(that);
             loopHelperMakeBody(that.body);
 		}
 
@@ -17899,8 +17904,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
-        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
-        labelPropertiesStore.pop(loopinitLabelName);
+//        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
+//        labelPropertiesStore.pop(loopinitLabelName);
+        var x = loopStack.removeFirst();
+        if (x != that) {
+            utils.error(that, "jml.internal", "Mismatched loop");
+        }
 	}
 
 	/**
@@ -18311,16 +18320,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		indexStack.remove(0);
 	}
 	
-    private void addLoopInitLabel(DiagnosticPosition pos) {
-        Name loopLabelInit = loopinitLabelName;
-        JmlLabeledStatement istat = M.at(pos).JmlLabeledStatement(loopLabelInit, null, null);
+    private void addLoopInitLabel(IJmlLoop loop) {
+        DiagnosticPosition p = loop.pos();
+        loopStack.addFirst(loop);
+        Name loopLabelInit = names.fromString(Strings.loopinitLabelBuiltin + "`" + p.getPreferredPosition());
+        JmlLabeledStatement istat = M.at(p).JmlLabeledStatement(loopLabelInit, null, null);
         recordLabel(loopLabelInit, istat);
         addStat(istat);
     }
 
-    private void addLoopBodyLabel(DiagnosticPosition pos) {
-        Name loopLabelBody = loopbodyLabelName;
-        JmlLabeledStatement istat = M.at(pos).JmlLabeledStatement(loopLabelBody, null, null);
+    private void addLoopBodyLabel(IJmlLoop loop) {
+        DiagnosticPosition p = loop.pos();
+        Name loopLabelBody = names.fromString(Strings.loopbodyLabelBuiltin + "`" + p.getPreferredPosition());;
+        JmlLabeledStatement istat = M.at(p).JmlLabeledStatement(loopLabelBody, null, null);
         recordLabel(loopLabelBody, istat);
         addStat(istat);
     }
@@ -18352,7 +18364,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 
-		addLoopInitLabel(that.body);
+		addLoopInitLabel(that);
 		
 		if (mostRecentInlinedLoop != null) {
 			for (JmlStatementLoop stat : mostRecentInlinedLoop.translatedSpecs) {
@@ -18429,7 +18441,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// contents
 
 		if (doRemainderOfLoop) {
-		    addLoopBodyLabel(that.body);
+		    addLoopBodyLabel(that);
 
 			loopHelperMakeBody(that.body);
 		}
@@ -18456,8 +18468,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
-		if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
-		labelPropertiesStore.pop(loopinitLabelName);
+//		if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
+//		labelPropertiesStore.pop(loopinitLabelName);
+		var x = loopStack.removeFirst();
+		if (x != that) {
+		    utils.error(that, "jml.internal", "Mismatched loop");
+		}
 	}
 
 	@Override
@@ -19632,10 +19648,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	public Name normalizeLabel(JCExpression arg, Name defaultLabel, DiagnosticPosition altpos) {
 		Name label;
-		if (arg != null) {
-			label = ((JCIdent)arg).name;
+		if (arg == null) {
+		    label = defaultLabel;
+		} else if (arg.toString().startsWith("\\Loop")) {
+		    IJmlLoop loop = loopStack.getFirst();
+		    label = names.fromString(arg.toString() + "`" + loop.pos().getPreferredPosition());
 		} else {
-			label = defaultLabel;
+		    label = ((JCIdent)arg).name;
 		}
 		if (label == attr.oldLabel) label = currentOldLabel;
 		if (labelPropertiesStore.get(label) == null) {
@@ -21786,7 +21805,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		pushBlock();
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
-		addLoopInitLabel(that.body);
+		addLoopInitLabel(that);
 
 		java.util.List<JCIdent> decreasesIDs = new java.util.LinkedList<JCIdent>();
 
@@ -21831,7 +21850,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Have to do some footwork to get the Block object before constructing its
 		// contents
 		if (doRemainderOfLoop) {
-		    addLoopBodyLabel(that.body);
+		    addLoopBodyLabel(that);
 		    loopHelperMakeBody(that.body);
 		}
 
@@ -21851,8 +21870,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
-        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
-        labelPropertiesStore.pop(loopinitLabelName);
+//        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
+//        labelPropertiesStore.pop(loopinitLabelName);
+        var x = loopStack.removeFirst();
+        if (x != that) {
+            utils.error(that, "jml.internal", "Mismatched loop");
+        }
 
         currentEnv = currentEnv.popEnv();
 		heapCount = savedHeapCount;

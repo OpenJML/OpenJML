@@ -130,10 +130,13 @@ escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
-escfileslist2.test[gitbug882]a	#	Java complaint about uninitialized variable
+escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
+escfileslist2.test[gitbug883bad]#	Needs better handling of 2D array
+escfileslist2.test[gitbug886]	#	Fix to behavior of \LoopInit and \LoopBody
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
+escfileslist3.test[staticInit]  #       Needs implementation of static initialization
 escfileslist3.test[textBlock4]  #       Handling of String, timeout
 escfileslist3.test[textBlock4b]	#	Handling of String, timeout
 escfileslist3.test[verifythis-2019-1]
@@ -164,3 +167,6 @@ escfileslist2.test[gitbug876]	#	attempt at a Prime checker -- problems with modu
 escfileslist2.test[gitbug878]	#	problem with type inference
 escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
 primesc.locsetTests2
+
+escfileslist2.test[gitbug506crash]
+## Issue 511, 634, 637, 812, 814
