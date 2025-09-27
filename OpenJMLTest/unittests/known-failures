@@ -132,7 +132,6 @@ escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of to
 escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
 escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist2.test[gitbug883bad]#	Needs better handling of 2D array
-escfileslist2.test[gitbug886]	#	Fix to behavior of \LoopInit and \LoopBody
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
@@ -151,7 +150,7 @@ esclambdas.testIdentity
 esclambdas.testIdentity2
 escm.havocInit
 racfiles.gitbug534		# <<<<< recursive call -- imcorrect rac translation 
-racfiles.gitbug547a		# <<<<< problem with transation of an interface with static ghost field
+racfiles.gitbug547a		# <<<<< problem with translation of an interface with static ghost field
 racfiles.gitbug547b		# <<<<< same for an instance field
 racfiles.gitbug547c		# <<<<< translation of interface, model field
 racfiles.gitbug547d		# <<<<< translation of model field
