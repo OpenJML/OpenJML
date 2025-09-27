@@ -2,11 +2,11 @@ public class Loops {
 
   public void m1() {
     int i = 10;
-    //@ loop_invariant i == 1 + \count;
+    //@ loop_invariant i == \old(i,\LoopInit) + \count;
     for (i = 1; i < 5; i++) {
       i += 20;
       //@ check \old(i,\LoopInit) == 1;
-      //@ check \old(i, \LoopBody) == 1 + \count;
+      //@ check \old(i, \LoopBody) == \old(i,\LoopInit) + \count;
       i -= 20;
     }
   }
@@ -23,16 +23,16 @@ public class Loops {
 
   public void m3() {
     int i = 2;
-    //@ loop_invariant i == 2 + \count;
+    //@ loop_invariant i == \old(i,\LoopInit) + \count;
     //@ loop_writes i;
     while (i<5) {
       i += 20;
       //@ check \old(i,\LoopInit) == 2;
       //@ show \old(i, \LoopBody), \count;
-      //@ check \old(i, \LoopBody) == 2 + \count;
+      //@ check \old(i, \LoopBody) == \old(i,\LoopInit) + \count;
       i -= 20;
       //@ show i, \count;
-      //@ check i == 2 + \count;
+      //@ check i == \old(i,\LoopInit) + \count;
       i++;
     }
   }
