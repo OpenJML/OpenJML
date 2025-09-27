@@ -116,6 +116,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug812crash() {
+        expectedExit = 1;
         helpTCG();
     }
 
