@@ -9035,7 +9035,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean print =  Utils.debug("trans"); //  || that.toString().contains("zrange.isEmpty()");
         boolean printb = print;
         //print |= that.toString().contains("cops.id");
-    	if (print) System.out.println("APPLY HELPER: " + that);
+    	if (print) {
+    	    System.out.println("APPLY HELPER: " + that);
+    	    utils.warning(that, "jml.message", "applyHelper");
+    	}
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
 //    		JCExpression sel = m.meth instanceof JCFieldAccess ? ((JCFieldAccess)m.meth).selected : currentEnv.currentReceiver;
@@ -11688,6 +11691,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         //System.out.println("HAVOCAXIOM " + calleeMethodSym + " " + hc + " " + args);
 	    try {
 	        var heapInfo = currentEnv.heap;
+	        if (heapInfo == null) return; // FIXME - can happen for a constructor checking static invariants that contain method calls
 	        //System.out.println(" CALLING FOR " + calleeMethodSym + " " + hc + " " + heapInfo.heapID + " " + heapInfo.previousHeaps);
 	        if (heapInfo.previousHeaps.isEmpty()) return;
 	        for (var oldHeapInfo: heapInfo.previousHeaps) {
@@ -11822,8 +11826,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
  //           info.methodAxiomsBlock.stats = info.methodAxiomsBlock.stats.append(s);
  //           System.out.println("  AXIOM " + ee);
 	    } catch (Throwable e) {
-	        System.out.println("CRASH IN makeMethodHavocAxiom for " + methodDecl.sym + " " + calleeMethodSym.owner + "." + calleeMethodSym + " " + currentEnv.heap.previousHeaps.iterator().next().heapID);
-	        System.out.println("  ITEMS " + readItems + " " + havocs);
+            //System.out.println("CRASH IN makeMethodHavocAxiom for " + methodDecl.sym + " " + calleeMethodSym.owner + "." + calleeMethodSym );
+            //System.out.println(" " + currentEnv.heap.previousHeaps.iterator().next().heapID);
+	        //System.out.println("  ITEMS " + readItems + " :: " + havocs);
 	        e.printStackTrace(System.out);
 	    }
 
