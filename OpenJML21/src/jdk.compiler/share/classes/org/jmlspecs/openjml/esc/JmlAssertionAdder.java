@@ -13349,6 +13349,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									//System.out.println("CHECKING " + sr + " WITH " + currentEnv.currentReceiver + " VS " + clause + " IN " + parentMethodSym.owner + ":" + parentMethodSym + " " + kind + " " + lsexpr);
 									JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
 									JCExpression convertedCondition = simplifySubset(ss, targetEnv, isConverted);
+									//System.out.println("  CC " + ss + " :: " + convertedCondition);
 									if (!emitAsserts) {
 										convertedCondition = treeutils.makeImplies(pos, precondition, convertedCondition);
 										okCondition = treeutils.makeAndSimp(pos,  okCondition,  convertedCondition);
@@ -13854,7 +13855,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						"java.lang.ArrayIndexOutOfBoundsException");
 			}
 
-			checkAccess2(assignableClauseKind, that, lhs, newfa, false, treeutils.trueLit, true, null, false);
+            JCArrayAccess newfaa = M.at(that.pos).Indexed(array, index);
+            newfaa.setType(that.type);
+
+            checkAccess2(assignableClauseKind, that, lhs, newfaa, false, treeutils.trueLit, true, null, false); // FIXME - check - 5th argument is 'true' for regular assignment
 
 			rhs = convertExpr(rhs);
 			rhs = addImplicitConversion(rhs, optype, rhs);
