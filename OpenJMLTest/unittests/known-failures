@@ -168,8 +168,7 @@ escfileslist2.test[gitbug878]	#	problem with type inference
 escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
 primesc.locsetTests2
 
-escfileslist1.test[gitbug506crash]
 runscripts.gitbug883
 escfileslist2.test[gitbug883bad]
 escfileslist2.test[gitbug888]
-## Issue 511, 634, 637, 812, 814
+## Issue 511, 842
