@@ -22,11 +22,11 @@ public class SumArrayElements {
     //@ requires arr != null;
     //@ assigns \nothing;
     // @ ensures \fresh(\result);
-    //@ ensures \bigint.of(\result) == sumFirstNElements(arr, arr.length-1);
+    //@ ensures \result == sumFirstNElements(arr, arr.length-1);
     public static BigInteger sumArrayElements(int arr[]) {
         BigInteger sum = BigInteger.ZERO;
         //@ maintaining 0 <= i <= arr.length;
-        //@ maintaining \bigint.of(sum) == sumFirstNElements(arr, i-1);
+        //@ maintaining sum == sumFirstNElements(arr, i-1);
         //@ loop_writes i, sum;
         //@ decreases arr.length - i;
         for (int i = 0; i < arr.length; ++i) {
