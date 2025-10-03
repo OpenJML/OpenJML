@@ -91,6 +91,14 @@ public class bugs extends TCBase {
                 );
     }
     
+    /** Checking for mixed implications */
+    @Test
+    public void testMiscBug8a() {
+        helpTCF("A.java","public class A { //@ requires true <== false ==> true; \n void p() {  }}"
+                ,"/A.java:1: error: ==> and <== operators may not be mixed without parentheses",46
+                );
+    }
+    
     /** Check that 'this' is defined in interface specifications, and we can do \type of an interface name */
     @Test
     public void testMisc9() {

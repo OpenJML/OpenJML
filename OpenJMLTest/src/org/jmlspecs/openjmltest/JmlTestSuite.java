@@ -293,7 +293,7 @@ public abstract class JmlTestSuite {
     /** Set this to true in a test to print out more detailed information about
      * what the test is doing (as a debugging aid).
      */
-    public boolean print = false;
+    public boolean print = true;
     
     /** Set this to true (in the setUp for a test, before calling super.setUp)
      * if you want diagnostics to be printed as they occur (as well as being collected).

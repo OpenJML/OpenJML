@@ -130,6 +130,7 @@ cov-test:
 	cd ${TEST}
 	COV= time make json-tests
 	COV= time ./unittests/runpar 
+	COV= time make userguide-tests
 	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
 	## COV= make release-tests ## FIXME: Not yet working
 	## FIXME - also test examples in documentation
