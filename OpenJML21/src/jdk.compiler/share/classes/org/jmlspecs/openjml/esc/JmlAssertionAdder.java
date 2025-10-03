@@ -15080,7 +15080,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
         treeutils.copyEndPosition(castexpr, expr);
         
-        //if (explicitCast) System.out.println("ADDCONV " + oldtype + " " + newtype + " " + newtypeExpr + " " + expr + " " + castexpr + " " + castexpr.type);
+        //if (explicitCast || newtype.tsym == BIGINT.tsym) System.out.println("ADDCONV " + oldtype + " " + newtype + " " + newtypeExpr + " " + expr + " " + castexpr + " " + castexpr.type);
 
         JCExpression eqnull = treeutils.makeEqObject(pos, expr, treeutils.makeNullLiteral(pos));
         JCExpression notnull = treeutils.makeNot(pos, eqnull);
@@ -15157,7 +15157,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - enable this check when finiteness of double values is propagated more effectively
                 //addAssert(expr, Label.ARITHMETIC_CAST_RANGE, e); // FIXME - could be a clearer message - that is call out Infinty/Nan specifically
             }
-            if (rac) {
+            if (oldtype.tsym.toString().equals("java.math.BigInteger")) {
+                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), newtype);
+                JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
+                eresult = convertExpr(e);
+            } else if (rac) {
                 //System.out.println("CONVERTING-RAC " + oldtype + " " + newtype + " " + expr);
                 JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), newtype);
                 eresult = makeMethodInvocation(pos, ty, names.of, expr);
