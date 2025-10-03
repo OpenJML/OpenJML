@@ -129,7 +129,7 @@ public class JmlOption {
           }
     };
     // FIXME - turn default back to true when problems have been worked out
-    public static final JmlOption CHECK_ACCESSIBLE = new JmlOption("--check-accessible",false,false,"When on (the default), JML accessible clauses are checked",null);
+    public static final JmlOption CHECK_ACCESSIBLE = new JmlOption("--check-accessible",false,true,"When on (the default), JML accessible clauses are checked",null);
     { map.put("-checkAccessible",CHECK_ACCESSIBLE); }
     public static final JmlOption SPECS = new JmlOption("--specs-path",true,null,"Specifies the directory path to search for specification files",null);
     { map.put("-specspath",SPECS); }

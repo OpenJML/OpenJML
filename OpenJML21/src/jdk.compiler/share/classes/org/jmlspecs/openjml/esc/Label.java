@@ -91,9 +91,6 @@ public class Label {
     /** Used for assume or assert statements generated from invariants */
     /*@ non_null */ public final static Label INVARIANT_EXIT_ASSUMED = new Label("InvariantExitAssumed");
     
-    /** Used for assume or assert statements generated from invariants */
-    /*@ non_null */ public final static Label INVARIANT_EXCEPTION_EXIT = new Label("InvariantExceptionExit");
-    
     /** Out-of-range numerical conversion */
     /*@ non_null */ public final static Label ARITHMETIC_OP_RANGE = new Label("ArithmeticOperationRange");
     

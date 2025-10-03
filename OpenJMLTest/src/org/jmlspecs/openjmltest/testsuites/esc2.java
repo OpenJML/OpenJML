@@ -19,10 +19,10 @@ public class esc2 extends EscBase {
     public void setUp() throws Exception {
         // noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written
+        addOptions("--nullable-by-default"); // Because the tests were written
                                                 // this way
-        addOptions("-code-math=bigint","-spec-math=bigint");
-    	addOptions("-no-require-white-space");
+        addOptions("--code-math=bigint","--spec-math=bigint");
+    	addOptions("--no-require-white-space");
         // addOptions("-trace");
         // JmlEsc.escdebug = true;
         // org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -2246,6 +2246,25 @@ public class esc2 extends EscBase {
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Assert) in method inst10a",
                 81);
     }
+    
+    @Test
+    public void testFieldsErr() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    //@ writes this.*.*, this.*[*];
+                    //@ writes this.*.*
+                    public void m() {}
+                }
+                """
+                ,"/tt/TestJava.java:3: error: Further selection is not permitted after a wild-card field", 22
+                ,"/tt/TestJava.java:3: error: Further selection is not permitted after a wild-card field", 32
+                ,"/tt/TestJava.java:4: error: Further selection is not permitted after a wild-card field", 22
+                ,"/tt/TestJava.java:4: error: Invalid expression or missing semicolon here",24
+                );
+    }
 
     @Test
     public void testSwitch() {
@@ -4135,18 +4154,30 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  public void m() {\n"
                         + "  //@ ghost int i = 2;\n"
-                        + "  //@ assert 0 <= i < 10 < 12;\n"
+                        + "  //@ check  0 <= i < 10 < 12;\n"
                         + "  //@ set i = 10;\n"
-                        + "  //@ assert !(0 <= i < 10);\n"
-                        + "  //@ assert 0 <= i < 11 == 2 <= i <= 12;\n"
-                        + "  //@ assert 11 >= i+1 > 1 == 12 >= i > 2;\n"
-                        + "  //@ assert 11 >= i+1 < 12;\n" // ERROR
-                        + "  //@ assert 11 >= i+1 < 12 == true;\n" // ERROR
-                        + "  //@ assert 11 >= i+1 > 1 != 12 <= i <= 22;\n" // OK but bad style
+                        + "  //@ check  !(0 <= i < 10);\n"
+                        + "  //@ check  0 <= i < 11 == 2 <= i <= 12;\n"
+                        + "  //@ check  11 >= i+1 > 1 == 12 >= i > 2;\n"
+                        + "  //@ check  11 >= i+1 < 12;\n" // ERROR
+                        + "  //@ check  11 >= i+1 <= 12 == true;\n" // ERROR
+                        + "  //@ check  11 > i+1 < 12;\n" // ERROR
+                        + "  //@ check  11 > i+1 <= 12 == true;\n" // ERROR
+                        + "  //@ check  11 >= i+1 > 1 != 12 <= i <= 22;\n" // OK but bad style
+                        + "  //@ check  11 < i+1 > 12;\n" // ERROR
+                        + "  //@ check  11 < i+1 >= 12;\n" // ERROR
+                        + "  //@ check  11 <= i+1 > 12;\n" // ERROR
+                        + "  //@ check  11 <= i+1 >= 12;\n" // ERROR
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:10: error: Cannot chain comparisons that are in different directions",17
                         ,"/tt/TestJava.java:11: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:12: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:13: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:15: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:16: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:17: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:18: error: Cannot chain comparisons that are in different directions",17
                         );
     }
 
@@ -4277,6 +4308,19 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:7: warning: Not implemented for static checking: breaks clause", 11
                 );
         
+    }
+
+    @Test
+    public void testAccessibleDefault() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ accessible \\nothing;\n"
+                +"  int m() { return i; }\n"
+                +"  int i;\n"
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Accessible) in method m: i",20
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                );
     }
 
 

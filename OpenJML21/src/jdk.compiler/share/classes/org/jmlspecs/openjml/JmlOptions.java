@@ -250,6 +250,7 @@ public class JmlOptions extends Options {
                         Utils.instance(context).warning("jml.message","no- is not permitted with set-to-default (empty string after = character)");
                         negate = false;
                     }
+                    if (def instanceof Boolean bdef) negate = !bdef;
                 } else  {
                     if (o.hasArg()) { }
                     else if ("false".equals(res)) negate = true;

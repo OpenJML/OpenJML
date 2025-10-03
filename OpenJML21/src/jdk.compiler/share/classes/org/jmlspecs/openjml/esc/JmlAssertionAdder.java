@@ -1189,7 +1189,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// Other checks will be created during addPrePostConditions
             //System.out.println("ADD PRE CONDITIONS");
 			ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
-			addPreConditions(initialStatements, collector, divergesExpressions);
+			{
+			    boolean pv = checkAccessEnabled;
+			    checkAccessEnabled = false; // FIXME - how do we check the reads clauses while evaluating the preconditions
+			    try {
+			        addPreConditions(initialStatements, collector, divergesExpressions);
+			    } finally {
+			        checkAccessEnabled = pv;
+			    }
+			}
             allocCounter = 2;
             //System.out.println("HANDLE FRAME CONDITIONS");
 			handleFrameConditions(methodDecl, initialStatements);
@@ -1199,7 +1207,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			if (esc && isConstructor && !callingThis) {
 				boolean pv = checkAccessEnabled;
-				checkAccessEnabled = false; // Not sure about this - all references are to instance fieldsd, no?
+				checkAccessEnabled = false; // FIXME - how do we check the reads clauses while evaluating the preconditions
 				try {
 					addInstanceInitialization(methodDecl.sym);
 				} finally {
@@ -2483,10 +2491,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public JmlStatementExpr addAssume(DiagnosticPosition pos, Label label, JCExpression translatedExpr,
 			/* @nullable */ DiagnosticPosition associatedPosition, /* @nullable */ JavaFileObject associatedSource,
 			/* @nullable */ JCExpression info, Object... args) {
-		if (translatedExpr.toString().contains("Tinit2.zrange != null")) {
-		    System.out.println("ASSUME " + translatedExpr);
-		    Utils.dumpStack();
-		}
 		JmlStatementExpr stt = null;
 		if ((infer || esc)) {
 			JmlStatementExpr st = treeutils.makeAssume(pos, label, translatedExpr);
@@ -5638,7 +5642,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     utils.qualifiedMethodSig(methodDecl.sym));
             if (!isPure || isConstructor)
                 addInvariants(methodDecl, owner.type, receiver, exsuresStats, true, methodDecl.sym.isConstructor(),
-                        false, isHelper(methodDecl.sym), true, false, Label.INVARIANT_EXCEPTION_EXIT,
+                        false, isHelper(methodDecl.sym), true, false, Label.INVARIANT_EXIT,
                         utils.qualifiedMethodSig(methodDecl.sym));
             addConstraintInitiallyChecks(methodDecl, owner, receiver, exsuresStats, true,
                     methodDecl.sym.isConstructor(), false, isHelper(methodDecl.sym), true, false, null,
@@ -5696,10 +5700,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				
 				JCIdent id = treeutils.makeIdent(v.pos, v.sym);
 				addInvariants(v, v.type, id, exsuresStats, false, false, false, false, true, false,
-						Label.INVARIANT_EXCEPTION_EXIT,
+						Label.INVARIANT_EXIT,
 						utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
-				// addConstraintInitiallyChecks(v,v.type.tsym,id,exsuresStats,false,false,false,false,true,false,null,
-				// utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
 			}
 		}
 
@@ -13293,7 +13295,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		MethodSymbol methodSym = targetEnv.methodSym;
 		JavaFileObject prev = log.currentSourceFile();
 		try {
-			//System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + methodSym.owner);
+			//if (kind == accessibleClauseKind) System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + methodSym.owner);
 			if (lhs instanceof JCIdent id && id.sym.owner instanceof ClassSymbol && methodSym.isConstructor()) return okCondition;// OK to set a field of 'this' inside a constructor
 			var srlist = lhs instanceof JmlStoreRef j ? List.<JmlStoreRef>of(j) : makeJmlStoreRef(pos, lhs, (ClassSymbol)methodSym.owner, false);
 			var kindLabel = kind == assignableClauseKind ? Label.ASSIGNABLE
@@ -15984,7 +15986,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-	    if (print) System.out.println("VISITSELECT-AA " + that + " " + trexpr + " " + s + " " + s.owner + " " + (s==that.sym));
+	    if (print) System.out.println("VISITSELECT-AA " + that + " " + trexpr + " " + s + " " + s.owner + " " + (s.owner instanceof ClassSymbol) + " " + (s==that.sym));
 		JCFieldAccess newfa = null;
 		Symbol sym = s;
 		JCExpression eee = null;
@@ -15993,6 +15995,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);  // FIXME - I think sym should be that.name
 			else
 				newfa = treeutils.makeSelect(that.pos, trexpr, sym);
+		} else if (sym.owner instanceof PackageSymbol) {
+		    // Just a class name
+		    result = eresult = that;
+		    return;
 		}
 		if (!rac && s != null && s.name != names._class && alreadyDiscoveredFields.add(s)) { // true if s was NOT in the
 																								// set already
