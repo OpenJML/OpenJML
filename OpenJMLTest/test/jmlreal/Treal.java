@@ -27,7 +27,7 @@ public class Treal {
         //@ ghost \real rbig = g; check rbig == 100; check rbig.bigintValue() == 100; check (\bigint)rbig == g;
         //@ set rbig = (\real)g; check rbig == 100; check rbig == \real.of(100);        
         BigInteger bb = BigInteger.valueOf(123);
-        //@ ghost \real rb = \real.of(bb); check rb.bigintValue().bigValue().equals(bb);
+        //@ ghost \real rb = \real.of(bb); check rb.bigintValue() == \bigint.of(bb);
         
         ops(42,43);
         compare(42,43);

@@ -125,6 +125,10 @@ escfilesTrace.escTraceLoops6
 escfilesTrace.escTraceWhile
 escfilesTrace.escTraceWhile1
 escfilesTrace.escTraceWhile2
+escTrace.testEnsuresSafeTrace
+escTrace.testEnsuresTrace
+escTrace.testFieldTrace
+escTrace.testSimpleTrace
 escfileslist1.test[crashXlint]
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
