@@ -98,15 +98,15 @@ public class escgeneric extends EscBase {
                 
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
-                +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\typeof(i) <:= \\type(Object);\n" // Line 6
-                +"    //@ assert \\erasure(\\typeof(i)) <:= \\erasure(\\type(Object));\n"
-                +"    //@ assert \\typeof(i) <:= \\type(T);\n"
-                +"    //@ assert i instanceof B;\n"
-                +"    //@ assert \\erasure(\\typeof(i)) <:= \\erasure(\\type(B));\n"
-                +"    //@ assert \\typeof(i) <:= \\type(B);\n" // Line 11
-                +"    //@ assert \\erasure(\\typeof(i)) <:= \\erasure(\\type(C));\n" // false
-               +"  }\n"
+                +"    //@ check  i instanceof Object;\n"
+                +"    //@ check  \\typeof(i) <:= \\type(Object);\n" // Line 6
+                +"    //@ check  \\erasure(\\typeof(i)) <:= \\erasure(\\type(Object));\n"
+                +"    //@ check  \\typeof(i) <:= \\type(T);\n"
+                +"    //@ check  i instanceof B;\n"
+                +"    //@ check  \\erasure(\\typeof(i)) <:= \\erasure(\\type(B));\n"
+                +"    //@ check  \\typeof(i) <:= \\type(B);\n" // Line 11
+                +"    //@ check  \\erasure(\\typeof(i)) <:= \\erasure(\\type(C));\n" // false
+                +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
