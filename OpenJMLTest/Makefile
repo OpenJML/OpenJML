@@ -95,7 +95,7 @@ unittests-seq: prep Run.class .FORCE
 	@ $(TEST)/unittests/runseq
 			
 unittests-par: prep Run.class .FORCE
-	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
+	@ ${TEST}/unittests/runpar
 
 json-tests: .FORCE Run.class
 	@ ${TEST}/scripttests/json/run
