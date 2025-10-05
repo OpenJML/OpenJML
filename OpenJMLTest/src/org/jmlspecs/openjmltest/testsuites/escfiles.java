@@ -672,7 +672,7 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void requiresElse() { // FIXME - why the two different formats of output
+    public void requiresElse() {
         helpTG("--show=program"); // --show=program is part of test results
     }
 

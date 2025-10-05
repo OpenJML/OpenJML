@@ -153,7 +153,7 @@ escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
 escm.havocInit
-racfiles.gitbug534		# <<<<< recursive call -- imcorrect rac translation 
+racfiles.gitbug534		# <<<<< recursive call -- incorrect rac translation 
 racfiles.gitbug547a		# <<<<< problem with translation of an interface with static ghost field
 racfiles.gitbug547b		# <<<<< same for an instance field
 racfiles.gitbug547c		# <<<<< translation of interface, model field

@@ -166,6 +166,43 @@ public class strict extends TCBase {
                 );
     }
     
+    @Test
+    public void testClauseGroup() {
+        helpTCF("A.java",
+            """
+            public class A {
+                //@ requires true;
+                //@ {|
+                //@    ensures true;
+                //@ also
+                //@    ensures true;
+                //@ |}
+                //@ signals (Exception) true;
+                public void m() {}
+            }
+            """
+            ,"/A.java:8: warning: The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
+        );
+    }
+    
+    @Test
+    public void testClauseGroupA() {
+        helpTCF("A.java",
+            """
+            public class A {
+                //@ requires true;
+                //@ {|
+                //@    ensures true;
+                //@ also
+                //@    ensures true;
+                //@ |}
+                //@ signals_only \\nothing;
+                public void m() {}
+            }
+            """
+            ,"/A.java:8: warning: The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
+        );
+    }
 
 
 }
