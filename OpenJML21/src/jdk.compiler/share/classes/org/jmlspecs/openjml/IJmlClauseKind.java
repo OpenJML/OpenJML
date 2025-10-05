@@ -262,7 +262,7 @@ public abstract class IJmlClauseKind {
     abstract public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env);
     
     /** returns true if strict adherence to JML is required (language option is jml) */
-    public boolean requireStrictJML() {
+    public boolean requireStrictJML() { // duplicates method in JmlAttr
         return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
     }
     

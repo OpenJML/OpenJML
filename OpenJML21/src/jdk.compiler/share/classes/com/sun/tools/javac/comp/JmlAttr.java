@@ -1202,6 +1202,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     protected boolean okAsEnum(Type clazztype) {
     	return !(isInJmlDeclaration && (clazztype.tsym.flags_field&Flags.ENUM) != 0);
     }
+    
+    /** returns true if strict adherence to JML is required (language option is jml) */
+    public boolean requireStrictJML() {
+        return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+    }
 
     @Override
     public void visitNewArray(JCNewArray tree) {
@@ -2439,7 +2444,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ListBuffer<JmlMethodClause> cl = new ListBuffer<JmlMethodClause>();
                     cl.appendList(commonClauses);  // FIXME - appending the same ASTs to each spec case - is this sharing OK
                     //System.out.println("DESUGARING CASE " + c);
-                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,mods);
+                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,null,decl,msym,mods);
                     for (JmlSpecificationCase cs: newcases) {
                         addDefaultClauses(decl, mods, msym, pure, cs, nnexpr);
                     }
@@ -2451,7 +2456,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     cl.appendList(commonClauses);
                     JCModifiers cmods = c.modifiers;
                     if (c.token == null && decl != null) cmods = c.modifiers = decl.mods;
-                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,cmods);
+                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,null,decl,msym,cmods);
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
@@ -2465,7 +2470,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     cl.appendList(commonClauses);
                     JCModifiers cmods = c.modifiers;
                     if (c.token == null && decl != null) cmods = c.modifiers = decl.mods;
-                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,decl,msym,cmods);
+                    ListBuffer<JmlSpecificationCase> newcases = deNest(cl,List.<JmlSpecificationCase>of(c),null,null,decl,msym,cmods);
                     for (JmlSpecificationCase cs: newcases) {
                         // Note: a model program spec case has no clauses
                         if (cs.clauses != null) {
@@ -2593,7 +2598,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     boolean desugaringPure = false;
     
     // FIXME - this ignores anything after a clause group.  That is OK in strict JML.  DO we want it?  There is no warning.
-    public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */JmlSpecificationCase parent, JmlMethodDecl decl, MethodSymbol msym, JCModifiers mods) {
+    public ListBuffer<JmlSpecificationCase> deNest(ListBuffer<JmlMethodClause> prefix, List<JmlSpecificationCase> cases, /*@ nullable */List<JmlMethodClause> more, /*@ nullable */JmlSpecificationCase parent, JmlMethodDecl decl, MethodSymbol msym, JCModifiers mods) {
         ListBuffer<JmlSpecificationCase> newlist = new ListBuffer<JmlSpecificationCase>();
         if (cases.isEmpty()) {
             if (parent != null) {
@@ -2608,11 +2613,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else if (cases.size() == 1) {
             // common case that just avoids copying the prefix
             JmlSpecificationCase c = cases.get(0);
-            handleCase(parent, decl, msym, newlist, c, prefix, mods);
+            handleCase(parent, decl, msym, newlist, c, prefix, more, mods);
         } else {
             for (JmlSpecificationCase cse: cases) {
                 ListBuffer<JmlMethodClause> pr = copy(prefix);
-                handleCase(parent, decl, msym, newlist, cse, pr, mods);
+                handleCase(parent, decl, msym, newlist, cse, pr, more, mods);
             }
         }
         return newlist;
@@ -2655,7 +2660,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     protected void handleCase(JmlSpecificationCase parent, JmlMethodDecl decl, MethodSymbol msym,
             ListBuffer<JmlSpecificationCase> newlist, JmlSpecificationCase cse,
-            ListBuffer<JmlMethodClause> pr, JCModifiers mods) {
+            ListBuffer<JmlMethodClause> pr, List<JmlMethodClause> more, JCModifiers mods) {
         if (cse.token == modelprogramClause) {
             newlist.append(cse);  // FIXME - check that model programs are only at the outer level
             return;
@@ -2674,7 +2679,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
         }
         // FIXME - when is decl null
-        newlist.appendList(deNestHelper(pr,cse.clauses,parent==null?cse:parent,decl,msym,mods));
+        List<JmlMethodClause> combined = cse.clauses;
+        if (more != null) combined = combined.appendList(more);
+        newlist.appendList(deNestHelper(pr, combined, parent==null?cse:parent, decl, msym, mods));
     }
     
     public ListBuffer<JmlSpecificationCase> deNestHelper(ListBuffer<JmlMethodClause> prefix, List<JmlMethodClause> clauses, JmlSpecificationCase parent, JmlMethodDecl decl, MethodSymbol msym, JCModifiers mods) {
@@ -2685,7 +2692,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlMethodClauseSignals signalsClause = null;
         boolean hasRecommendsBlock = false;
         boolean errorRecommendsBlock = false;
-        for (JmlMethodClause m: clauses) {
+        var iter = clauses.iterator();
+        while (iter.hasNext()) {
+            JmlMethodClause m = iter.next();
             IJmlClauseKind t = m.clauseKind;
             JCExpression excType = null;
             if (t == recommendsClauseKind && (excType=((RecommendsClause.Node)m).exceptionType) != null) {
@@ -2719,8 +2728,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     signalsClause = jmlMaker.at(m.pos).JmlMethodClauseSignals(signalsID,signalsClauseKind,signalClauseVar,treeutils.falseLit);
                     exlist.add(signalsClause);
                     exlist.add(jmlMaker.at(m.pos).JmlMethodClauseExpr(ensuresID,ensuresClauseKind,treeutils.falseLit));
-//                    exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
-//                            List.<JCExpression>of(jmlMaker.JmlStoreRefKeyword(nothingKind))));
                     exlist.add(jmlMaker.JmlMethodClauseStoreRef(assignableID,assignableClauseKind,
                             List.<JCExpression>of(jmlMaker.JmlSingleton(nothingKind))));
                 } else {
@@ -2766,10 +2773,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 signalsOnly = null;
                 signalsClause = null;
                 excRequires = null;
-            	//System.out.println("EXLIST NOT NULL-B " + scase);
             }
             if (m instanceof JmlMethodClauseGroup) {
-                return deNest(prefix,((JmlMethodClauseGroup)m).cases, parent,decl, msym, mods);
+                List<JmlMethodClause> restt = null;
+                if (iter.hasNext()) {
+                    var rest = new ListBuffer<JmlMethodClause>();
+                    while (iter.hasNext()) rest.add(iter.next());
+                    restt = rest.toList();
+                    if (requireStrictJML()) {
+                        utils.warning(restt.head,"jml.not.strict","clauses following a clause group");
+                    }                    
+                }
+                return deNest(prefix,((JmlMethodClauseGroup)m).cases, restt, parent, decl, msym, mods);
             }
             if (t == ensuresClauseKind) {
                 if (parent.token == exceptionalBehaviorClause || parent.token == exceptionalExampleClause) {
@@ -8639,7 +8654,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    boolean methodOverridesOthers = !parents.isEmpty();
     	                    if (specHasAlso && !methodOverridesOthers) {
 //    	                        if (!msym.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
-    	                            if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+    	                            if (requireStrictJML()) {
     	                                utils.error(spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
     	                            } else {
     	                                utils.warning(spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
@@ -8648,7 +8663,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    } else if (!specHasAlso && methodOverridesOthers) {
     	                    	var base = parents.get(0); // Expected to be the top of the override chain
     	                    	String s = msym.owner + "." + msym + " overrides " + base.owner + "." + base;
-    	                        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+    	                        if (requireStrictJML()) {
     	                            utils.error(spec.source(), spec,  
     	                            		"jml.missing.also", specDecl.name.toString(), s);
     	                        } else {
