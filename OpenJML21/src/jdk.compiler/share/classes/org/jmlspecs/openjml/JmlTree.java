@@ -103,7 +103,7 @@ public class JmlTree {
         JmlBinary JmlBinary(Operators.Operator t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChained JmlChained(List<JCBinary> conjuncts);
-        JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
+        JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JmlChoose.Item> orBlocks, /*@Nullable*/JCStatement elseBlock);
         JmlMethodSig JmlMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -828,7 +828,7 @@ public class JmlTree {
 //        }
         
         @Override
-        public JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock) {
+        public JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JmlChoose.Item> orBlocks, /*@Nullable*/JCStatement elseBlock) {
             return new JmlChoose(pos,keyword,clauseType,orBlocks,elseBlock);
         }
         
@@ -1211,14 +1211,23 @@ public class JmlTree {
     
     /** This class represents model program choose and choose_if statements. */
     public static class JmlChoose extends JmlAbstractStatement {
+        
+        public static class Item {
+            final public JCExpression guard;
+            final public JCStatement action;
+            public Item(JCExpression guard, JCStatement action) {
+                this.guard = guard;
+                this.action = action;
+            }
+        }
 
         public String keyword;
         public IJmlClauseKind clauseType;
-        public List<JCBlock> orBlocks;
-        /*@Nullable*/ public JCBlock elseBlock;
+        public List<Item> orBlocks;
+        /*@Nullable*/ public JCStatement elseBlock;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlChoose(int pos, String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/ JCBlock elseBlock) {
+        protected JmlChoose(int pos, String keyword, IJmlClauseKind clauseType, List<Item> orBlocks, /*@Nullable*/ JCStatement elseBlock) {
             this.pos = pos;
             this.keyword = keyword;
             this.clauseType = clauseType;
