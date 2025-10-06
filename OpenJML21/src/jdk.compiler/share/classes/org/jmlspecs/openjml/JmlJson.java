@@ -704,7 +704,7 @@ public class JmlJson {
         public JmlChoose deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            var result = M.JmlChoose((String)values[0],(IJmlClauseKind)values[1],JmlJson.<JCBlock>toList(values[2]),(JCBlock)values[3]);
+            var result = M.JmlChoose((String)values[0],(IJmlClauseKind)values[1],JmlJson.<JmlChoose.Item>toList(values[2]),(JCStatement)values[3]);
             common(json, result, context);
             return result;
         }

@@ -53,7 +53,10 @@ public interface IJmlVisitor extends IVisitor {
     }
     
     default public void visitJmlChoose(JmlChoose tree) {
-        scan(tree.orBlocks);
+        for (var item: tree.orBlocks) {
+            scan(item.guard);
+            scan(item.action);
+        }
         scan(tree.elseBlock);
     }
 

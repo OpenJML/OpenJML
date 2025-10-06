@@ -1213,18 +1213,25 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (useJMLComments) print ("/*@ ");
             useJMLComments = false;
             print(that.keyword);
+            print("{");
             println();
             indent();
-            Iterator<JCBlock> iter = that.orBlocks.iterator();
+            var iter = that.orBlocks.iterator();
             align();
-            iter.next().accept(this);
+            var item = iter.next();
+            item.guard.accept(this);
+            print(" -> ");
+            item.action.accept(this);
             while (iter.hasNext()) {
                 println();
                 align();
                 print("or");
                 println();
                 align();
-                iter.next().accept(this);
+                item = iter.next();
+                item.guard.accept(this);
+                print(" -> ");
+                item.action.accept(this);
             }
             println();
             align();
@@ -1234,6 +1241,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 align();
                 that.elseBlock.accept(this);
             }
+            align();
+            print("}");
             if (save) print (" */");
             useJMLComments = save;
             println();

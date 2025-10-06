@@ -134,7 +134,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
 
     public JCTree visitJmlChoose(JmlChoose that, Void p) {
-        JmlChoose copy = M.at(that.pos).JmlChoose(that.keyword, that.clauseType, copy(that.orBlocks), copy(that.elseBlock));
+        ListBuffer<JmlChoose.Item> items = new ListBuffer<>();
+        for (var item: that.orBlocks) items.add(new JmlChoose.Item(copy(item.guard), copy(item.action)));
+        JmlChoose copy = M.at(that.pos).JmlChoose(that.keyword, that.clauseType, items.toList(), copy(that.elseBlock));
         return copy;
     }
 

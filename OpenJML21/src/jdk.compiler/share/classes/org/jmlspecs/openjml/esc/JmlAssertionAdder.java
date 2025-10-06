@@ -17183,8 +17183,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK // FIXME - needs work
 	@Override
 	public void visitJmlChoose(JmlChoose that) {
-		result = M.at(that).JmlChoose(that.keyword, that.clauseType, convert(that.orBlocks), convert(that.elseBlock))
-				.setType(that.type);
+        error(that, "choose/repeat statements are not yet implemented");
+//		result = M.at(that).JmlChoose(that.keyword, that.clauseType, convert(that.orBlocks), convert(that.elseBlock))
+//				.setType(that.type);
 	}
 
 	// FIXME - review this
