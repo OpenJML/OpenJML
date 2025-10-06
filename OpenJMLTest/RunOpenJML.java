@@ -1,6 +1,7 @@
+// This class is used to run openjml programmatically, including to run it for coverage testing.
 import java.util.Arrays;
 
-public class Run {
+public class RunOpenJML {
     
   public static void main(String... args) {
     String exp = System.getenv("EXPORTS");

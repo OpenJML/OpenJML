@@ -22,6 +22,7 @@ openjml-test: prep
 	-make unittests-par
 	-make tutorial-tests
 
+## This target is used when running tests as part of a github action
 openjml-test-git: prep
 	make -C ${TEST} release-tests
 	-make -C ${TEST} userguide-tests-released
@@ -58,7 +59,7 @@ temp-release temp-release/D.java:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
-tutorial-tests: Run.class .FORCE
+tutorial-tests: RunOpenJML.class .FORCE
 	@ ( echo Testing tutorial files ;\
 	    . $(TEST)/setup-coverage tutorialtests ; \
             alias openjml="$OJA" ; \
@@ -79,6 +80,7 @@ userguide-tests:
 	    rm -rf ${USERGUIDE}; \
 	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
 
+# This target is used to run the userguide tests in a github action; it uses openjml and the examples that are in the release
 # Obtains the zip of released example files from openjml.org, and tests the contained examples
 # (MacOS has curl and does not have wget without manual install)
 userguide-tests-released:
@@ -87,22 +89,29 @@ userguide-tests-released:
 	chmod +x ${USERGUIDE}/test-userguide-examples
 	${USERGUIDE}/test-userguide-examples
 
-release-tests: prep Run.class .FORCE
+# The 'release tests' are a small set of tests that are used to verify that a openjml build is basically OK.
+# It is run as part of the github action that builds a release
+# but can also be run directly with this target, before an attempt to construct a release
+release-tests: prep RunOpenJML.class .FORCE
 	@ echo Running release tests with current development build
 	@ $(TEST)/releaseTests/runtests
 
-unittests-seq: prep Run.class .FORCE
+# Runs the unit tests, sequentially, which is time-consuming
+unittests-seq: prep RunOpenJML.class .FORCE
 	@ $(TEST)/unittests/runseq
 			
-unittests-par: prep Run.class .FORCE
+# Runs the unit tests with some parallelism (default 5 parallel jobs).
+# Set the number of jobs like this: JOBS=n make unittests-par
+unittests-par: prep RunOpenJML.class .FORCE
 	@ ${TEST}/unittests/runpar
 
-json-tests: .FORCE Run.class
+# Executes the tests of JSON output and input
+json-tests: .FORCE RunOpenJML.class
 	@ ${TEST}/scripttests/json/run
 	@ ${TEST}/scripttests/json-loc/run
 
-Run.class:
-	$(TEST)/../OpenJML21/openjml-compile Run.java
+RunOpenJML.class:
+	$(TEST)/../OpenJML21/openjml-compile RunOpenJML.java
 
 .FORCE:
 
@@ -122,10 +131,13 @@ test:
 
 ### The following are for coverage measurement
 
+# Deletes all coverage data and html files
 cov-clean:
 	rm -rf ${TEST}/cov
 	mkdir ${TEST}/cov
 
+# Runs all tests to produce coverage data
+# One can also run individual tests and individual unit tests, e.g. COV= runtests escfiles
 cov-test:
 	cd ${TEST}
 	COV= time make json-tests
@@ -135,6 +147,7 @@ cov-test:
 	## COV= make release-tests ## FIXME: Not yet working
 	## FIXME - also test examples in documentation
 
+# Creates or updates html files based on coverage data
 cov-report:
 	@rm -rf ${TEST}/cov/html
 	@( cd ${TEST}; rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
@@ -145,5 +158,6 @@ cov-report:
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
             --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
 
+# Launches a browser on the current coverage data
 cov-show:
-	@open ${TEST}cov/html/index.html
+	@open ${TEST}/cov/html/index.html

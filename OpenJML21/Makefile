@@ -152,6 +152,7 @@ USERGUIDE=tempUserGuide
 REFMANID=5ceee26404c2854a1590029f
 USERGUIDEID=620c2512d552cc226f5f4c94
 ZIPNAME=userguide-examples.zip
+## Creates a zip file of the user guide examples
 userguide-examples:
 	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; )
 	@ if [ -e ${USERGUIDE}/${USERGUIDEID}/examples ] ; then \
@@ -161,6 +162,8 @@ userguide-examples:
 
 TEMPDOCS=tempDocs
 DOWNLOADS=~/Desktop
+## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
+## Requires a local installation of pdflatex
 update-docs:
 	rm -rf ${DOWNLOADS}/OpenJMLUserGuide.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf 
 	make userguide-examples
@@ -171,6 +174,8 @@ update-docs:
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf ../../openjml.github.io/documentation
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
 
+## Commits and pushes the builds produced by `update-docs` to openjml.github.io
+## (Does not commit them to the current branch of OpenJML21)
 push-docs:
 	( cd ../../openjml.github.io; git add documentation/OpenJMLUserGuide.pdf documentation/JML_Reference_Manual.pdf examples/${ZIPNAME} ; git commit -m "Updating docs"; git push )
 
