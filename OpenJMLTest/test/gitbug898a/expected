@@ -1,0 +1,5 @@
+test/gitbug898a/Calculator1.java:31: error: A \result expression may not be in a ensures clause in a statement specification
+                //@ ensures \result == num1 / num2;
+                             ^
+Operation not performed because of parse or type errors
+1 error

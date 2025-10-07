@@ -55,6 +55,9 @@ public class SingletonExpressions extends JmlExtension {
                 // allowing other error reports about the same token
                 Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.keyword());
                 t = attr.syms.errType;
+            } else if (attr.jmlenv.inRefinementSpec) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result.refining", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             }
             that.type = t;
             return t;
@@ -147,6 +150,9 @@ public class SingletonExpressions extends JmlExtension {
                 // The +1 is to fool the error reporting mechanism into 
                 // allowing other error reports about the same token
                 Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
+            } else if (attr.jmlenv.inRefinementSpec) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception.refining", attr.jmlenv.currentClauseKind.keyword());
                 t = attr.syms.errType;
             } else {
                 t = attr.jmlenv.currentExceptionType;
