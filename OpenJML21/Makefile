@@ -105,7 +105,10 @@ clean-release:
 
 ## Creates the version-info.txt file, containing the public version number (from ../version.txt) and the commit shas
 ## of the commit points compiled into the release.
-version-info: --version
+version-info: .FORCE
+	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
+	@ ./version.sh
+	@ cat src/jdk.compiler/share/classes/org/jmlspecs/openjml/version.properties
 	@ rm -f version-info.txt
 	@ cat ../version.txt > version-info.txt
 	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt
@@ -115,11 +118,6 @@ version-info: --version
 	@ (cd ../../openjml.github.io; echo openjml.github.io `git rev-parse HEAD` ) >> version-info.txt
 	@ cat version-info.txt
 	@ mv version-info.txt $(RELFILES)
-
-## Internal target
---version: .FORCE
-	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
-	@ ./version.sh
 
 ## Updates the tutorial files into the repo
 tutorial: .FORCE

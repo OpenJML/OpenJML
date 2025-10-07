@@ -7875,7 +7875,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitJmlVariableDecl(JmlVariableDecl that) {
         if (that.name == names.error) {
-            utils.error(that, "jml.message", "Error in parsed declaration, or misspelled keyword: " + that);
+            utils.error(that.getStartPosition()+1, "jml.message", "Error in parsed declaration, or misspelled keyword: " + that.toString().replace("\r\n"," ").replace("\n"," ").replace("\r"," "));
             return; // This can happen if, for example, we are parsing 'require true' (with the typo)
         }
         if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
