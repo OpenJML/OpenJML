@@ -1,5 +1,4 @@
-public class Calculator2 {
-    //@ requires -1000 <= num1 <= 1000 && -1000 <= num2 <= 1000;
+public class Calculator1 {
     //@ requires operator == '+' || operator == '-' || operator == '*' || operator == '/' || operator == '%';
     //@ requires operator != '/' || num2 != 0;
     //@ requires operator != '%' || num2 != 0;
@@ -27,18 +26,13 @@ public class Calculator2 {
                 break;
 
             case '/':
-                //@ refining
+		//@ refining
                 //@ requires num2 != 0;
-                // @ writes output;
-                //@ ensures output == num1 / num2;
+                //@ ensures \result == num1 / num2;
                 output = num1 / num2;
                 break;
 
             case '%':
-                //@ refining
-                //@ requires num2 != 0;
-                //@ writes output;
-                //@ ensures output == num1 % num2;
                 output = num1 % num2;
                 break;
 

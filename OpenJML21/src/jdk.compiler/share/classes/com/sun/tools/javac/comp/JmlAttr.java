@@ -4802,6 +4802,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = null;
+        jmlenv.inRefinementSpec = true;
         boolean saved = isRefining;
         isRefining = false; // FIXME - why false? put in jmlenv?
         saveEnvForLabel(tree.label, env);
@@ -8957,6 +8958,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	 */
     	public boolean inExpressionScope;
     	
+    	public boolean inRefinementSpec;
+    	
     	public VarSymbol representsHead;
         /**
          * Holds the visibility of JML construct that is currently being visited.
@@ -8981,6 +8984,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		currentClauseKind = null;
     		inPureEnvironment = false;
     		inExpressionScope = false;
+    		inRefinementSpec = false;
     		jmlVisibility = -1;
     		representsHead = null;
     		currentBlockContract = null;
@@ -8993,6 +8997,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		currentClauseKind = e.currentClauseKind;
     		inPureEnvironment = e.inPureEnvironment;
     		inExpressionScope = e.inExpressionScope;
+    		inRefinementSpec = e.inRefinementSpec;
     		jmlVisibility = e.jmlVisibility;
     		representsHead = e.representsHead;
     		currentBlockContract = e.currentBlockContract;

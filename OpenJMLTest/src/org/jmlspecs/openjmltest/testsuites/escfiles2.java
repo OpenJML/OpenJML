@@ -136,6 +136,23 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug898() {
+        expectedExit = 1;
+        helpTCG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898a() {
+        expectedExit = 1;
+        helpTCG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898b() {
+        helpTCG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
     public void importProblem() {
         helpTCG();
     }

@@ -190,7 +190,28 @@ public class Refining extends JmlExtension {
             }
             //ste.statements = parser.collectLoopSpecs(stats.toList());
             ste.statements = stats.toList();
+            checkStats(ste.statements);
             return ste;
+        }
+        
+        // FIXME - review this test -- an empty block might be OK, but end of block is not
+        protected void checkStats(List<JCStatement> stats) {
+            JCStatement st = firstStat(stats);
+            if (st instanceof JCTree.JCBreak || st instanceof JCTree.JCContinue || st instanceof JCTree.JCThrow || st instanceof JCTree.JCReturn) {
+                error(st, "jml.message", "A statement specification cannot be applied to this statement: " + st);
+            }
+        }
+        
+        protected JCStatement firstStat(List<JCStatement> stats) {
+            if (stats.head == null) return null;
+            for (JCStatement st: stats) {
+                if (st instanceof JCTree.JCBlock bl) {
+                    var stt = firstStat(bl.stats);
+                    if (stt != null) return stt;
+                }
+                return st;
+            }
+            return null;
         }
 
         @Override
