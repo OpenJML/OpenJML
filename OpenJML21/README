@@ -14,7 +14,7 @@ LICENSE
 Makefile -- builds OpenJDK, with additional targets to build OpenJML
 README.md -- brief OpenJDK documentation
 
-OpenJML public executables
+OpenJML public executables (fixed scripts that reference build products)
 openjml
 openjml-java
 openjml-compiler

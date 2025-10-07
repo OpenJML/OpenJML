@@ -145,6 +145,7 @@ public class racfiles extends RacBase {
     
     @Test
     public void gitbug869() {
+        expectedExit = 1;
         helpCompileOnly("--specs-path=test/gitbug869");
     }
     
