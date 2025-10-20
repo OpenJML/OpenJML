@@ -33,7 +33,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static java.util.Map<String,String> jmlNames = new java.util.HashMap<>();
     
     public static String jmlName(Symbol sym) {
-        return jmlNames.get(sym.toString());
+        return sym == null ? "<ERROR>" : jmlNames.get(sym.toString());
     }
 
     public JmlPrimitiveTypes(Context context) {
@@ -511,7 +511,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return Type.noType; // FIXME - fix this
+            return JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
         }
     };
 

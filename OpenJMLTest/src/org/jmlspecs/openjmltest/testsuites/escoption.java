@@ -479,9 +479,18 @@ public class escoption extends EscBase {
     @Test
     public void badBool() {
         expectedExit = 0;
-        addOptions("--stop-if-parse-errors=yyy");
+        addOptions("--show-summary=yyy");
         helpTCX("tt.TestJava", "package tt; public class TestJava {}"
-                ,"warning: This command-line option is not supposed to have a parameter: --stop-if-parse-errors",-1
+                ,"warning: This command-line option is not supposed to have a parameter: --show-summary",-1
+        );
+        org.junit.Assert.assertEquals("",output());
+    }
+    
+    @Test
+    public void okBool() {
+        expectedExit = 0;
+        addOptions("--show-summary=false","--check");
+        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
     }
@@ -489,7 +498,7 @@ public class escoption extends EscBase {
     @Test
     public void negDefault() {
         expectedExit = 0;
-        addOptions("--no-stop-if-parse-errors=");
+        addOptions("--no-show-summary=");
         helpTCX("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: no- is not permitted with set-to-default (empty string after = character)",-1
         );
