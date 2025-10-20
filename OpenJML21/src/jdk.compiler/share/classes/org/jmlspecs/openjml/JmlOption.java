@@ -100,8 +100,6 @@ public class JmlOption {
     public static final JmlOption EXITVERIFY = new JmlOption("--verify-exit",true,"6","Exit code for verification errors",null);
     public static final JmlOption EXTENSIONS = new JmlOption("--extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
-    public static final JmlOption STOPIFERRORS = new JmlOption("--stop-if-parse-errors",false,false,"When enabled, stops after parsing if any files have parsing errors",null);
-    { map.put("-stopIfParseErrors",STOPIFERRORS); }
     public static final JmlOption METHOD = new JmlOption("--method",true,null,"Comma-separated list of method name patterns on which to run ESC",null);
     public static final JmlOption EXCLUDE = new JmlOption("--exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null);
     public static final JmlOption PROVER = new JmlOption("--prover",true,null,"The prover to use to check verification conditions",null);

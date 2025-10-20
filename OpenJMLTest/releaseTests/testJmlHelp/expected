@@ -90,7 +90,6 @@ JML options:
   --lang                     Set the language variant to use (default 'openjml'): jml openjml
   --verify-exit              Exit code for verification errors
   --extensions               Extension packages and classes (comma-separated qualified names)
-  --stop-if-parse-errors     When enabled, stops after parsing if any files have parsing errors
   --method                   Comma-separated list of method name patterns on which to run ESC
   --exclude                  Comma-separated list of method name patterns to exclude from ESC
   --prover                   The prover to use to check verification conditions

@@ -1,5 +1,5 @@
 error: invalid flag: -sdf
 EXIT 2
-Option set false
+Option set true
 Option value check
 EXIT 2

@@ -78,6 +78,7 @@ public class JmlTypes extends Types {
     public Symbol.TypeSymbol SEQsym(Context context) { return JmlPrimitiveTypes.seqTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol MAPsym(Context context) { return JmlPrimitiveTypes.mapTypeKind.getSymbol(context); }
     public Symbol.TypeSymbol ARRAYsym(Context context) { return JmlPrimitiveTypes.arrayTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol LOCSETsym(Context context) { return JmlPrimitiveTypes.locsetTypeKind.getSymbol(context); }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override
