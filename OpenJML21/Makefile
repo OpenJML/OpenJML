@@ -180,7 +180,7 @@ push-docs:
 ## Smoke test of a newly constructed release
 trial: .FORCE
 	$(TEMP)/openjml -version
-	$(T-EMP)/openjml -esc -progress $(TEMP)/demos/Max.java
+	$(TEMP)/openjml -esc -progress $(TEMP)/demos/Max.java
 
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE
