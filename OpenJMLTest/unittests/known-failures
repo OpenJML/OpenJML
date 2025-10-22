@@ -153,6 +153,15 @@ escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
 escm.havocInit
+feasibility.ffinally
+feasibility.floopbreak
+feasibility.floopcondition
+feasibility.floopcontinue
+feasibility.floopexit
+feasibility.fprecondition2
+feasibility.fspecA
+feasibility.fspecB
+
 racfiles.gitbug534		# <<<<< recursive call -- incorrect rac translation 
 racfiles.gitbug547a		# <<<<< problem with translation of an interface with static ghost field
 racfiles.gitbug547b		# <<<<< same for an instance field
