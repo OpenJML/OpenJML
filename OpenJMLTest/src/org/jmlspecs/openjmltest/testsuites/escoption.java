@@ -20,7 +20,7 @@ public class escoption extends EscBase {
         captureOutput = true;
         super.setUp();
         main.addOptions("--nullable-by-default"); // Because the tests were written this way
-        main.addOptions("--quiet");
+        main.addOptions("--normal");
         main.addOptions("--check-feasibility=none","--no-require-white-space");
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
@@ -66,7 +66,7 @@ public class escoption extends EscBase {
     
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption() {
-    	main.addOptions("--quiet");
+    	main.addOptions("--normal");
     	helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -92,7 +92,7 @@ public class escoption extends EscBase {
 
     }
     
-    @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
+    @Test // FIXME bassert3 not printed -- normal does not turn back to progress
     public void testOption2() {
         helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
@@ -102,7 +102,7 @@ public class escoption extends EscBase {
                 +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@assert false;*/   }\n" // Should fail because of the explicit assert false
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
-                +"  @Options(\"-quiet\") \n"
+                +"  @Options(\"--normal\") \n"
                 +"  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@assert !bb;*/   }\n" // Should fail because of the tautologically false assert
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -136,7 +136,7 @@ public class escoption extends EscBase {
                 +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }\n" // Should fail because of the explicit assert false
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
-                +"  @Options(\"-quiet\") \n"
+                +"  @Options(\"--normal\") \n"
                 +"  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@ assert !bb;*/   }\n" // Should fail because of the tautologically false assert
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"

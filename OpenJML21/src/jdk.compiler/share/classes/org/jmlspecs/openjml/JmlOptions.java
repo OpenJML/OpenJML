@@ -438,7 +438,6 @@ public class JmlOptions extends Options {
             Main.instance(context).progressDelegator.setDelegate(null);
         }
 
-
         String keysString = options.get(JmlOption.KEYS.optionName());
         commentKeys = new HashSet<String>();
         if (keysString != null && !keysString.isEmpty()) {
@@ -553,5 +552,12 @@ public class JmlOptions extends Options {
             boolean b = super.validate();
             return JmlOptions.instance(context).setupOptions() && b;
         }
+        
+        @Override // overridden just to suppress message
+        public void printUsage(String ownName) {
+            if (Utils.instance(context).jmlverbose == Utils.QUIET) return;
+            super.printUsage(ownName);
+        }
+
     }
 }

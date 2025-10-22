@@ -100,14 +100,21 @@ clean-release:
 	-make clean dist-clean
 	rm -rf $(makefile_path)/html
 	rm -rf $(TEMP)
+	rm -rf src/java.base/share/classes/org/jmlspecs/annotation
+	rm -rf $(RELFILES)/tutorial
 	bash ./configure
 	make release
+
+## Creates/updates the version.properties source file from ../version.txt
+version: .FORCE
+	@ ./version.sh
+
 
 ## Creates the version-info.txt file, containing the public version number (from ../version.txt) and the commit shas
 ## of the commit points compiled into the release.
 version-info: .FORCE
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
-	@ ./version.sh
+	@ make -C ../OpenJML21 version
 	@ cat src/jdk.compiler/share/classes/org/jmlspecs/openjml/version.properties
 	@ rm -f version-info.txt
 	@ cat ../version.txt > version-info.txt
@@ -179,8 +186,8 @@ push-docs:
 
 ## Smoke test of a newly constructed release
 trial: .FORCE
-	$(TEMP)/openjml -version
-	$(TEMP)/openjml -esc -progress $(TEMP)/demos/Max.java
+	$(TEMP)/openjml --version
+	$(TEMP)/openjml --esc --progress $(TEMP)/demos/Max.java
 
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE

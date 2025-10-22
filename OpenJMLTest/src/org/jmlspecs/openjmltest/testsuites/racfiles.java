@@ -92,7 +92,7 @@ public class racfiles extends RacBase {
     @Test // Originally crashed because of a model method in a library class
     public void racPoint() {
         expectedExit = 0;
-        helpTCF("test/racPoint","test/racPoint","Point","--quiet");
+        helpTCF("test/racPoint","test/racPoint","Point");
     }
 
     @Test // Originally crashed because of a model method in a library class
