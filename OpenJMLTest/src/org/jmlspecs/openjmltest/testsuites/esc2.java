@@ -4249,6 +4249,71 @@ public class esc2 extends EscBase {
     }
 
     @Test
+    public void testAllowForbid6() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    int i = t.iii;\n"
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m", 14
+                        );
+    }
+
+    @Test
+    public void testAllowForbid7() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  //@ signals_only NullPointerException;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    int i = t.iii;\n"  // OK NullPointerException permitted
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testAllowForbid8() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    try { \n"
+                        + "      int i = t.iii;\n"  // OK NullPointerException permitted
+                        + "      i = t.iii;\n"
+                        + " } catch (NullPointerException e) {}\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testAllowForbid9() {
+        addOptions("--check-feasibility=reachable");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "     //@ assume t == null;\n"
+                        + "    int i = t.iii; //@ ignore NullPointerException; \n"
+                        + "    //@ reachable; // ERROR"
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:7: warning: There is no feasible path to program point at reachable statement in method tt.TestJava.m(tt.@org.jmlspecs.annotation.Nullable TestJava,tt.@org.jmlspecs.annotation.Nullable TestJava)",9
+                        );
+    }
+
+
+    @Test
     public void testAllowForbid() {
         expectedExit = 1;
         helpTCX("tt.TestJava",
