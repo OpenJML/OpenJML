@@ -361,6 +361,16 @@ public abstract class JmlTestSuite {
         mockFiles.clear(); mockFiles = null;
     }
 
+    /** Does a tearDown and a setUp, in order to reset state for a second execution in the same test */
+    public void reset() {
+        try {
+            tearDown();
+            setUp();
+        } catch (Exception e) {
+            org.junit.Assert.assertTrue("tearDown/setUp failed: " + e, false);
+        }
+    }
+
 
     
     /** Prints out the errors collected by the diagnostic listener */
