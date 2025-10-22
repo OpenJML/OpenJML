@@ -105,6 +105,10 @@ public class runscripts extends RunBase {
         doTest();
     }
     
+    @Test public void quiet() {
+        doTest();
+    }
+    
     // If this test fails, then there are some script-style tests (that is, tests with a 'run' script) that are not listed as
     // individual methods such as those methods above
     @Test public void anyOrphanedTests() {

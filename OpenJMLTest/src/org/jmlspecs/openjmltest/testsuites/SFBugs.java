@@ -577,7 +577,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug603() {
         expectedExit = Main.Result.CMDERR.exitCode;
-        helpTCG("-Xmaxwarns=100","--quiet"); // Arguments are part of the test
+        helpTCG("-Xmaxwarns=100"); // Arguments are part of the test
     }
     
     @Ignore   // FIXME requires implementation of \not_assigned

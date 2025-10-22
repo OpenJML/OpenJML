@@ -190,7 +190,7 @@ public class compiler extends JmlTestSuite{
     /** Tests a bad command */
     @Test
     public void testBadCommand() throws Exception {
-        String failureMessage = "error: Invalid parameter to the -command option: zzz" + eol;
+        String failureMessage = "error: Invalid parameter to the --command option: zzz" + eol;
         helper(new String[]{"-command=zzz",src + "testNoErrors/A.java"},2,0,failureMessage);
     }
     

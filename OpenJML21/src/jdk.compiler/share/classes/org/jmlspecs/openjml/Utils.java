@@ -164,7 +164,6 @@ public class Utils {
 
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = NORMAL; 
-    static public final int SILENT = -1;
     static public final int QUIET = 0;
     static public final int NORMAL = 1;
     static public final int PROGRESS = 2;
@@ -1898,18 +1897,20 @@ public class Utils {
 
     com.sun.tools.javac.util.BasicDiagnosticFormatter verifyDiagnosticFormatter = null;
     public void verify(DiagnosticPosition pos, String key, Object ... args) {
-        var df = log().getDiagnosticFormatter();
-        if (verifyDiagnosticFormatter == null) 
-            verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
-            public String formatKind(JCDiagnostic d, Locale l) {
-                return Utils.testingMode?"warning: ":"verify: "; // TODO: IF we use 'verify' in tests, too many tests will fail
-            }
-        };
-        log().setDiagnosticFormatter(verifyDiagnosticFormatter);
-        var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
-        log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
-        log().setDiagnosticFormatter(df);
-        JCDiagnostic.Factory.instance(context).setFormatter(df2);
+        if (jmlverbose > QUIET) {
+            var df = log().getDiagnosticFormatter();
+            if (verifyDiagnosticFormatter == null) 
+                verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
+                public String formatKind(JCDiagnostic d, Locale l) {
+                    return Utils.testingMode?"warning: ":"verify: "; // TODO: IF we use 'verify' in tests, too many tests will fail
+                }
+            };
+            log().setDiagnosticFormatter(verifyDiagnosticFormatter);
+            var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
+            log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+            log().setDiagnosticFormatter(df);
+            JCDiagnostic.Factory.instance(context).setFormatter(df2);
+        }
         if (!Utils.testingMode || JmlOption.value(context, JmlOption.EXITVERIFY) != null) {
             verifyWarnings++;
             log().nwarnings--;

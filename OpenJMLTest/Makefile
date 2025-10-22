@@ -43,7 +43,7 @@ openjml-clean: .FORCE
 	make -C ${SRC} clean; make openjml
 
 openjml: .FORCE
-	(cd ${SRC}; ./version.sh && make openjml && make jmlruntime.jar )
+	(cd ${SRC}; make version && make openjml && make jmlruntime.jar )
 
 release: .FORCE
 	make -C ${SRC} release

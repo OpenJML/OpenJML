@@ -186,8 +186,8 @@ public class JmlOption {
             return true;
     	}
     };
-    public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output warnings and errors","--verboseness="+Utils.QUIET);
-    public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Limited output","--verboseness="+Utils.NORMAL);
+    public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output the exit code","--verboseness="+Utils.QUIET);
+    public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Error and warning messages (default)","--verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("--progress",false,null,"Shows progress through compilation phases","--verboseness="+Utils.PROGRESS);
     public static final JmlOption SHOW_SKIPPED = new JmlOption("--show-skipped",false,true,"Shows methods whose proofs are skipped",null);
     public static final JmlOption SHOW_SUMMARY = new JmlOption("--show-summary",false,true,"Shows summary and time information",null);

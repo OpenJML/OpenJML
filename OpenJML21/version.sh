@@ -13,3 +13,4 @@ echo "jdk=21" > $TFILE
 echo "full=$VER" >> $TFILE
 echo "release=$VER" >> $TFILE
 cmp -s $TFILE $VFILE || cp $TFILE $VFILE
+echo $VER

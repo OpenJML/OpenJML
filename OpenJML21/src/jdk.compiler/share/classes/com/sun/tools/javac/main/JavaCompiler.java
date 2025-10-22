@@ -1919,6 +1919,7 @@ public class JavaCompiler {
      */
     public void printCount(String kind, int count) {
         if (count != 0) {
+            if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).jmlverbose == 0) return; // OPENJML
             String key;
             if (count == 1)
                 key = "count." + kind;
@@ -1931,6 +1932,7 @@ public class JavaCompiler {
 
     private void printSuppressedCount(int shown, int suppressed, String diagKey) {
         if (suppressed > 0) {
+            if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).jmlverbose == 0) return; // OPENJML
             int total = shown + suppressed;
             log.printLines(WriterKind.ERROR, diagKey,
                     String.valueOf(shown), String.valueOf(total));

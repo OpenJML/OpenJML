@@ -267,7 +267,7 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test public void sfpatch25() {
-        helpTCN("--esc","--quiet");
+        helpTCN("--esc","--normal");
     }
     
     @Ignore // FIXME very long
