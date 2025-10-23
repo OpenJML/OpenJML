@@ -966,7 +966,7 @@ public class JmlSpecs {
     }
     
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        //if (m.toString().equals("configurationSizes")) { System.out.println("PUTSPECS " + m + " " + spec); Utils.dumpStack(); }
+        //if (m.toString().equals("s")) { System.out.println("PUTSPECS " + m + " " + spec); }
         if (spec != null) {
             spec.isNonNull = computeVarNullness(spec.decl, m.owner);
         }
@@ -978,19 +978,32 @@ public class JmlSpecs {
     
     public boolean computeVarNullness(JmlVariableDecl decl, Symbol owner) {
         if (decl != null) {
-            //if (decl.name.toString().equals("oq")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
-            JmlModifiers jmods = (JmlModifiers)decl.mods;
-//            if (decl.name.toString().equals("oq")) {
-//                System.out.println("CVN-C " + findModifier(decl, Modifiers.NON_NULL) + " " + findModifier(decl, Modifiers.NULLABLE) + " " + 
-//                        findAnnotation(jmods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(jmods.annotations, Modifiers.NULLABLE)
-//                        + " " + hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL) + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE));
-//            }
-            if (findModifier(decl, Modifiers.NON_NULL)) return true;
-            if (findModifier(decl, Modifiers.NULLABLE)) return false;
-            if (findAnnotation(jmods.annotations, Modifiers.NON_NULL)!=null) return true;
-            if (findAnnotation(jmods.annotations, Modifiers.NULLABLE)!=null) return false;
-            if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
-            if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
+            //if (decl.name.toString().equals("s")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
+            var vt = decl.vartype;
+            if (vt instanceof JCAnnotatedType avt) vt = avt.underlyingType;
+            //if (decl.name.toString().equals("s")) System.out.println("AVT " + vt + " : " + vt.getClass());
+            if (vt instanceof JCAnnotatedType avt2 && avt2.underlyingType instanceof JCArrayTypeTree) {
+                if (hasTypeAnnotation(avt2, Modifiers.NULLABLE)) return false;
+                if (hasTypeAnnotation(avt2, Modifiers.NON_NULL)) return true;
+                // skip down to default
+            } else if (vt instanceof JCArrayTypeTree) {
+                // skip down to default
+            } else {
+
+                //if (decl.name.toString().equals("s")) System.out.println("VTY " + decl.vartype + " : " + decl.vartype.getClass());
+                JmlModifiers jmods = (JmlModifiers)decl.mods;
+                //if (decl.name.toString().equals("s")) {
+                //    System.out.println("CVN-C " + findModifier(decl, Modifiers.NON_NULL) + " " + findModifier(decl, Modifiers.NULLABLE) + " " + 
+                //            findAnnotation(jmods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(jmods.annotations, Modifiers.NULLABLE)
+                //            + " " + hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL) + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE));
+                //}
+                if (findModifier(decl, Modifiers.NON_NULL)) return true;
+                if (findModifier(decl, Modifiers.NULLABLE)) return false;
+                if (findAnnotation(jmods.annotations, Modifiers.NON_NULL)!=null) return true;
+                if (findAnnotation(jmods.annotations, Modifiers.NULLABLE)!=null) return false;
+                if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
+                if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
+            }
             if (utils.isOnlyDatagroup(decl.type)) return false;
             //if (decl.vartype.toString().contains("JMLDataGroup")) return false; // A primitive type
         }

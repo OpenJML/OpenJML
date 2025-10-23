@@ -5544,9 +5544,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             pushBlock();
             if (!isHelper(methodDecl.sym)) {
                 for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
-                    if (!(dd instanceof JCVariableDecl))
+                    if (!(dd instanceof JCVariableDecl d))
                         continue;
-                    JCVariableDecl d = (JCVariableDecl) dd;
                     if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
                         continue;
                     if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))
