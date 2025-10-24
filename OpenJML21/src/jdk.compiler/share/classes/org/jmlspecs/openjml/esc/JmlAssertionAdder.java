@@ -5544,13 +5544,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             pushBlock();
             if (!isHelper(methodDecl.sym)) {
                 for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
-                    if (!(dd instanceof JCVariableDecl d))
+                    if (!(dd instanceof JmlVariableDecl d))
                         continue;
                     if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
                         continue;
                     if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))
                         continue;
-                    if (specs.isNonNull(d.sym)) {
+                    if (specs.isNonNull(d.sym, d)) {
+                        //System.out.println("NNFIELD " + d + " " + d.sym + " " + d.sym.type + " " + specs.isNonNull(d.sym, d));
                         JCExpression id = treeutils.makeIdent(d.pos, d.sym);
                         addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
                     }

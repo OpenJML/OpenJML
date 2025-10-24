@@ -1231,23 +1231,23 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorName() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public byte /*@ nullable */ [] b;
+                  //@ public invariant b != null && b.length == 20;
                 
-                +"  public byte /*@ nullable */ [] b;\n"
-                +"  //@ public invariant b != null && b.length == 20;\n"
-
-                +"  public TestJava() {\n"
-                +"  }\n"
-
-                // The following method - not constructor - note the return type
-                // appears to be legal Java
-                +"  public void TestJava(int i) {\n"
-                +"  }\n"
+                  public TestJava() {
+                  }
                 
-                
-                +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
+                  // The following method - not constructor - note the return type
+                  // appears to be legal Java
+                  public void TestJava(int i) {
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
                 ,"/tt/TestJava.java:4: warning: Associated declaration",14
                 );
     }
