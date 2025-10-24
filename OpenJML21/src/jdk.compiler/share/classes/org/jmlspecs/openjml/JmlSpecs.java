@@ -978,10 +978,14 @@ public class JmlSpecs {
     
     public boolean computeVarNullness(JmlVariableDecl decl, Symbol owner) {
         if (decl != null) {
-            //if (decl.name.toString().equals("s")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
+            //if (decl.name.toString().equals("b")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
             var vt = decl.vartype;
-            if (vt instanceof JCAnnotatedType avt) vt = avt.underlyingType;
-            //if (decl.name.toString().equals("s")) System.out.println("AVT " + vt + " : " + vt.getClass());
+            if (vt instanceof JCAnnotatedType avt && avt.underlyingType instanceof JCAnnotatedType) {
+                // FIXME - doubled annotation type
+                vt = avt.underlyingType;
+            }
+//            if (vt instanceof JCAnnotatedType avt) vt = avt.underlyingType;
+//            if (decl.name.toString().equals("b")) System.out.println("AVT " + vt + " : " + vt.getClass());
             if (vt instanceof JCAnnotatedType avt2 && avt2.underlyingType instanceof JCArrayTypeTree) {
                 if (hasTypeAnnotation(avt2, Modifiers.NULLABLE)) return false;
                 if (hasTypeAnnotation(avt2, Modifiers.NON_NULL)) return true;
@@ -990,9 +994,9 @@ public class JmlSpecs {
                 // skip down to default
             } else {
 
-                //if (decl.name.toString().equals("s")) System.out.println("VTY " + decl.vartype + " : " + decl.vartype.getClass());
+                //if (decl.name.toString().equals("b")) System.out.println("VTY " + decl.vartype + " : " + decl.vartype.getClass());
                 JmlModifiers jmods = (JmlModifiers)decl.mods;
-                //if (decl.name.toString().equals("s")) {
+                //if (decl.name.toString().equals("b")) {
                 //    System.out.println("CVN-C " + findModifier(decl, Modifiers.NON_NULL) + " " + findModifier(decl, Modifiers.NULLABLE) + " " + 
                 //            findAnnotation(jmods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(jmods.annotations, Modifiers.NULLABLE)
                 //            + " " + hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL) + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE));

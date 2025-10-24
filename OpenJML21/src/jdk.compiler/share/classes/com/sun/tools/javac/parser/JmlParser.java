@@ -477,13 +477,44 @@ public class JmlParser extends JavacParser {
         }
         if (!taAnnotations.isEmpty()) {
             mods.jmlmods = nonTAModifiers;
+            var talist = taAnnotations.toList();
             if (vartype == null) {
-                mods.annotations = mods.annotations.appendList(taAnnotations.toList());
+                mods.annotations = mods.annotations.appendList(talist);
+            } else if (vartype instanceof JCArrayTypeTree || vartype instanceof JCAnnotatedType) {
+                //System.out.println("START " + prtype(vartype) + " " + talist);
+                var type = vartype;
+                while (true) {
+                    if (type instanceof JCArrayTypeTree atype) {
+                        type = atype.elemtype;
+                        if (type instanceof JCArrayTypeTree || (type instanceof JCAnnotatedType a && a.underlyingType instanceof JCArrayTypeTree)) continue;
+                        atype.elemtype = makeAnnotated(type, talist);
+                        break;
+                    } else if (type instanceof JCAnnotatedType antype) {
+                        type = antype.getUnderlyingType();
+                        if (type instanceof JCArrayTypeTree) continue;
+                        vartype = makeAnnotated(vartype, antype.annotations.appendList(talist));
+                        break;
+                    } else {
+                        vartype = makeAnnotated(vartype, talist);
+                        break;
+                    }
+                }
+                //System.out.println("END " + prtype(vartype));
             } else {
-                vartype = makeAnnotated(vartype, taAnnotations.toList());
+                vartype = makeAnnotated(vartype, talist);
             }
         }
         return vartype;
+    }
+    
+    public String prtype(JCTree vartype) {
+        if (vartype instanceof JCArrayTypeTree arr) {
+            return "ARR[" + prtype(arr.elemtype) + "]";
+        } else if (vartype instanceof JCAnnotatedType ann) {
+            return "ANN{" + ann.annotations + ":" + prtype(ann.underlyingType) + "}";
+        } else {
+            return vartype.toString();
+        }
     }
     
 //    protected JCExpression normalizeAnnotation(JmlToken mod, JCExpression vartype, JmlModifiers mods) {
