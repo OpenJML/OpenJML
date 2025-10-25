@@ -46,7 +46,6 @@ jobs:
         platform: x64
         packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
     - name: setup python
-      uses: actions/checkout@v5
       uses: actions/setup-python@v6
       with:
         python-version: '3.13'
