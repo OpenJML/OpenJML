@@ -321,7 +321,7 @@ public class JmlSpecs {
             
             File f = new File(sy);
             if (f.exists() && f.isDirectory()) {
-                if (print) noticeWriter.println("Using internal specs [Root: " + Main.root + "]:" + sy);
+                if (print) noticeWriter.println("Using internal specs: " + sy);
                 dirs.add(new FileSystemDir(f.getAbsolutePath()));
                 return true;
             } else {

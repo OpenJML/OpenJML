@@ -5,7 +5,7 @@ public class SubStringIdx {
     //@ also
     //@  requires pat != null && text != null;
     //@  requires !(\exists int i; 0 <= i <= text.length() - pat.length(); (\forall int j; 0 <= j < pat.length(); text.charAt(i+j) == pat.charAt(j)));
-    //@ behaviors disjoint;
+    // @ behaviors disjoint;
     public static int substringIdx(String pat, String text) {
         if (pat.length() > text.length())
             return -1;
@@ -17,7 +17,7 @@ public class SubStringIdx {
         for (int i = 0; i <= text.length() - pat.length(); i++) {
             int j = 0;
             //@ maintaining 0 <= j <= pat.length();
-            //@ maintaining \forall int k; 0 <= k < j; text.charAt(i + k) == pat.charAt(k);
+            //@ maintaining !(j < pat.length() && text.charAt(i + j) == pat.charAt(j)) || \forall int k; 0 <= k < j; text.charAt(i + k) == pat.charAt(k);
             //@ loop_writes j;
             //@ decreases pat.length() - j;
             while (j < pat.length() && text.charAt(i + j) == pat.charAt(j)) {
@@ -55,6 +55,7 @@ public class SubStringIdx {
         //@ loop_writes i;
         //@ decreases text.length() - pat.length() - i;
         for (int i = 0; i <= text.length() - pat.length(); i++) {
+            //@ assert \forall int k; 0 <= k < i; (\exists int l; 0 <= l < pat.length(); text.charAt(k+l) != pat.charAt(l));
             int j = 0;
             //@ maintaining 0 <= j <= pat.length();
             //@ maintaining \forall int k; 0 <= k < j; text.charAt(i + k) == pat.charAt(k);
@@ -63,14 +64,19 @@ public class SubStringIdx {
             while (j < pat.length() && text.charAt(i + j) == pat.charAt(j)) {
                 j++;
             }
+            //@ assert 0 <= j <= pat.length();
+            //@ assert !(j < pat.length() && text.charAt(i + j) == pat.charAt(j));
             if (j == pat.length())
                 return i;
+            //@ assert !(text.charAt(i + j) == pat.charAt(j));
 
             //@ assert j < pat.length(); // exit was due to mismatch
             //@ assert text.charAt(i + j) != pat.charAt(j); // witness for existential at k = i
-            //@ maintaining \forall int k; 0 <= k < i; (\exists int l; 0 <= l < pat.length(); text.charAt(k+l) != pat.charAt(l));
+            //@ assert (\exists int l; 0 <= l < pat.length(); text.charAt(i+l) != pat.charAt(l));
+            //@ assert \forall int k; 0 <= k < i; (\exists int l; 0 <= l < pat.length(); text.charAt(k+l) != pat.charAt(l));
+            //@ assert \forall int k; 0 <= k <= i; (\exists int l; 0 <= l < pat.length(); text.charAt(k+l) != pat.charAt(l));
         }
-        //@ maintaining \forall int k; 0 <= k < i; (\exists int l; 0 <= l < pat.length(); text.charAt(k+l) != pat.charAt(l));
+        //@ assert  \forall int k; 0 <= k < text.length(); (\exists int l; 0 <= l < pat.length(); text.charAt(k+l) != pat.charAt(l));
         return -1;
     }
 

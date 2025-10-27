@@ -1,4 +1,6 @@
 #! /bin/bash
+## This script runs the basic openjml compilation/esc/rac tool, but with the options that permit linking in 
+## openjdk/openjml code for programmatic access to openjdk/openjml. It is analogous to javac.
 
 ## This script may be executed within the development environment or in a release
 
@@ -18,9 +20,7 @@ fi
 
 CP=".:$CL"
 
-OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
-
 . $LOCAL/setup-exports
 
-"$LOCAL/openjml" -cp $CP -p $MODULES $EXPORTS --compile "$@"
+"$LOCAL/openjml" -cp "$CP" -p $MODULES $EXPORTS --compile "$@"
 

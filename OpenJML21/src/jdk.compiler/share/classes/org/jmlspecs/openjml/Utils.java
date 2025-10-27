@@ -367,13 +367,6 @@ public class Utils {
         return sp;
     }
     
-    //@ non_null
-    public String findInstallLocation() {
-        boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
-        if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + Main.root);
-        return Main.root;
-    }
-
     /** Returns true if the given symbol is marked static or is a member of a JML interface
      * that is not marked as 'instance'
      */
@@ -781,7 +774,7 @@ public class Utils {
         
         // In installation directory
         {
-            String s = Main.root + "/" + Strings.propertiesFileName;
+            String s = Main.install + "/" + Strings.propertiesFileName;
             try {
                 boolean found = readProps(properties,s);
                 if (verbose) {

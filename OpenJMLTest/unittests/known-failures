@@ -135,7 +135,7 @@ escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
 escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
-escfileslist2.test[gitbug883bad]#	Needs better handling of 2D array
+escfileslist2.test[gitbug883bad] #	Needs better handling of 2D array
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
@@ -181,6 +181,10 @@ escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
 primesc.locsetTests2
 
 runscripts.gitbug883
-escfileslist2.test[gitbug883bad]
 escfileslist2.test[gitbug888]
+escfileslist1.test[choose-repeat]
+escfileslist1.test[gitbug489]
+escfileslist2.test[gitbug897]
+escfileslist2.test[gitbug894]
+escfileslist2.test[gitbug890]
 ## Issue 511, 842
