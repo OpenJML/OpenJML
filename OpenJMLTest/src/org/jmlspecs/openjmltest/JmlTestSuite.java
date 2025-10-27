@@ -99,12 +99,12 @@ public abstract class JmlTestSuite {
     /** Holds an absolute path to the location of system library spec files, that is the folder holding java/lang/*.jml etc. */
     public final static String specsdir;
     static {
-        String s = System.getenv("OPENJML_INSTALL") + "/../../Specs/specs";
-        try { 
-            s = new File(s).getCanonicalPath();
-        } catch (Exception e) {
-        }
-        specsdir = s;
+//        String s = System.getenv("OPENJML_INSTALL") + "/../../Specs/specs";
+//        try { 
+//            s = new File(s).getCanonicalPath();
+//        } catch (Exception e) {
+//        }
+        specsdir = Main.specs + "/specs";
     }
     
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml

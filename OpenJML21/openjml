@@ -1,9 +1,11 @@
 #!/bin/bash
+## This script runs the basic openjml compilation/esc/rac tool. It is analogous to javac.
 
 ## This script may be executed in either the development environment or in a release
 ## openjml is the embellished version of javac
+## If the PROF env var is set to something, then profiling is enabled
 
-## The definition of BIN below presumes that only one development target has been built
+## The definition of BIN in setup-vars presumes that only one development target (for one OS) has been built
 ## $BASH_SOURCE is the path to the executable as it is written in the command-line that launched the script
 
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the absolute path to this script file
@@ -15,19 +17,9 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${INSTALL}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
 fi
 
-export PR=
-if [ -n "${PROF+set}" ]; then
-  export PR=-J-agentpath:/Users/davidcok/Desktop/profiler/lib/libasyncProfiler.dylib=start,event=cpu,file=profile.html
-fi
+## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BIN
+. "$INSTALL"/setup-vars javac
 
-## BIN is an absolute path, still might have spaces
-if [ -e "$INSTALL/version-info.txt" ]; then
-  ## In a release
-  BIN="$INSTALL"/jdk/bin/javac
-  OPENJML_INSTALL="$INSTALL" "$BIN" $PR "$@"
-else
-  ## In development environment
-  BIN=`echo "$INSTALL"/build/*/jdk/bin/javac`
-  OPENJML_INSTALL="$INSTALL" OPENJML_SOLVERS="$INSTALL/../../Solvers" OPENJML_SPECS="$INSTALL/../../Specs" "$BIN" $PR "$@"
-fi
+## Run the executable for openjml (the javac equivalent)
+"$BIN" $PR "$@"
 

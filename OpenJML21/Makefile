@@ -147,7 +147,7 @@ post: .FORCE
 	cp -pR ../../Solvers/Solvers-$$S $(TEMP)
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
-	cp setup-exports openjml openjml-* $(TEMP)
+	cp setup-exports setup-vars openjml openjml-* $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); zip -qr ./openjml.zip * )
 
