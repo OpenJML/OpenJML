@@ -1,0 +1,8 @@
+test/gitbug899/DoubleArrayElements.java:5: error: incompatible types: \locset cannot be converted to boolean
+    //@ ensures arr == null ==> \nothing;
+                                ^
+test/gitbug899/Test.java:8: error: incompatible types: \locset cannot be converted to boolean
+    //@ ensures \nothing;
+                ^
+Operation not performed because of parse or type errors
+2 errors

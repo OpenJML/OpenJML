@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.*;
 
-import org.jmlspecs.openjmltest.RacBase;
+import org.jmlspecs.openjmltest.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -33,7 +33,7 @@ import org.openjml.runners.ParameterizedWithNames;
  */
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-public class racfileslist extends RacBase {
+public class racfileslist extends RacBase implements Utils {
 
     @Override
     @Before
@@ -44,32 +44,42 @@ public class racfileslist extends RacBase {
     }
     
     public static String[] testsuites = new String[]{
+            "org.jmlspecs.openjmltest.testsuites.primrac",
             "org.jmlspecs.openjmltest.testsuites.racfiles",
             "org.jmlspecs.openjmltest.testsuites.racfilesmodels"
     };
 
-    
+    /** A routine that computes a List of one-element String arrays, where each of those elements is a 
+     * test directory that is not already used in a test by any of the testsuites in the 'testsuites' array above.
+     */
     @Parameters
     static public Collection<String[]> data() {
         try {
-            java.util.SortedSet<String> allfiles = new java.util.TreeSet<String>();
-            var dir = new File("test");
-            for (var f: dir.listFiles()) {
-                if (new java.io.File(f, "rac").exists() && !new java.io.File(f, "skip").exists()) {
-                    allfiles.add(f.getName());
-                }
-            }
-            for (var f: dir.listFiles((f,s)->s.startsWith("rac"))) {
-                if (!new java.io.File(f, "skip").exists()) allfiles.add(f.getName());
-            }
-            for (var suite: testsuites) {
-                var racfiles = Class.forName(suite);
-                var racmethods = java.util.Arrays.stream(racfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
-                    .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-                allfiles.removeAll(racmethods);
-            }
-            System.out.println("REMAINING " + allfiles);
-            var tests = allfiles.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
+            java.util.List<String[]> tests = Utils.findTests((File f, String nm) -> f.isDirectory() &&
+                    (new java.io.File(f, "rac").exists() || nm.startsWith("rac")) && !new java.io.File(f, "skip").exists(),
+                    testsuites);
+//
+//            
+//            
+//            java.util.SortedSet<String> allfiles = new java.util.TreeSet<String>();
+//            var dir = new File("test");
+//            for (var f: dir.listFiles()) {
+//                if (new java.io.File(f, "rac").exists() && !new java.io.File(f, "skip").exists()) {
+//                    allfiles.add(f.getName());
+//                }
+//            }
+//            for (var f: dir.listFiles((f,s)->s.startsWith("rac"))) {
+//                if (!new java.io.File(f, "skip").exists()) allfiles.add(f.getName());
+//            }
+//            for (var suite: testsuites) {
+//                var racfiles = Class.forName(suite);
+//                var racmethods = java.util.Arrays.stream(racfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
+//                    .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
+//                allfiles.removeAll(racmethods);
+//            }
+//            System.out.println("REMAINING " + allfiles);
+//            var tests = allfiles.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
+            System.out.println("REMAINING: " + tests.stream().map(t -> t[0]).collect(java.util.stream.Collectors.toList()));
             return tests;
         } catch (Exception e) {
             throw new AssertionError("Exception while determining test methods in racfileslist: " + e);

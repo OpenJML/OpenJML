@@ -252,7 +252,7 @@ public class racsystem extends RacBase {
                     }
                 }
                 """
-                ,"verify: JML formal argument may be null: arg0 in File(java.lang.String)"
+                ,"verify: JML actual argument may not be null: arg0 in File(java.lang.String)"
                 ,"verify: Associated declaration: /tt/TestJava.java:13:"
                 ,"verify: JML precondition is false"
                 ,"verify: Associated declaration: /tt/TestJava.java:13:"

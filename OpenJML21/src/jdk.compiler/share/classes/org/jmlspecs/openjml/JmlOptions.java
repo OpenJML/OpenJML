@@ -52,9 +52,6 @@ import com.sun.tools.javac.util.Log.WriterKind;
  */
 public class JmlOptions extends Options {
     
-    // Warning-keys
-    public static final String IMPLICIT_EVERYTHING = "implicit-everything";
-
     protected Context context;
 
     /** A stack of sets of options */
@@ -63,22 +60,12 @@ public class JmlOptions extends Options {
     /** The set of keys that control the use of optional comments, set in setupOptions() */
     public Set<String> commentKeys = new HashSet<String>();
     
-    public Map<String,Boolean> warningKeys = new java.util.HashMap<>();
-    {
-        warningKeys.put(IMPLICIT_EVERYTHING, true);
-    }
-    
-    public boolean allowed(String key) {
-        Boolean b = warningKeys.get(key);
-        if (b != null) return b;
-        Utils.instance(context).error("jml.internal.not.so.bad","Invalid warning key: " + key);
-        return true;
-    }
-
+ 
     protected JmlOptions(Context context) {
         super(context);
         this.context = context;
         loadDefaults();
+        WarningCategory.instance(context);
     }
 
     public static void preRegister(Context context) {
@@ -137,12 +124,13 @@ public class JmlOptions extends Options {
         newargs.addAll(files);
         // Separate out .jml files from the list of files, because Java will object to them
         File f;
+        var utils = Utils.instance(context);
         iter = newargs.iterator();
         while (iter.hasNext()) {
             String s = iter.next();
-            if (s.endsWith(Strings.specsSuffix)) {
+            if (utils.hasSpecSuffix(s)) {
                 if (jmlfiles != null) jmlfiles.add(new File(s));
-                else Utils.instance(context).warning("jml.message", ".jml files on the command-line are ignored: " + s);
+                else utils.warning("jml.message", ".jml files on the command-line are ignored: " + s);
                 iter.remove();
             }
         }
@@ -237,7 +225,7 @@ public class JmlOptions extends Options {
                 if ("--help".equals(s)) {
                     switch (res) {
                     case "warn":
-                        System.out.println("Implemented warning keys: " + warningKeys.keySet());
+                        System.out.println("Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet());
                         break;
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
@@ -260,6 +248,7 @@ public class JmlOptions extends Options {
                         Utils.instance(context).warning("jml.message","no- is not permitted with set-to-default (empty string after = character)");
                         negate = false;
                     }
+                    if (def instanceof Boolean bdef) negate = !bdef;
                 } else  {
                     if (o.hasArg()) { }
                     else if ("false".equals(res)) negate = true;
@@ -447,7 +436,6 @@ public class JmlOptions extends Options {
             Main.instance(context).progressDelegator.setDelegate(null);
         }
 
-
         String keysString = options.get(JmlOption.KEYS.optionName());
         commentKeys = new HashSet<String>();
         if (keysString != null && !keysString.isEmpty()) {
@@ -562,5 +550,12 @@ public class JmlOptions extends Options {
             boolean b = super.validate();
             return JmlOptions.instance(context).setupOptions() && b;
         }
+        
+        @Override // overridden just to suppress message
+        public void printUsage(String ownName) {
+            if (Utils.instance(context).jmlverbose == Utils.QUIET) return;
+            super.printUsage(ownName);
+        }
+
     }
 }

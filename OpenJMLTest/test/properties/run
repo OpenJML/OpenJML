@@ -1,6 +1,8 @@
 #! /bin/bash
 
-if [ -z "$OJA" ]; then OJA=openjml; fi
+cd $(dirname $BASH_SOURCE[0] )  
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 ( \
 echo Test of my.properties ;\
@@ -19,3 +21,4 @@ echo Test of mal-formed file ;\
 $OJA --properties=bad2.properties Test.java ;\
 ) >& actual
 diff expected actual && rm -rf actual
+exit $?

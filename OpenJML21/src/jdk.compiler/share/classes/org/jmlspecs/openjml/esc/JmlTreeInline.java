@@ -336,18 +336,6 @@ public class JmlTreeInline extends JmlTreeCopier {
 //    }
 //
 //    @Override
-//    public JCTree visitJmlTypeClauseDecl(JmlTypeClauseDecl that, Void p) {
-//        JmlTypeClauseDecl copy = M.at(that.pos).JmlTypeClauseDecl(
-//                copy(that.decl,p));
-//        copy.token = that.token;
-//        copy.modifiers = copy(that.modifiers,p);
-//        copy.source = that.source;
-//        copy.type = that.type;
-//        return copy;
-//    }
-//
-//
-//    @Override
 //    public JCTree visitJmlTypeClauseIn(JmlTypeClauseIn that, Void p) {
 //        JmlTypeClauseIn copy = M.at(that.pos).JmlTypeClauseIn(
 //                copy(that.list,p));

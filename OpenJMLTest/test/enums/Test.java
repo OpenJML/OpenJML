@@ -106,7 +106,7 @@ public class Test {
     
     //@ pure
     public void m7(EEE ee) {
-        // @ assert EEE.AA.ordinal() == 0;
+        // @ assert EEE.AA.ordinal() == 0; // FIXME - can these be proved
         // @ assert EEE.BB.ordinal() == 1;
         // @ assert EEE.CC.ordinal() == 2;
         // @ assert EEE.DD.ordinal() == 3;

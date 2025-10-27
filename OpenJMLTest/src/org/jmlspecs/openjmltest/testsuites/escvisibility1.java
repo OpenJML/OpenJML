@@ -21,7 +21,7 @@ public class escvisibility1 extends EscBase {
         addOptions("-classpath",   testspecpath);
         addOptions("-sourcepath",   testspecpath);
         addOptions("-specspath",   testspecpath);
-        addOptions("-quiet");
+        addOptions("--normal");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;

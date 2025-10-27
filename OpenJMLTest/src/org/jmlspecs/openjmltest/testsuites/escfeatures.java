@@ -67,6 +67,11 @@ public class escfeatures extends EscBaseFiles {
     }
 
     @Test
+    public void IllegalArgument() {
+        helpFeatures();
+    }
+
+    @Test
     public void NegativeIndex() {
         helpFeatures();
     }

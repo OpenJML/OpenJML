@@ -553,7 +553,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug597() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--esc-max-warnings=1");
     }
     
     @Test
@@ -577,7 +577,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug603() {
         expectedExit = Main.Result.CMDERR.exitCode;
-        helpTCG("-Xmaxwarns=100","--quiet"); // Arguments are part of the test
+        helpTCG("-Xmaxwarns=100"); // Arguments are part of the test
     }
     
     @Ignore   // FIXME requires implementation of \not_assigned
@@ -860,7 +860,7 @@ public class SFBugs extends EscBaseFiles {
     }
     
     @Test
-    public void gitbug666() {  // FIXME - recursive -- not yet fixed
+    public void gitbug666() {
         expectedExit = 0;
     }
     
@@ -870,7 +870,7 @@ public class SFBugs extends EscBaseFiles {
         helpTCG();
     }
     
-    @Test // FIXME -- MISMATCHED BLOCKS // // Complained of undefined symbols
+    @Test // FIXME -- Crash in speculative attribution
     public void gitbug671() {
         expectedExit = 0;
         helpTCF("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
@@ -1095,7 +1095,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug738() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--warn=missing-measured-by");
     }
     
     @Test

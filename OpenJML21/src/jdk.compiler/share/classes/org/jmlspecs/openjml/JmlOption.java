@@ -42,7 +42,7 @@ public class JmlOption {
     public static final JmlOption DIR = new JmlOption("--dir",true,null,"Process all files, recursively, within this directory",null);
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null);
-    public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (check,esc,rac,compile)",null) {
+    public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (parse,check,esc,rac,compile)",null) {
         public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
             boolean ok = true;
@@ -63,6 +63,7 @@ public class JmlOption {
             return ok;
     	}
     };
+    public static final JmlOption PARSE = new JmlOption("--parse",false,null,"Only parses input files","--command=parse");
     public static final JmlOption CHECK = new JmlOption("--check",false,null,"Does a JML syntax check","--command=check");
     public static final JmlOption COMPILE = new JmlOption("--compile",false,null,"Does a Java-only compile","--command=compile");
     public static final JmlOption RAC = new JmlOption("--rac",false,null,"Enables generating code instrumented with runtime assertion checks","--command=rac");
@@ -99,8 +100,6 @@ public class JmlOption {
     public static final JmlOption EXITVERIFY = new JmlOption("--verify-exit",true,"6","Exit code for verification errors",null);
     public static final JmlOption EXTENSIONS = new JmlOption("--extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
-    public static final JmlOption STOPIFERRORS = new JmlOption("--stop-if-parse-errors",false,false,"When enabled, stops after parsing if any files have parsing errors",null);
-    { map.put("-stopIfParseErrors",STOPIFERRORS); }
     public static final JmlOption METHOD = new JmlOption("--method",true,null,"Comma-separated list of method name patterns on which to run ESC",null);
     public static final JmlOption EXCLUDE = new JmlOption("--exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null);
     public static final JmlOption PROVER = new JmlOption("--prover",true,null,"The prover to use to check verification conditions",null);
@@ -128,7 +127,7 @@ public class JmlOption {
           }
     };
     // FIXME - turn default back to true when problems have been worked out
-    public static final JmlOption CHECK_ACCESSIBLE = new JmlOption("--check-accessible",false,false,"When on (the default), JML accessible clauses are checked",null);
+    public static final JmlOption CHECK_ACCESSIBLE = new JmlOption("--check-accessible",false,true,"When on (the default), JML accessible clauses are checked",null);
     { map.put("-checkAccessible",CHECK_ACCESSIBLE); }
     public static final JmlOption SPECS = new JmlOption("--specs-path",true,null,"Specifies the directory path to search for specification files",null);
     { map.put("-specspath",SPECS); }
@@ -164,13 +163,22 @@ public class JmlOption {
     public static final JmlOption WARN = new JmlOption("--warn",true,"","Comma-separated list of warning keys to enable or disable",null) {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
+            WarningCategory warnings = WarningCategory.instance(context);
             String val = options.get(JmlOption.WARN.optionName());
            // CAUTION: check is called with an empty-string argument as part of initialization, when error messages are not yet read in.
             if (Utils.instance(context).ojcheck(val != null, "null option value in JmlOption.WARN.check")) {
-                if (!val.isEmpty()) {
+                if ("list".equals(val)) {
+                    System.out.println(warnings.list());
+                } else if ("reset".equals(val) || val.isEmpty()) {
+                    warnings.reset();
+                } else if ("all".equals(val)) {
+                    warnings.setAll(negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN);
+                } else if ("none".equals(val)) {
+                    warnings.setAll(negate ? WarningCategory.WarnAction.WARN : WarningCategory.WarnAction.QUIET);
+                } else {
                     String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
                     for (var k: keys) {
-                        if (options.warningKeys.containsKey(k)) options.warningKeys.put(k,!negate);
+                        if (warnings.warningKeys.containsKey(k)) warnings.warningKeys.put(k, negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN );
                         else Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
                     }
                 }
@@ -178,8 +186,8 @@ public class JmlOption {
             return true;
     	}
     };
-    public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output warnings and errors","--verboseness="+Utils.QUIET);
-    public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Limited output","--verboseness="+Utils.NORMAL);
+    public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output the exit code","--verboseness="+Utils.QUIET);
+    public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Error and warning messages (default)","--verboseness="+Utils.NORMAL);
     public static final JmlOption PROGRESS = new JmlOption("--progress",false,null,"Shows progress through compilation phases","--verboseness="+Utils.PROGRESS);
     public static final JmlOption SHOW_SKIPPED = new JmlOption("--show-skipped",false,true,"Shows methods whose proofs are skipped",null);
     public static final JmlOption SHOW_SUMMARY = new JmlOption("--show-summary",false,true,"Shows summary and time information",null);

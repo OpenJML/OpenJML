@@ -29,11 +29,13 @@ import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlPrimitiveTypes extends JmlExtension {
-//    Context context;
-//    
-//    public JmlPrimitiveTypes(Context context) {
-//        this.context = context;
-//    }
+    
+    public static java.util.Map<String,String> jmlNames = new java.util.HashMap<>();
+    
+    public static String jmlName(Symbol sym) {
+        return sym == null ? "<ERROR>" : jmlNames.get(sym.toString());
+    }
+
     public JmlPrimitiveTypes(Context context) {
         // FIXME - why is this called so many times
         // And why do we have to clear a type to get it to reload its operators for a new context?
@@ -47,14 +49,14 @@ public class JmlPrimitiveTypes extends JmlExtension {
     public static class JmlTypeKind extends IJmlClauseKind {
         private String typename; // flat or unqualified type name
         public com.sun.tools.javac.util.Name name;
-        Symbol.ClassSymbol sym = null; // lazily filled in; depends on context; only  implemented for a single context
+        Symbol.ClassSymbol sym = null; // symbol of represetnatino type; lazily filled in; depends on context; only implemented for a single context
         Type type = null; // lazily filled in; depends on context; only  implemented for a single context
         Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 
         public JmlTypeKind(String keyword, String typename) {
             super(keyword);
             this.typename = typename;
-            
+            jmlNames.put(typename, keyword);
         }
         
         public void clear() {
@@ -75,13 +77,8 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         public void init(Context context) {
             this.context = context;
-            String fqname;
-            if (typename.contains(".")) {
-                fqname = typename;
-            } else {
-                fqname = "org.jmlspecs.lang." + typename;
-            }
-            //System.out.println("GETTING " + fqname + " " + type + " " + context.hashCode());
+            String fqname = typename;
+
             var nm = Names.instance(context).fromString("java.base");
             com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
             sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
@@ -109,7 +106,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         }
         
         public void initAll(Context context) {
-            //System.out.println("INITING ALL " + context.hashCode());
+            //System.out.println("INIT ALL");
             TYPETypeKind.init(context);
             bigintTypeKind.init(context);
             arrayTypeKind.init(context);
@@ -217,8 +214,10 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("%", type, type, type);
             jt.enterBinop("<<", type, type, type);
             jt.enterBinop(">>", type, type, type);
+            jt.enterBinop(">>>", type, type, type);
             jt.enterBinop("<<", type, jt.syms.longType, type);
             jt.enterBinop(">>", type, jt.syms.longType, type);
+            jt.enterBinop(">>>", type, jt.syms.longType, type);
             // Assign-op operators are automatically defined based on the simple operator
             
             // bit operators
@@ -245,6 +244,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
             case LT -> "lt";
             case SL -> "shiftLeft";
             case SR -> "shiftRight";
+            case USR -> "shiftRight";
             case BITAND -> "and";
             case BITOR -> "or";
             case BITXOR -> "xor";
@@ -256,7 +256,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String realId = "\\real";
 
-    public static final JmlTypeKind realTypeKind = new JmlTypeKind(realId,"real") {
+    public static final JmlTypeKind realTypeKind = new JmlTypeKind(realId,"org.jmlspecs.lang.internal.real") {
         
         public void initOps() {
             JmlTypes jt = JmlTypes.instance(context);
@@ -300,14 +300,14 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String arrayId = "\\array";
 
-    public static final JmlTypeKind arrayTypeKind = new JmlTypeKind(arrayId,"array") {
+    public static final JmlTypeKind arrayTypeKind = new JmlTypeKind(arrayId,"org.jmlspecs.lang.internal.array") {
         @Override
         public int numTypeArguments() { return 1; }
     };
 
     public static final String seqId = "\\seq";
 
-    public static final JmlTypeKind seqTypeKind = new JmlTypeKind(seqId,"seq") {
+    public static final JmlTypeKind seqTypeKind = new JmlTypeKind(seqId,"org.jmlspecs.lang.internal.seq") {
         @Override
         public int numTypeArguments() { return 1; }
         
@@ -316,24 +316,32 @@ public class JmlPrimitiveTypes extends JmlExtension {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
-            //jt.enterBinop(">", REALP, REALP, jt.syms.booleanType);
-            //jt.enterBinop("<", REALP, REALP, jt.syms.booleanType);
-            //jt.enterBinop("<=", REALP, REALP, jt.syms.booleanType);
-            //jt.enterBinop(">=", REALP, REALP, jt.syms.booleanType);
             jt.enterBinop("+", type, type, type);
         }
     };
 
     public static final String setId = "\\set";
 
-    public static final JmlTypeKind setTypeKind = new JmlTypeKind(setId,"set") {
+    public static final JmlTypeKind setTypeKind = new JmlTypeKind(setId,"org.jmlspecs.lang.internal.set") {
         @Override
         public int numTypeArguments() { return 1; }
+
+        @Override
+        public void initOps() {
+            JmlTypes jt = JmlTypes.instance(context);
+            jt.enterBinop("==", type, type, jt.syms.booleanType);
+            jt.enterBinop("!=", type, type, jt.syms.booleanType);
+            jt.enterBinop("|", type, type, type);
+            jt.enterBinop("&", type, type, type);
+            jt.enterBinop("-", type, type, type);
+            jt.enterBinop("<", type, type, jt.syms.booleanType);
+            jt.enterBinop("<=", type, type, jt.syms.booleanType);
+        }
     };
 
     public static final String mapId = "\\map";
 
-    public static final JmlTypeKind mapTypeKind = new JmlTypeKind(mapId,"map") {
+    public static final JmlTypeKind mapTypeKind = new JmlTypeKind(mapId,"org.jmlspecs.lang.internal.map") {
         @Override
         public int numTypeArguments() { return 2; }
 
@@ -341,7 +349,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String intmapId = "\\intmap";
 
-    public static final JmlTypeKind intmapTypeKind = new JmlTypeKind(intmapId,"intmap") {
+    public static final JmlTypeKind intmapTypeKind = new JmlTypeKind(intmapId,"org.jmlspecs.lang.internal.intmap") {
         @Override
         public int numTypeArguments() { return 1; }
         
@@ -354,11 +362,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final String intsetId = "\\intset";
 
-    public static final JmlTypeKind intsetTypeKind = new JmlTypeKind(intsetId,"intset");
+    public static final JmlTypeKind intsetTypeKind = new JmlTypeKind(intsetId,"org.jmlspecs.lang.internal.intset");
 
     public static final String stringId = "\\string";
 
-    public static final JmlTypeKind stringTypeKind = new JmlTypeKind(stringId,"string") {
+    public static final JmlTypeKind stringTypeKind = new JmlTypeKind(stringId,"org.jmlspecs.lang.internal.string") {
         @Override
         public int numTypeArguments() { return 0; }
 
@@ -366,21 +374,28 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public void initOps() {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
+            jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
+            jt.enterBinop("<=", type, type, jt.syms.booleanType);
+            jt.enterBinop(">=", type, type, jt.syms.booleanType);
+            jt.enterBinop("<", type, type, jt.syms.booleanType);
+            jt.enterBinop(">", type, type, jt.syms.booleanType);
             jt.enterBinop("+", type, type, type);
             jt.enterBinop("+", type, jt.syms.charType, type);
         }
 
-        public Type getType(Context context) {
-            var t = super.getType(context);
-            JmlTypes.instance(context).enterBinop("+", t, t, t);
-            return t;
-        }
+//        public Type getType(Context context) {
+//            var t = super.getType(context);
+//            JmlTypes.instance(context).enterBinop("+", t, t, t);
+//            return t;
+//        }
         
+        
+        // FIXME - don't think these are needed or used
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
             if (tree instanceof JmlTree.JmlVariableDecl vd) {
-                if (vd.init == null) test(vd.init.type, attr, tree);
+                if (vd.init != null) test(vd.init.type, attr, tree);
             } else if (tree instanceof JCTree.JCTypeCast tc) {
                 test(tc.expr.type, attr, tree);
             } else if (tree instanceof JCTree.JCAssign as) {
@@ -393,14 +408,9 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         private void test(Type t, JmlAttr attr, DiagnosticPosition p) {
             JmlTypes types = JmlTypes.instance(context);
-            if (types.isSameType(t, stringTypeKind.type) || types.isSameType(t, attr.syms.stringType)) return;
-            utils.error(p, "jml.message", "Cannot convert " + t + "to \string");
+            if (types.isSameType(t, stringTypeKind.type) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
+            utils.error(p, "jml.message", "Cannot convert " + t + " to \\string");
         }
-
-//        public void initType(Context context) {
-//            Type t = getType(context);
-//            JmlTypes.instance(context).enterBinop("+", t, t, t);
-//        }
     };
     
 
@@ -421,23 +431,19 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public void initOps() {
             // intentionally no operations, not even ==
         }
+        
     };
 
     public static final String rangeID = "\\range";
     
-    public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "range") {
+    public static final JmlTypeKind rangeTypeKind = new JmlTypeKind(rangeID, "org.jmlspecs.lang.internal.range") {
         @Override
         public int numTypeArguments() { return 0; }
-        @Override
-        public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-            init(parser);
-            return null;
-        }
     };
 
 	public static final String locsetId = "\\locset";
 
-	public static final JmlTypeKind locsetTypeKind = new JmlTypeKind(locsetId,"locset") {
+	public static final JmlTypeKind locsetTypeKind = new JmlTypeKind(locsetId,"org.jmlspecs.lang.internal.locset") {
         @Override
         public int numTypeArguments() { return 0; }
 		@Override
@@ -505,7 +511,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return Type.noType; // FIXME - fix this
+            return JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
         }
     };
 

@@ -6,6 +6,60 @@ JmlCompilationUnit
           JCIdent: org
   JmlClassDecl: Test
   JmlClassDecl: B
+  JmlClassDecl: C
+    JmlVariableDecl: X
+      JCIdent: C
+      JCIdent: C
+    JmlVariableDecl: Y
+      JCIdent: C
+      JCIdent: C
+    JmlVariableDecl: _JMLvalues
+      JCIdent: C
+    JCIdent: _JMLvalues
+    JCFieldAccess: name X.name
+      JCIdent: X
+    JCFieldAccess: name Y.name
+      JCIdent: Y
+    JmlVariableDecl: _JML__enum_
+      JCIdent: Object
+    JCInstanceOf
+      JCIdent: _JML__enum_
+      JCIdent: C
+    JCIdent: _JML__enum_
+    JCIdent: X
+    JCIdent: _JML__enum_
+    JCIdent: Y
+    JmlVariableDecl: _JML__enum_
+      JCIdent: C
+    JCIdent: _JML__enum_
+    JmlVariableDecl: i
+    JCIdent: i
+    JCIdent: i
+    JCFieldAccess: length _JMLvalues.length
+      JCIdent: _JMLvalues
+    JCIdent: _JMLvalues
+    JCIdent: i
+    JCIdent: _JML__enum_
+    JCFieldAccess: length _JMLvalues.length
+      JCIdent: _JMLvalues
+    JCFieldAccess: ordinal X.ordinal
+      JCIdent: X
+    JCIdent: _JMLvalues
+    JCIdent: X
+    JCFieldAccess: name X.name
+      JCIdent: X
+    JCFieldAccess: ordinal Y.ordinal
+      JCIdent: Y
+    JCIdent: _JMLvalues
+    JCIdent: Y
+    JCFieldAccess: name Y.name
+      JCIdent: Y
+  JmlClassDecl: D
+    JmlVariableDecl: i
+  JmlClassDecl: A
+    JCIdent: B
+    JCIdent: C
+    JCIdent: D
 
 JmlCompilationUnit
   JmlImport model
@@ -15,4 +69,58 @@ JmlCompilationUnit
           JCIdent: org
   JmlClassDecl: Test
   JmlClassDecl: B
+  JmlClassDecl: C
+    JmlVariableDecl: X
+      JCIdent: C
+      JCIdent: C
+    JmlVariableDecl: Y
+      JCIdent: C
+      JCIdent: C
+    JmlVariableDecl: _JMLvalues
+      JCIdent: C
+    JCIdent: _JMLvalues
+    JCFieldAccess: name X.name
+      JCIdent: X
+    JCFieldAccess: name Y.name
+      JCIdent: Y
+    JmlVariableDecl: _JML__enum_
+      JCIdent: Object
+    JCInstanceOf
+      JCIdent: _JML__enum_
+      JCIdent: C
+    JCIdent: _JML__enum_
+    JCIdent: X
+    JCIdent: _JML__enum_
+    JCIdent: Y
+    JmlVariableDecl: _JML__enum_
+      JCIdent: C
+    JCIdent: _JML__enum_
+    JmlVariableDecl: i
+    JCIdent: i
+    JCIdent: i
+    JCFieldAccess: length _JMLvalues.length
+      JCIdent: _JMLvalues
+    JCIdent: _JMLvalues
+    JCIdent: i
+    JCIdent: _JML__enum_
+    JCFieldAccess: length _JMLvalues.length
+      JCIdent: _JMLvalues
+    JCFieldAccess: ordinal X.ordinal
+      JCIdent: X
+    JCIdent: _JMLvalues
+    JCIdent: X
+    JCFieldAccess: name X.name
+      JCIdent: X
+    JCFieldAccess: ordinal Y.ordinal
+      JCIdent: Y
+    JCIdent: _JMLvalues
+    JCIdent: Y
+    JCFieldAccess: name Y.name
+      JCIdent: Y
+  JmlClassDecl: D
+    JmlVariableDecl: i
+  JmlClassDecl: A
+    JCIdent: B
+    JCIdent: C
+    JCIdent: D
 

@@ -1,12 +1,12 @@
 #! /bin/bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
+cd $(dirname $BASH_SOURCE[0] )  
 BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 rm -rf `find . -name C.class` actual; touch actual; 
-openjml --compile srct/C.java ; cp srct/C.class srctt/C.class
-openjml --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class
+$OJA --compile srct/C.java ; cp srct/C.class srctt/C.class
+$OJA --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class
 
 ## P.java with no specs at all
 echo Test P1 uses ppsrc/P.java for specs >> actual
@@ -20,7 +20,7 @@ $OJA --esc pxsrc/P.java --specs-path specsempty >> actual 2>&1
 ## P.java with sibling specs and specs on specspath
 echo Test P4 uses ppspecs/P.jml for specs >> actual
 $OJA --esc pxsrc/P.java --specs-path ppspecs >> actual 2>&1
-## P.java with specspath defaulting to current director
+## P.java with specspath defaulting to current directory, so finds ./P.jml
 echo Test P5 uses ./P.jml for specs >> actual
 $OJA --esc pxsrc/P.java >> actual 2>&1
 
@@ -39,8 +39,6 @@ $OJA --esc AB.java --source-path bxsrc --specs-path bbspecs  >> actual 2>&1
 ## B.java with specs path defaulting to sourcepath
 echo Test B5 uses bxsrc/B.jml >> actual 2>&1
 $OJA --esc AB.java --source-path bxsrc  >> actual 2>&1
-
-
 
 
 ## Referenced binary class with .class and .java and .jml
@@ -71,3 +69,4 @@ $OJA --esc AZC.java -cp srczz --specs-path=specsempty >> actual 2>&1
 
 LOC=`(cd ../../../..; pwd)`
 sed -e "s%\$ROOT%$LOC%g" < expected | diff - actual && rm -rf actual
+exit $?

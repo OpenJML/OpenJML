@@ -1,8 +1,0 @@
-echo Test 0
-$OJA -jmltesting --esc --normal Test.java
-echo Test 1
-$OJA -jmltesting --esc --progress Test.java
-echo Test 2
-$OJA -jmltesting --esc --progress --method=m,n,z --exclude=z --show-skipped Test.java
-echo Test 3
-$OJA -jmltesting --esc --progress --no-show-skipped Test.java

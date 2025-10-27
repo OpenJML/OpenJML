@@ -1,10 +1,23 @@
 #! /usr/bin/env bash
 
-FILE="$BASH_SOURCE[0]"
-DIR=`dirname "$FILE"`
-cd "$DIR"
+cd $(dirname $BASH_SOURCE[0] )  
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
-./runx >& actual
-diff actual RUN.out && rm -rf actual
-./runx2 >& actual2
-diff actual2 RUN2.out && rm -rf actual2
+ERR=0
+(\
+rm -f *.class ;\
+$OJA --rac T.java ;\
+$OJA -Xprefer:source --compile P.java ;\
+$BIN/openjml-java T ;\
+) >& actual
+(diff actual RUN.out || ERR=1 ) && rm -rf actual
+
+(\
+rm -f *.class ;\
+$OJA --rac T.java P.java ;\
+$BIN/openjml-java T ;\
+) >& actual2
+(diff actual2 RUN2.out || ERR=1) && rm -rf actual2
+
+exit $ERR

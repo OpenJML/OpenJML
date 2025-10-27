@@ -2,9 +2,11 @@
 
 cd $(dirname "$BASH_SOURCE[0]" )
 BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 rm -rf Run.class actual
 $BIN/openjml-compile Run.java > actual || exit 1
 echo COMPILED >> actual
 $BIN/openjml-run Run >> actual
-diff actual expected
+diff actual expected && rm -rf actual
+exit $?

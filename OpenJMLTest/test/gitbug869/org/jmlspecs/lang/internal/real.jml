@@ -1,0 +1,100 @@
+package org.jmlspecs.lang.internal;
+
+//@ no_state
+public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimitiveType, Comparable<real>  {
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (byte)this;
+    @Override
+    public byte byteValue();
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (short)this;
+    @Override
+    public short shortValue();
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (char)this;
+    public char charValue();
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (int)this;
+    @Override
+    abstract public int intValue();
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (long)this;
+    @Override
+    abstract public long longValue();
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (float)this;
+    @Override
+    abstract public float floatValue();
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (double)this;
+    @Override
+    abstract public double doubleValue();
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\bigint)this;
+    abstract public bigint bigintValue();
+    
+    //@ public normal_behavior
+    //-RAC@  ensures this == r ==> \result == 0;
+    //-RAC@  ensures this != r ==> \result != 0;
+    //-RAC@  ensures this >= r ==> \result >= 0;
+    //-RAC@  ensures this <= r ==> \result <= 0;
+    //-RAC@  ensures this >  r ==> \result >  0;
+    //-RAC@  ensures this <  r ==> \result <  0;
+    abstract public int compareTo(real r);
+    //@ public normal_behavior requires true; 
+    abstract public String toString();
+    //@ public normal_behavior requires true; 
+    abstract public int hashCode();
+    
+    // No 'also' and no Override because JML considers that JML primitive types do not inherit any specs
+    //@ equires false; // Use == and not .equals for comparing \\real values
+    public boolean equals(/*@ nullable */ Object o);
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (double)\result;
+    public static real of(double v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (float)\result;
+    public static real of(float v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (long)\result;
+    public static real of(long v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (int)\result;
+    public static real of(int v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (char)\result;
+    public static real of(char v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (short)\result;
+    public static real of(short v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (byte)\result;
+    public static real of(byte v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (\bigint)\result;
+    public static real of(bigint v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v.value & v.value == (\bigint)\result;
+    public static real of(java.math.BigInteger v);
+
+    // FIXME -- should these be visible?
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this == r);
+    public boolean eq(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this != r);
+    public boolean ne(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this >= r);
+    public boolean ge(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this <= r);
+    public boolean le(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this > r);
+    public boolean gt(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this < r);
+    public boolean lt(real r);
+    
+}

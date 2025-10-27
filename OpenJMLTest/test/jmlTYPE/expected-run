@@ -1,0 +1,36 @@
+OUT:
+Warning: runtime type information has no type arguments: java.util.LinkedList
+LABEL JMLSHOW_1 = int
+LABEL JMLSHOW_2 = java.lang.Integer
+LABEL JMLSHOW_3 = java.util.List<java.lang.Integer>
+LABEL JMLSHOW_4 = int[]
+LABEL JMLSHOW_5 = java.lang.Integer[]
+LABEL JMLSHOW_6 = java.util.List<java.lang.Integer>[]
+LABEL JMLSHOW_7 = java.util.List<java.lang.Integer>[]
+LABEL JMLSHOW_8 = int
+LABEL JMLSHOW_9 = java.lang.Integer
+LABEL JMLSHOW_10 = java.util.List<java.lang.Integer>
+LABEL JMLSHOW_11 = java.lang.Integer[]
+LABEL JMLSHOW_12 = java.lang.Integer[]
+LABEL JMLSHOW_13 = int
+LABEL JMLSHOW_14 = java.util.List<java.lang.Integer>
+LABEL JMLSHOW_15 = java.util.List<java.lang.Integer>[][]
+ERRORS1 java.lang.IllegalArgumentException: \TYPE value in call of typearg1 has no type arguments
+ERRORS2 java.lang.IllegalArgumentException: \TYPE value in call of typearg has an out of range argument: 0 < 2 <= 0
+ERRORS3 java.lang.IllegalArgumentException: \TYPE value in call of typearg has an out of range argument: 0 < 2 <= 1
+test/jmlTYPE/Test.java:71: verify: JML actual argument has an illegal value
+            //@ ghost var c = \elemtype(\type(Integer)); // ERROR
+                                       ^
+ERRORS4 java.lang.IllegalArgumentException: Calling \elemtype on a value that is not an (or does not have) array type: java.lang.Integer
+test/jmlTYPE/Test.java:79: verify: JML assertion is false
+            //@ check \type(Integer).equals(null); // ERROR
+                ^
+test/jmlTYPE/Test.java:87: verify: JML assertion is false
+            //@ check \type(Integer).equals(o); // ERROR
+                ^
+LABEL JMLSHOW_16 = java.util.List<java.lang.Boolean>[]
+LABEL JMLSHOW_17 = java.util.List<java.lang.Boolean>
+java.lang.NullPointerException: base may not be null in \TYPE.of
+java.lang.NullPointerException: argument list may not be null in \TYPE.of
+
+ERR:

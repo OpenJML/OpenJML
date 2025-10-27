@@ -1,0 +1,19 @@
+test/gitbug886bad/Test.java:4: error: There is no label named \LoopInit
+    //@ ghost var z1 = \old(k,\LoopInit); // ERROR
+                              ^
+test/gitbug886bad/Test.java:5: error: There is no label named \LoopBody
+    //@ ghost var z2 = \old(k,\LoopBody); // ERROR
+                              ^
+test/gitbug886bad/Test.java:7: error: There is no label named \LoopInit
+    //@ ghost var z3 = \old(k,\LoopInit); // ERROR
+                              ^
+test/gitbug886bad/Test.java:8: error: There is no label named \LoopBody
+    //@ ghost var z4 = \old(k,\LoopBody); // ERROR
+                              ^
+test/gitbug886bad/Test.java:13: error: cannot find symbol
+        //@ ghost var z6 = \old(j,\LoopBody); // ERROR
+                                ^
+  symbol:   variable j
+  location: class Test
+Operation not performed because of parse or type errors
+5 errors

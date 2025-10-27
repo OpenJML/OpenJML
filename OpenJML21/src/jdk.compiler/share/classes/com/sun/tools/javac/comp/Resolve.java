@@ -1458,6 +1458,7 @@ public class Resolve {
              bestSoFar.kind != AMBIGUOUS && l.nonEmpty();
              l = l.tail) {
             sym = findField(env, site, name, l.head.tsym);
+//            if (!symbolOK(sym)) continue; // OPENJML // FIXME - should we use inheritanceAllowed to check for fields in interfaces?
             if (bestSoFar.exists() && sym.exists() &&
                 sym.owner != bestSoFar.owner)
                 bestSoFar = new AmbiguityError(bestSoFar, sym);
@@ -1788,7 +1789,7 @@ public class Resolve {
         }
     }
 
-    Symbol findMethodInScope(Env<AttrContext> env,
+    Symbol findMethodInScope(Env<AttrContext> env, // OPENJML - overridden in JmlResolve
             Type site,
             Name name,
             List<Type> argtypes,
@@ -1871,6 +1872,7 @@ public class Resolve {
         InterfaceLookupPhase iphase = InterfaceLookupPhase.ABSTRACT_OK;
         boolean isInterface = site.tsym.isInterface();
         for (TypeSymbol s : isInterface ? List.of(intype.tsym) : superclasses(intype)) {
+//            if (!allowInheritance(intype, s)) continue; // OPENJML
             if (!symbolOK(s)) continue;   // OPENJML
             bestSoFar = findMethodInScope(env, site, name, argtypes, typeargtypes,
                     s.members(), bestSoFar, allowBoxing, useVarargs, true);
@@ -1890,6 +1892,7 @@ public class Resolve {
         for (InterfaceLookupPhase iphase2 : InterfaceLookupPhase.values()) {
             //keep searching for abstract methods
             for (Type itype : itypes[iphase2.ordinal()]) {
+//                if (!allowInheritance(intype, itype.tsym)) continue; // OPENJML
                 if (!symbolOK(itype.tsym)) continue;   // OPENJML
                 if (!itype.isInterface()) continue; //skip j.l.Object (included by Types.closure())
                 if (iphase2 == InterfaceLookupPhase.DEFAULT_OK &&
@@ -2345,6 +2348,10 @@ public class Resolve {
     protected boolean symbolOK(Symbol e) { // OPENJML - added this hook method
         return true;
     }               
+
+    protected boolean allowInheritance(Type baseType, TypeSymbol s) {
+        return true;
+    }
 
     Symbol findTypeVar(Env<AttrContext> env, Name name, boolean staticOnly) {
         for (Symbol sym : env.info.scope.getSymbolsByName(name)) {

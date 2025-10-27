@@ -1,0 +1,20 @@
+Proving methods in Tinit
+Starting proof of Tinit.Tinit() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tinit.Tinit() with prover !!!! - no warnings
+Starting proof of Tinit.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tinit.main(String...) with prover !!!! - no warnings
+Completed proving methods in Tinit
+Proving methods in TinitFinal
+Starting proof of TinitFinal.TinitFinal() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TinitFinal.TinitFinal() with prover !!!! - no warnings
+Starting proof of TinitFinal.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TinitFinal.main(String...) with prover !!!! - no warnings
+Completed proving methods in TinitFinal

@@ -1,0 +1,9 @@
+rm -rf actual
+touch actual
+( $OJA --quiet --check Q0.java ; echo $? ) 2>&1 >> actual
+( $OJA --quiet --check Q1.java ; echo $? ) 2>&1 >> actual
+( $OJA --quiet --esc   Q2.java ; echo $? ) 2>&1 >> actual
+( $OJA --quiet --command=3     ; echo $? ) 2>&1 >> actual
+( $OJA --zzz --quiet           ; echo $? ) 2>&1 >> actual
+( $OJA --command=3 --quiet     ; echo $? ) 2>&1 >> actual # --quiet is not yet operative for JML options before --quiet
+diff actual expected && rm -rf actual

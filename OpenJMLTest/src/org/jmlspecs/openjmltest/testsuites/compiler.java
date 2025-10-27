@@ -190,7 +190,7 @@ public class compiler extends JmlTestSuite{
     /** Tests a bad command */
     @Test
     public void testBadCommand() throws Exception {
-        String failureMessage = "error: Invalid parameter to the -command option: zzz" + eol;
+        String failureMessage = "error: Invalid parameter to the --command option: zzz" + eol;
         helper(new String[]{"-command=zzz",src + "testNoErrors/A.java"},2,0,failureMessage);
     }
     
@@ -546,7 +546,7 @@ public class compiler extends JmlTestSuite{
                                   src + "testWarnings/A.java"
                                 },1,0
                                 ,""
-                                ,"warning: A specification path directory does not exist: " + JmlTestSuite.bruntime + " (" + JmlTestSuite.root + ")"+eol
+                                ,"warning: A specification path directory does not exist: " + JmlTestSuite.bruntime + " (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
                                 +"error: warnings found and -Werror specified"+eol
                                 +"1 error"+eol
                                 +"1 warning"+eol

@@ -733,7 +733,7 @@ public class Pretty extends JCTree.Visitor {
                         tas = annotatedType.annotations;
                         vartype = annotatedType.underlyingType;
                     }
-                    printExpr(((JCArrayTypeTree) vartype).elemtype);
+                    printExpr(((JCArrayTypeTree) vartype).elemtype); // OPENJML - FIXME _ is vartype allowed to be null, that is, to be 'var'
                     if (tas != null) {
                         print(' ');
                         printTypeAnnotations(tas);
@@ -741,7 +741,7 @@ public class Pretty extends JCTree.Visitor {
                     print("... ");
                     print(tree.name);
                 } else {
-                    printExpr(tree.vartype);
+                    if (tree.vartype == null) print("var"); else printExpr(tree.vartype); // OPENJML -- added branch to print 'var'
                     print(' ');
                     if (tree.name.isEmpty()) {
                         print('_');

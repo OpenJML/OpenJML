@@ -100,46 +100,52 @@ public class Refining extends JmlExtension {
             int pos = parser.pos();
             JmlStatementSpec ste;
             ListBuffer<JCIdent> exports = new ListBuffer<>();
-            if (clauseType == Refining.refiningClause) {
-                parser.nextToken();
-                IJmlClauseKind ext = parser.methodSpecKeywordS();
-                if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
-                    utils.error(parser.pos(), parser.endPos(), "jml.invalid.also");
+            JmlMethodSpecs specs;
+            try {
+                parser.inRefinementSpec = true;
+                if (clauseType == Refining.refiningClause) {
                     parser.nextToken();
-                }
-                if (ext == elseClause) {
-                    utils.error(parser.pos(), parser.endPos(), "jml.invalid.also"); // FIXME - should warn about else
-                    parser.nextToken();
-                }
-                if (parser.token().kind == TokenKind.COLON) { 
-                    parser.nextToken();
-                    exports.add(parser.jmlF.at(parser.pos()).Ident(parser.ident()));
-                    while (parser.token().kind == TokenKind.COMMA) {
+                    IJmlClauseKind ext = parser.methodSpecKeywordS();
+                    if (ext == alsoClause) { // jmlTokenKind() == JmlTokenKind.ALSO) {
+                        utils.error(parser.pos(), parser.endPos(), "jml.invalid.also");
                         parser.nextToken();
-                        exports.add(parser.jmlF.at(pos).Ident(parser.ident()));
                     }
-                    if (parser.token().kind != TokenKind.SEMI) {
-                        utils.error(pos,parser.endPos(), "jml.message", "Expected a comma or semicolon here");
+                    if (ext == elseClause) {
+                        utils.error(parser.pos(), parser.endPos(), "jml.invalid.also"); // FIXME - should warn about else
+                        parser.nextToken();
                     }
-                    parser.nextToken();
+                    if (parser.token().kind == TokenKind.COLON) { 
+                        parser.nextToken();
+                        exports.add(parser.jmlF.at(parser.pos()).Ident(parser.ident()));
+                        while (parser.token().kind == TokenKind.COMMA) {
+                            parser.nextToken();
+                            exports.add(parser.jmlF.at(pos).Ident(parser.ident()));
+                        }
+                        if (parser.token().kind != TokenKind.SEMI) {
+                            utils.error(pos,parser.endPos(), "jml.message", "Expected a comma or semicolon here");
+                        }
+                        parser.nextToken();
+                    }
+                } else {
+                    warning(pos,parser.endPos(),"jml.refining.required");
                 }
-            } else {
-                warning(pos,parser.endPos(),"jml.refining.required");
-            }
-            if (!parser.isNone(mods)) {
-                utils.error(mods.getStartPosition(),
-                        parser.getEndPos(mods),
-                        "jml.no.mods.in.refining");
-            }
-            mods = parser.modifiersOpt();
-            JmlMethodSpecs specs = parser.parseMethodSpecs(mods);
-            for (JmlSpecificationCase c : specs.cases) {
-                if (!parser.isNone(c.modifiers)) {
-                    utils.error(c.modifiers.getStartPosition(),
-                            parser.getEndPos(c.modifiers),
+                if (!parser.isNone(mods)) {
+                    utils.error(mods.getStartPosition(),
+                            parser.getEndPos(mods),
                             "jml.no.mods.in.refining");
-                    c.modifiers = parser.jmlF.Modifiers(0);
                 }
+                mods = parser.modifiersOpt();
+                specs = parser.parseMethodSpecs(mods);
+                for (JmlSpecificationCase c : specs.cases) {
+                    if (!parser.isNone(c.modifiers)) {
+                        utils.error(c.modifiers.getStartPosition(),
+                                parser.getEndPos(c.modifiers),
+                                "jml.no.mods.in.refining");
+                        c.modifiers = parser.jmlF.Modifiers(0);
+                    }
+                }
+            } finally {
+                parser.inRefinementSpec = false;
             }
             ste = parser.jmlF.at(pos).JmlStatementSpec(specs);
             ste.exports = exports.toList();
@@ -184,7 +190,28 @@ public class Refining extends JmlExtension {
             }
             //ste.statements = parser.collectLoopSpecs(stats.toList());
             ste.statements = stats.toList();
+            checkStats(ste.statements);
             return ste;
+        }
+        
+        // FIXME - review this test -- an empty block might be OK, but end of block is not
+        protected void checkStats(List<JCStatement> stats) {
+            JCStatement st = firstStat(stats);
+            if (st instanceof JCTree.JCBreak || st instanceof JCTree.JCContinue || st instanceof JCTree.JCThrow || st instanceof JCTree.JCReturn) {
+                error(st, "jml.message", "A statement specification cannot be applied to this statement: " + st);
+            }
+        }
+        
+        protected JCStatement firstStat(List<JCStatement> stats) {
+            if (stats.head == null) return null;
+            for (JCStatement st: stats) {
+                if (st instanceof JCTree.JCBlock bl) {
+                    var stt = firstStat(bl.stats);
+                    if (stt != null) return stt;
+                }
+                return st;
+            }
+            return null;
         }
 
         @Override

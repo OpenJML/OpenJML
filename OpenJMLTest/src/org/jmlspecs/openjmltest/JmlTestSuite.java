@@ -99,12 +99,12 @@ public abstract class JmlTestSuite {
     /** Holds an absolute path to the location of system library spec files, that is the folder holding java/lang/*.jml etc. */
     public final static String specsdir;
     static {
-        String s = System.getenv("OPENJML_ROOT") + "../../Specs/specs";
-        try { 
-            s = new File(s).getCanonicalPath();
-        } catch (Exception e) {
-        }
-        specsdir = s;
+//        String s = System.getenv("OPENJML_INSTALL") + "/../../Specs/specs";
+//        try { 
+//            s = new File(s).getCanonicalPath();
+//        } catch (Exception e) {
+//        }
+        specsdir = Main.specs + "/specs";
     }
     
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
@@ -293,7 +293,7 @@ public abstract class JmlTestSuite {
     /** Set this to true in a test to print out more detailed information about
      * what the test is doing (as a debugging aid).
      */
-    public boolean print = false;
+    public boolean print = true;
     
     /** Set this to true (in the setUp for a test, before calling super.setUp)
      * if you want diagnostics to be printed as they occur (as well as being collected).
@@ -359,6 +359,16 @@ public abstract class JmlTestSuite {
         options = null;
         specs = null;
         mockFiles.clear(); mockFiles = null;
+    }
+
+    /** Does a tearDown and a setUp, in order to reset state for a second execution in the same test */
+    public void reset() {
+        try {
+            tearDown();
+            setUp();
+        } catch (Exception e) {
+            org.junit.Assert.assertTrue("tearDown/setUp failed: " + e, false);
+        }
     }
 
 
@@ -467,12 +477,14 @@ public abstract class JmlTestSuite {
     protected String recordedOut;
 
     /** Manages the capturing of output to System.out and System.err; call with argument=true to start
-     * capturing; call with the argument=false to stop capturing, at which point the Strings actualOut 
-     * and actualErr will contain the collected output (access them through output() and errorOutput() ).
+     * capturing; call with the argument=false to stop capturing, at which point the Strings recordedOut 
+     * and recordedErr will contain the collected output (access them through output() and errorOutput() ).
+     * 
+     * This facility is NOT THREAD-SAFE because it changes System.out and System.err within this process.
      */
     public void collectOutput(boolean collect) {
         if (collect) {
-        	if (bout != null) return; // Already collecting
+            if (bout != null) return; // Already collecting
             recordedOut = null;
             recordedErr = null;
             savederr = System.err;
@@ -480,7 +492,7 @@ public abstract class JmlTestSuite {
             System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
             System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
         } else {
-        	if (bout == null) return; // Already not collecting
+            if (bout == null) return; // Already not collecting
             System.err.flush();
             System.out.flush();
             recordedErr = berr.toString();

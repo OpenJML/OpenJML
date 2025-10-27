@@ -27,8 +27,8 @@ public class escCounterexamples extends EscBase {
         captureOutput = true;
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-trace","-counterexample");
-        main.addOptions("-code-math=java");
+        main.addOptions("--trace","--counterexample");
+        main.addOptions("--code-math=java");
     }
     
     /** Tests an explicit assertion */
@@ -66,51 +66,59 @@ public class escCounterexamples extends EscBase {
     /** Tests a called precondition and method and constructor arguments */
     @Test
     public void testCE3() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public TestJava(int i) {}\n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public TestJava(int i) {}
                 
-                +"  public void m1(int k) {\n"
-                +"    c1(k,k!=0);\n"
-                +"    TestJava j = new TestJava(2+3);\n"
-                +"    (k==0?this:j).m1(0);\n"
-                +"  }\n"
+                  //@ measured_by k;
+                  public void m1(int k) {
+                    c1(k,k!=0);
+                    TestJava j = new TestJava(2+3);
+                    (k==0?this:j).m1(0);
+                  }
                 
-                +"  //@ requires k == 0;\n"
-                +"  public void c1(int k, boolean b) {};\n"
-                +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Precondition) in method m1",7
-                ,"/tt/TestJava.java:10: warning: Associated declaration",15
-                ,"/tt/TestJava.java:9: warning: Precondition conjunct is false: k == 0",18
+                  //@ requires k == 0;
+                  public void c1(int k, boolean b) {};
+                }
+                """
+                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method m1",7
+                ,"/tt/TestJava.java:13: warning: Associated declaration",15
+                ,"/tt/TestJava.java:12: warning: Precondition conjunct is false: k == 0",18
+                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (TerminationDecreases) in method m1", 19
+                ,"/tt/TestJava.java:9: warning: Associated declaration", 21
                 );
     }
     
     /** Tests assignments */
     @Test
     public void testCE4() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public int j; static public int sj; static public TestJava t;\n"
-                +"  public TestJava(int i) {}\n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int j; static public int sj; static public TestJava t;
+                  public TestJava(int i) {}
                 
-                +"  //@ requires t != null; requires \\elemtype(\\typeof(c)) == \\type(Object); \n"
-                +"  public void m1(Object[] c) {\n"
-                +"    int k; boolean b;\n"
-                +"    //@ assume c != null && c.length == 10;\n"
-                +"    k = 8;\n"
-                +"    k += 8;\n"
-                +"    k += (j+=7);\n"
-                +"    b = k > 8;\n"
-                +"    c[4] = t;\n"
-                +"    c[0] = c[3];\n"
-                +"    t.j = 9;\n"
-                +"    t.sj = 10;\n"
-                +"    TestJava.sj = 11;\n"
-                +"    //@ assert false;\n"
-                +"  }\n"
-                +"}\n"
-                
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method m1",9
+                  //@ requires t != null; requires \\elemtype(\\typeof(c)) == \\type(Object);
+                  public void m1(Object[] c) {
+                    int k; boolean b;
+                    //@ assume c != null && c.length == 10;
+                    k = 8;
+                    k += 8;
+                    k += (j+=7);
+                    b = k > 8;
+                    c[4] = t;
+                    c[0] = c[3];
+                    t.j = 9;
+                    t.sj = 10;
+                    TestJava.sj = 11;
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1",9
                 );
     }
     
@@ -420,7 +428,7 @@ public class escCounterexamples extends EscBase {
                 +"      k = 65;\n"
                 +"      //@ set kk = \\old(k) - k;\n"
                 +"      //@ assume (k==k) && (\\lblpos X (k == 65));\n"
-                +"      //@ assume o!= null && \\typeof(o) <: \\type(Object);\n"
+                +"      //@ assume o!= null && \\typeof(o) <:= \\type(Object);\n"
                 +"      //@ unreachable;\n"
                 +"  }\n"
                 +"   public TestJava() { o = new Object(); }\n"
@@ -436,77 +444,79 @@ public class escCounterexamples extends EscBase {
     @Test
     public void testCE15() {
         main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName()+"=1");
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
                 
-                +"  //@ ensures false; \n"
-                +"  public void m1(int i) {\n"
-                +"    int k = 9 - 9;\n"
-                +"    try {\n"
-                +"      k = 1 + 2 + 3 - 1;\n"
-                +"      try {\n"
-                +"         k = 7;\n"
-                +"         return;\n"
-                +"      } finally {\n"
-                +"         k = 9;\n"
-                +"      }\n"
-                +"    } finally {\n"
-                +"       k = 13;\n"
-                +"       return;\n"
-                +"    }\n"
-                +"  }\n"
+                  //@ ensures false;
+                  public void m1(int i) {
+                    int k = 9 - 9;
+                    try {
+                      k = 1 + 2 + 3 - 1;
+                      try {
+                         k = 7;
+                         return;
+                      } finally {
+                         k = 9;
+                      }
+                    } finally {
+                       k = 13;
+                       return;
+                    }
+                  }
                 
-                +"  //@ requires i != 0; ensures false; \n" //Line 19
-                +"  public void m2(int i) throws Exception {\n"
-                +"    int k = 0;\n"
-                +"    try {\n"
-                +"      k = 5;\n"
-                +"      try {\n"
-                +"         k = 7;\n"
-                +"         if (i==0) throw new RuntimeException();\n"
-                +"         return;\n"
-                +"      } catch (Exception e) {\n"
-                +"         k = 25;\n"
-                +"         throw e;\n"
-                +"      } finally {\n"
-                +"         k = 9;\n"
-                +"      }\n"
-                +"    } catch (RuntimeException e) {\n"
-                +"       k = 27;\n"
-                +"    } finally {\n"
-                +"       k = 13;\n"
-                +"    }\n"
-                +"  }\n"
+                  //@ requires i != 0; ensures false; //Line 19
+                  public void m2(int i) throws Exception {
+                    int k = 0;
+                    try {
+                      k = 5;
+                      try {
+                         k = 7;
+                         if (i==0) throw new RuntimeException();
+                         return;
+                      } catch (Exception e) {
+                         k = 25;
+                         throw e;
+                      } finally {
+                         k = 9;
+                      }
+                    } catch (RuntimeException e) {
+                       k = 27;
+                    } finally {
+                       k = 13;
+                    }
+                  }
                 
-                +"  //@ requires i == 0; ensures false; \n" // Line 40
-                +"  public void m3(int i) throws Exception {\n"
-                +"    int k = 0;\n"
-                +"    try {\n"
-                +"      k = 5;\n"
-                +"      try {\n"
-                +"         k = 7;\n"
-                +"         if (i==0) throw new RuntimeException();\n"
-                +"         return;\n"
-                +"      } catch (Exception e) {\n"
-                +"         k = 25;\n"
-                +"         throw e;\n"
-                +"      } finally {\n"
-                +"         k = 9;\n"
-                +"      }\n"
-                +"    } catch (RuntimeException e) {\n"
-                +"       k = 27;\n"
-                +"    } finally {\n"
-                +"       k = 13;\n"
-                +"    }\n"
-                +"  }\n"
-                +"}\n"
-                
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
-                ,"/tt/TestJava.java:19: warning: Associated declaration",24
-                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (Postcondition) in method m3",10
-                ,"/tt/TestJava.java:40: warning: Associated declaration",24
+                  //@ requires i == 0; ensures false; // Line 40
+                  public void m3(int i) throws Exception {
+                    int k = 0;
+                    try {
+                      k = 5;
+                      try {
+                         k = 7;
+                         if (i==0) throw new RuntimeException();
+                         return;
+                      } catch (Exception e) {
+                         k = 25;
+                         throw e;
+                      } finally {
+                         k = 9;
+                      }
+                    } catch (RuntimeException e) {
+                       k = 27;
+                    } finally {
+                       k = 13;
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
+                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:29: warning: The prover cannot establish an assertion (Postcondition) in method m2",10
+                ,"/tt/TestJava.java:21: warning: Associated declaration",24
+                ,"/tt/TestJava.java:54: warning: The prover cannot establish an assertion (Postcondition) in method m3",10
+                ,"/tt/TestJava.java:43: warning: Associated declaration",24
                 );
     }
 

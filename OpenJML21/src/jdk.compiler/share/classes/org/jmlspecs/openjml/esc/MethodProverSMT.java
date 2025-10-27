@@ -191,7 +191,7 @@ public class MethodProverSMT {
         if (exec == null || exec.isEmpty()) {
             // The default is that the prover executables are located in folders named 
             // ./Solvers-$OS for $OS either Mac or Win or Linux. relative to the path returned by findInstallLocation
-            String loc = utils.findInstallLocation();
+            String loc = Main.solvers;
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
             
@@ -754,19 +754,20 @@ public class MethodProverSMT {
 
                     // FIXME - decide how to show counterexamples when there is no tracing
                     if (showCounterexample) {
+                        var names = com.sun.tools.javac.util.Names.instance(context);
                         log.getWriter(WriterKind.NOTICE).println("\nCOUNTEREXAMPLE");
                         for (VarSymbol v: basicBlocker.premap.keySet()) {
                             Name n = basicBlocker.premap.getName(v);
                             String ns = n.toString();
+                            if (n == names._this) continue; // FIXME - use symbols for these
+                            if (n == names.length) continue;
+                            if (ns.equals("_alloc__")) continue;
+                            if (ns.equals("_heap__")) continue;
                             if (v.owner instanceof Symbol.ClassSymbol) {
                                 String ostr = v.owner.toString();
                                 if (!ns.startsWith(ostr)) ns = ostr + "_" + ns;
                             }
-                            if (ns.equals("this")) continue; // FIXME - use symbols for these
-                            if (ns.equals("length")) continue;
-                            if (ns.equals("_alloc__")) continue;
-                            if (ns.equals("_heap__")) continue;
-
+                            //System.out.println("SEEkING " + v + " " + n  + " " + ns + " " + v.owner + " " + (v.owner != null ? v.owner.getClass().toString() : "" ));
                             String s = getValue(ns,smt,solver);
                             log.getWriter(WriterKind.NOTICE).println(ns + " = " + s);
                         }
@@ -1001,8 +1002,12 @@ public class MethodProverSMT {
                     if (comment != null && comment.contains("Assignable assertion:")) {
 // FIXME                           System.out.println("");             
                     }
-                    ifstat: if (origStat != null || stat instanceof JmlStatementExpr){
+                    ifstat: if (origStat != null || stat instanceof JmlStatementExpr) {
+                        //System.out.println("TRACING " + stat + " " + stat.getClass() + " " + (stat instanceof JmlStatementExpr estat ? (estat.sourcefile == null ? "null" : estat.toString()) : ""));
                         String loc = origStat == null ? "" :utils.locationString(origStat.getStartPosition());
+//                        String loc = origStat == null ? "" :
+//                            origStat instanceof JmlStatementExpr sstat ? utils.locationString(origStat.getStartPosition(), sstat.sourcefile)
+//                                    : utils.locationString(origStat.getStartPosition());
                         //String comment = ((JCLiteral)((JmlStatementExpr)bbstat).expression).value.toString();
                         int sp=-2,ep=-2; // The -2 is different from NOPOS and (presumably) any other value that might be generated below
                         int spanType = Span.NORMAL;
@@ -1142,7 +1147,7 @@ public class MethodProverSMT {
                             pos = terminationPos;
                             prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
                         } else {
-                            if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                            if (assertStat.sourcefile != null) prev = log.useSource(assertStat.sourcefile);
                         }
                         JavaFileObject mainSource = log.currentSourceFile();
                         String associatedLocation = Strings.empty;
@@ -1165,14 +1170,14 @@ public class MethodProverSMT {
                         String loc;
 //                        if (epos == Position.NOPOS || pos != assertStat.pos) {
 //                            utils.warning(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-//                            loc = utils.locationString(pos,assertStat.source);
+//                            loc = utils.locationString(pos,assertStat.sourcefile);
 //                            tracer.appendln(loc + " Invalid assertion (" + label + ")");
 //                        } else {
                             // FIXME - migrate to using pos() for terminationPos as well 
-                        	utils.verify(assertStat.source,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
-                            loc = utils.locationString(pos,assertStat.source);
+                        	utils.verify(assertStat.sourcefile,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
+                            loc = utils.locationString(pos,assertStat.sourcefile);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
+                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_ARGUMENT_LOC || label == Label.NULL_ARGUMENT) {
                                 try {
                                     Name nm = ((JCIdent)assertStat.expression).sym.name;                                    // FIXME - need to fix why assertion names are getting invocation suffixes
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);
@@ -1183,7 +1188,7 @@ public class MethodProverSMT {
                         // TODO - above we include the optionalExpression as part of the error message
                         // however, it is an expression, and not evaluated for ESC. Even if it is
                         // a literal string, it is printed with quotes around it.
-                        if (assertStat.source != null) log.useSource(prev);
+                        if (assertStat.sourcefile != null) log.useSource(prev);
                         
                         if (assertStat.associatedPos != Position.NOPOS) {
                             utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
@@ -1196,7 +1201,7 @@ public class MethodProverSMT {
                             if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
-                                if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+                                if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
                                     if (terminationPos == info.decl.pos) {
                                     	JavaFileObject pp = log.useSource(mainSource);
                                     	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
@@ -1509,7 +1514,7 @@ public class MethodProverSMT {
                         pos = terminationPos;
                         prev = log.useSource(((JmlMethodDecl)info.decl).sourcefile);
                     } else {
-                        if (assertStat.source != null) prev = log.useSource(assertStat.source);
+                        if (assertStat.sourcefile != null) prev = log.useSource(assertStat.sourcefile);
                     }
                     JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
@@ -1541,7 +1546,7 @@ public class MethodProverSMT {
                     // TODO - above we include the optionalExpression as part of the error message
                     // however, it is an expression, and not evaluated for ESC. Even if it is
                     // a literal string, it is printed with quotes around it.
-                    if (assertStat.source != null) log.useSource(prev);
+                    if (assertStat.sourcefile != null) log.useSource(prev);
                     
                     if (assertStat.associatedPos != Position.NOPOS) {
                         //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
@@ -1555,7 +1560,7 @@ public class MethodProverSMT {
                         IJmlClauseKind tkind = assertStat.associatedClause.clauseKind;
                         if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
-                            if (p != pos || !mainSource.getName().equals(assertStat.source.getName())) {
+                            if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
                                 if (terminationPos == info.decl.pos) {
                                 	JavaFileObject pr = log.useSource(mainSource);
                                 	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());

@@ -48,7 +48,7 @@ public class ArrayFieldExtension extends JmlExtension {
             Type t;
             if (atype instanceof Type.ArrayType) { 
                 Type elemtype = ((Type.ArrayType)atype).elemtype;
-                Type at = ClassReader.instance(context).enterClass(attr.names.fromString("org.jmlspecs.lang.array")).type;
+                Type at = ClassReader.instance(context).enterClass(attr.names.fromString("org.jmlspecs.lang.internal.array")).type;
                 t = new ClassType(Type.noType,List.<Type>of(elemtype),at.tsym);
             } else if (atype.isErroneous()) {
                 t = atype;

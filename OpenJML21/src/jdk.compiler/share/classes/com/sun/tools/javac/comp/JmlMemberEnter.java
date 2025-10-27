@@ -36,7 +36,6 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.JmlTree.JmlSource;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
-import org.jmlspecs.openjml.JmlTree.JmlTypeClauseDecl;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseInitializer;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
@@ -225,6 +224,18 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				}
     			}
         	}
+            x: for (var t: specsDecl.defs) {
+                if (t instanceof JmlTree.JmlTypeClauseConditional tc) {
+                    var nm = tc.identifier.name;
+                    for (var v: specsDecl.defs) {
+                        if (v instanceof JCVariableDecl vd && vd.name == nm) {
+                            specs.getLoadedSpecs(vd.sym).list.append(tc);
+                            continue x;
+                        }
+                    }
+                    utils.error(tc.sourcefile, tc.identifier, "jml.message", "The identifier must be a member of the enclosing class: " + nm);
+                }
+            }
         	return;
     	}
     	//System.out.println("MATCHING MEMBERS "+ cd.name);
@@ -244,6 +255,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					super.memberEnter(specVarDecl, env);
     					specVarDecl.type = specVarDecl.sym.type;
     					if (specVarDecl.fieldSpecs == null) specVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(specVarDecl);
+                        //System.out.println("PUTTING FIELD SPECS-B " + specVarDecl + " " + env.enclClass.name + " " + specVarDecl.fieldSpecs);
     					specs.putSpecs(specVarDecl.sym, specVarDecl.fieldSpecs);
     					sourceDecl.defs = sourceDecl.defs.append(specVarDecl);
     					//System.out.println("NEW JML FIELD " + cd.name + " " + specVarDecl.name + " " + specVarDecl.sym + " " + specVarDecl.type + " " + specVarDecl.vartype + " " + specVarDecl.vartype.type );
@@ -318,6 +330,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     					utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + sourceDecl.sym + "." + specMethodDecl.sym);
 						ok = false;
     				} else {
+    				    boolean print = false;//specMethodDecl.name.toString().equals("of");
+    				    if (print) System.out.println("SME " + matchSym + (javaMethodDecl.specsDecl == null));
     					if (javaMethodDecl.specsDecl == null) {
                         	// FIXME - fix matching of method types
     						Type specResultType = (specMethodDecl.restype == null) ? null : attr.attribType(specMethodDecl.restype, env); // FIXME - should use the env for the specCU
@@ -368,6 +382,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 						hasInstanceInit = true;
 					}
 				}
+    		} else if (t instanceof JmlTree.JmlTypeClauseConditional jt) {
+    		    
     		}
     		if (ok) revisedDefs.add(t);
     	}
@@ -401,6 +417,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	//   d.specsDecl is set for each member; iot may be equal to d
     	//   if d.specsDecl is different than d then d.specsDecl.specsDecl is null
     	//   putSpecs has been called for each legitimate member
+    }
+
+    private void collectFieldSpecs(Env<AttrContext> env, JmlVariableDecl vd) {
+        for (var d: env.enclClass.defs) {
+            if (d instanceof JmlTree.JmlTypeClauseConditional tc && tc.identifier.name == vd.name) {
+                vd.fieldSpecs.list.add(tc); return;
+            }
+        }
     }
     
     public boolean enterJML = true; // Set to false to just create the sym and type, but not enter or check duplicates
@@ -683,7 +707,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     continue;
                 }
                 if (found != null) {
-                    utils.warning(rep.source,ddecl.pos,"jml.duplicate.represents");
+                    utils.warning(rep.sourcefile,ddecl.pos,"jml.duplicate.represents");
                     // FIXME - the duplicate is at found.pos
                     continue;
                 }
@@ -791,11 +815,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         specs.addModifier(modelVarDecl.pos, endpos, Modifiers.MODEL, mr.mods);
         specs.addModifier(modelVarDecl.pos, endpos, Modifiers.PURE, mr.mods);
         JmlSpecs.FieldSpecs fspecs = specs.getLoadedSpecs(modelVarDecl.sym);
-        JmlTypeClauseDecl tcd = jmlF.JmlTypeClauseDecl(mr);
-        tcd.pos = mr.pos;
-        tcd.source = fspecs.source();
-        tcd.modifiers = mr.mods;
-        tsp.modelFieldMethods.append(tcd);
+        tsp.modelFieldMethods.append(mr);
         modelMethods.put(modelVarDecl.sym, mr);
         return mr;
     }
@@ -808,6 +828,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
      */
     public MethodSymbol matchMethod(JmlMethodDecl specMethod, ClassSymbol csym, Env<AttrContext> env, boolean complain) {
 
+        boolean print = false;//specMethod.name.toString().equals("of");
         JCMethodDecl tree = specMethod;
 
         MethodSymbol msym = tree.sym;
@@ -816,6 +837,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        Env<AttrContext> localEnvSpec = null;
         Type computedResultType = null;
 //        Env<AttrContext> savedEnv = null;
+        if (print) System.out.println("MATCHMETHOD " + msym + " "  + msym.type);
         if (msym != null) {
             localEnv = methodEnv(tree, env); // FIXME - or getMethodEnv?
             computedResultType = msym.getReturnType();

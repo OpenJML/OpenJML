@@ -53,7 +53,10 @@ public interface IJmlVisitor extends IVisitor {
     }
     
     default public void visitJmlChoose(JmlChoose tree) {
-        scan(tree.orBlocks);
+        for (var item: tree.orBlocks) {
+            scan(item.guard);
+            scan(item.action);
+        }
         scan(tree.elseBlock);
     }
 
@@ -113,7 +116,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-        scan(tree.keyword);
+        scan(tree.singleton);
         scan(tree.methodSignatures);
     }
 
@@ -154,7 +157,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
-        scan(tree.list);
+        scan(tree.exceptions);
     }
 
     default public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
@@ -167,6 +170,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlMethodSpecs(JmlMethodSpecs tree)           {
+        scan(tree.invariants);
         scan(tree.cases);
         scan(tree.impliesThatCases);
         scan(tree.forExampleCases);
@@ -290,11 +294,6 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.modifiers);
         scan(tree.expression);
         scan(tree.sigs);
-    }
-
-    default public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
-        scan(tree.modifiers);
-        scan(tree.decl);
     }
 
     default public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {

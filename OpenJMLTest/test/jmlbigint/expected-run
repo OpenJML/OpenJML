@@ -1,19 +1,59 @@
 OUT:
-test/jmlbigint/Test.java:56: verify: JML Division by zero
-      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e.getMessage()); }
+test/jmlbigint/Tbigint.java:91: verify: JML Division by zero
+      try { var b = a/\bigint.zero; } catch (Exception e) { System.out.println(e); } // ERROR
                      ^
-BigInteger divide by zero
-test/jmlbigint/Test.java:57: verify: JML Division by zero
-      try { var c = a/0; } catch (Exception e) { System.out.println(e.getMessage()); }
+java.lang.ArithmeticException: / by zero
+test/jmlbigint/Tbigint.java:92: verify: JML Division by zero
+      try { var c = a/0; } catch (Exception e) { System.out.println(e); } // ERROR
                      ^
-BigInteger divide by zero
-test/jmlbigint/Test.java:58: verify: JML Division by zero
-      try { var e = a % 0; } catch (Exception e) { System.out.println(e.getMessage()); }
+java.lang.ArithmeticException: / by zero
+test/jmlbigint/Tbigint.java:93: verify: JML Division by zero
+      try { var e = a % 0; } catch (Exception e) { System.out.println(e); } // ERROR
                       ^
-BigInteger divide by zero
-test/jmlbigint/Test.java:23: verify: JML assertion is false
-        //@ assert a + b == 40; // FALSE
+java.lang.ArithmeticException: mod by zero
+LABEL JMLSHOW_1 = -4242
+test/jmlbigint/Tbigint.java:174: verify: JML unreachable statement reached
+      unreachable; // To force a show
+      ^
+test/jmlbigint/Tbigint.java:24: verify: JML assertion is false
+        //@ check a + b == 40; // FALSE
             ^
+test/jmlbigint/Tbigint.java:49: verify: JML assertion is false
+            //@ check a.equals(null);
+                ^
+CASTS
+test/jmlbigint/Tcasts.java:12: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (short)(z+Short.MAX_VALUE); */
+               ^
+JML argument to numeric cast is out of range of the target type: 32817 to short
+LABEL JMLSHOW_2 = -32719
+test/jmlbigint/Tcasts.java:16: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (char)(z+2*Character.MAX_VALUE); */
+               ^
+JML argument to numeric cast is out of range of the target type: 131120 to char
+LABEL JMLSHOW_3 = 0
+test/jmlbigint/Tcasts.java:20: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (int)(z+Integer.MAX_VALUE); */
+               ^
+JML argument to numeric cast is out of range of the target type: 2147483697 to int
+LABEL JMLSHOW_4 = -2147483599
+test/jmlbigint/Tcasts.java:24: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (long)(z+Long.MAX_VALUE); */
+               ^
+JML argument to numeric cast is out of range of the target type: 9223372036854775857 to long
+LABEL JMLSHOW_5 = -9223372036854775759
+JML argument to numeric cast is out of range of the target type: 177 to byte
+LABEL JMLSHOW_6 = -79
+JML argument to numeric cast is out of range of the target type: 32817 to short
+LABEL JMLSHOW_7 = -32719
+JML argument to numeric cast is out of range of the target type: 131120 to char
+LABEL JMLSHOW_8 = 0
+JML argument to numeric cast is out of range of the target type: 2147483697 to int
+LABEL JMLSHOW_9 = -2147483599
+JML argument to numeric cast is out of range of the target type: 9223372036854775857 to long
+LABEL JMLSHOW_10 = -9223372036854775759
+LABEL JMLSHOW_11 = 8
+LABEL JMLSHOW_12 = 8
 END
 
 ERR:

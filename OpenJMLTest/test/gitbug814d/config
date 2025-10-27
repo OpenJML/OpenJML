@@ -1,1 +1,1 @@
-ARGS+=" --code-math=safe --method=btw "
+ARGS+=" --code-math=safe --method=btw --esc-max-warnings=1"

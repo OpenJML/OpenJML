@@ -1,6 +1,6 @@
 import java.util.Arrays;
 public class Test {
-    //@ requires \forall int i; 0 <= i && i < a.length; \typeof(a[i]) <: \type(Comparable<Object>);
+    //@ requires \forall int i; 0 <= i && i < a.length; \typeof(a[i]) <:= \type(Comparable<Object>);
     void f(Object[] a) {
        Arrays.sort(a);
        //@ assert a != null; // works

@@ -193,6 +193,10 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     /** General utilities */
     final protected /*@non_null*/ Utils utils;
     
+    final protected JmlTypes types;
+    
+    final protected Names names;
+    
     /** The factory used to create AST nodes, initialized in the constructor */
     final protected JmlTree./*@non_null*/ Maker factory;
 
@@ -291,6 +295,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         
         this.factory = JmlTree.Maker.instance(context);
         this.utils = Utils.instance(context);
+        this.types = JmlTypes.instance(context);
+        this.names = Names.instance(context);
         this.scanMode = AST_JAVA_MODE;
         
         trueLiteral = treeutils.trueLit;
@@ -504,7 +510,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
-        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
+        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition)); // bumps and uses 'unique'
         n.type = vsym.type;
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name,unique); // unique is used as the new version number
@@ -645,7 +651,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     protected void addAssert(Label label, JCExpression trExpr, int declpos, List<JCStatement> statements, int usepos, JavaFileObject source, JCTree statement) {
         JmlTree.JmlStatementExpr st = factory.at(statement.pos()).JmlExpressionStatement(assertID, assertClause,label,trExpr);
         st.optionalExpression = null;
-        st.source = source; // source file in which st.pos resides
+        st.sourcefile = source; // source file in which st.pos resides
         //st.line = -1; 
         st.associatedPos = declpos;
         st.associatedSource = null; // OK - always same as source
@@ -943,7 +949,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression e = treeutils.makeBooleanLiteral(clause.pos,false);
         JmlSingleton id = factory.at(0).JmlSingleton(exceptionKind);
         id.kind = org.jmlspecs.openjml.ext.SingletonExpressions.exceptionKind;
-        for (JCExpression typetree: clause.list) {
+        for (JCExpression typetree: clause.exceptions) {
             int pos = typetree.getStartPosition();
             e = treeutils.makeBinary(pos, 
                     JCTree.Tag.OR, makeNNInstanceof(id, pos, typetree.type, pos), e);
@@ -1130,6 +1136,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case elemtypeID:
+                case isarrayID:
+                case arraytypeID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);
@@ -1139,7 +1147,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case erasureID:
-                case typearg0ID:
+                case typearg1ID:
+                case typearg2ID:
+                case typearg3ID:
+                case typeargsID:
+                case typeargID:
+                case TYPEofID:
                 {
                     scan(that.typeargs);
                     scan(that.meth);
@@ -1597,7 +1610,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             st.associatedPos = that.associatedPos;
             st.associatedSource = that.associatedSource;
             st.description = that.description;
-            st.source = that.source;
+            st.sourcefile = that.sourcefile;
             st.type = that.type;
             st.associatedClause = that.associatedClause;
             copyEndPosition(st,that);
@@ -1929,7 +1942,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         scan(that.index);
         JCExpression index = result;
         JCIdent arr = null;
-        if (utils.isExtensionValueType(indexed.type)) {
+        if (types.isJmlType(indexed.type)) {
         	// continue;
         } else {
         	// Standard Java array
@@ -1993,7 +2006,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             scan(index); index = result;
             scan(right); right = result;
             
-            if (utils.isExtensionValueType(ex.type)) {
+            if (types.isJmlType(ex.type)) {
                 var oldex = ((JCArrayAccess)left).indexed;
                 if (oldex instanceof JCIdent id) {
                     JCIdent newid = newIdentIncarnation(id, sp);
@@ -2240,7 +2253,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that)         { notImpl(that); }
     @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)     { notImpl(that); }
     @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)     { notImpl(that); }
-    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)     { notImpl(that); }
     @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { notImpl(that); }
     @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { notImpl(that); }
     @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { notImpl(that); }
@@ -2434,11 +2446,14 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            boolean print = vsym.name.toString().equals("length");
-//            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
-//            + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
+            boolean print = false; //vsym.name.toString().equals("i");
+            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
+            + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
             if (vsym == lengthSym) {
-                return vsym.name; // Just for array lengths
+                return vsym.name; // Just for Java array lengths
+            }
+            if (vsym.name == names.length && vsym.owner instanceof ClassSymbol cs && types.isJmlType(cs.type)) {
+                return vsym.name;
             }
             if (s == null) {
                 // If there was no mapping at all, we add the name to 

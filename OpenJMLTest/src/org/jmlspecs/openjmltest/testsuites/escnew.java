@@ -1582,14 +1582,16 @@ public class escnew extends EscBase {
 
     @Test
     public void testAsList() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"import java.util.List; public class TestJava  { \n"
-                +"  public enum E { A}; \n"
-                
-                +"  public static void m1() {\n"
-                +"    List<E> m = java.util.Arrays.asList(new E[]{E.A});\n"
-                +"  }\n"
-                +"}\n"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                import java.util.List; public class TestJava  {
+                  public enum E { A};
+                  public static void m1() {
+                    List<E> m = java.util.Arrays.asList(new E[]{E.A});
+                  }
+                }
+                """
                 );
         }
 
@@ -2086,8 +2088,8 @@ public class escnew extends EscBase {
                 +"  public void mm(int[] a) {\n" 
                 +"      int x = a[2];\n" 
                 +"      int[] z = new int[3];\n" 
-                +"      //@ ghost boolean b = Integer.class <: Number.class;\n" 
-                +"      //@ ghost boolean bb = Number.class <: Boolean.class;\n" 
+                +"      //@ ghost boolean b = Integer.class <:= Number.class;\n" 
+                +"      //@ ghost boolean bb = Number.class <:= Boolean.class;\n" 
                 +"      //@ assert b && !bb;\n"
                 +"  }\n"
                 
@@ -2098,38 +2100,42 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-
-                +"  public void mm() {\n" 
-                +"      m(Integer.class);\n" 
-                +"      m(Boolean.class);\n" 
-                +"      m(Short.class);\n" 
-                +"  }\n"
-                +"  public static int j;\n" 
-                +"  //@ requires clazz <: Number.class;\n" 
-                +"  //@ assignable j;\n" 
-                +"  //@ ensures j >= 200;\n" // Line 11
-                +"  //@ also\n" 
-                +"  //@ requires clazz <: Boolean.class;\n" 
-                +"  //@ assignable j;\n" 
-                +"  //@ ensures j  == 100;\n" 
-                +"  //@ also\n" 
-                +"  //@ requires clazz <: String.class;\n" 
-                +"  //@ assignable j;\n" 
-                +"  //@ ensures j == 0;\n" 
-                +"  public static  void m( Class<?> clazz) {\n" // Line 20
-                +"    //@ assert clazz <: Number.class <==> Number.class.isAssignableFrom(clazz);\n"
-                +"    if (clazz == Integer.class) j = 200; \n"
-                +"    else if (clazz == Short.class) j = 201; \n"
-                +"    else if (clazz == Boolean.class) j = 100;\n"
-                +"    else if (Number.class.isAssignableFrom(clazz)) j = 202;\n"
-                +"    else j = 0; \n" 
-                +"  //@ show j, clazz, Integer.class, Short.class, Boolean.class, String.class, clazz <: Number.class, clazz <: Boolean.class, clazz, Number.class.isAssignableFrom(clazz) == (clazz <: Number.class);\n"
-                +"  }\n"
-                
-               
-                +"}"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1() {
+                      m(Integer.class);
+                  }
+                  public void m2() {
+                      m(Boolean.class);
+                  }
+                  public void m3() {
+                      m(Short.class);
+                  }
+                  public static int j;
+                  //@   requires clazz <:= Number.class;
+                  //@   assignable j;
+                  //@   ensures j >= 200;// Line 15
+                  //@ also
+                  //@   requires clazz <:= Boolean.class;
+                  //@   assignable j;
+                  //@   ensures j  == 100;
+                  //@ also
+                  //@   requires clazz <:= String.class;
+                  //@   assignable j;
+                  //@   ensures j == 0;
+                  public static  void m( Class<?> clazz) {// Line 24
+                    //@ show clazz, Integer.class, Short.class, Boolean.class, String.class, clazz <:= Number.class, clazz <:= Boolean.class, clazz, Number.class.isAssignableFrom(clazz) == (clazz <:= Number.class);
+                    //@ assert clazz <:= Number.class <==> Number.class.isAssignableFrom(clazz);
+                    if (clazz == Integer.class) j = 200;
+                    else if (clazz == Short.class) j = 201;
+                    else if (clazz == Boolean.class) j = 100;
+                    else if (Number.class.isAssignableFrom(clazz)) j = 202;
+                    else j = 0;
+                  }
+                }
+                """
                 );
     }
 

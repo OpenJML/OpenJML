@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import java.io.File;
+
 import org.jmlspecs.openjmltest.*;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -8,90 +10,134 @@ import org.junit.Assert;
 public class runscripts extends RunBase {
     
     @Test public void sourcepath() {
-        help();
+        doTest();
     }
 
     @Test public void specspath() {
-        help();
+        doTest();
     }
 
     @Test public void apiA() {
-        help();
+        doTest();
     }
 
     @Test public void apiB() {
-        help();
+        doTest();
     }
 
     @Test public void apiC() {
-        help();
+        doTest();
     }
 
     @Test public void apiD() {
-        help();
+        doTest();
     }
 
     @Test public void apiE() {
-        help();
+        doTest();
     }
 
     @Test public void apiOut() {
-        help();
+        doTest();
     }
 
     @Test public void apiToken() {
-        help();
+        doTest();
     }
 
     @Test public void apiinstance() {
-        help();
+        doTest();
     }
 
     @Test public void findSpecs() {
-        help();
+        doTest();
+    }
+
+    @Test public void gitbug752() {
+        doTest();
     }
 
     @Test public void gitbug786() {
-        help();
+        doTest();
     }
 
     @Test public void gitbug786a() {
-        help();
+        doTest();
+    }
+
+    @Test public void gitbug883() {
+        doTest();
     }
 
     @Test public void nomodelfield() {
-        help();
+        doTest();
     }
 
     @Test public void nomodelmethod() {
-        help();
+        doTest();
     }
 
     @Test public void prefer1() {
-        help();
+        doTest();
     }
 
     @Test public void scandebug() {
-        help();
+        doTest();
     }
 
     @Test public void showSkipped() {
-        help();
+        doTest();
     }
 
     @Test public void requireWhitespace() {
-        help();
+        doTest();
     }
 
     @Test public void optionJml() {
-        help();
+        doTest();
     }
 
     @Test public void properties() {
-        help();
+        doTest();
     }
 
     @Test public void nowarn() {
-        help();
+        doTest();
+    }
+    
+    @Test public void warningoptions() {
+        doTest();
+    }
+    
+    @Test public void quiet() {
+        doTest();
+    }
+    
+    // If this test fails, then there are some script-style tests (that is, tests with a 'run' script) that are not listed as
+    // individual methods such as those methods above
+    @Test public void anyOrphanedTests() {
+        try {
+            java.util.SortedSet<String> allfiles = new java.util.TreeSet<String>();
+            var dir = new File("test");
+            for (var f: dir.listFiles()) {
+                if (new java.io.File(f, "run").exists()) {
+                    allfiles.add(f.getName());
+                }
+            }
+            var suite = "org.jmlspecs.openjmltest.testsuites.runscripts";
+            {
+                var runsuite = Class.forName(suite);
+                var runmethods = java.util.Arrays.stream(runsuite.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
+                    .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
+                allfiles.removeAll(runmethods);
+            }
+            if (allfiles.size() != 0) {
+                System.out.println("ORPHANED RUN TESTS: " + allfiles);
+            }
+            Assert.assertEquals("ORPHANED RUN TESTS: " + allfiles, allfiles.size(), 0);
+        } catch (Exception e) {
+            throw new AssertionError("Exception while determining test methods in racfileslist: " + e);
+        }
+
     }
 }

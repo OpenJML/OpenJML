@@ -44,16 +44,22 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +" enum Z { AA, BB, CC } \n"
-                +" public class TestJava {\n"
-                +"    public void m() {\n"
-                +"       Z ee = Z.AA; \n"
-                +"       //@ assert Z.AA == ee; \n"
-                +"       m();\n" // to put in a havoc everything
-                +"       //@ assert Z.AA == ee && ee != Z.BB; \n"
-                +"    }\n"
-                +"}"
+        addOptions("--warn=missing-measured-by");
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                enum Z { AA, BB, CC }
+                public class TestJava {
+                    public void mmm() {
+                       Z ee = Z.AA;
+                       //@ assert Z.AA == ee;
+                       mmm(); // to put in a havoc everything
+                       //@ assert Z.AA == ee && ee != Z.BB;
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:7: warning: [missing-measured-by] Method mmm() is called recursively, but a specification case has no measured_by clause",11
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:7:",17
                 );
     }
     
