@@ -37,6 +37,7 @@ import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 public class JmlCheck extends Check {
 	
 	public Context context;
+	public JmlTypes jmltypes;
 
     /** Creates a new instance - but use instance(), not this constructor, in order to
      * get the unique instance for the current compilation context.
@@ -45,6 +46,7 @@ public class JmlCheck extends Check {
     protected JmlCheck(/*@non_null*/ Context context) {
         super(context);
         this.context = context;
+        this.jmltypes = JmlTypes.instance(context);
     }
     
     /** Registers a singleton factory for JmlCheck against the checkKey, so that there is
@@ -77,7 +79,7 @@ public class JmlCheck extends Check {
         Utils utils = Utils.instance(context);
         if (found.isErroneous()) {
             // continue
-        } else if (utils.isExtensionValueType(req) || utils.isExtensionValueType(found)) {
+        } else if (jmltypes.isJmlType(req) || jmltypes.isJmlType(found)) {
             var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
             var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
             var STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);

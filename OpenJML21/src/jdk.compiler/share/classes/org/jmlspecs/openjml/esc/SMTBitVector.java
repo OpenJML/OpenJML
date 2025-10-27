@@ -1023,8 +1023,8 @@ public class SMTBitVector extends JmlTreeScanner {
 //            }
 //        }
         if (treeIsPrim == exprIsPrim) {
-            if (utils.isExtensionValueType(tree.type)) { 
-                if (utils.isExtensionValueType(tree.expr.type)) { 
+            if (jmltypes.isJmlType(tree.type)) { 
+                if (jmltypes.isJmlType(tree.expr.type)) { 
                     if (tree.type.tsym == REAL) {
                         if ( tree.expr.type.tsym == REAL) {
                             // \real to \real -- OK
@@ -1066,7 +1066,7 @@ public class SMTBitVector extends JmlTreeScanner {
                         // FIXME - error
                     }
                 }
-            } else if (utils.isExtensionValueType(tree.expr.type)) { 
+            } else if (jmltypes.isJmlType(tree.expr.type)) { 
                 if (treeutils.isIntegral(tagr)) {
                     if (tree.expr.type.tsym == REAL) {
                         // \real to int -- FIXME
@@ -1538,7 +1538,6 @@ public class SMTBitVector extends JmlTreeScanner {
     @Override public void visitJmlStoreRefListExpression(JmlStoreRefListExpression that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseConditional(JmlTypeClauseConditional that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }

@@ -1,0 +1,12 @@
+OUT:
+START
+java.lang.ArrayIndexOutOfBoundsException: get: -1 for length 5
+java.lang.ArrayIndexOutOfBoundsException: get: 5 for length 5
+java.lang.ArrayIndexOutOfBoundsException: put: -1 for length 5
+java.lang.ArrayIndexOutOfBoundsException: put: 5 for length 5
+test/jmlarray/Tarray.java:48: verify: JML assertion is false
+            //@ assert s.equals(o);
+                ^
+END
+
+ERR:

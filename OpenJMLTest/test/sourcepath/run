@@ -1,8 +1,8 @@
 #! /bin/bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
+cd $(dirname $BASH_SOURCE[0] )  
 BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 (\
 echo Test 1 uses B.java from . ;\
@@ -18,4 +18,6 @@ $OJA --source-path srcp --specs-path srce --esc srcx/A.java ;\
 echo Test 4a cannot find B.java;\
 $OJA --source-path srce --specs-path srce --esc srcx/A.java ;\
 ) >& actual
-(diff expected actual && rm -rf actual ) || echo PWD for specspath: `pwd`
+
+diff expected actual && rm -rf actual
+exit $?

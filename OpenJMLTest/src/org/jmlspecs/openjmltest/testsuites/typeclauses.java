@@ -854,5 +854,37 @@ public class typeclauses extends TCBase {
         );
     }
     
+    @Test
+    public void gitbug107() {
+        helpTCF("A.java",
+                """
+                public class A {
+                  //@ axiom \\lockset == \\lockset;
+                }
+                """
+                ,"/A.java:2: error: a \\locksest expression is not permitted in an axiom clause",13
+                ,"/A.java:2: error: a \\locksest expression is not permitted in an axiom clause",25
+                );
+    }
+    
+    @Test
+    public void gitbug212() {
+        helpTCF("Depends.java",
+                """
+                public class Depends {
+                    //@ public model int m;
+                    private /*@ spec_public @*/ int f;
+                    //@ private represents m = f;
+
+                    //@ assignable f;
+                    public void inc() {
+                        f++;
+                    }
+                }
+                """
+                ,"/Depends.java:4: error: Because 'm' reads 'f' in a represents clause, 'f' must be 'in' the model field 'm'", 32
+                );
+    }
+    
 }
 

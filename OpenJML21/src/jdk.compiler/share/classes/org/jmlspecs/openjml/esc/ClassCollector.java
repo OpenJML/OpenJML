@@ -122,7 +122,7 @@ class ClassCollector extends JmlTreeScanner {
         JCTree.Tag op = tree.getTag();
         boolean was = useBV;
         // FIXME - the tree may not always be typed, but this is likely not the correct behavior
-        if (tree.type != null && tree.type.getTag() != TypeTag.BOOLEAN) {
+        if (tree.type != null && tree.type.getTag() != TypeTag.BOOLEAN && !com.sun.tools.javac.code.JmlTypes.instance(context).isJmlType(tree.lhs.type)) {
             if (op == JCTree.Tag.BITAND || op == JCTree.Tag.BITAND_ASG) {
                 if (!useBV && tree.rhs instanceof JCLiteral) {
                     Object o = ((JCLiteral)tree.rhs).getValue();

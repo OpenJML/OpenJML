@@ -956,7 +956,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         JCIdent ex = treeutils.makeIdent(pos, exceptionSym);
         JCExpression noex = treeutils.makeEqObject(pos,ex,treeutils.nullLit);
         T noexceptionBlock = newBlock(TRYNOEXCEPTION,pos);
-        addAssume(pos,Label.IMPLICIT_ASSUME,noex,noexceptionBlock.statements);
+        addAssume(pos,Label.CATCH_CONDITION,noex,noexceptionBlock.statements);
         follows(targetBlock,noexceptionBlock);
         follows(noexceptionBlock,finallyBlock);
         blocks.add(noexceptionBlock);
@@ -973,9 +973,9 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
             catchBlock.statements.addAll(assumptions);
             addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
-            addAssume(catcher.pos,Label.IMPLICIT_ASSUME,tt,catchBlock.statements);
+            addAssume(catcher.pos,Label.CATCH_CONDITION,tt,catchBlock.statements);
             addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
-            addAssume(catcher.pos,Label.IMPLICIT_ASSUME,treeutils.makeNot(catcher,tt),assumptions);
+            addAssume(catcher.pos,Label.CATCH_CONDITION,treeutils.makeNot(catcher,tt),assumptions);
             JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
                 d.pos = catcher.param.pos;
             catchBlock.statements.add(d);
@@ -989,7 +989,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         
         // And the path if an exception is not caught by anything
         T noCatchBlock = newBlock(NOCATCH,pos);
-        addAssume(pos,Label.IMPLICIT_ASSUME,treeutils.makeNeqObject(pos,ex,treeutils.nullLit),noCatchBlock.statements);
+        addAssume(pos,Label.CATCH_CONDITION,treeutils.makeNeqObject(pos,ex,treeutils.nullLit),noCatchBlock.statements);
         noCatchBlock.statements.addAll(assumptions);
         follows(targetBlock,noCatchBlock);
         follows(noCatchBlock,finallyBlock);
@@ -1767,7 +1767,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @Override public void visitJmlTypeClauseIn(JmlTypeClauseIn that)            { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseExpr(JmlTypeClauseExpr that)        { shouldNotBeCalled(that); }
-    @Override public void visitJmlTypeClauseDecl(JmlTypeClauseDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }

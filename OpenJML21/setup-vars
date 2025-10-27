@@ -1,0 +1,25 @@
+# A sourced script that is shared between openjml and openjml-java
+
+# if OPENJML_INSTALL is not set, then set an d export it; otherwise just export the current value
+if [ -z ${OPENJML_INSTALL++} ]; then export OPENJML_INSTALL="$INSTALL" ; else export OPENJML_INSTALL ; fi
+
+# setup any profiling
+export PR=
+if [ -n "${PROF++}" ]; then
+  ## PROF is set to something
+  export PR=-agentpath:/Users/davidcok/profiler/lib/libasyncProfiler.dylib=start,event=cpu,file=profile.html
+fi
+
+## set BIN and other vars -- if those others are already set, then export them
+## BIN is an absolute path, still might have spaces
+if [ -e "$INSTALL/version-info.txt" ]; then
+  ## In a release
+  if [ -n ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS ; fi
+  if [ -n ${OPENJML_SPECS++} ]; then export OPENJML_SPECS ; fi
+  BIN="$INSTALL/jdk/bin/$1"
+else
+  ## In development environment
+  if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS=$(realpath "$INSTALL"/../../Solvers) ; else export OPENJML_SOLVERS ; fi
+  if [ -z ${OPENJML_SPECS++} ]; then export OPENJML_SPECS=$(realpath "$INSTALL"/../../Specs) ; else export OPENJML_SPECS ; fi
+  BIN=`echo "$INSTALL"/build/*/jdk/bin/$1`
+fi

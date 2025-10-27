@@ -119,12 +119,17 @@ public class purity extends TCBase {
     @Test
     public void testMethodIncDec() {
         expectedExit = 6;
+        specialCompare = true;
         addOptions("--esc", "--code-math=java");
         helpTC(" class A {  int b;  \n //@ pure \n boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
-                ,"/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",31
+                ,anyorder(
+                seq("/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",31
                 ,"/TEST.java:2: verify: Associated declaration: /TEST.java:3:",6
-                ,"/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",25
+                )
+                ,seq("/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",25
                 ,"/TEST.java:2: verify: Associated declaration: /TEST.java:3:",6
+                )
+                )
                 );
     }
 

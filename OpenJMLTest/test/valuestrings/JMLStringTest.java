@@ -16,10 +16,6 @@ public class JMLStringTest {
     //@ model public static void stringBrackets(\string s, \bigint i) {}
     
     //@ public normal_behavior
-    //@   ensures s.size() == s.length();
-    //@ model public static void sizeLength(\string s) {}
-    
-    //@ public normal_behavior
     public static void newStringIsEmpty() {
         //@ ghost \string r = \string.empty();
         //@ assert r.isEmpty();
@@ -55,7 +51,7 @@ public class JMLStringTest {
     //@ }
     
     //@ public normal_behavior
-    //@ ensures s.add('c').length() == 1 + s.length();
+    //@ ensures s.append('c').length() == 1 + s.length();
     //@ model public static void addBumpsSize(\string s) {}
     
     //@ public normal_behavior
@@ -70,7 +66,7 @@ public class JMLStringTest {
     
     //@ public normal_behavior
     //@   requires 0 <= i <= s.length();
-    //@   ensures \string.eq(s.insert(i,'c').remove(i), s);
+    //@   ensures s.insert(i,'c').remove(i).eq(s);
     //@ model public static void addRemove(\string s, int i) { show i, s.length(); }
     
     //@ public normal_behavior
@@ -94,7 +90,7 @@ public class JMLStringTest {
     //@ model public static void character() {}
 
     //@ public normal_behavior
-    //@   ensures \string.eq(\string.empty(), \string.empty());
+    //@   ensures \string.empty().eq(\string.empty());
     //@ model public static void eq1() {}
 
     //@ public normal_behavior
@@ -105,11 +101,11 @@ public class JMLStringTest {
     //@ model public static void eqOp1() {}
 
     //@ public normal_behavior
-    //@   ensures \string.eq((\string)("abc"),(\string)("abc"));
+    //@   ensures ((\string)("abc")).eq((\string)("abc"));
     //@ model public static void eq2() {}
 
     //@ public normal_behavior
-    //@   ensures !\string.eq((\string)("abc"),(\string)(""));
+    //@   ensures ((\string)("abc")).eq((\string)(""));
     //@ model public static void eq3() {}
 
     //@ public normal_behavior
@@ -138,8 +134,8 @@ public class JMLStringTest {
     //@   ghost \string s1 = "abc";
     //@   ghost \string s2 = (\string)"abc";
     //@   ghost \string s3 = "";
-    //@   assert \string.eq(s1,s2);
-    //@   assert !\string.eq(s1,s3);
+    //@   assert s1.eq(s2);
+    //@   assert !s1.eq(s3);
     //@ }
 
     //@ model public static void conversion2(String s) {
@@ -156,8 +152,8 @@ public class JMLStringTest {
     //@   ghost \string s1 = s;
     //@   ghost \string s2 = (\string)s;
     //@   ghost \string s3 = (\string)(s);
-    //@   assert \string.eq(s1,s2);
-    //@   assert \string.eq(s1,s3);
+    //@   assert s1.eq(s2);
+    //@   assert s1.eq(s3);
     //@ }
 
     //@ model public static void conversionBad1(nullable String s, Object o) {

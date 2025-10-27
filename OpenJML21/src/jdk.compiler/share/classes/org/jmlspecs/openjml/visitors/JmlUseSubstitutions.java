@@ -103,7 +103,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     @Override
     public void visitJmlStatement(JmlStatement that) {
         if (that.clauseType == SetStatement.setClause) {
-            if (that.statement instanceof JCTree.JCExpressionStatement exec) {
+            if (utils.esc && that.statement instanceof JCTree.JCExpressionStatement exec) {
                 JCExpression expr = exec.expr;
                 if (expr.type.getTag() == TypeTag.VOID
                     && expr instanceof JCTree.JCMethodInvocation apply

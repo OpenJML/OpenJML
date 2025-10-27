@@ -19,10 +19,10 @@ public class esc2 extends EscBase {
     public void setUp() throws Exception {
         // noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written
+        addOptions("--nullable-by-default"); // Because the tests were written
                                                 // this way
-        addOptions("-code-math=bigint","-spec-math=bigint");
-    	addOptions("-no-require-white-space");
+        addOptions("--code-math=bigint","--spec-math=bigint");
+    	addOptions("--no-require-white-space");
         // addOptions("-trace");
         // JmlEsc.escdebug = true;
         // org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -2246,6 +2246,25 @@ public class esc2 extends EscBase {
                 "/tt/TestJava.java:23: warning: The prover cannot establish an assertion (Assert) in method inst10a",
                 81);
     }
+    
+    @Test
+    public void testFieldsErr() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    //@ writes this.*.*, this.*[*];
+                    //@ writes this.*.*
+                    public void m() {}
+                }
+                """
+                ,"/tt/TestJava.java:3: error: Further selection is not permitted after a wild-card field", 22
+                ,"/tt/TestJava.java:3: error: Further selection is not permitted after a wild-card field", 32
+                ,"/tt/TestJava.java:4: error: Further selection is not permitted after a wild-card field", 22
+                ,"/tt/TestJava.java:4: error: Invalid expression or missing semicolon here",24
+                );
+    }
 
     @Test
     public void testSwitch() {
@@ -2935,7 +2954,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testUndefinedInSpec5() {
-        addOptions("-nullableByDefault", "-no-checkAccessible");
+        addOptions("--nullable-by-default", "--no-checkAccessible");
         helpTCX("tt.TestJava",
                 "package tt; \n" + "public class TestJava { \n" + "  static TestJava t;\n" + "  int j = t.j;\n" + "}",
                 "/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method TestJava",
@@ -3125,27 +3144,27 @@ public class esc2 extends EscBase {
                 + "public class TestJava { \n"
                 + "  public void m1(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\typeof(o);\n" 
-                + "    //@ assert \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) <: \\type(Object);\n" 
-                + "    //@ assert \\typeof(o) <:= \\type(Object);\n" 
+                + "    //@ check \\typeof(o) == \\typeof(o);\n" 
+                + "    //@ check \\typeof(o) == \\type(Object);\n"
+                + "    //@ check !(\\typeof(o) <: \\type(Object));\n" 
+                + "    //@ check \\typeof(o) <:= \\type(Object);\n" 
                 + "  }\n"
                 + "  public void m1a(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) != \\type(Object);\n" 
+                + "    //@ check \\typeof(o) != \\type(Object);\n" 
                 + "  }\n"
                 + "  public void m2(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\type(Object);\n" 
+                + "    //@ check \\typeof(o) == \\type(Object);\n" 
                 + "  }\n"
                 + "  public void m2a(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\typeof(o) == \\type(TestJava);\n" 
+                + "    //@ check \\typeof(o) == \\type(TestJava);\n" 
                 + "  }\n"
                 + "  public void m3(/*@non_null*/Object o) {\n" 
                 + "    //@ assume \\typeof(o) == \\type(Object);\n"
-                + "    //@ assert \\type(TestJava) <: \\typeof(o);\n" 
-                + "    //@ assert \\type(TestJava) <:= \\typeof(o);\n" 
+                + "    //@ check \\type(TestJava) <: \\typeof(o);\n" 
+                + "    //@ check \\type(TestJava) <:= \\typeof(o);\n" 
                 + "  }\n" 
                 + "}",
                 "/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m1a", 9,
@@ -3157,9 +3176,9 @@ public class esc2 extends EscBase {
         helpTCX("tt.TestJava",
                 "package tt; \n" + "public class TestJava { \n" + "  public void m1(/*@non_null*/TestJava o) {\n"
                         + "    //@ assume \\typeof(o) == \\type(TestJava);\n"
-                        + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n"
+                        + "    //@ assert \\typeof(o) <:= \\type(Object);\n" + "  }\n"
                         + "  public void m2(/*@non_null*/TestJava o) {\n"
-                        + "    //@ assert \\typeof(o) <: \\type(Object);\n" + "  }\n" + "}");
+                        + "    //@ assert \\typeof(o) <:= \\type(Object);\n" + "  }\n" + "}");
     }
 
     @Test
@@ -3813,20 +3832,22 @@ public class esc2 extends EscBase {
         expectedExit = 0;
         addOptions("--esc-max-warnings=10");
         helpTCX("tt.TestJava",
-                          "package tt; //@ nullable_by_default \n" 
-                        + "public class TestJava  { \n" 
-                        + "  /*@ requires o != null; \n"
-                        + "      ensures \\result == (j>=0); \n"
-                        + "     spec_pure */ public static boolean positive(Object o, int j) { \n"
-                        + "         return j >= 0; }\n"
-                        + "  public int j; \n"
-                        + "  //@ signals (NullPointerException e) positive(null,j); \n"
-                        + "  //@ signals (NegativeArraySizeException e) positive(null,j); \n"
-                        + "  public void m0(int i, Object o) {\n"
-                        + "      if (i == 1) { j = -2; throw new NullPointerException(); }\n" 
-                        + "      if (i == 2) { j = -1; throw new NegativeArraySizeException(); }\n" 
-                        + "  }\n" 
-                        + "}"
+                        """
+                        package tt; //@ nullable_by_default
+                        public class TestJava  {
+                          /*@ requires o != null;
+                              ensures \\result == (j>=0);
+                             spec_pure */ public static boolean positive(Object o, int j) {
+                                 return j >= 0; }
+                          public int j;
+                          //@ signals (NullPointerException e) positive(null,j);
+                          //@ signals (NegativeArraySizeException e) positive(null,j);
+                          public void m0(int i, Object o) {
+                              if (i == 1) { j = -2; throw new NullPointerException(); }
+                              if (i == 2) { j = -1; throw new NegativeArraySizeException(); }
+                          }
+                        }
+                        """
                         ,anyorder(seq(
                  "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:5: warning: Associated declaration",41
@@ -3998,16 +4019,16 @@ public class esc2 extends EscBase {
                         );
     }
 
-    @Test
+    @Test // tests show statement; watch out for nondeterministic behavior
     public void testShowStatementESC() {
         expectedExit = 0;
-        addOptions("-code-math=bigint","-method=m","-escMaxWarnings=1");
+        addOptions("--code-math=java","--method=m","--esc-max-warnings=1");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
                         + "  public static class Key { public int k; } \n"
                         + "  //@ public normal_behavior \n"
-                        + "  //@   requires true; \n"
+                        + "  //@   requires i <= 1 && j >= 0; \n"
                         + "  public static void m(int i, int j) {\n"
                         + "     //@ show i, j+1;\n"
                         + "     int k = i+j;\n"
@@ -4015,7 +4036,7 @@ public class esc2 extends EscBase {
                         + "     //@ assert k > 0;\n"
                         + "     int m = i-j;\n"
                         + "     //@ show m,k;\n"
-                        + "     //@ assert m > 0;\n"
+                        + "     //@ assert m >= 0;\n"
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: Show statement expression i has value 0",15
@@ -4030,7 +4051,7 @@ public class esc2 extends EscBase {
     @Test
     public void testShowStatement() {
         expectedExit = 0;
-        addOptions("-lang=jml");
+        addOptions("--lang=jml");
         helpTCX("tt.TestJava",
                 "package tt; \n" 
                         + "public class TestJava  { \n" 
@@ -4042,7 +4063,6 @@ public class esc2 extends EscBase {
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
-                        //,"$SPECS/specs/java/util/stream/Stream.jml:$STRL: warning: The \\count construct is an OpenJML extension to JML and not allowed under -lang=jml",37
                   ); 
     }
 
@@ -4080,7 +4100,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  public static class Key { public int k; } \n"
                         + "  //@ public normal_behavior \n"
-                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <:= \\type(Key); \n"
                         + "  public static void m(Key[] k) {\n"
                         + "  //@   assert k != null; \n"
                         + "     Key[] kk = java.util.Arrays.copyOfRange(k,0,k.length);\n"
@@ -4099,7 +4119,7 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  public static class Key { public int k; } \n"
                         + "  //@ public normal_behavior \n"
-                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <: \\type(Key); \n"
+                        + "  //@   requires k != null && \\nonnullelements(k) && \\elemtype(\\typeof(k)) <:= \\type(Key); \n"
                         + "  public static void m(Key[] k) {\n"
                         + "     Key[] kk = java.util.Arrays.<Key>copyOfRange(k,0,k.length);\n"
                         + "     //@ assert kk != null;\n"
@@ -4134,18 +4154,30 @@ public class esc2 extends EscBase {
                         + "public class TestJava  { \n" 
                         + "  public void m() {\n"
                         + "  //@ ghost int i = 2;\n"
-                        + "  //@ assert 0 <= i < 10 < 12;\n"
+                        + "  //@ check  0 <= i < 10 < 12;\n"
                         + "  //@ set i = 10;\n"
-                        + "  //@ assert !(0 <= i < 10);\n"
-                        + "  //@ assert 0 <= i < 11 == 2 <= i <= 12;\n"
-                        + "  //@ assert 11 >= i+1 > 1 == 12 >= i > 2;\n"
-                        + "  //@ assert 11 >= i+1 < 12;\n" // ERROR
-                        + "  //@ assert 11 >= i+1 < 12 == true;\n" // ERROR
-                        + "  //@ assert 11 >= i+1 > 1 != 12 <= i <= 22;\n" // OK but bad style
+                        + "  //@ check  !(0 <= i < 10);\n"
+                        + "  //@ check  0 <= i < 11 == 2 <= i <= 12;\n"
+                        + "  //@ check  11 >= i+1 > 1 == 12 >= i > 2;\n"
+                        + "  //@ check  11 >= i+1 < 12;\n" // ERROR
+                        + "  //@ check  11 >= i+1 <= 12 == true;\n" // ERROR
+                        + "  //@ check  11 > i+1 < 12;\n" // ERROR
+                        + "  //@ check  11 > i+1 <= 12 == true;\n" // ERROR
+                        + "  //@ check  11 >= i+1 > 1 != 12 <= i <= 22;\n" // OK but bad style
+                        + "  //@ check  11 < i+1 > 12;\n" // ERROR
+                        + "  //@ check  11 < i+1 >= 12;\n" // ERROR
+                        + "  //@ check  11 <= i+1 > 12;\n" // ERROR
+                        + "  //@ check  11 <= i+1 >= 12;\n" // ERROR
                         + "  }\n"
                         + "}\n"
                         ,"/tt/TestJava.java:10: error: Cannot chain comparisons that are in different directions",17
                         ,"/tt/TestJava.java:11: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:12: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:13: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:15: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:16: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:17: error: Cannot chain comparisons that are in different directions",17
+                        ,"/tt/TestJava.java:18: error: Cannot chain comparisons that are in different directions",17
                         );
     }
 
@@ -4217,6 +4249,71 @@ public class esc2 extends EscBase {
     }
 
     @Test
+    public void testAllowForbid6() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    int i = t.iii;\n"
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m", 14
+                        );
+    }
+
+    @Test
+    public void testAllowForbid7() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  //@ signals_only NullPointerException;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    int i = t.iii;\n"  // OK NullPointerException permitted
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testAllowForbid8() {
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "    try { \n"
+                        + "      int i = t.iii;\n"  // OK NullPointerException permitted
+                        + "      i = t.iii;\n"
+                        + " } catch (NullPointerException e) {}\n"
+                        + "  }\n"
+                        + "}\n"
+                        );
+    }
+
+    @Test
+    public void testAllowForbid9() {
+        addOptions("--check-feasibility=reachable");
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "public class TestJava  { \n" 
+                        + "  public int iii;\n"
+                        + "  public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {\n"
+                        + "     //@ assume t == null;\n"
+                        + "    int i = t.iii; //@ ignore NullPointerException; \n"
+                        + "    //@ reachable; // ERROR"
+                        + "    i = t.iii;\n"
+                        + "  }\n"
+                        + "}\n"
+                        ,"/tt/TestJava.java:7: warning: There is no feasible path to program point at reachable statement in method tt.TestJava.m(tt.@org.jmlspecs.annotation.Nullable TestJava,tt.@org.jmlspecs.annotation.Nullable TestJava)",9
+                        );
+    }
+
+
+    @Test
     public void testAllowForbid() {
         expectedExit = 1;
         helpTCX("tt.TestJava",
@@ -4255,5 +4352,42 @@ public class esc2 extends EscBase {
     			+ "}\n"
     			);
     }
+    
+    @Test
+    public void testBRC() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void m1() {
+                    //@ refining
+                    //@   returns true;
+                    //@   continues false;
+                    //@   breaks true;
+                    {}
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: Not implemented for static checking: returns clause", 11
+                ,"/tt/TestJava.java:6: warning: Not implemented for static checking: continues clause", 11
+                ,"/tt/TestJava.java:7: warning: Not implemented for static checking: breaks clause", 11
+                );
+        
+    }
+
+    @Test
+    public void testAccessibleDefault() {
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ accessible \\nothing;\n"
+                +"  int m() { return i; }\n"
+                +"  int i;\n"
+                +"}"
+                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Accessible) in method m: i",20
+                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                );
+    }
+
+
 
 }

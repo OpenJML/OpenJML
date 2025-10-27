@@ -55,6 +55,9 @@ public class SingletonExpressions extends JmlExtension {
                 // allowing other error reports about the same token
                 Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.keyword());
                 t = attr.syms.errType;
+            } else if (attr.jmlenv.inRefinementSpec) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result.refining", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             }
             that.type = t;
             return t;
@@ -148,6 +151,9 @@ public class SingletonExpressions extends JmlExtension {
                 // allowing other error reports about the same token
                 Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.keyword());
                 t = attr.syms.errType;
+            } else if (attr.jmlenv.inRefinementSpec) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception.refining", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             } else {
                 t = attr.jmlenv.currentExceptionType;
             }
@@ -164,6 +170,9 @@ public class SingletonExpressions extends JmlExtension {
     public static final IJmlClauseKind locksetKind = new SingletonExpressionKind(locksetID) {
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
+            if (attr.jmlenv.currentClauseKind == TypeExprClauseExtension.axiomClause) {
+                Utils.instance(attr.context).error(that, "jml.message", "a \\locksest expression is not permitted in an axiom clause");
+            }
             return attr.JMLSetType;
         }
     };
@@ -198,5 +207,9 @@ public class SingletonExpressions extends JmlExtension {
     public static final LabelKind oldLabelKind = new LabelKind(oldLabelID);
     public static final String hereLabelID = "\\Here";
     public static final LabelKind hereLabelKind = new LabelKind(hereLabelID);
+    public static final String loopinitLabelID = org.jmlspecs.openjml.Strings.loopinitLabelBuiltin;
+    public static final LabelKind loopinitLabelKind = new LabelKind(loopinitLabelID);
+    public static final String loopbodyLabelID = org.jmlspecs.openjml.Strings.loopbodyLabelBuiltin;
+    public static final LabelKind loopbodyLabelKind = new LabelKind(loopbodyLabelID);
 }
 

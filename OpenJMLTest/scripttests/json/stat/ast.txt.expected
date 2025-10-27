@@ -17,7 +17,61 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: i
       JCIdent: i
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JmlVariableDecl: r
+        JCIdent: PrintStream
+      JCIdent: this
       JCIdent: i
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: a
+      JmlVariableDecl: e
+      JCIdent: a
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: j
+        JCIdent: \bigint
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JmlVariableDecl: o
+        JCAnnotatedType
+          JCIdent: Nullable
+          JCIdent: Object
+      JCIdent: i
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Record
+    JmlClassDecl: R
+      JmlVariableDecl: i
+      JmlVariableDecl: j
+    JmlMethodDecl: p
+      JmlVariableDecl: r
+        JCIdent: Record
+      JmlVariableDecl: p
+        JCIdent: r
+        JCMethodInvocation
+          JCIdent: R
+          JCIdent: ii
+          JCIdent: jj
+      JCIdent: k
+      JCIdent: k
+      JCIdent: k
+      JCIdent: k
+      JmlVariableDecl: k
+      JCIdent: k
+      JCIdent: k
+      JmlVariableDecl: a
+      JmlVariableDecl: e
+      JCIdent: a
 
 JmlCompilationUnit
   JmlImport model
@@ -38,5 +92,29 @@ JmlCompilationUnit
       JCIdent: b
       JCIdent: i
       JCIdent: i
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JmlVariableDecl: r
+        JCIdent: PrintStream
+      JCIdent: this
+      JCIdent: i
+      JmlVariableDecl: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: a
+      JmlVariableDecl: e
+      JCIdent: a
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JCIdent: i
+      JmlVariableDecl: j
+        JCIdent: \bigint
+      JmlVariableDecl: e
+        JCIdent: Exception
+      JmlVariableDecl: o
+        JCAnnotatedType
+          JCIdent: Nullable
+          JCIdent: Object
       JCIdent: i
 

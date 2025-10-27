@@ -76,6 +76,21 @@ public class escfiles2 extends EscBaseFiles {
         helpTCG();
     }
     
+    @Test
+    public void gitbug761() {
+        helpTCG("--check");
+    }
+    
+    @Test
+    public void gitbug762() {
+        helpTCG("--check");
+    }
+    
+    @Test
+    public void gitbug780a() {
+        helpTCG("--method=marray");
+    }
+    
     @Test @Ignore // FIXME - times out in attempting to prove
     public void gitbug802() {
         helpTCG();
@@ -93,6 +108,73 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug861() {
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug869() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    // gitbug877 is in escall3 as testSwitch
+    
+    @Test
+    public void gitbug879() {
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug812crash() {
+        expectedExit = 1;
+        helpTCG();
+    }
+
+    @Test
+    public void gitbug872() {
+        helpTCG();
+    }
+
+    @Test
+    public void gitbug873() {
+        helpTCG("--check");
+    }
+    
+    @Test
+    public void gitbug875() {
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug898() {
+        expectedExit = 1;
+        helpTCG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898a() {
+        expectedExit = 1;
+        helpTCG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898b() {
+        helpTCG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug899() {
+        expectedExit = 1;
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug901() {
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug901a() {
         helpTCG();
     }
     
@@ -205,7 +287,7 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test public void sfpatch25() {
-        helpTCN("--esc","--quiet");
+        helpTCN("--esc","--normal");
     }
     
     @Ignore // FIXME very long
@@ -265,6 +347,14 @@ public class escfiles2 extends EscBaseFiles {
     }
     
 
+    @Test public void termination() {
+        helpTCN("--esc", "--progress", "--warn=missing-measured-by");
+    }
+    
+    @Test public void terminationBad() {
+        helpTCN("--esc", "--progress", "--warn=missing-measured-by");
+    }
+    
 
 
 }

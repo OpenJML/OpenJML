@@ -218,7 +218,6 @@ public class prettyprinting extends ParseBase {
                 "    a = 5;" + eol +
                 "    ;" + eol + 
                 "    a += 5;" + eol +
-                "    /*@ choose { a = 6; } or { assume a == 6; a = 7; } else { a = 7; } */" + eol +
                 "  }" + eol +
                 "}"
         );

@@ -181,7 +181,7 @@ public class Log extends AbstractLog {
 
     /** The maximum number of errors/warnings that are reported.
      */
-    protected int MaxErrors;
+    public int MaxErrors; // OPENJML -- protected to public
     protected int MaxWarnings;
 
     /** Switch: prompt user on each error.
@@ -338,8 +338,10 @@ public class Log extends AbstractLog {
         final Options options = Options.instance(context);
         initOptions(options);
         options.addListener(() -> initOptions(options));
+        this.context = context; // OPENJML
     }
     // where
+        private Context context; // OPENJML
         private void initOptions(Options options) {
             this.dumpOnError = options.isSet(DOE);
             this.promptOnError = options.isSet(PROMPT);
@@ -733,6 +735,7 @@ public class Log extends AbstractLog {
      * Write out a diagnostic.
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
+        if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).jmlverbose == 0) return; // OPENJML)
         if (diagListener != null) {
             diagListener.report(diag);
             return;

@@ -103,12 +103,15 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 	
 	/** Holds the value of an environment variable that is the absolute path to
-	 *  the installation directory for openjml. That is Main.root contains the 'specs' directory
-	 *  and Solvers-macos etc. If the desired resources are not found in this location, then
-	 *  it is presumed that openjml is being executed in a development envirnment where the
-	 *  structure is slightly different.
+	 *  the installation directory for openjml. In a release installation,
+	 *  root, specs, solvers are the same (as of this writing).
+	 *  In a development environment, they are different -- OPENJML_INSTALL is the OpenJML21 folder, holding openjml, openjml-java etc.
 	 */
-	public static final String root = System.getenv("OPENJML_ROOT");
+    public static final String install = System.getenv("OPENJML_INSTALL");
+    /** Absolute path to the folder that holds the 'specs' directory */
+    public static final String specs = System.getenv("OPENJML_SPECS") != null ? System.getenv("OPENJML_SPECS") : System.getenv("OPENJML_INSTALL");
+    /** Absolute path to the folder holding Solvers-macos, etc. */
+    public static final String solvers = System.getenv("OPENJML_SOLVERS") != null ? System.getenv("OPENJML_SOLVERS") : System.getenv("OPENJML_INSTALL");
     
     // FIXME - get rid of this when we figure out how to control the entry point of the jdk image 
     public static boolean useJML = false;
@@ -760,7 +763,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     /** An Enum type that gives a choice of various tools to be executed. */
     public static enum Cmd {
-        CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
+        PARSE("parse"), CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }

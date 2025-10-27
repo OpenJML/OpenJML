@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Helper.violate() with prover !!!! - no warnings
 Starting proof of Helper.incrementAndGet() with prover !!!!
-test/gitbug598a/Helper.java:26: warning: The prover cannot establish an assertion (InvariantExceptionExit) in method incrementAndGet
+test/gitbug598a/Helper.java:26: warning: The prover cannot establish an assertion (InvariantExit) in method incrementAndGet
 		violate(); // Specs allow an exceptional exit here, in which case the invariant is not satisfied
 		       ^
 test/gitbug598a/Helper.java:6: warning: Associated declaration

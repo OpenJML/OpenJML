@@ -1,0 +1,100 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.main(String...) with prover !!!! - no warnings
+Starting proof of Test.errors1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.errors1() with prover !!!! - no warnings
+Starting proof of Test.errors2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.errors2() with prover !!!! - no warnings
+Starting proof of Test.errors3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.errors3() with prover !!!! - no warnings
+Starting proof of Test.errors4() with prover !!!!
+test/jmlTYPE/Test.java:71: warning: The prover cannot establish an assertion (IllegalArgument) in method errors4
+            //@ ghost var c = \elemtype(\type(Integer)); // ERROR
+                                       ^
+Completed proof of Test.errors4() with prover !!!! - with warnings
+Starting proof of Test.errors5() with prover !!!!
+test/jmlTYPE/Test.java:79: warning: The prover cannot establish an assertion (NullFormal) in method errors5: arg0 in equals(Object)
+            //@ check \type(Integer).equals(null); // ERROR
+                                            ^
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:126: warning: Associated declaration
+    public boolean equals(Object o);
+                          ^
+Completed proof of Test.errors5() with prover !!!! - with warnings
+Starting proof of Test.errors6() with prover !!!!
+test/jmlTYPE/Test.java:87: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
+            //@ check \type(Integer).equals(o); // ERROR
+                                           ^
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:126: warning: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:124: warning: Precondition conjunct is false: false
+    //@  requires false; // Use eq(t) instead
+                  ^
+Completed proof of Test.errors6() with prover !!!! - with warnings
+Starting proof of Test.eqTests(\TYPE,\TYPE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.eqTests(\TYPE,\TYPE) with prover !!!! - no warnings
+Starting proof of Test.m(\TYPE) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m(\TYPE) with prover !!!! - no warnings
+Starting proof of Test.subtypeTests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.subtypeTests() with prover !!!! - no warnings
+Starting proof of Test.elemtypeTests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.elemtypeTests() with prover !!!! - no warnings
+Starting proof of Test.showTest() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.showTest() with prover !!!! - no warnings
+Starting proof of Test.mc(Class<?>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mc(Class<?>) with prover !!!! - no warnings
+Starting proof of Test.typeargTests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.typeargTests() with prover !!!! - no warnings
+Starting proof of Test.numargTests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.numargTests() with prover !!!! - no warnings
+Starting proof of Test.misc1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.misc1() with prover !!!! - no warnings
+Starting proof of Test.misc2() with prover !!!!
+test/jmlTYPE/Test.java:168: warning: The prover cannot establish an assertion (NullFormal) in method misc2: arg0 in of(Class<?>)
+            //@ ghost \TYPE tt = \TYPE.of(c); // ERROR -- c is null
+                                          ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/TYPE.jml:21: warning: Associated declaration
+    public static TYPE of(Class<?> h);
+                          ^
+Completed proof of Test.misc2() with prover !!!! - with warnings
+Skipping proof of Test.misc3() (excluded by skipesc)
+Starting proof of Test.typelcTests() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.typelcTests() with prover !!!! - no warnings
+Starting proof of Test.typelcTests2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.typelcTests2() with prover !!!! - no warnings
+Completed proving methods in Test
+8 warnings

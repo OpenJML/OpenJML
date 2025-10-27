@@ -1,16 +1,18 @@
 
 TRACE of tt.TestJava.m1(int)
-/tt/TestJava.java:4:  	int j = 5
+/tt/TestJava.java:1: 	requires true; 
+			VALUE: true	 === true
+/tt/TestJava.java:4: 	int j = 5
 			VALUE: 5	 === 5
 			VALUE: j	 === 5
-/tt/TestJava.java:5:  	j = j + i
+/tt/TestJava.java:5: 	j = j + i
 			VALUE: j	 === 5
 			VALUE: i	 === 2
 			VALUE: j + i	 === 7
 			VALUE: j = j + i	 === 7
-/tt/TestJava.java:6:  	assert Assert j != 7;
+/tt/TestJava.java:6: 	assert Assert j != 7;
 			VALUE: j	 === 7
 			VALUE: 7	 === 7
 			VALUE: j != 7	 === false
-/tt/TestJava.java:6:  Invalid assertion (Assert)
+/tt/TestJava.java:6: Invalid assertion (Assert)
 

@@ -7,3 +7,12 @@ public class Test<T,U> {
     Class<?> m() { return null; }
     
 }
+
+class ClassType {
+}
+
+interface InterfaceType {
+}
+
+
+class ZZ<T extends ClassType & InterfaceType> {}  // FIXME - not an intersection type

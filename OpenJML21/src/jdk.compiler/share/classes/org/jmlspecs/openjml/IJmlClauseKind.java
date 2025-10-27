@@ -262,7 +262,7 @@ public abstract class IJmlClauseKind {
     abstract public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env);
     
     /** returns true if strict adherence to JML is required (language option is jml) */
-    public boolean requireStrictJML() {
+    public boolean requireStrictJML() { // duplicates method in JmlAttr
         return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
     }
     
@@ -418,7 +418,6 @@ public abstract class IJmlClauseKind {
                 t = attr.check(e, t, KindSelector.VAL, resultInfo );
                 if (t.isErroneous()) ok = false;
                 if (e.type == null) Utils.dumpStack("Type not set for " + e + " " + args);
-              //  System.out.println("  ATTRIB " + t + " " + e.type);
             }
             return ok;
 //            ListBuffer<Type> argTypes = new ListBuffer<>();
@@ -645,7 +644,7 @@ public abstract class IJmlClauseKind {
                 id = parser.jmlF.at(p).Select(id, n);
                 first = false;
                 if (n == parser.names.asterisk) {
-                    return parser.jmlF.at(initpos).JmlConstraintMethodSig(id, null);
+                    return parser.jmlF.at(initpos).JmlMethodSig(id, null);
                 }
             }
         }
@@ -671,7 +670,7 @@ public abstract class IJmlClauseKind {
                 parser.nextToken(); // consume the RPAREN
             }
         }
-        return parser.jmlF.at(initpos).JmlConstraintMethodSig(id,
+        return parser.jmlF.at(initpos).JmlMethodSig(id,
                 args == null ? null : args.toList());
     }
 }

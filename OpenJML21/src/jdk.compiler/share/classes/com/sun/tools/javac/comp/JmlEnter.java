@@ -45,6 +45,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.ModuleSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.code.Kinds.KindName;
 import com.sun.tools.javac.code.Scope.WriteableScope;
 import com.sun.tools.javac.code.Type.ClassType;
@@ -151,12 +152,15 @@ public class JmlEnter extends Enter {
 	}
 
 	/** The context in which this instance was created. */
-	/* @non_null */
+	/* non_null */
 	final protected Context context;
 
 	/** A cached value of the Utils tool */
-	/* @non_null */
+	/* non_null */
 	final protected Utils utils;
+	
+    /* non_null */
+	final protected JmlTypes types;
 
 	/**
 	 * This is a toplevel environment used for resolving synthetic fully-qualified
@@ -175,7 +179,8 @@ public class JmlEnter extends Enter {
 	protected JmlEnter(Context context) {
 		super(context); // automatically registers the new object
 		this.context = context;
-		this.utils = Utils.instance(context);
+        this.utils = Utils.instance(context);
+        this.types = JmlTypes.instance(context);
 		var m = JmlTree.Maker.instance(context);
 		var q = (JCFieldAccess)m.QualIdent("org", "jmlspecs", "lang");
 		var p = m.PackageDecl(List.<JCAnnotation>nil(), q);
@@ -1071,7 +1076,7 @@ public class JmlEnter extends Enter {
 	public Env<AttrContext> methodEnv;
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
-		boolean print = false;// mdecl.name.toString().equals("toString") && csym.toString().equals("java.lang.Object");
+		boolean print = false;//mdecl.name.toString().equals("of") && csym.toString().equals("java.util.stream.Stream");
 		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv + " " + mdecl.specsDecl);
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = utils.isJML(csym.flags());
@@ -1164,7 +1169,7 @@ public class JmlEnter extends Enter {
 			if (debugEnter) System.out.println("enter: Entered JML method: " + msym + " (owner: " + csym + ")");
 		} else {
 			// Found a matching Java binary method
-			//if (print) System.out.println("MATCHED " + msym);
+			if (print) System.out.println("MATCHED " + msym);
 			boolean matchIsJML = utils.isJML(msym.flags());
 			JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).get(msym); // Raw get to see if specs are present
 
@@ -1198,8 +1203,12 @@ public class JmlEnter extends Enter {
 				return false;
 			}
 			typeEnvs.put(csym, specsEnv);
+			// Need to copy types into the spec declaration to be sure that we get the Java type
+			// symbols for type variables
 			if (mdecl.restype != null) {
-				Type t = Attr.instance(context).attribType(mdecl.restype, csym);
+			    if (print) System.out.println("JME " + msym.getReturnType() + " " + mdecl.restype);
+				// FIXME
+			    Type t = Attr.instance(context).attribType(mdecl.restype, csym);
 				// The difficulty here is that TypeVars show up as different types,
 				// and that binary types are erased, so do not have type arguments.
 				try {
@@ -1213,19 +1222,35 @@ public class JmlEnter extends Enter {
 							msym.enclClass().fullname + "." + msym.toString(), t, msym.getReturnType());
 				}
 			}
-			
-//			// FIXME - move to Attr
-//			if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
-//				utils.error(mdecl.source(), mdecl.body, "jml.message",
-//						"The specification of the method " + csym + "." + msym + " must not have a body");
-//				;
-//			}
+			// FIXME - why does the escfiles.enums test fail without this guard
+			if (!(msym.owner == Symtab.instance(context).enumSym && msym.name == names.valueOf)) {
+			    if (mdecl.restype != null) {
+	                mdecl.restype.type = msym.getReturnType();
+			    }
+			    int k = 0;
+			    for (var p: mdecl.params) {
+			        p.type = msym.params.get(k).type;
+			        p.sym.type = p.type;
+			        k++;
+			    }
+			    k = 0;
+			    for (var p: mdecl.typarams) {
+			        p.type = msym.getTypeParameters().get(k).type;
+			        k++;
+			    }
+			}
+
+//            // FIXME - moved to Attr - delete if tests are OK
+//            if (!isModel && mdecl.body != null && ((msym.flags() & Flags.GENERATEDCONSTR) == 0)) {
+//                utils.error(mdecl.source(), mdecl.body, "jml.message",
+//                        "The specification of the method " + csym + "." + msym + " must not have a body");
+//                ;
+//            }
 
 			// Either
 			// 0) There is no Java declaration, just a (model/ghost) spec declaration --
 			// that is the case above with msym == null
-			// 1) Just binary, no source Java declaration, and a jml declaration: javaMDecl
-			// == null
+			// 1) Just binary, no source Java declaration, and a jml declaration: javaMDecl == null
 			// 2) Java and JML are the same file: javaMDecl == mdecl
 			// 3) Java and JML are different files: javaMDecl != null, javaMDecl != mdecl
 			// Note that the javaSym may have already been used for attribution of other
@@ -1589,6 +1614,7 @@ public class JmlEnter extends Enter {
 		return true;
 	}
 
+	// REVIEW - I believe this is adapted from TypeEnter in order to attribute classes in .jml files here
 	protected void attribSuperTypes(Env<AttrContext> env, Env<AttrContext> baseEnv) {
 		JmlAttr attr = JmlAttr.instance(context);
 		JCClassDecl tree = env.enclClass;
@@ -1597,43 +1623,43 @@ public class JmlEnter extends Enter {
 		// Determine supertype.
 		Type supertype;
 		JCExpression extending;
-		// if (org.jmlspecs.openjml.Utils.isJML())
-		// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES " +
-		// tree.name + " " + sym + " " + ct + " " + tree.extending + " : " +
-		// tree.implementing);
 
 		if (tree.extending != null) {
-			extending = clearTypeParams(tree.extending);
-			supertype = attr.attribBase(extending, baseEnv, tree, true, false, true);
-			if (supertype == syms.recordType) {
-				log.error(tree, Errors.InvalidSupertypeRecord(supertype.tsym));
-			}
-			tree.extending.type = supertype;
+            extending = clearTypeParams(tree.extending);
+            supertype = attr.attribBase(extending, baseEnv, tree, true, false, true);
+            if (supertype == syms.recordType) {
+                log.error(tree, Errors.InvalidSupertypeRecord(supertype.tsym));
+            }
+            if (tree.extending.type != supertype) {
+                utils.warning(tree.extending, "jml.message", "Declared superclass for " + sym + " already has a type: " + tree.extending.type);
+            }
+            tree.extending.type = supertype; // FIXME - is this necessary after attribBase?
+	        if (sym.getSuperclass().tsym != supertype.tsym) {
+                utils.error(tree.extending, "jml.message", "Super class declared in .jml does not match that in the .java file: " + supertype + " vs. " + sym.getSuperclass());
+	        }
 		} else {
 			extending = null;
 			supertype = ((tree.mods.flags & Flags.ENUM) != 0)
 					? attr.attribBase(enumBase(tree.pos, sym), baseEnv, tree, true, false, false)
 					: (sym.fullname == names.java_lang_Object) ? Type.noType
 							: sym.isRecord() ? syms.recordType : syms.objectType;
+            if (sym.getSuperclass().tsym != supertype.tsym && sym.getSuperclass() != Type.noType) {
+                utils.error(tree.extending, "jml.message", "No super class is declared in .jml for " + sym + ", but the .java file declares: " + sym.getSuperclass());
+            }
 		}
-		ct.supertype_field = supertype;
+		if (ct.supertype_field != null && ct.supertype_field.tsym != supertype.tsym) {
+		    utils.warning(tree, "jml.message", "Changing supertype " + sym + " " + ct.supertype_field + " " + supertype);
+		}
+		// FIXME - ct.supertype_field is already set, but not overwriting it here causes all manner of errors. Not sure why.
+        ct.supertype_field = supertype;
 
 		// Determine interfaces.
 		ListBuffer<Type> interfaces = new ListBuffer<>();
 		ListBuffer<Type> all_interfaces = null; // lazy init
 		List<JCExpression> interfaceTrees = tree.implementing;
 		for (JCExpression iface : interfaceTrees) {
-			// if (org.jmlspecs.openjml.Utils.isJML())
-			// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-A " + iface
-			// + " " + ct);
 			iface = clearTypeParams(iface);
-			// if (org.jmlspecs.openjml.Utils.isJML())
-			// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-B " + iface
-			// );
 			Type it = attr.attribBase(iface, baseEnv, tree, false, true, true);
-			// if (org.jmlspecs.openjml.Utils.isJML())
-			// ((JmlAttr)attr).utils.warning(tree.pos,"jml.message","ASUPERTYPES-C " + iface
-			// + " " + it);
 			iface.type = it;
 			if (it.hasTag(CLASS)) {
 				interfaces.append(it);
@@ -1642,7 +1668,6 @@ public class JmlEnter extends Enter {
 			} else {
 				if (all_interfaces == null)
 					all_interfaces = new ListBuffer<Type>().appendList(interfaces);
-				// all_interfaces.append(modelMissingTypes(baseEnv, it, iface, true));
 			}
 		}
 
@@ -1654,13 +1679,40 @@ public class JmlEnter extends Enter {
 //            permittedSubtypeSymbols.append(pt.tsym);
 //        }
 //
-		if ((sym.flags_field & Flags.ANNOTATION) != 0) {
-			ct.interfaces_field = List.of(syms.annotationType);
-			ct.all_interfaces_field = ct.interfaces_field;
+		// FIXME - We might be calling this method for a class declared in a JML file for which there exists 
+		// a Java or Binary class already. If we do not overwrite the fields of ct, we get all manner of 
+		// specification related errors, but overwriting with bad superclass or interface information also
+		// causes problems.		
+		
+		if (ct.interfaces_field == null) {
+		    System.out.println("Overwriting interface information: " + sym);
 		} else {
-			ct.interfaces_field = interfaces.toList();
-			ct.all_interfaces_field = (all_interfaces == null) ? ct.interfaces_field : all_interfaces.toList();
+		    // Compare ct.interfaces_field and interfaces
+		    x: for (var ifc: ct.interfaces_field) {
+		        for (var ifcc: interfaceTrees) {
+		            if (ifc.tsym == ifcc.type.tsym) continue x;
+		        }
+		        // FIXME - when were these introduced and do we need to care about them
+		        if (ifc.toString().equals("java.lang.constant.Constable")) {}
+		        else if (ifc.toString().equals("java.lang.constant.ConstantDesc")) {}
+		        else if (sym.isAnnotationType() && ifc.toString().equals("java.lang.annotation.Annotation")) {}
+		        else 
+		            utils.error(tree, "jml.message", "The .jml declaration of " + sym + " does not declare an interface declared by the Java class: " + ifc);
+		    }
+            y: for (var ifcc: interfaceTrees) {
+                for (var ifc: ct.interfaces_field) {
+                    if (ifc.tsym == ifcc.type.tsym) continue y;
+                }
+                utils.error(ifcc, "jml.message", "The .jml declaration of " + sym + " declares an interface not declared by the Java class: " + ifcc.type);
+            }
 		}
+        if ((sym.flags_field & Flags.ANNOTATION) != 0) {
+            ct.interfaces_field = List.of(syms.annotationType);
+            ct.all_interfaces_field = ct.interfaces_field;
+        } else {
+            ct.interfaces_field = interfaces.toList();
+            ct.all_interfaces_field = (all_interfaces == null) ? ct.interfaces_field : all_interfaces.toList();
+        }
 //
 //        /* it could be that there are already some symbols in the permitted list, for the case
 //         * where there are subtypes in the same compilation unit but the permits list is empty
@@ -1789,7 +1841,7 @@ public class JmlEnter extends Enter {
 								+ binaryEnterTodo.contains(csymbol) + " " + csymbol.hashCode());
 					binaryEnterTodo.prepend(csymbol);
 					
-					if (!utils.isExtensionValueType(csymbol.type)) {
+					if (!types.isJmlType(csymbol.type)) {
 					    for (Type t : csymbol.getInterfaces()) {
 					        requestSpecs((ClassSymbol) t.tsym);
 					    }
@@ -1863,9 +1915,7 @@ public class JmlEnter extends Enter {
 				} else {
 				    // No specs -- binary with no .jml file
 				    recordEmptySpecs(csymbol); // so we don't keep trying to load it
-				    if (org.jmlspecs.openjml.JmlOptions.instance(context).warningKeys.getOrDefault("missing-specs", false)) {
-				        utils.warning("jml.message", "[missing-specs] No specifications file found for binary " + csymbol);
-				    }
+				    utils.warningCategory(org.jmlspecs.openjml.WarningCategory.MISSING_SPECS,"No specifications file found for binary " + csymbol);
 				}
 
 			} finally {

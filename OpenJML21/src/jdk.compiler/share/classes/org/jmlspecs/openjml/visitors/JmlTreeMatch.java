@@ -752,11 +752,6 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.sigs);
 //    }
 //
-//    public void visitJmlTypeClauseDecl(JmlTypeClauseDecl tree) {
-//        scan(tree.modifiers);
-//        scan(tree.decl);
-//    }
-//
 //    public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
 //        scan(tree.modifiers);
 //        scan(tree.expression);

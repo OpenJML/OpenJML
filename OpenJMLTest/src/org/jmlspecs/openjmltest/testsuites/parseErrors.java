@@ -93,6 +93,7 @@ public class parseErrors extends ParseBase {
     @Test public void prematureTypeListEnd2() {
         checkParseErrors("class A { public A() { /*@ model T<A:B> t; */} }"
                 ,"/TEST.java:1: error: > or ',' expected", 37, 36, 36, 36
+                ,"/TEST.java:1: error: Error in parsed declaration, or misspelled keyword: //@ model T<A, (ERROR)> <error>", 37, 27, 36, 36
                 ,"/TEST.java:1: error: not a statement", 39, 37, 38, 38
                 ,"/TEST.java:1: error: Expected a declaration or a JML construct inside the JML annotation here", 38, 37, 37, 37
                 );

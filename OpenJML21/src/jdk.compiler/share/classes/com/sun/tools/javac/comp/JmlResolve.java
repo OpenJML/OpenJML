@@ -18,7 +18,6 @@ import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Kinds.KindSelector;
-import com.sun.tools.javac.code.JmlType;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.Tag;
@@ -142,6 +141,13 @@ public class JmlResolve extends Resolve {
     protected boolean symbolOK(Symbol e) {
         return allowJML || !utils.isJML(e.flags_field);
     }
+    
+    @Override
+    protected boolean allowInheritance(Type baseType, TypeSymbol s) {
+ //       if (baseType != null && ((JmlTypes)types).isJmlType(baseType) && baseType.tsym != s) return false;
+        return true;
+    }
+
     
     @Override
     Symbol findTypeGlobalDetails(Env<AttrContext> env, Name name, Symbol bestSoFar) {
@@ -398,6 +404,7 @@ public class JmlResolve extends Resolve {
             boolean abstractok) {
     	try {
     		for (Symbol s : sc.getSymbolsByName(name, new JmlLookupFilter(abstractok))) {
+//                if (!symbolOK(s)) continue;  // OPENJML
     			bestSoFar = selectBest(env, site, argtypes, typeargtypes, s,
     					bestSoFar, useVarargs, operator);
     		}
@@ -409,6 +416,7 @@ public class JmlResolve extends Resolve {
     	}
     }
     
+    // FIXME - this seems to duplicate symbolOK() -- an d we would not need to override Resolve.findMethodInScope
     /** This class extends Resolve.LookupFilter to disallow using variables declared in
      * JML within Java code
      */

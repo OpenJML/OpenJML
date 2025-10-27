@@ -1,0 +1,29 @@
+OUT:
+LABEL JMLSHOW_1 = 4000.0
+LABEL JMLSHOW_2 = 42.0
+test/jmlreal/Treal.java:94: verify: JML assertion is false
+        //@ check rlong.equals(null);  // Not allowed
+            ^
+CASTS
+test/jmlreal/Tcasts.java:12: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (short)(z+Short.MAX_VALUE); */
+               ^
+LABEL JMLSHOW_2 = -32719
+test/jmlreal/Tcasts.java:16: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (char)(z+2*Character.MAX_VALUE); */
+               ^
+LABEL JMLSHOW_3 = 0
+test/jmlreal/Tcasts.java:20: verify: JML argument to numeric cast is out of range of the target type
+      /*@ show (int)(z+Integer.MAX_VALUE); */
+               ^
+LABEL JMLSHOW_4 = 2147483647
+LABEL JMLSHOW_5 = 9223372036854775807
+LABEL JMLSHOW_6 = -79
+LABEL JMLSHOW_7 = -32719
+LABEL JMLSHOW_8 = 0
+LABEL JMLSHOW_9 = 2147483647
+LABEL JMLSHOW_10 = 9223372036854775807
+JML double value cast to real is not finite
+JML double value cast to real is not finite
+
+ERR:

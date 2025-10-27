@@ -58,7 +58,7 @@ public class Test {
 	
 	//@ requires a != null && a.length == 10;
 	//@ requires b != null && b.length == 30;
-	//@ requires \elemtype(\typeof(a)) <: \elemtype(\typeof(b));
+	//@ requires \elemtype(\typeof(a)) <:= \elemtype(\typeof(b));
 	//@ assignable b[*];
 	static public void copyObject(Object[] a, Object b[]) {
 		System.arraycopy(a, 0, b, 10, a.length);

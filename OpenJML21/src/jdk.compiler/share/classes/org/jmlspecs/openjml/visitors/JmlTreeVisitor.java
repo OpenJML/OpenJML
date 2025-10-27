@@ -33,7 +33,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlChained(JmlChained that, P p)                   ;
     R visitJmlChoose(JmlChoose that, P p)                     ;
     R visitJmlClassDecl(JmlClassDecl that, P p)               ;
-    R visitJmlConstraintMethodSig(JmlMethodSig that, P p);
+    R visitJmlMethodSig(JmlMethodSig that, P p)               ;
     R visitJmlDoWhileLoop(JmlDoWhileLoop that, P p)           ;
     R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)   ;
     R visitJmlForLoop(JmlForLoop that, P p)                   ;
@@ -79,7 +79,6 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlTuple(JmlTuple that, P p)                       ;
     R visitJmlTypeClauseConditional(JmlTypeClauseConditional that, P p) ;
     R visitJmlTypeClauseConstraint(JmlTypeClauseConstraint that, P p) ;
-    R visitJmlTypeClauseDecl(JmlTypeClauseDecl that, P p)     ;
     R visitJmlTypeClauseExpr(JmlTypeClauseExpr that, P p)     ;
     R visitJmlTypeClauseIn(JmlTypeClauseIn that, P p)         ;
     R visitJmlTypeClauseInitializer(JmlTypeClauseInitializer that, P p) ;

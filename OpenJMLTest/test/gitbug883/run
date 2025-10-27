@@ -1,0 +1,11 @@
+#! /bin/bash
+
+cd $(dirname $BASH_SOURCE[0] )  
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+
+$OJA --esc --esc-max-warnings 1 --check-feasibility=basic --nullable-by-default --timeout 60 --progress MatrixAdd.java -jmltesting > actual
+##$OJA --esc --esc-max-warnings 1 --check-feasibility=all --nullable-by-default --timeout 30 --progress MatrixAdd.java -jmltesting > actual
+
+diff actual expected && rm -rf actual
+

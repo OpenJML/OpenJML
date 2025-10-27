@@ -77,22 +77,6 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void valuetypes() {
-        helpTG();
-    }
-
-    @Test
-    public void valuetypes2() {
-        helpTG();
-    }
-
-    @Test
-    public void valuetypesErr() {
-        expectedExit = 1;
-        helpTFM();
-    }
-
-    @Test
     public void oldproblem() {
         helpTG();
     }
@@ -184,6 +168,12 @@ public class escfiles extends EscBaseFiles {
         helpTG();
     }
 
+    @Test
+    public void esc2DArray2() {
+        expectedExit = 0;
+        helpTG();
+    }
+
     @Test @Ignore // FIXME - axioms for multi-dimensional arrays
     public void esc2DTranspose() {
         expectedExit = 0;
@@ -212,7 +202,13 @@ public class escfiles extends EscBaseFiles {
     @Test
     public void escVector() {
         expectedExit = 0;
-        helpTG("--code-math=java");
+        helpTG("--code-math=java","--exclude=copyIntoOK,copyIntoA");
+    }
+
+    @Test
+    public void escVectorA() {
+        expectedExit = 0;
+        helpTG("--code-math=java","--method=copyIntoOK,copyIntoA");
     }
 
     @Test
@@ -617,7 +613,7 @@ public class escfiles extends EscBaseFiles {
     @Test // Basic problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
     public void factorial() {
         expectedExit = 0;
-        helpTG();//,"-code-math=java");
+        helpTG("--check-feasibility=none");//,"-code-math=java");
     }
 
     @Test @Ignore // FIXME - times out
@@ -676,7 +672,7 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void requiresElse() { // FIXME - why the two different formats of output
+    public void requiresElse() {
         helpTG("--show=program"); // --show=program is part of test results
     }
 
@@ -774,4 +770,5 @@ public class escfiles extends EscBaseFiles {
     public void modelImport7() {
         helpTCF("test/modelImports/Test7.java","test/modelImports/test7","--check","-cp","test/modelImports");
     }
+
 }

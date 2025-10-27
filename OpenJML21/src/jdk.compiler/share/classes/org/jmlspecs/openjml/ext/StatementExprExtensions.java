@@ -63,6 +63,7 @@ public class StatementExprExtensions extends JmlExtension {
         synonym("decreases",loopdecreasesClause);
         synonym("decreasing",loopdecreasesClause);
         synonym("maintaining",loopinvariantClause);
+        synonym("maintains",loopinvariantClause);
     }
     
     public static class StatementExprType extends IJmlClauseKind.Statement {

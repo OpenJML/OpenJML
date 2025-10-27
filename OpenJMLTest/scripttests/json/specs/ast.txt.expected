@@ -1,0 +1,89 @@
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test
+    JmlVariableDecl: b
+    JmlVariableDecl: a
+    JCIdent: b
+    JCIdent: b
+    JCIdent: b
+    JCIdent: b
+    JmlVariableDecl: i
+    JCIdent: i
+    JCIdent: b
+    JmlVariableDecl: k
+    JCIdent: b
+    JCIdent: k
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Method
+    JCIdent: b
+    JCIdent: b
+    JmlVariableDecl: bb
+      JCIdent: b
+    JCIdent: b
+    JCFieldAccess: b this.b
+      JCIdent: this
+    JCFieldAccess: * this.*
+      JCIdent: this
+    JCFieldAccess: x super.x
+      JCIdent: super
+    JCIdent: a
+    JCIdent: a
+    JCIdent: a
+    JCIdent: a
+    JCIdent: b
+    JCIdent: m
+    JCIdent: RuntimeException
+    JmlMethodDecl: m
+      JmlVariableDecl: k
+      JmlVariableDecl: z
+      JCIdent: k
+      JCIdent: b
+      JCIdent: b
+      JCIdent: b
+      JCIdent: b
+      JCIdent: z
+      JCIdent: k
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: StatSpecs
+    JmlMethodDecl: q
+      JmlVariableDecl: r
+      JCMethodInvocation
+        JCIdent: m
+        JCIdent: r
+
+JmlCompilationUnit
+  JmlImport model
+    JCFieldAccess: * org.jmlspecs.lang.*
+      JCFieldAccess: lang org.jmlspecs.lang
+        JCFieldAccess: jmlspecs org.jmlspecs
+          JCIdent: org
+  JmlClassDecl: Test
+    JmlVariableDecl: b
+    JmlVariableDecl: a
+    JCIdent: b
+    JCIdent: b
+    JCIdent: b
+    JCIdent: b
+    JmlVariableDecl: i
+    JCIdent: i
+    JCIdent: b
+    JmlVariableDecl: k
+    JCIdent: b
+    JCIdent: k
+

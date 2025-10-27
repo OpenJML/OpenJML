@@ -13,8 +13,8 @@ public class escaccessible extends EscBase {
 
     @Before @Override
     public void setUp() throws Exception {
-    	captureOutput = true; // FIXME - why doesn't the 'verification failures' line end up in diagnostics, like it seems the erros and warnings lines do 
     	super.setUp();
+        captureOutput = false; // FIXME - why doesn't the 'verification failures' line end up in diagnostics, like it seems the erros and warnings lines do 
         addOptions("--check-accessible","-no-jmltesting");
     }
  
@@ -52,6 +52,32 @@ public class escaccessible extends EscBase {
                 +"  public TestJava() { i = 1; }\n"
                 +"  public int i;\n"
                 +"}"
+                );
+    }
+
+    @Test
+    public void testAccessibleNoCheck() {
+        addOptions("--no-check-accessible");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ accessible \\nothing;\n"
+                +"  int m() { return i; }\n"
+                +"  int i;\n"
+                +"}"
+                );
+    }
+
+    @Test
+    public void testAccessibleDefault() { // Default setting for --check-accessible is on
+        addOptions("--check-accessible=");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"  //@ accessible \\nothing;\n"
+                +"  int m() { return i; }\n"
+                +"  int i;\n"
+                +"}"
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Accessible: /tt/TestJava.java:3:) in method m: i",20
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7
                 );
     }
 

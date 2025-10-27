@@ -193,8 +193,12 @@ public class Arguments {
         classNames = new LinkedHashSet<>();
         processArgs(args, Option.getJavaCompilerOptions(), cmdLineHelper, true, false);
         if (errors) {
-            log.printLines(PrefixKind.JAVAC, "msg.usage", ownName);
+            printUsage(ownName); // OPENJML
         }
+    }
+    
+    public void printUsage(String ownName) { // OPENJML - extracted to be able to override
+        log.printLines(PrefixKind.JAVAC, "msg.usage", ownName);
     }
 
     private final OptionHelper apiHelper = new GrumpyHelper(null) {

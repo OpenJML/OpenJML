@@ -1,0 +1,190 @@
+QueryPure.testAnotherCacheExample
+QueryPure.testAnotherValidExample
+QueryPure.testCacheExample
+QueryPure.testCircular
+QueryPure.testClass5
+QueryPure.testClass6
+QueryPure.testClass7
+QueryPure.testClass8
+QueryPure.testClass9
+QueryPure.testInvariant
+QueryPure.testMethod5
+QueryPure.testMethod6
+QueryPure.testMethod7
+QueryPure.testMethod8
+QueryPure.testMethod9
+QueryPure.testQuery0
+QueryPure.testQuery1
+QueryPure.testQuery10
+QueryPure.testQuery11
+QueryPure.testQuery2
+QueryPure.testQuery3
+QueryPure.testQuery4
+QueryPure.testQuery5
+QueryPure.testQuery6
+QueryPure.testQuery7
+QueryPure.testQuery8
+QueryPure.testQuery8OK
+QueryPure.testQuery8a
+QueryPure.testQuery8b
+QueryPure.testQuery8c
+QueryPure.testQuery9
+QueryPure.testSimplerCacheExample
+QuerySecret.testBadParse
+QuerySecret.testBadParse2
+QuerySecret.testBadParse3
+QuerySecret.testBadParse4
+QuerySecret.testConstantExpression
+QuerySecret.testFBadParse
+QuerySecret.testFBadParse2
+QuerySecret.testFBadParse3
+QuerySecret.testFBadParse4
+QuerySecret.testFInNonSecret
+QuerySecret.testFInSecret
+QuerySecret.testFInSecret2
+QuerySecret.testInvariant
+QuerySecret.testMethodCall
+QuerySecret.testNoDG
+QuerySecret.testNoDG2
+QuerySecret.testNoOuter
+QuerySecret.testNotModel
+QuerySecret.testRepresents
+QuerySecret.testRepresents0
+QuerySecret.testRepresents1
+QuerySecret.testRepresents2
+QuerySecret.testRepresents3
+QuerySecret.testRepresents5
+QuerySecret.testSBadParse
+QuerySecret.testSBadParse2
+QuerySecret.testSBadParse3
+QuerySecret.testSBadParse4
+QuerySecret.testSNoDG
+QuerySecret.testSNoDG2
+QuerySecret.testSNotModel
+QuerySecret.testSOK3
+QuerySecret.testSameDG
+QuerySecret.testSameDG2
+QuerySecret.testSameDG3
+QuerySecret.testSameDG4
+SFBugs.gitbug481a1
+SFBugs.gitbug481a2
+SFBugs.gitbug481a3
+SFBugs.gitbug481a4
+SFBugs.gitbug481a5
+SFBugs.gitbug481a8
+SFBugs.gitbug481b
+SFBugs.gitbug481c
+SFBugs.gitbug671
+SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
+escArithmeticModes2.testModJavaB
+escArithmeticModes2.testModSafeBB
+# escTraceTests - need work, but are successful at the moment
+escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
+escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
+escfiles.esc2DArray		# <<<<<	problems with havocing arrays and array elements
+escfiles.esc2DArray2		# <<<<< problems with havocing arrays and array elements
+escfiles.modelImport5 		#	static model import needs implementation
+escfiles.modelImport6           #	static model import needs implementation
+escfiles.modelImport7           #	static model import needs implementation
+escfiles.sfbug420X
+escfiles.sfbug420eOK
+escfiles.valuestrings
+escfiles2.escRawding2
+escfiles2.escRawdingA
+escfiles2.escRawdingB
+escfiles2.gitbug450a		#	feasibility problems
+escfiles2.gitbug450b		#	feasibility problems
+escfiles2.gitbug861		#	needs checks within a compiler constat static initializer
+#escfilesdemo.escDemoTypesNoQuants
+escfilesTrace.escDMZCashTrace
+escfilesTrace.escDemoChangeCase
+escfilesTrace.escDemoPaths
+escfilesTrace.escTrace
+escfilesTrace.escTrace2
+escfilesTrace.escTrace3
+escfilesTrace.escTrace4
+escfilesTrace.escTrace5
+escfilesTrace.escTrace6
+escfilesTrace.escTraceBS
+escfilesTrace.escTraceDo
+escfilesTrace.escTraceDo1
+escfilesTrace.escTraceDo2
+escfilesTrace.escTraceForeach
+escfilesTrace.escTraceForeach1
+escfilesTrace.escTraceForeach2
+escfilesTrace.escTraceForeach3
+escfilesTrace.escTraceForeach4
+escfilesTrace.escTraceForeach5
+escfilesTrace.escTraceLoops
+escfilesTrace.escTraceLoops1
+escfilesTrace.escTraceLoops2
+escfilesTrace.escTraceLoops3
+escfilesTrace.escTraceLoops4
+escfilesTrace.escTraceLoops5
+escfilesTrace.escTraceLoops6
+escfilesTrace.escTraceWhile
+escfilesTrace.escTraceWhile1
+escfilesTrace.escTraceWhile2
+escTrace.testEnsuresSafeTrace
+escTrace.testEnsuresTrace
+escTrace.testFieldTrace
+escTrace.testSimpleTrace
+escfileslist1.test[crashXlint]
+escfileslist1.test[dynamicFrames]
+escfileslist1.test[escConstructor5]	# Feasibility problem
+escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
+escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
+escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
+escfileslist2.test[gitbug883bad] #	Needs better handling of 2D array
+escfileslist3.test[listNullity]
+escfileslist3.test[locsetTests]
+escfileslist3.test[record2]
+escfileslist3.test[staticInit]  #       Needs implementation of static initialization
+escfileslist3.test[textBlock4]  #       Handling of String, timeout
+escfileslist3.test[textBlock4b]	#	Handling of String, timeout
+escfileslist3.test[verifythis-2019-1]
+escfilesmodels.gitbug431
+escfilesmodels.gitbug461
+escfilesmodels.gitbug498
+escfilesmodels.gitbug673
+escgeneric.testGenericType1
+escgeneric.testTypeOf
+escgeneric.testTypeParameter2d
+esclambdas.testIdentity
+esclambdas.testIdentity2
+escm.havocInit
+feasibility.ffinally
+feasibility.floopbreak
+feasibility.floopcondition
+feasibility.floopcontinue
+feasibility.floopexit
+feasibility.fprecondition2
+feasibility.fspecA
+feasibility.fspecB
+
+racfiles.gitbug534		# <<<<< recursive call -- incorrect rac translation 
+racfiles.gitbug547a		# <<<<< problem with translation of an interface with static ghost field
+racfiles.gitbug547b		# <<<<< same for an instance field
+racfiles.gitbug547c		# <<<<< translation of interface, model field
+racfiles.gitbug547d		# <<<<< translation of model field
+racfiles.gitbug860		#       bad translation for method call in static initializer
+racfiles.gitbug861		#	missing check in compiler constant static initializer
+racfiles.gitbug869		#	could use better error messages
+racfiles.rac1			# <<<<< review/improve error messages
+racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
+runscripts.nowarn		#	java options are recorded too late to setup internal shortcuts
+generics.testBinaryGeneric3c
+escfiles.sfbug420e
+escfileslist2.test[gitbug876]	#	attempt at a Prime checker -- problems with modulo
+escfileslist2.test[gitbug878]	#	problem with type inference
+escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
+primesc.locsetTests2
+
+runscripts.gitbug883
+escfileslist2.test[gitbug888]
+escfileslist1.test[choose-repeat]
+escfileslist1.test[gitbug489]
+escfileslist2.test[gitbug897]
+escfileslist2.test[gitbug894]
+escfileslist2.test[gitbug890]
+## Issue 511, 842

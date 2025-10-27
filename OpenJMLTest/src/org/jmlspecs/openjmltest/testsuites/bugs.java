@@ -91,6 +91,14 @@ public class bugs extends TCBase {
                 );
     }
     
+    /** Checking for mixed implications */
+    @Test
+    public void testMiscBug8a() {
+        helpTCF("A.java","public class A { //@ requires true <== false ==> true; \n void p() {  }}"
+                ,"/A.java:1: error: ==> and <== operators may not be mixed without parentheses",46
+                );
+    }
+    
     /** Check that 'this' is defined in interface specifications, and we can do \type of an interface name */
     @Test
     public void testMisc9() {
@@ -166,7 +174,7 @@ public class bugs extends TCBase {
     public void testCollect() {
         helpTCF("A.java","import java.util.Vector;\n"
                 +"public abstract class A extends java.io.InputStream implements Comparable<A> { \n"
-                +"  //@ invariant mm() && \type(Short) <: \type(java.lang.Long);\n"
+                +"  //@ invariant mm() && \type(Short) <:= \type(java.lang.Long);\n"
                 +"  public void m(java.lang.Integer i, Number b) {\n"
                 +"    Vector<Integer> v = new Vector<Integer>();\n"
                 +"    boolean bb = b instanceof Double ;\n"

@@ -96,7 +96,7 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableArray4() {
         helpTCF("A.java","public class A { int[] k; boolean b; Object[] o; \n//@ assignable k[true],k[true .. false], k[false ..], k[false .. *];\n void m() {} }"
-                ,"/A.java:2: error: Expected an integral type as an index, not boolean",18
+                ,"/A.java:2: error: Expected an integral type as an index, not boolean, for indexable type int[]",18
                 ,"/A.java:2: error: Expected an integral type, not boolean",26
                 ,"/A.java:2: error: Expected an integral type, not boolean",34
                 ,"/A.java:2: error: Expected an integral type, not boolean",44
@@ -107,7 +107,7 @@ public class assignable extends TCBase {
     @Test
     public void testAssignableArray5() {
         helpTCF("A.java","public class A { int[] k; Object b; Object[] o; \n//@ assignable k[b];\n void m(boolean b) {} }"
-                ,"/A.java:2: error: Expected an integral type as an index, not boolean",18
+                ,"/A.java:2: error: Expected an integral type as an index, not boolean, for indexable type int[]",18
                 );
     }
 

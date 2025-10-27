@@ -231,6 +231,7 @@ public class Symtab {
     public final Type classDescType;
     public final Type enumDescType;
     public final Type jmlPrimitiveType; // OPENJML
+    public final Type bigIntegerType; // OPENJML
 
     // For serialization lint checking
     public final Type objectStreamFieldType;
@@ -620,6 +621,7 @@ public class Symtab {
         classDescType = enterClass("java.lang.constant.ClassDesc");
         enumDescType = enterClass("java.lang.Enum$EnumDesc");
         jmlPrimitiveType = enterClass("org.jmlspecs.lang.IJmlPrimitiveType"); // OPENJML
+        bigIntegerType = enterClass("java.math.BigInteger"); // OPENJML
         // For serialization lint checking
         objectStreamFieldType = enterClass("java.io.ObjectStreamField");
         objectInputStreamType = enterClass("java.io.ObjectInputStream");

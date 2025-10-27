@@ -1,11 +1,12 @@
 #! /usr/bin/env bash
 
-FILE="$BASH_SOURCE[0]"
-DIR=`dirname "$FILE"`
-cd "$DIR"
+cd $(dirname $BASH_SOURCE[0] )  
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
 
 . ./runjava.sh &> actual
-diff actual expected || { echo FAILED; exit 1; }
+(diff actual expected  && rm -f actual) || exit 1
 . ./run.sh &> actual
-diff actual expected || { echo FAILED; exit 1; }
-rm -f actual
+
+diff actual expected && rm -f actual
+exit $?

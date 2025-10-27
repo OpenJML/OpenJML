@@ -290,7 +290,7 @@ public class escnew3 extends EscBase {
                 
                 +"  //@ requires i == 6;\n"
                 +"  //@ modifies \\everything;\n"
-                +"  public void m0() {\n"
+                +"  public void m0() {\n"   // Line 10
                 +"    s = (short)i;\n"
                 +"    //@ assert s == i;\n"  // OK
                 +"    b = (byte)i;\n"
@@ -300,7 +300,7 @@ public class escnew3 extends EscBase {
                 +"    l = (long)i;\n"
                 +"    //@ assert l == i;\n"  // OK 
                 +"    int ii = (int)i;\n"
-                +"    //@ assert ii == i;\n"  // OK
+                +"    //@ assert ii == i;\n"  // OK Line 20
                 
                 +"    //@ assert i == (short)i;\n"
                 +"    //@ assert i == (long)i;\n"
@@ -349,12 +349,27 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                  
                 +"}"
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0bad",9
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0badx",21
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1badx",21
-                ,"/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2badx",21
-                ,"/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1bad",9
-                ,"/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2bad",9
+                // NOTE: The range checks are soft asserts -- they do not change the result. Hence the subsequent assert (e.g. Line 31)
+                // will fail.
+                // The order of the two errors in each method may be reversed
+                ,anyorder(
+                  seq("/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assert) in method m0bad",9)
+                 ,seq("/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0bad",9))
+                ,anyorder(
+                  seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method m0badx",9)
+                 ,seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0badx",21))
+                ,anyorder(
+                  seq("/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m1badx",9)
+                 ,seq("/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1badx",21))
+                ,anyorder(
+                  seq("/tt/TestJava.java:46: warning: The prover cannot establish an assertion (Assert) in method m2badx",9)
+                 ,seq("/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2badx",21))
+                ,anyorder(
+                  seq("/tt/TestJava.java:52: warning: The prover cannot establish an assertion (Assert) in method m1bad",9)
+                 ,seq("/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1bad",9))
+                ,anyorder(
+                  seq("/tt/TestJava.java:58: warning: The prover cannot establish an assertion (Assert) in method m2bad",9)
+                 ,seq("/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2bad",9))
                 );
     }
     
@@ -1444,8 +1459,8 @@ public class escnew3 extends EscBase {
                 + "  public void fooB(int a) { \n"
                 + "     oo[0] = 1;\n"
                 + "  }\n"
-                + "  //@ public normal_behavior requires \\type(Integer) <: \\elemtype(\\typeof(ooo)) ;\n"
-                + "  //@ also public exceptional_behavior requires !(\\type(Integer) <: \\elemtype(\\typeof(ooo))); signals_only ArrayStoreException;\n"
+                + "  //@ public normal_behavior requires \\type(Integer) <:= \\elemtype(\\typeof(ooo)) ;\n"
+                + "  //@ also public exceptional_behavior requires !(\\type(Integer) <:= \\elemtype(\\typeof(ooo))); signals_only ArrayStoreException;\n"
                 + "  public void fooC(Object[] ooo, int a) { \n"
                 + "     //@ assume ooo.length > 1 ;\n"
                 + "     ooo[0] = 1;\n"

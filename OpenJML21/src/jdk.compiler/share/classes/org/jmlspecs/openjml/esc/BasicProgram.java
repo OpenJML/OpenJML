@@ -223,6 +223,7 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
                 for (JCTree t: statements) {
                     pw.print("    ");
                     t.accept(pw);
+                    if (t instanceof JmlTree.JmlStatementExpr te && te.sourcefile != null) pw.print("[ " + te.sourcefile.getName() + " ]");
                     if (program != null && t instanceof JmlTree.JmlStatementExpr && ((JmlTree.JmlStatementExpr)t).expression instanceof JCIdent) {
                         JCIdent i = (JCIdent)((JmlTree.JmlStatementExpr)t).expression;
                         for (Definition def : program.definitions) {
