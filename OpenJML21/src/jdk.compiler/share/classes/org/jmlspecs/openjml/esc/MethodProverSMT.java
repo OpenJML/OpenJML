@@ -191,7 +191,7 @@ public class MethodProverSMT {
         if (exec == null || exec.isEmpty()) {
             // The default is that the prover executables are located in folders named 
             // ./Solvers-$OS for $OS either Mac or Win or Linux. relative to the path returned by findInstallLocation
-            String loc = utils.findInstallLocation();
+            String loc = Main.solvers;
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
             

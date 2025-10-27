@@ -369,27 +369,27 @@ public class JmlTypes extends Types {
         }
     }
     
-    private Type interfaceForPrimitiveTypes;
-    public Type interfaceForPrimitiveTypes() {
-        try {
-            if (interfaceForPrimitiveTypes == null) {
-                Names n = Names.instance(context);
-                Symbol.ModuleSymbol m = Symtab.instance(context).getModule(n.fromString("java.base"));
-                interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(m,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
-            }
-            return interfaceForPrimitiveTypes;
-        } finally {
-            if (interfaceForPrimitiveTypes==null) {
-                Utils.instance(context).error("jml.internal", "Unsuccessful loading of org.jmlspecs.lang.IJmlPrimitiveType");
-            }
-        }
-    }
+//    private Type interfaceForPrimitiveTypes;
+//    public Type interfaceForPrimitiveTypes() {
+//        try {
+//            if (interfaceForPrimitiveTypes == null) {
+//                Names n = Names.instance(context);
+//                Symbol.ModuleSymbol m = Symtab.instance(context).getModule(n.fromString("java.base"));
+//                interfaceForPrimitiveTypes = Symtab.instance(context).enterClass(m,n.fromString("org.jmlspecs.lang.IJmlPrimitiveType")).type;
+//            }
+//            return interfaceForPrimitiveTypes;
+//        } finally {
+//            if (interfaceForPrimitiveTypes==null) {
+//                Utils.instance(context).error("jml.internal", "Unsuccessful loading of org.jmlspecs.lang.IJmlPrimitiveType");
+//            }
+//        }
+//    }
 
     /** Returns true if the given type is any JML primitive type. */
     public boolean isJmlType(Type ty) {
         if (!(ty instanceof Type.ClassType ct)) return false;
         if (ty.isErroneous()) return false;
-        var prim = interfaceForPrimitiveTypes();
+        var prim = Symtab.instance(context).jmlPrimitiveType;
         // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
         // any JML types have IJmlPrimitiveType as a direct interface.
         for (var t: interfaces(ct)) {
@@ -398,11 +398,11 @@ public class JmlTypes extends Types {
         if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
             // This hack was added because the check above did not used to always work.
             // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
+            // Possibly happens when there are significant parsing errors
             Utils.instance(context).warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
             return true;
         }
         return false;
-        //return Utils.instance(context).isExtensionValueType(t);
     }
     
 

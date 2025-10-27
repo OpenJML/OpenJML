@@ -112,7 +112,7 @@ public abstract class RacBase extends JmlTestSuite {
     public static String macstring = "Exception in thread \"main\" ";
 
     public String setupOutdir() {
-        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testcompiles/" + getTestName();
+        outdir = System.getenv("OPENJML_INSTALL") + "/../OpenJMLTest/testcompiles/" + getTestName();
         var d = new java.io.File(outdir);
         d.mkdirs();
         defrac[3] = outdir;

@@ -47,6 +47,14 @@ public interface IAPI {
     public boolean isOptionSet(String key);
     public String getOption(String key);
     
+    public static final int OK = Main.Result.OK.exitCode;
+    public static final int ERROR = Main.Result.ERROR.exitCode;
+    public static final int CMDERR = Main.Result.CMDERR.exitCode;
+    public static final int SYSERR = Main.Result.SYSERR.exitCode;
+    public static final int ABNORMAL = Main.Result.ABNORMAL.exitCode;
+    public static final int CANCELLED = Main.Result.CANCELLED.exitCode;
+    public static final int VERIFY = Main.Result.VERIFY.exitCode;
+    
 //    @SuppressWarnings("exports")
 //    public Context context();
 //     

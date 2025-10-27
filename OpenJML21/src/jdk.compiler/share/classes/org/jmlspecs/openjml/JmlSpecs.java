@@ -289,37 +289,34 @@ public class JmlSpecs {
         // If present, use it.
         // Otherwise look use the default installation.
         
-        String sp = System.getProperty("java.class.path");
-        String[] ss = sp.split(java.io.File.pathSeparator);
-        Dir d;
-        
-        
-        // See if there is any jar file on the classpath that contains
-        // specs files at the top-level
-        
-        for (String s: ss) {
-            if (s.endsWith(".jar")) {
-                d = new JarDir(s,"");
-                if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
-                    if (print) noticeWriter.println("Using specs on classpath [Jar: " + s + "]: " + d);
-                    dirs.add(d);
-                    return true;
-                }
-            }
-            File f = new File(s + "/java/lang/Object.jml");
-            if (f.exists()) {
-                if (print) noticeWriter.println("Using specs on classpath [Dir: " + s + "]: " + f.getAbsolutePath());
-                dirs.add(new FileSystemDir(f.getAbsolutePath()));
-                return true;
-            }
-        }
+//        String sp = System.getProperty("java.class.path");
+//        String[] ss = sp.split(java.io.File.pathSeparator);
+//        Dir d;
+//        
+//        
+//        // See if there is any jar file on the classpath that contains
+//        // specs files at the top-level
+//        
+//        for (String s: ss) {
+//            if (s.endsWith(".jar")) {
+//                d = new JarDir(s,"");
+//                if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
+//                    if (print) noticeWriter.println("Using specs on classpath [Jar: " + s + "]: " + d);
+//                    dirs.add(d);
+//                    return true;
+//                }
+//            }
+//            File f = new File(s + "/java/lang/Object.jml");
+//            if (f.exists()) {
+//                if (print) noticeWriter.println("Using specs on classpath [Dir: " + s + "]: " + f.getAbsolutePath());
+//                dirs.add(new FileSystemDir(f.getAbsolutePath()));
+//                return true;
+//            }
+//        }
                 
         // Default for test or install environment
-        if (Main.root != null) {
-            String sy = Main.root + "/specs"; // expected for installation
-            if (!new File(sy).exists()) {
-                sy = Main.root + "/../Specs/specs"; // expected for development
-            }
+        if (Main.specs != null) {
+            String sy = Main.specs + "/specs";
             try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
             File f = new File(sy);

@@ -367,49 +367,11 @@ public class Utils {
         return sp;
     }
     
-    // The install location must contain the specs (e.g. specs/java. specs/org) and Solvers-macos etc. folders
     //@ non_null
     public String findInstallLocation() {
         boolean verbose = jmlverbose >= Utils.JMLVERBOSE;
-        if (Main.root != null) {
-            if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + Main.root);
-            return Main.root;
-        }
-
-        // FIXME: Not sure that any of the following is still valid
-        
-        String sp = System.getProperty("java.class.path");
-        String[] ss = sp.split(java.io.File.pathSeparator);
-                
-        // Find the item on the classpath that contains the OpenJML classes.
-        // The install location should be the parent of the .jar file.
-        // This should work for a command-line installation
-        for (String s: ss) {
-            if (s.endsWith(".jar") && JmlSpecs.instance(context).new JarDir(s,"org/jmlspecs/openjml").exists()) {
-                s = new File(s).getParent();
-                if (s == null) s = "";
-                if (s.isEmpty()) s = ".";
-                File d = new java.io.File(s);
-                if (d.exists() && d.isDirectory()) {
-                    if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
-                    return d.getAbsolutePath();
-                }
-            }
-        }
-        
-        // This should work for running in the eclipse development environment
-        for (String s: ss) {
-            if (s.endsWith("bin-runtime")) {
-                s = s + java.io.File.separator + ".." + java.io.File.separator + ".." + java.io.File.separator + ".."  + java.io.File.separator + "Solvers" + java.io.File.separator;
-                File d = new java.io.File(s);
-                if (d.exists() && d.isDirectory()) {
-                    if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + d);
-                    return s;
-                }
-            }
-        }
-        
-        return null;
+        if (verbose) log().getWriter(WriterKind.NOTICE).println("Installation location " + Main.root);
+        return Main.root;
     }
 
     /** Returns true if the given symbol is marked static or is a member of a JML interface
@@ -819,7 +781,7 @@ public class Utils {
         
         // In installation directory
         {
-            String s = System.getenv("OPENJML_ROOT") + "/" + Strings.propertiesFileName;
+            String s = Main.root + "/" + Strings.propertiesFileName;
             try {
                 boolean found = readProps(properties,s);
                 if (verbose) {
@@ -892,26 +854,6 @@ public class Utils {
             }
         }
         
-//        // TODO: Review the following
-//        // check if -properties or -properties-default option is set.
-//        {
-//            String properties_file = JmlOption.value(context,JmlOption.PROPERTIES_DEFAULT);            
-//           
-//            if (properties_file != null && !properties_file.isEmpty()) {
-//                try {
-//                    boolean found = readProps(properties,properties_file);
-//                    if (verbose) {
-//                        if (found) noticeWriter.println("Properties read from file: " + properties_file);
-//                        else noticeWriter.println("No properties file option found: " + properties_file);
-//                    }
-//                } catch (java.io.IOException e) {
-//                    noticeWriter.println("Failed to read property file " + properties_file); // FIXME - review
-//                }
-//            } else {
-//                if (verbose) noticeWriter.println("No properties file option is set");
-//            }
-//        }
-
         if (verbose) {
             // Print out the properties
             for (String key: new String[]{"user.home","user.dir"}) {

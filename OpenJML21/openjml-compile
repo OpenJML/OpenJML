@@ -3,16 +3,17 @@
 ## This script may be executed within the development environment or in a release
 
 ## Directory containing this file, which should be either .../OpenJML21 or the release folder
-LOCAL=$( cd $(dirname "$BASH_SOURCE") && pwd)
+FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the path to this script file
+LOCAL=$(dirname "$FILE") # path of the folder containing this file
 
 if [ -e "$LOCAL/version-info.txt" ]; then
   ## In a release
   CL=`echo $LOCAL/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
-  MODULES=$LOCAL/jdk/modules
+  MODULES="$LOCAL/jdk/modules"
 else
   ## In development environment
   CL=`echo $LOCAL/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
-  MODULES=$LOCAL/build/*release/jdk/modules
+  MODULES=`echo "$LOCAL"/build/*release/jdk/modules`
 fi
 
 CP=".:$CL"
