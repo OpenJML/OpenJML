@@ -1,6 +1,6 @@
 public class Tcasts {
   public static void main(String... args) { //-ESC@ set System.out.println("CASTS");
-      m1(); m2(); m3(); m4(); m5(); m6(); m7(); m8(); m9(); m10(); p1((short)0); p2((short)0); p3((short)0); p4((short)0);
+      m1(); m2(); m3(); m4(); m5(); m6(); m7(); m8(); m9(); m10(); m11(); p1((short)0); p2((short)0); p3((short)0); p4((short)0);
   }
   
   public static void m0() {
@@ -46,6 +46,20 @@ public class Tcasts {
   public static void m10() {
       //@ ghost \real z = (\real)Double.POSITIVE_INFINITY;
       //@ ghost \real y = (\real)Double.NaN;
+  }
+  public static void m11() {
+      //@ ghost \real r1 = (Integer)10;
+      //@ assert r1 == 10.0;
+      //@ ghost \real r2 = Long.valueOf(10L);
+      //@ assert r2 == 10.0;
+      //@ ghost \real r3 = Short.valueOf((short)10);
+      //@ assert r3 == 10.0;
+      //@ ghost \real r4 = Byte.valueOf((byte)10);
+      //@ assert r4 == 10.0;
+      //@ ghost \real r5 = Character.valueOf((char)10);
+      //@ assert r5 == 10.0;
+      //@ ghost \real r6 = (Double)10.0;
+      //@ assert r5 == 10.0;
   }
   
   // Just testing these combinations (to make sure that the relevant range assumptions are implicitly applied)

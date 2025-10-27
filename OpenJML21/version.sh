@@ -5,7 +5,8 @@
 
 VFILE=src/jdk.compiler/share/classes/org/jmlspecs/openjml/version.properties
 TFILE=temp
-cd "$(dirname $BASH_SOURCE)"
+D=$(dirname "$BASH_SOURCE")
+cd "$D"
 
 VER=`cat ../version.txt`
 rm -f $TFILE

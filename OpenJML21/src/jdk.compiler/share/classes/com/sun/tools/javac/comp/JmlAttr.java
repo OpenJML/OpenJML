@@ -6543,15 +6543,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitTypeParameter(JCTypeParameter tree) {
         super.visitTypeParameter(tree);
     }
-//    @Override
-//    public void visitTypeArray(JCArrayTypeTree tree) {
-//        super.visitTypeArray(tree);
-//        if (tree.elemtype.type.isPrimitiveOrVoid()) {
-//            ClassSymbol t = (ClassSymbol)tree.type.tsym;
-//            jmlcompiler.loadSpecsForBinary(env,t);
-////            System.out.println(t.toString());
+    @Override
+    public void visitTypeArray(JCArrayTypeTree tree) {
+        super.visitTypeArray(tree);
+//        if (jmltypes.isJmlType(tree.elemtype.type) && JmlPrimitiveTypes.TYPETypeKind.getSym(context) != tree.elemtype.type.tsym) {
+//            utils.error(tree, "jml.message", "Java arrays of JML types are not permitted (use \\array)");
+//            //tree.type = new Type.ErrorType(tree.elemtype.type, null);
 //        }
-//    }
+    }
     
 //    @Override
 //    public void visitTypeCast(JCTypeCast tree) {
@@ -8518,7 +8517,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
             if (resultInfo.pt.tsym == BIGINT.tsym) {
                 if (jmltypes.isAnyIntegral(found)) return resultInfo.pt;
-                if (found.toString().contains("BigInteger")) return resultInfo.pt;
+                if (found.toString().contains("BigInteger")) return resultInfo.pt; /// FIXME
                 if (tree instanceof JCConditional cc) {
                     if (jmltypes.isAnyIntegral(cc.truepart.type) && jmltypes.isAnyIntegral(cc.falsepart.type)) return resultInfo.pt;
                 }
@@ -8527,7 +8526,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // numeric -> \real
             var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
             if (resultInfo.pt.tsym == REAL.tsym) {
-                if (jmltypes.isNumeric(found)) return resultInfo.pt;
+                if (jmltypes.isNumeric(jmltypes.unboxedTypeOrType(found))) return resultInfo.pt;
+                if (found.toString().contains("BigInteger")) return resultInfo.pt; /// FIXME
                 if (tree instanceof JCConditional cc) {
                     if (jmltypes.isNumeric(cc.truepart.type) && jmltypes.isNumeric(cc.falsepart.type)) return resultInfo.pt;
                 }

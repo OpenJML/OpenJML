@@ -52,6 +52,8 @@ JML argument to numeric cast is out of range of the target type: 2147483697 to i
 LABEL JMLSHOW_9 = -2147483599
 JML argument to numeric cast is out of range of the target type: 9223372036854775857 to long
 LABEL JMLSHOW_10 = -9223372036854775759
+LABEL JMLSHOW_11 = 8
+LABEL JMLSHOW_12 = 8
 END
 
 ERR:

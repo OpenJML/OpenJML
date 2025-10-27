@@ -1,16 +1,18 @@
 ## Source this file
 
 ## Absolute path to the folder containing this file, which should be .../OpenJMLTest
-TEST=$( cd $(dirname "$BASH_SOURCE") && pwd)
+FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the absolute path to this script file
+TEST=$(dirname "$FILE")
 
-if [ ! -e $TEST/RunOpenJML.class ]; then make -C $TEST RunOpenJML.class; fi
+if [ ! -e "$TEST/RunOpenJML.class" ]; then make -C "$TEST" RunOpenJML.class; fi
 
 export AGENT=
-export OJA=$TEST/../OpenJML21/openjml
+export OJA="$TEST/../OpenJML21/openjml"
 if [ -n "${COV+set}" ]; then
     # COV set, but may be empty
     mkdir -p $TEST/cov
-    export AGENT=-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$TEST/cov/$1.exec
+    export AGENT="-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$TEST/cov/$1.exec"
     export OJA="$TEST/../OpenJML21/openjml-java -cp $TEST RunOpenJML"
+    ## FIXME - OJA above will not work with spaces in paths
 fi
 

@@ -114,8 +114,7 @@ version: .FORCE
 ## of the commit points compiled into the release.
 version-info: .FORCE
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
-	@ make -C ../OpenJML21 version
-	@ cat src/jdk.compiler/share/classes/org/jmlspecs/openjml/version.properties
+	@ make version > version-info.txt ## Just to be silent
 	@ rm -f version-info.txt
 	@ cat ../version.txt > version-info.txt
 	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt

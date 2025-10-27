@@ -13042,6 +13042,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			Name id = names.fromString(methodName);
 			MethodSymbol msym = getMethod(expr.type, id);
 			if (msym == null) {
+			    System.out.println("MSYM NULL " + expr+ " " + expr.type + " " + methodName);
 				utils.error(expr, "jml.message", "Could not find method " + methodName);
 				// ERROR - throw something
 			}
@@ -15149,6 +15150,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (types.isJmlType(newtype)) {
             // oldtype must be non-JML
             // Any conversions must be implemented using JMLTYPE.of() for the given JMLTYPE
+            if (oldtype.isReference() && !types.isJmlType(oldtype)
+                    && ((types.isSameType(newtype, BIGINT) && jmltypes.isIntegral(jmltypes.unboxedTypeOrType(oldtype))) 
+                     || (types.isSameType(newtype, REAL) && jmltypes.isNumeric(jmltypes.unboxedTypeOrType(oldtype))))) {
+                    // FIXME - what if this is in JML where it cannot be a new statement
+                addAssert(expr, Label.UNDEFINED_NULL_UNBOX, treeutils.makeNotNull(expr,expr));
+                expr = createUnboxingExpr(expr);
+                // The above is needed before we compute castexpr
+                castexpr = M.at(pos).TypeCast(newtype, expr);
+                castexpr.setType(newtype); // may be superfluous
+                if (rac && (newtype.tsym == BIGINT.tsym || newtype.tsym == REAL.tsym) && expr.type.isIntegral()) {
+                    var ty = treeutils.makeType(pos, newtype);
+                    castexpr = makeMethodInvocation(pos, ty, names.of, expr);
+                }
+                treeutils.copyEndPosition(castexpr, expr);
+            }
             if ((oldtype == syms.floatType || oldtype == syms.doubleType) && newtype == REAL) {
                 String nm = (newtype == syms.doubleType ? "Double":"Float");
                 ClassSymbol cls = attr.createClass("java.lang." + nm);
