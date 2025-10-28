@@ -735,7 +735,7 @@ public class Log extends AbstractLog {
      * Write out a diagnostic.
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
-        if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).jmlverbose == 0) return; // OPENJML)
+        if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).jmlverbose == 0) return; // OPENJML -- --quiet mode
         if (diagListener != null) {
             diagListener.report(diag);
             return;
@@ -743,6 +743,7 @@ public class Log extends AbstractLog {
 
         PrintWriter writer = getWriterForDiagnosticType(diag.getType());
 
+        System.out.println("WD " + diagFormatter.getClass());
         printRawLines(writer, diagFormatter.format(diag, messages.getCurrentLocale()));
 
         if (promptOnError) {

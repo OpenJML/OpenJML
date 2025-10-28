@@ -1,0 +1,12 @@
+#! /bin/bash
+
+cd $(dirname "$BASH_SOURCE[0]" )
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+
+rm -f actual
+touch actual
+($OJA --esc --progress -Xlint:exports DD.java &&$OJA --esc --progress -Xlint:all DD.java) >> actual
+Z=$?
+diff actual expected && rm actual
+if [ "$?" != 0 -o "$Z" != 0 ]; then exit 1; else exit 0; fi

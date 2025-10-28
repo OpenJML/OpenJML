@@ -5020,9 +5020,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public Type attribTree(JCTree tree, Env<AttrContext> env, ResultInfo resultInfo) { 
     	//if (JmlMemberEnter.attrdebug) System.out.println("ATTR " + tree.getClass() + " " + tree);
-        if (tree.toString().contains("func") && tree.toString().contains("? extends U")) System.out.println("JML-ATTRIBTREE " + tree);
     	var t = super.attribTree(tree, env, resultInfo);
-        if (tree.toString().contains("func") && tree.toString().contains("? extends U")) System.out.println("JML-ATTRIBTREE-A " + t + " " + tree);
     	if (t instanceof Type.ClassType ct && !t.isErroneous() && ct.tsym instanceof ClassSymbol cs && TypeEnter.instance(context).completionEnabled) {
     	    // If we have just attributed a valid class type, enter a request for the specs for that class
     	    if (cs.kind == Kinds.Kind.TYP) JmlEnter.instance(context).requestSpecs(cs);
@@ -6544,7 +6542,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitTypeParameter(JCTypeParameter tree) {
         super.visitTypeParameter(tree);
-        if (tree.toString().contains("? extends U")) System.out.println("VTP " + tree.type + " " + tree);
     }
     @Override
     public void visitTypeArray(JCArrayTypeTree tree) {
@@ -6570,7 +6567,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitTypeApply(JCTypeApply tree) {
         super.visitTypeApply(tree);
-        if (tree.toString().contains("? extends")) System.out.println("VTA " + tree);
         for (var a: tree.arguments) {
             var t = a.type;
             if (a instanceof JCAnnotatedType an) t = an.underlyingType.type;
@@ -7839,7 +7835,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JCExpression insertDefaultNullityInTypeArg(JCExpression arg, ModifierKind defaultNullity) {
         var tt = arg;
-        System.out.println("INSERT-NULLITY " + arg + " " + defaultNullity + " " + tt.getClass());
+        //System.out.println("INSERT-NULLITY " + arg + " " + defaultNullity + " " + tt.getClass());
         if (tt instanceof JCTypeApply ttt) {
             var a = insertDefaultNullityInTypeArg(ttt.clazz, defaultNullity);
             var args = insertDefaultNullityInTypeArgs(ttt.arguments, defaultNullity);
@@ -7854,7 +7850,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else {
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
             var ttt = jmlMaker.at(arg).AnnotatedType(List.<JCAnnotation>of(ann), arg).setType(arg.type); // FIXME - should this be a type with annotation
-            System.out.println("INSERT-NULLITY-Z " + ann + " : " + ann.annotationType + " : " + ann.annotationType.type + " : " + ann.type + " : " + ttt + " : " + ttt.type);
+            //System.out.println("INSERT-NULLITY-Z " + ann + " : " + ann.annotationType + " : " + ann.annotationType.type + " : " + ann.type + " : " + ttt + " : " + ttt.type);
             return ttt;
         }
     }
@@ -8876,8 +8872,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     public static class JmlArgumentAttr extends ArgumentAttr implements IJmlVisitor {
-    	
-    	public JmlArgumentAttr(Context context) {
+        
+        public JmlArgumentAttr(Context context) {
     		super(context);
     	}
     	
@@ -8887,7 +8883,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             new Context.Key<JmlArgumentAttr>();
 
         // Need to register a factory, because instantiating JmlArgumentAttr as part of registerTools
-        // causes premature instanting of Lint -- which must be instantiated after the command-line has been read
+        // causes premature instantiation of Lint -- which must be instantiated after the command-line has been read
         public static void preRegister(Context context) {
             context.put(jmlArgumentAttrKey, new Context.Factory<JmlArgumentAttr>() {
                 public JmlArgumentAttr make(Context context) {
