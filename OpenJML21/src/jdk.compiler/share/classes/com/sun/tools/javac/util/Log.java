@@ -353,6 +353,7 @@ public class Log extends AbstractLog {
             boolean rawDiagnostics = options.isSet("rawDiagnostics");
             this.diagFormatter = rawDiagnostics ? new RawDiagnosticFormatter(options) :
                                                   new BasicDiagnosticFormatter(options, messages);
+            System.out.println("DIAGFORMATTER-LOG " + this.diagFormatter.getClass());
 
             String ek = options.get("expectKeys");
             if (ek != null)
@@ -436,6 +437,7 @@ public class Log extends AbstractLog {
      */
     public void setDiagnosticFormatter(DiagnosticFormatter<JCDiagnostic> diagFormatter) {
         this.diagFormatter = diagFormatter;
+        System.out.println("DIAGFORMATTER-SET " + this.diagFormatter.getClass()); org.jmlspecs.openjml.Utils.dumpStack();
     }
 
     public PrintWriter getWriter(WriterKind kind) {
