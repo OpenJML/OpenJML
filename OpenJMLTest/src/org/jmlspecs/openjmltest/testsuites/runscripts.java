@@ -68,6 +68,11 @@ public class runscripts extends RunBase {
     @Test public void gitbug883() {
         doTest();
     }
+    
+    // gitbug857
+    @Test public void crashXlint() {
+        doTest();
+    }
 
     @Test public void nomodelfield() {
         doTest();
