@@ -1578,11 +1578,6 @@ public class Check {
     }
 
     void checkRaw(JCTree tree, Env<AttrContext> env) {
-        if (lint.isEnabled(LintCategory.RAW) && tree.type == null) { // OPENJML FIXME - added to avoid a crash, but need fixing
-            System.out.println("Annotated type has a null type field -- crash would happen: " + 
-                    (tree instanceof JCAnnotatedType at ? Objects.toString(at.underlyingType) : ""));
-            return;
-        }
         if (lint.isEnabled(LintCategory.RAW) &&
             tree.type.hasTag(CLASS) &&
             !TreeInfo.isDiamond(tree) &&
