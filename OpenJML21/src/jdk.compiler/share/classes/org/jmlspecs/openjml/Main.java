@@ -615,10 +615,13 @@ public class Main extends com.sun.tools.javac.main.Main {
         // So they have to be adjusted for the actual values of the options.
         // FIXME - sort out whether we can read options before constructing tools
         Check.instance(context).resetHandlers();
+        System.out.println("DIAGS-A " + Options.instance(context).isSet("diags.legacy") + " " + Options.instance(context).isUnset("diags.legacy"));
         ClassFinder.instance(context).resetOptions(context);
+        System.out.println("DIAGS-B " + Options.instance(context).isSet("diags.legacy") + " " + Options.instance(context).isUnset("diags.legacy"));
         Options.instance(context).put("compilePolicy", "simple");
         JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
         JmlOptions.instance(context).setupOptions();
+        System.out.println("DIAGS-C " + Options.instance(context).isSet("diags.legacy") + " " + Options.instance(context).isUnset("diags.legacy"));
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;
