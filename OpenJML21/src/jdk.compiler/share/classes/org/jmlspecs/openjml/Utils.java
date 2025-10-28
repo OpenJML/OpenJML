@@ -1316,7 +1316,7 @@ public class Utils {
         return n.toList();
     }
     
-    // FIXME - replace calls of this by the versions in treeutils
+    // FIXME - replace calls of this by the versions in treeutils -- but not sure what version that is?
     public/* @ nullable */JmlAnnotation modToAnnotationAST(ModifierKind jt,
             int position, int endpos) {
 
@@ -1332,6 +1332,8 @@ public class Utils {
         }
         ann.sourcefile = log().currentSourceFile();
         ann.kind = jt;
+        //ann.annotationType.type = ann.type = jt.annotationType(context);
+        System.out.println("MODTO " + ann + " " + ann.annotationType + " " + ann.annotationType.type + " " + ann.type);
         
         return ann;
     }
