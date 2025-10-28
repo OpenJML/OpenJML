@@ -326,7 +326,7 @@ public class Symtab {
     /** Enter a class into symbol table.
      *  @param s The name of the class.
      */
-    private Type enterClass(String s) {
+    public Type enterClass(String s) { // OPENJML - private to public
         return enterClass(java_base, names.fromString(s)).type;
     }
 

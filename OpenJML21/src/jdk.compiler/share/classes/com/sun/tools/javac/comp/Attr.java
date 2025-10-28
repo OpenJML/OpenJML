@@ -659,10 +659,11 @@ public class Attr extends JCTree.Visitor {
             this.resultInfo = resultInfo;
             if (resultInfo.needsArgumentAttr(tree)) {
                 result = argumentAttr.attribArg(tree, env);
+                if (tree.toString().contains("func") && tree.toString().contains("? extends U")) System.out.println("ATTRIBTREE " + tree);
             } else {
-                //if (tree.toString().contains("seq") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("ACCEPT TREE " + tree + " " + tree.getClass());
+                if (tree.toString().contains("? extends U") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("ACCEPT TREE " + tree + " " + tree.getClass());
                 tree.accept(this);
-                //if (tree.toString().contains("seq") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("ACCEPT TREE-Z " + tree + " " + tree.type + " " + result);
+                if (tree.toString().contains("? extends U") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("ACCEPT TREE-Z " + tree + " " + tree.type + " " + result);
             }
             matchBindings = matchBindingsComputer.finishBindings(tree,
                                                                  matchBindings);
@@ -5085,7 +5086,7 @@ public class Attr extends JCTree.Visitor {
      */
     public void visitTypeApply(JCTypeApply tree) {
         Type owntype = types.createErrorType(tree.type);
-        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITTYPEAPPLY " + tree + " " + tree.clazz + " " + tree.clazz.getClass());
+        if (org.jmlspecs.openjml.Utils.isJML() && tree.toString().contains("? extends U") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITTYPEAPPLY " + tree + " " + tree.clazz + " " + tree.clazz.getClass());
 
         // Attribute functor part of application and make sure it's a class.
         Type clazztype = chk.checkClassType(tree.clazz.pos(), attribType(tree.clazz, env));
@@ -5136,7 +5137,9 @@ public class Attr extends JCTree.Visitor {
                 owntype = types.createErrorType(tree.type);
             }
         }
+        if (org.jmlspecs.openjml.Utils.isJML() && tree.toString().contains("? extends U") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITTYPEAPPLY-X " + tree + " " + tree.clazz + " " + tree.clazz.getClass());
         result = check(tree, owntype, KindSelector.TYP, resultInfo);
+        if (org.jmlspecs.openjml.Utils.isJML() && tree.toString().contains("? extends U") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITTYPEAPPLY-Z " + tree + " " + tree.clazz + " " + tree.clazz.getClass());
     }
 
     public void visitTypeUnion(JCTypeUnion tree) {
@@ -5271,14 +5274,16 @@ public class Attr extends JCTree.Visitor {
     }
 
     public void visitWildcard(JCWildcard tree) {
-        //- System.err.println("visitWildcard("+tree+");");//DEBUG
+        if (tree.toString().contains("? extends U")) System.out.println("visitWildcard "+tree);
         Type type = (tree.kind.kind == BoundKind.UNBOUND)
             ? syms.objectType
             : attribType(tree.inner, env);
+        if (tree.toString().contains("? extends U")) System.out.println("visitWildcard-K "+tree);
         result = check(tree, new WildcardType(chk.checkRefType(tree.pos(), type),
                                               tree.kind.kind,
                                               syms.boundClass),
                 KindSelector.TYP, resultInfo);
+        if (tree.toString().contains("? extends U")) System.out.println("visitWildcard-Z "+tree);
     }
 
     public void visitAnnotation(JCAnnotation tree) {

@@ -881,7 +881,8 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-        //if (specSym.owner.toString().contains("Object") && specSym.toString().contains("toString")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
+        boolean print = specSym.toString().contains("? extends U") && specSym.toString().contains("mapToObj");
+        if (print) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
         spec.specSym = specSym;
         specsMethods.put(specSym,spec);
         int i = 0;
@@ -893,6 +894,7 @@ public class JmlSpecs {
                 boolean nn = isNonNullFormal(d.type, i++, spec, specSym);
                 var f = new LocalSpecs((JmlVariableDecl)d, nn, specSym);
                 var jsym = iter.next();
+                if (print) System.out.println("   PARAM " + d + " " + nn + " " + jsym + " " + f);
                 specsFormals.put(jsym, f);
                 // System.out.println("    Formal specs " + d.sym + " " + jsym.hashCode() + " " +  specSym + " " + f.isNonNull + " " + f.mods);
             }
@@ -1022,6 +1024,7 @@ public class JmlSpecs {
         if (status(m).less(SpecsStatus.SPECS_ATTR)) {
             attr.attrSpecs(m, null);
         }
+        if (m.toString().contains("mapToObj")) System.out.println("GETATTRSPECS " + m + " " + get(m));
         return get(m);
     }
 
@@ -1361,7 +1364,7 @@ public class JmlSpecs {
             list.add(e);
         }
         
-        boolean print = sym.owner.toString().contains("java.util.Collection") && sym.toString().contains("size");
+        boolean print = sym.toString().contains("? extends U");
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
@@ -1734,7 +1737,7 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
     public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-        boolean pr = false;// msym.name.toString().startsWith("StorageParameters");
+        boolean pr = msym.name.toString().contains("? extends U");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (jmltypes.isJmlType(type)) return true;

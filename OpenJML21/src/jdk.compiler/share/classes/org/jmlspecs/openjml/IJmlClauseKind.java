@@ -521,11 +521,15 @@ public abstract class IJmlClauseKind {
             char c = annotation.charAt(0);
             this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);
             try {
-            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
+                this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
             } catch (Exception e) {
-            	Main.uninitializedLog().error("jml.message","Failed to find annotation class for " + this.fullAnnotation);
-            	this.clazz = null;
+                Main.uninitializedLog().error("jml.message","Failed to find annotation class for " + this.fullAnnotation);
+                this.clazz = null;
             }
+        }
+        
+        public Type annotationType(Context context) {
+            return Symtab.instance(context).enterClass(fullAnnotation);
         }
         
         public ModifierKind(String keyword, boolean strict, String annotation) { 
