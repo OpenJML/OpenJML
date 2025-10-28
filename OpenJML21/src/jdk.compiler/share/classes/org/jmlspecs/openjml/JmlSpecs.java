@@ -881,7 +881,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-        boolean print = specSym.toString().contains("? extends U") && specSym.toString().contains("mapToObj");
+        boolean print = false;//specSym.toString().contains("? extends U") && specSym.toString().contains("mapToObj");
         if (print) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
         spec.specSym = specSym;
         specsMethods.put(specSym,spec);
@@ -1024,7 +1024,6 @@ public class JmlSpecs {
         if (status(m).less(SpecsStatus.SPECS_ATTR)) {
             attr.attrSpecs(m, null);
         }
-        if (m.toString().contains("mapToObj")) System.out.println("GETATTRSPECS " + m + " " + get(m));
         return get(m);
     }
 
@@ -1364,7 +1363,7 @@ public class JmlSpecs {
             list.add(e);
         }
         
-        boolean print = sym.toString().contains("? extends U");
+        boolean print = false; // sym.toString().contains("? extends U");
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
@@ -1737,7 +1736,7 @@ public class JmlSpecs {
 
     @SuppressWarnings("unchecked")
     public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-        boolean pr = msym.name.toString().contains("? extends U");
+        boolean pr = false; // msym.name.toString().contains("? extends U");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (jmltypes.isJmlType(type)) return true;

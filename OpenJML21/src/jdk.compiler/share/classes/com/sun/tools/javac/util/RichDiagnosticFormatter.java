@@ -518,6 +518,7 @@ public class RichDiagnosticFormatter extends
 
         @Override
         public Void visitClassType(ClassType t, Void ignored) {
+            System.out.println("VISITCLASSTYPE " + t + " " + nameSimplifier.getClass());
             if (t.isCompound()) {
                 if (indexOf(t, WhereClauseKind.INTERSECTION) == -1) {
                     Type supertype = types.supertype(t);
