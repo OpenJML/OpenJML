@@ -94,7 +94,7 @@ public class JavacMessages implements Messages {
         boolean rawDiagnostics = options.isSet("rawDiagnostics");
         this.diagFormatter = rawDiagnostics ? new RawDiagnosticFormatter(options) :
                                                   new BasicDiagnosticFormatter(options, this);
-        System.out.println("DIAGFORMATTER-JM " + this.diagFormatter.getClass());
+        //System.out.println("DIAGFORMATTER-JM " + this.diagFormatter.getClass());
     }
 
     /** Creates a JavacMessages object.

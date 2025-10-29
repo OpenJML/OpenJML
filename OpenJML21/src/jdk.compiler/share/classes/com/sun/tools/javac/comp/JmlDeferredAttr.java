@@ -30,6 +30,7 @@ public class JmlDeferredAttr extends DeferredAttr implements IJmlVisitor {
         });
     }
 
+    // FIXME - I don't think this is needed when there is a preRegister
     public static DeferredAttr instance(Context context) {
         DeferredAttr instance = context.get(deferredAttrKey);
         if (instance == null)

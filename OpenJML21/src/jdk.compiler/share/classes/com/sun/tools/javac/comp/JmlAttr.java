@@ -311,7 +311,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @return the non-null instance of JmlAttr for this context
      */
     public static JmlAttr instance(Context context) {
-        Attr instance = context.get(attrKey); 
+        Attr instance = context.get(attrKey);
         if (instance == null)
             instance = new JmlAttr(context); // Registers itself in the super constructor
         return (JmlAttr)instance; // If the registered instance is only an Attr, something is catastrophically wrong
@@ -8154,7 +8154,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // Overridden to make public
     @Override
     public KindSelector attribArgs(KindSelector initialKind, List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
-        return super.attribArgs(initialKind, trees, env, argtypes);
+        var k = super.attribArgs(initialKind, trees, env, argtypes);
+        return k;
     }
     
     public KindSelector attribArgs(List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
@@ -8873,25 +8874,32 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     public static class JmlArgumentAttr extends ArgumentAttr implements IJmlVisitor {
         
+        JmlAttr jmlattr;
+        
         public JmlArgumentAttr(Context context) {
-    		super(context);
-    	}
-    	
-        /** The key to use to retrieve the instance of this class from the Context object. */
-        //@ non_null
-        public static final Context.Key<JmlArgumentAttr> jmlArgumentAttrKey =
-            new Context.Key<JmlArgumentAttr>();
+            super(context);
+            this.jmlattr = JmlAttr.instance(context);
+        }
 
         // Need to register a factory, because instantiating JmlArgumentAttr as part of registerTools
         // causes premature instantiation of Lint -- which must be instantiated after the command-line has been read
         public static void preRegister(Context context) {
-            context.put(jmlArgumentAttrKey, new Context.Factory<JmlArgumentAttr>() {
+            context.put(methodAttrKey, new Context.Factory<ArgumentAttr>() {
                 public JmlArgumentAttr make(Context context) {
                     return new JmlArgumentAttr(context);
                 }
             });
     	}
-    	
+        
+        // FIXME - not sure this is needed
+        public static ArgumentAttr instance(Context context) {
+            ArgumentAttr instance = context.get(methodAttrKey);
+            if (instance == null) {
+                instance = new JmlArgumentAttr(context);
+            }
+            return instance;
+        }
+
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
         public void visitImport(JCImport tree)                         { visitTree(tree); }
         public void visitNewClass(JCNewClass tree)                     { visitTree(tree); }

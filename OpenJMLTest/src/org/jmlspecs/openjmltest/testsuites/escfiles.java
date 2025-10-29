@@ -731,7 +731,7 @@ public class escfiles extends EscBaseFiles {
     }
     
     @Test
-    public void modelImport1() {
+    public void modelImport1() {  // FIXME - the abbreviated type names make the message less understandable
         expectedExit = 1;
         helpTCF("test/modelImports/Test1.java","test/modelImports/test1","--check","-cp","test/modelImports");
     }
