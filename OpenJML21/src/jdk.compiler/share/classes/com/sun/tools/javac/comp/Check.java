@@ -4391,7 +4391,6 @@ public class Check {
             || currentExport.modules != null) //don't check classes in qualified export
             return ;
 
-//        try {
         new TreeScanner() {
             Lint lint = env.info.lint;
             boolean inSuperType;
@@ -4409,9 +4408,6 @@ public class Check {
                     if (lint.isEnabled(LintCategory.EXPORTS)) {
                         super.visitMethodDef(tree);
                     }
-                } catch (RuntimeException e) {
-                    System.out.println("CAUGHT IN METHOD " + tree.sym + " " + tree);
-                    throw e;
                 } finally {
                     lint = prevLint;
                 }
@@ -4427,10 +4423,7 @@ public class Check {
                         scan(tree.mods);
                         scan(tree.vartype);
                     }
-                } catch (RuntimeException e) {
-                    System.out.println("CAUGHT IN VAR " + tree);
-                    throw e;
-               } finally {
+                } finally {
                     lint = prevLint;
                 }
             }
@@ -4502,9 +4495,6 @@ public class Check {
             }
 
         }.scan(check);
-//        } catch (Exception e) {
-//            System.out.println("ERROR TREE " + check);
-//        }
     }
         //where:
         private ExportsDirective findExport(PackageSymbol pack) {

@@ -1333,8 +1333,7 @@ public class Utils {
         ann.sourcefile = log().currentSourceFile();
         ann.kind = jt;
         ann.annotationType.type = ann.type = jt.annotationType(context);
-        //System.out.println("MODTO " + ann + " " + ann.annotationType + " " + ann.annotationType.type + " " + ann.type);
-        
+        // FIXME - attribute field is not set
         return ann;
     }
     

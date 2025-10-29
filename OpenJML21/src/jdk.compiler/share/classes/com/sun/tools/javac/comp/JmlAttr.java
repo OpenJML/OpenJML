@@ -7835,7 +7835,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JCExpression insertDefaultNullityInTypeArg(JCExpression arg, ModifierKind defaultNullity) {
         var tt = arg;
-        //System.out.println("INSERT-NULLITY " + arg + " " + defaultNullity + " " + tt.getClass());
         if (tt instanceof JCTypeApply ttt) {
             var a = insertDefaultNullityInTypeArg(ttt.clazz, defaultNullity);
             var args = insertDefaultNullityInTypeArgs(ttt.arguments, defaultNullity);
@@ -7850,7 +7849,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         } else {
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
             var ttt = jmlMaker.at(arg).AnnotatedType(List.<JCAnnotation>of(ann), arg).setType(arg.type); // FIXME - should this be a type with annotation
-            //System.out.println("INSERT-NULLITY-Z " + ann + " : " + ann.annotationType + " : " + ann.annotationType.type + " : " + ann.type + " : " + ttt + " : " + ttt.type);
+            // FIXME - the new annotation does not have its attribute field set, which can cause a later crash
             return ttt;
         }
     }
@@ -7906,10 +7905,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
             attribAnnotationTypes(that.mods.annotations,env); 
             annotate.flush(); // FIXME _ this does not do anything if annotations are blocked
-            for (JCAnnotation a: that.mods.annotations) {
-                a.type = a.annotationType.type;
-                if (that.toString().contains("? extends U")) System.out.println("ANN " + a + " " + a.type + " " + a.annotationType.type);
-            }
+            for (JCAnnotation a: that.mods.annotations) a.type = a.annotationType.type;
 
             if (that.originalVartype != null && that.originalVartype.type == null) attribType(that.originalVartype,env);
             if (env.info.lint == null) { // FIXME: Without this we crash in Attr, but how is this handled elsewhere?
@@ -7918,12 +7914,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     lintEnv = lintEnv.next;
                 env.info.lint = lintEnv.info.lint;
             }
-            //System.out.println("VJVD-K " + that);
             visitVarDef(that);
-            //System.out.println("VJVD-J " + that);
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
-            //System.out.println("VJVD-Z " + that);
             
 
             // FIXME - should this be checking for error types?
@@ -8154,8 +8147,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // Overridden to make public
     @Override
     public KindSelector attribArgs(KindSelector initialKind, List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
-        var k = super.attribArgs(initialKind, trees, env, argtypes);
-        return k;
+        return super.attribArgs(initialKind, trees, env, argtypes);
     }
     
     public KindSelector attribArgs(List<JCExpression> trees, Env<AttrContext> env, ListBuffer<Type> argtypes) {
