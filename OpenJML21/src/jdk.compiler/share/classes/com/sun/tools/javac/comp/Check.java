@@ -4391,7 +4391,7 @@ public class Check {
             || currentExport.modules != null) //don't check classes in qualified export
             return ;
 
-        try {
+//        try {
         new TreeScanner() {
             Lint lint = env.info.lint;
             boolean inSuperType;
@@ -4493,16 +4493,18 @@ public class Check {
 
             @Override
             public void visitAnnotation(JCAnnotation tree) {
-                if (tree.attribute == null) { System.out.println("Crash because an annotation is unattributed: " + tree); org.jmlspecs.openjml.Utils.dumpStack(); throw new RuntimeException(); } // OPENJML FIXME - added to avoid crash
+                if (tree.attribute == null) { // OPENJML FIXME - added to avoid crash
+                    //System.out.println("Crash because an annotation is unattributed: " + tree); org.jmlspecs.openjml.Utils.dumpStack(); 
+                    return;
+                } 
                 if (tree.attribute.type.tsym.getAnnotation(java.lang.annotation.Documented.class) != null)
                     super.visitAnnotation(tree);
             }
 
         }.scan(check);
-        } catch (Exception e) {
-            System.out.println("ERROR TREE " + check);
-
-        }
+//        } catch (Exception e) {
+//            System.out.println("ERROR TREE " + check);
+//        }
     }
         //where:
         private ExportsDirective findExport(PackageSymbol pack) {
