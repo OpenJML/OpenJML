@@ -5085,7 +5085,6 @@ public class Attr extends JCTree.Visitor {
      */
     public void visitTypeApply(JCTypeApply tree) {
         Type owntype = types.createErrorType(tree.type);
-        //if (org.jmlspecs.openjml.Utils.isJML() && tree.toString().contains("? extends U") && org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITTYPEAPPLY " + tree + " " + tree.clazz + " " + tree.clazz.getClass());
 
         // Attribute functor part of application and make sure it's a class.
         Type clazztype = chk.checkClassType(tree.clazz.pos(), attribType(tree.clazz, env));
