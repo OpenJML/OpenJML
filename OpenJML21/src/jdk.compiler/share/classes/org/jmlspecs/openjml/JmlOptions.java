@@ -449,7 +449,6 @@ public class JmlOptions extends Options {
         commentKeys.add("OPENJML");
 
         Extensions.register(context);
-// FIXME - turn off for now        JmlSpecs.instance(context).initializeSpecsPath();
         return true;
     }
 

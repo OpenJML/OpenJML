@@ -330,7 +330,7 @@ public abstract class JmlTestSuite {
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
         	main.addOptions("-verbose","true"); // FIXME
-        	main.addOptions("-jmlverbose","3");
+            main.addOptions("-jmlverbose","3");
         }
     }
     
