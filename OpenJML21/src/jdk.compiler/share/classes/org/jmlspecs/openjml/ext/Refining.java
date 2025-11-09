@@ -188,7 +188,10 @@ public class Refining extends JmlExtension {
                 }
                 stats.addAll(stat);
             }
-            //ste.statements = parser.collectLoopSpecs(stats.toList());
+            if (ste.statementSpecs.cases.size() == 0) {
+                utils.warning(pos, "jml.message", "There are no refining specifications");
+            }
+            //ste.statements = parser.collectLoopSpecs(stats.toList()); // FIXME - does everything work before a loop spec + statement?
             ste.statements = stats.toList();
             checkStats(ste.statements);
             return ste;

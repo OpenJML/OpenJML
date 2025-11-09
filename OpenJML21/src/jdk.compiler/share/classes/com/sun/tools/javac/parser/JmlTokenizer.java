@@ -179,17 +179,25 @@ public class JmlTokenizer extends JavadocTokenizer {
             nestedBlockComment = true;
         }
         
-        if (jml && style == CommentStyle.JAVADOC) {
-            log.error(pos, "jml.message", "Javadoc comments are not permitted within JML comments");
-            return null;
+        if (style == CommentStyle.JAVADOC) {
+            if (jml) {
+                log.error(pos, "jml.message", "Javadoc comments are not permitted within JML comments");
+                return null;
+            } else {
+                var c = super.processComment(pos,endPos,style);
+                reset(endPos);
+                return c;
+            }
         }
     
         // The inclusive range pos to endPos-1 does include the opening and closing
         // comment characters.
         // It does not include line ending for line comments, so
         // an empty line comment can be just two characters.
-        if (noJML || style == CommentStyle.JAVADOC || endPos-pos <= 2) {
-            return super.processComment(pos,endPos,style);
+        if (noJML || endPos - pos <= 2) {
+            var c = super.processComment(pos,endPos,style);
+            reset(endPos);
+            return c;
         }
         
         // Skip the first two characters (the comment marker))
