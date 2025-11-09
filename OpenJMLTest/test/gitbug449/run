@@ -1,0 +1,11 @@
+
+cd $(dirname "$BASH_SOURCE[0]" )
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+## FIXME - why does this not work with .jar files when in the script
+CP=.:commons-lang3-3.3.2.jar
+
+"$OJA" --rac Test.java -cp $CP >& actual
+"$BIN/openjml-java" Test -cp $CP >> actual 2>&1
+rm -rf Test.class
+diff actual expected && rm -rf actual

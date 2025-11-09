@@ -21205,7 +21205,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCVariableDecl decl : that.decls)
 			addStat(decl);
 		JmlMethodSpecs sspecs = that.statementSpecs;
-		JmlSpecificationCase cs = sspecs.cases.get(0);
 		if (doSummary) {
 			// Make summary branch -- use the spec instead of the code
 			addStat(comment(that, "Summary branch", log.currentSourceFile()));
@@ -21218,22 +21217,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JmlStatementHavoc hv = M.at(that).JmlHavocStatement(newlist.toList());
 				addStat(hv);
 			}
-			for (JmlMethodClause clause : cs.clauses) {
-				if (clause.clauseKind != assignableClauseKind)
-					continue;
-				JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef) clause;
-				ListBuffer<JCExpression> newlist = new ListBuffer<>();
-				for (JCExpression sf : a.list) {
-					newlist.add(convertAssignable(sf, currentEnv.currentReceiver, true));
-				}
-				JmlStatementHavoc hv = M.at(a).JmlHavocStatement(newlist.toList());
-				addStat(hv);
-			}
-			for (JmlMethodClause clause : cs.clauses) {
-				if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
-					continue;
-				JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
-				addAssume(clause, Label.IMPLICIT_ASSUME, convertJML(a.expression));
+			for (var cs: sspecs.cases) {
+			    for (JmlMethodClause clause : cs.clauses) {
+			        if (clause.clauseKind != assignableClauseKind)
+			            continue;
+			        JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef) clause;
+			        ListBuffer<JCExpression> newlist = new ListBuffer<>();
+			        for (JCExpression sf : a.list) {
+			            newlist.add(convertAssignable(sf, currentEnv.currentReceiver, true));
+			        }
+			        JmlStatementHavoc hv = M.at(a).JmlHavocStatement(newlist.toList());
+			        addStat(hv);
+			    }
+			    for (JmlMethodClause clause : cs.clauses) {
+			        if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
+			            continue;
+			        JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
+			        addAssume(clause, Label.IMPLICIT_ASSUME, convertJML(a.expression));
+			    }
+			    if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");
+			    break;
 			}
             addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atSummaryFeasCheckDescription);
 
@@ -21244,17 +21247,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			convert(that.newStatements);
 			// FIXME - change the name on this and the defaults
 			// FIXME _ fix position
-			for (JmlMethodClause clause : cs.clauses) {
-				if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
-					continue;
-				JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
-				addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
-			}
-			isRefiningBranch = true;
-            addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
-			addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
-					null));
-			continuation = Continuation.HALT;
+            for (var cs: sspecs.cases) {
+                for (JmlMethodClause clause : cs.clauses) {
+                    if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
+                        continue;
+                    JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
+                    addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
+                }
+                isRefiningBranch = true;
+                addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
+                addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
+                        null));
+                continuation = Continuation.HALT;
+                if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");
+                break;
+            }
 		}
 		innerStatementSpec = savedInner;
 		currentOldLabel = savedCurrentOldLabel;
