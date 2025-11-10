@@ -3183,6 +3183,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		kind = "field";
         		if (ghost) {
         			allAllowed(specmods, allowedGhostFieldModifiers, "ghost field declaration");
+        			if (tree.sym.owner.isInterface() && utils.rac) {
+        			    utils.error(tree.source(), tree, "jml.message", "Ghost fields are not permitted in interfaces");
+        			}
         		} else if (model) {
         			allAllowed(specmods, allowedModelFieldModifiers, "model field declaration");
         			boolean isAbstract = (specmods.flags & ABSTRACT) != 0;

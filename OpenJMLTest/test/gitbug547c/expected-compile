@@ -1,0 +1,4 @@
+test/gitbug547c/Test547.java:3: warning: JML model field does not have a representation: state
+    //@ public static model int state;
+                                ^
+1 warning

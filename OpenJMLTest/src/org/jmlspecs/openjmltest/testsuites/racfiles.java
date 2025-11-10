@@ -481,6 +481,7 @@ public class racfiles extends RacBase {
     @Test
     public void gitbug547a() {
         runrac = true;
+        expectedExit = 1;
         expectedRACExit = 0;
         helpTCF("test/gitbug547a","test/gitbug547a","Test547");
     }
@@ -488,6 +489,7 @@ public class racfiles extends RacBase {
     @Test
     public void gitbug547b() {
         runrac = true;
+        expectedExit = 1;
         expectedRACExit = 0;
         helpTCF("test/gitbug547b","test/gitbug547b","Test547");
     }
@@ -495,14 +497,14 @@ public class racfiles extends RacBase {
     @Test
     public void gitbug547c() {
         runrac = true;
-        expectedRACExit = 0;
+        expectedRACExit = 1;
         helpTCF("test/gitbug547c","test/gitbug547c","Test547");
     }
 
     @Test
     public void gitbug547d() {
         runrac = true;
-        expectedRACExit = 0;
+        expectedRACExit = 1;
         helpTCF("test/gitbug547d","test/gitbug547d","Test547");
     }
 
