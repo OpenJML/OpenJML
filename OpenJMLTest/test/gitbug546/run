@@ -1,0 +1,19 @@
+
+
+cd $(dirname "$BASH_SOURCE[0]" )
+BIN=../../../OpenJML21
+if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+
+( \
+echo TEST-A; \
+$OJA -jmltesting --esc --progress Test.java ; \
+echo TEST-B; \
+$OJA -jmltesting --esc --progress Test.java --check-feasibility=precondition ;\
+echo TEST-C; \
+$OJA -jmltesting --esc --progress Test.java --check-feasibility=preconditionOnly ;\
+echo TEST-D; \
+$OJA -jmltesting --esc --progress Test.java --check-feasibility=exit  ; \
+echo TEST-X; \
+) >& actual
+
+diff actual expected && rm -rf actual
