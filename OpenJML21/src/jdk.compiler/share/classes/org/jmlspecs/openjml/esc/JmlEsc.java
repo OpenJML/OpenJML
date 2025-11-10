@@ -196,7 +196,16 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
+        if (decl.body == null) {
+            if (!utils.esc) return;
+            if (org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_none) && 
+                    !org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_pre)) return;
+            var halt = assertionAdder.M.JmlStatement(org.jmlspecs.openjml.ext.ReachableStatement.haltClause, null);
+            var block = assertionAdder.M.Block(0L, com.sun.tools.javac.util.List.<JCTree.JCStatement>of(halt));
+            decl.body = block;
+            
+            // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
+        }
         // We do prove generated constructors in general, because they include all the initialization
         if ((decl.sym.flags() & Flags.GENERATEDCONSTR) != 0 && (decl.sym.flags() & Flags.RECORD) != 0) return; // Don't do generated code (particularly record constructors)
         if ((decl.sym.flags() & Flags.GENERATED_MEMBER) != 0) return; // Don't do generated code (particularly record constructors)
