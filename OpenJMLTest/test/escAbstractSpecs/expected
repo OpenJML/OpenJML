@@ -18,6 +18,9 @@ Starting proof of Test.B.B() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.B.B() with prover !!!! - no warnings
+Starting proof of Test.B.toString() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test.B.toString() with prover !!!! - no warnings
 Completed proving methods in Test.B
 Proving methods in Test.BB
 Starting proof of Test.BB.BB() with prover !!!!

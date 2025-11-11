@@ -885,6 +885,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		activeExceptions = new HashSet<>();
 		findActiveExceptions(pmethodDecl);
 
+        if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_none)) {
+            // This block is added to enable checking that perconditions are consistent in methods without bodies
+            JCStatement halt = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
+                    ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
+            var block = M.Block(0L, com.sun.tools.javac.util.List.<JCTree.JCStatement>of(halt));
+            pmethodDecl.body = block;
+            pmethodDecl.mods.flags |= Flags.AUXILIARY;
+            //System.out.println("INSERTING HALT " + pmethodDecl.sym + " " + pmethodDecl.body);
+        }
+
 		this.currentEnv = this.currentEnv.pushEnvCopy(); // FIXME - or pushCopyInit?
         currentEnv.arithmeticMode = Arithmetic.Math.instance(context).defaultArithmeticMode(pmethodDecl.sym, isModel(pmethodDecl.sym));
 
@@ -1156,7 +1166,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					c = M.at(methodDecl.pos).Catch(ex, bbl);
 				}
                 //System.out.println("ADD POST CONDITIONS-S");
-				if (!isRefiningBranch)
+	            //boolean markedForNoPost = (pmethodDecl.mods.flags & Flags.AUXILIARY) != 0;
+	            //System.out.println("AUX2 " + methodDecl.sym + " " + markedForNoPost + " " + continuation);
+				if (!isRefiningBranch && continuation == Continuation.CONTINUE)
 					addPostConditions(outerFinalizeStats);
 				else
 					isRefiningBranch = false;
@@ -1231,12 +1243,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			if (methodDecl.body != null) {
 				continuation = Continuation.CONTINUE;
-		        if (feasibilityContains(Strings.feas_preOnly) && !feasibilityContains("debug")) {
-					JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
-							ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
-					convert(s);
-					continuation = Continuation.HALT;
-				}
+//		        if (feasibilityContains(Strings.feas_preOnly) && !feasibilityContains("debug")) {
+//					JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
+//							ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
+//					convert(s);
+//					continuation = Continuation.HALT;
+//				}
 				if (callingThis || callingSuper) {
 					convert(iter.next());
 				} else if (isConstructor && (esc || infer)) {
@@ -1257,7 +1269,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-				continuation = Continuation.CONTINUE;
+				if ((pmethodDecl.mods.flags & Flags.AUXILIARY) == 0) continuation = Continuation.CONTINUE;
 			}
 			JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
@@ -1271,8 +1283,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// The outerTryStatement just has a finally clause in which the
 			// postconditions and exceptional postconditions are checked.
 			popMapSymbols(savedMapSymbols);
+			//boolean markedForNoPost = (pmethodDecl.mods.flags & Flags.AUXILIARY) != 0;
+            //System.out.println("AUX " + methodDecl.sym + " " + markedForNoPost + " " + continuation);
 			outerFinalizeStats.add(comment(methodDecl, "Check Invariants", null));
-			if (!isRefiningBranch)
+			if (!isRefiningBranch && continuation == Continuation.CONTINUE)
 				addPostConditions(outerFinalizeStats);
 			else
 				isRefiningBranch = false;
@@ -8258,7 +8272,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				if (expand) list.addAll(collectModelFieldContents(fa,(ClassSymbol)(isStatic ? sym : fa.selected.type.tsym), sr.receiver, null));
 				else list.add(sr);
-				//System.out.println("MJSR-B " + e + " : " + list);
+				//System.out.println("MJSRN-B " + e + " : " + list);
 
 			} else if (e.type == locsetType) {
 				// field access that is a locset
@@ -20793,8 +20807,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				translatingJML = saved;
 				condition = null;
 			}
-		} else if (that.clauseType == Refining.endClause) {
-			// do nothing -- this should be part of a JmlStatementSpec
+        } else if (that.clauseType == Refining.endClause) {
+            // do nothing -- this should be part of a JmlStatementSpec
+        } else if (that.clauseType == ReachableStatement.haltClause) {
+            addFeasibilityCheck(that, currentStatements, Strings.feas_halt, "at halt statement");
+            addStat(that);
+            continuation = Continuation.HALT;
+            //System.out.println("CONTINUATION " + continuation);
 		} else {
 			String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.keyword;
 			error(that, msg);
@@ -20986,6 +21005,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(that, currentStatements, Strings.feas_halt, "at halt statement");
 				addStat(that);
 				continuation = Continuation.HALT;
+	            //System.out.println("CONTINUATION-B " + continuation);
 
 			} else if (that.clauseType == ReachableStatement.unreachableClause) {
 

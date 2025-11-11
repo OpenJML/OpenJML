@@ -196,16 +196,6 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        if (decl.body == null) {
-            if (!utils.esc) return;
-            if (org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_none) && 
-                    !org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_pre)) return;
-            var halt = assertionAdder.M.JmlStatement(org.jmlspecs.openjml.ext.ReachableStatement.haltClause, null);
-            var block = assertionAdder.M.Block(0L, com.sun.tools.javac.util.List.<JCTree.JCStatement>of(halt));
-            decl.body = block;
-            
-            // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
-        }
         // We do prove generated constructors in general, because they include all the initialization
         if ((decl.sym.flags() & Flags.GENERATEDCONSTR) != 0 && (decl.sym.flags() & Flags.RECORD) != 0) return; // Don't do generated code (particularly record constructors)
         if ((decl.sym.flags() & Flags.GENERATED_MEMBER) != 0) return; // Don't do generated code (particularly record constructors)
@@ -295,13 +285,26 @@ public class JmlEsc extends JmlTreeScanner {
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(/*@non_null*/ JmlMethodDecl methodDecl) {
         boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated") || JmlOption.includes(context, JmlOption.SHOW, "program");
-        
+                
+        String proverToUse = pickProver();
+
+        boolean isConstructor = methodDecl.sym.isConstructor();
+        //boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
+        boolean doEsc = methodDecl.body != null || !org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_none);
+            // TODO: Could check that abstract or native methods have consistent specs
+
+        // Don't do ESC on the constructor of Object
+        // FIXME - why?  (we don't have the source anyway, so how would we get here?)
+        if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
+
         if (skip(methodDecl)) {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
-        
-        String proverToUse = pickProver();
-        
+        if (!doEsc) {
+            return null;
+            //return markMethodSkipped(methodDecl," (because the method has no body)");
+        }
+
         //System.out.println("DOING " + utils.abbrevMethodSig(methodDecl.sym));
         String sig = utils.abbrevMethodSig(methodDecl.sym);
         utils.progress(0,1,"Starting proof of " + sig + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
@@ -314,14 +317,6 @@ public class JmlEsc extends JmlTreeScanner {
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
         
-        boolean isConstructor = methodDecl.sym.isConstructor();
-        boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
-            // TODO: Could check that abstract or native methods have consistent specs
-
-        // Don't do ESC on the constructor of Object
-        // FIXME - why?  (we don't have the source anyway, so how would we get here?)
-        if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
-        if (!doEsc) return null; // FIXME - SKIPPED?
 
         // print the body of the method to be proved
         if (printPrograms) {

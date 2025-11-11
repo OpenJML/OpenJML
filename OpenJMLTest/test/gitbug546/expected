@@ -36,18 +36,13 @@ Starting proof of T.rok() with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of T.rok() with prover !!!! - no warnings
 Starting proof of T.rr() with prover !!!!
-Test.java:23: warning: The prover cannot establish an assertion (Postcondition) in method rr
-  //@ model void rr();
-                 ^
-Test.java:22: warning: Associated declaration
-  //@ ensures false;
-      ^
-Completed proof of T.rr() with prover !!!! - with warnings
+Feasibility check - end of preconditions : OK
+Completed proof of T.rr() with prover !!!! - no warnings
 Starting proof of T.rrr() with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of T.rrr() with prover !!!! - no warnings
 Completed proving methods in T
-4 warnings
+2 warnings
 TEST-C
 Proving methods in Test
 Starting proof of Test.mok(boolean) with prover !!!!
@@ -77,54 +72,32 @@ Starting proof of T.rok() with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of T.rok() with prover !!!! - no warnings
 Starting proof of T.rr() with prover !!!!
-Test.java:23: warning: The prover cannot establish an assertion (Postcondition) in method rr
-  //@ model void rr();
-                 ^
-Test.java:22: warning: Associated declaration
-  //@ ensures false;
-      ^
-Completed proof of T.rr() with prover !!!! - with warnings
+Feasibility check - end of preconditions : OK
+Completed proof of T.rr() with prover !!!! - no warnings
 Starting proof of T.rrr() with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of T.rrr() with prover !!!! - no warnings
 Completed proving methods in T
-4 warnings
+2 warnings
 TEST-D
 Proving methods in Test
 Starting proof of Test.mok(boolean) with prover !!!!
-Feasibility check - at program exit : OK
 Completed proof of Test.mok(boolean) with prover !!!! - no warnings
 Starting proof of Test.mbad(boolean) with prover !!!!
-Feasibility check - at program exit : infeasible
-Test.java:8: warning: There is no feasible path to program point at program exit in method Test.mbad(boolean)
-  public void mbad(boolean b);
-              ^
-Completed proof of Test.mbad(boolean) with prover !!!! - INFEASIBLE
+Completed proof of Test.mbad(boolean) with prover !!!! - no warnings
 Completed proving methods in Test
 Proving methods in T
 Starting proof of T.T() with prover !!!!
 Feasibility check - at program exit : OK
 Completed proof of T.T() with prover !!!! - no warnings
 Starting proof of T.qbad() with prover !!!!
-Feasibility check - at program exit : infeasible
-Test.java:14: warning: There is no feasible path to program point at program exit in method T.qbad()
-  //@ model void qbad();
-                 ^
-Completed proof of T.qbad() with prover !!!! - INFEASIBLE
+Completed proof of T.qbad() with prover !!!! - no warnings
 Starting proof of T.qok() with prover !!!!
-Feasibility check - at program exit : OK
 Completed proof of T.qok() with prover !!!! - no warnings
 Starting proof of T.rok() with prover !!!!
-Feasibility check - at program exit : OK
 Completed proof of T.rok() with prover !!!! - no warnings
 Starting proof of T.rr() with prover !!!!
-Test.java:23: warning: The prover cannot establish an assertion (Postcondition) in method rr
-  //@ model void rr();
-                 ^
-Test.java:22: warning: Associated declaration
-  //@ ensures false;
-      ^
-Completed proof of T.rr() with prover !!!! - with warnings
+Completed proof of T.rr() with prover !!!! - no warnings
 Starting proof of T.rrr() with prover !!!!
 Feasibility check - at program exit : infeasible
 Test.java:25: warning: There is no feasible path to program point at program exit in method T.rrr()
@@ -132,5 +105,5 @@ Test.java:25: warning: There is no feasible path to program point at program exi
                  ^
 Completed proof of T.rrr() with prover !!!! - INFEASIBLE
 Completed proving methods in T
-5 warnings
+1 warning
 TEST-X

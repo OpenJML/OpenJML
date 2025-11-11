@@ -65,6 +65,9 @@ Starting proof of Test2.Test2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test2.Test2() with prover !!!! - no warnings
+Starting proof of Test2.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test2.m() with prover !!!! - no warnings
 Starting proof of Test2.p() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -75,6 +78,9 @@ Starting proof of Test3.Test3() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test3.Test3() with prover !!!! - no warnings
+Starting proof of Test3.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test3.m() with prover !!!! - no warnings
 Starting proof of Test3.p() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -85,6 +91,9 @@ Starting proof of Test4.Test4() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test4.Test4() with prover !!!! - no warnings
+Starting proof of Test4.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test4.m() with prover !!!! - no warnings
 Starting proof of Test4.p() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

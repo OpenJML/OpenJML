@@ -1,5 +1,6 @@
 Proving methods in Det
 Skipping proof of Det.Det() (Skipping Det.Det because it does not match marray)
+Skipping proof of Det.theInt2() (Skipping Det.theInt2 because it does not match marray)
 Starting proof of Det.marray() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

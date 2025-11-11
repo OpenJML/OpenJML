@@ -1,4 +1,10 @@
 Proving methods in stack.Stack
+Skipping proof of stack.Stack.count() (Skipping stack.Stack.count because it does not match main)
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it does not match main)
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it does not match main)
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it does not match main)
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it does not match main)
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match main)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match main)

@@ -7,6 +7,9 @@ Starting proof of BeanCan.remove(boolean) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BeanCan.remove(boolean) with prover !!!! - no warnings
+Starting proof of BeanCan.pick_random() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of BeanCan.pick_random() with prover !!!! - no warnings
 Starting proof of BeanCan.play_game() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

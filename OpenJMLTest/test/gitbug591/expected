@@ -1,4 +1,7 @@
 Proving methods in C
+Starting proof of C.isSorted(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of C.isSorted(int[]) with prover !!!! - no warnings
 Starting proof of C.C(int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

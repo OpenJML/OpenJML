@@ -11,6 +11,12 @@ test/escMultipleModel3/MultipleModel.java:14: warning: Associated declaration
    //@ public normal_behavior ensures \result._base == i; pure
                               ^
 Completed proof of MultipleModel.from(int) with prover !!!! - with warnings
+Starting proof of MultipleModel.add(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of MultipleModel.add(int) with prover !!!! - no warnings
+Starting proof of MultipleModel.toInt() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of MultipleModel.toInt() with prover !!!! - no warnings
 Completed proving methods in MultipleModel
 Proving methods in Child1
 Starting proof of Child1.Child1(int) with prover !!!!
