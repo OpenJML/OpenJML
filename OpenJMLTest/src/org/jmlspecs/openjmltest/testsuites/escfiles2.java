@@ -77,6 +77,11 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug724() {
+        helpTCG("--warn=missing-measured-by");
+    }
+    
+    @Test
     public void gitbug761() {
         helpTCG("--check");
     }
