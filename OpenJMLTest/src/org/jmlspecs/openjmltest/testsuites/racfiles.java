@@ -42,6 +42,11 @@ public class racfiles extends RacBase {
         ignoreNotes = true;
     }
     
+    public void helpTCN(String exec, String ... cmds) {
+        String n = getTestName();
+        helpTCF("test/"+n, "test/"+n, exec, cmds);
+    }
+    
     // No longer trying to test NG 
     // Must be called within a test method (not in setup) in order to get the test method name correctly
     public void setRacng() {
@@ -567,6 +572,13 @@ public class racfiles extends RacBase {
         runrac = true;
         expectedRACExit = 0;
         helpTCF("test/gitbug807","test/gitbug807","Foo");
+    }
+
+    @Test
+    public void gitbug766() {
+        runrac = false;
+        expectedRACExit = 0;
+        helpTCN(null);
     }
 
     @Test
