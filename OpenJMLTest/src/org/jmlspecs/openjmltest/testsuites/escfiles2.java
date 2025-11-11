@@ -87,6 +87,11 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug766() {
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug780a() {
         helpTCG("--method=marray");
     }
