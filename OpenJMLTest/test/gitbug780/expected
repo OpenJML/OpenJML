@@ -3,6 +3,12 @@ Starting proof of Det.Det() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Det.Det() with prover !!!! - no warnings
+Starting proof of Det.theInt() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Det.theInt() with prover !!!! - no warnings
+Starting proof of Det.theInt2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Det.theInt2() with prover !!!! - no warnings
 Starting proof of Det.m() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -11,10 +17,16 @@ Starting proof of Det.marray() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Det.marray() with prover !!!! - no warnings
+Starting proof of Det.theInt3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Det.theInt3() with prover !!!! - no warnings
 Starting proof of Det.mmodel() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Det.mmodel() with prover !!!! - no warnings
+Starting proof of Det.theInt4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Det.theInt4() with prover !!!! - no warnings
 Starting proof of Det.mmodel2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

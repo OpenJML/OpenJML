@@ -21,7 +21,7 @@ function ctrl_c() {
 
 F=$(realpath "$BASH_SOURCE")
 R=$(dirname "$F")
-export ROOT="$R/../../OpenJML21"
+export ROOT=`(cd "$R/../../OpenJML21" ; pwd)`
 TEST="../OpenJMLTest"
 JROOT="$R/../libs"
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"
@@ -58,8 +58,9 @@ while true; do
   break
 done
 
+SPECS=`(cd "$ROOT/../../Specs" ; pwd )`
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
 #( "$ROOT"/openjml-java $AGENT  -cp "unittests:src:$JUNIT" $EXPORTS OpenJMLTestRunner "$@" 2>&1 )
-( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$ROOT/../../Specs" "$NJAVA" $AGENT -cp "unittests:src:$JUNIT" $EXPORTS OpenJMLTestRunner "$@" 2>&1 )
+( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$SPECS" "$NJAVA" $AGENT -cp "unittests:src:$JUNIT" $EXPORTS OpenJMLTestRunner "$@" 2>&1 )

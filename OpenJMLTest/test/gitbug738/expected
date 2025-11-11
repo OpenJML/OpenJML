@@ -27,6 +27,9 @@ test/gitbug738/HasComm.java:2: warning: Associated declaration: test/gitbug738/H
   //@ ensures (this.comm(other)==other.comm(this));
       ^
 Proving methods in HasComm
+Starting proof of HasComm.comm(HasComm) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of HasComm.comm(HasComm) with prover !!!! - no warnings
 Completed proving methods in HasComm
 test/gitbug738/B.java:4: warning: [missing-measured-by] Method comm(HasComm) is called recursively, but a specification case has no measured_by clause
 	//@ ensures (this.comm(other)==other.comm(this));

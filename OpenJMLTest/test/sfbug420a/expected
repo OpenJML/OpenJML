@@ -1,4 +1,12 @@
 Proving methods in stack.Stack
+Starting proof of stack.Stack.count() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.count() with prover !!!! - no warnings
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it does not match count)
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it does not match count)
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it does not match count)
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it does not match count)
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match count)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match count)

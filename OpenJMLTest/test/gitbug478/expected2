@@ -1,4 +1,13 @@
 Proving methods in SB
+Starting proof of SB.size() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of SB.size() with prover !!!! - no warnings
+Starting proof of SB.capacity() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of SB.capacity() with prover !!!! - no warnings
+Starting proof of SB.remaining() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of SB.remaining() with prover !!!! - no warnings
 Completed proving methods in SB
 Proving methods in SBB
 Starting proof of SBB.SBB(java.nio.ByteBuffer,int) with prover !!!!

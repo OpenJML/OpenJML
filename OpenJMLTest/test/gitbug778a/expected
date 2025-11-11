@@ -7,6 +7,9 @@ Starting proof of error.lengthBalancerAddingZeroes(byte[],int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of error.lengthBalancerAddingZeroes(byte[],int) with prover !!!! - no warnings
+Starting proof of error.lengthBalancerContent(byte[],int,byte[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of error.lengthBalancerContent(byte[],int,byte[]) with prover !!!! - no warnings
 Starting proof of error.xorFunctionSameLength(byte[],byte[]) with prover !!!!
 Note: Using bit-vector arithmetic
 Feasibility check - end of preconditions : OK
