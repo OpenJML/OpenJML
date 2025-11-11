@@ -2317,10 +2317,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					emsg = info;
 				}
 				stt = assertFailure(emsg, codepos, label);
-				if (!isFalse)
-					stt = M.at(codepos) // FIXME - make condition a temp?
-							.If(treeutils.makeNot(codepos == null ? Position.NOPOS : codepos.getPreferredPosition(),
-									treeutils.makeIdent(translatedExpr.pos, assertDecl.sym)), stt, null);
+				if (!isFalse) {
+				    var id = treeutils.makeIdent(translatedExpr.pos, assertDecl.sym);
+				    var notid = treeutils.makeNot(codepos == null ? Position.NOPOS : codepos.getPreferredPosition(), id);
+					stt = M.at(codepos).If(notid, stt, null); // FIXME - make condition a temp?
+				}
 			}
 			addStat(comment(translatedExpr, label + " assertion: " + translatedExpr.toString(), associatedSource));
 			currentStatements.add(assertDecl);
@@ -2468,7 +2469,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 			m = findUtilsMethod(pos, "assertionFailureL");
 		}
-		var sl = treeutils.makeStringLiteral(0, n); // Caution: sets M.pos
+		var sl = treeutils.makeStringLiteral(pos.getPreferredPosition(), n); // Caution: sets M.pos
 		JCExpression c = M.at(pos).Apply(null, m, List.<JCExpression>of(sp, sl)).setType(syms.voidType);
 		return M.at(pos).Exec(c);
 	}
@@ -2868,7 +2869,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																				// location of the call
 			JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "reportNoSuchMethod", id,
 					location);
-			catcher1 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+			catcher1 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
 		}
 		JCCatch catcher2;
 		vd = treeutils.makeVarDef(utils.createClassSymbol("java.lang.NoSuchFieldError").type,
@@ -2883,7 +2884,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 			JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "reportNoSuchField", id,
 					location);
-			catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+			catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
 		}
 		return M.at(pos).Try(block, List.<JCCatch>of(catcher, catcher1, catcher2), null);
 	}
@@ -4013,7 +4014,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             copy(idx));
                     var ee2 = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, copy(idx),
                             treeutils.makeArrayLength(p, copy(id)));
-                    var ee3 = M.at(pos).Indexed(copy(id), copy(idx));
+                    var ee3 = M.Indexed(copy(id), copy(idx)); ee3.pos = pos.getPreferredPosition();
                     ee3.type = componentType;
                     var ee4 = treeutils.makeJmlMethodInvocation(pos, FunctionLikeExpressions.invariantForKind, syms.booleanType, ee3);
                     var ee5 = treeutils.makeNotNull(p, copy(ee3));
@@ -5897,7 +5898,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								} finally {
 									JCBlock block = popBlock(clause, ch);
 									if (test != null) {
-										addStat(M.at(clause.pos).If(newTempIfNeeded(test), block, null));
+									    var t = newTempIfNeeded(test);
+										addStat(M.at(clause.pos).If(t, block, null));
 									} else
 										addStat(block);
 									if (vdo != null) {
@@ -6065,7 +6067,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchMethod", id, location);
 					catcher1 = M.at(pos).Catch(vd,
-							M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+							M.Block(0L, List.<JCStatement>of(M.Exec(m))));
 				}
 				JCCatch catcher2;
 				vd = treeutils.makeVarDef(utils.createClassSymbol("java.lang.NoSuchFieldError").type,
@@ -6080,8 +6082,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchField", id, location);
-					catcher2 = M.at(pos).Catch(vd,
-							M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+					catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
 				}
 				if (!bl.stats.isEmpty()) {
 					if (isOnlyComment(bl)) {
@@ -6121,8 +6122,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																						// call
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchMethod", id, location);
-					catcher1 = M.at(pos).Catch(vd,
-							M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+					catcher1 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
 				}
 				JCCatch catcher2;
 				vd = treeutils.makeVarDef(utils.createClassSymbol("java.lang.NoSuchFieldError").type,
@@ -6137,8 +6137,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchField", id, location);
-					catcher2 = M.at(pos).Catch(vd,
-							M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
+					catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
 				}
 				if (!bl.stats.isEmpty()) {
 					if (isOnlyComment(bl)) {
@@ -7116,14 +7115,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Name closeCatchName = names.fromString("__JMLcloseCatch_" + resource.pos);
 		JCVariableDecl closeCatchDecl = treeutils.makeVarDef(syms.throwableType, closeCatchName,
 				esc ? null : methodDecl != null ? methodDecl.sym : classDecl.sym, resource.pos);
-		JCCatch resourceCloseCatch = M.at(pos).Catch(closeCatchDecl, M.at(pos).Block(0L, List.<JCStatement>nil())); // FIXME
+		JCCatch resourceCloseCatch = M.at(pos).Catch(closeCatchDecl, M.Block(0L, List.<JCStatement>nil())); // FIXME
 																													// -
 																													// should
 																													// save
 																													// the
 																													// suppressed
 																													// exception
-		JCTry closetry = M.at(pos).Try(List.<JCTree>nil(), M.at(pos).Block(0L, List.<JCStatement>of(closeCall1)),
+		JCTry closetry = M.at(pos).Try(List.<JCTree>nil(), M.Block(0L, List.<JCStatement>of(closeCall1)),
 				List.<JCCatch>of(resourceCloseCatch), null);
 
         ListBuffer<JCStatement> finalstats = new ListBuffer<>();
