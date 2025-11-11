@@ -2468,8 +2468,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 			m = findUtilsMethod(pos, "assertionFailureL");
 		}
-		JCExpression c = M.at(pos).Apply(null, m, List.<JCExpression>of(sp, treeutils.makeStringLiteral(0, n)))
-				.setType(syms.voidType);
+		var sl = treeutils.makeStringLiteral(0, n); // Caution: sets M.pos
+		JCExpression c = M.at(pos).Apply(null, m, List.<JCExpression>of(sp, sl)).setType(syms.voidType);
 		return M.at(pos).Exec(c);
 	}
 

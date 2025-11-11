@@ -65,6 +65,10 @@ public class runscripts extends RunBase {
         doTest();
     }
 
+    @Test public void gitbug776() {
+        doTest();
+    }
+
     @Test public void gitbug786() {
         doTest();
     }
