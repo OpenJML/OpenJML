@@ -8,5 +8,5 @@ public class Test {
               ==>
               (\exists int x2; x2 == number; \exists int z2; !(z2 % 2 == 0); x2 == z2);
   @*/
-  public boolean m(int number) { return number == 0; }
+  public boolean m(int number) { return number%2 == 0; }
 }
