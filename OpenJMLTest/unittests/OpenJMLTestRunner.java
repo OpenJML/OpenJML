@@ -304,7 +304,7 @@ public class OpenJMLTestRunner {
                     if (n instanceof JmlTestSuite tt) {
                         t = tt;
                         t.testname = method.getName(); // FIXME: This is the simple name, not the name + bracketed parameter list
-                        t.setUp();
+                        t.setUp(); // FIXME - should we use the @Before methods
                         method.invoke(t); // invokes the specific test within the testcase -- any output directly to System.out is not synchronized
                     } else {
                         throw new RuntimeException("Test suite " + n.getClass() + " does not extend JmlTestSuite");
@@ -318,7 +318,7 @@ public class OpenJMLTestRunner {
                         if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
                     }
                 } finally {
-                    if (t != null) t.tearDown();
+                    if (t != null) t.tearDown(); // FIXME - should we use the @After methods
                 }
             } catch (Exception e) {
                 synchronized (System.out) {

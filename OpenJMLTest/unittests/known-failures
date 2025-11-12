@@ -129,11 +129,12 @@ escTrace.testEnsuresSafeTrace
 escTrace.testEnsuresTrace
 escTrace.testFieldTrace
 escTrace.testSimpleTrace
-escfileslist1.test[crashXlint]
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
+escfileslist2.test[gitbug784]
+escfileslist2.test[gitbug785]
 escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist2.test[gitbug883bad] #	Needs better handling of 2D array
 escfileslist3.test[listNullity]
@@ -180,10 +181,11 @@ escfileslist2.test[gitbug878]	#	problem with type inference
 escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
 primesc.locsetTests2
 
+runscripts.crashXlint
 runscripts.gitbug883
-escfileslist2.test[gitbug888]
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]
+escfileslist2.test[gitbug888]
 escfileslist2.test[gitbug897]
 escfileslist2.test[gitbug894]
 escfileslist2.test[gitbug890]
