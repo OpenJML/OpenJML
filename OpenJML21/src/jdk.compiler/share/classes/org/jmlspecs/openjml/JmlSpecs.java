@@ -1974,18 +1974,24 @@ public class JmlSpecs {
             var p = determinePurity(mp);
             if (print) System.out.println("DET  " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + p);
             if (p == null) continue;
-            if (p.jmlclausekind == Modifiers.NO_STATE) return p;
-            else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) best = p;
-            else if (p.jmlclausekind == Modifiers.SPEC_PURE && (best == null || best.jmlclausekind != Modifiers.STRICTLY_PURE)) best = p;
-            else if (p.jmlclausekind == Modifiers.PURE && (best == null || best.jmlclausekind == Modifiers.PURE)) best = p;
+            if (best == null) best = p;
+            else if (p.jmlclausekind == Modifiers.NO_STATE) best = p;
+            else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) { if (best.jmlclausekind != Modifiers.NO_STATE) best = p; }
+            else if (p.jmlclausekind == Modifiers.SPEC_PURE && best.jmlclausekind == Modifiers.PURE) best = p;
             if (print) System.out.println("OVER " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + best);
         }
-        if (best != null) return best;
+        JmlToken enclosingPurity = null;
         if (msym.owner instanceof ClassSymbol owner) {
-            var m = determinePurity(owner);
-            if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + m);
-            if (m != null) return m;
+            enclosingPurity = determinePurity(owner);
+            if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + enclosingPurity);
         }
+        if (best != null && enclosingPurity != null && best.jmlclausekind != enclosingPurity.jmlclausekind) {
+            utils.warning("jml.message",
+                    "Method " + msym.owner +"."+msym + " inherits purity " + best + " but has default purity " + enclosingPurity + " from enclosing class; specify purity explicitly to avoid confusion");
+            mods.jmlmods.add(best);
+        }
+        if (best != null) return best;
+        if (enclosingPurity != null) return enclosingPurity;
         return null;
     }
 
