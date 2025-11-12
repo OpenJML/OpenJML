@@ -261,7 +261,7 @@ public class JmlOptions extends Options {
             }
         }
         
-        if (o == Cmd.CHECKJML) {
+        if (o == JmlOption.CHECKJML) {
             List<String> files = new LinkedList<>();
             while (iter.hasNext()) {
                 res = iter.next();
