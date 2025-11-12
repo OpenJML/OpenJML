@@ -1243,12 +1243,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			if (methodDecl.body != null) {
 				continuation = Continuation.CONTINUE;
-//		        if (feasibilityContains(Strings.feas_preOnly) && !feasibilityContains("debug")) {
-//					JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
-//							ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
-//					convert(s);
-//					continuation = Continuation.HALT;
-//				}
+		        if (feasibilityContains(Strings.feas_preOnly) && !feasibilityContains("debug")) {
+					JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
+							ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
+					convert(s);
+					continuation = Continuation.HALT;
+				}
 				if (callingThis || callingSuper) {
 					convert(iter.next());
 				} else if (isConstructor && (esc || infer)) {
