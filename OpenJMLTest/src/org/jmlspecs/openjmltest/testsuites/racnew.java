@@ -337,7 +337,7 @@ public class racnew extends RacBase {
                 ,"/tt/TestJava.java:10: Associated declaration"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)" // FIXME - should be line 14
+                ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 );
     }

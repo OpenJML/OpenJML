@@ -96,7 +96,7 @@ public class racsystem extends RacBase {
                 ,"Associated declaration: /tt/TestJava.java:14:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:6)"       
                 );
     }
@@ -133,7 +133,7 @@ public class racsystem extends RacBase {
                 ,"verify: Associated declaration: /tt/TestJava.java:6:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locD
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
+                ,"\tat tt.TestJava.main(TestJava.java:6)"
                 );
     }
 
@@ -168,7 +168,7 @@ public class racsystem extends RacBase {
                 ,"verify: Associated declaration: /tt/TestJava.java:14:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:6)"
                 ,"END"
                 );
@@ -197,7 +197,7 @@ public class racsystem extends RacBase {
                 ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:9: verify: JML assertion is false"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locC
-                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:9)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 ,"END"
                 );
