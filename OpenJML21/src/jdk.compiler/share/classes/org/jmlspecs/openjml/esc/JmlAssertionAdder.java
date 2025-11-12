@@ -7014,7 +7014,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(caseToDo, currentStatements, Strings.feas_switch, "after case condition");
 		    }
 		    if (caseToDo != null) {
-		        convert(caseToDo.stats); // FIXME - does not work for fall through cases
+		        convert(caseToDo.stats);
+		        doCase++;
+		        while (doCase < that.cases.size() && caseToDo.completesNormally) {
+		            caseToDo = that.cases.get(doCase);
+		            convert(caseToDo.stats);
+		            doCase++;
+		        }
 		    }
 		    JCBlock newblock = popBlock(that);
 
