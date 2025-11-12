@@ -763,7 +763,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     /** An Enum type that gives a choice of various tools to be executed. */
     public static enum Cmd {
-        PARSE("parse"), CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer");
+        PARSE("parse"), CHECK("check"), ESC("esc"), RAC("rac"), DEP("dep"), JMLDOC("doc"), COMPILE("compile"), INFER("infer"), CHECKJML("check-jml");
         String name;
         public String toString() { return name; }
         private Cmd(String name) { this.name = name; }

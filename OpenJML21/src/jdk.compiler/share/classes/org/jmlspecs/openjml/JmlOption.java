@@ -64,6 +64,7 @@ public class JmlOption {
     	}
     };
     public static final JmlOption PARSE = new JmlOption("--parse",false,null,"Only parses input files","--command=parse");
+    public static final JmlOption CHECKJML = new JmlOption("--check-jml",true,null,"Does a JML syntax check of .jml files");
     public static final JmlOption CHECK = new JmlOption("--check",false,null,"Does a JML syntax check","--command=check");
     public static final JmlOption COMPILE = new JmlOption("--compile",false,null,"Does a Java-only compile","--command=compile");
     public static final JmlOption RAC = new JmlOption("--rac",false,null,"Enables generating code instrumented with runtime assertion checks","--command=rac");

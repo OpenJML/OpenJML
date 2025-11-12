@@ -260,6 +260,20 @@ public class JmlOptions extends Options {
                 }
             }
         }
+        
+        if (o == Cmd.CHECKJML) {
+            List<String> files = new LinkedList<>();
+            while (iter.hasNext()) {
+                res = iter.next();
+                if (res.startsWith("-")) {
+                    // res is the next option
+                    processJmlArg(res,iter,options,remainingArgs,remainingArgs);
+                    return;
+                }
+                files.add(res);;
+            }
+            options.put("--check-jml",Strings.join(files));
+        }
 
         if (o == JmlOption.DIRS) {
             // Test for this option here before res is set from the iterator
