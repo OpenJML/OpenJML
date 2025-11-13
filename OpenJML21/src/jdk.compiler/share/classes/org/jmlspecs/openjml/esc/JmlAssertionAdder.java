@@ -2419,6 +2419,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					treeutils.makeIntLiteral(item, feasibilityCheckCount));
 			ListBuffer<JCStatement> prev = currentStatements;
 			currentStatements = list;
+			addStat(comment("Feasibility check " + description));
 			JmlStatementExpr a = addAssert(item, Label.FEASIBILITY_CHECK, bin);
 			a.description = description;
 			a.sourcefile = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource) item).source() : null;

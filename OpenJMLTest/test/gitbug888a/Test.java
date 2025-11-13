@@ -1,11 +1,16 @@
-public class Test2
+public class Test
 {
-    //@ public normal_behavior
     //@  requires arr != null;
-    //@  requires -1 <= N < arr.length;
+    //@  requires N == -1;
     //@  assigns \nothing;
-    //@  ensures \result == (N == -1 ? 0 : arr[N] + _sumFirstNElements(arr, N-1));
+    //@  ensures \result == 0;
+    //@ also
+    //@  requires arr != null;
+    //@  requires 0 <= N < arr.length;
+    //@  assigns \nothing;
+    //@  ensures \result == arr[N] + _sumFirstNElements(arr, N-1);
     //@  measured_by N+1;
+    //@ behaviors disjoint;
     //@ pure
     //@ model public int _sumFirstNElements(int[] arr, int N) {
     //@     if (N == -1) {
