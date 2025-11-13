@@ -140,7 +140,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
-        if (scannerDebug) System.out.println("COMMENT " + noJML + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug) System.out.println("COMMENT " + noJML + " " + jml + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
         
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
             // The nested block will have the same end point as the outer block

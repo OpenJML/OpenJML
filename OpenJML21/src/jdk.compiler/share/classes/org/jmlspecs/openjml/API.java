@@ -419,7 +419,7 @@ public class API implements IAPI {
     @Override
     public JCExpression parseExpression(CharSequence text,boolean isJML) {
         JmlCompiler.instance(context());
-        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(context())).newParser(text,true,true,true,isJML);
+        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(context())).newParser(text,true,isJML);
         return p.parseExpression();
     }
     
@@ -429,7 +429,7 @@ public class API implements IAPI {
     @Override
     public JCStatement parseStatement(CharSequence text,boolean isJML) {
         JmlCompiler.instance(context());
-        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(context())).newParser(text,true,true,true,isJML);
+        JmlParser p = ((com.sun.tools.javac.parser.JmlFactory)com.sun.tools.javac.parser.JmlFactory.instance(context())).newParser(text,true,isJML);
         return p.parseStatement();
     }
     
