@@ -185,7 +185,6 @@ runscripts.crashXlint
 runscripts.gitbug883
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]
-escfileslist2.test[gitbug888]
 escfileslist2.test[gitbug897]
 escfileslist2.test[gitbug894]
 escfileslist2.test[gitbug890]

@@ -99,7 +99,7 @@ abstract public class ParseBase extends JmlTestSuite {
      */
     public List<JCTree> parseCompilationUnit(String s) {
         Log.instance(context).useSource(new TestJavaFileObject(s));
-        parser = fac.newParser(s,false,true,true,jml);
+        parser = fac.newParser(s, false, jml);
         parser.addOrgJmlspecsLang = false;
         JCTree e = parser.parseCompilationUnit();
         return ParseTreeScanner.walk(e);

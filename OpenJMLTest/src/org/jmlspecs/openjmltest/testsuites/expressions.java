@@ -53,7 +53,7 @@ public class expressions extends ParseBase {
     public void helpExpr(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
+            JmlParser p = ((JmlFactory)fac).newParser(s,false,jml);
             JCTree.JCExpression e = p.parseExpression();
             List<JCTree> out = ParseTreeScanner.walk(e);
             int i = 0;
@@ -102,7 +102,7 @@ public class expressions extends ParseBase {
     public void helpExprErrors(String s, Object... list) {
         try {
             Log.instance(context).useSource(new TestJavaFileObject(s));
-            Parser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
+            Parser p = ((JmlFactory)fac).newParser(s,false,true,true,false,jml);
             p.parseExpression();
             int i = 0;
             if (print || collector.getDiagnostics().size() != list.length) printDiagnostics();
