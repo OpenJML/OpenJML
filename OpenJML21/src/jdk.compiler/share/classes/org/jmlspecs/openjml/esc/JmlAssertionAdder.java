@@ -21736,6 +21736,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										classDecl.name, null, null, null, null, null, null, // body,
 										null, msym);
 						methodDecl.isInitializer = true;
+
+						JCVariableDecl d = treeutils.makeVarDef(syms.exceptionType, exceptionName, msym,
+						        treeutils.makeNullLiteral(methodDecl.pos));
+						exceptionSym = d.sym;
+						exceptionSymbols.put(methodDecl, exceptionSym);
+						currentStatements.add(d);
 					}
 
 					// boolean pv = checkAccessEnabled;
