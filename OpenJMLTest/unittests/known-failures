@@ -135,6 +135,8 @@ escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of to
 escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
 escfileslist2.test[gitbug784]
 escfileslist2.test[gitbug785]
+escfileslist2.test[gitbug878]   #   problem with type inference
+escfileslist2.test[gitbug880]   #   Needs better reasoning about String length
 escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist2.test[gitbug883bad] #	Needs better handling of 2D array
 escfileslist3.test[listNullity]
@@ -164,21 +166,11 @@ feasibility.fspecA
 feasibility.fspecB
 
 racfiles.gitbug534		# <<<<< recursive call -- incorrect rac translation 
-racfiles.gitbug547a		# <<<<< problem with translation of an interface with static ghost field
-racfiles.gitbug547b		# <<<<< same for an instance field
-racfiles.gitbug547c		# <<<<< translation of interface, model field
-racfiles.gitbug547d		# <<<<< translation of model field
-racfiles.gitbug860		#       bad translation for method call in static initializer
 racfiles.gitbug861		#	missing check in compiler constant static initializer
-racfiles.gitbug869		#	could use better error messages
 racfiles.rac1			# <<<<< review/improve error messages
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
-runscripts.nowarn		#	java options are recorded too late to setup internal shortcuts
 generics.testBinaryGeneric3c
 escfiles.sfbug420e
-escfileslist2.test[gitbug876]	#	attempt at a Prime checker -- problems with modulo
-escfileslist2.test[gitbug878]	#	problem with type inference
-escfileslist2.test[gitbug880]	#	Needs better reasoning about String length
 primesc.locsetTests2
 
 runscripts.crashXlint
@@ -186,6 +178,8 @@ runscripts.gitbug883
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]
 escfileslist2.test[gitbug897]
-escfileslist2.test[gitbug894]
 escfileslist2.test[gitbug890]
+
+SFBugs.gitbug651  # not yet working
+SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 511, 842
