@@ -21,5 +21,7 @@ fi
 . "$INSTALL"/setup-vars javac
 
 ## Run the executable for openjml (the javac equivalent)
+## The following line fixes issue #876, but is a hack because the root problem and this solution are not understood, as documented in #908
+if [ -z "${OJ++}" ]; then export OJ= ; fi
 "$BIN" $PR "$@"
 
