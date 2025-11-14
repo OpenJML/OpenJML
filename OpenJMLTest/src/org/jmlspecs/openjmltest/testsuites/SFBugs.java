@@ -818,6 +818,24 @@ public class SFBugs extends EscBaseFiles {
     }
 
     @Test
+    public void gitbug651() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test
+    public void gitbug651a() {
+        expectedExit = 1;
+        helpTCG(); 
+    }   
+        
+    @Test
+    public void gitbug651b() {
+        expectedExit = 0;
+        helpTCG();
+    }
+
+    @Test
     public void gitbug653() {
         expectedExit = 0;
         helpTCG("--specs-path=test/gitbug653");
