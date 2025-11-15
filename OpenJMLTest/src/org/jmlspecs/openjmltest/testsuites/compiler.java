@@ -59,7 +59,7 @@ public class compiler extends JmlTestSuite{
         savedout = System.out;
         if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
-        org.jmlspecs.openjml.Main.useJML = false;
+ //       org.jmlspecs.openjml.Main.useJML = false;
     }
     
     @After
@@ -640,52 +640,8 @@ public class compiler extends JmlTestSuite{
                           );
     }
     
-    /** Tests the -java option */
-    @Test
-    public void testJavaOption() {
-        helper(new String[]
-                          { "-java", 
-                            "-classpath",src,
-                            src + "testSpecErrors/A.java"
-                          },0,0
-                          ,""
-                          ,"");
-        org.jmlspecs.openjml.Main.resetStatics(); // so later tests are not polluted
-        
-    }
-    
-    /** Tests the -java option must be first*/
-    @Test
-    public void testJavaOption2() {
-        helper(new String[]
-                          {  
-                            "-classpath",src,
-                            "-java",
-                            "--no-purity-check",
-                            src + "testNoErrors/A.java"
-                          },0,1
-                          ,""
-                          ,"The -java option is ignored unless it is the first command-line argument"
-                          );
-        
-    }
-    
-    /** Tests that we get errors without the -java option */
-    @Test
-    public void testJavaOption1() {
-        helper(new String[]
-                          { "-classpath", src + "testSpecErrors", 
-                            "--no-purity-check",
-                            "--check",
-                            src + "testSpecErrors/A.java"
-                          },1,0
-                          ,""
-                          ,src + "testSpecErrors/A.jml:4: error: incompatible types: boolean cannot be converted to int" + eol 
-                          +"    //@ ghost int i = true; // Error to provoke a message" + eol 
-                          +"                      ^" + eol
-                          + "1 error" + eol
-                          );
-    }
+    // Tests of -java are in runscripts.javaOnly. They cannot be part of a 
+    // test suite because they set the static field Utils.isjml
     
     /** Tests an invalid use of key */
     @Test

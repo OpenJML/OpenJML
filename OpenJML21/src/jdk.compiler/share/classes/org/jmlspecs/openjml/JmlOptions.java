@@ -411,13 +411,9 @@ public class JmlOptions extends Options {
 
         JmlCompiler.instance(context).disableJML(!isSet(JmlOption.JML));
 
+        // Not supporting this option
         options.remove("printArgsToFile");
         
-        try {
-            utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
-        } catch (Exception e) {
-            // continue
-        }
         if (options.get("-verbose") != null) {
             // If the Java -verbose option is set, we set -jmlverbose as well
             utils.jmlverbose = Utils.JMLVERBOSE;
@@ -436,18 +432,13 @@ public class JmlOptions extends Options {
             Main.instance(context).progressDelegator.setDelegate(null);
         }
 
-        String keysString = options.get(JmlOption.KEYS.optionName());
-        commentKeys = new HashSet<String>();
-        if (keysString != null && !keysString.isEmpty()) {
-            String[] keys = keysString.split(",");
-            for (String k: keys) commentKeys.add(k);
-        }
-
+        // Set implicit comment keys
         if (utils.esc) commentKeys.add("ESC");
         if (utils.rac) commentKeys.add("RAC");
         if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 
+        // register any user extensions
         Extensions.register(context);
         return true;
     }

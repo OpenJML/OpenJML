@@ -113,7 +113,7 @@ public class API implements IAPI {
             main = new org.jmlspecs.openjml.Main(org.jmlspecs.openjml.Strings.applicationName,
                     out != null ? out : new PrintWriter(System.out),
                     err != null ? err : new PrintWriter(System.err));
-            main.context = main.initialize(diagListener);
+            main.initialize(diagListener);
         } catch (Throwable e) { // NOT EXPECED TO BE EXECUTED
             // At least IOException may be thrown
             // This catch block is not ever expected to be executed, but is here just in case some internal bug
@@ -128,10 +128,10 @@ public class API implements IAPI {
     }
     
     public boolean isOptionSet(String key) {
-        return JmlOption.isOption(main.context, key);
+        return JmlOption.isOption(main.context(), key);
    }
     public String getOption(String key) {
-        return JmlOption.value(main.context, key);
+        return JmlOption.value(main.context(), key);
     }
 
     
@@ -249,7 +249,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(/*@ non_null*/ String ... args) {
-        int x = main.compile(args, main.context).exitCode;
+        int x = main.compile(args, main.context()).exitCode;
         return x;
     }
     
@@ -1127,7 +1127,7 @@ public class API implements IAPI {
         protected JmlTokenizer tokenizer;
         
         public TokenIterator(String text) {
-            ScannerFactory factory = main.context.get(ScannerFactory.scannerFactoryKey);
+            ScannerFactory factory = main.context().get(ScannerFactory.scannerFactoryKey);
             tokenizer = ((JmlScanner)factory.newScanner(text, true)).jmltokenizer;
         }
         

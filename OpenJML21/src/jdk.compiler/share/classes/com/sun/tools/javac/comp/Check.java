@@ -187,13 +187,13 @@ public class Check {
         allowSealed = Feature.SEALED_CLASSES.allowedInSource(source);
     }
 
-    public void resetHandlers() { // OPENJML - added, for the situation where Check is constructed before options are read
+    public void resetHandlers() { // OPENJML - added, for the situation where Check is constructed before options are read or reset
         String n = com.sun.tools.javac.main.Option.XLINT_CUSTOM.primaryName;
         // Assignment intended below
         if (uncheckedHandler.verbose = options.isSet(n+LintCategory.UNCHECKED.option)) lint.enable(LintCategory.UNCHECKED);
         if (deprecationHandler.verbose = options.isSet(n+LintCategory.DEPRECATION.option)) lint.enable(LintCategory.DEPRECATION);
         if (removalHandler.verbose = options.isSet(n+LintCategory.REMOVAL.option)) lint.enable(LintCategory.REMOVAL);
-        //warnOnAnyAccessToMembers = options.isSet("warnOnAccessToMembers");
+        // warnOnAnyAccessToMembers = options.isSet("warnOnAccessToMembers"); // field is final -- cannot be reset
     }
 
     /** Character for synthetic names
