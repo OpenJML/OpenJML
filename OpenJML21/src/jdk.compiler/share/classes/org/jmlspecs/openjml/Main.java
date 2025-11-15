@@ -114,21 +114,21 @@ public class Main extends com.sun.tools.javac.main.Main {
     public static final String solvers = System.getenv("OPENJML_SOLVERS") != null ? System.getenv("OPENJML_SOLVERS") : System.getenv("OPENJML_INSTALL");
     
     // FIXME - get rid of this when we figure out how to control the entry point of the jdk image 
-    public static boolean useJML = false;
+    //public static boolean useJML = false;
     
     /** An additional exit code, along with those in the super class */
     public static final int EXIT_CANCELED = -1;
 
     /** The compilation unit context associated with this instance of Main
      * (for the programmatic API); for the command-line API it is simply 
-     * the most recent value of the context, and is used that way in testing. */
-    public Context context;
+     * the most recent value of the context, and is used that way in testing. 
+     * This value cannot be changed after initialize() is called.
+     */
+    private Context context;
     
     /** True if compilation/static-checking has been canceled, by setting this field in some exception handler. 
      *  Used in an interactive environment. */
     public boolean canceled = false;
-    
-    public Utils utils;
     
     /** Instances of this class are used to abruptly terminate long-running JML operations;
      *  catch clauses typically set the Main.canceled field
@@ -197,7 +197,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
     }
     
-    // TODO - review use of level and jmlverbose
+    // TODO - review use of level and jmlverbose; would rather this did not need to cache 'context'
     /** This class is a progress listener that prints the progress messages to 
      * a given OutputStream.
      */
@@ -261,12 +261,12 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     /** Returns a reference to the API's compilation context. */
     public /*@nullable*/ Context context() {
-        return context;
+        return this.context;
     }
     
     public Context initialize(
                 /*@ nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
-        useJML = true;
+        //useJML = true;
         check(); // Aborts if the environment does not support OpenJML
         Context context = new Context(); // creates a new Context for this compilation
         
@@ -275,7 +275,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         register(context);
         
         // Now fetch option values from global properties and env. variables
-        utils = Utils.instance(context);
         Utils.setOptionsFromProperties(Utils.findProperties(context), context);
         this.context = context;
         return context;
@@ -311,7 +310,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         	} catch (Exception e) {
         		System.out.println("Main exiting with exception");
         		e.printStackTrace(System.out);
-        		System.exit(3);
+        		System.exit(Result.SYSERR.exitCode);
         	}
         } else {
             System.exit(execute(args, false));  // The boolean: true - errors to stdErr, false - errors to stdOut
@@ -382,7 +381,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 if (useJavaCompiler) {
                     String[] newargs = new String[args.length-1];
                     System.arraycopy(args,1,newargs,0,newargs.length);
-                    // Pure java compile -- ignores the 'options' parameter
+                    // Pure java compile -- ignores the options, writer, diagListener parameters
                     Utils.setNoJML(true);
                     errorcode = com.sun.tools.javac.Main.compile(newargs);
                 } else {
@@ -535,7 +534,9 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** This method is overridden so that the JML compiler can register its
-     *  own tools for the various phases. 
+     *  own tools for the various phases. The Context argument is required in order
+     *  to override the parent class methods, but the value for 'context' must be 
+     *  the same as 'this.context'.
      */
     @Override
     public Main.Result compile(String[] args, Context context) {
@@ -555,15 +556,15 @@ public class Main extends com.sun.tools.javac.main.Main {
     			return Result.CMDERR;
     		}
     	}
+
         // Note that the Java option processing happens in compile method call below.
-        // Those options are not read at the time of the register() call,
-        // but the register call has to happen before compile is called.
+        // All the JML tool registration has to happen before compile is called.
         canceled = false;
         Main.Result exit = super.compile(args,context);
-        int n = Utils.instance(context).verifyWarnings;
+        int numVerifyWarnings = Utils.instance(context).verifyWarnings;
         //System.out.println("VWARN " + n + " " + exit.exitCode + " " + Utils.testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY));
-        if (n != 0) {
-            if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", n);
+        if (numVerifyWarnings != 0) {
+            if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", numVerifyWarnings);
             if (exit.exitCode == 0) {
                 // Use the verification failure exit code if there are verification warnings
                 if (!Utils.testingMode) exit = Result.VERIFY;
@@ -575,8 +576,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                         if (exit.exitCode != z) throw new RuntimeException();
                         if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
                     } catch (Exception e) {
-                        // FIXME - why would this be an uninitialized log -- and why not detected when the command-line is parsed
-                        uninitializedLog().error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
+                        log.error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
                         exit = Result.CMDERR;
                     }
                 }
@@ -589,10 +589,10 @@ public class Main extends com.sun.tools.javac.main.Main {
         separate from the command-line options. */
     public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
         try {
-            useJML = true;
+            //useJML = true;
             this.fileObjects = fileObjects;
             if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
-            return compile(args,this.context);
+            return compile(args, context());
         } catch (JmlInternalAbort e) {
             log.error("jml.message", "Unrecoverable compilation problem");
             if (System.getenv("STACK") != null) e.printStackTrace(System.out);
@@ -601,16 +601,25 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     /** Do anything that needs adjustment after options are processed but
-     * before compilation actually begins.
+     * before compilation actually begins. Note that for standard command-line use 
+     * the Javac classes do not need any resetting, but the API allows setting or
+     * resetting options in multiple calls, so any cached option values will
+     * need to be reset.
      */
     public void postOptionProcessing(Context context) {
         // Handlers are created during tool registration, which in OpenJML has to be before
         // options are read. In some cases the tools cache values of options.
         // So they have to be adjusted for the actual values of the options.
-        Check.instance(context).resetHandlers();
-        ClassFinder.instance(context).resetOptions(context);
+        Check.instance(context).resetHandlers(); // Caches values of lint settings
+        ClassFinder.instance(context).resetOptions(context); // Caches verbose, -Xprefer and others
+        
+        // FIXME - JavaCompiler also caches lots of options. There is no mechanism to reset JavaCompiler
+        // once it is created for a given context.  So the API cannot rerun the compiler with different options.
+        
+        // Only implemented for the simple compile policy
         Options.instance(context).put("compilePolicy", "simple");
         JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
+        // Reset any options cached by JmlOptions
         JmlOptions.instance(context).setupOptions();
     }
     
@@ -714,7 +723,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     public void setProofResultListener(IAPI.IProofResultListener listener) {
-        this.context.get(IAPI.IProofResultListener.class).setListener(listener);
+        context().get(IAPI.IProofResultListener.class).setListener(listener);
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML
@@ -732,8 +741,10 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Adds additional options to those already present (or changes 
      * previous settings). */
     public void addOptions(String... args) {
-    	if (!(Options.instance(this.context) instanceof JmlOptions)) return;
+        Context context = context();
+    	if (!(Options.instance(context) instanceof JmlOptions)) return;
         args = JmlOptions.instance(context).addOptions(args);
+        // FIXME - should we be using Arguments to parse and process args?
         for (int i = 0; i < args.length; i++) {
             if (i+1 >= args.length) {
                 Options.instance(context).put(args[i],"true");
@@ -744,23 +755,25 @@ public class Main extends com.sun.tools.javac.main.Main {
                 Options.instance(context).put(args[i],"true");
             }
         }
+        postOptionProcessing(context);
     }
     
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
     public void addUncheckedOption(String arg) {
-    	if (!(Options.instance(this.context) instanceof JmlOptions)) return;
-        JmlOptions.instance(this.context).addUncheckedOption(arg);
+        JmlOptions.instance(context()).addUncheckedOption(arg);
     }
 
-    public boolean setupOptions() {
-    	if (!(Options.instance(this.context) instanceof JmlOptions)) return true;
-        return JmlOptions.instance(this.context).setupOptions();
-    }
-    
     /** Just used in sequences of tests */
     public static void resetStatics() {
-    	org.jmlspecs.openjml.Utils.isjml = true;
+    	org.jmlspecs.openjml.Utils.setNoJML(false);
+    }
+    
+    /** Attempt to free cached values; this instance of main will
+     * be unusable after this call
+     */
+    public void close() {
+        context = null;
     }
 
     /** An Enum type that gives a choice of various tools to be executed. */

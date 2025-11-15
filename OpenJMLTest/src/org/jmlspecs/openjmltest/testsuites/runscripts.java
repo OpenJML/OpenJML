@@ -86,6 +86,10 @@ public class runscripts extends RunBase {
         doTest();
     }
 
+    @Test public void javaonly() {
+        doTest();
+    }
+
     @Test public void nomodelfield() {
         doTest();
     }

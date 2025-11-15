@@ -314,8 +314,9 @@ public abstract class JmlTestSuite {
         main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
         setCollector(ignoreNotes, printDiagnostics);
         if (System.getenv("NOJML")!=null) {
-            context = main.context = new Context();
-            JavacFileManager.preRegister(context); // can't create it until Log has been set up
+            fail("Cannot test with NOJML= within the test suite. Use a scripted test.");
+//            context = main.context = new Context();
+//            JavacFileManager.preRegister(context); // can't create it until Log has been set up
         } else {
             try {
         	context = main.initialize(collector);

@@ -405,7 +405,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //    		super.attribClass(c);
 //    		return;
 //    	}
-    	boolean print = org.jmlspecs.openjml.Utils.isJML() && c.toString().contains("Enum");
+    	boolean print = c.toString().contains("Enum");
     	if (debugAttr) System.out.println("Attributing class " + c + " " + level + " " + ((c.flags_field & UNATTRIBUTED) != 0));
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
     		// A local class
@@ -2978,7 +2978,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
        };
     
     public void checkTypeMods(JCVariableDecl tree) {
-    	if (!org.jmlspecs.openjml.Main.useJML) return;
+    	//if (!org.jmlspecs.openjml.Main.useJML) return;
     	boolean hasNonNull = false;
     	boolean hasNullable = false;
     	for (var t: tree.type.getAnnotationMirrors()) {

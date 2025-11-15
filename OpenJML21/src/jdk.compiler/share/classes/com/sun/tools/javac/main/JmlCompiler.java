@@ -471,7 +471,6 @@ public class JmlCompiler extends JavaCompiler {
     }
     
     /** This flag determines whether JML annotations are being parsed -- it is a bit of a hack to communicate with the scanner */
-    // CAUTION: JmlCompiler is instantiated before the options are parsed
     private boolean noJML = false;
     public boolean disableJML() { return noJML; }
     public void disableJML(boolean b) { noJML = b; }

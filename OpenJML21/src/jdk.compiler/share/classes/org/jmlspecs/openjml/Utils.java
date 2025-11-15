@@ -2003,11 +2003,18 @@ public class Utils {
         new RuntimeException().printStackTrace(System.out); // Thread.dumpStack() goes to Stderr
     }
     
-    static boolean isjml = System.getenv("NOJML")==null;
+    /** true if openjml is set to process JML (rather than only java).
+     * Recall that the openjdk/openjml has a bootstrap compilation cycle.
+     * 'isjml' must be false for the bootstrap compilation and then 'true' to actually run openjml
+     * See the use in the Makefile
+     */
     public static boolean isJML() {
         return isjml;
     }
+    static private boolean isjml = System.getenv("NOJML")==null;
 
+    /** Set the 'jml' flag to the negation of the given value.
+     * This is a static value that applies to all instances of Main */
     public static void setNoJML(boolean isnojml) {
         isjml = !isnojml;
     }

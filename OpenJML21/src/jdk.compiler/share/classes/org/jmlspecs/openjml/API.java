@@ -140,7 +140,7 @@ public class API implements IAPI {
     //@ ensures \result == main.context;
     /*@pure*/
     public /*@nullable*/ Context context() {
-        return main == null ? null : main.context;
+        return main == null ? null : main.context();
     }
 
     /** Returns the compiler object for this context. */
@@ -1018,7 +1018,7 @@ public class API implements IAPI {
     @Override
     public void close() {
         JmlCompiler.instance(context()).close();
-        main.context = null;
+        main.close();
         main = null;
     }
     

@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml;
 
+import static com.sun.tools.javac.main.Option.WERROR;
+
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.sun.tools.javac.main.Main.Result;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
@@ -41,7 +44,19 @@ public class JmlOption {
     // Arguments: option as on CL; true=1 argument, false=0 args; help string
     public static final JmlOption DIR = new JmlOption("--dir",true,null,"Process all files, recursively, within this directory",null);
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
-    public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null);
+    public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null) {
+        public boolean check(Context context, boolean negate) {
+            var options = JmlOptions.instance(context);
+            String keysString = options.get(JmlOption.KEYS.optionName());
+            options.commentKeys = new java.util.HashSet<String>();
+            if (keysString != null && !keysString.isEmpty()) {
+                String[] keys = keysString.split(",");
+                for (String k: keys) options.commentKeys.add(k);
+            }
+            // FIXME - negate not allowed
+            return true;
+        }
+    };
     public static final JmlOption COMMAND = new JmlOption("--command",true,"check","The command to execute (parse,check,esc,rac,compile)",null) {
         public boolean check(Context context, boolean negate) {
             Cmd cmd = Cmd.CHECK; // default
@@ -60,6 +75,7 @@ public class JmlOption {
             utils.check = cmd == Cmd.CHECK;
             utils.compile = cmd == Cmd.COMPILE;
             utils.infer   = cmd == Cmd.INFER;
+            // FIXME - negate not allowed
             return ok;
     	}
     };
@@ -97,7 +113,23 @@ public class JmlOption {
             return true;
     	}
     };
-    public static final JmlOption EXITVERIFY = new JmlOption("--verify-exit",true,"6","Exit code for verification errors",null);
+    public static final JmlOption EXITVERIFY = new JmlOption("--verify-exit",true,"6","Exit code for verification errors",null) {
+        public boolean check(Context context, boolean negate) {
+            // FIXME - negate not allowed
+            // Check that the value given is a integer
+            JmlOptions options = JmlOptions.instance(context);
+            // The default has been filled in before check is called
+            String val = options.get(JmlOption.EXITVERIFY.optionName());
+            try {
+                Integer.valueOf(val);
+                return true;
+            } catch (Exception e) {
+                Utils.instance(context).error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
+                return false;
+            }
+            
+        }
+    };
     public static final JmlOption EXTENSIONS = new JmlOption("--extensions",true,null,"Extension packages and classes (comma-separated qualified names)",null);
 
     public static final JmlOption METHOD = new JmlOption("--method",true,null,"Comma-separated list of method name patterns on which to run ESC",null);
