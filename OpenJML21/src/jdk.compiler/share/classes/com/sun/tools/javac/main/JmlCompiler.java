@@ -120,12 +120,15 @@ public class JmlCompiler extends JavaCompiler {
      * @param context the compilation context for which this instance is being created
      */
     protected JmlCompiler(Context context) {
-        // CAUTION: Options are not read when JmlCompiler is first instantiated
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
         this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler // FIXME - options not yet set???
         this.resolver = JmlResolve.instance(context);
+        this.noJML = !JmlOptions.instance(context).isSet(JmlOption.JML);
+        
+        // FIXME - verify that JmlCompiler is not created until after options are read
+        // FIXME - if a JmlCompiler instance is reused, this.verbose, thijs.noJML need to be reset
     }
     
     public void init() {

@@ -392,11 +392,22 @@ public class JmlOptions extends Options {
             }
         }
     }
+    
+    public void resetOption(JmlOption option) {
+        boolean b = option.check(context,false);
+        if (!b) {
+            Utils.instance(context).warning("jml.message", "Erroneous option value when resetting option: " + 
+                    option.optionName() + " " + JmlOption.value(context, option));
+        }
+    }
 
     /** This method is called after options are read, but before compilation actually begins;
      * requires tools to be registered, at least Log and Options
      * here any additional option checking or
      * processing can be performed, particularly checks that depend on multiple options.
+     * 
+     * Note that there is an option stack, so the current options can be popped off the stack
+     * leaving a previous set of options -- which won't have gone through processJmlArg
      */
     // This should be able to be called without difficulty whenever any option
     // is changed
@@ -409,24 +420,34 @@ public class JmlOptions extends Options {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
-        JmlCompiler.instance(context).disableJML(!isSet(JmlOption.JML));
-
         // Not supporting this option
         options.remove("printArgsToFile");
+        
+        // In case we have just popped options, reset any option that caches values
+        resetOption(JmlOption.VERBOSENESS); // Caches utils.jmlverbose
+        resetOption(JmlOption.COMMAND); // Caches in utils.esc etc.
+        resetOption(JmlOption.KEYS); // Caches in options.commentKeys
+        resetOption(JmlOption.JMLTESTING); // Caches in Utils.testingMode (static)
+        resetOption(JmlOption.ESC_MAX_WARNINGS); // Caches in utils.maxWarnings
+
+        // FIXME - WARN keys not handled correctly I think
+        
+        // Now also check for any interactions between different options
         
         if (options.get("-verbose") != null) {
             // If the Java -verbose option is set, we set -jmlverbose as well
             utils.jmlverbose = Utils.JMLVERBOSE;
         }
 
+        // Set the progress listener
         // TODO - needs review
         if (utils.jmlverbose >= Utils.PROGRESS) {
             try {
                 Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
             } catch (Exception e) {
-                e.printStackTrace(System.out);
-                // FIXME - report problem
-                // continue without installing a listener
+                Utils.instance(context).warning("jml.internal.notsobad", "Failure when attempting to set a progress listener");
+                e.printStackTrace(System.out); // FIXME - System.out?
+                Main.instance(context).progressDelegator.setDelegate(null);
             }
         } else {
             Main.instance(context).progressDelegator.setDelegate(null);
@@ -449,6 +470,7 @@ public class JmlOptions extends Options {
      * previous settings); returns remaining Java args. */
     public String[] addOptions(String... args) {
         args = processJmlArgs(args, Options.instance(context), null);
+        // FIXME - process Java options?  Call postOptionProcesing()?
         setupOptions();
         return args;
     }
@@ -505,7 +527,7 @@ public class JmlOptions extends Options {
      */
     public void popOptions() {
         values = stack.pop();
-        setupOptions();
+        setupOptions(); // FIXME - should call postOptionProcessing(context)
     }
 
     /** Output all the options -- purely for debugging */

@@ -66,7 +66,7 @@ public class escoption extends EscBase {
     
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption() {
-    	main.addOptions("--normal");
+    	addOptions("--normal");
     	helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
