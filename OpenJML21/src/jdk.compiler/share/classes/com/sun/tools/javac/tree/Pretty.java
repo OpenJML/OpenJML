@@ -59,7 +59,7 @@ public class Pretty extends JCTree.Visitor {
         cachedInstance = new Pretty(null,false);
     }
 
-    protected Pretty inst(Writer out, boolean sourceOutput) { // OPENJML - added
+    protected Pretty inst(Writer out, boolean sourceOutput) { // OPENJML - added - non-static so that the call delegates to derived classes
         return new Pretty(out,sourceOutput);
     }
 

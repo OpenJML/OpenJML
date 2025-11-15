@@ -139,14 +139,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             super(message);
         }
     }
-    
-    /** The diagListener provided when an instance of Main is constructed.
-     * The listener will be notified when any diagnostic is generated.
-     */
-    /*@ nullable*/
-    protected DiagnosticListener<? extends JavaFileObject> diagListener;
-    
-    
+        
     // TODO - review use of and document these progress reporters; perhaps move them
     
     public DelegatingProgressListener progressDelegator = new DelegatingProgressListener();
@@ -275,16 +268,17 @@ public class Main extends com.sun.tools.javac.main.Main {
                 /*@ nullable*/ DiagnosticListener<? extends JavaFileObject> diagListener) {
         useJML = true;
         check(); // Aborts if the environment does not support OpenJML
-        this.diagListener = diagListener;
-        this.context = new Context();
-        JmlOptions.preRegister(this.context); // Must precede JavacMessages
-        JavacFileManager.preRegister(this.context);
-        // The next call creates the compiler tool chain. The problem is that some Java components cache values of options
-        // during tool creation, rather than tool use. So we have to check for and load some options before 
-        register(this.context);
-        utils = Utils.instance(this.context);
-        Utils.setOptionsFromProperties(Utils.findProperties(this.context), this.context);
-        return this.context;
+        Context context = new Context(); // creates a new Context for this compilation
+        
+        // Put this early so any early diagnostics are sent to the listener
+        if (diagListener != null) context.put(DiagnosticListener.class, diagListener);
+        register(context);
+        
+        // Now fetch option values from global properties and env. variables
+        utils = Utils.instance(context);
+        Utils.setOptionsFromProperties(Utils.findProperties(context), context);
+        this.context = context;
+        return context;
     }
     
     public PrintWriter out() {
@@ -421,7 +415,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         } catch (JmlCanceledException e) {
             // Error message already issued
-            errorcode = Result.CMDERR.exitCode;
+            errorcode = Result.CMDERR.exitCode; // FIXME - why not Result.CANCELLED
         } catch (Exception e) {
             // Most exceptions are caught prior to this, so this will happen only for the
             // most catastrophic kinds of failure such as failures to initialize
@@ -534,7 +528,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // This is a temporary context just for logging error messages when
         // overall initialization fails.
         // It is not the one used for the compilation
-        // It does use Options -- FIXME - how?
+        // It does use Options: checks whether rawDIagnostics is set and sets the diagFormatter correspondingly 
         Context context = new Context();
         JavacMessages.instance(context).add(Strings.messagesJML);
         return Log.instance(context);
@@ -545,8 +539,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     @Override
     public Main.Result compile(String[] args, Context context) {
-        this.context = context; // FIXME - it is a problem if this changes the already stored context, as it was used for JavacFileManager and Utils
-        //register(context);
+        this.context = context;
+
         // FIXME setProofResultListener(prl);
         boolean hasArgs = args.length != 0;
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
@@ -598,7 +592,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             useJML = true;
             this.fileObjects = fileObjects;
             if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
-            return compile(args,context);
+            return compile(args,this.context);
         } catch (JmlInternalAbort e) {
             log.error("jml.message", "Unrecoverable compilation problem");
             if (System.getenv("STACK") != null) e.printStackTrace(System.out);
@@ -609,11 +603,10 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Do anything that needs adjustment after options are processed but
      * before compilation actually begins.
      */
-    public void postOptionProcessing() {
+    public void postOptionProcessing(Context context) {
         // Handlers are created during tool registration, which in OpenJML has to be before
         // options are read. In some cases the tools cache values of options.
         // So they have to be adjusted for the actual values of the options.
-        // FIXME - sort out whether we can read options before constructing tools
         Check.instance(context).resetHandlers();
         ClassFinder.instance(context).resetOptions(context);
         Options.instance(context).put("compilePolicy", "simple");
@@ -642,16 +635,70 @@ public class Main extends com.sun.tools.javac.main.Main {
      * @param context the compilation context into which to register the tools
      */
     public void register(/*@ non_null @*/ Context context) {
-        this.context = context; // TODO - when might these be different to start with?
-        if (progressDelegator != null) progressDelegator.setContext(context);
-        context.put(IProgressListener.class,progressDelegator);
-        context.put(key, this);
+
+        // Notes on tool instantiation:
+        // JavacMessages is needed in order to write out any (javac) error messages, such as might happen in processing options
+        // JavacMessage automatically reads in the messages bundel when it is created
+        // JavacMessages reads an option -- so JmlOptions must be registered before JavacMessages is instantiated
+        // Similarly Log reads an option; lso Log instantiates JavacMessages
+        // Thus both Log and JavacMessages must have their diagFormatter reset after options are processed
+        // and any messages printed during option processing will not use any formatter specified on the command-line
+        
+        JmlOptions.preRegister(context); // Creates a JmlOptions instance (not a factory) -- must precede getting JavacMessages
+            // because JavacMessages access Options
+        JavacFileManager.preRegister(context); // creates a JavacFileManager factory for the context - required for processing options
+        
+        // The next call creates the compiler tool chain. The problem is that some Java components cache values of options
+        // during tool creation, rather than tool use. All the registration of JML tools is by Context factories, so no Javac tool
+        // is actually instantiated until lazily asked for via an instance(context) call.
+
         // We register the output writer for the Log first because in registering JmlArguments,
         // Arguments is registered, which instantiates a Log. Accordingly, we cannot set a 
         // log (or stdOut/stdErr) based on command-line arguments.
         context.put(Log.outKey,stdOut);
-        if (diagListener != null) context.put(DiagnosticListener.class, diagListener);
-        registerTools(context);
+
+        // Instantiating JavacMessages reads in the messages defined for jdk.compiler
+        // Here we add the JML messages.
+        // But there is a problem: JavacMessages reads an option from Options (so JmlOptions must already be registered),
+        // but Java option processing needs the messages read in order to emit any error messages.
+        // So in creating a JavaCompiler the JavacMessage.diagFormatter is reset based on any options.
+
+        JavacMessages.instance(context).add(Strings.messagesJML);
+        JmlOptions.JmlArguments.register(context); // This call is not a factory. It creates a JmlArguments object
+            // and also instantiates Log and (Jml)Options.
+        
+        // These register JML versions of the various tools.  
+        // All register factories that will make the version of the
+        // tool when instance() is called for that (Java) tool. It does not matter what
+        // order these are called in. However, it can matter what order tools are 
+        // instantiated in the constructors of the various tools: construction of a given 
+        // tool can require instantiation of other tools, and loops can result.
+        
+        // It can be important that tools are instantiated only after all Java options are
+        // processed, because some tools will cache values of options.
+
+        JmlTypes.preRegister(context);
+        JmlOperators.preRegister(context);
+        JmlSpecs.preRegister(context);
+        JmlFactory.preRegister(context);
+        JmlScanner.JmlScannerFactory.preRegister(context);
+        JmlTree.Maker.preRegister(context);
+        JmlCompiler.preRegister(context);
+        JmlEnter.preRegister(context);
+        JmlResolve.preRegister(context);
+        JmlFlow.preRegister(context);
+        JmlMemberEnter.preRegister(context);
+        JmlAttr.preRegister(context);
+        JmlCheck.preRegister(context);
+        JmlPretty.preRegister(context);
+        JmlDeferredAttr.preRegister(context);
+        JmlAttr.JmlArgumentAttr.preRegister(context);
+        // Command-line specified extensions are registered after options are processed
+
+        if (progressDelegator != null) progressDelegator.setContext(context);
+        context.put(IProgressListener.class,progressDelegator);
+        context.put(key, this);
+        
         // Since we can only set a context value once, we create this listener that just delegates to 
         // another listener, and then change the delegate when we need to, using setProofResultListener().
         context.put(IAPI.IProofResultListener.class, 
@@ -667,52 +714,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
     
     public void setProofResultListener(IAPI.IProofResultListener listener) {
-        context.get(IAPI.IProofResultListener.class).setListener(listener);
-    }
-
-    /** Called to register the JML internal tools that replace the tools used
-     * in the Java compiler.
-     * @param context the compiler context in which the tools are to be used
-     * @param out the PrintWriter used for error and informational messages
-     * @param diagListener if not null, a listener that will receive reports
-     *    of warnings and errors
-     */
-    public static <S> void registerTools(/*@non_null*/ Context context) {
-
-
-        // These have to be first in case there are error messages during 
-        // tool registration.
-        // registering an additional source of JML-specific error messages
-        //JmlOptions.preRegister(context); // Must precede JavacMessages - called in initialize
-        JavacMessages.instance(context).add(Strings.messagesJML);
-        JmlOptions.JmlArguments.register(context);
-        
-        // These register JML versions of the various tools.  Some just
-        // register factories in which no actual instances are created until 
-        // instance(context) is called on the particular tool.  Creating instances
-        // may trigger a cascade of tool instance generation, which can create
-        // tools (such as the Log) before the Options are processed and can
-        // trigger some circular dependencies in the constructors of the various
-        // tools.
-        // Any initialization of these tools that needs to be done based on 
-        // options should be performed in setupOptions().
-        JmlTypes.preRegister(context);
-        JmlOperators.preRegister(context);
-        JmlSpecs.preRegister(context); // registering the specifications repository
-        JmlFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlParsers
-        JmlScanner.JmlScannerFactory.preRegister(context); // registering a Jml-specific factory from which to generate JmlScanners
-        JmlTree.Maker.preRegister(context); // registering a JML-aware factory for generating JmlTree nodes
-        JmlCompiler.preRegister(context);
-        JmlEnter.preRegister(context);
-        JmlResolve.preRegister(context);
-        JmlFlow.preRegister(context);
-        JmlMemberEnter.preRegister(context);
-        JmlAttr.preRegister(context);  // registering a JML-aware type checker
-        JmlCheck.preRegister(context);
-        JmlPretty.preRegister(context);
-        JmlDeferredAttr.preRegister(context); // registers when created
-        JmlAttr.JmlArgumentAttr.preRegister(context);
-        // Extensions are registered after options are processed
+        this.context.get(IAPI.IProofResultListener.class).setListener(listener);
     }
     
     /** This is overridden so that serious internal bugs are reported as OpenJML
@@ -730,7 +732,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Adds additional options to those already present (or changes 
      * previous settings). */
     public void addOptions(String... args) {
-    	if (!(Options.instance(context) instanceof JmlOptions)) return;
+    	if (!(Options.instance(this.context) instanceof JmlOptions)) return;
         args = JmlOptions.instance(context).addOptions(args);
         for (int i = 0; i < args.length; i++) {
             if (i+1 >= args.length) {
@@ -747,13 +749,13 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Adds a custom option (not checked as a legitimate command-line option);
      * may have an argument after a = symbol */
     public void addUncheckedOption(String arg) {
-    	if (!(Options.instance(context) instanceof JmlOptions)) return;
-        JmlOptions.instance(context).addUncheckedOption(arg);
+    	if (!(Options.instance(this.context) instanceof JmlOptions)) return;
+        JmlOptions.instance(this.context).addUncheckedOption(arg);
     }
 
     public boolean setupOptions() {
-    	if (!(Options.instance(context) instanceof JmlOptions)) return true;
-        return JmlOptions.instance(context).setupOptions();
+    	if (!(Options.instance(this.context) instanceof JmlOptions)) return true;
+        return JmlOptions.instance(this.context).setupOptions();
     }
     
     /** Just used in sequences of tests */
