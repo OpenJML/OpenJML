@@ -547,7 +547,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     	args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
     	// args is now the original 'args' without JML arguments -- leaving  any Java options and files
     	if (JmlOptions.instance(context).get("-?") != null) return Result.OK;
-    	if (args.length == 0 && fileObjects == null) {
+    	if (args.length == 0 && fileObjects == null) {  // FIXME - in API mode there might have already been args added
     		if (hasArgs) {
     			Log.instance(context).error(Errors.NoSourceFiles);
     			return Result.CMDERR;

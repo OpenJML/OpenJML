@@ -135,7 +135,7 @@ public abstract class EscBase extends JmlTestSuite {
         this.solver = solver;
     }
     
-    /** a typical sepcificatino path used in the tests */
+    /** a typical sepcification path used in the tests */
     protected static String testspecpath1 = "$A"+z+"$B";
     /** variable that holds the specification path for each test -- may be set per test */
     protected static String testspecpath;
@@ -157,13 +157,13 @@ public abstract class EscBase extends JmlTestSuite {
         testspecpath = testspecpath1;
         ignoreNotes = true;
         super.setUp(); // Uses ignoreNotes
-        addOptions("--specs-path", testspecpath);
-        addOptions("--command","esc");
-        addOptions("--keys","NOARITH");
-        addOptions("--no-purity-check");
-        addOptions("--timeout=300"); // seconds
-        addOptions("-jmltesting"); // filters time-related or user-envirnment-related material out of test output
-        addOptions("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
+        addOptions("--specs-path", testspecpath,
+                   "--command","esc",
+                   "--keys","NOARITH",
+                   "--no-purity-check",
+                   "--timeout=300", // seconds
+                   "-jmltesting", // filters time-related or user-envirnment-related material out of test output
+                   "--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
         expectedExit = 0;
