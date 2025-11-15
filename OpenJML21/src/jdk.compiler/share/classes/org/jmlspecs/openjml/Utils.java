@@ -1841,6 +1841,7 @@ public class Utils {
                     return Utils.testingMode?"warning: ":"verify: "; // TODO: IF we use 'verify' in tests, too many tests will fail
                 }
             };
+            // FIXME - need some explanation -- there seems to be two formatters, one in Log and one in JCDiagnostic.Factory -- which one matters when?
             log().setDiagnosticFormatter(verifyDiagnosticFormatter);
             var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
             log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));

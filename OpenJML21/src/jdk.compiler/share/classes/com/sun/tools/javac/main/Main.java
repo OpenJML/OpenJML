@@ -304,7 +304,7 @@ public class Main {
             List<String> list = List.of(target.multiReleaseValue());
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
-        postOptionProcessing(); // OPENJML
+        postOptionProcessing(context); // OPENJML
 
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
@@ -379,7 +379,7 @@ public class Main {
         }
     }
 
-    protected void postOptionProcessing() {} // OPENJML
+    protected void postOptionProcessing(Context context) {} // OPENJML
     protected void adjustArgs(Arguments args)  {} // OPENJML
 
     void printArgumentsToFile(String... params) {
