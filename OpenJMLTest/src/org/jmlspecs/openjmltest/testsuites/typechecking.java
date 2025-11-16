@@ -2007,5 +2007,61 @@ public class typechecking extends TCBase {
                 );
         
     }
+    
+    @Test
+    public void inlineNeedsFinal() {
+        expectedExit = 0;
+        helpTCF("Test.java",
+                """
+                public class Test {
+                    //@ inline
+                    public void m() {}
+                }
+                """
+                ,"/Test.java:2: warning: Inlined methods should be final since overriding methods will be ignored: m", 9
+        );
+    }
+
+    @Test
+    public void inlineNeedsFinala() {
+        helpTCF("TestJava.java",
+                """
+                public class TestJava {
+                    //@ inline final
+                    public void m() {}
+                }
+                """
+        );
+    }
+
+    @Test
+    public void inlineNeedsFinalb() {
+        helpTCF("TestJava.java",
+                """
+                public class TestJava {
+                    //@ inline
+                    final public void m() {}
+                }
+                """
+        );
+    }
+
+    @Test
+    public void jmlFinalNotInherited() {
+        helpTCF("Test.java",
+                """
+                public class Test {
+                    //@ final
+                    public void m() {}
+                }
+                class TFI extends Test {
+                    public void m() {}
+                }
+                """
+                
+                ,"/Test.java:6: error: m() in TFI cannot override m() in Test\n"
+                        + "  overridden method is final", 17
+        );
+    }
 
 }
