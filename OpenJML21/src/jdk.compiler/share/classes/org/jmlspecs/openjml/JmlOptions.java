@@ -427,7 +427,7 @@ public class JmlOptions extends Options {
         resetOption(JmlOption.VERBOSENESS); // Caches utils.jmlverbose
         resetOption(JmlOption.COMMAND); // Caches in utils.esc etc.
         resetOption(JmlOption.KEYS); // Caches in options.commentKeys
-        resetOption(JmlOption.JMLTESTING); // Caches in Utils.testingMode (static)
+//        resetOption(JmlOption.JMLTESTING); // Caches in Utils.testingMode (static)  // FIXME -- this breaks tests
         resetOption(JmlOption.ESC_MAX_WARNINGS); // Caches in utils.maxWarnings
 
         // FIXME - WARN keys not handled correctly I think
