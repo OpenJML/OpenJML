@@ -2063,5 +2063,51 @@ public class typechecking extends TCBase {
                         + "  overridden method is final", 17
         );
     }
+    
+    @Test
+    public void parseOnlyA() {
+        addOptions("--parse");
+        helpTCF("Test.java",
+            """
+            public class Test {
+                public void m() {
+                    q = 0; // Type error, but we are only parsing
+                }
+            }
+            """
+        );
+    }
+    
+    @Test
+    public void parseOnlyB() {
+        addOptions("--parse");
+        helpTCF("Test.java",
+            """
+            public class Test {
+                public void m() {
+                    boolean q = 0;  // Type error, but we are only parsing
+                }
+            }
+            """
+        );
+    }
+    
+    @Test
+    public void parseOnlyC() {
+        addOptions("--parse");
+        helpTCF("Test.java",
+            """
+            public class Test {
+                public void m() {
+                    q = ; // Parse error
+                }
+            }
+            """
+                ,"/Test.java:3: error: illegal start of expression", 13
+                ,"/Test.java:3: error: ';' expected", 14
+        );
+    }
+    
+    
 
 }
