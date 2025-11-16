@@ -562,7 +562,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         canceled = false;
         Main.Result exit = super.compile(args,context);
         int numVerifyWarnings = Utils.instance(context).verifyWarnings;
-        //System.out.println("VWARN " + n + " " + exit.exitCode + " " + Utils.testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY));
+        // System.out.println("VWARN " + numVerifyWarnings + " " + exit.exitCode + " " + Utils.testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY) + " " + log.hasDiagnosticListener());
         if (numVerifyWarnings != 0) {
             if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", numVerifyWarnings);
             if (exit.exitCode == 0) {
