@@ -179,6 +179,8 @@ escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]
 escfileslist2.test[gitbug897]
 escfileslist2.test[gitbug890]
+escfileslist1.test[gitbug763]
+escfileslist2.test[gitbug814]
 
 SFBugs.gitbug651  # not yet working
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
