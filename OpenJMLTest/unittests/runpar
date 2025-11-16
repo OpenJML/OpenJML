@@ -81,7 +81,7 @@ if [ $ERR -eq 0 ]; then
     echo Completed all retrys successfully
 else
     echo Completed retrys with remaining failures
-    if [ -n "$OPT" ]; then cat logretry; fi
+    if [ -n "$OPT" ]; then cat logretry ; fi
     grep -E 'FAILED' logretry
 fi
 exit $ERR
