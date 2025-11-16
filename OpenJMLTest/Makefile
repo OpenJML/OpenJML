@@ -28,7 +28,7 @@ openjml-test-git: prep
 	-make -C ${TEST} userguide-tests-released
 	make -C ${TEST} json-tests
 	#-make tutorial-tests #At last check, these tests hung
-	JOBS=4 time ${TEST}/unittests/runpar -retrylog
+	JOBS=4 time ${TEST}/unittests/runpar
 
 openjml-test-temp:
 	JOBS=4 time ${TEST}/unittests/runpar
