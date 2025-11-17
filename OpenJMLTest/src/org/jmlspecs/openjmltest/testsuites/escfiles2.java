@@ -48,6 +48,11 @@ public class escfiles2 extends EscBaseFiles {
         ignoreNotes = true;
     }
     
+    public void helpTCG(String... opts) {
+        super.helpTCG(addVE(opts));
+    }
+
+    
     @Test
     public void gitbug362() {
         expectedExit = 1;
@@ -317,6 +322,7 @@ public class escfiles2 extends EscBaseFiles {
         list.add("-spec-math=bigint");
         list.add("--check-feasibility=precondition,reachable,exit,spec");
         list.add("--progress");
+        list.add("--verify-exit=-1");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
@@ -400,6 +406,8 @@ public class escfiles2 extends EscBaseFiles {
         helpTCN("--esc", "--progress", "--warn=missing-measured-by");
     }
     
-
+    @Test public void legacyVerify() {
+        helpTCN("--esc", "--verify-exit=-1");
+    }
 
 }

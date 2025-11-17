@@ -250,7 +250,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 8
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -490,7 +490,7 @@ TRACE of openjml.demo.Paths.testConstant(java.lang.Object)
 			VALUE: o	 === null
 			VALUE: null	 === null
 			VALUE: o != null	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:63: warning: The prover cannot establish an assertion (Assert) in method testConstant
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:63: verify: The prover cannot establish an assertion (Assert) in method testConstant
 		//@ assert o != null;
 		    ^
 Completed proof of openjml.demo.Paths.testConstant(java.lang.Object) with prover z3_4_3 - with warnings

@@ -252,4 +252,4 @@ test\escTrace\trace.java:83: verify: The prover cannot establish an assertion (P
 test\escTrace\trace.java:13: verify: Associated declaration: test\escTrace\trace.java:83: 
     //@ ensures \result != 0;
         ^
-3 warnings
+3 verification failures
