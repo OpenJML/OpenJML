@@ -43,8 +43,6 @@ jobs:
     - name: Setup Cygwin for Windows
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
-        with:
-          distribution: Ubuntu-18.04`
       ##uses: egor-tensin/setup-cygwin@v3
       ##with:
       ##  platform: x64
