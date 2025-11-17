@@ -49,7 +49,17 @@ public class escfiles extends EscBaseFiles {
         ignoreNotes = true;
     }
     
+    public void helpTCF(String n, String d, String ... opts) {
+        super.helpTCF(n, d, addVE(opts));
+    }
 
+    public void helpTG(String... opts) {
+        super.helpTG(addVE(opts));
+    }
+    
+    public void helpTFM(String ... opts) {
+        super.helpTFM(addVE(opts));
+    }
     // FIXME - use helpDemo?
 
     @Test // Order of errors is somewhat non-deterministic

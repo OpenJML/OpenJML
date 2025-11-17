@@ -100,6 +100,21 @@ public abstract class EscBaseFiles extends EscBase {
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
 
+    // FIXME - get rid of this eventually
+    public String[] addVE(String ... opts) {
+        var newopts = new String[opts.length+1];
+        System.arraycopy(opts, 0, newopts, 0, opts.length);
+        newopts[opts.length] = "--verify-exit=-1";
+        return newopts;
+    }
+
+    public String[] addVEF(String ... opts) {
+        var newopts = new String[opts.length+1];
+        System.arraycopy(opts, 0, newopts, 1, opts.length);
+        newopts[0] = "--verify-exit=-1";
+        return newopts;
+    }
+
     /** runs a test whose source material is in the JMLDemo repo */ 
     public void helpDemoFile(String testFilename, String outdir, String ... opts) {
         int k = testFilename.lastIndexOf('/');
@@ -187,7 +202,7 @@ public abstract class EscBaseFiles extends EscBase {
         args.add("--esc");
         args.add("--no-purity-check");
         args.add("-jmltesting");
-        args.add("--verify-exit=-1");
+        //args.add("--verify-exit=-1");
         args.add("--progress");
         args.add("--timeout=300");
         args.add("--code-math=java");

@@ -60,7 +60,7 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void escDemo1() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("clock/TickTockClock1.java","escDemo1","--esc-max-warnings=1","--check-feasibility=basic");
     }
 
@@ -84,19 +84,19 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void escDemoB1() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("clock/TickTockClockB1.java","escDemoB1","--esc-warnings-path");
     }
 
     @Test
     public void escDemoB2() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("clock/TickTockClockB2.java","escDemoB2","--check-feasibility=basic");
     }
 
     @Test
     public void escDemoB3() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("clock/TickTockClockB3.java","escDemoB3","--check-feasibility=basic");
     }
 
@@ -115,21 +115,21 @@ public class escfilesdemo extends EscBaseFiles {
     @Test
     public void escDemoTypes() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("demo/Types.java","escDemoTypes","--typeQuants=true","--check-feasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types // FIXME - does this need typeQuants?
     public void escDemoTypesAuto() {
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("demo/Types.java","escDemoTypes","--typeQuants=auto","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void escDemoTypesNoQuants() { // FIXME - does this need typeQuants?
         Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("demo/Types.java","escDemoTypesNoQuants","--typeQuants=false","--check-feasibility=precondition,exit");
     }
 
@@ -186,14 +186,14 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void demoCashAmountonlyPrivate() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("demo/CashAmountOnlyPrivate.java","demoCashAmountonlyPrivate","--check-feasibility=none");
     }
 
     @Test
     public void demoCashAmountMutable() {
         expectedExit = 0;
-        helpDemoFile("demo/CashAmountMutable.java","demoCashAmountMutable","-code-math=bigint","-spec-math=bigint","--check-feasibility=none");
+        helpDemoFile("demo/CashAmountMutable.java","demoCashAmountMutable","--code-math=bigint","--spec-math=bigint","--check-feasibility=none");
     }
 
     @Test
@@ -231,7 +231,7 @@ public class escfilesdemo extends EscBaseFiles {
     @Test
     public void demoBinarySearch() {
         Assume.assumeTrue(runLongTests);
-        expectedExit = 0;
+        expectedExit = 6;
         helpDemoFile("verifythis/BinarySearch.java","demoBinarySearch","--code-math=safe","--check-feasibility=basic");
     }
 

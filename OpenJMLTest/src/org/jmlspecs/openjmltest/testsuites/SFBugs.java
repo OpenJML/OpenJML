@@ -25,6 +25,10 @@ public class SFBugs extends EscBaseFiles {
         ignoreNotes = true;
         super.setUp();
     }
+    
+    public void helpTCG(String... opts) {
+        super.helpTCG(addVEF(opts));
+    }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
@@ -33,6 +37,7 @@ public class SFBugs extends EscBaseFiles {
         list.add("-spec-math=bigint");
         list.add("--check-feasibility=precondition,reachable,exit,spec");
         list.add("--progress");
+        list.add("--verify-exit=-1");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
@@ -42,6 +47,7 @@ public class SFBugs extends EscBaseFiles {
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
         a.add(1,dir + cpathAddition);
+        a.add("--verify-exit=-1");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
@@ -724,7 +730,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug635() {
         expectedExit = 0;
-        helpTCG();
+        helpTCG("--verify-exit=6"); // FIXME - remove this option when all the others are adjusted to non-legacy behavior
     }
     
     @Test

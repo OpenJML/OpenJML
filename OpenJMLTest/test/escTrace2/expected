@@ -4,4 +4,4 @@ test\escTrace2\trace.java:10: verify: The prover cannot establish an assertion (
 test\escTrace2\trace.java:8: verify: Associated declaration
     //@ ensures \result != 0;
         ^
-2 warnings
+2 verification failures

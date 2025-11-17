@@ -389,9 +389,9 @@ test\escTraceLoops\trace.java:179:  	LoopInvariant assertion: j == index_4060_10
 			VALUE: j == index_4060_102 && 0 <= index_4060_102 && index_4060_102 <= a.length	 === false
 test\escTraceLoops\trace.java:179:  Invalid assertion (LoopInvariant)
 
-Completed proof of trace.mforeach2(int[]) with prover !!!! - with warnings
+Completed proof of trace.mforeach2(int[]) with prover !!!! - with verification failures
 Skipping proof of trace.mforeach3(int[]) (excluded by -method)
 Skipping proof of trace.mforeach4(int[]) (excluded by -method)
 Skipping proof of trace.mforeach5(int[]) (excluded by -method)
 Completed proving methods in trace
-2 warnings
+2 verification failures
