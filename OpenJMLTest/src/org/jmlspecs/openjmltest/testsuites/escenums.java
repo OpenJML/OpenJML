@@ -148,7 +148,7 @@ public class escenums extends EscBase {
                 +"       //@ assert ee != Z.BB ; \n" // ERROR
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     
@@ -163,7 +163,7 @@ public class escenums extends EscBase {
                 +"       //@ assert o instanceof Integer ; \n" // ERROR
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     
@@ -215,7 +215,7 @@ public class escenums extends EscBase {
                 +"       //@ assert Z.AA != o; \n"
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     

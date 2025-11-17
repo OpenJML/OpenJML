@@ -62,10 +62,10 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m2bad",9
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                ,"/tt/TestJava.java:12: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m2bad",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                ,"/tt/TestJava.java:12: verify: Associated declaration",7
                 );
     }
     
@@ -94,8 +94,8 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2bad",17
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2bad",17
                 );
     }
     
@@ -139,10 +139,10 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m2bad",17
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m3bad",17
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m4bad",9
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m2bad",17
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m3bad",17
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (Assert) in method m4bad",9
                 );
     }
     
@@ -163,8 +163,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",6
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",16
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",6
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",16
                 );
     }
    
@@ -223,10 +223,10 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",6
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",6
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m4bad",9
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",6
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",6
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (Assert) in method m4bad",9
                 );
     }
 
@@ -277,11 +277,11 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m0bada",17
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",6
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",6
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:33: warning: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m0bada",17
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",6
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",6
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:33: verify: Associated declaration",7
                 );
     }
     
@@ -312,8 +312,8 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2bad",6
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2bad",6
                 );
     }
     
@@ -354,12 +354,12 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                    ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                    ,"/tt/TestJava.java:6: warning: Associated declaration",7
-                    ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                    ,"/tt/TestJava.java:13: warning: Associated declaration",7
-                    ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                    ,"/tt/TestJava.java:23: warning: Associated declaration",7
+                    ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                    ,"/tt/TestJava.java:6: verify: Associated declaration",7
+                    ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",5
+                    ,"/tt/TestJava.java:13: verify: Associated declaration",7
+                    ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",5
+                    ,"/tt/TestJava.java:23: verify: Associated declaration",7
                 );
     }
     
@@ -419,8 +419,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",6
-                ,"/tt/TestJava.java:7: warning: Associated declaration",7
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",6
+                ,"/tt/TestJava.java:7: verify: Associated declaration",7
                 );
     }
     
@@ -448,8 +448,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m1",17
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method m2",17
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m1",17
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m2",17
                 );
     }
     
@@ -469,8 +469,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",6
-                ,"/tt/TestJava.java:7: warning: Associated declaration",7
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",6
+                ,"/tt/TestJava.java:7: verify: Associated declaration",7
                 );
     }
     
@@ -493,8 +493,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",16
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m2bad",16
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",16
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m2bad",16
                 );
     }
     
@@ -538,8 +538,8 @@ public class escall3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",21
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",21
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
                 );
     }
 
@@ -626,9 +626,9 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
                 );
     }
 
@@ -679,10 +679,10 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1badc",13
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1badc",13
                 );
     }
 
@@ -707,8 +707,8 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:5: verify: Associated declaration",7
                 );
     }
 
@@ -788,7 +788,7 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
                 );
         }
 
@@ -879,11 +879,11 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",6
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",7
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3badb",9
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3badc",6
                 );
     }
 
@@ -939,12 +939,12 @@ public class escall3 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-9
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-6
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-6
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",6
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",6
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-6
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-6
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m4badb",6
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4badc",6
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4badd",10
                 );
     }
 
@@ -974,11 +974,11 @@ public class escall3 extends EscBase {
                 
                 +"}"
                 ,anyorder(
-                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",8),
-                        seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",8)
+                        seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",8),
+                        seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",8)
                         )
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2bad",8
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",8
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2bad",8
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3bad",8
                 );
     }
     
@@ -1014,7 +1014,7 @@ public class escall3 extends EscBase {
                 +"  static class B extends A {}\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
                 );
     }
 
@@ -1050,8 +1050,8 @@ public class escall3 extends EscBase {
                 +"  static class B extends A {}\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
                 );
     }
     
@@ -1082,7 +1082,7 @@ public class escall3 extends EscBase {
                 +"  static class B extends A {}\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
                 );
     }
     
@@ -1183,8 +1183,8 @@ public class escall3 extends EscBase {
                 
                 
                 +"}\n"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (ExceptionList) in method mm",6
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (ExceptionList) in method mm",6
+                ,"/tt/TestJava.java:3: verify: Associated declaration",7
                 );
     }
     
@@ -1203,7 +1203,7 @@ public class escall3 extends EscBase {
                 
                 +"}\n"
                 ,"/tt/TestJava.java:8: error: unreported exception java.lang.NoSuchMethodException; must be caught or declared to be thrown", 6
-                ,optional("/tt/TestJava.java:8: warning: The prover cannot establish an assertion (ExceptionList) in method mm",6)
+                ,optional("/tt/TestJava.java:8: verify: The prover cannot establish an assertion (ExceptionList) in method mm",6)
                 );
         // FIXME - in the above, the second error message appears to be non-deterministic
     }
@@ -1247,8 +1247,8 @@ public class escall3 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (InvariantExit) in method TestJava",10
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
                 );
     }
     
@@ -1471,7 +1471,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
+                ,"/tt/TestJava.java:34: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
                 );
     }
     
@@ -1518,7 +1518,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
+                ,"/tt/TestJava.java:34: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm(boolean)",11
                 );
     }
     
@@ -1566,7 +1566,7 @@ public class escall3 extends EscBase {
                 +"    }\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:34: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
+                ,"/tt/TestJava.java:34: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.mmm()",11
                 );
     }
     
@@ -1832,7 +1832,7 @@ public class escall3 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (NullArgument) in method main", 25
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (NullArgument) in method main", 25
                 );
     }
 
@@ -1919,12 +1919,12 @@ public class escall3 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (IllegalArgument) in method m1", 23
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (IllegalArgument) in method m2", 23
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (IllegalArgument) in method m3", 23
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (IllegalArgument) in method m4", 23
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (NullArgument) in method m5", 24
-                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (NullArgument) in method m6", 24
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (IllegalArgument) in method m1", 23
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (IllegalArgument) in method m2", 23
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (IllegalArgument) in method m3", 23
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (IllegalArgument) in method m4", 23
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (NullArgument) in method m5", 24
+                ,"/tt/TestJava.java:28: verify: The prover cannot establish an assertion (NullArgument) in method m6", 24
                 );
     }
 
@@ -1975,7 +1975,7 @@ public class escall3 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Assert) in method m5", 9
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m5", 9
                 );
     }
     
@@ -1999,11 +1999,11 @@ public class escall3 extends EscBase {
         }
         """
         ,anyorder(
-             seq("/tt/ZZ.java:6: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:7: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:8: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:9: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:10: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method main",37)
+             seq("/tt/ZZ.java:6: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
+             ,seq("/tt/ZZ.java:7: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
+             ,seq("/tt/ZZ.java:8: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
+             ,seq("/tt/ZZ.java:9: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
+             ,seq("/tt/ZZ.java:10: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",37)
              )
         );
     }

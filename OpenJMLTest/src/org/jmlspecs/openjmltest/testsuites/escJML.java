@@ -32,7 +32,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -44,7 +44,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -56,7 +56,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -68,7 +68,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -80,7 +80,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i); \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -94,7 +94,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -108,7 +108,7 @@ public class escJML extends EscBase {
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 

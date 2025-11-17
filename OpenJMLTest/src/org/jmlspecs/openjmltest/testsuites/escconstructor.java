@@ -19,8 +19,7 @@ import com.sun.tools.javac.util.Options;
 @RunWith(ParameterizedWithNames.class)
 public class escconstructor extends EscBase {
 
-	// FIXME = significant failures in boogie
-
+    @org.junit.Before
 	@Override
 	public void setUp() throws Exception {
 		// noCollectDiagnostics = true;
@@ -44,8 +43,8 @@ public class escconstructor extends EscBase {
 						+ "    b = 10; \n" // Not allowed
 						+ "  }\n" 
 						+ "}\n"
-				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-				,"/tt/TestJava.java:5: warning: Associated declaration", 7
+				,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
+				,"/tt/TestJava.java:5: verify: Associated declaration", 7
 				);
 	}
 
@@ -63,8 +62,8 @@ public class escconstructor extends EscBase {
 						+ "    b = 10; \n" // Not allowed
 						+ "  }\n" 
 						+ "}\n"
-				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-				,"/tt/TestJava.java:6: warning: Associated declaration", 10
+				,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
+				,"/tt/TestJava.java:6: verify: Associated declaration", 10
 				);
 	}
 
@@ -81,8 +80,8 @@ public class escconstructor extends EscBase {
 						+ "    b = 10; \n" // Not allowed
 						+ "  }\n" 
 						+ "}\n"
-				,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-				,"/tt/TestJava.java:5: warning: Associated declaration", 7
+				,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
+				,"/tt/TestJava.java:5: verify: Associated declaration", 7
 				);
 	}
 

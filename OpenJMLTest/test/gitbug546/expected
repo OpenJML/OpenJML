@@ -14,7 +14,7 @@ Feasibility check - end of preconditions : OK
 Completed proof of Test.mok(boolean) with prover !!!! - no warnings
 Starting proof of Test.mbad(boolean) with prover !!!!
 Feasibility check - end of preconditions : infeasible
-Test.java:8: warning: Invariants+Preconditions appear to be contradictory in method Test.mbad(boolean)
+Test.java:8: verify: Invariants+Preconditions appear to be contradictory in method Test.mbad(boolean)
   public void mbad(boolean b);
               ^
 Completed proof of Test.mbad(boolean) with prover !!!! - INFEASIBLE
@@ -25,7 +25,7 @@ Feasibility check - end of preconditions : OK
 Completed proof of T.T() with prover !!!! - no warnings
 Starting proof of T.qbad() with prover !!!!
 Feasibility check - end of preconditions : infeasible
-Test.java:14: warning: Invariants+Preconditions appear to be contradictory in method T.qbad()
+Test.java:14: verify: Invariants+Preconditions appear to be contradictory in method T.qbad()
   //@ model void qbad();
                  ^
 Completed proof of T.qbad() with prover !!!! - INFEASIBLE
@@ -42,7 +42,7 @@ Starting proof of T.rrr() with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of T.rrr() with prover !!!! - no warnings
 Completed proving methods in T
-2 warnings
+2 verification failures
 TEST-C
 Proving methods in Test
 Starting proof of Test.mok(boolean) with prover !!!!
@@ -50,7 +50,7 @@ Feasibility check - end of preconditions : OK
 Completed proof of Test.mok(boolean) with prover !!!! - no warnings
 Starting proof of Test.mbad(boolean) with prover !!!!
 Feasibility check - end of preconditions : infeasible
-Test.java:8: warning: Invariants+Preconditions appear to be contradictory in method Test.mbad(boolean)
+Test.java:8: verify: Invariants+Preconditions appear to be contradictory in method Test.mbad(boolean)
   public void mbad(boolean b);
               ^
 Completed proof of Test.mbad(boolean) with prover !!!! - INFEASIBLE
@@ -61,7 +61,7 @@ Feasibility check - end of preconditions : OK
 Completed proof of T.T() with prover !!!! - no warnings
 Starting proof of T.qbad() with prover !!!!
 Feasibility check - end of preconditions : infeasible
-Test.java:14: warning: Invariants+Preconditions appear to be contradictory in method T.qbad()
+Test.java:14: verify: Invariants+Preconditions appear to be contradictory in method T.qbad()
   //@ model void qbad();
                  ^
 Completed proof of T.qbad() with prover !!!! - INFEASIBLE
@@ -78,7 +78,7 @@ Starting proof of T.rrr() with prover !!!!
 Feasibility check - end of preconditions : OK
 Completed proof of T.rrr() with prover !!!! - no warnings
 Completed proving methods in T
-2 warnings
+2 verification failures
 TEST-D
 Proving methods in Test
 Starting proof of Test.mok(boolean) with prover !!!!
@@ -100,10 +100,10 @@ Starting proof of T.rr() with prover !!!!
 Completed proof of T.rr() with prover !!!! - no warnings
 Starting proof of T.rrr() with prover !!!!
 Feasibility check - at program exit : infeasible
-Test.java:25: warning: There is no feasible path to program point at program exit in method T.rrr()
+Test.java:25: verify: There is no feasible path to program point at program exit in method T.rrr()
   //@ model void rrr() {
                  ^
 Completed proof of T.rrr() with prover !!!! - INFEASIBLE
 Completed proving methods in T
-1 warning
+1 verification failure
 TEST-X

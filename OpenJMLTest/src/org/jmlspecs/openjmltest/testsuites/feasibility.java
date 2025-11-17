@@ -47,7 +47,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.m()", 9
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.m()", 9
                 );
     }
 
@@ -63,7 +63,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.m()", 9
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.m()", 9
                 );
     }
 
@@ -79,7 +79,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point after call in method tt.TestJava.m()", 6
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point after call in method tt.TestJava.m()", 6
                 );
     }
 
@@ -95,7 +95,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at beginning of catch block in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at beginning of catch block in method tt.TestJava.m()", 5
                 );
     }
 
@@ -110,7 +110,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:3: warning: There is no feasible path to program point at program exit in method tt.TestJava.m()", 15
+                ,"/tt/TestJava.java:3: verify: There is no feasible path to program point at program exit in method tt.TestJava.m()", 15
                 );
     }
 
@@ -127,7 +127,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at beginning of finally block in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at beginning of finally block in method tt.TestJava.m()", 5
                 );
     }
 
@@ -143,7 +143,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at halt statement in method tt.TestJava.m()", 9
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at halt statement in method tt.TestJava.m()", 9
                 );
     }
 
@@ -168,8 +168,8 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at then branch in method tt.TestJava.m(int)", 5
-                ,"/tt/TestJava.java:11: warning: There is no feasible path to program point at else branch in method tt.TestJava.q(int)", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m(int)", 5
+                ,"/tt/TestJava.java:11: verify: There is no feasible path to program point at else branch in method tt.TestJava.q(int)", 5
                 );
     }
 
@@ -187,7 +187,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at break statement in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at break statement in method tt.TestJava.m()", 5
                 );
     }
 
@@ -205,7 +205,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at continue statement in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at continue statement in method tt.TestJava.m()", 5
                 );
     }
 
@@ -223,7 +223,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at then branch in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m()", 5
                 );
     }
 
@@ -241,7 +241,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at then branch in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m()", 5
                 );
     }
 
@@ -256,7 +256,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
+                ,"/tt/TestJava.java:4: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
                 );
     }
 
@@ -274,7 +274,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
+                ,"/tt/TestJava.java:4: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
                 );
     }
 
@@ -289,7 +289,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
+                ,"/tt/TestJava.java:4: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
                 );
     }
 
@@ -307,7 +307,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at reachable statement in method tt.TestJava.m(int)", 11
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at reachable statement in method tt.TestJava.m(int)", 11
                 );
     }
 
@@ -325,7 +325,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at return statement in method tt.TestJava.m(int)", 7
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at return statement in method tt.TestJava.m(int)", 7
                 );
     }
 
@@ -344,7 +344,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point after case condition in method tt.TestJava.m(int)", 7
+                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point after case condition in method tt.TestJava.m(int)", 7
                 );
     }
 
@@ -361,7 +361,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: warning: There is no feasible path to program point at statement spec (after using summary) in method tt.TestJava.m(int)", 9
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at statement spec (after using summary) in method tt.TestJava.m(int)", 9
                 );
     }
 
@@ -378,7 +378,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point after case condition in method tt.TestJava.m(int)", 7
+                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point after case condition in method tt.TestJava.m(int)", 7
                 );
     }
 
@@ -396,7 +396,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at throw statement in method tt.TestJava.m(int)", 7
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at throw statement in method tt.TestJava.m(int)", 7
                 );
     }
 

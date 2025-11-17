@@ -121,8 +121,9 @@ public class JmlOption {
             // The default has been filled in before check is called
             String val = options.get(JmlOption.EXITVERIFY.optionName());
             try {
-                Integer.valueOf(val);
-                return true;
+                int n = Integer.valueOf(val);
+                if (-1 <= n && n <= 6) return true;
+                throw new RuntimeException();
             } catch (Exception e) {
                 Utils.instance(context).error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
                 return false;
@@ -231,7 +232,6 @@ public class JmlOption {
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Controls output information during testing",null) {
         public boolean check(Context context, boolean negate) {
             Utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName()); // value is already negated if need be
-            if (Utils.testingMode) JmlOptions.instance(context).put(JmlOption.EXITVERIFY.optionName(),null); // FIXME - we shoiuld do this in setupOptions
             return true;
         }
     };

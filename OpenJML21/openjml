@@ -18,7 +18,7 @@ if [ "$( uname )" = "Darwin" ] ; then
 fi
 
 ## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BIN
-. "$INSTALL"/setup-vars javac
+. "${INSTALL}/setup-vars" javac
 
 ## Run the executable for openjml (the javac equivalent)
 ## The following line fixes issue #876, but is a hack because the root problem and this solution are not understood, as documented in #908

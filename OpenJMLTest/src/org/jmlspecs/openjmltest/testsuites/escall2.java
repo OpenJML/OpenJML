@@ -22,7 +22,7 @@ public class escall2 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Tests were written this way
+        addOptions("--nullable-by-default"); // Tests were written this way
     }
     
     // @Parameters
@@ -65,10 +65,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
@@ -111,10 +111,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
@@ -156,10 +156,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
     @Test
@@ -200,10 +200,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
 
@@ -245,10 +245,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
@@ -290,10 +290,10 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
     
@@ -361,10 +361,10 @@ public class escall2 extends EscBase {
                 
                 +"  public TestJava() { f = ff = \"\"; }\n"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:39: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -432,14 +432,14 @@ public class escall2 extends EscBase {
                 
                 +"  public TestJava() { f = ff = new String(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: s",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",7
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4",7
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: s",12
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",7
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4",7
+                ,"/tt/TestJava.java:39: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -507,10 +507,10 @@ public class escall2 extends EscBase {
                 
                 +"  public TestJava() { f = ff = new String(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:39: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -554,8 +554,8 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
         
@@ -600,10 +600,10 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1",9
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",9
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",9
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
     
@@ -647,8 +647,8 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
     
@@ -734,7 +734,7 @@ public class escall2 extends EscBase {
                 
                 +"} class P { public int f; //@ public invariant f >= 0; \n"
                 +"}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m", 10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 10
                 );
     }
     
@@ -754,7 +754,7 @@ public class escall2 extends EscBase {
                 
                 +"} class P { static public int f; //@ static public invariant f >= 0; \n"
                 +"}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m", 10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 10
                 );
     }
     
@@ -791,7 +791,7 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"} class P { }\n "
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
     
@@ -865,12 +865,12 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1a",14
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",17
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2a",17
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3",7
-                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3a",7
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1a",14
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",17
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2a",17
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3",7
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3a",7
                 );
     }
     
@@ -892,8 +892,8 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",14
                 );
     }
 
@@ -945,12 +945,12 @@ public class escall2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (InvariantExit) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",14
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (InvariantExit) in method m1bad",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",14
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (InvariantExit) in method m2bad",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit) in method m3bad",22
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
                 );
     }
     
@@ -1002,12 +1002,12 @@ public class escall2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",14
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Constraint) in method m1bad",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",14
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Constraint) in method m2bad",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Constraint) in method m3bad",22
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
                 );
     }
     
@@ -1139,16 +1139,16 @@ public class escall2 extends EscBase {
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
-                ,"/tt/TestJava.java:7: warning: Associated declaration",7
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assignable) in method m2: o.a",9
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
-                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m4a: o.a",9
-                ,"/tt/TestJava.java:31: warning: Associated declaration",7
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7: a",7
-                ,"/tt/TestJava.java:48: warning: Associated declaration",7
-                ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b: o.a",9
-                ,"/tt/TestJava.java:61: warning: Associated declaration",7
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
+                ,"/tt/TestJava.java:7: verify: Associated declaration",7
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: o.a",9
+                ,"/tt/TestJava.java:11: verify: Associated declaration",7
+                ,"/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4a: o.a",9
+                ,"/tt/TestJava.java:31: verify: Associated declaration",7
+                ,"/tt/TestJava.java:50: verify: The prover cannot establish an assertion (Assignable) in method m7: a",7
+                ,"/tt/TestJava.java:48: verify: Associated declaration",7
+                ,"/tt/TestJava.java:63: verify: The prover cannot establish an assertion (Assignable) in method m9b: o.a",9
+                ,"/tt/TestJava.java:61: verify: Associated declaration",7
                 );
     }
    
@@ -1182,7 +1182,7 @@ public class escall2 extends EscBase {
                 
                 
                 +"}" 
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    
@@ -1219,13 +1219,13 @@ public class escall2 extends EscBase {
         
         
                 +"}"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
-                ,"/tt/TestJava.java:8: warning: Associated declaration",20
-                ,optional("/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39)
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
-                ,"/tt/TestJava.java:8: warning: Associated declaration",20
-                ,optional("/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39)
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
+                ,"/tt/TestJava.java:8: verify: Associated declaration",20
+                ,optional("/tt/TestJava.java:7: verify: Precondition conjunct is false: b",39)
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
+                ,"/tt/TestJava.java:8: verify: Associated declaration",20
+                ,optional("/tt/TestJava.java:7: verify: Precondition conjunct is false: b",39)
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b",9
                  );
     }
    

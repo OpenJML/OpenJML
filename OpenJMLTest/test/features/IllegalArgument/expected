@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of features.IllegalArgument.main(String...) with prover !!!! - no warnings
 Starting proof of features.IllegalArgument.test() with prover !!!!
-../../OpenJMLDemo/src/features/IllegalArgument.java:11: warning: The prover cannot establish an assertion (IllegalArgument) in method test
+../../OpenJMLDemo/src/features/IllegalArgument.java:11: verify: The prover cannot establish an assertion (IllegalArgument) in method test
         //@ check \elemtype(\type(Object)) == \type(boolean);
                            ^
 Completed proof of features.IllegalArgument.test() with prover !!!! - with warnings

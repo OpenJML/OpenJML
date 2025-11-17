@@ -18,7 +18,7 @@ public class escfunction extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written this way
+        addOptions("--nullable-by-default"); // Because the tests were written this way
         //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;

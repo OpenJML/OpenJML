@@ -12,7 +12,7 @@ Skipping proof of trace.mwhile1() (excluded by -method)
 Skipping proof of trace.mwhile2() (excluded by -method)
 Skipping proof of trace.mdo() (excluded by -method)
 Starting proof of trace.mdo1() with prover !!!!
-test\escTraceLoops\trace.java:137: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mdo1
+test\escTraceLoops\trace.java:137: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mdo1
         //@ loop_invariant j == 2*i && 0 <= i && i < k;
             ^
 

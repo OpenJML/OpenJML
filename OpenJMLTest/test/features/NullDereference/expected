@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of features.NullDereference.main(String...) with prover !!!! - no warnings
 Starting proof of features.NullDereference.test(features.@Nullable NullDereference) with prover !!!!
-#DEMO/src/features/NullDereference.java:13: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method test
+#DEMO/src/features/NullDereference.java:13: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method test
         return n.i;
                 ^
 Completed proof of features.NullDereference.test(features.@Nullable NullDereference) with prover !!!! - with warnings

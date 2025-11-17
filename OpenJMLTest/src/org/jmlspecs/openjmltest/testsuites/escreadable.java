@@ -103,20 +103,20 @@ public class escreadable extends EscBase {
 
 
                 +"}"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Readable-if) in method m1b: tt.TestJava.x",12
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Readable-if) in method m1c: tt.TestJava.x",16
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (Readable-if) in method m2b: tt.TestJava.y",12
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:28: warning: The prover cannot establish an assertion (Readable-if) in method m2c: tt.TestJava.y",20
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Readable-if) in method m3b: tt.TestJava.z",13
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Readable-if) in method m3c: tt.TestJava.z",16
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:48: warning: The prover cannot establish an assertion (Readable-if) in method m3e: tt.TestJava.z",12
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Readable-if) in method m1b: tt.TestJava.x",12
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Readable-if) in method m1c: tt.TestJava.x",16
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Readable-if) in method m2b: tt.TestJava.y",12
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:28: verify: The prover cannot establish an assertion (Readable-if) in method m2c: tt.TestJava.y",20
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Readable-if) in method m3b: tt.TestJava.z",13
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:40: verify: The prover cannot establish an assertion (Readable-if) in method m3c: tt.TestJava.z",16
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:48: verify: The prover cannot establish an assertion (Readable-if) in method m3e: tt.TestJava.z",12
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
                 );
     }
 
@@ -192,20 +192,20 @@ public class escreadable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Writable-if) in method m1b: tt.TestJava.x",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Writable-if) in method m1c: tt.TestJava.x",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Writable-if) in method m2b: tt.TestJava.y",5
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Writable-if) in method m2c: tt.TestJava.y",13
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:38: warning: The prover cannot establish an assertion (Writable-if) in method m3b: tt.TestJava.z",6
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (Writable-if) in method m3c: tt.TestJava.z",5
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Writable-if) in method m3e: tt.TestJava.z",9
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Writable-if) in method m1b: tt.TestJava.x",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Writable-if) in method m1c: tt.TestJava.x",9
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Writable-if) in method m2b: tt.TestJava.y",5
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Writable-if) in method m2c: tt.TestJava.y",13
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:38: verify: The prover cannot establish an assertion (Writable-if) in method m3b: tt.TestJava.z",6
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (Writable-if) in method m3c: tt.TestJava.z",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:50: verify: The prover cannot establish an assertion (Writable-if) in method m3e: tt.TestJava.z",9
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
                 );
     }
 
@@ -280,20 +280,20 @@ public class escreadable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Writable-if) in method m1b: tt.TestJava.x",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Writable-if) in method m1c: tt.TestJava.x",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Writable-if) in method m2b: tt.TestJava.y",5
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Writable-if) in method m2c: tt.TestJava.y",13
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:38: warning: The prover cannot establish an assertion (Writable-if) in method m3b: tt.TestJava.z",6
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (Writable-if) in method m3c: tt.TestJava.z",5
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Writable-if) in method m3e: tt.TestJava.z",9
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Writable-if) in method m1b: tt.TestJava.x",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Writable-if) in method m1c: tt.TestJava.x",9
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Writable-if) in method m2b: tt.TestJava.y",5
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Writable-if) in method m2c: tt.TestJava.y",13
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:38: verify: The prover cannot establish an assertion (Writable-if) in method m3b: tt.TestJava.z",6
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (Writable-if) in method m3c: tt.TestJava.z",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:50: verify: The prover cannot establish an assertion (Writable-if) in method m3e: tt.TestJava.z",9
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
                 );
     }
 
@@ -442,20 +442,20 @@ public class escreadable extends EscBase {
                 +"  }\n"
 
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Readable-if) in method m1b: tt.TestJava.x",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Readable-if) in method m1c: tt.TestJava.x",9
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Readable-if) in method m2b: tt.TestJava.y",5
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (Readable-if) in method m2c: tt.TestJava.y",13
-                ,"/tt/TestJava.java:5: warning: Associated declaration",21
-                ,"/tt/TestJava.java:38: warning: The prover cannot establish an assertion (Readable-if) in method m3b: tt.TestJava.z",6
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (Readable-if) in method m3c: tt.TestJava.z",5
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Readable-if) in method m3e: tt.TestJava.z",9
-                ,"/tt/TestJava.java:3: warning: Associated declaration",58
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Readable-if) in method m1b: tt.TestJava.x",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Readable-if) in method m1c: tt.TestJava.x",9
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Readable-if) in method m2b: tt.TestJava.y",5
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Readable-if) in method m2c: tt.TestJava.y",13
+                ,"/tt/TestJava.java:5: verify: Associated declaration",21
+                ,"/tt/TestJava.java:38: verify: The prover cannot establish an assertion (Readable-if) in method m3b: tt.TestJava.z",6
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (Readable-if) in method m3c: tt.TestJava.z",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
+                ,"/tt/TestJava.java:50: verify: The prover cannot establish an assertion (Readable-if) in method m3e: tt.TestJava.z",9
+                ,"/tt/TestJava.java:3: verify: Associated declaration",58
                 );
     }
 

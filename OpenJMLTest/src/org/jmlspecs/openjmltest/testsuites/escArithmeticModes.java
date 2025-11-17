@@ -26,7 +26,7 @@ public class escArithmeticModes extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written this way
+        addOptions("--nullable-by-default"); // Because the tests were written this way
         //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -34,7 +34,7 @@ public class escArithmeticModes extends EscBase {
     }
     
     public boolean bvCheck() {
-    	return options == null || !options.contains("-escBV=true");
+    	return options == null || !options.contains("--esc-bv=true");
     }
  
     
@@ -103,8 +103,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int negation",13
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ml: long negation",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int negation",13
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ml: long negation",14
               );
     }
 
@@ -129,8 +129,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m: int overflow",13
-//                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method ml: long overflow",14
+//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m: int overflow",13
+//                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method ml: long overflow",14
               );
     }
 
@@ -143,8 +143,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,anyorder(seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: underflow in int sum",15)
-                         ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int sum",15))
+                ,anyorder(seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: underflow in int sum",15)
+                         ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int sum",15))
               );
     }
 
@@ -158,7 +158,7 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: underflow in int sum",15
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: underflow in int sum",15
               );
     }
 
@@ -173,7 +173,7 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb: overflow in int sum",15
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb: overflow in int sum",15
               );
     }
 
@@ -216,7 +216,7 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method mb",9
               );
     }
 
@@ -242,11 +242,11 @@ public class escArithmeticModes extends EscBase {
                 +"}\n"
 //                ,seq(
 //                anyorder(
-//                 seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
-//                ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
+//                 seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
+//                ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
 //                ),anyorder(
-//                 seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int overflow",18)
-//                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int underflow",18)
+//                 seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int overflow",18)
+//                ,seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int underflow",18)
 //                ))
               );
     }
@@ -269,11 +269,11 @@ public class escArithmeticModes extends EscBase {
                 +"}\n"
                 ,seq(
                 anyorder(
-                 seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
-                ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
+                 seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
+                ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
 //                ),anyorder(
-//                 seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int overflow",18)
-//                ,seq("/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int underflow",18)
+//                 seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int overflow",18)
+//                ,seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int underflow",18)
                 ))
               );
     }
@@ -295,10 +295,10 @@ public class escArithmeticModes extends EscBase {
                 +"  }\n"
                 +"}\n"
 //                ,anyorder(
-//                  seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
-//                 ,seq("/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
+//                  seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
+//                 ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
 //                 )
-//                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int overflow",18
+//                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mb:  int overflow",18
               );
     }
 
@@ -326,7 +326,7 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int divide",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int divide",14
               );
     }
 
@@ -374,8 +374,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int multiply overflow",15
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mc: int multiply overflow",15
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int multiply overflow",15
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mc: int multiply overflow",15
               );
     }
 
@@ -453,8 +453,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-//                ,anyorder(seq("/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method mc:  int overflow",13)
-//                ,seq("/tt/TestJava.java:21: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method md:  int underflow",21)
+//                ,anyorder(seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mc:  int overflow",13)
+//                ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method md:  int underflow",21)
 //                )
               );
     }

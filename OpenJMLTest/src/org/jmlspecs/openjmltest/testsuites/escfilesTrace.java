@@ -60,6 +60,7 @@ public class escfilesTrace extends EscBaseFiles {
         args.add("--esc");
         args.add("--no-purity-check");
         args.add("-jmltesting");
+        args.add("--verify-exit=6");
         if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);
         if (solver != null) args.add("-prover="+solver);

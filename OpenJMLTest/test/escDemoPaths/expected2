@@ -21,7 +21,7 @@ TRACE of openjml.demo.Paths.multipleErrors(int)
 			VALUE: i	 === ( - 1 )
 			VALUE: 0	 === 0
 			VALUE: i > 0	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:28: warning: The prover cannot establish an assertion (Assert) in method multipleErrors
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:28: verify: The prover cannot establish an assertion (Assert) in method multipleErrors
 			//@ assert i > 0;
 			    ^
 
@@ -37,7 +37,7 @@ TRACE of openjml.demo.Paths.multipleErrors(int)
 			VALUE: i	 === 0
 			VALUE: 0	 === 0
 			VALUE: i > 0	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:26: warning: The prover cannot establish an assertion (Assert) in method multipleErrors
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:26: verify: The prover cannot establish an assertion (Assert) in method multipleErrors
 			//@ assert i > 0;
 			    ^
 Completed proof of openjml.demo.Paths.multipleErrors(int) with prover z3_4_3 - with warnings
@@ -73,7 +73,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 4
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -109,7 +109,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 2
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -145,7 +145,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 4
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -179,7 +179,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 2
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -215,7 +215,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 2
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -251,7 +251,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 6
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -287,7 +287,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 4
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -322,7 +322,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 0
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -356,7 +356,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 6
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -389,7 +389,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 8
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -425,7 +425,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 6
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 
@@ -460,7 +460,7 @@ TRACE of openjml.demo.Paths.lotsOfPaths(int)
 			VALUE: i += k	 === 8
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54:  	assert Assert false;
 			VALUE: false	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: warning: The prover cannot establish an assertion (Assert) in method lotsOfPaths
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:54: verify: The prover cannot establish an assertion (Assert) in method lotsOfPaths
 		//@ assert false;
 		    ^
 Completed proof of openjml.demo.Paths.lotsOfPaths(int) with prover z3_4_3 - with warnings
@@ -490,7 +490,7 @@ TRACE of openjml.demo.Paths.testConstant(java.lang.Object)
 			VALUE: o	 === null
 			VALUE: null	 === null
 			VALUE: o != null	 === false
-..\..\OpenJMLDemo\src\openjml\demo\Paths.java:63: warning: The prover cannot establish an assertion (Assert) in method testConstant
+..\..\OpenJMLDemo\src\openjml\demo\Paths.java:63: verify: The prover cannot establish an assertion (Assert) in method testConstant
 		//@ assert o != null;
 		    ^
 Completed proof of openjml.demo.Paths.testConstant(java.lang.Object) with prover z3_4_3 - with warnings

@@ -567,18 +567,22 @@ public class Main extends com.sun.tools.javac.main.Main {
             if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", numVerifyWarnings);
             if (exit.exitCode == 0) {
                 // Use the verification failure exit code if there are verification warnings
-                if (!Utils.testingMode) exit = Result.VERIFY;
+                exit = Result.VERIFY;
                 String v = JmlOption.value(context, JmlOption.EXITVERIFY); // User specified exit code for verification failures
-                if (v != null) {
-                    try {
-                        int z = Integer.valueOf(v);
+                try {
+                    int z = Integer.valueOf(v);
+                    if (z == -1) {
+                        // Legacy test behavior
+                        // Verify behaves as a warning
+
+                    } else {
                         for (Result x: Result.values()) { if (x.exitCode == z) { exit = x; break; }}
                         if (exit.exitCode != z) throw new RuntimeException();
                         if (exit == Result.OK && Options.instance(context).isSet(WERROR)) exit = Result.ERROR;
-                    } catch (Exception e) {
-                        log.error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
-                        exit = Result.CMDERR;
                     }
+                } catch (Exception e) {
+                    log.error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + v);
+                    exit = Result.CMDERR;
                 }
             }
         }

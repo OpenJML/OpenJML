@@ -12,7 +12,7 @@ public class escTiming extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
+        addOptions("-nullable-by-default"); // Because the tests were written this way
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
     }

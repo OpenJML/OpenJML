@@ -19,9 +19,9 @@ public class escoption extends EscBase {
         //noCollectDiagnostics = true;
         captureOutput = true;
         super.setUp();
-        main.addOptions("--nullable-by-default"); // Because the tests were written this way
-        main.addOptions("--normal");
-        main.addOptions("--check-feasibility=none","--no-require-white-space");
+        addOptions("--nullable-by-default"); // Because the tests were written this way
+        addOptions("--normal");
+        addOptions("--check-feasibility=none","--no-require-white-space");
         //main.addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -80,9 +80,9 @@ public class escoption extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }\n" // Should fail because of the unprovable assert
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bassert",75
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method bassert2",76
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method bassert3",77
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bassert",75
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method bassert2",76
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",77
         );
         String out = output();
         org.junit.Assert.assertEquals(
@@ -108,9 +108,9 @@ public class escoption extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }\n" // Should fail because of the unprovable assert
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bassert",75
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method bassert2",76
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method bassert3",77
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bassert",75
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method bassert2",76
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",77
         );
         String out = output();
         org.junit.Assert.assertEquals(
@@ -147,10 +147,10 @@ public class escoption extends EscBase {
                 +"  //@ ensures true;\n"
                 +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }\n" // Should fail because of the explicit assert false
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method bassert",76
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method bassert2",77
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method bassert3",78
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method bassert",76
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bassert",76
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method bassert2",77
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",78
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method bassert",76
         );
         String out = output();
         org.junit.Assert.assertEquals(

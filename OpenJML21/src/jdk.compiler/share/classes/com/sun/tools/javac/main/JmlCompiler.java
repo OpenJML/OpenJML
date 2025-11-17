@@ -65,6 +65,7 @@ import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.main.JavaCompiler;
 import com.sun.tools.javac.main.JavaCompiler.InitialFileParser;
 import com.sun.tools.javac.parser.JmlScanner;
+import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.Abort;
@@ -152,6 +153,16 @@ public class JmlCompiler extends JavaCompiler {
     static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
     static boolean debugParse = debugParse2 || org.jmlspecs.openjml.Utils.debug("parse");
     
+    @Override
+    public int errorCount() {
+        if (log.nerrors == 0 && options.isSet(Option.WERROR) &&
+                (log.nwarnings > 0 || ("0".equals(JmlOption.value(context, JmlOption.EXITVERIFY)) && Utils.instance(context).verifyWarnings > 0))) {
+            log.error(Errors.WarningsAndWerror);
+        }
+        return log.nerrors;
+    }
+
+
     // This bit of complexity/hackery is due to the following problem. JML states that if there is a .jml file, all the specs in
     // the .jml file supersede anything in the .java file. So, in that case, any JML annotations in the .java file are ignored;
     // in fact they are not even required to be parsable. So we need to know whether there is a .jml file to know how to parse

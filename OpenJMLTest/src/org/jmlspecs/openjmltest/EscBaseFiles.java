@@ -187,6 +187,7 @@ public abstract class EscBaseFiles extends EscBase {
         args.add("--esc");
         args.add("--no-purity-check");
         args.add("-jmltesting");
+        args.add("--verify-exit=-1");
         args.add("--progress");
         args.add("--timeout=300");
         args.add("--code-math=java");

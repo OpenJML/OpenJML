@@ -1833,22 +1833,31 @@ public class Utils {
 
     com.sun.tools.javac.util.BasicDiagnosticFormatter verifyDiagnosticFormatter = null;
     public void verify(DiagnosticPosition pos, String key, Object ... args) {
+        // useVerify is the normal behavior
+        // turn it off to have the legacy test behavior where a verify warning was a regular warning
+        // FIXME: Keep the no verify alternative until the tests are all fixed
+        boolean useVerify = !JmlOption.value(context, JmlOption.EXITVERIFY).equals("-1");
         if (jmlverbose > QUIET) {
-            var df = log().getDiagnosticFormatter();
-            if (verifyDiagnosticFormatter == null) 
-                verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
-                public String formatKind(JCDiagnostic d, Locale l) {
-                    return Utils.testingMode?"warning: ":"verify: "; // TODO: IF we use 'verify' in tests, too many tests will fail
+            if (useVerify) {
+                var df = log().getDiagnosticFormatter();
+                if (verifyDiagnosticFormatter == null) {
+                    verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {
+                        public String formatKind(JCDiagnostic d, Locale l) {
+                            return "verify: ";
+                        }
+                    };
                 }
-            };
-            // FIXME - need some explanation -- there seems to be two formatters, one in Log and one in JCDiagnostic.Factory -- which one matters when?
-            log().setDiagnosticFormatter(verifyDiagnosticFormatter);
-            var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
-            log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
-            log().setDiagnosticFormatter(df);
-            JCDiagnostic.Factory.instance(context).setFormatter(df2);
+                // FIXME - need some explanation -- there seems to be two formatters, one in Log and one in JCDiagnostic.Factory -- which one matters when?
+                log().setDiagnosticFormatter(verifyDiagnosticFormatter);
+                var df2 = JCDiagnostic.Factory.instance(context).setFormatter(verifyDiagnosticFormatter);
+                log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+                log().setDiagnosticFormatter(df);
+                JCDiagnostic.Factory.instance(context).setFormatter(df2);
+            } else {
+                log().mandatoryWarning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+            }
         }
-        if (!Utils.testingMode || JmlOption.value(context, JmlOption.EXITVERIFY) != null) {
+        if (useVerify) {
             verifyWarnings++;
             log().nwarnings--;
         }

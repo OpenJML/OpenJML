@@ -163,6 +163,7 @@ public abstract class EscBase extends JmlTestSuite {
                    "--no-purity-check",
                    "--timeout=300", // seconds
                    "-jmltesting", // filters time-related or user-environment-related material out of test output
+                   //"--verify-exit=-1",
                    "--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
