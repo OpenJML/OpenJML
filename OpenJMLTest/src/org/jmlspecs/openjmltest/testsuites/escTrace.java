@@ -14,7 +14,7 @@ public class escTrace extends EscBase {
     public void setUp() throws Exception {
         captureOutput = true;
         super.setUp();
-        main.addOptions("-subexpressions");
+        addOptions("-subexpressions");
     }
  
     public static final String dir = "test/escTraceTests";
@@ -32,7 +32,7 @@ public class escTrace extends EscBase {
                 +"       //@ assert j != 7;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",12
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1",12
                 );
         String output = output();
         String error = errorOutput();
@@ -58,7 +58,7 @@ public class escTrace extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",12
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1",12
                 );
         String output = output();
         String error = errorOutput();
@@ -84,8 +84,8 @@ public class escTrace extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",8
+                ,"/tt/TestJava.java:5: verify: Associated declaration",7
                 );
         String output = output();
         String error = errorOutput();
@@ -111,7 +111,7 @@ public class escTrace extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m1: overflow in int sum",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m1: overflow in int sum",14
                 );
         String output = output();
         String error = errorOutput();

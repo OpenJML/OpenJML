@@ -39,7 +39,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"$SPECS/java/lang/Iterable.jml:44: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
+                ,"$SPECS/java/lang/Iterable.jml:44: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
                 );
     }
     
@@ -86,7 +86,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                
                 +"}"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
                 );
     }
     
@@ -449,8 +449,8 @@ public class esclambdas extends EscBase {
                 +"    throw t.exx.create();\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (ExceptionList) in method m",5
-                ,"/tt/TestJava.java:16: warning: Associated declaration",50
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionList) in method m",5
+                ,"/tt/TestJava.java:16: verify: Associated declaration",50
                 );
     }
     
@@ -487,9 +487,9 @@ public class esclambdas extends EscBase {
                 +"      return s.get();\n" // OK - PureNonNull.get is nonnull and pure
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assignable) in method m: \\everything",19
-                ,"/tt/TestJava.java:10: warning: Associated declaration",38
-                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assignable) in method m: \\everything",19
+                ,"/tt/TestJava.java:10: verify: Associated declaration",38
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
                 
                 );
     }
@@ -509,7 +509,7 @@ public class esclambdas extends EscBase {
                 +"      return s.get();\n" // OK - PureNonNull.get is nonnull and pure
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
                 
                 );
     }
@@ -529,7 +529,7 @@ public class esclambdas extends EscBase {
                 +"      return s.get();\n" // OK - PureNonNull.get is nonnull and pure
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
                 
                 );
     }
@@ -594,7 +594,7 @@ public class esclambdas extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method mm",12
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method mm",12
                 );
     }
     

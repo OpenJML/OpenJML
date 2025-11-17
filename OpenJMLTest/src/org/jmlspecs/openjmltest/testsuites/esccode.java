@@ -28,8 +28,8 @@ public class esccode extends EscBase {
                 +"    return 20;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/tt/TestJava.java:11: warning: Associated declaration",10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:11: verify: Associated declaration",10
                 );
     }
 
@@ -70,8 +70,8 @@ public class esccode extends EscBase {
                 +"    return 20;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",10
                 );
     }
 
@@ -92,8 +92,8 @@ public class esccode extends EscBase {
                 +"    return 20;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",10
                 );
     }
 
@@ -120,8 +120,8 @@ public class esccode extends EscBase {
                 +"    return 20;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Postcondition) in method n",5
-                ,"/tt/TestJava.java:4: warning: Associated declaration",10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method n",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration",10
                 );
     }
 

@@ -15,7 +15,8 @@ public class escaccessible extends EscBase {
     public void setUp() throws Exception {
     	super.setUp();
         captureOutput = false; // FIXME - why doesn't the 'verification failures' line end up in diagnostics, like it seems the erros and warnings lines do 
-        addOptions("--check-accessible","-no-jmltesting");
+        addOptions("--check-accessible");
+        addOptions("-no-jmltesting");  // Keeps location information in verify messages
     }
  
     protected void helpTCX(String classname, String s, Object... expectedResults) {

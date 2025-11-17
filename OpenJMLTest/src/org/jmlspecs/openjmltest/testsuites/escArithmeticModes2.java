@@ -243,11 +243,11 @@ public class escArithmeticModes2 extends EscBase {
                 +"  }\n"
                 +"}\n"   // FIXME - not sure why the multiply overflow is sometimes not reported
                 ,anyorder(
-                   seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",15)
-                  ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",19)
-                  ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",18)
-                  ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",22)
-                  ,optional("/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method ma",9)
+                   seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",15)
+                  ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",19)
+                  ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",18)
+                  ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",22)
+                  ,optional("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method ma",9)
                 )
               );
     }
@@ -346,12 +346,12 @@ public class escArithmeticModes2 extends EscBase {
                 +"    //@ assert (\\lbl D ((\\lbl I i)/(\\lbl J j))) == (\\lbl M m); \n"  // mnot OK for i = MIN && j = -1
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: Label K has value 0",31
-                ,"/tt/TestJava.java:8: warning: Label I has value ( - 2147483648 )",31
-                ,"/tt/TestJava.java:8: warning: Label J has value ( - 1 )",42
-                ,"/tt/TestJava.java:8: warning: Label D has value 2147483648",22
-                ,"/tt/TestJava.java:8: warning: Label M has value ( - 2147483648 )",58
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method ma",9
+                ,"/tt/TestJava.java:7: verify: Label K has value 0",31
+                ,"/tt/TestJava.java:8: verify: Label I has value ( - 2147483648 )",31
+                ,"/tt/TestJava.java:8: verify: Label J has value ( - 1 )",42
+                ,"/tt/TestJava.java:8: verify: Label D has value 2147483648",22
+                ,"/tt/TestJava.java:8: verify: Label M has value ( - 2147483648 )",58
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method ma",9
                 
               );
     }
@@ -388,12 +388,12 @@ public class escArithmeticModes2 extends EscBase {
                 +"    //@ assert (\\lbl D ((\\lbl I i)/(\\lbl J j))) == (\\lbl M m); \n"  // mnot OK for i = MIN && j = -1
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: Label K has value 0",31
-                ,"/tt/TestJava.java:8: warning: Label I has value ( - 9223372036854775808 )",31
-                ,"/tt/TestJava.java:8: warning: Label J has value ( - 1 )",42
-                ,"/tt/TestJava.java:8: warning: Label D has value 9223372036854775808",22
-                ,"/tt/TestJava.java:8: warning: Label M has value ( - 9223372036854775808 )",58
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method ma",9
+                ,"/tt/TestJava.java:7: verify: Label K has value 0",31
+                ,"/tt/TestJava.java:8: verify: Label I has value ( - 9223372036854775808 )",31
+                ,"/tt/TestJava.java:8: verify: Label J has value ( - 1 )",42
+                ,"/tt/TestJava.java:8: verify: Label D has value 9223372036854775808",22
+                ,"/tt/TestJava.java:8: verify: Label M has value ( - 9223372036854775808 )",58
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method ma",9
                 
               );
     }

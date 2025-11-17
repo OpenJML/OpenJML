@@ -66,7 +66,7 @@ test\escTraceLoops\trace.java:39:  	//@ loop_invariant j == i && 0 <= i && i <= 
 			VALUE: j == i && 0 <= i && i <= k	 === true
 test\escTraceLoops\trace.java:40:  	//@ decreases j;
 			VALUE: j	 === 5
-test\escTraceLoops\trace.java:40: warning: The prover cannot establish an assertion (LoopDecreases) in method m3
+test\escTraceLoops\trace.java:40: verify: The prover cannot establish an assertion (LoopDecreases) in method m3
         //@ decreases j;
             ^
 Completed proof of trace.m3() with prover z3_4_3 - with warnings

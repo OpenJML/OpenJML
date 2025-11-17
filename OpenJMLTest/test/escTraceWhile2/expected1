@@ -77,7 +77,7 @@ test\escTraceLoops\trace.java:110:  	LoopInvariant assertion: j == 2 * i && 0 <=
 			VALUE: j == 2 * i	 === ???
 			VALUE: j == 2 * i && 0 <= i	 === ???
 			VALUE: j == 2 * i && 0 <= i && i <= k	 === ???
-test\escTraceLoops\trace.java:110: warning: The prover cannot establish an assertion (LoopInvariant) in method mwhile2
+test\escTraceLoops\trace.java:110: verify: The prover cannot establish an assertion (LoopInvariant) in method mwhile2
         //@ loop_invariant j == 2*i && 0 <= i && i <= k;
             ^
 Completed proof of trace.mwhile2() with prover z3_4_3 - with warnings

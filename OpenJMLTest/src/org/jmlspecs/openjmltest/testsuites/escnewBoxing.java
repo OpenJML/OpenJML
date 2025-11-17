@@ -57,8 +57,8 @@ public class escnewBoxing extends EscBase {
                 
 
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad2",13
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad2",13
                 );
     }
     
@@ -93,7 +93,7 @@ public class escnewBoxing extends EscBase {
                 +"  { Integer j = null; int m = j; \n}\n"
 
                 +"}",
-                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",31
+                "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",31
                 );
     }
     
@@ -170,7 +170,7 @@ public class escnewBoxing extends EscBase {
                 +"  } //@ assert m == i; \n"
 
                 +"}}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",11
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",11
                 );
     }
     
@@ -198,9 +198,9 @@ public class escnewBoxing extends EscBase {
                 +"  } \n"
 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",7
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",15
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2bad",11
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m",7
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",15
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2bad",11
                 );
     }
     

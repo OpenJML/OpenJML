@@ -144,8 +144,8 @@ public class escConstantFields extends EscBase {
                 +"  //@ ensures \\result == 10; pure\n"
                 +"  static public int z() { return 10; }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method TestJava",10
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
@@ -277,8 +277,8 @@ public class escConstantFields extends EscBase {
                 +"  //@ public normal_behavior assignable \\everything;\n"
                 +"  static public void n() {}\n"
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method TestJava",10
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method TestJava",10
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 

@@ -25,7 +25,6 @@ public class escgeneric extends EscBase {
         addOptions("--nullable-by-default"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
         addOptions("--timeout=30");
-        addOptions("-jmltesting");
     }
     
     @Test
@@ -44,9 +43,9 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public TestG(E i) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
-                ,"/tt/TestJava.java:12: warning: Associated declaration",10
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method mx",17
+                ,"/tt/TestJava.java:12: verify: Associated declaration",10
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
                 );
     }
     
@@ -68,10 +67,10 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\typeof(this) == \\type(Object);\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.ma(java.lang.Object)",9
-                ,"/tt/TestJava.java:8: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
-                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at program exit in method tt.TestJava.ma(java.lang.Object)",15
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:8: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at program exit in method tt.TestJava.ma(java.lang.Object)",15
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method mb",9
                 );
     }
 
@@ -111,7 +110,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     
@@ -129,7 +128,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     
@@ -148,7 +147,7 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     
@@ -181,10 +180,10 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class B {}\n"
                 +"class C {}\n"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mz",9
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method ma",9
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mb",9
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method mc",9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method mz",9
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method ma",9
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method mc",9
         );
     }
 
@@ -204,9 +203,9 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) != \\type(Integer) ; pure \n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",22
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
@@ -226,9 +225,9 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",13
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
@@ -248,9 +247,9 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method mb",21
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
@@ -270,9 +269,9 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method mb",13
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
@@ -292,9 +291,9 @@ public class escgeneric extends EscBase {
                 +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:12: warning: Associated declaration",17
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:12: verify: Associated declaration",17
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
@@ -319,9 +318,9 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
@@ -346,9 +345,9 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
@@ -373,9 +372,9 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
@@ -400,11 +399,11 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ma",6
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mb",6
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method ma",6
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method mb",6
                 );
     }
         
@@ -572,7 +571,7 @@ public class escgeneric extends EscBase {
                 +"for (Integer o: list) { /*@ assume o != null && o >= 0 && sum + o <= Integer.MAX_VALUE; */ sum += o; }  \n"
                 +"//@ assert sum >= 0; \n"
                 +"}}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
                 );
     }
 
@@ -595,7 +594,7 @@ public class escgeneric extends EscBase {
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
                 +"//@ assert sum >= 0; \n"
                 +"}}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",10
                 );
     }
 
@@ -612,7 +611,7 @@ public class escgeneric extends EscBase {
         helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 
@@ -631,7 +630,7 @@ public class escgeneric extends EscBase {
         helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 

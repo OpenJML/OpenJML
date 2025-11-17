@@ -56,8 +56,8 @@ public class escinline extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:20: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
+                ,"/tt/TestJava.java:20: verify: Associated declaration", 7
                 );
     }
     
@@ -84,8 +84,8 @@ public class escinline extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:13: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
+                ,"/tt/TestJava.java:13: verify: Associated declaration", 7
                 );
     }
     
@@ -127,8 +127,8 @@ public class escinline extends EscBase {
                                 
                 +"}"
                 ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:23: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
+                ,"/tt/TestJava.java:23: verify: Associated declaration", 7
                 );
     }
     
@@ -168,8 +168,8 @@ public class escinline extends EscBase {
                                 
                 +"}"
                 ,"/tt/TestJava.java:4: warning: Inlined methods should be final since overriding methods will be ignored: minline", 15
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:23: warning: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
+                ,"/tt/TestJava.java:23: verify: Associated declaration", 7
                 );
     }
     

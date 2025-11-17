@@ -7,7 +7,7 @@ Skipping proof of trace.m3() (excluded by -method)
 Skipping proof of trace.m4() (excluded by -method)
 Skipping proof of trace.m5() (excluded by -method)
 Starting proof of trace.m6() with prover !!!!
-test\escTraceLoops\trace.java:74: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m6
+test\escTraceLoops\trace.java:74: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m6
         //@ decreases k-j-2;
             ^
 

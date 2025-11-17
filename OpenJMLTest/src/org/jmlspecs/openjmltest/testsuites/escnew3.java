@@ -61,9 +61,9 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                  
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m4a",9
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m5a",9
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m5b",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m4a",9
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method m5a",9
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assert) in method m5b",9
                 );
     }
     
@@ -110,8 +110,8 @@ public class escnew3 extends EscBase {
                 
                  
                 +"}"
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Assert) in method m11a",9
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method m11a",9
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
     
@@ -227,10 +227,10 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m1a",9
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (Assert) in method m2a",9
-                ,"/tt/TestJava.java:37: warning: The prover cannot establish an assertion (Assert) in method m3a",9
-                ,"/tt/TestJava.java:48: warning: The prover cannot establish an assertion (Assert) in method m4a",9
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assert) in method m2a",9
+                ,"/tt/TestJava.java:37: verify: The prover cannot establish an assertion (Assert) in method m3a",9
+                ,"/tt/TestJava.java:48: verify: The prover cannot establish an assertion (Assert) in method m4a",9
                 );
     }
     
@@ -270,9 +270,9 @@ public class escnew3 extends EscBase {
                 
                  
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
-                ,"/tt/TestJava.java:20: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1a",31
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1b",31
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1c",31
                 );
     }
     
@@ -353,23 +353,23 @@ public class escnew3 extends EscBase {
                 // will fail.
                 // The order of the two errors in each method may be reversed
                 ,anyorder(
-                  seq("/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Assert) in method m0bad",9)
-                 ,seq("/tt/TestJava.java:30: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0bad",9))
+                  seq("/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assert) in method m0bad",9)
+                 ,seq("/tt/TestJava.java:30: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m0bad",9))
                 ,anyorder(
-                  seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (Assert) in method m0badx",9)
-                 ,seq("/tt/TestJava.java:36: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m0badx",21))
+                  seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assert) in method m0badx",9)
+                 ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m0badx",21))
                 ,anyorder(
-                  seq("/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Assert) in method m1badx",9)
-                 ,seq("/tt/TestJava.java:41: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1badx",21))
+                  seq("/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Assert) in method m1badx",9)
+                 ,seq("/tt/TestJava.java:41: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m1badx",21))
                 ,anyorder(
-                  seq("/tt/TestJava.java:46: warning: The prover cannot establish an assertion (Assert) in method m2badx",9)
-                 ,seq("/tt/TestJava.java:46: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2badx",21))
+                  seq("/tt/TestJava.java:46: verify: The prover cannot establish an assertion (Assert) in method m2badx",9)
+                 ,seq("/tt/TestJava.java:46: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m2badx",21))
                 ,anyorder(
-                  seq("/tt/TestJava.java:52: warning: The prover cannot establish an assertion (Assert) in method m1bad",9)
-                 ,seq("/tt/TestJava.java:51: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m1bad",9))
+                  seq("/tt/TestJava.java:52: verify: The prover cannot establish an assertion (Assert) in method m1bad",9)
+                 ,seq("/tt/TestJava.java:51: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m1bad",9))
                 ,anyorder(
-                  seq("/tt/TestJava.java:58: warning: The prover cannot establish an assertion (Assert) in method m2bad",9)
-                 ,seq("/tt/TestJava.java:57: warning: The prover cannot establish an assertion (ArithmeticCastRange) in method m2bad",9))
+                  seq("/tt/TestJava.java:58: verify: The prover cannot establish an assertion (Assert) in method m2bad",9)
+                 ,seq("/tt/TestJava.java:57: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m2bad",9))
                 );
     }
     
@@ -422,12 +422,12 @@ public class escnew3 extends EscBase {
                 +"  }\n"
                                   
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m0",23
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1",19
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2",21
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m3",21
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m4",21
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m7",27
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m0",23
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1",19
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2",21
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m3",21
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m4",21
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m7",27
                 );
     }
     
@@ -448,7 +448,7 @@ public class escnew3 extends EscBase {
                                   
                 +"}"
                 // FIXME Reinstate when running -esc
-        //        ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
+        //        ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m5",17
                 );
     }
     
@@ -469,7 +469,7 @@ public class escnew3 extends EscBase {
                                   
                 +"}"
                 // FIXME Reinstate when running -esc
-         //       ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16
+         //       ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m6",16
                 );
     }
     
@@ -513,8 +513,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+//                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
 
@@ -528,8 +528,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:5: warning: Associated declaration",10
+//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+//                ,"/tt/TestJava.java:5: verify: Associated declaration",10
                 );
     }
 
@@ -543,8 +543,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+//                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
 
@@ -558,8 +558,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",22
+//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+//                ,"/tt/TestJava.java:4: verify: Associated declaration",22
                 );
     }
 
@@ -573,8 +573,8 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
+//                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
 
@@ -839,7 +839,7 @@ public class escnew3 extends EscBase {
                 +"     //@ assert (b & bb);\n" // FALSE
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     
     }
@@ -981,9 +981,9 @@ public class escnew3 extends EscBase {
                               + "     return -i;\n"
                               + "    }\n"
                               + "}"
-                              ,"/tt/TestJava.java:10: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm(int)",15
-                              //,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (Postcondition) in method mmm",6
-                              //,"/tt/TestJava.java:14: warning: Associated declaration",7
+                              ,"/tt/TestJava.java:10: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm(int)",15
+                              //,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method mmm",6
+                              //,"/tt/TestJava.java:14: verify: Associated declaration",7
                               );
                       
         
@@ -1021,7 +1021,7 @@ public class escnew3 extends EscBase {
                               + "     //@ assert i >= 0;\n"
                               + "    }\n"
                               + "}"
-                              ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m", 13
+                              ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m", 13
                                );
                       
         
@@ -1040,7 +1040,7 @@ public class escnew3 extends EscBase {
                               + "     //@ assert i >= 0;\n"
                               + "    }\n"
                               + "}"
-                              ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m", 13
+                              ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m", 13
                                );
                       
         
@@ -1175,11 +1175,11 @@ public class escnew3 extends EscBase {
                 + "     int j = a[i];" // No error
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",15
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",15
-                ,"/tt/TestJava.java:35: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",15
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",15
-                ,"/tt/TestJava.java:37: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",15
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",15
+                ,"/tt/TestJava.java:35: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",15
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",15
+                ,"/tt/TestJava.java:37: verify: Associated declaration",14
                  );
         
     }
@@ -1238,11 +1238,11 @@ public class escnew3 extends EscBase {
                 + "     a[i] = 0;" // No error
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",7
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",7
-                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",13
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
-                ,"/tt/TestJava.java:37: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",7
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",7
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",13
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
+                ,"/tt/TestJava.java:37: verify: Associated declaration",14
                  );
         
     }
@@ -1301,11 +1301,11 @@ public class escnew3 extends EscBase {
                 + "     a[i] += 0;" // No error
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",7
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",7
-                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",13
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
-                ,"/tt/TestJava.java:37: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",7
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",7
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",13
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
+                ,"/tt/TestJava.java:37: verify: Associated declaration",14
                  );
         
     }
@@ -1338,9 +1338,9 @@ public class escnew3 extends EscBase {
                 + "     int j = a[i];\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",15
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
-                ,"/tt/TestJava.java:14: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",15
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:14: verify: Associated declaration",14
                  );
     }
     @Test
@@ -1371,9 +1371,9 @@ public class escnew3 extends EscBase {
                 + "     a[i] = 0;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",7
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
-                ,"/tt/TestJava.java:14: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",7
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:14: verify: Associated declaration",14
                  );
     }
     @Test
@@ -1404,9 +1404,9 @@ public class escnew3 extends EscBase {
                 + "     a[i]+= 0;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",7
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
-                ,"/tt/TestJava.java:14: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",7
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:14: verify: Associated declaration",14
                  );
     }
     
@@ -1434,9 +1434,9 @@ public class escnew3 extends EscBase {
                 + "     int j = 1/a;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method foo",15
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
-                ,"/tt/TestJava.java:11: warning: Associated declaration",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method foo",15
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:11: verify: Associated declaration",14
                  );
     }
     
@@ -1466,9 +1466,9 @@ public class escnew3 extends EscBase {
                 + "     ooo[0] = 1;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method foo",12
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method foo",12
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1497,9 +1497,9 @@ public class escnew3 extends EscBase {
                 + "     int j = a.m();\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
-                ,"/tt/TestJava.java:11: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:11: verify: Associated declaration",14
                  );
     }
     
@@ -1528,9 +1528,9 @@ public class escnew3 extends EscBase {
                 + "     A j = a.new A();\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",12
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",12
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1559,9 +1559,9 @@ public class escnew3 extends EscBase {
                 + "     int j = (int)a;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method foo",19
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method foo",19
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1590,9 +1590,9 @@ public class escnew3 extends EscBase {
                 + "     int j = a;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method foo",14
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",14
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method foo",14
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",14
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1621,9 +1621,9 @@ public class escnew3 extends EscBase {
                 + "     a.x = 1;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1652,9 +1652,9 @@ public class escnew3 extends EscBase {
                 + "     a.x += 0;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1688,9 +1688,9 @@ public class escnew3 extends EscBase {
                 + "     switch(a) {};\n" // OK - possibly null is expected
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullValue) in method foo",13
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",13
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",13
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",13
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1719,9 +1719,9 @@ public class escnew3 extends EscBase {
                 + "     synchronized(a) {};\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullValue) in method foo",19
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",19
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1750,9 +1750,9 @@ public class escnew3 extends EscBase {
                 + "     throw a;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullValue) in method foo",12
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (ExceptionList) in method fooB",12
-                ,"/tt/TestJava.java:12: warning: Associated declaration",23
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",12
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionList) in method fooB",12
+                ,"/tt/TestJava.java:12: verify: Associated declaration",23
                  );
     }
     
@@ -1784,9 +1784,9 @@ public class escnew3 extends EscBase {
                 + "     int j = a[0];\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1818,9 +1818,9 @@ public class escnew3 extends EscBase {
                 + "     a[0] = 0;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1852,9 +1852,9 @@ public class escnew3 extends EscBase {
                 + "     a[0] = 0;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
-                ,"/tt/TestJava.java:12: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:12: verify: Associated declaration",14
                  );
     }
     
@@ -1887,10 +1887,10 @@ public class escnew3 extends EscBase {
                 + "     int j = a.x;\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method fooAA",15
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
-                ,"/tt/TestJava.java:16: warning: Associated declaration",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method fooAA",15
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:16: verify: Associated declaration",14
                  );
         
     }
@@ -1919,9 +1919,9 @@ public class escnew3 extends EscBase {
                 + "     int[] j = new int[n];\n"
                 + "  }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method foo",24
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",24
-                ,"/tt/TestJava.java:10: warning: Associated declaration",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNegativeSize) in method foo",24
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",24
+                ,"/tt/TestJava.java:10: verify: Associated declaration",14
                  );
     }
     

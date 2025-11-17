@@ -526,7 +526,7 @@ public class MethodProverSMT {
                             try {
                                 startFeasibilityCheck = Integer.valueOf(sn);
                             } catch (NumberFormatException e) {
-                                utils.warning("jml.message","debug feaqsibility startu=ing number has ba format: " + sn);
+                                utils.warning("jml.message","debug feasibility starting number has bad format: " + sn);
                             }
                         }
                     }
@@ -610,7 +610,7 @@ public class MethodProverSMT {
                         if (infeasible) {
                             utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionFeasCheckDescription.equals(description)) {
-                            	utils.warning(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                            	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
                                 break;

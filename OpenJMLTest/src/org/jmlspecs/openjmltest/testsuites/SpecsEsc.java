@@ -71,7 +71,7 @@ public class SpecsEsc extends EscBaseFiles {
         expectedExit = 0;
         String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + foldername;
         //System.out.println("    ... " + classname.replace('-','.'));
-        escOnFiles(subdir,subdir,"--method=esc","--no-show-skipped","--check-feasibility=return","-Xlint:unchecked");
+        escOnFiles(subdir,subdir,"--method=esc","--no-show-skipped","--check-feasibility=return","-Xlint:unchecked","--verify-exit=6");
     }
     
     static public java.util.List<File> findAllFiles() {

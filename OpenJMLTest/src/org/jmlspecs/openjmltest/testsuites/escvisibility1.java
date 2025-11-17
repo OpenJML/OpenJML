@@ -25,7 +25,6 @@ public class escvisibility1 extends EscBase {
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
         //print = true;
-        addOptions("-jmltesting");
     }
 
    
