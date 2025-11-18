@@ -138,6 +138,7 @@ public class Check {
 
     @SuppressWarnings("this-escape")
     protected Check(Context context) {
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("CHECK"); // OPENJML
         context.put(checkKey, this);
 
         names = Names.instance(context);

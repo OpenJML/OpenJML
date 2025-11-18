@@ -1072,6 +1072,8 @@ public class compiler extends JmlTestSuite{
         helper(new String[] {"--verboseness= ","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
                 "",
                 """
+                warning: The value of the --verboseness option or the org.openjml.option.verboseness property should be the string representation of an integer: ""
+                1 warning
                 """);
     }
 
@@ -1326,7 +1328,7 @@ public class compiler extends JmlTestSuite{
 
     @Test
     public void release_testJmlBada() throws Exception {
-        expectedFile = "releaseTests/testJmlBad/expected";
+        expectedFile = "releaseTests/testJmlBadNoSource/expected";
         helper(new String[]
                 { "--verboseness="
                 },2,0
@@ -1350,7 +1352,6 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                 { "--verboseness", ""
                 },2,0
-                ,""
                 );
     }
 
@@ -1360,14 +1361,13 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                 { "-verboseness= "
                 },2,0
-                ,""
                 );
     }
 
     // FIXME - check bad verboseness property -- testJmlBad2 (2 tests)
 
     @Test
-    public void release_testJmlBad3() throws Exception {
+    public void release_testJmlBad3() throws Exception {  // FIXME - shouldn't this have error mesages
     	expectedFile = "releaseTests/testJmlBad3/expected";
     	helper(new String[]
                 { "-check","-java"

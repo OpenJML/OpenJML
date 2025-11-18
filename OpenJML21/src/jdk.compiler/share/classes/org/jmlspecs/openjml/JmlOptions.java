@@ -424,20 +424,26 @@ public class JmlOptions extends Options {
         options.remove("printArgsToFile");
         
         // In case we have just popped options, reset any option that caches values
-        resetOption(JmlOption.VERBOSENESS); // Caches utils.jmlverbose
         resetOption(JmlOption.COMMAND); // Caches in utils.esc etc.
         resetOption(JmlOption.KEYS); // Caches in options.commentKeys
-//        resetOption(JmlOption.JMLTESTING); // Caches in Utils.testingMode (static)  // FIXME -- this breaks tests
-        resetOption(JmlOption.ESC_MAX_WARNINGS); // Caches in utils.maxWarnings
+        utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName());
 
         // FIXME - WARN keys not handled correctly I think
         
         // Now also check for any interactions between different options
         
-        if (options.get("-verbose") != null) {
-            // If the Java -verbose option is set, we set -jmlverbose as well
-            utils.jmlverbose = Utils.JMLVERBOSE;
+        //System.out.println("SETUP OPTIONS " + options.isSet("-verbose"));
+        utils.init();
+        
+        String check = JmlOption.value(context,JmlOption.FEASIBILITY);
+        //System.out.println("DEBUG REAS " + check + " " + utils.jmlverbose + " " + check.startsWith(Strings.feas_debug));
+        if (check != null && check.startsWith(Strings.feas_debug)) {
+            //System.out.println("DEBUG REAS B " + check + " " + utils.jmlverbose);
+            if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
+            //System.out.println("DEBUG REAS C " + check + " " + utils.jmlverbose);
         }
+
+        //System.out.println("SETUP " + utils.jmlverbose);
 
         // Set the progress listener
         // TODO - needs review
@@ -565,7 +571,7 @@ public class JmlOptions extends Options {
         
         @Override // overridden just to suppress message
         public void printUsage(String ownName) {
-            if (Utils.instance(context).jmlverbose == Utils.QUIET) return;
+            if (JmlOption.VERBOSENESS.getInt(context) == Utils.QUIET) return;
             super.printUsage(ownName);
         }
 

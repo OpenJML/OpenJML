@@ -176,15 +176,15 @@ public class JmlOption {
     public static final JmlOption SHOW_NOT_EXECUTABLE = new JmlOption("--show-not-executable",false,false,"When on (off by default), warnings about non-executable constructs are issued",null);
     { map.put("-showNotExecutable",SHOW_NOT_EXECUTABLE); }
 
-    public static final JmlOption VERBOSENESS = new JmlOption("--verboseness",true,1,"Level of verboseness (0=quiet...4=debug)",null) {
+    public static final JmlOption VERBOSENESS = new JmlOption("--verboseness",true,"1","Level of verboseness (0=quiet...4=debug)",null) {
         public boolean check(Context context, boolean negate) {
             String n = JmlOption.VERBOSENESS.optionName().trim();
-            String levelstring = JmlOptions.instance(context).get(n);
-            if (Utils.instance(context).ojcheck(levelstring != null, "null value in JmlOption.VERBOSENESS.check")) {
-                levelstring = levelstring.trim();
-                if (!levelstring.isEmpty()) try {
-                    Utils.instance(context).jmlverbose = Integer.parseInt(levelstring);
+            String levelstring = JmlOptions.instance(context).get(n).trim();
+            {
+                try {
+                    Integer.parseInt(levelstring); // Just to see if it parses OK
                 } catch (NumberFormatException e) {
+                    // FIXME - avoid insttantiating Utils?
                     Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) + " property should be the string representation of an integer: \"" + levelstring + "\"");
                     JmlOptions.instance(context).put(n, "1");
                     return false;
@@ -192,6 +192,11 @@ public class JmlOption {
             }
             return true;
     	}
+        public int getInt(Context context) {
+            String n = JmlOption.VERBOSENESS.optionName().trim();
+            String value = JmlOptions.instance(context).get(n).trim();
+            try { return Integer.parseInt(value); } catch (NumberFormatException e) { return 1; }
+        }
     };
     public static final JmlOption WARN = new JmlOption("--warn",true,"","Comma-separated list of warning keys to enable or disable",null) {
         public boolean check(Context context, boolean negate) {
@@ -231,7 +236,6 @@ public class JmlOption {
     // Internal use only
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Controls output information during testing",null) {
         public boolean check(Context context, boolean negate) {
-            Utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName()); // value is already negated if need be
             return true;
         }
     };
@@ -243,7 +247,7 @@ public class JmlOption {
             JmlOptions options = JmlOptions.instance(context);
             var nm = JmlOption.ESC_BV.optionName();
             String val = options.get(nm);
-            if (Utils.instance(context).ojcheck(val != null, "null value in JmlOption.ESC_BC.check")) {
+            {
                 if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
                 } else {
                     Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
@@ -257,24 +261,36 @@ public class JmlOption {
     { map.put("-escBV",ESC_BV); }
     public static final JmlOption ESC_TRIGGERS = new JmlOption("--triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
-    	public boolean check(Context context, boolean negate) {
-            Utils utils = Utils.instance(context);
+        public boolean check(Context context, boolean negate) {
             String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
-            if (Utils.instance(context).ojcheck(limit != null, "null value in JmlOption.ESC_MAX_WARNINGS.check")) {
+            {
                 if (limit.equals("all")) {
-                    utils.maxWarnings = Integer.MAX_VALUE; // no limit is the default
                 } else {
                     try {
-                        int k = Integer.parseInt(limit);
-                        utils.maxWarnings = k <= 0 ? Integer.MAX_VALUE : k;
+                        Integer.parseInt(limit);
                     } catch (NumberFormatException e) {
-                        utils.error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
-                        utils.maxWarnings = Integer.MAX_VALUE;
+                        Utils.instance(context).error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
                         return false;
                     }
                 }
             }
             return true;
+        }
+        public int getInt(Context context) {
+            String limit = JmlOption.value(context,JmlOption.ESC_MAX_WARNINGS);
+            {
+                if (limit.equals("all")) {
+                    return Integer.MAX_VALUE; // no limit is the default
+                } else {
+                    try {
+                        int k = Integer.parseInt(limit);
+                        return k <= 0 ? Integer.MAX_VALUE : k;
+                    } catch (NumberFormatException e) {
+                        Utils.instance(context).error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
+                        return Integer.MAX_VALUE;
+                    }
+                }
+            }
     	}
     };
     { map.put("-escMaxWarnings",ESC_MAX_WARNINGS); }
@@ -285,7 +301,6 @@ public class JmlOption {
     public static final JmlOption FEASIBILITY = new JmlOption("--check-feasibility",true,"none","ESC: Check feasibility of assumptions",null) {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
-            Utils utils = Utils.instance(context);
             String check = JmlOption.value(context,JmlOption.FEASIBILITY);
             if (check == null || check.isEmpty()) {
                 options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_none);
@@ -294,7 +309,6 @@ public class JmlOption {
             } else if (check.equals(Strings.feas_all)) {
                 options.put(JmlOption.FEASIBILITY.optionName(),check=Strings.feas_alls);
             } else if (check.startsWith(Strings.feas_debug)) {
-                if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
                 int k = check.indexOf(":");
                 if (k > 0) {
                     try {
@@ -306,7 +320,7 @@ public class JmlOption {
             }
             String badString = Strings.isOKFeasibility(check);
             if (badString != null) {
-                utils.error("jml.message","Unexpected value as argument for --check-feasibility: " + badString);
+                Utils.instance(context).error("jml.message","Unexpected value as argument for --check-feasibility: " + badString);
                 return false;
             }
             return true;
@@ -557,6 +571,14 @@ public class JmlOption {
     public static String value(Context context, String option) {
         return Options.instance(context).get(option);
     }
+    
+    /** Return the value of the option in the given context */
+    public String value(Context context) {
+        return Options.instance(context).get(this.optionName());
+    }
+    
+    /** For options that implement this method, returns an int value appropriate to the option */
+    public int getInt(Context context) { return 0; }
 
     /** The name of the option, including any leading - sign
      */

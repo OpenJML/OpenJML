@@ -322,6 +322,7 @@ public class Log extends AbstractLog {
      */
     private Log(Context context, Map<WriterKind, PrintWriter> writers) {
         super(JCDiagnostic.Factory.instance(context));
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("LOG"); // OPENJML
         context.put(logKey, this);
         this.writers = writers;
 
@@ -735,7 +736,7 @@ public class Log extends AbstractLog {
      * Write out a diagnostic.
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
-        if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).jmlverbose == 0) return; // OPENJML -- --quiet mode
+        if (org.jmlspecs.openjml.Utils.isJML() && "0".equals(Options.instance(context).get("--verboseness"))) return; // OPENJML -- --quiet mode
         if (diagListener != null) {
             diagListener.report(diag);
             return;

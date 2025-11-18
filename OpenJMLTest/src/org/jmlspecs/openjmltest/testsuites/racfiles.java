@@ -334,7 +334,7 @@ public class racfiles extends RacBase {
                 "-cp","test/hans/OpenJMLTest/bin"+z+"test/hans/icecapSDK/src"+z+"test/racHans2",
                 //"-rac",
                 "--specs-path","test/racHans2/specs",
-                "--rac-check-assumptions","--rac-java-checks","--show-not-implemented","--nullable-by-default"
+                "--rac-check-assumptions","--rac-java-checks","--show-not-implemented","--nullable-by-default","-Xlint:none"
                 );
     }
 
@@ -571,7 +571,7 @@ public class racfiles extends RacBase {
     public void gitbug807() {
         runrac = true;
         expectedRACExit = 0;
-        helpTCF("test/gitbug807","test/gitbug807","Foo");
+        helpTCF("test/gitbug807","test/gitbug807","Foo","-Xlint:none");
     }
 
     @Test

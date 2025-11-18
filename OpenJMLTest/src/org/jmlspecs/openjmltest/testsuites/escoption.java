@@ -350,7 +350,14 @@ public class escoption extends EscBase {
         addOptions("--check-feasibility=debug:100");
         helpTCX("tt.TestJava", "package tt; public class TestJava {}"
         );
-        org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertEquals(
+                """
+                Proving methods in tt.TestJava
+                Starting proof of tt.TestJava.TestJava() with prover !!!!
+                Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings
+                Completed proving methods in tt.TestJava
+                """
+                ,output());
     }
     
     @Test
