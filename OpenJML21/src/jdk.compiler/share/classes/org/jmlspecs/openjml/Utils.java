@@ -103,13 +103,24 @@ import com.sun.tools.javac.util.JCDiagnostic.Warning;
  */
 public class Utils {
     
-    static public boolean debugOptions = Utils.debug("options");
-    
-    /** This field is used to restrict output during testing so as to 
-     * make test results more deterministic (or to match old test results).
-     * It is set when processing options. It is static and so is not thread-safe.
+    // Static debugging flags -- do not use in any environment that multi-threads openjml
+
+    static private boolean isjml = System.getenv("NOJML")==null;
+
+    /** true if openjml is set to process JML (rather than only java).
+     * Recall that the openjdk/openjml has a bootstrap compilation cycle.
+     * 'isjml' must be false for the bootstrap compilation and then 'true' to actually run openjml
+     * See the use in the Makefile
      */
-    static public boolean testingMode = false;
+    static public boolean isJML() {
+        return isjml;
+    }
+
+    static String debugstring = System.getenv("OJ");
+    static String[] debugkeys = debugstring == null ? null : debugstring.split(",");
+
+    static public boolean debugOptions = Utils.debug("options");
+    static public boolean debugInst = Utils.debug("register") && isJML();
     
     ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -119,14 +130,28 @@ public class Utils {
     /** The Log object - do not use this directly - use log() instead */
     private Log log;
     
-    private JmlTypes jmltypes;
+    /** The error and warning log. It is crucial that the log be obtained
+     * lazily, and not before options are read; otherwise the Log object
+     * is not properly initialized from the Java options. */
+    public final Log log() {
+        if (log == null) log = Log.instance(context);
+        return log;
+    }
+
+    private JmlTypes jmltypes; // Do not use this value directly -- use jmltypes() instead
     
+    /** The Types object */
     public JmlTypes jmltypes() {
         if (jmltypes == null) jmltypes = JmlTypes.instance(context);
         return jmltypes;
     }
-    
 
+    /** This field is used to restrict output during testing so as to 
+     * make test results more deterministic (or to match old test results).
+     * It is set when processing options. It is static and so is not thread-safe.
+     */
+    public boolean testingMode;
+    
     /** The key to use to retrieve the instance of this class from the Context object. */
     //@ non_null
     public static final Context.Key<Utils> utilsKey =
@@ -150,16 +175,17 @@ public class Utils {
      * @param context The compilation context
      */
     protected Utils(Context context) {
+        if (Utils.debugInst) System.out.println("UTILS");
         this.context = context;
         context.put(utilsKey, this);
+        init();
     }
-
-    /** The error and warning log. It is crucial that the log be obtained
-     * lazily, and not before options are read; otherwise the Log object
-     * is not properly initialized from the Java options. */
-    public final Log log() {
-        if (log == null) log = Log.instance(context);
-        return log;
+    
+    public void init() {
+        jmlverbose = JmlOption.VERBOSENESS.getInt(context);
+        if (Options.instance(context).isSet("-verbose")) jmlverbose = Utils.JMLVERBOSE;
+        testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName());
+        maxWarnings = JmlOption.ESC_MAX_WARNINGS.getInt(context);
     }
 
     /** Global utility value that enables printing of debugging or trace information. */
@@ -1953,8 +1979,6 @@ public class Utils {
         e.printStackTrace(System.out);
     }
 
-    static String debugstring = System.getenv("OJ");
-    static String[] debugkeys = debugstring == null ? null : debugstring.split(",");
     public static boolean debug() {
         return debugstring != null;
     }
@@ -1962,7 +1986,9 @@ public class Utils {
     public static boolean debug(String key) {
         if (debugkeys == null) return false;
         // Note: streams cannot be reused
-        return Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
+        var b = Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
+        // System.out.println("DEBUG " + key + " " + b);
+        return b;
     }
     
     public static String debugValue(String key, String def) {
@@ -2012,15 +2038,6 @@ public class Utils {
         new RuntimeException().printStackTrace(System.out); // Thread.dumpStack() goes to Stderr
     }
     
-    /** true if openjml is set to process JML (rather than only java).
-     * Recall that the openjdk/openjml has a bootstrap compilation cycle.
-     * 'isjml' must be false for the bootstrap compilation and then 'true' to actually run openjml
-     * See the use in the Makefile
-     */
-    public static boolean isJML() {
-        return isjml;
-    }
-    static private boolean isjml = System.getenv("NOJML")==null;
 
     /** Set the 'jml' flag to the negation of the given value.
      * This is a static value that applies to all instances of Main */

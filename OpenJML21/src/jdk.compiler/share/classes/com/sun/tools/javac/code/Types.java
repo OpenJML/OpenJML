@@ -110,6 +110,7 @@ public class Types {
 
     @SuppressWarnings("this-escape")
     protected Types(Context context) {
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("TYPES"); // OPENJML
         context.put(typesKey, this);
         syms = Symtab.instance(context);
         names = Names.instance(context);

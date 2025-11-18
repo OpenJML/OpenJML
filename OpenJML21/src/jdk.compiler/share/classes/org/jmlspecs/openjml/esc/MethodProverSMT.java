@@ -385,7 +385,7 @@ public class MethodProverSMT {
                     if (JmlOption.value(context, JmlOption.ESC_BV).equals("false")) {
                         return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
                     }
-                    if (!Utils.testingMode && utils.progress()) {
+                    if (!utils.testingMode && utils.progress()) {
                     	utils.note(false, "Switching to bit-vector arithmetic");
                     }
                     script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
@@ -495,12 +495,12 @@ public class MethodProverSMT {
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }
             String loc = utils.qualifiedNameNoInit(methodDecl.sym);
-            if (Utils.testingMode) loc = "";
+            if (utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
                 String msg = "Method assertions are validated";
-                if (!Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) msg = msg + String.format(" [%4.2f secs]", duration);
+                if (!utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) msg = msg + String.format(" [%4.2f secs]", duration);
                 // FIXME - get rid of the check on testingMode below some time when we can change the test results
-                if (!Utils.testingMode) utils.progress(0,1,msg);
+                if (!utils.testingMode) utils.progress(0,1,msg);
 
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
@@ -600,15 +600,15 @@ public class MethodProverSMT {
                         }
                         String description = stat.description; // + " " + stat;
                         String fileLocation = utils.locationString(stat.pos, log.currentSourceFile());
-                        String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && (!Utils.testingMode || Strings.feasibilityContains(Strings.feas_debug,context)) )) ? 
+                        String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && (!utils.testingMode || Strings.feasibilityContains(Strings.feas_debug,context)) )) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         //System.out.println("   SOLVER " + solverResponse);
                         boolean infeasible = solverResponse.equals(unsatResponse);
-                        if (Utils.testingMode) fileLocation = loc;
-                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
+                        if (utils.testingMode) fileLocation = loc;
+                        String msgOK = fileLocation + msg2 + "OK" + (utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
-                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
+                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionFeasCheckDescription.equals(description)) {
                             	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
@@ -661,7 +661,7 @@ public class MethodProverSMT {
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
-                if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are INVALID");
+                if (!utils.testingMode) utils.progress(0,1,loc + " Method assertions are INVALID");
                 int count = Utils.instance(context).maxWarnings;
                 boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
@@ -1151,7 +1151,7 @@ public class MethodProverSMT {
                         }
                         JavaFileObject mainSource = log.currentSourceFile();
                         String associatedLocation = Strings.empty;
-                        if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
+                        if (assertStat.associatedPos != Position.NOPOS && !utils.testingMode) {
                             associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                             // FIXME - can this adjustment be pushed into locationString()?
                             associatedLocation = associatedLocation.trim();
@@ -1192,7 +1192,7 @@ public class MethodProverSMT {
                         
                         if (assertStat.associatedPos != Position.NOPOS) {
                             utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                    Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                    utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
                         }
@@ -1518,7 +1518,7 @@ public class MethodProverSMT {
                     }
                     JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
-                    if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
+                    if (assertStat.associatedPos != Position.NOPOS && !utils.testingMode) {
                         associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                     }
                     String extra = Strings.empty;
@@ -1551,7 +1551,7 @@ public class MethodProverSMT {
                     if (assertStat.associatedPos != Position.NOPOS) {
                         //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
                         utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
                                 loc);
                         tracer.appendln(associatedLocation + " Associated location");
                         //if (assertStat.associatedSource != null) log.useSource(prev);

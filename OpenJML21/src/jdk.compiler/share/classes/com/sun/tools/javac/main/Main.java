@@ -244,6 +244,7 @@ public class Main {
 
         if (log.nerrors > 0)
             return Result.CMDERR;
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("END ARGUMENTS"); // OPENJML
 
         Options options = Options.instance(context);
 
@@ -304,7 +305,9 @@ public class Main {
             List<String> list = List.of(target.multiReleaseValue());
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("CALLING POSTOPTINOP"); // OPENJLM
         postOptionProcessing(context); // OPENJML
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("DONE POSTOPTINOP"); // OPENJLM
 
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);

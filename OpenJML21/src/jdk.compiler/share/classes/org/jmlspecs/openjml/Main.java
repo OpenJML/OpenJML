@@ -407,7 +407,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                     }
 
                     errorcode = result.exitCode;
-                    if (Utils.instance(compiler.context()).jmlverbose >= Utils.JMLVERBOSE) {
+                    if (JmlOption.VERBOSENESS.getInt(context) >= Utils.JMLVERBOSE || Options.instance(context).isSet("-verbose")) {
                         writer.println("ENDING with exit code " + errorcode);
                     }
                 }
@@ -562,7 +562,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         canceled = false;
         Main.Result exit = super.compile(args,context);
         int numVerifyWarnings = Utils.instance(context).verifyWarnings;
-        // System.out.println("VWARN " + numVerifyWarnings + " " + exit.exitCode + " " + Utils.testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY) + " " + log.hasDiagnosticListener());
+        // System.out.println("VWARN " + numVerifyWarnings + " " + exit.exitCode + " " + Utils.instance(context).testingMode + " " + JmlOption.value(context, JmlOption.EXITVERIFY) + " " + log.hasDiagnosticListener());
         if (numVerifyWarnings != 0) {
             if (!log.hasDiagnosticListener()) JavaCompiler.instance(context).printCount("verify", numVerifyWarnings);
             if (exit.exitCode == 0) {
@@ -614,21 +614,23 @@ public class Main extends com.sun.tools.javac.main.Main {
         // Handlers are created during tool registration, which in OpenJML has to be before
         // options are read. In some cases the tools cache values of options.
         // So they have to be adjusted for the actual values of the options.
-        Check.instance(context).resetHandlers(); // Caches values of lint settings
+//        Check.instance(context).resetHandlers(); // Caches values of lint settings
         ClassFinder.instance(context).resetOptions(context); // Caches verbose, -Xprefer and others
-        
-        // FIXME - JavaCompiler also caches lots of options. There is no mechanism to reset JavaCompiler
-        // once it is created for a given context.  So the API cannot rerun the compiler with different options.
-        
-        // Only implemented for the simple compile policy
+//        
+//        // FIXME - JavaCompiler also caches lots of options. There is no mechanism to reset JavaCompiler
+//        // once it is created for a given context.  So the API cannot rerun the compiler with different options.
+//        
+//        // Only implemented for the simple compile policy
         Options.instance(context).put("compilePolicy", "simple");
         JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
         // Reset any options cached by JmlOptions
         JmlOptions.instance(context).setupOptions();
+        if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
     }
     
     public java.util.Collection<JavaFileObject> fileObjects;
 
+    //FIXME - describe why this is needed
     @Override
     protected void adjustArgs(Arguments args)  {
     	if (fileObjects != null) {
@@ -759,7 +761,6 @@ public class Main extends com.sun.tools.javac.main.Main {
                 Options.instance(context).put(args[i],"true");
             }
         }
-        postOptionProcessing(context);
     }
     
     /** Adds a custom option (not checked as a legitimate command-line option);

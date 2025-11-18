@@ -93,7 +93,7 @@ import com.google.gson.stream.JsonWriter;
  * @author David Cok
  */
 public class JmlCompiler extends JavaCompiler {
-
+    
     /** Registers a factory for producing JmlCompiler tools.
      * There is one instance for each instance of context.  
      * @param context the compilation context used for tools
@@ -231,7 +231,6 @@ public class JmlCompiler extends JavaCompiler {
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }
-        if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
         super.compile(sourceFileObjects, classnames, processors, addModules);
     }
     
@@ -628,7 +627,7 @@ public class JmlCompiler extends JavaCompiler {
         		// cancellation or error in specifications parsed on demand - catch and continue // TODO: Review
         	} finally {
                 String summary = esc.reportCounts();
-                if (utils.jmlverbose >= Utils.PROGRESS && !Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) utils.note(false,summary);
+                if (utils.jmlverbose >= Utils.PROGRESS && !utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) utils.note(false,summary);
         	}
     		return noresults; // Empty list - Do nothing more
         } else if (utils.infer) {
@@ -666,6 +665,7 @@ public class JmlCompiler extends JavaCompiler {
     // FIXME _ review
     /** Does the RAC processing on the argument. */
     protected Env<AttrContext> rac(Env<AttrContext> env) {
+        if (debugCompiler) System.out.println("Starting rac");
         JCTree tree = env.tree;
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         //System.out.println("RACING " + env.tree.getClass() + " " + env.toplevel.sourcefile);
@@ -782,6 +782,7 @@ public class JmlCompiler extends JavaCompiler {
      * @param env the env for a class
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
+        if (debugCompiler) System.out.println("[compiler] Starting esc");
         // Only run ESC on source files (.jml files are Kind.OTHER)
     	if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return;
     	

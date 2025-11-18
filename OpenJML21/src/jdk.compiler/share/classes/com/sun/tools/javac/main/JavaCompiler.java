@@ -117,6 +117,9 @@ import com.sun.tools.javac.tree.JCTree.JCSwitchExpression;
  *  deletion without notice.</b>
  */
 public class JavaCompiler {
+    final static boolean debugCompiler = org.jmlspecs.openjml.Utils.debug("compiler");
+    final static boolean debugFlow = org.jmlspecs.openjml.Utils.debug("flow");
+
     /** The context key for the compiler. */
     public static final Context.Key<JavaCompiler> compilerKey = new Context.Key<>();
 
@@ -381,6 +384,7 @@ public class JavaCompiler {
      */
     @SuppressWarnings("this-escape")
     public JavaCompiler(Context context) {
+        if (org.jmlspecs.openjml.Utils.debugInst) { System.out.println("JAVACOMPILER"); /*org.jmlspecs.openjml.Utils.dumpStack();*/ }// OPENJML
         this.context = context;
         context.put(compilerKey, this);
 
@@ -1379,10 +1383,12 @@ public class JavaCompiler {
      * @return the list of attributed parse trees
      */
     public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
+        if (debugCompiler) System.out.println("[compiler] calling flow " + envs.size());
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         for (Env<AttrContext> env: envs) {
             flow(env, results);
         }
+        if (debugCompiler) System.out.println("[compiler] end flow " + results.length() + " " + stopIfError(CompileState.FLOW, results));
         return stopIfError(CompileState.FLOW, results);
     }
 
@@ -1399,10 +1405,12 @@ public class JavaCompiler {
      * Perform dataflow checks on an attributed parse tree.
      */
     protected void flow(Env<AttrContext> env, Queue<Env<AttrContext>> results) {
+        if (debugFlow) { System.out.println("[flow] calling flow " + env.enclClass.sym); }
         if (compileStates.isDone(env, CompileState.FLOW)) {
             results.add(env);
             return;
         }
+        if (debugFlow) System.out.println("[flow] continuing flow " + env.enclClass.sym);
 
         try {
             if (shouldStop(CompileState.FLOW))
@@ -1437,6 +1445,7 @@ public class JavaCompiler {
                 taskListener.finished(e);
             }
         }
+        if (debugFlow) System.out.println("[flow] end flow " + env.enclClass.sym);
     }
 
     private TaskEvent newAnalyzeTaskEvent(Env<AttrContext> env) {
