@@ -267,7 +267,7 @@ public class JmlSpecs {
      */
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
-        String s = JmlOption.value(context,JmlOption.SPECS);
+        String s = JmlOption.SPECS.value(context);
         if (debugSpecs) System.out.println("specs: specspath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
         if (debugSpecs) System.out.println("specs: system property: " + s);
@@ -404,7 +404,7 @@ public class JmlSpecs {
             todo.add(s);
         }
         String dir;
-        boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
+        boolean checkDirectories = JmlOption.CHECKSPECSPATH.isSet(context);
         //if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
             todo.add("$SY");
         //}
@@ -1368,7 +1368,7 @@ public class JmlSpecs {
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
                // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.NO_STATE); // use isPure?
-        boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
+        boolean isPureL = libraryMethod && !JmlOption.PURITYCHECK.isSet(context);
         //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind)));
@@ -1598,9 +1598,10 @@ public class JmlSpecs {
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
-            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
+            
+            if (JmlOption.NULLABLEBYDEFAULT.isSet(context)) {
                 return Modifiers.NULLABLE;
-            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
+            } else if (JmlOption.NONNULLBYDEFAULT.isSet(context)) {
                 return Modifiers.NON_NULL;
             } else {
                 return Modifiers.NON_NULL;  // The default when nothing is specified

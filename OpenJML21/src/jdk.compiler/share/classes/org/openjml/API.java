@@ -128,10 +128,10 @@ public class API implements IAPI {
     }
     
     public boolean isOptionSet(String key) {
-        return JmlOption.isOption(main.context(), key);
+        return com.sun.tools.javac.util.Options.instance(main.context()).isSet(key);
    }
     public String getOption(String key) {
-        return JmlOption.value(main.context(), key);
+        return com.sun.tools.javac.util.Options.instance(main.context()).get(key);
     }
 
     

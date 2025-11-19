@@ -53,7 +53,7 @@ public class ReachableStatement extends JmlExtension {
             int pp = parser.pos();
             int p = parser.getScanner().currentPos(); // FIXME - why do we get this position from the scanner?
             boolean noExpression = keyword.equals(haltID) || keyword.equals(reachableID) || keyword.equals(unreachableID);
-            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.value(parser.context, JmlOption.LANG));
+            boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.LANG.value(parser.context));
             parser.nextToken();
             JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
             if (!noExpression) st.expression = JmlTreeUtils.instance(parser.context).makeBooleanLiteral(pp,true);

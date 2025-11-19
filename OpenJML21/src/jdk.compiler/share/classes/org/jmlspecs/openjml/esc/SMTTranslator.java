@@ -346,7 +346,7 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_declare_sort(F.symbol("T_void"),zero);
         commands.add(c);
         
-        String q = JmlOption.value(context, JmlOption.QUANTS_FOR_TYPES);
+        String q = JmlOption.QUANTS_FOR_TYPES.value(context);
         boolean quants = false;
         if ("true".equals(q)) quants = true;
         else if ("false".equals(q)) quants = false;
@@ -863,16 +863,16 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         
         // set the logic
-        String s = JmlOption.value(context, JmlOption.LOGIC);
+        String s = JmlOption.LOGIC.value(context);
         if (useBV && !"ALL".equals(s)) s = "QF_AUFBV";
         c = new C_set_logic(F.symbol(s));
         startCommands.add(c);
         
-        if (JmlOption.isOption(context,JmlOption.ESC_TRIGGERS)) {
+        if (JmlOption.ESC_TRIGGERS.isSet(context)) {
             startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
             startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
         }
-        String strseed = JmlOption.value(context, JmlOption.SEED);
+        String strseed = JmlOption.SEED.value(context);
         if (strseed != null && !strseed.isEmpty()) try {
             int seed = Integer.parseInt(strseed);
             if (seed != 0) startCommands.add(command(smt,"(set-option :random-seed " + seed + ")"));
@@ -1492,7 +1492,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 
                 String s = makeBarEnclosedString(decl.name.toString());
                 ISymbol sym = F.symbol(s);
-                if (!utils.isPrimitiveOrVoidType(decl.type)) addType(decl.type);
+                if (!utils.isJavaOrJmlPrimitiveOrVoidType(decl.type)) addType(decl.type);
                 ISort sort = convertSort(decl.type);
                 if (init == null) {
                     commands.add(new C_declare_fun(
@@ -1854,7 +1854,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Issues an error message about bit-vector operations */
     public void notImplBV(DiagnosticPosition pos, String msg) {
-        if ("auto".equals(JmlOption.value(context, JmlOption.ESC_BV))) throw new JmlBVException();
+        if ("auto".equals(JmlOption.ESC_BV.value(context))) throw new JmlBVException();
         utils.error(pos, "jml.message","This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [" + msg + "]");
         throw new JmlBVException();
     }

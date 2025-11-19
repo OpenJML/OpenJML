@@ -673,7 +673,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		racMessages.clear();
 		escMessages.clear();
 		this.useMethodAxioms = false; // !JmlOption.isOption(context,JmlOption.MINIMIZE_QUANTIFICATIONS);
-		this.checkAccessEnabled = JmlOption.isOption(context, JmlOption.CHECK_ACCESSIBLE);
+		this.checkAccessEnabled = JmlOption.CHECK_ACCESSIBLE.isSet(context);
 	}
 
 	public void initialize2(long flags) {
@@ -912,7 +912,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		ClassCollector collector = ClassCollector.collect(pclassDecl, pmethodDecl, context);
 
 		{
-			String bv = JmlOption.value(context, JmlOption.ESC_BV);
+			String bv = JmlOption.ESC_BV.value(context);
 			useBV = !rac && ((collector.useBV && "auto".equals(bv)) || "true".equals(bv));
 			pmethodDecl.usedBitVectors = useBV;
 		}
@@ -1274,7 +1274,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
 			if (esc && feasibilityContains(Strings.feas_exit)) {
-				String vv = JmlOption.value(context, JmlOption.SPLIT);
+				String vv = JmlOption.SPLIT.value(context);
 				if (vv == null || vv.isEmpty() || vv.endsWith("->")) {
 					addFeasibilityCheck(methodDecl, outerFinalizeStats, Strings.atExitFeasCheckDescription);
 				}
@@ -1311,7 +1311,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			// This block is to create the try-catch block for converting PreconditionEntry
 			// to Precondition
-			if (rac && JmlOption.isOption(context, JmlOption.RAC_PRECONDITION_ENTRY)) {
+			if (rac && JmlOption.RAC_PRECONDITION_ENTRY.isSet(context)) {
 				// precondition catch block
 				JCBlock tryBlock = M.at(methodDecl).Block(0, List.<JCStatement>of(outerTryStatement));
 				ClassSymbol preex = ClassReader.instance(context)
@@ -2310,7 +2310,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						treeutils.makeStringLiteral(translatedExpr.pos, msg2));
 			}
 			JCStatement stt;
-			if (JmlOption.isOption(context, JmlOption.RAC_COMPILE_TO_JAVA_ASSERT)) {
+			if (JmlOption.RAC_COMPILE_TO_JAVA_ASSERT.isSet(context)) {
 				stt = M.at(codepos).Assert(translatedExpr, emsg);
 			} else {
 				if (info != null) {
@@ -2368,7 +2368,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public boolean feasibilityContains(String i) {
         if (feasibilities == null) {
-            String values = JmlOption.value(context,JmlOption.FEASIBILITY);
+            String values = JmlOption.FEASIBILITY.value(context);
             if (values == null) values = "";
             feasibilities = values.split(",");
         }
@@ -2464,7 +2464,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected JCStatement assertFailure(JCExpression sp, DiagnosticPosition pos, Label label) {
 		String n = label.info();
 		JCFieldAccess m;
-		if (rac && label == Label.PRECONDITION && JmlOption.isOption(context, JmlOption.RAC_PRECONDITION_ENTRY)) {
+		if (rac && label == Label.PRECONDITION && JmlOption.RAC_PRECONDITION_ENTRY.isSet(context)) {
 			n = "PreconditionEntry";
 			m = findUtilsMethod(pos, "assertionFailureE");
 		} else {
@@ -3737,7 +3737,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// effect here???
 				// FIXME - get failures when this test is corrected
 				{
-					String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
+					String opt = JmlOption.RAC_MISSING_MODEL_FIELD_REP.value(context);
                     if ("skip".equals(opt)) {
                         utils.warning(that.pos, "jml.no.model.method.ignore",
                                 varsym.owner.getQualifiedName().toString() + "." + varsym.toString());
@@ -4310,7 +4310,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			st.associatedSource = null;
 			st.optionalExpression = null;
 		} else {
-			if (JmlOption.isOption(context, JmlOption.STATIC_INIT_WARNING)) {
+			if (JmlOption.STATIC_INIT_WARNING.isSet(context)) {
 				if (!hasStaticInitializer((ClassSymbol) convertedfa.sym.owner) && !convertedfa.sym.isEnum()
 						&& (convertedfa.sym.owner != attr.datagroupClass)
 						&& (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
@@ -4848,7 +4848,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				VarSymbol vsym = v.sym;
                 addStat(comment(v, "Adding invariants for method parameter " + vsym, null));
 				// JCIdent idd = preparams.get(vsym);
-				if (utils.isNonExtPrimitiveType(vsym.type)) continue;
+				if (utils.isJavaOrJmlPrimitiveType(vsym.type)) continue;
                 if (utils.hasModifier(v.mods,Modifiers.HELPER)) continue;
 				
 				JCIdent idd = treeutils.makeIdent(v.pos, v.sym);
@@ -5775,7 +5775,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Note that methodDecl.resType.type appears to be unannotated
 		Type rt = methodDecl.sym.getReturnType();
-		if (rt != null && !utils.isPrimitiveOrVoidType(rt) && resultSym != null && specs.isNonNullReturn(methodDecl.sym)) {
+		if (rt != null && !utils.isJavaOrJmlPrimitiveOrVoidType(rt) && resultSym != null && specs.isNonNullReturn(methodDecl.sym)) {
 		    //System.out.println("NN " + methodDecl.sym.owner + " " + methodDecl.restype.type + " " + methodDecl.sym + " " + specs.isNonNull(methodDecl.sym.getReturnType()) + " " + hasNullable(rt) + " " + hasNonNull(rt) );
 			currentStatements = ensuresStats;
 			addStat(comment(methodDecl.restype, "Adding null return check by callee " + methodDecl.sym, null));
@@ -6660,7 +6660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 
-		boolean b = JmlOption.isOption(context, JmlOption.INLINE_FUNCTION_LITERAL);
+		boolean b = JmlOption.INLINE_FUNCTION_LITERAL.isSet(context);
 
 		int n = lambdaLiterals.size();
 		String nm = "$$JML$LAMBDALIT_" + n;
@@ -7833,7 +7833,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						: fullTranslation ? treeutils.makeDuplicateLiteral(opt.pos, (JCLiteral) opt) : opt;
 
 		if (rac) {
-			if (JmlOption.isOption(context, JmlOption.RAC_JAVA_CHECKS)) {
+			if (JmlOption.RAC_JAVA_CHECKS.isSet(context)) {
 				result = addAssert(true, that, Label.EXPLICIT_ASSERT, cond, null, null, info);
 				if (info != null)
 					newTemp(info); // The detail expression is evaluated but not used anywhere
@@ -18736,7 +18736,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		if (rac) {
-	        utils.progress(0,1,"RAC-Compiling     " + that.sym);
+	        utils.progress(0,Utils.PROGRESS,"RAC-Compiling     " + that.sym);
 		}
 		if (org.jmlspecs.openjml.Utils.debug("trans"))
 			System.out.println("JAA-visitJmlMethodDecl-A " + that.sym.owner + that.sym + " " + System
@@ -20990,7 +20990,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			} else if (that.clauseType == StatementExprExtensions.splitClause) {
 			    // Only get here for boolean splits -- all others are recorded in the split field (cf. StatementExprExtensions)
-				if (currentSplit == null || rac || infer || JmlOption.value(context, JmlOption.SPLIT) == null) {
+				if (currentSplit == null || rac || infer || JmlOption.SPLIT.value(context) == null) {
 					// ignore;
 				} else {
 					boolean doPos = true;
@@ -24127,10 +24127,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public MethodEnv() {} // Just for the very first initialization
 
 	    public MethodEnv(Context context, boolean esc, boolean rac) {
-	        String ss = JmlOption.value(context, JmlOption.RAC_SHOW_SOURCE);
+	        String ss = JmlOption.RAC_SHOW_SOURCE.value(context);
 	        this.showRacSource = "none".equals(ss) ? 0 : "line".equals(ss) ? 1 : 2;
-	        this.racCheckAssumeStatements = JmlOption.isOption(context, JmlOption.RAC_CHECK_ASSUMPTIONS);
-	        this.javaChecks = esc || (rac && JmlOption.isOption(context, JmlOption.RAC_JAVA_CHECKS));
+	        this.racCheckAssumeStatements = JmlOption.RAC_CHECK_ASSUMPTIONS.isSet(context);
+	        this.javaChecks = esc || (rac && JmlOption.RAC_JAVA_CHECKS.isSet(context));
 	    }
 
 //        public MethodEnv() {

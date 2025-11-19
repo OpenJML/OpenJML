@@ -1718,7 +1718,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     protected void addMethodEqualities(JCMethodInvocation call, BasicBlock bl) {
-        if (true || !JmlOption.isOption(context, JmlOption.DETERMINISM)) return;
+        if (true || !JmlOption.DETERMINISM.isSet(context)) return;
         MethodSymbol msym = (MethodSymbol)((JCIdent)call.meth).sym;
         if (JmlAttr.instance(context).isHeapIndependent(msym)) return;
         summarizeBlock( currentBlock);

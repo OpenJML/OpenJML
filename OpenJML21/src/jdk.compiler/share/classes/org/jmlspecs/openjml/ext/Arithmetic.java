@@ -79,7 +79,7 @@ abstract public class Arithmetic extends JmlExtension {
             if (utils.hasModifier(sym, Modifiers.CODE_JAVA_MATH)) return Java.instance(context);
             sym = sym.owner;
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
-            String v = JmlOption.value(context,JmlOption.CODE_MATH);
+            String v = JmlOption.CODE_MATH.value(context);
             if ("java".equals(v)) return Java.instance(context);
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
@@ -90,7 +90,7 @@ abstract public class Arithmetic extends JmlExtension {
             sym = sym.owner;
             Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
-            String v = JmlOption.value(context,JmlOption.SPEC_MATH);
+            String v = JmlOption.SPEC_MATH.value(context);
             if ("java".equals(v)) return Java.instance(context);
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
@@ -260,7 +260,7 @@ abstract public class Arithmetic extends JmlExtension {
         var syms = Symtab.instance(context);
         var utils = Utils.instance(context);
     	int p = that.pos;
-        this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS)));
+        this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.RAC_JAVA_CHECKS.isSet(context)));
 
         JCTree.Tag optag = that.getTag();
         if (newtype == null) newtype = that.type;
@@ -589,7 +589,7 @@ abstract public class Arithmetic extends JmlExtension {
             JCTree.JCIdent id = rewriter.newTemp(x);
             rewriter.saveMapping(x,id);
         }
-        String mode = JmlOption.value(context,JmlOption.ARITHMETIC);
+        String mode = JmlOption.ARITHMETIC.value(context);
         if (mode == null) { 
             rewriter.utils.warning(pos, "jml.internal", "Null arithmetic failure mode should have been corrected before reaching this point"); 
         } else switch (mode) {

@@ -263,7 +263,7 @@ public abstract class IJmlClauseKind {
     
     /** returns true if strict adherence to JML is required (language option is jml) */
     public boolean requireStrictJML() { // duplicates method in JmlAttr
-        return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+        return JmlOption.langJML.equals(JmlOption.LANG.value(context));
     }
     
     /** Issue warning if strictness is required -- e.g. call this if an extension is being used */

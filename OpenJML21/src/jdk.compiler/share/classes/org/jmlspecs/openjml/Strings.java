@@ -37,6 +37,11 @@ public class Strings {
     static public final String javaSuffix = ".java"; //$NON-NLS-1$
     static public final String specsSuffix = ".jml"; //$NON-NLS-1$
 
+    /** The option string for running jmldoc */
+    /*@non_null*/
+    final public static String jmldocOption = "-doc";
+
+
     /** The default application name, used in user messages */
     static public final String applicationName = "openjml"; //$NON-NLS-1$
     
@@ -330,7 +335,7 @@ public class Strings {
     }
     
     static final public boolean feasibilityContains(String i, com.sun.tools.javac.util.Context context) {
-        String values = JmlOption.value(context,JmlOption.FEASIBILITY);
+        String values = JmlOption.FEASIBILITY.value(context);
         if (i.equals(values)) return true;
         if (i.equals("none")) return false;
         if (values.startsWith("debug") || values.equals("all")) return true;

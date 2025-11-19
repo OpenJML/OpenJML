@@ -32,7 +32,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             int pp = parser.pos();
             parser.nextToken();
             var n = parser.parseOptionalName();
-            boolean strict = JmlOption.langJML.equals(JmlOption.value(parser.context, JmlOption.LANG));
+            boolean strict = JmlOption.langJML.equals(JmlOption.LANG.value(parser.context));
             JCExpression id = parser.parseStoreRef(strict);
             boolean suchThat;
             JCExpression e;

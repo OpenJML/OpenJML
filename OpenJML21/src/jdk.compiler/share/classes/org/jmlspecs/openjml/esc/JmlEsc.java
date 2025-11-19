@@ -101,7 +101,7 @@ public class JmlEsc extends JmlTreeScanner {
 
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
-        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+        this.verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
@@ -119,7 +119,7 @@ public class JmlEsc extends JmlTreeScanner {
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);
         } catch (PropagatedException e) {
-        	utils.progress(1,1,"Operation not performed because of parse or type errors");
+        	utils.progress(1,Utils.NORMAL,"Operation not performed because of parse or type errors");
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
         } catch (Main.JmlCanceledException e) {
@@ -155,7 +155,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         // The super class takes care of visiting all the methods
         //System.out.println("ABOUT TO P{RINT " + JmlOption.VERBOSENESS.getInt(context) + " " + utils.jmlverbose);
-        utils.progress(0,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        utils.progress(0,Utils.PROGRESS,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         long classStart = System.currentTimeMillis();
         boolean doDefsInSortedOrder = true;
         if (doDefsInSortedOrder && !utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
@@ -178,8 +178,8 @@ public class JmlEsc extends JmlTreeScanner {
             super.visitClassDef(node);
         }
         long classDuration = System.currentTimeMillis() - classStart;
-        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
-                (utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
+        utils.progress(0,Utils.PROGRESS,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
+                (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
         if (utils.isModel(node.sym)) classesModel++; 
         else {
             classes++;
@@ -248,7 +248,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        if (JmlOption.isOption(context, JmlOption.SHOW_SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
+        if (JmlOption.SHOW_SKIPPED.isSet(context)) utils.progress(1,Utils.PROGRESS,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -273,7 +273,7 @@ public class JmlEsc extends JmlTreeScanner {
     /** Returns the prover specified by the options. */
     public String pickProver() {
         // Pick a prover to use
-        String proverToUse = JmlOption.value(context,JmlOption.PROVER);
+        String proverToUse = JmlOption.PROVER.value(context);
         if (proverToUse == null || proverToUse.isEmpty()) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
         if (proverToUse == null || proverToUse.isEmpty() || proverToUse.equals("z3")) {
             proverToUse = "z3_4_3";
@@ -314,7 +314,7 @@ public class JmlEsc extends JmlTreeScanner {
 
         //System.out.println("DOING " + utils.abbrevMethodSig(methodDecl.sym));
         String sig = utils.abbrevMethodSig(methodDecl.sym);
-        utils.progress(0,1,"Starting proof of " + sig + " with prover " + (testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(0,Utils.PROGRESS,"Starting proof of " + sig + " with prover " + (testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();
 
@@ -344,20 +344,20 @@ public class JmlEsc extends JmlTreeScanner {
                 currentMethodProver = null;
             }
             long duration = System.currentTimeMillis() - methodStart;
-            utils.progress(1,1,"Completed proof of " + sig  //$NON-NLS-1$ 
+            utils.progress(1,Utils.PROGRESS,"Completed proof of " + sig  //$NON-NLS-1$ 
                     + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - "
                     + (  res.isSat() ? "with warnings" 
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
-                    + ((testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
+                    + ((testingMode || !JmlOption.SHOW_SUMMARY.isSet(context)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
             count(res.result(), methodDecl.sym);
             
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
-            utils.progress(1,1,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,Utils.PROGRESS,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
@@ -377,7 +377,7 @@ public class JmlEsc extends JmlTreeScanner {
 
             res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
             //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
-            utils.progress(1,1,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            utils.progress(1,Utils.PROGRESS,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
                     + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - exception"
                     );
