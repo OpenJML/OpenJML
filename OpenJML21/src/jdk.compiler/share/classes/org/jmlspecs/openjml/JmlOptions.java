@@ -48,11 +48,14 @@ import com.sun.tools.javac.util.Log.PrefixKind;
 import com.sun.tools.javac.util.Log.WriterKind;
 
 /** Handles JML options. Note that all option settings are contained in a simple map of
- * option name (with the initial -) to string value, in the Options superclass.
+ * option name (with the initial hyphen(s)) to string value, in the Options superclass.
+ * Also note that boolean options are encoded as null for flase, non-null String for true.
  */
 public class JmlOptions extends Options {
     
     protected Context context;
+    
+    public boolean optionsAllSet = false;
 
     /** A stack of sets of options */
     protected Stack<LinkedHashMap<String,String>> stack = new Stack<>();
@@ -82,9 +85,9 @@ public class JmlOptions extends Options {
         throw new JmlInternalException();
     }
 
-    public boolean isSet(JmlOption option) {
-        return (values.get(option.optionName()) != null);
-    }
+//    public boolean isSet(JmlOption option) {
+//        return (values.get(option.optionName()) != null);
+//    }
 
     /** Loads the options map with all defaults for Jml options */
     public void loadDefaults() {
@@ -92,7 +95,11 @@ public class JmlOptions extends Options {
         for (JmlOption opt : JmlOption.map.values()) {
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
-            put(opt.optionName(),s);
+            if (opt.defaultValue() instanceof Boolean b) {
+                put(opt.optionName(),b?"true":null); // FIXME - use set, unset
+            } else {
+                put(opt.optionName(),s);
+            }
             opt.check(context,false);
         }
     }
@@ -393,11 +400,49 @@ public class JmlOptions extends Options {
         }
     }
     
+    public static void setPropertiesFromOptionsDefaults(Properties properties) {
+        // FIXME: THis only sets JML options
+        for (JmlOption opt: JmlOption.map.values()) {
+            String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
+            Object defaultValue = opt.defaultValue();
+            // Options that are synonyms are not true options (they are translated to their synonym)
+            if (opt.synonym() == null) properties.put(key, defaultValue == null ? "" : defaultValue.toString());
+        }
+    }
+
+    
+    public static void setOptionsFromProperties(Properties properties, Context context) {
+        // FIXME: This does not set any Java options, just JML ones
+        var jmloptions = JmlOptions.instance(context);
+        for (var p: properties.entrySet()) {
+            String k = p.getKey().toString();
+            if (k.startsWith(Strings.optionPropertyPrefix)) {
+                String kk = "--" + k.substring(Strings.optionPropertyPrefix.length());
+                jmloptions.processOption(kk, p.getValue().toString());
+            }
+        }
+    }
+        
+
+    
+    // NOTE: OpenJDK encodes boolean options as null for false, non-null for true */
+    /** Returns whether a Boolean-valued option is set or not */
+    public boolean isSet(JmlOption option) {
+        if (!(option.defaultValue() instanceof Boolean)) Utils.instance(context).error("jml.internal", "Calling isSet on a non-boolean option");
+        return isSet(option.optionName());
+    }
+    
+    /** Returns a String value; the option must be a String-valued option */
+    public String value(JmlOption option) {
+        if (option.defaultValue() instanceof Boolean) Utils.instance(context).error("jml.internal", "Calling value on a boolean option");
+        return get(option.optionName());
+    }
+    
     public void resetOption(JmlOption option) {
         boolean b = option.check(context,false);
         if (!b) {
             Utils.instance(context).warning("jml.message", "Erroneous option value when resetting option: " + 
-                    option.optionName() + " " + JmlOption.value(context, option));
+                    option.optionName() + " " + option.value(context));
         }
     }
 
@@ -430,43 +475,23 @@ public class JmlOptions extends Options {
 
         // FIXME - WARN keys not handled correctly I think
         
-        // Now also check for any interactions between different options
+        utils.init(); // Sets cached fields in Utils
         
-        //System.out.println("SETUP OPTIONS " + options.isSet("-verbose"));
-        utils.init();
+        Main.instance(context).progressListener.setVerbose(utils.jmlverbose);
         
-        String check = JmlOption.value(context,JmlOption.FEASIBILITY);
-        //System.out.println("DEBUG REAS " + check + " " + utils.jmlverbose + " " + check.startsWith(Strings.feas_debug));
-        if (check != null && check.startsWith(Strings.feas_debug)) {
-            //System.out.println("DEBUG REAS B " + check + " " + utils.jmlverbose);
-            if (utils.jmlverbose < Utils.PROGRESS) utils.jmlverbose = Utils.PROGRESS;
-            //System.out.println("DEBUG REAS C " + check + " " + utils.jmlverbose);
-        }
 
         //System.out.println("SETUP " + utils.jmlverbose);
-
-        // Set the progress listener
-        // TODO - needs review
-        if (utils.jmlverbose >= Utils.PROGRESS) {
-            try {
-                Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
-            } catch (Exception e) {
-                Utils.instance(context).warning("jml.internal.notsobad", "Failure when attempting to set a progress listener");
-                e.printStackTrace(System.out); // FIXME - System.out?
-                Main.instance(context).progressDelegator.setDelegate(null);
-            }
-        } else {
-            Main.instance(context).progressDelegator.setDelegate(null);
-        }
 
         // Set implicit comment keys
         if (utils.esc) commentKeys.add("ESC");
         if (utils.rac) commentKeys.add("RAC");
-        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) commentKeys.add("STRICT");
+        if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 
         // register any user extensions
         Extensions.register(context);
+        
+        optionsAllSet = true;
         return true;
     }
 

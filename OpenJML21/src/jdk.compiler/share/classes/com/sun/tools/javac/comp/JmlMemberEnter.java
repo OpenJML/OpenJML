@@ -722,7 +722,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             //if (vdecl.name.toString().equals("theFloat")) System.out.println("theFloat rep = " + (found != null) + " " + isAbstract + " " + ((mr.mods.flags & Utils.JMLADDED) == 0));
             if (found == null) {
                 String fieldName = vdecl.name.toString();
-                String opt = JmlOption.value(context, JmlOption.RAC_MISSING_MODEL_FIELD_REP);
+                String opt = JmlOption.RAC_MISSING_MODEL_FIELD_REP.value(context);
                 if  (vdecl.sym.isAbstract()) {
                     // no complaint if model field is abstract
                 } else if ("skip".equals(opt)) {

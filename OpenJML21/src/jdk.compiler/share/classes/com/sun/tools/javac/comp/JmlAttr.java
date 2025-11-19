@@ -429,7 +429,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        }
         level++;
         if (c != syms.predefClass) {
-            if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.IProgressListener.class).report(2,"typechecking " + c);
+            if (utils.jmlverbose >= Utils.JMLVERBOSE) context.get(Main.key).progressListener.report(2,"typechecking " + c);  // FIXME
         }
 
         // We track jmlenv.inPureEnvironment since calls can be nested -
@@ -469,7 +469,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             jmlenv = jmlenv.pop(check);
             level--;
             if (c != syms.predefClass) {
-                if (utils.progress()) context.get(Main.IProgressListener.class).report(2,"typechecked " + c);
+                context.get(Main.key).progressListener.report(Utils.JMLVERBOSE,"typechecked " + c);
             }
             if (debugAttr) System.out.println("Attributing-complete " + c + " " + level);
         	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ATTRIBCLASS-Z " + c);
@@ -1205,7 +1205,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     /** returns true if strict adherence to JML is required (language option is jml) */
     public boolean requireStrictJML() {
-        return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+        return JmlOption.langJML.equals(JmlOption.LANG.value(context));
     }
 
     @Override
@@ -7767,7 +7767,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (!(sym instanceof VarSymbol vsym)) continue;
                 if (!vsym.isFinal()) continue;
                 if (vsym.name.toString().equals("NaN")) continue; // Equality comparisons on NaN are squirrely
-                if (!utils.isPrimitiveType(vsym.type.tsym)) continue; // FIXME - does not do constant Strings
+                if (!utils.isJavaOrJmlPrimitiveType(vsym.type.tsym)) continue; // FIXME - does not do constant Strings
                 Object o = vsym.getConstValue();
                 if (o == null) continue;
                 int access = (int)(vsym.flags() & Flags.AccessFlags);

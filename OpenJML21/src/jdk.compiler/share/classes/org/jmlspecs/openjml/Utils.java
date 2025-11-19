@@ -105,22 +105,59 @@ public class Utils {
     
     // Static debugging flags -- do not use in any environment that multi-threads openjml
 
+    /** cf isJML() */
     static private boolean isjml = System.getenv("NOJML")==null;
 
     /** true if openjml is set to process JML (rather than only java).
      * Recall that the openjdk/openjml has a bootstrap compilation cycle.
      * 'isjml' must be false for the bootstrap compilation and then 'true' to actually run openjml
-     * See the use in the Makefile
+     * See the use in the Makefile.
+     * 
+     * Utils.isJML() is also used to guard output statements in OpenJML that should not be output when in
+     * usual Java-only mode.
+     * 
+     * Note that isjml is a static field -- it cannot be changed in a multi-threaded environment.
+     * It is meant to be always true during regular OpenJML execution.
      */
     static public boolean isJML() {
         return isjml;
     }
+    
+    static public void setNoJML(boolean noJML) {
+        isjml = !noJML;
+    }
 
-    static String debugstring = System.getenv("OJ");
-    static String[] debugkeys = debugstring == null ? null : debugstring.split(",");
+    // The order of the next several stastements is important-- OJ has to be read first. 
+    // And these are not thread-safe -- they are meant solely for controlling debugging information.
+    static private String debugstring = System.getenv("OJ");
+    static private String[] debugkeys = debugstring == null ? null : debugstring.split(",");
 
+    /** These fields. and similar ones in other files, are used to guard debugging statements that
+     * are selectively enabled by setting the OJ environment variable.
+     */
     static public boolean debugOptions = Utils.debug("options");
     static public boolean debugInst = Utils.debug("register") && isJML();
+    
+    /** True if OJ is set to anything at all, including an empty string */
+    public static boolean debug() {
+        return debugstring != null;
+    }
+    
+    /** True iff OJ contains the given string */
+    public static boolean debug(String key) {
+        if (debugkeys == null) return false;
+        // Note: streams cannot be reused
+        var b = Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
+        // System.out.println("DEBUG " + key + " " + b);
+        return b;
+    }
+    
+    public static String debugValue(String key, String def) {
+        if (debugkeys == null) return def;
+        // Note: streams cannot be reused
+        var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
+        return opt.isEmpty() ? def : opt.get().substring(key.length());
+    }
     
     ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -180,13 +217,19 @@ public class Utils {
         context.put(utilsKey, this);
         init();
     }
-    
+    /** Initializes option-dependent fields */
     public void init() {
         jmlverbose = JmlOption.VERBOSENESS.getInt(context);
         if (Options.instance(context).isSet("-verbose")) jmlverbose = Utils.JMLVERBOSE;
-        testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName());
+
+        String check = JmlOption.FEASIBILITY.value(context);
+        if (check != null && check.startsWith(Strings.feas_debug)) {
+            if (jmlverbose < Utils.PROGRESS) jmlverbose = Utils.PROGRESS;
+        }
+
+        testingMode = JmlOption.JMLTESTING.isSet(context);
         maxWarnings = JmlOption.ESC_MAX_WARNINGS.getInt(context);
-    }
+}
 
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = NORMAL; 
@@ -198,6 +241,7 @@ public class Utils {
 
     public Main.Cmd cmd = null;
     
+    // FIXME _ change to be setup by init()
     /** Do ESC - set by Main.setupOptions */
     public boolean esc = false;
 
@@ -247,22 +291,6 @@ public class Utils {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
     
-    public boolean isJMLTop(/*@ nullable */ JCModifiers mods) {
-        return mods != null && (mods.flags & JMLBITTOP) != 0;
-    }
-    
-    /** Tests whether the given tree was directly parsed as part of JML annotation;
-     * nested declarations that are not themselves directly in a JML comment will return false, 
-     * even if they are nested in a class that itself is directly in a JML comment.
-     */
-    public boolean isJML(JCTree t) {
-        return (t instanceof IInJML) && ((IInJML)t).isJML();
-    }
-
-//    public boolean isJMLTop(JCTree t) {
-//        return (t instanceof IInJML) && ((IInJML)t).isJMLTop();
-//    }
-
     /** Tests whether the JML flag is set in the given bit-vector
      * @param flags the bit-array to test
      * @return true if JML is set
@@ -271,10 +299,10 @@ public class Utils {
         return (flags & JMLBIT) != 0;
     }
 
-    public boolean isJMLTop(long flags) {
-        return (flags & JMLBITTOP) != 0;
+    public boolean isJMLTop(/*@ nullable */ JCModifiers mods) {
+        return mods != null && (mods.flags & JMLBITTOP) != 0;
     }
-
+    
     /** Sets the JML flag in the given modifiers.
      * 
      * @param mods The modifiers in which to set the JML flag
@@ -283,12 +311,9 @@ public class Utils {
         mods.flags |= JMLBIT;
     }
 
+    /** Sets the JMLBIT flag in the flags bit-vector */
     public long setJML(long flags) {
         return flags | JMLBIT;
-    }
-
-    public void setJMLTop(/*@ non_null */ JCModifiers mods) {
-        mods.flags |= JMLBITTOP;
     }
 
     /** Unsets the JML flag in the given modifiers.
@@ -298,6 +323,23 @@ public class Utils {
     public void unsetJML(/*@ non_null */ JCModifiers mods) {
         mods.flags &= ~JMLBIT;
     }
+
+    public boolean isJMLTop(long flags) {
+        return (flags & JMLBITTOP) != 0;
+    }
+
+    public void setJMLTop(/*@ non_null */ JCModifiers mods) {
+        mods.flags |= JMLBITTOP;
+    }
+
+    /** Tests whether the given tree was directly parsed as part of JML annotation;
+     * nested declarations that are not themselves directly in a JML comment will return false, 
+     * even if they are nested in a class that itself is directly in a JML comment.
+     */
+    public boolean isJML(JCTree t) {
+        return (t instanceof IInJML) && ((IInJML)t).isJML();
+    }
+
 
     // FIXME - document
     public boolean isInstrumented(long flags) {
@@ -339,6 +381,7 @@ public class Utils {
         return csym;
     }
 
+    // FIXME - should perhaps not be in this class
     /** Returns true if the given symbol has a helper annotation
      * 
      * @param symbol the symbol to check
@@ -384,8 +427,9 @@ public class Utils {
         return false;// This shoudl really be an error FIXME
     }
 
+    /** Determines which OS we are in and returns an identifying string */
     public static String identifyOS(Context context) {
-        String sp = context == null ? null : JmlOption.value(context, JmlOption.OSNAME);
+        String sp = context == null ? null : JmlOption.OSNAME.value(context);
         if (sp == null || sp.isEmpty()) sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
         if (sp.contains("lin") || sp.contains("Lin")) return "linux";
@@ -439,6 +483,8 @@ public class Utils {
                                 env.tree.getClass());
     }
 
+    // FIXME - move these
+    
     /** Returns true if no standard modifiers or annotations have been set
      * @param mods the modifiers structure to check
      * @return true if any standard flags or annotations are set
@@ -756,28 +802,6 @@ public class Utils {
         else if (esc) warning(pos,"jml.not.implemented.esc",feature);
     }
     
-    public static void setPropertiesFromOptionsDefaults(Properties properties) {
-        // THis only sets JML options
-        for (JmlOption opt: JmlOption.map.values()) {
-            String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
-            Object defaultValue = opt.defaultValue();
-            // Options that are synonyms are not true options (they are translated to their synonym)
-            if (opt.synonym() == null) properties.put(key, defaultValue == null ? "" : defaultValue.toString());
-        }
-    }
-
-    
-    public static void setOptionsFromProperties(Properties properties, Context context) {
-        // This does not set any Java options, just JML ones
-        for (var p: properties.entrySet()) {
-            String k = p.getKey().toString();
-            if (k.startsWith(Strings.optionPropertyPrefix)) {
-                String kk = "--" + k.substring(Strings.optionPropertyPrefix.length());
-                JmlOptions.instance(context).processOption(kk, p.getValue().toString());
-            }
-        }
-    }
-    
     /** Finds OpenJML properties files in pre-defined places, reading their
      * contents into the Properties object that is returned.
      */
@@ -904,12 +928,10 @@ public class Utils {
         }
     }
     
-    public boolean isPrimitiveType(TypeSymbol ct) {
+    // FIXME: Move these to JmlTypes?
+    
+    public boolean isJavaOrJmlPrimitiveType(TypeSymbol ct) {
         return isJavaOrJmlPrimitiveType(ct.type);
-    }
-
-    public boolean isNonExtPrimitiveType(Type ct) {
-        return ct.isPrimitive() || jmltypes().isJmlType(ct);
     }
 
     public boolean isJavaOrJmlPrimitiveType(Type ct) {
@@ -920,10 +942,6 @@ public class Utils {
         return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct);
     }
 
-    public boolean isPrimitiveOrVoidType(Type ct) {
-        return ct.isPrimitiveOrVoid() || jmltypes().isJmlType(ct);
-    }
-    
     /** A special method to check the type of arguments; isSameType might fail because of different wildcard type arguments of Class<>. */
     public boolean isClassType(Type ct) {
         return ct.tsym == Symtab.instance(context).classType.tsym;
@@ -1426,6 +1444,19 @@ public class Utils {
         return;
     }
     
+    /** Returns true if the JDK -deprecation option is set */
+    public boolean isDeprecationSet() {
+        return Options.instance(context).isSet("-Xlint:deprecation");
+    }
+    
+    public static boolean isStatic(long flags) {
+        return (flags & Flags.STATIC) != 0;
+    }
+    
+    public static boolean isFinal(long flags) {
+        return (flags & Flags.FINAL) != 0;
+    }
+    
     public static class DoubleMap<T1,T2,TR> {
         Map<T1, Map<T2,TR>> map = new HashMap<T1, Map<T2,TR>>();
         
@@ -1462,8 +1493,8 @@ public class Utils {
      * @param message the progress message
      */
     public void progress(int ticks, int level, String message) {
-        org.jmlspecs.openjml.Main.IProgressListener pr = context.get(org.jmlspecs.openjml.Main.IProgressListener.class);
-        boolean cancelled = pr == null ? false : pr.report(level,message);
+        org.jmlspecs.openjml.Main.IProgressListener pr = org.jmlspecs.openjml.Main.instance(context).progressListener;
+        boolean cancelled = pr.report(level,message);
         if (pr != null && ticks != 0) pr.worked(ticks);
         if (cancelled) {
             throw new PropagatedException(new Main.JmlCanceledException("ESC operation cancelled"));
@@ -1484,6 +1515,7 @@ public class Utils {
         return jfo1.equals(jfo2);
     }
 
+    /** Issue a verification failure message, via the Log */
     public void verify(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = null;
@@ -1495,6 +1527,7 @@ public class Utils {
         }
     }
     
+    /** Issue a log warning message */
     public void warning(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = null;
@@ -1506,6 +1539,7 @@ public class Utils {
         }
     }
     
+    /** Issue a log warning message */
     public void warning(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = null;
@@ -1599,7 +1633,7 @@ public class Utils {
         }
         String fullyQualifiedSig = this.qualifiedMethodSig(methodDecl.sym);
 
-        String excludes = JmlOption.value(context,JmlOption.EXCLUDE);
+        String excludes = JmlOption.EXCLUDE.value(context);
         if (excludes != null && !excludes.isEmpty()) {
             String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
             for (String exclude: splits) { //$NON-NLS-1$
@@ -1620,7 +1654,7 @@ public class Utils {
             }
         }
 
-        String methodsToDo = JmlOption.value(context,JmlOption.METHOD);
+        String methodsToDo = JmlOption.METHOD.value(context);
         if (methodsToDo != null && !methodsToDo.isEmpty()) {
             match: {
                 if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
@@ -1655,19 +1689,6 @@ public class Utils {
         }
         
         return null;
-    }
-    
-    /** Returns true if the JDK -deprecation option is set */
-    public boolean isDeprecationSet() {
-        return Options.instance(context).isSet("-Xlint:deprecation");
-    }
-    
-    public static boolean isStatic(long flags) {
-        return (flags & Flags.STATIC) != 0;
-    }
-    
-    public static boolean isFinal(long flags) {
-        return (flags & Flags.FINAL) != 0;
     }
     
     // The following are wrappers for calls to log, to output errors, warnings and notes through a 
@@ -1862,7 +1883,7 @@ public class Utils {
         // useVerify is the normal behavior
         // turn it off to have the legacy test behavior where a verify warning was a regular warning
         // FIXME: Keep the no verify alternative until the tests are all fixed
-        boolean useVerify = !JmlOption.value(context, JmlOption.EXITVERIFY).equals("-1");
+        boolean useVerify = !"-1".equals(JmlOption.EXITVERIFY.value(context));
         if (jmlverbose > QUIET) {
             if (useVerify) {
                 var df = log().getDiagnosticFormatter();
@@ -1979,25 +2000,6 @@ public class Utils {
         e.printStackTrace(System.out);
     }
 
-    public static boolean debug() {
-        return debugstring != null;
-    }
-    
-    public static boolean debug(String key) {
-        if (debugkeys == null) return false;
-        // Note: streams cannot be reused
-        var b = Arrays.stream(debugkeys).anyMatch(s->s.equals(key));
-        // System.out.println("DEBUG " + key + " " + b);
-        return b;
-    }
-    
-    public static String debugValue(String key, String def) {
-        if (debugkeys == null) return def;
-        // Note: streams cannot be reused
-        var opt = Arrays.stream(debugkeys).filter(s->s.startsWith(key)).findFirst();
-        return opt.isEmpty() ? def : opt.get().substring(key.length());
-    }
-    
     /** This method checks that a condition that is expected to always be tree is actually true.
      * That is, if the condition is false, some internal bug has occurred.
      * This method is used in place of ojassert if the bug is something that can be worked around.
@@ -2030,6 +2032,7 @@ public class Utils {
         return jmlverbose >= Utils.JMLVERBOSE || verbose;
     }
 
+    /** True if verbosity is at least PROGRESS */
     public boolean progress() {
         return jmlverbose >= Utils.PROGRESS;
     }
@@ -2038,13 +2041,6 @@ public class Utils {
         new RuntimeException().printStackTrace(System.out); // Thread.dumpStack() goes to Stderr
     }
     
-
-    /** Set the 'jml' flag to the negation of the given value.
-     * This is a static value that applies to all instances of Main */
-    public static void setNoJML(boolean isnojml) {
-        isjml = !isnojml;
-    }
-
     public static void dumpStack(String message) {
         System.out.println("DUMP " + message);
         dumpStack();
@@ -2057,6 +2053,7 @@ public class Utils {
         }
     }
 
+    // FIXME - move this
     /** This just tests whether the type is explicitly a datagroup */
     public boolean isOnlyDatagroup(Type type) {
         return type == JmlPrimitiveTypes.datagroupTypeKind.getType(context);

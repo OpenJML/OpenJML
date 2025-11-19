@@ -93,7 +93,10 @@ import com.google.gson.stream.JsonWriter;
  * @author David Cok
  */
 public class JmlCompiler extends JavaCompiler {
-    
+
+    static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
+    static boolean debugParse = debugParse2 || org.jmlspecs.openjml.Utils.debug("parse");
+        
     /** Registers a factory for producing JmlCompiler tools.
      * There is one instance for each instance of context.  
      * @param context the compilation context used for tools
@@ -106,6 +109,8 @@ public class JmlCompiler extends JavaCompiler {
         });
     }
     
+    /** Returns the singleton instanceof JmlCOMpiler for the given context, creating one if needed */
+    // If the cast fails, then this method is being called before preRegister above has been called
     public static JmlCompiler instance(Context context) {
     	return (JmlCompiler)JavaCompiler.instance(context);
     }
@@ -124,12 +129,12 @@ public class JmlCompiler extends JavaCompiler {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
+//        if (!JmlOptions.instance(context).optionsAllSet) {  // FIXME - get this test to work
+//            utils.error("jml.internal", "JavaCompiler is being instantiated before all options are read");
+//        }
         this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler // FIXME - options not yet set???
         this.resolver = JmlResolve.instance(context);
-        this.noJML = !JmlOptions.instance(context).isSet(JmlOption.JML);
-        
-        // FIXME - verify that JmlCompiler is not created until after options are read
-        // FIXME - if a JmlCompiler instance is reused, this.verbose, thijs.noJML need to be reset
+        this.noJML = !JmlOption.JML.isSet(context); // If this is true, we have JML capability in the tool, but we are ignoring all JML 
     }
     
     public void init() {
@@ -142,26 +147,20 @@ public class JmlCompiler extends JavaCompiler {
         // type resolution, which requires the init() call
         // (If we do this initialization during tool registration, we get circular instantiation)
         init();
-        //    	JmlEnter.instance(context).hold();
         var list = super.enterTrees(roots);
-        //    	JmlEnter.instance(context).release();
         var any = JmlEnter.instance(context).flush(); // FIXME - not sure this is needed
         //if (any) System.out.println("JmlCompiler - flush is needed");
         return list;
     }
     
-    static boolean debugParse2 = org.jmlspecs.openjml.Utils.debug("parse+");
-    static boolean debugParse = debugParse2 || org.jmlspecs.openjml.Utils.debug("parse");
-    
     @Override
     public int errorCount() {
         if (log.nerrors == 0 && options.isSet(Option.WERROR) &&
-                (log.nwarnings > 0 || ("0".equals(JmlOption.value(context, JmlOption.EXITVERIFY)) && Utils.instance(context).verifyWarnings > 0))) {
+                (log.nwarnings > 0 || ("0".equals(JmlOption.EXITVERIFY.value(context)) && Utils.instance(context).verifyWarnings > 0))) {
             log.error(Errors.WarningsAndWerror);
         }
         return log.nerrors;
     }
-
 
     // This bit of complexity/hackery is due to the following problem. JML states that if there is a .jml file, all the specs in
     // the .jml file supersede anything in the .java file. So, in that case, any JML annotations in the .java file are ignored;
@@ -234,12 +233,13 @@ public class JmlCompiler extends JavaCompiler {
         super.compile(sourceFileObjects, classnames, processors, addModules);
     }
     
+    /** Parses all the given files, producing a list of JmlCompilationUnit ASTs */
     @Override
     public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
         try {
             var compunits = super.parseFiles(fileObjects);
-            if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
-                String ss = JmlOption.value(context, JmlOption.SHOW);
+            String ss = JmlOption.SHOW.value(context); // FIXME - check this use of ss != null
+            if (ss != null) {
                 if (ss.contains("ast")) {
                     for (var cu: compunits) {
                         System.out.println(JmlAstPrinter.print(cu, context));
@@ -255,18 +255,19 @@ public class JmlCompiler extends JavaCompiler {
 
             }
             if (org.jmlspecs.openjml.Utils.instance(context).cmd == org.jmlspecs.openjml.Main.Cmd.PARSE) {
-                // skip
+                // empty out the list of ASTs so that there is no further action in compilation
                 compunits  = List.<JCCompilationUnit>nil();
             }
             return compunits;
         } catch (AssertionError e) {
             // Some parse errors cause an AssertionError. This catches it and converts it to 
             // the empty list, which is the usual way to communicate that the chain of compiler phases
-            // is to be aborted.
+            // is to be aborted. An error message is presumbed to have been emitted when the AssertionError is thrown.
             return List.<JCCompilationUnit>nil();
         }
     }
     
+    /** Write JSON files for the given Env objects, which are presumed to hold JmlCompilationUnits */
     public void writeJson(ListBuffer<Env<AttrContext>> results, boolean includeTypeInfo) {
         ListBuffer<JCCompilationUnit> cus = new ListBuffer<>();
         for (var env: results) {
@@ -276,6 +277,7 @@ public class JmlCompiler extends JavaCompiler {
         writeJson(cus.toList(), includeTypeInfo);
     }
     
+    /** Write JSON fgiles for the given JCCompilationUnits */
     public void writeJson(List<JCCompilationUnit> compunits, boolean includeTypeInfo) {
         String dest = options.get("-d");
         if (dest != null && !dest.equals("-") && !new java.io.File(dest).exists() && !new java.io.File(dest).mkdirs()) {
@@ -350,7 +352,7 @@ public class JmlCompiler extends JavaCompiler {
 //                }
 //            }
             // Check the output by deserializing the output text back into an AST
-            if (JmlOption.isOption(context, JmlOption.JMLTESTING)) {
+            if (JmlOption.JMLTESTING.isSet(context)) {
                 // In testing mode, recreate a source AST from the output JSON text
                 Object obj = json.toJava(out);
                 JmlPretty p = new JmlPretty(stdout, true); p.printSourceInfo = true;
@@ -429,10 +431,11 @@ public class JmlCompiler extends JavaCompiler {
         return out;
     }
  
+    /** Parse the given file */
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;
-        boolean jmlOption = JmlOption.isOption(context, JmlOption.JML);
+        boolean jmlOption = JmlOption.JML.isSet(context);
         noJML = !jmlOption;
         var charSeq = readSource(filename);
         try {
@@ -464,8 +467,8 @@ public class JmlCompiler extends JavaCompiler {
             
         	org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
             if (specCU != null) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
-            if (javaCU != null && JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
-                String ss = JmlOption.value(context, JmlOption.SHOW);
+            String ss = JmlOption.SHOW.value(context);
+            if (javaCU != null && ss != null) {
                 if (ss.contains("ast") && filename.toString().contains("Test.java")) { // FIXME - fix this to show user-designated file
                     System.out.println(JmlAstPrinter.print(javaCU, context));
                     if (specCU != null) {
@@ -583,25 +586,22 @@ public class JmlCompiler extends JavaCompiler {
 //        	}
 //        }
 
-        if (JmlOptions.instance(context).isSet(JmlOption.SHOW)) {
-            String ss = JmlOption.value(context, JmlOption.SHOW);
-            if (ss.contains("typedjson")) {
-                writeJson(results, true);
-            }
-
+        String ss = JmlOption.SHOW.value(context);
+        if (ss != null && ss.contains("typedjson")) {
+            writeJson(results, true);
         }
         
 
         return stopIfError(CompileState.ATTR, results);
     }
 
-    /** Overridden in order to insert ESC and RAC (or other) processing */
+    /** Overridden in order to insert ESC and RAC (or other) processing after the OpenJDK flow processing */
     @Override
     public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envsin) {
     	Assert.check(compilePolicy == CompilePolicy.SIMPLE); // FIXME - only works for SIMPLE at present
     	var noresults = new java.util.LinkedList<Env<AttrContext>>();
         if (envsin.isEmpty()) {
-        	if (!utils.check) context.get(Main.IProgressListener.class).report(1,"Operation not performed because of parse or type errors");
+        	if (!utils.check) utils.progress(0,Utils.PROGRESS,"Operation not performed because of parse or type errors");
         	return noresults;
         }
     	var envs = super.flow(envsin);
@@ -627,7 +627,7 @@ public class JmlCompiler extends JavaCompiler {
         		// cancellation or error in specifications parsed on demand - catch and continue // TODO: Review
         	} finally {
                 String summary = esc.reportCounts();
-                if (utils.jmlverbose >= Utils.PROGRESS && !utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) utils.note(false,summary);
+                if (utils.jmlverbose >= Utils.PROGRESS && !utils.testingMode && JmlOption.SHOW_SUMMARY.isSet(context)) utils.note(false,summary);
         	}
     		return noresults; // Empty list - Do nothing more
         } else if (utils.infer) {
@@ -656,7 +656,7 @@ public class JmlCompiler extends JavaCompiler {
             Collection<String> initialClassNames) {
         // Annotation processors are not necessarily compatible with OpenJML so 
         // they are disabled (e.g. lombok is not compatible)
-        if (!JmlOption.isOption(context, JmlOption.USEJAVACOMPILER)) {
+        if (!JmlOption.USEJAVACOMPILER.isSet(context)) {
             options.put(PROC.primaryName + "none", "none");
         }
         super.initProcessAnnotations(processors, initialFiles, initialClassNames);
@@ -693,7 +693,7 @@ public class JmlCompiler extends JavaCompiler {
         // We have to adjust the toplevel tree accordingly.  Presumably other
         // class declarations in the compilation unit will be translated on 
         // other calls.
-        utils.progress(0,1,"RAC-Compiling " + utils.envString(env));
+        utils.progress(0,Utils.PROGRESS,"RAC-Compiling " + utils.envString(env));
         if (utils.jmlverbose >= Utils.JMLDEBUG) noticeWriter.println("rac " + utils.envString(env));
         
         if (env.tree instanceof JCClassDecl) {

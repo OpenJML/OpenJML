@@ -311,6 +311,7 @@ public abstract class JmlTestSuite {
      */
     @Before
     public void setUp() throws Exception {
+        try {
         main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
         setCollector(ignoreNotes, printDiagnostics);
         if (System.getenv("NOJML")!=null) {
@@ -332,6 +333,10 @@ public abstract class JmlTestSuite {
         if (System.getenv("VERBOSE") != null) {
         	main.addOptions("-verbose","true"); // FIXME
             main.addOptions("-jmlverbose","3");
+        }
+        } catch (Throwable t) {
+            System.out.println("EXCEPTINO IN SETUP");
+            t.printStackTrace(System.out);
         }
     }
     
@@ -359,7 +364,7 @@ public abstract class JmlTestSuite {
         collector = null;
         options = null;
         specs = null;
-        mockFiles.clear(); mockFiles = null;
+        if (mockFiles != null) mockFiles.clear(); mockFiles = null;
     }
 
     /** Does a tearDown and a setUp, in order to reset state for a second execution in the same test */

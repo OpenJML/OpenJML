@@ -742,7 +742,7 @@ public class JmlParser extends JavacParser {
                     cl.mods = jmlF.at(Position.NOPOS).Modifiers(0);
                     storeEnd(cl.mods, Position.NOPOS);
                 }
-                if ((cl.mods.flags & Flags.ENUM) != 0 && JmlOption.isOption(context,JmlOption.JML)) {
+                if ((cl.mods.flags & Flags.ENUM) != 0 && JmlOption.JML.isSet(context)) {
                     addImplicitEnumAxioms((JCClassDecl)s); // FIXME - causes compile errors in module system
                 }
             }
@@ -929,7 +929,7 @@ public class JmlParser extends JavacParser {
         // If jml processing is disabled in a .java file because there is a .jml file, we still need to 
         // parse and retain JML statements in the body of a method
     	var saved = S.jmltokenizer.noJML;
-    	S.jmltokenizer.noJML = !JmlOption.isOption(context, JmlOption.JML);
+    	S.jmltokenizer.noJML = !JmlOption.JML.isSet(context);
      	
     	// The body of super.block(pos,flags) is replicated here (potential maintenance problem) because we need to reset noJML
     	// before we accept RBRACE, in case there is a JML annotation immediately following the RBRACE.
@@ -1960,7 +1960,7 @@ public class JmlParser extends JavacParser {
         }
 
         if (clauses.size() == 0 && stat == null) {
-            if (ext != null && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+            if (ext != null && JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
                 utils.error(pos, "jml.empty.specification.case");
             }
             if (ext == null && also == null && !code) return null;
@@ -1977,7 +1977,7 @@ public class JmlParser extends JavacParser {
 
     /** Issues a warning that the named construct is parsed and ignored */
     public void warnNotImplemented(int pos, String construct, String location) {
-        if (JmlOption.isOption(context, JmlOption.SHOW_NOT_IMPLEMENTED))
+        if (JmlOption.SHOW_NOT_IMPLEMENTED.isSet(context))
             utils.warning(pos, "jml.unimplemented.construct", construct, location);
     }
 
@@ -2303,7 +2303,7 @@ public class JmlParser extends JavacParser {
             } else {
                 JCExpression index = parseExpression(); // parses an index or a range
                 if (token.kind == RBRACKET) {
-                    if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                    if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
                     	if (index instanceof JmlRange r && r.lo != null && r.hi == null) {
                     		utils.warning(token.pos,"jml.not.strict","storeref with implied end-of-range: " + index);
                     	}
@@ -2447,7 +2447,7 @@ public class JmlParser extends JavacParser {
                 if (mods.pos == Position.NOPOS) {
                     mods.pos = token.pos;
                 }
-                if (!mk.strict && JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                if (!mk.strict && JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
                     utils.warning(jt.pos,"jml.not.strict",mk.keyword);
                 }
 //    	    } else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
@@ -2634,7 +2634,7 @@ public class JmlParser extends JavacParser {
         		tt = null;
         		nextToken();
         	} else if (token.kind == TokenKind.RBRACKET || token.kind == TokenKind.RPAREN) {
-                if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) {
+                if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
                 	utils.warning(token.pos,"jml.not.strict","storeref with implied end-of-range");
                 }
         		tt = null;

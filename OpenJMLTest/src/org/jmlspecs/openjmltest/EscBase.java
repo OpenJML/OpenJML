@@ -219,13 +219,14 @@ public abstract class EscBase extends JmlTestSuite {
     protected void helpTCXList(String[] allargs, List<JavaFileObject> files, Object... expectedResults) {
 
         try {
+            int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
             int ex = main.compile(allargs, files).exitCode;
             if (captureOutput) collectOutput(false);
             synchronized (System.out) { 
                 if (print) printDiagnostics();
                 outputCompare.compareResults(expectedResults,collector);
-                if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = 6;
-                if (ex != expectedExit) fail("Compile ended with exit code " + ex);
+                if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = verifyExit;
+                if (ex != expectedExit) fail("Compile ended with exit code " + ex + " but expected " + expectedExit);
             }
         } catch (Exception e) {
             synchronized (System.out) { 
