@@ -420,7 +420,7 @@ public class Log extends AbstractLog {
         Assert.checkNonNull(name);
         getSource(name).setEndPosTable(endPosTable);
     }
-    
+
     /** Return current sourcefile.
      */
     public JavaFileObject currentSourceFile() {
@@ -667,7 +667,7 @@ public class Log extends AbstractLog {
      */
     @Override
     public void report(JCDiagnostic diagnostic) {
-        if (org.jmlspecs.openjml.Utils.isJML() && ((System.getenv("ERROR") != null && diagnostic.getKind() == Diagnostic.Kind.ERROR) || (System.getenv("WARNING") != null && diagnostic.getKind() == Diagnostic.Kind.WARNING))) {
+        if (org.jmlspecs.openjml.Utils.isJML() && ((System.getenv("ERROR") != null && diagnostic.getKind() == Diagnostic.Kind.ERROR) || (System.getenv("WARNING") != null && diagnostic.getKind() == Diagnostic.Kind.WARNING))) { // OPENJML
             System.out.println(diagnostic.toString());
             org.jmlspecs.openjml.Utils.dumpStack(); // OPENJML - for debugging
         }
@@ -736,7 +736,7 @@ public class Log extends AbstractLog {
      * Write out a diagnostic.
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
-        if (org.jmlspecs.openjml.Utils.isJML() && "0".equals(Options.instance(context).get("--verboseness"))) return; // OPENJML -- --quiet mode
+        if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.JmlOption.VERBOSENESS.getInt(context) == org.jmlspecs.openjml.Utils.QUIET) return; // OPENJML -- --quiet mode
         if (diagListener != null) {
             diagListener.report(diag);
             return;

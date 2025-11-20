@@ -30,6 +30,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.JmlSpecs.Dir;
 import org.jmlspecs.openjmltest.OutputCompare.AnyOrder;
 import org.jmlspecs.openjmltest.OutputCompare.OneOf;
 import org.jmlspecs.openjmltest.OutputCompare.Optional;
@@ -284,6 +285,7 @@ public abstract class JmlTestSuite {
     protected Options options;
     protected JmlSpecs specs; // initialized in derived classes
     protected LinkedList<JavaFileObject> mockFiles;
+    protected LinkedList<JavaFileObject> specFiles;
     
     /** Normally false, but set to true in tests of the test harness itself, to
      * avoid printing out diagnostic messages when a test intentionally fails.
@@ -580,6 +582,7 @@ public abstract class JmlTestSuite {
     /** Used to indicate that the list objects should all be sequentially found in the test output */
     static public Seq seq(Object ... list) { return new Seq(list); }
 
+    
 }
 
 

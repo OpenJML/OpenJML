@@ -133,7 +133,6 @@ public class modifiers extends TCBase {
                 );
     }
   
-
     @Test public void testClassMods14c() {
         // Don't need the runtime path, since the @Ghost annotation is looked up on the classpath,
         // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different

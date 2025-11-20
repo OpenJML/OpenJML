@@ -244,7 +244,7 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression eq = rewriter.treeutils.makeEquality(that.pos, rewriter.copy(arg), lit);
                     JCExpression conditional = rewriter.treeutils.makeConditional(that.pos, eq, lit, eresult);
                     eresult = conditional;
-                } else if (rewriter.jmltypes.isIntegral(that.type)) {
+                } else if (rewriter.jmltypes.isJavaIntegral(that.type)) {
                 	Utils.instance(context).error(that,"jml.internal","Unimplemented integral type in Arithmetic.Java: " + that.type);
                 }
             }
@@ -614,7 +614,7 @@ abstract public class Arithmetic extends JmlExtension {
         Type mathType(JmlAssertionAdder rewriter, Type t) {
             TypeTag tag = t.getTag();
             if (rewriter.jmltypes.isJmlType(t)) return t;
-            if (rewriter.jmltypes.isIntegral(t)) return rewriter.BIGINT;
+            if (rewriter.jmltypes.isJavaIntegral(t)) return rewriter.BIGINT;
             if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) return rewriter.REAL;
             return t;
         }

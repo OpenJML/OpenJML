@@ -48,9 +48,11 @@ public class JmlOption {
         }
         return true;
     }
+    
+    // Do Not set cached fields in other classes in the check() methods of JmlOption instances, because that will cause premature 
+    // instantiation of tool components (before all the options are processed). Instead, have setupOptions() call some initialization
+    // method in those classes that need such initialization.
 
-
-    // Arguments: option as on CL; true=1 argument, false=0 args; help string
     public static final JmlOption DIR = new JmlOption("--dir",true,null,"Process all files, recursively, within this directory",null);
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
     public static final JmlOption KEYS = new JmlOption("--keys",true,"","Identifiers for optional JML comments",null) {
@@ -62,7 +64,6 @@ public class JmlOption {
                 String[] keys = keysString.split(",");
                 for (String k: keys) options.commentKeys.add(k);
             }
-            // FIXME - negate not allowed
             return true;
         }
     };
@@ -84,7 +85,6 @@ public class JmlOption {
             utils.check = cmd == Cmd.CHECK;
             utils.compile = cmd == Cmd.COMPILE;
             utils.infer   = cmd == Cmd.INFER;
-            // FIXME - negate not allowed
             return ok;
     	}
     };
@@ -141,7 +141,6 @@ public class JmlOption {
         }
         public int getInt(Context context) {
             JmlOptions options = JmlOptions.instance(context);
-            // The default has been filled in before check is called
             String val = options.get(JmlOption.EXITVERIFY.optionName());
             try {
                 int n = Integer.valueOf(val);
@@ -175,7 +174,7 @@ public class JmlOption {
               if (!(mode.equals("hard") || mode.equals("soft") || mode.equals("quiet"))) {
                   Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) 
                   + " property should be one of 'hard', 'soft', or 'quiet': " + mode);
-                  JmlOption.putOption(context, JmlOption.ARITHMETIC, JmlOption.ARITHMETIC.defaultValue().toString());
+                  JmlOption.ARITHMETIC.put(context, JmlOption.ARITHMETIC.defaultValue().toString());
                   return false;
               }
               return true;
@@ -523,8 +522,8 @@ public class JmlOption {
      * @param value the value to give the option - boolean options
      *   interpret null or 'false' as false and non-null as true
      */
-    public static void putOption(Context context, JmlOption option, String value) {
-        Options.instance(context).put(option.name,value);
+    public void put(Context context, String value) {
+        Options.instance(context).put(this.name,value);
     }
 
     /** Sets the value of a boolean option, returning the previous value
@@ -533,9 +532,9 @@ public class JmlOption {
      * @param value the new value of the option
      * @return true if the option was previously enabled, false otherwise
      */
-    public static boolean setOption(Context context, JmlOption option, boolean value) {
-        boolean b = option.isSet(context);
-        Options.instance(context).put(option.optionName(),value?"true":null);
+    public boolean set(Context context, boolean value) {
+        boolean b = this.isSet(context);
+        Options.instance(context).put(this.optionName(),value?"true":null);
         return b;
     }
 

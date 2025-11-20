@@ -729,7 +729,7 @@ public class SFBugs extends EscBaseFiles {
     
     @Test
     public void gitbug635() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTCG("--verify-exit=6"); // FIXME - remove this option when all the others are adjusted to non-legacy behavior
     }
     

@@ -82,7 +82,7 @@ ${RTH} testJmlHelp "$OJ --help" || RES=$(($RES+1))
 ${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBad "$OJ --verboseness=" || RES=$(($RES+1))
+${RTH} testJmlBadNoSource "$OJ --verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
 ${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
@@ -91,7 +91,7 @@ ${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
 ##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBad "$OJ --verboseness= " || RES=$(($RES+1))
+${RTH} testJmlBadNoSource "$OJ --verboseness= " || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
 #${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))

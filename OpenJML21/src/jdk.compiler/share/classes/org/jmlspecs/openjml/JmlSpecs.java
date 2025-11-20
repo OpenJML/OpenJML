@@ -1007,7 +1007,7 @@ public class JmlSpecs {
                 if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
                 if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
             }
-            if (utils.isOnlyDatagroup(decl.type)) return false;
+            if (JmlTypes.instance(context).isOnlyDatagroup(decl.type)) return false;
             //if (decl.vartype.toString().contains("JMLDataGroup")) return false; // A primitive type
         }
         if (owner instanceof MethodSymbol m) owner = m.owner;

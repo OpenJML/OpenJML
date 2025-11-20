@@ -5042,8 +5042,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         if (condTypes.stream().anyMatch(t->t==REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return REAL;
-        if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().anyMatch(t->jmltypes.isNumeric(t)&&!jmltypes.isIntegral(t))) return REAL;
-    	if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().allMatch(t->jmltypes.isIntegral(t))) return BIGINT;
+        if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().anyMatch(t->jmltypes.isNumeric(t)&&!jmltypes.isJavaIntegral(t))) return REAL;
+    	if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().allMatch(t->jmltypes.isJavaIntegral(t))) return BIGINT;
     	return super.condType(positions, condTypes);
     }
     

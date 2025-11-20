@@ -5264,7 +5264,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** This just tests whether the type is explicitly a datagroup */
 	public boolean isDataGroup(Type type) {
-	    return utils.isOnlyDatagroup(type);
+	    return types.isOnlyDatagroup(type);
 	    //return type.toString().contains("JMLDataGroup"); // FIXME - something better than string comparison?
 	}
 
@@ -12871,7 +12871,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    // For checking reductions of \bigint to regular int in MATH mode
 		    if (types.isSameType(newtype, BIGINT)) {
 		        // continue
-		    } else if (jmltypes.isIntegral(newtype)) {
+		    } else if (jmltypes.isJavaIntegral(newtype)) {
 		        int p = pos.getPreferredPosition();
 		        JCExpression emax = treeutils.makeUtilsMethodCall(expr.pos, "bigint_le", expr,
 		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",     // FIXME - does this exist?
@@ -14722,7 +14722,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    t = REAL;
 					} else if (rac && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH && maxJmlType.isPrimitive()
 							&& !comp) {
-						if (jmltypes.isIntegral(maxJmlType))
+						if (jmltypes.isJavaIntegral(maxJmlType))
 							maxJmlType = BIGINT;
 						else
 							maxJmlType = REAL;
@@ -15171,7 +15171,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             // oldtype must be non-JML
             // Any conversions must be implemented using JMLTYPE.of() for the given JMLTYPE
             if (oldtype.isReference() && !types.isJmlType(oldtype)
-                    && ((types.isSameType(newtype, BIGINT) && jmltypes.isIntegral(jmltypes.unboxedTypeOrType(oldtype))) 
+                    && ((types.isSameType(newtype, BIGINT) && jmltypes.isJavaIntegral(jmltypes.unboxedTypeOrType(oldtype))) 
                      || (types.isSameType(newtype, REAL) && jmltypes.isNumeric(jmltypes.unboxedTypeOrType(oldtype))))) {
                     // FIXME - what if this is in JML where it cannot be a new statement
                 addAssert(expr, Label.UNDEFINED_NULL_UNBOX, treeutils.makeNotNull(expr,expr));

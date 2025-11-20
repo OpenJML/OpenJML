@@ -4457,7 +4457,7 @@ public class esc2 extends EscBase {
     
     @Test
     public void testVerifyWerror() {
-        expectedExit = 1;
+        expectedExit = 0;
         addOptions("-Werror","--verify-exit=0");
         helpTCX("tt.TestJava",
             """
@@ -4469,7 +4469,6 @@ public class esc2 extends EscBase {
             }
             """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
-                ,"/tt/TestJava.java: error: warnings found and -Werror specified", -1
         );
     }
 

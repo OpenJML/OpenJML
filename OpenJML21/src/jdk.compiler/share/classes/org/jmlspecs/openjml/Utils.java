@@ -42,6 +42,7 @@ import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlModifiers;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
+import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.Modifiers;
 
@@ -219,6 +220,22 @@ public class Utils {
     }
     /** Initializes option-dependent fields */
     public void init() {
+        Cmd cmd = Cmd.CHECK; // default
+        boolean ok = true;
+        String val = JmlOptions.instance(context).get(JmlOption.COMMAND.optionName());
+        try {
+            if (val != null) cmd = Cmd.valueOf(val.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            Log.instance(context).error("jml.bad.command",val);
+            ok = false;
+        }
+        this.cmd = cmd;
+        this.rac = cmd == Cmd.RAC;
+        this.esc = cmd == Cmd.ESC;
+        this.check = cmd == Cmd.CHECK;
+        this.compile = cmd == Cmd.COMPILE;
+        this.infer   = cmd == Cmd.INFER;
+
         jmlverbose = JmlOption.VERBOSENESS.getInt(context);
         if (Options.instance(context).isSet("-verbose")) jmlverbose = Utils.JMLVERBOSE;
 
@@ -1245,7 +1262,7 @@ public class Utils {
                 if (s.kind != Kinds.Kind.VAR) continue;
                 if (isJMLStatic(s) != forStatic) continue;
                 if ((s.flags() & Flags.FINAL) != 0) continue;
-                if (!includeDataGroups && isOnlyDatagroup(s.type)) continue;
+                if (!includeDataGroups && JmlTypes.instance(context).isOnlyDatagroup(s.type)) continue;
                 //System.out.println("LVF " + owner + " " + base + " " + csym + " " + s);
                 if (!jmlvisible(s,base,csym,s.flags()&Flags.AccessFlags,baseVisibility)) continue; // FIXME - jml access flags? on base and on target?
                 list.add((Symbol.VarSymbol)s);
@@ -2053,9 +2070,9 @@ public class Utils {
         }
     }
 
-    // FIXME - move this
-    /** This just tests whether the type is explicitly a datagroup */
-    public boolean isOnlyDatagroup(Type type) {
-        return type == JmlPrimitiveTypes.datagroupTypeKind.getType(context);
-    }
+//    // FIXME - move this
+//    /** This just tests whether the type is explicitly a datagroup */
+//    public boolean isOnlyDatagroup(Type type) {
+//        return type == JmlPrimitiveTypes.datagroupTypeKind.getType(context);
+//    }
 }

@@ -936,7 +936,7 @@ public class Gen extends JCTree.Visitor {
         this.pt = tree.sym.erasure(types).getReturnType();
 
         checkDimension(tree.pos(), tree.sym.erasure(types));
-        try {
+        try { // OPENJML - FIXME - is this for debugging only?
         genMethod(tree, localEnv, false);
         } catch (Exception e) { System.out.println(tree.sym); throw e; }
     }
@@ -1919,15 +1919,15 @@ public class Gen extends JCTree.Visitor {
  *************************************************************************/
 
     public void visitApply(JCMethodInvocation tree) {
-        MethodSymbol ms = null;
-        try {
+        MethodSymbol ms = null; // OPENJML
+        try { // OPENJML _ FIXME - is this for debugging only
         setTypeAnnotationPositions(tree.pos);
         // Generate code for method.
         Item m = genExpr(tree.meth, methodType);
         // Generate code for all arguments, where the expected types are
         // the parameters of the method's external type (that is, any implicit
         // outer instance of a super(...) call appears as first parameter).
-        MethodSymbol msym = ms = (MethodSymbol)TreeInfo.symbol(tree.meth);
+        MethodSymbol msym = ms = (MethodSymbol)TreeInfo.symbol(tree.meth); // OPENJML
         genArgs(tree.args,
                 msym.externalType(types).getParameterTypes());
         if (!msym.isDynamic()) {

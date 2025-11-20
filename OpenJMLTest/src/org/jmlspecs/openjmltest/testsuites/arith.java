@@ -21,7 +21,7 @@ public class arith extends TCBase {
     @Test
     public void testSomeJava() {
         main.addOptions("-specspath",   testspecpath);
-        JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
+        JmlOption.PURITYCHECK.set(context,false);
         helpTCF("A.java","public class A { java.math.BigInteger list; }");
     }
 

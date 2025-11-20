@@ -5,70 +5,47 @@
 // FIXME - do a review
 package com.sun.tools.javac.main;
 
-import static com.sun.tools.javac.code.Flags.UNATTRIBUTED;
 import static com.sun.tools.javac.main.Option.PROC;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 import javax.annotation.processing.Processor;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
+import org.jmlspecs.openjml.JmlAstPrinter;
+import org.jmlspecs.openjml.JmlJson;
 //import org.jmlspecs.openjml.JmlClearTypes;
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.JmlAstPrinter;
-import org.jmlspecs.openjml.JmlCheckSpecs;
-import org.jmlspecs.openjml.JmlJson;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.Maker;
-import org.jmlspecs.openjml.Main.Cmd;
-import org.jmlspecs.openjml.Main.IProgressListener;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.visitors.JmlUseSubstitutions;
-import org.jmlspecs.openjml.JmlTree.JmlSource;
 
+import com.google.gson.JsonElement;
 import com.sun.tools.javac.code.Attribute;
-import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.comp.Attr;
 import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.CompileStates;
 import com.sun.tools.javac.comp.CompileStates.CompileState;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.comp.JmlMemberEnter;
 import com.sun.tools.javac.comp.JmlResolve;
-import com.sun.tools.javac.comp.Resolve;
-import com.sun.tools.javac.comp.Todo;
 import com.sun.tools.javac.jvm.ClassReader;
-import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.main.JavaCompiler.InitialFileParser;
 import com.sun.tools.javac.parser.JmlScanner;
-import com.sun.tools.javac.resources.CompilerProperties.Errors;
+import com.sun.tools.javac.parser.Tokens.Token;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.*;
-import com.sun.tools.javac.util.Abort;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
@@ -78,13 +55,6 @@ import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Pair;
 import com.sun.tools.javac.util.PropagatedException;
-
-import static com.sun.tools.javac.parser.Tokens.*;
-
-import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 
 /**
  * This class extends the JavaCompiler class in order to find and parse
@@ -153,14 +123,14 @@ public class JmlCompiler extends JavaCompiler {
         return list;
     }
     
-    @Override
-    public int errorCount() {
-        if (log.nerrors == 0 && options.isSet(Option.WERROR) &&
-                (log.nwarnings > 0 || ("0".equals(JmlOption.EXITVERIFY.value(context)) && Utils.instance(context).verifyWarnings > 0))) {
-            log.error(Errors.WarningsAndWerror);
-        }
-        return log.nerrors;
-    }
+//    @Override
+//    public int errorCount() {
+//        if (log.nerrors == 0 && options.isSet(Option.WERROR) &&
+//                (log.nwarnings > 0 || ("0".equals(JmlOption.EXITVERIFY.value(context)) && Utils.instance(context).verifyWarnings > 0))) {
+//            log.error(Errors.WarningsAndWerror);
+//        }
+//        return log.nerrors;
+//    }
 
     // This bit of complexity/hackery is due to the following problem. JML states that if there is a .jml file, all the specs in
     // the .jml file supersede anything in the .java file. So, in that case, any JML annotations in the .java file are ignored;

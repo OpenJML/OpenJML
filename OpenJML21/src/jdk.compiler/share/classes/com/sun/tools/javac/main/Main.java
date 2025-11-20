@@ -336,6 +336,7 @@ public class Main {
                     return Result.ERROR;
                 }
             }
+
             return (comp.errorCount() == 0) ? Result.OK : Result.ERROR;
 
         } catch (OutOfMemoryError | StackOverflowError ex) {
@@ -359,18 +360,18 @@ public class Main {
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
-        	ex.printStackTrace(System.out);
+            ex.printStackTrace(System.out); // OPENJML
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
-            printArgsToFile = true;
+            printArgsToFile = false; // OPENJML - changed to false
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
-//                printArgumentsToFile(argv); // OPENJML - turned off
+                printArgumentsToFile(argv);
             }
             if (comp != null) {
                 try {
