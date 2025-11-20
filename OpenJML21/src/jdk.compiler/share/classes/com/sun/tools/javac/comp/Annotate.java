@@ -1043,7 +1043,7 @@ public class Annotate {
             DiagnosticPosition deferPos)
     {
         Assert.checkNonNull(sym);
-        if (org.jmlspecs.openjml.Utils.isJML()) {
+        if (org.jmlspecs.openjml.Utils.isJML()) { // OPENJML
         	normal(() -> tree.accept(new JmlTypeAnnotate(this, env, sym, deferPos))); // OPENJML
         } else {
         	normal(() -> tree.accept(new TypeAnnotate(env, sym, deferPos)));
@@ -1056,7 +1056,7 @@ public class Annotate {
     public void annotateTypeSecondStage(JCTree tree, List<JCAnnotation> annotations, Type storeAt) {
         typeAnnotation(() -> {
             List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
-            if (annotations.size() != compounds.size()) System.out.println("ANNOSASSERT " + annotations.size() + " " + compounds.size() + " " + annotations + " :: " + compounds);
+            if (annotations.size() != compounds.size()) System.out.println("ANNOSASSERT " + annotations.size() + " " + compounds.size() + " " + annotations + " :: " + compounds); // OPENJML
             Assert.check(annotations.size() == compounds.size());
             // the type already has annotation metadata, but it's empty
             Annotations metadata = storeAt.getMetadata(Annotations.class);

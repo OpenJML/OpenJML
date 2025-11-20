@@ -75,7 +75,7 @@ public class SpecsRac extends RacBase {
     public void setUp() throws Exception {
         super.setUp();
         // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
-        JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
+        JmlOption.PURITYCHECK.set(context,false);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
         print = false; // true = various debugging output

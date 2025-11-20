@@ -441,7 +441,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** This method is overridden so that the JML compiler can register its
      *  own tools for the various phases. The Context argument is required in order
      *  to override the parent class methods, but the value for 'context' must be 
-     *  the same as 'this.context'.
+     *  the same as 'this.context', if this.context is already set.
      */
     @Override
     public Main.Result compile(String[] args, Context context) {
@@ -452,7 +452,9 @@ public class Main extends com.sun.tools.javac.main.Main {
         args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
         // args is now the original 'args' without JML arguments -- leaving  any Java options and files
         if (JmlOptions.instance(context).get("-?") != null) return Result.OK; // Help output is already written
-        if (args.length == 0 && fileObjects == null) {  // FIXME - in API mode there might have already been args added
+        if (args.length == 0 && fileObjects == null) {  // in API mode there might have already been args added
+                                                        // and there would be no additional arguments here,
+                                                        // but then fileObjects would not be null -- it might be an empty list
             if (hasArgs) {
                 Log.instance(context).error(Errors.NoSourceFiles);
                 return Result.CMDERR;
@@ -499,7 +501,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     /** This method is called programmatically, in which case the set of files is 
-        separate from the command-line options. */
+        separate from the command-line options. This entry point is useful for test cases
+        in which the fileObjects may be mock files. */
     public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
         try {
             this.fileObjects = fileObjects;
@@ -537,15 +540,21 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
     }
 
-    // FIXME - do we need this
+    /** The field is not used in regular command-line processing, but when openjml is called
+     * programmatically, such as from test suites, then in-memory files might be created and
+     * passed in vis this list. In particular, the list might contain mock files rather than
+     * (or in addition to) file system files.
+     */
     public java.util.Collection<JavaFileObject> fileObjects;
 
-    //FIXME - describe why this is needed
+    /** This call adds fileObjects supplied by the programmatic compile call (in this.fileObjects)
+     * with those created from the command-line (in args.getFileObjects()), unifying 
+     * command-line processing with programmatic calls to compile.
+     */
     @Override
     protected void adjustArgs(Arguments args)  {
         if (fileObjects != null) {
             args.allowEmpty();
-            //args.fileObjects = new java.util.HashSet<JavaFileObject>();
             args.getFileObjects().addAll(fileObjects);
         }
     }

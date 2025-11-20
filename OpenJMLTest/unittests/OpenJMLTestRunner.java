@@ -7,7 +7,7 @@
 // The options allow choosing sequantial or parallel running,
 // with a given number of threads, given timeout, and verbosity level.
 
-// FIXME -- running with more than one thread doe snot work because not all of OpenJDK/OpenJML is thread-safe.
+// FIXME -- running with more than one thread does not work because not all of OpenJDK/OpenJML is thread-safe.
 
 import org.jmlspecs.openjmltest.*;
 import org.jmlspecs.openjmltest.testsuites.*;
@@ -25,7 +25,7 @@ public class OpenJMLTestRunner {
     static boolean sequential = true;
     static boolean verbose = false;
 
-    /** Test suites to dkip, by simple suite name */
+    /** Test suites to skip, by simple suite name */
     public static String[] skips = new String[]{};
     {
         Arrays.sort(skips);

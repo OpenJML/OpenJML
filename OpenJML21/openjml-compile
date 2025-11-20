@@ -10,11 +10,11 @@ LOCAL=$(dirname "$FILE") # path of the folder containing this file
 
 if [ -e "$LOCAL/version-info.txt" ]; then
   ## In a release
-  CL=`echo "$LOCAL"/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+  CL=`echo "$LOCAL"/jdk/modules/* | sed -e "s/ /:/g"`
   MODULES="$LOCAL/jdk/modules"
 else
   ## In development environment
-  CL=`echo "$LOCAL"/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+  CL=`echo "$LOCAL"/build/*/jdk/modules/* | sed -e "s/ /:/g"`
   MODULES=`echo "$LOCAL"/build/*release/jdk/modules`
 fi
 

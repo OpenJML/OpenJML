@@ -519,8 +519,8 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
      */
     @DefinedBy(Api.LANGUAGE_MODEL)
     public String toString() {
-        var jmlrep = this.jmlrep();
-        if (jmlrep != null) {
+        var jmlrep = this.jmlrep(); // OPENJML
+        if (jmlrep != null) {       // OPENJML
             return jmlrep;
         }
         StringBuilder sb = new StringBuilder();
@@ -1072,8 +1072,8 @@ public abstract class Type extends AnnoConstruct implements TypeMirror, PoolCons
         @DefinedBy(Api.LANGUAGE_MODEL)
         public String toString() {
             StringBuilder buf = new StringBuilder();
-            var jmlrep = this.jmlrep();
-            if (jmlrep != null) {
+            var jmlrep = this.jmlrep(); // OPENJML
+            if (jmlrep != null) {       // OPENJML
                 buf.append(jmlrep);
             } else if (getEnclosingType().hasTag(CLASS) && tsym.owner.kind == TYP) {
                 buf.append(getEnclosingType().toString());

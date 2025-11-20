@@ -31,41 +31,43 @@ public class escoption extends EscBase {
  
     @Test
     public void testOptionValueBoolean() {
-    	collectOutput(false);
-    	Assert.assertEquals("A", "openjml",JmlOption.LANG.value(context));
-    	Assert.assertEquals("B", "openjml",JmlOption.LANG.value(context));
-    	Assert.assertEquals("C", "openjml",JmlOptions.instance(main.context()).get("--lang"));
-    	Assert.assertEquals("D", "openjml",JmlOptions.instance(main.context()).get("--lang"));
-    	JmlOption.putOption(main.context(), JmlOption.LANG, "jml");
-    	Assert.assertEquals("E", "jml",JmlOption.LANG.value(context));
-        JmlOption.putOption(main.context(), JmlOption.LANG, "openjml");
+        collectOutput(false);
+        JmlOptions options = JmlOptions.instance(main.context());
+        Assert.assertEquals("A", "openjml",JmlOption.LANG.value(context));
+        Assert.assertEquals("B", "openjml",JmlOption.LANG.value(context));
+        Assert.assertEquals("C", "openjml",options.get("--lang"));
+        Assert.assertEquals("D", "openjml",options.get("--lang"));
+        options.put(JmlOption.LANG, "jml");
+        Assert.assertEquals("E", "jml",JmlOption.LANG.value(context));
+        options.put(JmlOption.LANG, "openjml");
         Assert.assertEquals("F", "openjml",JmlOption.LANG.value(context));
-    	main.addOptions("--lang=jml");
-    	Assert.assertEquals("G", "jml",JmlOption.LANG.value(context));
+        main.addOptions("--lang=jml");
+        Assert.assertEquals("G", "jml",JmlOption.LANG.value(context));
         main.addOptions("--lang=openjml");
         Assert.assertEquals("H", "openjml",JmlOption.LANG.value(context));
-    	JmlOption.putOption(main.context(), JmlOption.LANG, "openjml");
-    	Assert.assertEquals("I", "openjml",JmlOption.LANG.value(context));
+        options.put(JmlOption.LANG, "openjml");
+        Assert.assertEquals("I", "openjml",JmlOption.LANG.value(context));
         String out = output();
         org.junit.Assert.assertEquals("J", "",out);
     }
-  
+
     // FIXME -- adjust JmlOption calls
-//    @Test
-//    public void testOptionValue() {
-//    	collectOutput(false);
-//    	Assert.assertEquals(null,JmlOption.value(main.context(), JmlOption.METHOD));
-//    	Assert.assertEquals(null,JmlOption.value(main.context(), "-method"));
-//    	JmlOption.putOption(main.context(), JmlOption.METHOD, "xxx");
-//    	Assert.assertEquals("xxx",JmlOption.value(main.context(), JmlOption.METHOD));
-//    	JmlOption.putOption(main.context(), JmlOption.METHOD, null);
-//    	Assert.assertEquals(null,JmlOption.value(main.context(), JmlOption.METHOD));
-//    	JmlOption.putOption(main.context(), JmlOption.METHOD, "");
-//    	Assert.assertEquals("",JmlOption.value(main.context(), JmlOption.METHOD));
-//        String out = output();
-//        org.junit.Assert.assertEquals("",out);
-//    }
-    
+    @Test
+    public void testOptionValue() {
+        collectOutput(false);
+        JmlOptions options = JmlOptions.instance(context);
+        Assert.assertEquals(null, JmlOption.METHOD.value(main.context()));
+        Assert.assertEquals(null, options.get("-method"));
+        options.put(JmlOption.METHOD, "xxx");
+        Assert.assertEquals("xxx",options.value(JmlOption.METHOD));
+        options.put(JmlOption.METHOD, null);
+        Assert.assertEquals(null, JmlOption.METHOD.value(main.context()));
+        options.put(JmlOption.METHOD, "");
+        Assert.assertEquals("", options.value(JmlOption.METHOD));
+        String out = output();
+        org.junit.Assert.assertEquals("",out);
+    }
+
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption() {
     	addOptions("--normal");

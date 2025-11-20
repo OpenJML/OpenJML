@@ -154,6 +154,14 @@ public class JmlOptions extends Options {
         }
     }
     
+    public void set(JmlOption opt, boolean value) {
+        values.put(opt.optionName(), value?"true":null);
+    }
+    
+    public void put(JmlOption opt, String value) {
+        values.put(opt.optionName(), value);
+    }
+    
     public void addFilesRecursively(String s,  /*@ non_null */ java.util.List<String> files) {
         java.util.List<File> todo = new LinkedList<File>();
         todo.add(new File(s));
@@ -354,10 +362,9 @@ public class JmlOptions extends Options {
         } else {
             // Common case: set the value and check it
             if (o.defaultValue() instanceof Boolean) {
-                JmlOption.setOption(context, o, !negate);
+                set(o, !negate);
             } else {
-                options.put(o.optionName(),res);
-                // Use negate with call of check later on
+                put(o, res);
             }
             o.check(context, negate);
         }
@@ -428,13 +435,13 @@ public class JmlOptions extends Options {
     // NOTE: OpenJDK encodes boolean options as null for false, non-null for true */
     /** Returns whether a Boolean-valued option is set or not */
     public boolean isSet(JmlOption option) {
-        if (!(option.defaultValue() instanceof Boolean)) Utils.instance(context).error("jml.internal", "Calling isSet on a non-boolean option");
+        if (!(option.defaultValue() instanceof Boolean)) Utils.instance(context).error("jml.internal", "Calling JmlOption.isSet on a non-boolean option");
         return isSet(option.optionName());
     }
     
     /** Returns a String value; the option must be a String-valued option */
     public String value(JmlOption option) {
-        if (option.defaultValue() instanceof Boolean) Utils.instance(context).error("jml.internal", "Calling value on a boolean option");
+        if (option.defaultValue() instanceof Boolean) Utils.instance(context).error("jml.internal", "Calling JmlOption.value on a boolean option");
         return get(option.optionName());
     }
     
@@ -468,25 +475,20 @@ public class JmlOptions extends Options {
         // Not supporting this option
         options.remove("printArgsToFile");
         
-        // In case we have just popped options, reset any option that caches values
-        resetOption(JmlOption.COMMAND); // Caches in utils.esc etc.
-        resetOption(JmlOption.KEYS); // Caches in options.commentKeys
-        utils.testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName());
-
-        // FIXME - WARN keys not handled correctly I think
-        
         utils.init(); // Sets cached fields in Utils
-        
-        Main.instance(context).progressListener.setVerbose(utils.jmlverbose);
-        
 
-        //System.out.println("SETUP " + utils.jmlverbose);
-
+        // In case we have just popped options, reset any option that caches values
+        resetOption(JmlOption.KEYS); // Caches in options.commentKeys
         // Set implicit comment keys
         if (utils.esc) commentKeys.add("ESC");
         if (utils.rac) commentKeys.add("RAC");
         if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
+
+        // FIXME - WARN keys not handled correctly I think
+        
+        Main.instance(context).progressListener.setVerbose(utils.jmlverbose);
+        
 
         // register any user extensions
         Extensions.register(context);
@@ -495,13 +497,11 @@ public class JmlOptions extends Options {
         return true;
     }
 
-
-
     /** Adds additional options to those already present (which may change
      * previous settings); returns remaining Java args. */
     public String[] addOptions(String... args) {
         args = processJmlArgs(args, Options.instance(context), null);
-        // FIXME - process Java options?  Call postOptionProcesing()?
+        // FIXME - process Java options? 
         setupOptions();
         return args;
     }
@@ -588,6 +588,7 @@ public class JmlOptions extends Options {
             this.context = context;
         }
 
+        // FIXME - is this needed? what is its effect on tool component instantiation
         @Override
         public boolean validate() {
             boolean b = super.validate();
@@ -596,8 +597,9 @@ public class JmlOptions extends Options {
         
         @Override // overridden just to suppress message
         public void printUsage(String ownName) {
-            if (JmlOption.VERBOSENESS.getInt(context) == Utils.QUIET) return;
-            super.printUsage(ownName);
+            if (JmlOption.VERBOSENESS.getInt(context) != Utils.QUIET || JmlOptions.instance(context).isSet("-verbose")) {
+                super.printUsage(ownName);
+            }
         }
 
     }
