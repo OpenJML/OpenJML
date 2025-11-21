@@ -69,7 +69,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     private Context context;
 
     //@ non_null
-    public org.openjml.MockFileTree mockFiles = new org.openjml.MockFileTree();
+    public org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
 
     /** True if compilation/static-checking has been canceled, by setting this field in some exception handler. 
      *  Used in an interactive environment. */

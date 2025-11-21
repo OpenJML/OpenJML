@@ -5,7 +5,6 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
 
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;

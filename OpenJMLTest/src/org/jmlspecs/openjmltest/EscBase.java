@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
