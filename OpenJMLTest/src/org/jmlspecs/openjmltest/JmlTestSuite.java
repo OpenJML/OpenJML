@@ -284,7 +284,8 @@ public abstract class JmlTestSuite {
     protected Main main;
     protected Options options;
     protected JmlSpecs specs; // initialized in derived classes
-    protected LinkedList<JavaFileObject> mockFiles;
+    protected org.openjml.MockFileTree mockFiles;
+    protected LinkedList<JavaFileObject> javamockFiles = new LinkedList<>();
     protected LinkedList<JavaFileObject> specFiles;
     
     /** Normally false, but set to true in tests of the test harness itself, to
@@ -330,7 +331,7 @@ public abstract class JmlTestSuite {
         ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
 
         specs = JmlSpecs.instance(context);
-        mockFiles = new LinkedList<JavaFileObject>();
+        mockFiles = main.mockFiles;
         Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         if (System.getenv("VERBOSE") != null) {
         	main.addOptions("-verbose","true"); // FIXME
@@ -539,8 +540,9 @@ public abstract class JmlTestSuite {
      * @param file the JavaFileObject to be associated with this name
      */
     protected void addMockFile(String filename, JavaFileObject file) {
-        if (filename.endsWith(".java")) mockFiles.add(file);
-        specs.addMockFile(filename,file);
+        if (filename.endsWith(".java")) javamockFiles.add(file);
+        mockFiles.addMockFile(filename, file);
+        //specs.addMockFile(filename,file);
     }
     
     /** Prints a diagnostic as it is in an error or warning message, but without

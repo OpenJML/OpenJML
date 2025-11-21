@@ -145,9 +145,7 @@ public abstract class RacBase extends JmlTestSuite {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new TestJavaFileObject(filename,compilationUnitText);
             files.append(f);
-            for (JavaFileObject ff: mockFiles) {
-                if (ff.toString().endsWith(".java")) files.append(ff);
-            }
+            files.addAll(javamockFiles);
 
             Log.instance(context).useSource(files.first());
 
