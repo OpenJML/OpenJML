@@ -736,7 +736,8 @@ public class Log extends AbstractLog {
      * Write out a diagnostic.
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
-        if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.JmlOption.VERBOSENESS.getInt(context) == org.jmlspecs.openjml.Utils.QUIET) return; // OPENJML -- --quiet mode
+        // Don't use JmlOption methods here or errors result when using uninitializedLog() // OPENJML
+        if ("0".equals(Options.instance(context).get("--verboseness"))) return; // OPENJML
         if (diagListener != null) {
             diagListener.report(diag);
             return;
