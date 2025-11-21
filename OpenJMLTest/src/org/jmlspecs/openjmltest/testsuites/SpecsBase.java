@@ -119,7 +119,7 @@ public class SpecsBase extends TCBase {
     static public  Collection<String[]> datax() {
         if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
-        for (String f: findAllFiles(null)) {
+        for (String f: findAllFiles()) {
         	if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
             data.add(new String[]{ f});
         }
@@ -245,31 +245,30 @@ public class SpecsBase extends TCBase {
     
     /** Finds all classes that have library specification files.
      */
-    static public SortedSet<String> findAllFiles(/*@ nullable*/ JmlSpecs specs) {
+    static public SortedSet<String> findAllFiles() {
         System.out.println("JRE version " + System.getProperty("java.version"));
         try {
-            if (specs == null) {
+//            if (specs == null) {
                 Main main = new Main();
                 main.initialize(null);
                 Context context = main.context();
-                specs = JmlSpecs.instance(context);
-                specs.setSpecsPath("$SY");
-            }
+                JmlSpecs.instance(context);
+                main.addOptions("--specs-path=$SY");
+//            }
         } catch (IOException e) {
             e.printStackTrace();
             fail("Exception in findAllFiles");
         }
-        java.util.List<Dir> dirs = specs.getSpecsPath();
-        dirs.clear(); dirs.add(new Dir.FileSystemDir(JmlTestSuite.root + "/Specs/specs"));
-        assertTrue ("Null specs path",dirs != null); 
-        assertTrue ("No specs path",dirs.size() != 0); 
+        var dir = new Dir.FileSystemDir(JmlTestSuite.root + "/Specs/specs");
+        //assertTrue ("Null specs path",dirs != null); 
+        //assertTrue ("No specs path",dirs.size() != 0); 
         
         SortedSet<String> classes = new TreeSet<String>(); 
-        for (Dir dir: dirs) {
-            System.out.println("DIR " + dir.toString());
+        //for (Dir dir: dirs) {
+        //    System.out.println("DIR " + dir.toString());
             File d = new File(dir.toString());
             classes.addAll(findAllFiles(d, dir.toString()));
-        }
+        //}
         classes.removeAll(donttest);
         System.out.println(classes.size() + " system specification classes found");
         return classes;

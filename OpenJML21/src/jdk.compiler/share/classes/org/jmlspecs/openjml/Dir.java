@@ -66,10 +66,10 @@ abstract public class Dir {
         public /*@Nullable*/JavaFileObject findFile(String filePath, Context context) { 
             String ss = name + "/" + filePath;
             var main = context.get(Main.key);
-//            if (main.mockFiles == null) return null;
-//            JavaFileObject j = main.mockFiles.get(ss);
-//            return j;
-            return JmlSpecs.instance(context).mockFiles.get(ss);
+            if (main.mockFiles == null) return null;
+            JavaFileObject j = main.mockFiles.get(ss);
+            return j;
+//            return JmlSpecs.instance(context).mockFiles.get(ss);
         }
     }
     

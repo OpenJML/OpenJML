@@ -24,6 +24,7 @@ import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjml.esc.JmlAssertionAdder;
 import org.jmlspecs.openjml.esc.JmlEsc;
 import org.jmlspecs.openjml.ext.Modifiers;
@@ -182,8 +183,8 @@ public class JmlCompiler extends JavaCompiler {
     	if (specFile == null) {
     	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
     	    var path = java.nio.file.Paths.get(filename.toUri().getPath());
-    	    JmlSpecs.instance(context);
-    	    specFile = new org.jmlspecs.openjml.Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
+    	    //JmlSpecs.instance(context);
+    	    specFile = new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
     	}
         //System.out.println("  FOUND " + specFile);
     	return specFile;
@@ -196,7 +197,6 @@ public class JmlCompiler extends JavaCompiler {
                             Iterable<? extends Processor> processors,
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
-        	// TODO - what output writer to use?
             System.out.println("classpath:  " + Utils.join(":",JmlSpecs.instance(context).getClassPath()));
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));

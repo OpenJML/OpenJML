@@ -11,7 +11,7 @@ public class modifiers extends TCBase {
       //noCollectDiagnostics = true;
       //jmldebug = true;
       super.setUp();
-      main.addOptions("-no-require-white-space");
+      main.addOptions("--  no-require-white-space");
     }
     
 
@@ -137,7 +137,7 @@ public class modifiers extends TCBase {
         // Don't need the runtime path, since the @Ghost annotation is looked up on the classpath,
         // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different
         // code path
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @Ghost class A{}"
         		,"/A.java:2: error: This JML modifier is not allowed for a type declaration", 9);
     }
@@ -146,38 +146,38 @@ public class modifiers extends TCBase {
         // Don't need the runtime path, since the @Ghost annotation is looked up on the classpath,
         // but this makes the compiler look for specs for Ghost as a binary class, and exercises a different
         // code path
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @Ghost class A{}"
                 ,"/A.java:2: error: This JML modifier is not allowed for a type declaration", 9
                 );
     }
     
     @Test public void testClassMods15() {
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @NullableByDefault class A{}"
                 );
     }
     
     @Test public void testClassMods15a() {
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault class A{}"
                 );
     }
     
     @Test public void testClassMods15b() {
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","public /*@nullable_by_default*/ class A{}"
                 );
     }
     
     @Test public void testClassMods15c() {
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","public /*@non_null_by_default*/ class A{}"
                 );
     }
     
     @Test public void testClassMods15d() {
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("A.java","public /*@nullable_by_default non_null_by_default*/ class A{}"
                 ,"/A.java:1: error: A declaration may not be both non_null_by_default and nullable_by_default",11
                 ,"/A.java:1: error: Associated declaration: /A.java:1:", 31
@@ -185,7 +185,7 @@ public class modifiers extends TCBase {
     }
     
     @Test public void testClassMods15e() {
-        specs.setSpecsPath(new String[]{"$A","$B","$SY"});
+        addOptions("--specs-path=$A:$B:$SY");
         helpTCF("AAA.java","import org.jmlspecs.annotation.*;  \n public @NonNullByDefault @NullableByDefault class AAA{}"
                 ,"/AAA.java:2: error: A declaration may not be both non_null_by_default and nullable_by_default",9
                 ,"/AAA.java:2: error: Associated declaration: /AAA.java:2:",27
