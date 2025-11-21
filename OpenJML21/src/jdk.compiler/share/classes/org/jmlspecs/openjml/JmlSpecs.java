@@ -501,23 +501,6 @@ public class JmlSpecs {
         }
     }
     
-//    /** A map of names to JavaFileObjects representing files.  The JavaFileObjects
-//     * can function as files containing source or specifications but do not need
-//     * to be actually present in the file system.  Thus they are handy in testing.
-//     */
-//    final protected Map<String,JavaFileObject> mockFiles = new HashMap<String,JavaFileObject>();
-//    
-//    /** Adds a name and associated mock file to the database of files (for this
-//     * context).
-//     * @param name the "absolute" filename, that is, the directory as it is on
-//     * the specs path followed by the package and filename and suffix, all 
-//     * forward-slash separated
-//     * @param jfo the JavaFileObject associated with the name
-//     */
-//    public void addMockFile(String name, JavaFileObject jfo) {
-//        mockFiles.put(name,jfo);
-//    }
-    
     /** Creates an appropriate kind of Dir object given the String format of
      * the argument
      * @param dirName the directory as specified in the String format of the
@@ -536,7 +519,6 @@ public class JmlSpecs {
             return new Dir.FileSystemDir(dirName);
         }
     }
-    
     
     /** Finds the first specification file (if any) for the given class.  It
      * searches each directory on the specPath, in order, for a file with a

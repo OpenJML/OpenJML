@@ -100,9 +100,10 @@ public class JmlCompiler extends JavaCompiler {
         super(context);
         this.context = context;
         this.utils = Utils.instance(context);
-//        if (!JmlOptions.instance(context).optionsAllSet) {  // FIXME - get this test to work
-//            utils.error("jml.internal", "JavaCompiler is being instantiated before all options are read");
-//        }
+        if (!org.jmlspecs.openjml.JmlOptions.instance(context).optionsAllSet) {  // FIXME - get this test to work
+            utils.error("jml.internal", "JavaCompiler is being instantiated before all options are read");
+            Utils.dumpStack();
+        }
         this.verbose |= utils.jmlverbose >= Utils.JMLVERBOSE; // Only used in JavaCompiler // FIXME - options not yet set???
         this.resolver = JmlResolve.instance(context);
         this.noJML = !JmlOption.JML.isSet(context); // If this is true, we have JML capability in the tool, but we are ignoring all JML 
@@ -146,48 +147,48 @@ public class JmlCompiler extends JavaCompiler {
     JavaFileObject checkForSpecsFile(JavaFileObject filename, CharSequence charSeq) {
         //System.out.println("FIND SPEC FOR SOURCE " + filename);
         var charBuf = charSeq instanceof java.nio.CharBuffer cb ? cb : java.nio.CharBuffer.wrap(charSeq);
-    	JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
+        JmlScanner.JmlScannerFactory fac = (JmlScanner.JmlScannerFactory)JmlScanner.JmlScannerFactory.instance(context);
         var tokenizer = new com.sun.tools.javac.parser.JmlTokenizer(fac, charBuf, true);
         Token t;
-    	String name = "";
+        String name = "";
         outer:{
-        	while ((t=tokenizer.readToken()) != null) {
-        		if (t.kind == TokenKind.PACKAGE) break ;
-        		if (t.kind == TokenKind.IMPORT) break outer;
-        		if (t.kind == TokenKind.CLASS) break outer;
-        		if (t.kind == TokenKind.LBRACE) break outer;
-        		if (t.kind == TokenKind.EOF) break outer;
-        	}
-    		t = tokenizer.readToken();
-    		if (t.kind != TokenKind.IDENTIFIER) return null; // Bad package declaration -- report as no jml file; the error will be reported on the real parsing of the .java file
-    		name += t.name();
-    		t = tokenizer.readToken();
-        	while (t.kind != TokenKind.SEMI) {
-        		if (t.kind != TokenKind.DOT) return null; // Bad package declaration
-        		name += ".";
-        		t = tokenizer.readToken();
-        		if (t.kind != TokenKind.IDENTIFIER) return null; // Bad package declaration
-        		name += t.name();
-        		t = tokenizer.readToken();
-        	}
-        	name += ".";
+            while ((t=tokenizer.readToken()) != null) {
+                if (t.kind == TokenKind.PACKAGE) break ;
+                if (t.kind == TokenKind.IMPORT) break outer;
+                if (t.kind == TokenKind.CLASS) break outer;
+                if (t.kind == TokenKind.LBRACE) break outer;
+                if (t.kind == TokenKind.EOF) break outer;
+            }
+            t = tokenizer.readToken();
+            if (t.kind != TokenKind.IDENTIFIER) return null; // Bad package declaration -- report as no jml file; the error will be reported on the real parsing of the .java file
+            name += t.name();
+            t = tokenizer.readToken();
+            while (t.kind != TokenKind.SEMI) {
+                if (t.kind != TokenKind.DOT) return null; // Bad package declaration
+                name += ".";
+                t = tokenizer.readToken();
+                if (t.kind != TokenKind.IDENTIFIER) return null; // Bad package declaration
+                name += t.name();
+                t = tokenizer.readToken();
+            }
+            name += ".";
         }
-    	String s = filename.toUri().getPath();
-    	int k = s.lastIndexOf('/');
-    	s = s.substring(k+1);
-    	k = s.indexOf('.');
-    	s = s.substring(0,k); // filename without suffix or directory
-    	name += s; // fully qualified class name
-    	if (debugParse) System.out.println("parser: Seeking specfile for name: " + name);
-    	var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
-    	if (specFile == null) {
-    	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
-    	    var path = java.nio.file.Paths.get(filename.toUri().getPath());
-    	    //JmlSpecs.instance(context);
-    	    specFile = new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
-    	}
-        //System.out.println("  FOUND " + specFile);
-    	return specFile;
+        String s = filename.toUri().getPath();
+        int k = s.lastIndexOf('/');
+        s = s.substring(k+1);
+        k = s.indexOf('.');
+        s = s.substring(0,k); // filename without suffix or directory
+        name += s; // fully qualified class name
+        if (debugParse) System.out.println("parser: Seeking specfile for name: " + name);
+        var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
+        if (specFile == null) {
+            // No spec file on specspath. Last resort is to look for a sibling of the source file.
+            var path = java.nio.file.Paths.get(filename.toUri().getPath());
+            //JmlSpecs.instance(context);
+            specFile = new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
+        }
+        if (debugParse) System.out.println("parser:     Found " + specFile);
+        return specFile;
     }
     
     /** Overridden to emit debug information */

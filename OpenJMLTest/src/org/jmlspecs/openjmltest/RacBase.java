@@ -14,7 +14,6 @@ import java.util.List;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
 import org.junit.Before;
 import org.junit.BeforeClass;

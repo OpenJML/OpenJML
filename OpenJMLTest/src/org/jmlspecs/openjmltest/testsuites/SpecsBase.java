@@ -19,8 +19,6 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlSpecs.*;
 import org.jmlspecs.openjmltest.*;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
@@ -184,7 +182,7 @@ public class SpecsBase extends TCBase {
             String cp1 = "/Users/davidcok/.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar";  // FIXME - has absolute path
             //String cp2 = "libs/hamcrest-junit-2.0.0.0.jar:libs/java-hamcrest-2.0.0.0.jar";
             int ex = main.compile(new String[]{"-cp",cp1 + ":" + jarString,"-Xlint:removal","-Xlint:deprecation"}, files).exitCode;
-            if (print) JmlSpecs.instance(context).printDatabase();
+            if (print) org.jmlspecs.openjml.JmlSpecs.instance(context).printDatabase();
             int expected = expectedExit;
             boolean allNotes = collector.getDiagnostics().stream().allMatch(d->d.toString().contains("Note:"));
             boolean anyErrors = collector.getDiagnostics().stream().anyMatch(d->d.toString().contains("error:"));
@@ -248,27 +246,18 @@ public class SpecsBase extends TCBase {
     static public SortedSet<String> findAllFiles() {
         System.out.println("JRE version " + System.getProperty("java.version"));
         try {
-//            if (specs == null) {
-                Main main = new Main();
-                main.initialize(null);
-                Context context = main.context();
-                JmlSpecs.instance(context);
-                main.addOptions("--specs-path=$SY");
-//            }
+            Main main = new Main();
+            main.initialize(null);
+            main.addOptions("--specs-path=$SY");
         } catch (IOException e) {
             e.printStackTrace();
             fail("Exception in findAllFiles");
         }
-        var dir = new Dir.FileSystemDir(JmlTestSuite.root + "/Specs/specs");
-        //assertTrue ("Null specs path",dirs != null); 
-        //assertTrue ("No specs path",dirs.size() != 0); 
+        var dir = new Dir.FileSystemDir(Main.specs + "/specs");
         
         SortedSet<String> classes = new TreeSet<String>(); 
-        //for (Dir dir: dirs) {
-        //    System.out.println("DIR " + dir.toString());
-            File d = new File(dir.toString());
-            classes.addAll(findAllFiles(d, dir.toString()));
-        //}
+        File d = new File(dir.toString());
+        classes.addAll(findAllFiles(d, dir.toString()));
         classes.removeAll(donttest);
         System.out.println(classes.size() + " system specification classes found");
         return classes;

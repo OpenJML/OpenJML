@@ -27,7 +27,6 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.Dir;
@@ -282,11 +281,12 @@ public abstract class JmlTestSuite {
     // References to various tools needed in testing
     protected Context context;
     protected Main main;
-    protected Options options;
-    protected JmlSpecs specs; // initialized in derived classes
-    protected org.openjml.MockFileTree mockFiles;
+    protected Options options; // FIXME - where why is this used
+    
+    /** This collection of mock files are those on the specs path */
+    protected org.openjml.MockFiles mockFiles;
+    /** This list of mock files are added to the command-line */
     protected LinkedList<JavaFileObject> javamockFiles = new LinkedList<>();
-    protected LinkedList<JavaFileObject> specFiles;
     
     /** Normally false, but set to true in tests of the test harness itself, to
      * avoid printing out diagnostic messages when a test intentionally fails.
@@ -315,30 +315,22 @@ public abstract class JmlTestSuite {
     @Before
     public void setUp() throws Exception {
         try {
-        main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
-        setCollector(ignoreNotes, printDiagnostics);
-        if (System.getenv("NOJML")!=null) {
-            fail("Cannot test with NOJML= within the test suite. Use a scripted test.");
-//            context = main.context = new Context();
-//            JavacFileManager.preRegister(context); // can't create it until Log has been set up
-        } else {
+            main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
+            setCollector(ignoreNotes, printDiagnostics);
+            if (System.getenv("NOJML")!=null) {
+                fail("Cannot test with NOJML= within the test suite. Use a scripted test.");
+            }
             try {
-        	context = main.initialize(collector);
+                context = main.initialize(collector);
             } catch (Exception e) {
                 e.printStackTrace(System.out);
             }
-        }
-        ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
+            ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
 
-        specs = JmlSpecs.instance(context);
-        mockFiles = main.mockFiles;
-        Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
-        if (System.getenv("VERBOSE") != null) {
-        	main.addOptions("-verbose","true"); // FIXME
-            main.addOptions("-jmlverbose","3");
-        }
+            mockFiles = main.mockFiles;
+            Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         } catch (Throwable t) {
-            System.out.println("EXCEPTINO IN SETUP");
+            fail("EXCEPTION IN SETUP");
             t.printStackTrace(System.out);
         }
     }
@@ -366,7 +358,6 @@ public abstract class JmlTestSuite {
         main = null;
         collector = null;
         options = null;
-        specs = null;
         if (mockFiles != null) mockFiles.clear(); mockFiles = null;
     }
 
@@ -542,7 +533,6 @@ public abstract class JmlTestSuite {
     protected void addMockFile(String filename, JavaFileObject file) {
         if (filename.endsWith(".java")) javamockFiles.add(file);
         mockFiles.addMockFile(filename, file);
-        //specs.addMockFile(filename,file);
     }
     
     /** Prints a diagnostic as it is in an error or warning message, but without
@@ -583,8 +573,6 @@ public abstract class JmlTestSuite {
     static public Optional optional(Object ... list) { return new Optional(list); }
     /** Used to indicate that the list objects should all be sequentially found in the test output */
     static public Seq seq(Object ... list) { return new Seq(list); }
-
-    
 }
 
 

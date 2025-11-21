@@ -1,6 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
@@ -26,7 +25,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","package java.util; public interface Collection<E> extends java.lang.Iterable<E> { /*@ public behavior requires true; */ public boolean add(E t);  /*@ public behavior requires true; */ <T> T[] toArray(T[] a) throws NullPointerException;}");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t() { return null; }}");
     }
@@ -44,7 +43,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric2() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection extends java.lang.Iterable {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
@@ -54,7 +53,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/ // OK
     @Test
     public void testBinaryGeneric3() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<E> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 );
@@ -63,7 +62,7 @@ public class generics extends TCBase {
     /** Test with a binary class - type name not matching*/ // FIXME -- with Z not found, the model field \seq<Z> still shows symbols without errors, but isJmlType() is false
     @Test
     public void testBinaryGeneric3c() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: cannot find symbol\n  symbol: class Z",59
@@ -73,7 +72,7 @@ public class generics extends TCBase {
     /** Test with a binary class - mismatched names*/
     @Test
     public void testBinaryGeneric3b() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The specification type named Collection (java.util.Collection) has a type parameter named Z but the Java declaration has that type parameter named E",29
@@ -83,7 +82,7 @@ public class generics extends TCBase {
     /** Test with a binary class -- wrong package*/
     @Test
     public void testBinaryGeneric3a() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
@@ -93,7 +92,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric4() {
-        JmlSpecs.instance(context).setSpecsPath(new String[]{"$A","$B","$CP"});
+        main.addOptions("--specs-path", "$A:$B:$CP");
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E,Z> extends java.lang.Iterable<E> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: The type Collection<E,Z> in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8

@@ -16,12 +16,10 @@ import com.sun.tools.javac.util.Context;
  * Instances of the class org.jmlspecs.openjmltest.TestJavaFileObject can be used as 
  * mock files.
  */
-public class MockFileTree {
+public class MockFiles {
     
     Map<String, JavaFileObject> map = new HashMap<>();
 
-//    public Dir root = new MockDir("#"); // FIXME - what name to use for the root?
-    
     public void addMockFile(String filename, JavaFileObject file) {
         map.put(filename, file);
     }
@@ -41,7 +39,7 @@ public class MockFileTree {
     /** Creates a new MockFileTree that belongs to the given context;
      * a context may have more than one MockFileTree.
      */
-    public MockFileTree() {
+    public MockFiles() {
     }
 
 }

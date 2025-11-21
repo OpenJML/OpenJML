@@ -46,8 +46,15 @@ public class positions extends JmlTestSuite {
     @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
-		org.jmlspecs.openjml.Extensions.register(context);
-        parserFactory = ParserFactory.instance(context);
+        org.jmlspecs.openjml.Extensions.register(context);   // Loads JML stuff
+        try {
+            // Makes sure that components are instantiated without circularity
+            org.jmlspecs.openjml.JmlOptions.instance(context).optionsAllSet = true;
+            com.sun.tools.javac.main.JmlCompiler.instance(context);
+            parserFactory = ParserFactory.instance(context);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
     }
 
     @Parameters
@@ -200,10 +207,12 @@ public class positions extends JmlTestSuite {
         { new Test(true,"public class A { //@ assignable #a#[ *]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. 4]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. ]#;\n void m(){}}", JCArrayAccess.class, 0)},
+
+//        FIXME
 //        { new Test(true,"public class A { //@ assignable ##abc# ;\n void m(){}}", JCIdent.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##ab . c# ;\n void m(){}}", JCFieldAccess.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##ab . *# ;\n void m(){}}", JCFieldAccess.class, 0)},
-//        { new Test(true,"public class A { //@ assignable ##\\nothing#;\n", JmlStoreRefKeyword.class, 0)},
+////        { new Test(true,"public class A { //@ assignable ##\\nothing#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##\\everything#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##a, ab . *# ;\n void m(){}}", JmlStoreRefListExpression.class, 0)},
     };

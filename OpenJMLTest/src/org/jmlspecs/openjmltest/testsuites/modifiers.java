@@ -11,7 +11,7 @@ public class modifiers extends TCBase {
       //noCollectDiagnostics = true;
       //jmldebug = true;
       super.setUp();
-      main.addOptions("--  no-require-white-space");
+      main.addOptions("--no-require-white-space");
     }
     
 

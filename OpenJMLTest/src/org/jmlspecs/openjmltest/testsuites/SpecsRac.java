@@ -17,7 +17,6 @@ import java.util.TreeSet;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjmltest.RacBase;
 import org.jmlspecs.openjmltest.TCBase;
