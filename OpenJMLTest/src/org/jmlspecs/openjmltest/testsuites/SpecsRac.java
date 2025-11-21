@@ -18,7 +18,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
+import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjmltest.RacBase;
 import org.jmlspecs.openjmltest.TCBase;
 import org.jmlspecs.openjmltest.TestJavaFileObject;

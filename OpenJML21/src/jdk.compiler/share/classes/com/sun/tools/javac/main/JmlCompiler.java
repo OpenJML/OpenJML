@@ -182,7 +182,8 @@ public class JmlCompiler extends JavaCompiler {
     	if (specFile == null) {
     	    // No spec file on specspath. Last resort is to look for a sibling of the source file.
     	    var path = java.nio.file.Paths.get(filename.toUri().getPath());
-    	    specFile = JmlSpecs.instance(context).new FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"));
+    	    JmlSpecs.instance(context);
+    	    specFile = new org.jmlspecs.openjml.Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
     	}
         //System.out.println("  FOUND " + specFile);
     	return specFile;

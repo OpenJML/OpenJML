@@ -27,6 +27,7 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 //import org.eclipse.core.runtime.Platform;
+import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -322,7 +323,7 @@ public class JmlSpecs {
             File f = new File(sy);
             if (f.exists() && f.isDirectory()) {
                 if (print) noticeWriter.println("Using internal specs: " + sy);
-                dirs.add(new FileSystemDir(f.getAbsolutePath()));
+                dirs.add(new Dir.FileSystemDir(f.getAbsolutePath()));
                 return true;
             } else {
                 log.error("jml.internal.specs.dir.not.exist",sy);
@@ -526,162 +527,16 @@ public class JmlSpecs {
     public Dir make(String dirName) {
         int n;
         if (dirName.charAt(0) == Strings.mockDirChar) {
-            return new MockDir(dirName);
+            return new Dir.MockDir(dirName);
         } else if ((n=dirName.indexOf("!")) != -1) {
-            return new JarDir(dirName.substring(0,n),dirName.substring(n+1));
+            return new Dir.JarDir(dirName.substring(0,n),dirName.substring(n+1));
         } else if (dirName.endsWith(".jar") || dirName.endsWith(".zip")) {
-            return new JarDir(dirName,"");
+            return new Dir.JarDir(dirName,"");
         } else {
-            return new FileSystemDir(dirName);
+            return new Dir.FileSystemDir(dirName);
         }
     }
     
-    /** An abstract class representing a directory element of the specs path. */
-    abstract static public class Dir {
-        
-        /** The human-readable name of the directory */
-        protected String name;
-        
-        /** Returns the human-readable name of the directory
-         * @return Returns the human-readable name of the directory
-         */
-        public String name() { return name; }
-
-        
-        /** Returns the human-readable name of the directory
-         * @return Returns the human-readable name of the directory
-         */
-        public String toString() { return name; }
-        
-        /** Returns whether the directory actually exists
-         * @return Returns whether the directory actually exists
-         */
-        abstract boolean exists();
-        
-        
-        /** Finds a file with the given path (relative directory, name and
-         * suffix) is present in this directory
-         * @return a JavaFileObject for that file
-         */
-        abstract public /*@Nullable*/JavaFileObject findFile(String filePath);
-    }
-    
-    /** This class handles mock directories - data that appear to be files
-     * within directories but do not actually exist in the file system.
-     */
-    public class MockDir extends Dir {
-        
-        /** Constructs a mock directory object
-         * @param dirName the path to use for the directory object 
-         */
-        public MockDir(String dirName) {
-            this.name = dirName;
-        }
-        
-        /** Mock directory objects always exist */
-        @Override
-        public boolean exists() {
-            return true;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findFile(String filePath) { 
-            String ss = name + "/" + filePath;
-            JavaFileObject j = mockFiles.get(ss);
-            return j;
-        }
-    }
-    
-    /** This class represents conventional file system directories */
-    public class FileSystemDir extends Dir {
-        /** The java.io.File object for the directory */
-        protected File dir;
-        
-        /** Creates a Dir object for the given directory; the existence of a
-         * Dir object does not mean that the underlying directory actually
-         * exists
-         * @param dirName the relative or absolute path to the directory
-         */
-        public FileSystemDir(String dirName) {
-            this.name = dirName;
-            this.dir = new File(dirName);
-        }
-        
-        public FileSystemDir(File dir) {
-            this.name = dir.getName();
-            this.dir = dir;
-        }
-        
-        @Override
-        public boolean exists() {
-            return dir.exists() && dir.isDirectory();
-        }
-
-        @Override
-        public /*@Nullable*/JavaFileObject findFile(String filePath) {
-            File f = new File(dir,filePath);
-            if (f.exists()) {
-                return ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObject(f.toPath());
-            }
-            return null;
-        }
-    }
-    
-    /** This class represents .jar (and .zip) files and subdirectories within them */
-    public class JarDir extends Dir {
-        /** An object holding the path to the archive file (which may not actually
-         * exist)
-         */
-        protected ZipFile zipArchive;
-        
-        /** The subdirectory within the archive, with a trailing slash added to
-         * the name, or an empty string if the directory desired is the top-level
-         * of the archive.
-         */
-        protected String internalDirSlash;
-        
-        /** The directory path within the jar file */
-        protected RelativePath.RelativeDirectory internalDir;
-        
-        /** Creates a Dir object representing the content or a subdirectory of
-         * a Jar file.
-         * @param zip the absolute or relative path to the jar file itself
-         * @param name the subdirectory within the jar file (or an empty string
-         * if the top-level is desired, not null)
-         */
-        public JarDir(String zip, String name) {
-             try {
-                this.zipArchive = new ZipFile(zip);
-            } catch (IOException e) {
-                this.zipArchive = null;
-            }
-            this.internalDir = new RelativePath.RelativeDirectory(name);
-            this.internalDirSlash = name.length() == 0 ? name : (name + "/");
-            this.name = zip + (name.length() == 0 ? name : ("!" + name));
-        }
-        
-        @Override
-        public boolean exists() {
-            if (zipArchive == null) return false;
-            var iter = zipArchive.entries();
-            while (iter.hasMoreElements()) {
-                if (name.length() == 0) return true;
-                // TODO - check that this works correctly // use contains?
-                if (iter.nextElement().getName().startsWith(internalDir.getPath())) return true;
-            }
-            return false;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findFile(String filePath) { 
-            RelativePath file = new RelativePath.RelativeFile(internalDir,filePath);
-            if (zipArchive == null) return null;
-            ZipEntry entry = zipArchive.getEntry(file.toString());
-            if (entry == null) return null;
-            // FIXME return zipArchive.getFileObject(internalDir,filePath);
-            return null;
-        }
-    }
     
     /** Finds the first specification file (if any) for the given class.  It
      * searches each directory on the specPath, in order, for a file with a
@@ -696,7 +551,7 @@ public class JmlSpecs {
         String suffix = Strings.specsSuffix; 
         String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
-            JavaFileObject j = dir.findFile(s);
+            JavaFileObject j = dir.findFile(s, context);
             if (print) System.out.println("parser+: TRYING " + dir + " " + s + " FOUND " + j);
             if (j != null) return j;
         }
@@ -724,7 +579,7 @@ public class JmlSpecs {
         String s = className.replace('.','/');
         for (String suffix : Strings.suffixes){ 
             for (Dir dir: getSpecsPath()) {
-                JavaFileObject j = dir.findFile(s + suffix);
+                JavaFileObject j = dir.findFile(s + suffix, context);
                 if (j != null) return j;
             }
         }
@@ -740,7 +595,7 @@ public class JmlSpecs {
     //@ nullable
     public JavaFileObject findSpecificSpecFile(String filename) {
         for (Dir dir: getSpecsPath()) {
-            JavaFileObject j = dir.findFile(filename);
+            JavaFileObject j = dir.findFile(filename, context);
             if (j != null) return j;
         }
         return null;
@@ -756,7 +611,7 @@ public class JmlSpecs {
     public JavaFileObject findSpecificSourceFile(String filename) {
         for (String dir: getSourcePath()) {
             if (dir.isEmpty()) continue;
-            JavaFileObject j = make(dir).findFile(filename);
+            JavaFileObject j = make(dir).findFile(filename, context);
             if (j != null) return j;
         }
         return null;
