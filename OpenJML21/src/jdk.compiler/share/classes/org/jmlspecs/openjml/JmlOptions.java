@@ -80,7 +80,8 @@ public class JmlOptions extends Options {
         // NOCOVERAGE
         // This branch should never execute. If it does, then there is an internal
         // bug in that an Options instance is requested before JmlOptions is a registered tool.
-        Utils.instance(context).error("jml.internal","Options.instance returns an Options instead of a JmlOptions");
+        // DON'T USE Utils.instance(context) -- Stack overflow will result
+        System.out.println("Options.instance returns an Options instead of a JmlOptions");
         Utils.dumpStack();
         throw new JmlInternalException();
     }

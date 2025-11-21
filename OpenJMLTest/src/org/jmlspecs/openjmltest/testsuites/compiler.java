@@ -38,9 +38,9 @@ public class compiler extends JmlTestSuite{
     boolean capture = true;
     String projHome;
     {
-    String h = System.getProperty("openjml.eclipseProjectLocation");
-    if (h == null) h = JmlTestSuite.root + "/OpenJML21/OpenJMLTest";
-    projHome = h.replace("C:","").replace("\\","/");
+        String h = System.getProperty("openjml.eclipseProjectLocation");
+        if (h == null) h = JmlTestSuite.root + "/OpenJML21/OpenJMLTest";
+        projHome = h.replace("C:","").replace("\\","/");
     }
     String specsHome;
     {
@@ -59,7 +59,6 @@ public class compiler extends JmlTestSuite{
         savedout = System.out;
         if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
         if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
- //       org.jmlspecs.openjml.Main.useJML = false;
     }
     
     @After
@@ -82,11 +81,15 @@ public class compiler extends JmlTestSuite{
      * then they are the expected error and standard output 
      */
     public void helper(String[] args, int expectedExitCode, int all, String ... output) {
-        int exitCode = org.jmlspecs.openjml.Main.execute(args);
-        System.err.flush();
-        System.out.flush();
-        System.setErr(savederr);
-        System.setOut(savedout);
+        int exitCode;
+        try {
+            exitCode = org.jmlspecs.openjml.Main.execute(args);
+        } finally {
+            System.err.flush();
+            System.out.flush();
+            System.setErr(savederr);
+            System.setOut(savedout);
+        }
         if (berr == null) return;
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = bout.toString();
@@ -94,7 +97,7 @@ public class compiler extends JmlTestSuite{
         actualOutput = actualOutput.replace("\\","/");
         //actualOutput = actualOutput.replaceAll("temp-release/", "");
         errOutput = errOutput.toString().replace("\\","/");
-        
+
         String expected;
         if (expectedFile != null) {
             try {
@@ -112,7 +115,7 @@ public class compiler extends JmlTestSuite{
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
         actualOutput = removeNotes(actualOutput);
-        
+
         if (print) System.out.println("EXPECTING: " + output[0]);
         print = false;
         if (print) System.out.println("ACTUAL OUT: " + actualOutput);
