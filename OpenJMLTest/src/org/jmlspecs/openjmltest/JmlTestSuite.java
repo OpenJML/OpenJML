@@ -30,7 +30,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
+import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjmltest.OutputCompare.AnyOrder;
 import org.jmlspecs.openjmltest.OutputCompare.OneOf;
 import org.jmlspecs.openjmltest.OutputCompare.Optional;

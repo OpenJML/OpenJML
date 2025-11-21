@@ -17,6 +17,7 @@ import java.util.TreeSet;
 
 import javax.tools.JavaFileObject;
 
+import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlSpecs.*;
@@ -259,7 +260,7 @@ public class SpecsBase extends TCBase {
             fail("Exception in findAllFiles");
         }
         java.util.List<Dir> dirs = specs.getSpecsPath();
-        dirs.clear(); dirs.add(specs.new FileSystemDir(JmlTestSuite.root + "/Specs/specs"));
+        dirs.clear(); dirs.add(new Dir.FileSystemDir(JmlTestSuite.root + "/Specs/specs"));
         assertTrue ("Null specs path",dirs != null); 
         assertTrue ("No specs path",dirs.size() != 0); 
         
