@@ -17,9 +17,6 @@ import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.Main.IProgressListener;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.*;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -77,30 +74,47 @@ public interface IAPI {
 //    /*@pure*/
 //    public Main main();
 //
-//    /** A partial (abstract) implementation of a progress listener to hear
-//     * progress on this API's operations.
-//     */
-//    public static abstract class AbstractProgressListener implements IProgressListener {
-//        protected Context context;
-//        
-//        public AbstractProgressListener() {
-//        }
-//        
-//        /** Called by the subscribed object when a diagnostic report is made */
-//        @Override
-//        public abstract boolean report(int level, String message);
-//
+    /** An interface for progress information; the implementation reports progress
+     * by calling report(...); clients will receive notification of progress
+     * events by implementing this interface and registering the listener with
+     * progressDelegator.setDelegate(IProgressReporter).
+     *
+     */
+    public static interface IProgressListener {
+        /** Sets a verbosity level */
+        void setVerbose(int verbosity);
+        /** Issues output if level is not less than the set verbosity; 
+         * returns true if there has been a cancellation request
+         */
+        boolean report(int level, String message);
+        /** Tells the listener how many ticks of work have been done */
+        void worked(int ticks);
+    }
+
+    /** A partial (abstract) implementation of a progress listener to hear
+     * progress on this API's operations.
+     */
+    public static abstract class AbstractProgressListener implements IProgressListener {
+        
+        public AbstractProgressListener() {
+        }
+        
+        /** Called by the subscribed object when a diagnostic report is made */
+        @Override
+        public abstract boolean report(int level, String message);
+
 //        // FIXME - can we get rid of this? in the meantime, it must be called to set the context to match that of the compilation context being listened to
 //        @Override
 //        public void setContext(Context context) { this.context = context; }
-//    }
-//    
-//    public static interface IProofResultListener {
-//        
-//        void reportProofResult(MethodSymbol msym, IProverResult result);
-//        default IProofResultListener setListener(IProofResultListener listener) { return null; }
-//    }
-//
+    }
+    
+    public static interface IProofResultListener {
+        
+        @SuppressWarnings("exports")
+        void reportProofResult(MethodSymbol msym, IProverResult result);
+        default IProofResultListener setListener(IProofResultListener listener) { return null; }
+    }
+
 //    /** Sets a progress listener that hears any progress reports (e.g. names of
 //     * files as they are parsed).  Any previous listener is forgotten (there is
 //     * just one listener at a time).

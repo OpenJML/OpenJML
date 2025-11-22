@@ -305,9 +305,9 @@ public class Main {
             List<String> list = List.of(target.multiReleaseValue());
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
-        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("CALLING POSTOPTINOP"); // OPENJLM
-        postOptionProcessing(context); // OPENJML
-        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("DONE POSTOPTINOP"); // OPENJLM
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("CALLING POSTOPTIONP"); // OPENJML
+        postOptionProcessing(); // OPENJML
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("DONE POSTOPTIONP"); // OPENJML
 
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
@@ -383,7 +383,7 @@ public class Main {
         }
     }
 
-    protected void postOptionProcessing(Context context) {} // OPENJML
+    protected void postOptionProcessing() {} // OPENJML
     protected void adjustArgs(Arguments args)  {} // OPENJML
 
     void printArgumentsToFile(String... params) {

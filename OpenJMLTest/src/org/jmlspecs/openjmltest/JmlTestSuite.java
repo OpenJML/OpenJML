@@ -314,17 +314,13 @@ public abstract class JmlTestSuite {
      */
     @Before
     public void setUp() throws Exception {
+        if (System.getenv("NOJML")!=null) {
+            fail("Cannot test with NOJML= within the test suite. Use a scripted test.");
+        }
         try {
             main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
             setCollector(ignoreNotes, printDiagnostics);
-            if (System.getenv("NOJML")!=null) {
-                fail("Cannot test with NOJML= within the test suite. Use a scripted test.");
-            }
-            try {
-                context = main.initialize(collector);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+            context = main.initialize(collector);
             ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
 
             mockFiles = main.mockFiles;

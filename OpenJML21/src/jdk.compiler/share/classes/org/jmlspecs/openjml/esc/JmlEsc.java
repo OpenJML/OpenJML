@@ -3,6 +3,9 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+
+import org.openjml.IAPI;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,7 +13,6 @@ import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
@@ -20,7 +22,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.openjml.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 

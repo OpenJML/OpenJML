@@ -322,7 +322,7 @@ public class Log extends AbstractLog {
      */
     private Log(Context context, Map<WriterKind, PrintWriter> writers) {
         super(JCDiagnostic.Factory.instance(context));
-        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("LOG"); // OPENJML
+        if (org.jmlspecs.openjml.Utils.debugInst) { System.out.println("LOG " + context.hashCode()); } // OPENJML
         context.put(logKey, this);
         this.writers = writers;
 

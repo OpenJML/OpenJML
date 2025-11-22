@@ -46,10 +46,11 @@ public class positions extends JmlTestSuite {
     @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
-        org.jmlspecs.openjml.Extensions.register(context);   // Loads JML stuff
+        main.postOptionProcessing();
+        //org.jmlspecs.openjml.Extensions.register(context);   // Loads JML stuff
         try {
             // Makes sure that components are instantiated without circularity
-            org.jmlspecs.openjml.JmlOptions.instance(context).optionsAllSet = true;
+            //org.jmlspecs.openjml.JmlOptions.instance(context).optionsAllSet = true;
             com.sun.tools.javac.main.JmlCompiler.instance(context);
             parserFactory = ParserFactory.instance(context);
         } catch (Exception e) {

@@ -1,4 +1,5 @@
-#!/bin/bash
+#! /usr/bin/env bash
+
 ## This script runs the basic openjml compilation/esc/rac tool. It is analogous to javac.
 
 ## This script may be executed in either the development environment or in a release
