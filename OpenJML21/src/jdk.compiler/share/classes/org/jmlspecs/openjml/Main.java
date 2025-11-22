@@ -7,6 +7,8 @@ package org.jmlspecs.openjml;
 
 import static com.sun.tools.javac.main.Option.WERROR;
 
+import org.openjml.IAPI;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -16,7 +18,7 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.openjml.*;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.*;
@@ -85,35 +87,19 @@ public class Main extends com.sun.tools.javac.main.Main {
         }
     }
 
-    /** An interface for progress information; the implementation reports progress
-     * by calling report(...); clients will receive notification of progress
-     * events by implementing this interface and registering the listener with
-     * progressDelegator.setDelegate(IProgressReporter).
-     *
-     */
-    public static interface IProgressListener {
-        /** Sets a verbosity level */
-        void setVerbose(int verbosity);
-        /** Issues output if level is not less than the set verbosity; 
-         * returns true if there has been a cancellation request
-         */
-        boolean report(int level, String message);
-        /** Tells the listener how many ticks of work have been done */
-        void worked(int ticks);
-    }
 
     /** This listener is notified of progress messages.
      * Currently only one listener is allowed at a time.
      * Some listener is required; initialized to one that emits nothing
      */
     /*@ non_null*/ 
-    public IProgressListener progressListener  = new PrintProgressReporter(new NullPrintWriter());
+    public IAPI.IProgressListener progressListener  = new PrintProgressReporter(new NullPrintWriter());
 
 
     /** This class is a progress listener that prints the progress messages to 
      * a given OutputStream.
      */
-    public static class PrintProgressReporter implements IProgressListener {
+    public static class PrintProgressReporter implements IAPI.IProgressListener {
         protected PrintWriter pw;
         protected int verbosity;
 
@@ -525,21 +511,19 @@ public class Main extends com.sun.tools.javac.main.Main {
      * need to be reset.
      */
     // FIXME -- resolve the use of Check.resetHandlers -- it sets lint options incorrectly in normal use
-    public void postOptionProcessing(Context context) {
+    public void postOptionProcessing() {
+        JmlOptions.instance(context).setupOptions();
+
+         // Only implemented for the simple compile policy
+        Options.instance(context).put("compilePolicy", "simple");
+        JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
+
         // Handlers are created during tool registration, which in OpenJML has to be before
         // options are read. In some cases the tools cache values of options.
         // So they have to be adjusted for the actual values of the options.
-        //        Check.instance(context).resetHandlers(); // Caches values of lint settings
+        Check.instance(context).resetHandlers(); // Caches values of lint settings // Instantiates JmlCompiler
         ClassFinder.instance(context).resetOptions(context); // Caches verbose, -Xprefer and others
-        //        
-        //        // FIXME - JavaCompiler also caches lots of options. There is no mechanism to reset JavaCompiler
-        //        // once it is created for a given context.  So the API cannot rerun the compiler with different options.
-        //        
-        //        // Only implemented for the simple compile policy
-        Options.instance(context).put("compilePolicy", "simple");
-        JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
-        // Reset any options cached by JmlOptions
-        JmlOptions.instance(context).setupOptions();
+
         if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
     }
 

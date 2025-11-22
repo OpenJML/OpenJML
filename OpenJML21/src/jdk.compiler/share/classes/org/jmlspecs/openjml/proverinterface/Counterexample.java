@@ -4,6 +4,7 @@
  */
 package org.jmlspecs.openjml.proverinterface;
 
+import org.openjml.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

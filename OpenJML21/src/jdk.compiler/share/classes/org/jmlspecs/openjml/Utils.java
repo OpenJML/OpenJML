@@ -1510,7 +1510,7 @@ public class Utils {
      * @param message the progress message
      */
     public void progress(int ticks, int level, String message) {
-        org.jmlspecs.openjml.Main.IProgressListener pr = org.jmlspecs.openjml.Main.instance(context).progressListener;
+        org.openjml.IAPI.IProgressListener pr = org.jmlspecs.openjml.Main.instance(context).progressListener;
         boolean cancelled = pr.report(level,message);
         if (pr != null && ticks != 0) pr.worked(ticks);
         if (cancelled) {

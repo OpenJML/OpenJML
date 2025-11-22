@@ -1,4 +1,5 @@
-#! /bin/bash
+#! /usr/bin/env bash
+
 ## This script runs the basic openjml compilation/esc/rac tool, but with the options that permit linking in 
 ## openjdk/openjml code for programmatic access to openjdk/openjml. It is analogous to javac.
 
@@ -6,21 +7,21 @@
 
 ## Directory containing this file, which should be either .../OpenJML21 or the release folder
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the path to this script file
-LOCAL=$(dirname "$FILE") # path of the folder containing this file
+INSTALL=$(dirname "$FILE") # path of the folder containing this file
 
-if [ -e "$LOCAL/version-info.txt" ]; then
+if [ -e "$INSTALL/version-info.txt" ]; then
   ## In a release
-  CL=`echo "$LOCAL"/jdk/modules/* | sed -e "s/ /:/g"`
-  MODULES="$LOCAL/jdk/modules"
+  CL=`echo "$INSTALL"/jdk/modules/* | sed -e "s/ /:/g"`
+  MODULES="$INSTALL/jdk/modules"
 else
   ## In development environment
-  CL=`echo "$LOCAL"/build/*/jdk/modules/* | sed -e "s/ /:/g"`
-  MODULES=`echo "$LOCAL"/build/*release/jdk/modules`
+  CL=`echo "$INSTALL"/build/*/jdk/modules/* | sed -e "s/ /:/g"`
+  MODULES=`echo "$INSTALL"/build/*release/jdk/modules`
 fi
 
 CP=".:$CL"
 
-. $LOCAL/setup-exports
+. "$INSTALL/setup-exports"
 
-"$LOCAL/openjml" -cp "$CP" -p $MODULES $EXPORTS --compile "$@"
+"$INSTALL/openjml" -cp "$CP" -p $MODULES $EXPORTS --compile "$@"
 

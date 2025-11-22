@@ -1,10 +1,14 @@
 parser: Seeking specfile for name: A
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/A.java] null  Classes: A
 parser: Seeking specfile for name: B
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/B.java] null  Classes: B
 parser: Seeking specfile for name: C
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/C.java] null  Classes: 
 parser: Seeking specfile for name: D
+parser:     Found SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.jml]
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.java] SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.jml]  Classes: D
 E.java:1: error: <identifier> expected
 package ;
@@ -19,5 +23,6 @@ package a.;
           ^
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/G.java] null  Classes: G
 parser: Seeking specfile for name: a.b.H
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/H.java] null  Classes: H
 3 errors

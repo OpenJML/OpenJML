@@ -29,7 +29,6 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.esc.BasicBlocker2;
 import org.jmlspecs.openjml.esc.BasicProgram;
 import org.jmlspecs.openjml.esc.JmlEsc;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlOption;
@@ -1118,7 +1117,9 @@ public class API implements IAPI {
 //        }
 //    }
     
-    public TokenIterator makeTokenIterator(String text) { return new TokenIterator(text); } 
+    public TokenIterator makeTokenIterator(String text) { 
+        return new TokenIterator(text);
+    } 
 
     
     @SuppressWarnings("exports")
@@ -1127,6 +1128,7 @@ public class API implements IAPI {
         protected JmlTokenizer tokenizer;
         
         public TokenIterator(String text) {
+            main.postOptionProcessing();
             ScannerFactory factory = main.context().get(ScannerFactory.scannerFactoryKey);
             tokenizer = ((JmlScanner)factory.newScanner(text, true)).jmltokenizer;
         }

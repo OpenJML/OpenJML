@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 ## This is a convenience script to run the version of 'java' embellished with openjml's runtime libraries.
 ## If an openjml program, compiled with 'openjml', is executed with just 'java', then the jmlruntime.jar runtime library will be needed.

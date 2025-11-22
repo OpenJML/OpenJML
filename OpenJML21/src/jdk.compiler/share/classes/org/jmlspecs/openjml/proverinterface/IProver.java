@@ -4,8 +4,8 @@
  */
 package org.jmlspecs.openjml.proverinterface;
 
-
-import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
+import org.openjml.*;
+import org.openjml.IProverResult.ICounterexample;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;

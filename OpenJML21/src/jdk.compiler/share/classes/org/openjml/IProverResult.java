@@ -2,7 +2,7 @@
  * This file is part of the OpenJML project. 
  * Author: David R. Cok
  */
-package org.jmlspecs.openjml.proverinterface;
+package org.openjml;
 
 import java.util.Collection;
 import java.util.Date;
@@ -17,6 +17,7 @@ import com.sun.tools.javac.tree.JCTree;
 public interface IProverResult {
     
     public static interface IFactory {
+        @SuppressWarnings("exports")
         public IProverResult makeProverResult(MethodSymbol msym, String prover, Kind kind, Date start);
     }
 
@@ -92,6 +93,7 @@ public interface IProverResult {
     public Date timestamp();
 
     /** The method for which this result was obtained */
+    @SuppressWarnings("exports")
     public Symbol.MethodSymbol methodSymbol();
 
     /** The satisfying assignment produced by the prover.
@@ -162,6 +164,7 @@ public interface IProverResult {
 //        public void putMap(Map<String,String> map);
 //        public Map<String,String> getMap();
         
+        @SuppressWarnings("exports")
         public String get(JCTree expr);
 
         public void putPath(List<Span> path);

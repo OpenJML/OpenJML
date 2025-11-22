@@ -103,7 +103,7 @@ abstract public class Dir {
             File f = new File(dir,filePath);
             if (f.exists()) {
                 //return context.get(JavacFileManager.class).getJavaFileObject(f.toPath());
-                return new JavacFileManager(new Context(),false,null).getJavaFileObject(f.toPath());
+                return new JavacFileManager(context,false,null).getJavaFileObject(f.toPath());
             }
             return null;
         }
