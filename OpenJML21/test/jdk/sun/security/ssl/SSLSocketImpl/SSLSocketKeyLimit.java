@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -125,8 +125,8 @@ public class SSLSocketKeyLimit {
             }
             p.close();
             System.out.println("Keyusage path = " + f.getAbsolutePath());
-            System.setProperty("test.java.opts",
-                    "-Dtest.src=" + System.getProperty("test.src") +
+            System.setProperty("test.java.opts", System.getProperty("test.java.opts") +
+                    " -Dtest.src=" + System.getProperty("test.src") +
                             " -Dtest.jdk=" + System.getProperty("test.jdk") +
                             " -Djavax.net.debug=ssl,handshake" +
                             " -Djava.security.properties=" + f.getName());
@@ -134,7 +134,7 @@ public class SSLSocketKeyLimit {
             System.out.println("test.java.opts: " +
                     System.getProperty("test.java.opts"));
 
-            ProcessBuilder pb = ProcessTools.createTestJvm(
+            ProcessBuilder pb = ProcessTools.createTestJavaProcessBuilder(
                     Utils.addTestJavaOpts("SSLSocketKeyLimit", "p", args[1],
                             args[2]));
 

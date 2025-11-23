@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.internal.Utils;
+import jdk.jfr.internal.util.Utils;
 import jdk.jfr.internal.query.FilteredType.Filter;
 import jdk.jfr.internal.query.Query.Condition;
 import jdk.jfr.internal.query.Query.Expression;
@@ -98,9 +98,17 @@ final class QueryResolver {
         resolveGroupBy();
         resolveOrderBy();
         resolveWhere();
+        applyIndex();
         applyColumn();
         applyFormat();
         return resultFields;
+    }
+
+    private void applyIndex() {
+        int index = 0;
+        for (Field field : resultFields) {
+            field.index = index++;
+        }
     }
 
     private void resolveWhere() throws QuerySyntaxException {
@@ -144,7 +152,7 @@ final class QueryResolver {
             field.aggregator = expression.aggregator();
             FieldBuilder.configureAggregator(field);
             expression.alias().ifPresent(alias -> fieldAliases.put(alias, field));
-            if (field.name.equals("*") && field.aggregator != Aggregator.COUNT) {
+            if (expression.name().equals("*") && field.aggregator != Aggregator.COUNT) {
                 throw new QuerySyntaxException("Wildcard ('*') can only be used with aggregator function COUNT");
             }
         }
@@ -238,7 +246,6 @@ final class QueryResolver {
             }
         }
         for (Field field: fields) {
-            field.index = resultFields.size();
             primary.sourceFields.add(field);
             // Convert to String if field data types mismatch
             if (mixedTypes) {
@@ -259,7 +266,7 @@ final class QueryResolver {
         List<Field> fields = new ArrayList<>();
 
         if (name.equals("*")) {
-            // Used with COUNT(*) and UNIQUE(*)
+            // Used with COUNT(*)
             // All events should have a start time
             name = "startTime";
         }

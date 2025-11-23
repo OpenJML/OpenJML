@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -40,11 +40,12 @@ import jdk.internal.util.ArraysSupport;
  * {@code Vector}, except that it is unsynchronized.)
  *
  * <p>The {@code size}, {@code isEmpty}, {@code get}, {@code set},
- * {@code iterator}, and {@code listIterator} operations run in constant
- * time.  The {@code add} operation runs in <i>amortized constant time</i>,
- * that is, adding n elements requires O(n) time.  All of the other operations
- * run in linear time (roughly speaking).  The constant factor is low compared
- * to that for the {@code LinkedList} implementation.
+ * {@code getFirst}, {@code getLast}, {@code removeLast}, {@code iterator},
+ * {@code listIterator}, and {@code reversed} operations run in constant time.
+ * The {@code add}, and {@code addLast} operations runs in <i>amortized
+ * constant time</i>, that is, adding n elements requires O(n) time.  All of
+ * the other operations run in linear time (roughly speaking).  The constant
+ * factor is low compared to that for the {@code LinkedList} implementation.
  *
  * <p>Each {@code ArrayList} instance has a <i>capacity</i>.  The capacity is
  * the size of the array used to store the elements in the list.  It is always
@@ -1581,6 +1582,13 @@ public class ArrayList<E> extends AbstractList<E>
                 }
             };
         }
+
+        @Override
+        public void sort(Comparator<? super E> c) {
+            checkForComodification();
+            root.sortRange(c, offset, offset + size);
+            updateSizeAndModCount(0);
+        }
     }
 
     /**
@@ -1798,13 +1806,17 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void sort(Comparator<? super E> c) {
+        sortRange(c, 0, size);
+        modCount++;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void sortRange(Comparator<? super E> c, int fromIndex, int toIndex) {
         final int expectedModCount = modCount;
-        Arrays.sort((E[]) elementData, 0, size, c);
+        Arrays.sort((E[]) elementData, fromIndex, toIndex, c);
         if (modCount != expectedModCount)
             throw new ConcurrentModificationException();
-        modCount++;
     }
 
     void checkInvariants() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,17 +22,12 @@
  *
  */
 
-#include "precompiled.hpp"
-#include "c1/c1_ValueStack.hpp"
-#include "c1/c1_RangeCheckElimination.hpp"
 #include "c1/c1_IR.hpp"
-#include "c1/c1_Canonicalizer.hpp"
-#include "c1/c1_ValueMap.hpp"
+#include "c1/c1_RangeCheckElimination.hpp"
+#include "c1/c1_ValueStack.hpp"
 #include "ci/ciMethodData.hpp"
 #include "runtime/deoptimization.hpp"
-#ifdef ASSERT
 #include "utilities/bitMap.inline.hpp"
-#endif
 
 // Macros for the Trace and the Assertion flag
 #ifdef ASSERT
@@ -348,12 +343,29 @@ RangeCheckEliminator::Bound *RangeCheckEliminator::get_bound(Value v) {
 
 // Update bound
 void RangeCheckEliminator::update_bound(IntegerStack &pushed, Value v, Instruction::Condition cond, Value value, int constant) {
+  assert(sizeof(constant) == sizeof(jint), "wrong size");
   if (cond == Instruction::gtr) {
     cond = Instruction::geq;
-    constant++;
+    if (constant == INT_MAX) {
+      if (value == nullptr) {
+        // Cannot represent c > INT_MAX, do not update bounds
+        return;
+      }
+      constant = java_add((jint)constant, 1); // Java wrap semantics
+    } else {
+      constant++;
+    }
   } else if (cond == Instruction::lss) {
     cond = Instruction::leq;
-    constant--;
+    if (constant == INT_MIN) {
+      if (value == nullptr) {
+        // Cannot represent c < INT_MIN, do not update bounds
+        return;
+      }
+      constant = java_subtract((jint)constant, 1); // Java wrap semantics
+    } else {
+      constant--;
+    }
   }
   Bound *bound = new Bound(cond, value, constant);
   update_bound(pushed, v, bound);
@@ -404,8 +416,11 @@ void RangeCheckEliminator::add_access_indexed_info(InstructionList &indices, int
     aii->_max = idx;
     aii->_list = new AccessIndexedList();
   } else if (idx >= aii->_min && idx <= aii->_max) {
-    remove_range_check(ai);
-    return;
+    // Guard against underflow/overflow (see 'range_cond' check in RangeCheckEliminator::in_block_motion)
+    if (aii->_max < 0 || (aii->_max + min_jint) <= aii->_min) {
+      remove_range_check(ai);
+      return;
+    }
   }
   aii->_min = MIN2(aii->_min, idx);
   aii->_max = MAX2(aii->_max, idx);
@@ -448,9 +463,9 @@ void RangeCheckEliminator::in_block_motion(BlockBegin *block, AccessIndexedList 
           }
         }
       } else {
-        int last_integer = 0;
+        jint last_integer = 0;
         Instruction *last_instruction = index;
-        int base = 0;
+        jint base = 0;
         ArithmeticOp *ao = index->as_ArithmeticOp();
 
         while (ao != nullptr && (ao->x()->as_Constant() || ao->y()->as_Constant()) && (ao->op() == Bytecodes::_iadd || ao->op() == Bytecodes::_isub)) {
@@ -462,15 +477,15 @@ void RangeCheckEliminator::in_block_motion(BlockBegin *block, AccessIndexedList 
           }
 
           if (c) {
-            int value = c->type()->as_IntConstant()->value();
-            if (value != min_jint) {
-              if (ao->op() == Bytecodes::_isub) {
-                value = -value;
-              }
-              base += value;
-              last_integer = base;
-              last_instruction = other;
+            jint value = c->type()->as_IntConstant()->value();
+            if (ao->op() == Bytecodes::_iadd) {
+              base = java_add(base, value);
+            } else {
+              assert(ao->op() == Bytecodes::_isub, "unexpected bytecode");
+              base = java_subtract(base, value);
             }
+            last_integer = base;
+            last_instruction = other;
             index = other;
           } else {
             break;
@@ -489,12 +504,12 @@ void RangeCheckEliminator::in_block_motion(BlockBegin *block, AccessIndexedList 
         assert(info != nullptr, "Info must not be null");
 
         // if idx < 0, max > 0, max + idx may fall between 0 and
-        // length-1 and if min < 0, min + idx may overflow and be >=
+        // length-1 and if min < 0, min + idx may underflow/overflow and be >=
         // 0. The predicate wouldn't trigger but some accesses could
         // be with a negative index. This test guarantees that for the
         // min and max value that are kept the predicate can't let
         // some incorrect accesses happen.
-        bool range_cond = (info->_max < 0 || info->_max + min_jint <= info->_min);
+        bool range_cond = (info->_max < 0 || (info->_max + min_jint) <= info->_min);
 
         // Generate code only if more than 2 range checks can be eliminated because of that.
         // 2 because at least 2 comparisons are done
@@ -691,8 +706,7 @@ void RangeCheckEliminator::insert_deoptimization(ValueStack *state, Instruction 
     } else {
       assert(lower < 0, "");
       // Add 1
-      lower++;
-      lower = -lower;
+      lower = java_subtract(-1, (jint)lower); // lower++; lower = -lower;
       // Compare for smaller or equal 0
       insert_position = predicate_cmp_with_const(lower_instr, Instruction::leq, lower, state, insert_position, bci);
     }
@@ -736,7 +750,7 @@ void RangeCheckEliminator::insert_deoptimization(ValueStack *state, Instruction 
       insert_position = predicate_add(upper_instr, upper, Instruction::geq, length_instr, state, insert_position, bci);
     } else {
       assert(upper > 0, "");
-      upper = -upper;
+      upper = java_negate((jint)upper); // upper = -upper;
       // Compare for geq array.length
       insert_position = predicate_add(length_instr, upper, Instruction::leq, upper_instr, state, insert_position, bci);
     }
@@ -843,7 +857,7 @@ void RangeCheckEliminator::process_access_indexed(BlockBegin *loop_header, Block
         );
 
         remove_range_check(ai);
-    } else if (_optimistic && loop_header) {
+    } else if (false && _optimistic && loop_header) {
       assert(ai->array(), "Array must not be null!");
       assert(ai->index(), "Index must not be null!");
 
@@ -1332,26 +1346,6 @@ RangeCheckEliminator::Bound::Bound(Instruction::Condition cond, Value v, int con
   } else {
     ShouldNotReachHere();
   }
-}
-
-// Set lower
-void RangeCheckEliminator::Bound::set_lower(int value, Value v) {
-  assert(!v || !v->as_Constant() || !v->type()->as_IntConstant(), "Must not be constant!");
-  this->_lower = value;
-  this->_lower_instr = v;
-}
-
-// Set upper
-void RangeCheckEliminator::Bound::set_upper(int value, Value v) {
-  assert(!v || !v->as_Constant() || !v->type()->as_IntConstant(), "Must not be constant!");
-  this->_upper = value;
-  this->_upper_instr = v;
-}
-
-// Add constant -> no overflow may occur
-void RangeCheckEliminator::Bound::add_constant(int value) {
-  this->_lower += value;
-  this->_upper += value;
 }
 
 // or

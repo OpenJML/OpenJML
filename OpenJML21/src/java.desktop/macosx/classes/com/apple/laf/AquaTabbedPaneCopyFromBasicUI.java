@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -404,7 +404,11 @@ public class AquaTabbedPaneCopyFromBasicUI extends TabbedPaneUI implements Swing
         }
         tabPane.addContainerListener(getHandler());
         if (tabPane.getTabCount() > 0) {
-            htmlViews = createHTMLVector();
+            Boolean htmlDisabled = (Boolean)
+                                   tabPane.getClientProperty("html.disable");
+            if (!(Boolean.TRUE.equals(htmlDisabled))) {
+                htmlViews = createHTMLVector();
+            }
         }
     }
 
@@ -638,7 +642,7 @@ public class AquaTabbedPaneCopyFromBasicUI extends TabbedPaneUI implements Swing
      * Returns the baseline for the specified tab.
      *
      * @param tab index of tab to get baseline for
-     * @exception IndexOutOfBoundsException if index is out of range
+     * @throws IndexOutOfBoundsException if index is out of range
      *            (index < 0 || index >= tab count)
      * @return baseline or a value &lt; 0 indicating there is no reasonable
      *                  baseline
@@ -3445,8 +3449,10 @@ public class AquaTabbedPaneCopyFromBasicUI extends TabbedPaneUI implements Swing
 
         private void updateHtmlViews(int index, boolean inserted) {
             final String title = tabPane.getTitleAt(index);
+            Boolean htmlDisabled = (Boolean)
+                                   tabPane.getClientProperty("html.disable");
             final boolean isHTML = BasicHTML.isHTMLString(title);
-            if (isHTML) {
+            if (isHTML && !(Boolean.TRUE.equals(htmlDisabled))) {
                 if (htmlViews == null) { // Initialize vector
                     htmlViews = createHTMLVector();
                 } else { // Vector already exists

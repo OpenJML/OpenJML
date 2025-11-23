@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -38,7 +38,7 @@ import jdk.jfr.Experimental;
 import jdk.jfr.Relational;
 import jdk.jfr.ValueDescriptor;
 import jdk.jfr.consumer.EventStream;
-import jdk.jfr.internal.Utils;
+import jdk.jfr.internal.util.Utils;
 import jdk.jfr.internal.util.Columnizer;
 import jdk.jfr.internal.util.Output;
 import jdk.jfr.internal.util.StopWatch;
@@ -118,7 +118,7 @@ public final class QueryPrinter {
                 out.println();
                 out.println("Execution: " + stopWatch.toString());
             }
-            if (configuration.startTime != null) {
+            if (configuration.verboseTimespan) {
                 String s = ValueFormatter.formatTimestamp(configuration.startTime);
                 String e = ValueFormatter.formatTimestamp(configuration.endTime);
                 out.println();

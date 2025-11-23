@@ -24,14 +24,14 @@
  */
 package jdk.internal.classfile.impl;
 
-import jdk.internal.classfile.ClassfileVersion;
+import java.lang.classfile.ClassFileVersion;
 
-public final class ClassfileVersionImpl
+public final class ClassFileVersionImpl
         extends AbstractElement
-        implements ClassfileVersion {
+        implements ClassFileVersion {
     private final int majorVersion, minorVersion;
 
-    public ClassfileVersionImpl(int majorVersion, int minorVersion) {
+    public ClassFileVersionImpl(int majorVersion, int minorVersion) {
         this.majorVersion = majorVersion;
         this.minorVersion = minorVersion;
     }
@@ -53,6 +53,6 @@ public final class ClassfileVersionImpl
 
     @Override
     public String toString() {
-        return String.format("ClassfileVersion[majorVersion=%d, minorVersion=%d]", majorVersion, minorVersion);
+        return String.format("ClassFileVersion[majorVersion=%d, minorVersion=%d]", majorVersion, minorVersion);
     }
 }

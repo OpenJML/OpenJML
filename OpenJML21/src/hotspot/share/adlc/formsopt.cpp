@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,7 +31,8 @@ int RegisterForm::_reg_ctr = 0;
 //------------------------------RegisterForm-----------------------------------
 // Constructor
 RegisterForm::RegisterForm()
-  : _regDef(cmpstr,hashstr, Form::arena),
+  : _current_ac(nullptr),
+    _regDef(cmpstr,hashstr, Form::arena),
     _regClass(cmpstr,hashstr, Form::arena),
     _allocClass(cmpstr,hashstr, Form::arena) {
 }
@@ -170,9 +171,13 @@ int RegisterForm::RegMask_Size() {
   // on the stack (stack registers) up to some interesting limit.  Methods
   // that need more parameters will NOT be compiled.  On Intel, the limit
   // is something like 90+ parameters.
-  // Add a few (3 words == 96 bits) for incoming & outgoing arguments to calls.
-  // Round up to the next doubleword size.
-  return (words_for_regs + 3 + 1) & ~1;
+  // - Add a few (3 words == 96 bits) for incoming & outgoing arguments to
+  //   calls.
+  // - Round up to the next doubleword size.
+  // - Add one more word to accommodate a reasonable number of stack locations
+  //   in the register mask regardless of how much slack is created by rounding.
+  //   This was found necessary after adding 16 new registers for APX.
+  return (words_for_regs + 3 + 1 + 1) & ~1;
 }
 
 void RegisterForm::dump() {                  // Debug printer
@@ -195,6 +200,20 @@ void RegisterForm::output(FILE *fp) {          // Write info to output files
     ((AllocClass*)_allocClass[name])->output(fp);
   }
   fprintf(fp,"-------------------- end  RegisterForm --------------------\n");
+}
+
+void RegisterForm::forms_do(FormClosure *f) {
+  const char *name = nullptr;
+  if (_current_ac) f->do_form(_current_ac);
+  for(_rdefs.reset(); (name = _rdefs.iter()) != nullptr;) {
+    f->do_form((RegDef*)_regDef[name]);
+  }
+  for (_rclasses.reset(); (name = _rclasses.iter()) != nullptr;) {
+    f->do_form((RegClass*)_regClass[name]);
+  }
+  for (_aclasses.reset(); (name = _aclasses.iter()) != nullptr;) {
+    f->do_form((AllocClass*)_allocClass[name]);
+  }
 }
 
 //------------------------------RegDef-----------------------------------------
@@ -321,6 +340,13 @@ void RegClass::output(FILE *fp) {           // Write info to output files
   fprintf(fp,"--- done with entries for reg_class %s\n\n",_classid);
 }
 
+void RegClass::forms_do(FormClosure *f) {
+  const char *name = nullptr;
+  for( _regDefs.reset(); (name = _regDefs.iter()) != nullptr; ) {
+    f->do_form((RegDef*)_regDef[name]);
+  }
+}
+
 void RegClass::declare_register_masks(FILE* fp) {
   const char* prefix = "";
   const char* rc_name_to_upper = toUpper(_classid);
@@ -372,6 +398,8 @@ void CodeSnippetRegClass::declare_register_masks(FILE* fp) {
 
 //------------------------------ConditionalRegClass---------------------------
 ConditionalRegClass::ConditionalRegClass(const char *classid) : RegClass(classid), _condition_code(nullptr) {
+    _rclasses[0] = nullptr;
+    _rclasses[1] = nullptr;
 }
 
 ConditionalRegClass::~ConditionalRegClass() {
@@ -433,18 +461,31 @@ void AllocClass::output(FILE *fp) {       // Write info to output files
   fprintf(fp,"--- done with entries for alloc_class %s\n\n",_classid);
 }
 
+void AllocClass::forms_do(FormClosure* f) {
+  const char *name;
+  for(_regDefs.reset(); (name = _regDefs.iter()) != nullptr;) {
+    f->do_form((RegDef*)_regDef[name]);
+  }
+  return;
+}
+
 //==============================Frame Handling=================================
 //------------------------------FrameForm--------------------------------------
 FrameForm::FrameForm() {
+  _sync_stack_slots = nullptr;
+  _inline_cache_reg = nullptr;
+  _interpreter_frame_pointer_reg = nullptr;
+  _cisc_spilling_operand_name = nullptr;
   _frame_pointer = nullptr;
   _c_frame_pointer = nullptr;
   _alignment = nullptr;
+  _return_addr_loc = false;
+  _c_return_addr_loc = false;
   _return_addr = nullptr;
   _c_return_addr = nullptr;
   _varargs_C_out_slots_killed = nullptr;
   _return_value = nullptr;
   _c_return_value = nullptr;
-  _interpreter_frame_pointer_reg = nullptr;
 }
 
 FrameForm::~FrameForm() {
@@ -696,6 +737,15 @@ void Peephole::output(FILE *fp) {         // Write info to output files
   if( _replace != nullptr )     _replace->output(fp);
   // Output the next entry
   if( _next ) _next->output(fp);
+}
+
+void Peephole::forms_do(FormClosure *f) {
+  if (_predicate) f->do_form(_predicate);
+  if (_match) f->do_form(_match);
+  if (_procedure) f->do_form(_procedure);
+  if (_constraint) f->do_form(_constraint);
+  if (_replace) f->do_form(_replace);
+  return;
 }
 
 //----------------------------PeepPredicate------------------------------------

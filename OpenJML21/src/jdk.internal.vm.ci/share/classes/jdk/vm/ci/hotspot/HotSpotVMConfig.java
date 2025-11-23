@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, 2024, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -28,6 +28,7 @@ import static jdk.vm.ci.hotspot.UnsafeAccess.UNSAFE;
 import jdk.vm.ci.common.JVMCIError;
 import jdk.vm.ci.services.Services;
 import jdk.internal.misc.Unsafe;
+import jdk.internal.util.Architecture;
 
 /**
  * Used to access native configuration details.
@@ -43,8 +44,6 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
         return runtime().getConfig();
     }
 
-    private final String osArch = getHostArchitectureName();
-
     HotSpotVMConfig(HotSpotVMConfigStore store) {
         super(store);
 
@@ -56,14 +55,11 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
      * Gets the host architecture name for the purpose of finding the corresponding
      * {@linkplain HotSpotJVMCIBackendFactory backend}.
      */
-    String getHostArchitectureName() {
-        String arch = Services.getSavedProperty("os.arch");
+    static String getHostArchitectureName() {
+        Architecture arch = Architecture.current();
         switch (arch) {
-            case "x86_64":
-                return "amd64";
-
-            default:
-                return arch;
+            case X64: return "amd64";
+            default:  return arch.name().toLowerCase();
         }
     }
 
@@ -73,7 +69,7 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
 
     final int objectAlignment = getFlag("ObjectAlignmentInBytes", Integer.class);
 
-    final int hubOffset = getFieldOffset("oopDesc::_metadata._klass", Integer.class, "Klass*");
+    final int klassOffsetInBytes = getFieldValue("CompilerToVM::Data::oopDesc_klass_offset_in_bytes", Integer.class, "int");
 
     final int subklassOffset = getFieldOffset("Klass::_subklass", Integer.class, "Klass*");
     final int superOffset = getFieldOffset("Klass::_super", Integer.class, "Klass*");
@@ -102,6 +98,7 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int instanceKlassFieldInfoStreamOffset = getFieldOffset("InstanceKlass::_fieldinfo_stream", Integer.class, "Array<u1>*");
     final int instanceKlassAnnotationsOffset = getFieldOffset("InstanceKlass::_annotations", Integer.class, "Annotations*");
     final int instanceKlassMiscFlagsOffset = getFieldOffset("InstanceKlass::_misc_flags._flags", Integer.class, "u2");
+    final int klassMiscFlagsOffset = getFieldOffset("Klass::_misc_flags._flags", Integer.class, "u1");
     final int klassVtableStartOffset = getFieldValue("CompilerToVM::Data::Klass_vtable_start_offset", Integer.class, "int");
     final int klassVtableLengthOffset = getFieldValue("CompilerToVM::Data::Klass_vtable_length_offset", Integer.class, "int");
 
@@ -117,10 +114,10 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int arrayU1DataOffset = getFieldOffset("Array<u1>::_data", Integer.class);
     final int arrayU2DataOffset = getFieldOffset("Array<u2>::_data", Integer.class);
 
-    final int jvmAccHasFinalizer = getConstant("JVM_ACC_HAS_FINALIZER", Integer.class);
+    final int jvmAccHasFinalizer = getConstant("KlassFlags::_misc_has_finalizer", Integer.class);
     final int jvmFieldFlagInternalShift = getConstant("FieldInfo::FieldFlags::_ff_injected", Integer.class);
     final int jvmFieldFlagStableShift = getConstant("FieldInfo::FieldFlags::_ff_stable", Integer.class);
-    final int jvmAccIsCloneableFast = getConstant("JVM_ACC_IS_CLONEABLE_FAST", Integer.class);
+    final int jvmAccIsCloneableFast = getConstant("KlassFlags::_misc_is_cloneable_fast", Integer.class);
 
     // These modifiers are not public in Modifier so we get them via vmStructs.
     final int jvmAccSynthetic = getConstant("JVM_ACC_SYNTHETIC", Integer.class);
@@ -134,7 +131,7 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int jvmMiscFlagsDeclaresDefaultMethods = getConstant("InstanceKlassFlags::_misc_declares_nonstatic_concrete_methods", Integer.class);
 
     // This is only valid on AMD64.
-    final int runtimeCallStackSize = getConstant("frame::arg_reg_save_area_bytes", Integer.class, osArch.equals("amd64") ? null : 0);
+    final int runtimeCallStackSize = getConstant("frame::arg_reg_save_area_bytes", Integer.class, Architecture.isX64() ? null : 0);
 
     private final int markWordNoHashInPlace = getConstant("markWord::no_hash_in_place", Integer.class);
     private final int markWordNoLockInPlace = getConstant("markWord::no_lock_in_place", Integer.class);
@@ -153,7 +150,7 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int methodVtableIndexOffset = getFieldOffset("Method::_vtable_index", Integer.class, "int");
 
     final int methodDataOffset = getFieldOffset("Method::_method_data", Integer.class, "MethodData*");
-    final int methodCodeOffset = getFieldOffset("Method::_code", Integer.class, "CompiledMethod*");
+    final int methodCodeOffset = getFieldOffset("Method::_code", Integer.class, "nmethod*");
 
     final int methodFlagsForceInline = getConstant("MethodFlags::_misc_force_inline", Integer.class);
     final int methodFlagsDontInline = getConstant("MethodFlags::_misc_dont_inline", Integer.class);
@@ -198,6 +195,8 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int constMethodFlagsReservedStackAccess = getConstant("ConstMethodFlags::_misc_reserved_stack_access", Integer.class);
     final int constMethodFlagsCallerSensitive = getConstant("ConstMethodFlags::_misc_caller_sensitive", Integer.class);
     final int constMethodFlagsIntrinsicCandidate = getConstant("ConstMethodFlags::_misc_intrinsic_candidate", Integer.class);
+    final int constMethodFlagsIsScoped = getConstant("ConstMethodFlags::_misc_is_scoped", Integer.class);
+    final int constMethodFlagsIsOverpass = getConstant("ConstMethodFlags::_misc_is_overpass", Integer.class);
     final int constMethodHasLineNumberTable = getConstant("ConstMethodFlags::_misc_has_linenumber_table", Integer.class);
     final int constMethodHasLocalVariableTable = getConstant("ConstMethodFlags::_misc_has_localvariable_table", Integer.class);
     final int constMethodHasMethodAnnotations = getConstant("ConstMethodFlags::_misc_has_method_annotations", Integer.class);
@@ -223,7 +222,6 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int constantPoolLengthOffset = getFieldOffset("ConstantPool::_length", Integer.class, "int");
     final int constantPoolFlagsOffset = getFieldOffset("ConstantPool::_flags", Integer.class, "u2");
 
-    final int constantPoolCpCacheIndexTag = getConstant("ConstantPool::CPCACHE_INDEX_TAG", Integer.class);
     final int constantPoolHasDynamicConstant = getConstant("ConstantPool::_has_dynamic_constant", Integer.class);
     final int constantPoolSourceFileNameIndexOffset = getFieldOffset("ConstantPool::_source_file_name_index", Integer.class, "u2");
 
@@ -347,6 +345,7 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int vmIntrinsicLinkToStatic = getConstant("vmIntrinsics::_linkToStatic", Integer.class);
     final int vmIntrinsicLinkToSpecial = getConstant("vmIntrinsics::_linkToSpecial", Integer.class);
     final int vmIntrinsicLinkToInterface = getConstant("vmIntrinsics::_linkToInterface", Integer.class);
+    final int vmIntrinsicLinkToNative = getConstant("vmIntrinsics::_linkToNative", Integer.class);
 
     final int codeInstallResultOk = getConstant("JVMCI::ok", Integer.class);
     final int codeInstallResultDependenciesFailed = getConstant("JVMCI::dependencies_failed", Integer.class);
@@ -380,7 +379,6 @@ class HotSpotVMConfig extends HotSpotVMConfigAccess {
     final int methodDataCountOffset = getConstant("CounterData::count_off", Integer.class);
     final int jumpDataTakenOffset = getConstant("JumpData::taken_off_set", Integer.class);
     final int jumpDataDisplacementOffset = getConstant("JumpData::displacement_off_set", Integer.class);
-    final int receiverTypeDataNonprofiledCountOffset = getConstant("ReceiverTypeData::nonprofiled_count_off_set", Integer.class);
     final int receiverTypeDataReceiverTypeRowCellCount = getConstant("ReceiverTypeData::receiver_type_row_cell_count", Integer.class);
     final int receiverTypeDataReceiver0Offset = getConstant("ReceiverTypeData::receiver0_offset", Integer.class);
     final int receiverTypeDataCount0Offset = getConstant("ReceiverTypeData::count0_offset", Integer.class);

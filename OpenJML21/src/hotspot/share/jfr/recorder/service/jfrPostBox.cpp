@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,7 +22,6 @@
  *
  */
 
-#include "precompiled.hpp"
 #include "jfr/recorder/service/jfrPostBox.hpp"
 #include "jfr/utilities/jfrTryLock.hpp"
 #include "runtime/atomic.hpp"
@@ -112,7 +111,6 @@ void JfrPostBox::asynchronous_post(int msg) {
 void JfrPostBox::synchronous_post(int msg) {
   assert(is_synchronous(msg), "invariant");
   assert(!JfrMsg_lock->owned_by_self(), "should not hold JfrMsg_lock here!");
-  NoHandleMark nhm;
   ThreadBlockInVM transition(JavaThread::current());
   MonitorLocker msg_lock(JfrMsg_lock, Mutex::_no_safepoint_check_flag);
   deposit(msg);
