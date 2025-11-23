@@ -18887,10 +18887,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean pv = checkAccessEnabled;
 		checkAccessEnabled = false;
 		try {
-			return isJavaType ? treeutils.makeJavaTypelc(arg) : treeutils.makeTypelc(arg);
+		    if (isJavaType) return treeutils.makeJavaTypelc(arg);
+			return wrap(arg);
 		} finally {
 			checkAccessEnabled = pv;
 		}
+	}
+	
+	protected JCExpression wrap(JCExpression arg) {
+	    if (arg instanceof JCTree.JCArrayTypeTree at) {
+	        var ax = wrap(at.elemtype);
+	        return treeutils.makeJmlMethodInvocation(arg, arraytypeKind, TYPE, ax);
+	    } else {
+	        return treeutils.makeTypelc(arg);
+	    }
 	}
 
 	protected Utils.DoubleMap<Name, Symbol, JCVariableDecl> oldarrays = new Utils.DoubleMap<Name, Symbol, JCVariableDecl>();

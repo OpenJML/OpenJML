@@ -34,6 +34,7 @@ public class Test {
         errors4();
         errors5();
         errors6();
+        typelcTests();
     }
     
     public static void errors1() {
@@ -138,6 +139,16 @@ public class Test {
         //@ check \typearg(\type(List<Boolean>), 0) == \type(Boolean);
         //@ check \typearg0(\type(Map<Integer,Boolean>)) == \type(Integer);
         //@ check \typearg(\type(Map<Integer,Boolean>), 1) == \type(Boolean);        
+    }
+    
+    public static void typelcTests() {
+        //@ ghost \TYPE t = \type(java.util.List<Boolean>[][]);
+        //@ check t.isArray();
+        //@ set t = \elemtype(t);
+        //@ check !t.isArray();
+        //@ check \erasure(t) == java.util.List.class;
+        //@ check \typearg1(t) == \type(Boolean);
+        
     }
     
     public static void test() {
