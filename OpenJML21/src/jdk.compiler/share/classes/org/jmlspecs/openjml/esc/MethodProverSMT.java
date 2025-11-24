@@ -344,7 +344,7 @@ public class MethodProverSMT {
             try {
                 smt.smtConfig.timeout = Double.parseDouble(o.toString());
             } catch (NumberFormatException e) {
-                // FIXME  - issue a warning
+                utils.warning("jml.message","Timeout value cannot be parsed as a double: " + o);
             }
         }
 
@@ -511,7 +511,6 @@ public class MethodProverSMT {
 //                    doit = true;
 //                }
                 if (doit || !Strings.feasibilityContains(Strings.feas_none,context)) {
-                    boolean allFeasibilities = Strings.feasibilityContains(Strings.feas_all,context) || Strings.feasibilityContains(Strings.feas_debug,context);
                     if (usePushPop) {
                         solver.pop(1); // Pop off previous check_sat
                     } else {
@@ -521,8 +520,8 @@ public class MethodProverSMT {
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getFeasibilityChecks(methodDecl, splitkey);
                     startFeasibilityCheck = 0;
                     if (Strings.feasibilityContains(Strings.feas_debug,context)) {
-                        String values = JmlOption.FEASIBILITY.value(context);
-                        if (values != null && values.length() > "debug:".length()) {
+                        String values = JmlOption.FEASIBILITY.value(context); // non-null because feasibility is already known to be debug
+                        if (values.length() > "debug:".length()) {
                             String sn = values.substring("debug:".length());
                             try {
                                 startFeasibilityCheck = Integer.valueOf(sn);
@@ -550,10 +549,6 @@ public class MethodProverSMT {
                             continue;
                         }
                        
-                        // Only do the feasibility check if called for by the feasibility option
-//                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
-//                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
-                            
                         if (!usePushPop) {
                             solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
                             if (JmlAssertionAdder.useAssertCount) {
@@ -776,14 +771,9 @@ public class MethodProverSMT {
                     }
                     
 
-                    if (pathCondition != null) {
-                        Counterexample ce = new Counterexample(tracer.text(),cemap,path);
-                        pr.add(ce); // TODO - make more abstract
-                    }
-                    
-                    if (pathCondition == null) {
-                        break;
-                    }
+                    if (pathCondition == null) break;
+                    Counterexample ce = new Counterexample(tracer.text(),cemap,path);
+                    pr.add(ce); // TODO - make more abstract
 
                     if (--count <= 0) break;
                     
