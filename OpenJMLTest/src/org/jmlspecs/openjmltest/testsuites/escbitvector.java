@@ -282,22 +282,54 @@ public class escbitvector extends EscBase {
     public void testBVoption() {
         expectedExit = 1;
         addOptions("--esc-bv=false");
-        helpTCX("tt.TestJava","package tt; \n"
-                
-                +" public class TestJava { \n"
-                +"  public int m1(int x) {\n"
-                +"    return x | x;\n"
-                +"  }\n"
-                +"  @org.jmlspecs.annotation.Options(\"--esc-bv=true\")\n"
-                +"  public int m2(int x) {\n"
-                +"    return x | x;\n"
-                +"  }\n"
-                                
-                +"}"
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x) {
+                    return x | x;
+                  }
+                  @org.jmlspecs.annotation.Options(\"--esc-bv=true\")
+                  public int m2(int x) {
+                    return x | x;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITOR]", 14
           );
     }
 
+    @Test
+    public void testBVSwitch() {
+        addOptions("--esc-bv=true","--progress");
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x) {
+                    return x | x;
+                  }
+                }
+                """
+          );
+        
+    }
+    
+    @Test
+    public void testBVSwitch2() {
+        addOptions("--esc-bv=auto","--progress");
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x) {
+                    return x | x;
+                  }
+                }
+                """
+          );
+        
+    }
     
 
 }

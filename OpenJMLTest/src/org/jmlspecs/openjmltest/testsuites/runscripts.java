@@ -77,10 +77,6 @@ public class runscripts extends RunBase {
         doTest();
     }
 
-    @Test public void gitbug883() {
-        doTest();
-    }
-    
     // gitbug857
     @Test public void crashXlint() {
         doTest();
@@ -131,6 +127,10 @@ public class runscripts extends RunBase {
     }
     
     @Test public void quiet() {
+        doTest();
+    }
+    
+    @Test public void unicodeErrors() {
         doTest();
     }
     

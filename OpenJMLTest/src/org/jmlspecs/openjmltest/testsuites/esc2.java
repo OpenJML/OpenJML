@@ -29,263 +29,285 @@ public class esc2 extends EscBase {
         // print = true;
     }
 
-//
-//
-//    }
-//    @Test
-//    public void testForEach2a3() {
-//        addOptions("-escMaxWarnings=1");
-//        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ public normal_behavior  ensures true;\n" 
-//                + "  public void m3() {\n" 
-//                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-//                + "    Integer k = Integer.valueOf(1);\n"
-//                + "    values.add(k);\n" 
-//                + "  }\n"
-//
-//                + "  public TestJava() {}"
-//
-//                + "}"
-//
-//        );
-//    }
-//    @Test
-//    public void testForEach2a4() {
-//        addOptions("-escMaxWarnings=1");
-//        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ public normal_behavior  ensures true;\n"
-//                + "  public void m4() {\n"
-//                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
-//                + "    Integer k = 0;\n" 
-//                + "    values.add(k);\n" 
-//                + "  }\n"
-//
-//                + "  public TestJava() {}"
-//
-//                + "}"
-//
-//        );
-//    }
-//    @Test
-//    public void testForEachBad() {
-//        expectedExit = 1;
-//        helpTCX("tt.TestJava", 
-//                  "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  public void m1a() {\n" 
-//                + "    long[] a = { 1,2,3,4};\n" 
-//                + "    for (long k: a) {\n" 
-//                + "    }\n"
-//                + "    //@ ghost int i = \\count;\n" // Out of scope
-//                + "  }\n"
-//
-//                + "  public void m2() {\n" 
-//                + "    long[] a = { 1,2,3,4};\n" 
-//                + "    //@ ghost int i = \\count;\n" // Out of scope
-//                + "  }\n"
-//
-//                + "  public void m4() {\n" 
-//                + "    long[] a = { 1,2,3,4};\n" 
-//                + "    for (long k: a) {\n"
-//                + "      //@ set \\count = 6;\n" // Syntax error
-//                + "    }\n"
-//                + "  }\n"
-//
-//                + "  public void v1a() {\n"
-//                + "    Integer[] a = { 1,2,3,4};\n"
-//                + "    for (Integer k: a) {\n"
-//                + "    }\n"
-//                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
-//                + "  }\n"
-//
-//                + "  public void v2() {\n"
-//                + "    long[] a = { 1,2,3,4};\n"
-//                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
-//                + "    }\n"
-//
-//                + "  public void v4() {\n"
-//                + "    Integer[] a = { 1,2,3,4};\n"
-//                + "    for (Integer k: a) {\n"
-//                + "      //@ set \\values = null;\n" // Syntax error
-//                + "    }\n"
-//                + "  }\n"
-//
-//                + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n"
-//                + "    for (long k: a) {\n"
-//                + "      //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // OK
-//                + "    }\n" + "  }\n"
-//
-//                + "}"
-//
-//                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
-//                ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
-//                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:   value", 15
-//                ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
-//                ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
-//                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45
-//                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45
-//                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:   value", 15
-//                ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
-//                ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
-//                );
-//    }
-//
-//    @Test
-//    public void testNonNullElements1() {
-////        Assume.assumeTrue(runLongTests);
-//        helpTCX("tt.TestJava", "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m1x(Object[] a) {\n"
-//                + "    //@ assume \\nonnullelements(a);\n" 
-//                + "    //@ assume a.length > 1;\n"
-//                + "    //@ assert a[0] != null;\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m11(Object[] a) {\n"
-//                + "    //@ assume \\nonnullelements(a);\n" 
-//                + "    //@ assert a != null;\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m11a(/*@ non_null */ Object[] a) {\n"
-//                + "    //@ assume \\nonnullelements(a);\n" 
-//                + "    //@ assert a == null;\n" // BAD
-//                + "  }\n"
-//
-//                + "}"
-//                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method m11a", 9
-//                );
-//    }
-//
-//    @Test
-//    public void testNonNullElements2a() {
-//        helpTCX("tt.TestJava", "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m1a(Object[] a) {\n"
-//                + "    //@ assume a != null && a.length > 1;\n" 
-//                + "    //@ assert a[0] != null;\n" // BAD
-//                + "  }\n"
-//
-//                + "}"
-//                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1a", 9
-//                );
-//    }
-//
-//    @Test
-//    public void testNonNullElements2b() {
-////      Assume.assumeTrue(runLongTests);
-//        helpTCX("tt.TestJava", "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m2(Object[] a) {\n"
-//                + "    //@ assume a != null && a.length == 0;\n" 
-//                + "    //@ assert \\nonnullelements(a);\n" // OK
-//                + "  }\n"
-//
-//                + "}"
-//                );
-//    }
-//
-//    @Test
-//    public void testNonNullElements2c() {
-//        helpTCX("tt.TestJava", "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m22(Object[] a) {\n"
-//                + "    //@ assume a != null && a.length == 0;\n"
-//                + "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
-//                + "  }\n"
-//
-//                + "}"
-//                );
-//    }
-//
-//    @Test
-//    public void testNonNullElements3() {
-////        Assume.assumeTrue(runLongTests);
-//        helpTCX("tt.TestJava", "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-//                + "  public void m3(Object[] a) {\n" 
-//                + "    //@ assume a != null && a.length == 1;\n"
-//                + "    a[0] = new Object();\n" 
-//                + "    //@ assert \\nonnullelements(a);\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m33(Object[] a) {\n"
-//                + "    //@ assume a != null && a.length == 1;\n" 
-//                + "    //@ assume a[0] != null;\n"
-//                + "    //@ assert \\nonnullelements(a);\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-//                + "  public void m4(Object[] a) {\n" 
-//                + "    //@ assume a != null && a.length == 2;\n"
-//                + "    a[0] = new Object();\n" 
-//                + "    a[1] = new Object();\n" 
-//                + "    //@ assert \\nonnullelements(a);\n" // OK
-//                + "  }\n"
-//
-//                + "}"
-//                );
-//    }
-//
-//    @Test
-//    public void testNonNullElements4() {
-////        Assume.assumeTrue(runLongTests);
-//        helpTCX("tt.TestJava", "package tt; \n" 
-//                + "public class TestJava { \n"
-//
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m44(Object[] a) {\n"
-//                + "    //@ assume a != null && a.length == 2;\n" 
-//                + "    //@ assume a[0] != null;\n"
-//                + "    //@ assume a[1] != null;\n" 
-//                + "    //@ assert \\nonnullelements(a);\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-//                + "  public void m4a(Object[] a) {\n" 
-//                + "    //@ assume a != null && a.length == 3;\n"
-//                + "    a[0] = new Object();\n" 
-//                + "    a[1] = new Object();\n" 
-//                + "    //@ assert \\nonnullelements(a);\n" // BAD
-//                + "  }\n"
-//
-//                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-//                + "  public void m5(Object[] a) {\n" 
-//                + "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
-//                + "    a[0] = new Object();\n" 
-//                + "    //@ assert \\nonnullelements(a);\n" // OK
-//                + "  }\n"
-//
-//                + "  //@ modifies \\everything;\n" 
-//                + "  public void m5a(Object[] a) {\n"
-//                + "    //@ assume a != null && a.length == 3;\n" 
-//                + "    a[0] = null;\n"
-//                + "    //@ assert \\nonnullelements(a);\n" // BAD
-//                + "  }\n"
-//
-//                + "}",
-//                "/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9,
-//                "/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9);
-//    }
-//
+    @Test
+    public void testForEach2a4b() {
+        addOptions("--esc-max-warnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+              + "  //@ public behavior  ensures true;\n"
+              + "  public void m4() {\n"
+              + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = false; \n"
+              + "    /*@ nullable */ Integer k = null;\n" 
+              + "    values.add(k);\n" 
+              + "  }\n"
+
+              + "  public TestJava() {}"
+
+              + "}"
+              ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method m4",15
+              ,"$SPECS/java/util/List.jml:116: verify: Associated declaration",13
+              ,"$SPECS/java/util/Collection.jml:140: verify: Precondition conjunct is false: containsNull || o != null",33
+              ,"$SPECS/java/util/List.jml:107: verify: Precondition conjunct is false: containsNull || o != null",33
+
+                );
+
+    }
+    @Test
+    public void testForEach2a3() {
+        addOptions("-escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n" 
+                + "  public void m3() {\n" 
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    Integer k = Integer.valueOf(1);\n"
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEach2a4() {
+        addOptions("-escMaxWarnings=1");
+        helpTCX("tt.TestJava", "package tt; import java.util.*; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m4() {\n"
+                + "    List<Integer> values = new LinkedList<Integer>(); //@ set values.containsNull = true; \n"
+                + "    Integer k = 0;\n" 
+                + "    values.add(k);\n" 
+                + "  }\n"
+
+                + "  public TestJava() {}"
+
+                + "}"
+
+        );
+    }
+    @Test
+    public void testForEachBad() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava", 
+                  "package tt; \n" 
+                + "public class TestJava { \n"
+
+                + "  public void m1a() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (long k: a) {\n" 
+                + "    }\n"
+                + "    //@ ghost int i = \\count;\n" // Out of scope
+                + "  }\n"
+
+                + "  public void m2() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    //@ ghost int i = \\count;\n" // Out of scope
+                + "  }\n"
+
+                + "  public void m4() {\n" 
+                + "    long[] a = { 1,2,3,4};\n" 
+                + "    for (long k: a) {\n"
+                + "      //@ set \\count = 6;\n" // Syntax error
+                + "    }\n"
+                + "  }\n"
+
+                + "  public void v1a() {\n"
+                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    for (Integer k: a) {\n"
+                + "    }\n"
+                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
+                + "  }\n"
+
+                + "  public void v2() {\n"
+                + "    long[] a = { 1,2,3,4};\n"
+                + "    //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // Out of scope
+                + "    }\n"
+
+                + "  public void v4() {\n"
+                + "    Integer[] a = { 1,2,3,4};\n"
+                + "    for (Integer k: a) {\n"
+                + "      //@ set \\values = null;\n" // Syntax error
+                + "    }\n"
+                + "  }\n"
+
+                + "  public void v10a() {\n" + "    long[] a = { 1,2,3,4};\n"
+                + "    for (long k: a) {\n"
+                + "      //@ ghost org.jmlspecs.lang.JMLList i = \\values;\n" // OK
+                + "    }\n" + "  }\n"
+
+                + "}"
+
+                , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
+                ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
+                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:   value", 15
+                ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
+                ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
+                ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45
+                ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45
+                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:   value", 15
+                ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
+                ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
+                );
+    }
+
+    @Test
+    public void testNonNullElements1() {
+//        Assume.assumeTrue(runLongTests);
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m1x(Object[] a) {\n"
+                + "    //@ assume \\nonnullelements(a);\n" 
+                + "    //@ assume a.length > 1;\n"
+                + "    //@ assert a[0] != null;\n" // OK
+                + "  }\n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m11(Object[] a) {\n"
+                + "    //@ assume \\nonnullelements(a);\n" 
+                + "    //@ assert a != null;\n" // OK
+                + "  }\n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m11a(/*@ non_null */ Object[] a) {\n"
+                + "    //@ assume \\nonnullelements(a);\n" 
+                + "    //@ assert a == null;\n" // BAD
+                + "  }\n"
+
+                + "}"
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method m11a", 9
+                );
+    }
+
+    @Test
+    public void testNonNullElements2a() {
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m1a(Object[] a) {\n"
+                + "    //@ assume a != null && a.length > 1;\n" 
+                + "    //@ assert a[0] != null;\n" // BAD
+                + "  }\n"
+
+                + "}"
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1a", 9
+                );
+    }
+
+    @Test
+    public void testNonNullElements2b() {
+//      Assume.assumeTrue(runLongTests);
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m2(Object[] a) {\n"
+                + "    //@ assume a != null && a.length == 0;\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "}"
+                );
+    }
+
+    @Test
+    public void testNonNullElements2c() {
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m22(Object[] a) {\n"
+                + "    //@ assume a != null && a.length == 0;\n"
+                + "    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);\n" // OK
+                + "  }\n"
+
+                + "}"
+                );
+    }
+
+    @Test
+    public void testNonNullElements3() {
+//        Assume.assumeTrue(runLongests);
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+                + "  //@ requires a != null && a.length == 1;\n"
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  public void m3(Object[] a) {\n" 
+                + "    a[0] = new Object();\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "  //@ requires a != null && a.length == 1;\n"
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m33(Object[] a) {\n"
+                + "    //@ assume a[0] != null;\n"
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "  //@ requires a != null && a.length == 2;\n"
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  public void m4(Object[] a) {\n" 
+                + "    a[0] = new Object();\n" 
+                + "    a[1] = new Object();\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "}"
+                );
+    }
+
+    @Test
+    public void testNonNullElements4() {
+        helpTCX("tt.TestJava", "package tt; \n" 
+                + "public class TestJava { \n"
+
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m44(Object[] a) {\n"
+                + "    //@ assume a != null && a.length == 2;\n" 
+                + "    //@ assume a[0] != null;\n"
+                + "    //@ assume a[1] != null;\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  public void m4a(Object[] a) {\n" 
+                + "    //@ assume a != null && a.length == 3;\n"
+                + "    a[0] = new Object();\n" 
+                + "    a[1] = new Object();\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // BAD -- FIXME cannot infer a forall quantifier from the individual statements
+                + "  }\n"
+
+                + "  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
+                + "  public void m5(Object[] a) {\n" 
+                + "    //@ assume \\nonnullelements(a) && a.length == 3;\n"
+                + "    a[0] = new Object();\n" 
+                + "    //@ assert \\nonnullelements(a);\n" // OK
+                + "  }\n"
+
+                + "  //@ modifies \\everything;\n" 
+                + "  public void m5a(Object[] a) {\n"
+                + "    //@ assume a != null && a.length == 3;\n" 
+                + "    a[0] = null;\n"
+                + "    //@ assert \\nonnullelements(a);\n" // BAD
+                + "  }\n"
+
+                + "}"
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9);
+    }
+
     @Test
     public void testNotModified() {
         helpTCX("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
@@ -4516,5 +4538,30 @@ public class esc2 extends EscBase {
         );
     }
 
+    // THE FOLLOWING WERE ALL COMMENTED OUT AT ONE POINT
+    
+    // TODO: Parser has trouble distinguishing an @ for \old from an @ for a type annotation. Is the complexity worth the feature?
+    @Test @Ignore
+    public void testAt() {
+        expectedExit = 1;
+        helpTCX("tt.TestJava",
+                "package tt; \n" 
+                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
+                        + "  static public int i;\n"
+                        + "  //@ assigns i;\n" 
+                        + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
+                        + "  //@ assigns i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" 
+                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" // ERROR
+                        + "  //@ assigns i;\n" 
+                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
+                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
+                        + "  //@ assigns i;\n" 
+                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
+                        + "}"
+                        ,"/tt/TestJava.java:9: error: There is no label named x", 60
+                );
+    }
 
 }

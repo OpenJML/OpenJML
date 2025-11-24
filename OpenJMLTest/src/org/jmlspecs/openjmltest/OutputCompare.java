@@ -184,10 +184,10 @@ public class OutputCompare {
         long actualColumn = -1;
         if (!exp.equals(act)) {
             failureLocation = j;
-            failureString = list[i].toString();
+            failureString = exp;
             failureCol = -1;
             if (issueErrors) {
-                assertEquals("Error " + j, list[i], JmlTestSuite.noSource(collector.getDiagnostics().get(j)));
+                assertEquals("Error " + j, exp, act);
             }
             return false;
         } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {

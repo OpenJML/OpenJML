@@ -1,0 +1,16 @@
+A.java:4: error: illegal unicode escape
+    char c = '\u45';
+                  ^
+A.java:4: error: empty character literal
+    char c = '\u45';
+             ^
+A.java:5: error: illegal unicode escape
+    char cc = '\u004Z';
+                    ^
+A.java:7: error: illegal unicode escape
+\u2
+   ^
+A.java:6: error: reached end of file while parsing
+  }
+   ^
+5 errors

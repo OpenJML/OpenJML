@@ -1,3 +1,5 @@
+
+
 ## Source this file
 
 ## Absolute path to the folder containing this file, which should be .../OpenJMLTest
@@ -10,9 +12,9 @@ export AGENT=
 export OJA="$TEST/../OpenJML21/openjml"
 if [ -n "${COV+set}" ]; then
     # COV set, but may be empty
-    mkdir -p $TEST/cov
+    mkdir -p "$TEST/cov"
     export AGENT="-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$TEST/cov/$1.exec"
-    export OJA="$TEST/../OpenJML21/openjml-java -cp $TEST RunOpenJML"
+    export OJA="$TEST/../OpenJML21/openjml-java -cp $TEST $AGENT RunOpenJML"
     ## FIXME - OJA above will not work with spaces in paths
 fi
 

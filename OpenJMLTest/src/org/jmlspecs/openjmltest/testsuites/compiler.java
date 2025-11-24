@@ -232,21 +232,6 @@ public class compiler extends JmlTestSuite{
                           + "1 warning" + eol);
     }
 
-    /** Tests the lack of a runtime library */
-    @Test @Ignore // FIXME: Current implementation cannot disable the internal runtime library
-    public void testNoRuntime() throws Exception {
-        helper(new String[]
-                          { 
-                            "-classpath",src + "testNoErrors",
-                            src + "testNoErrors/A.java",  
-                          },3,0,
-                          "Fatal Error: Unable to find package org.jmlspecs.lang" + eol);
-//                          src + "testNoErrors/A.java:1: error: package org.jmlspecs.lang does not exist"+eol+
-//                          "public class A {" +eol+
-//                          "^" + eol +
-//                          "1 error" + eol);
-    }
-
     /** Test verbose with no specs used */
     @Test
     public void testDuplicateParse() throws Exception {
