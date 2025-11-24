@@ -45,6 +45,15 @@ openjml-clean: .FORCE
 openjml: .FORCE
 	(cd ${SRC}; make version && make openjml && make jmlruntime.jar )
 
+## Deletes all temporary files
+## Many more to delete
+clean: cov-clean
+	rm -f `find . -name '*.class'`
+	rm -f `find . -name 'actual*'`
+	rm -f unittests/log*
+	rm -f smt/*.smt*
+
+
 release: .FORCE
 	make -C ${SRC} release
 

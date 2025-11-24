@@ -1,12 +1,15 @@
+#! /usr/bin/env bash
 
-OJA=openjml
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
 ( \
 echo PLAIN ; \
 $OJA --esc A.java --progress --method=z --no-show-summary ;\
 echo USING PROPERTIES ;\
 $OJA --properties=z.properties --esc A.java --progress --method=z --no-show-summary ;\
 echo USING ENV VAR ; \
-OPENJML_command=esc $OJA A.java  --progress --method=z --no-show-summary ;\
+OPENJML_command=esc $OJA A.java --progress --method=z --no-show-summary ;\
 echo USING ENV VAR ; \
 OPENJML_show_skipped=false $OJA A.java --esc --progress --method=z --no-show-summary ;\
 ) 2>&1 > actual

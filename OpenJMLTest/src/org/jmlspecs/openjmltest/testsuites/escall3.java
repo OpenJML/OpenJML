@@ -18,6 +18,79 @@ public class escall3 extends EscBase {
     }
     
     @Test
+    public void testNoProver() {
+        expectedExit=1;
+        addOptions("--prover=Z");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                ,"/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJML21/../../Solvers/Solvers-macos/Z.X",-1
+                ,"/tt/TestJava.java: error: The executable for prover Z is not specified - use -exec or define an openjml.prover.... property",-1
+                );
+    }
+    
+    @Test
+    public void testNoExec() {
+        expectedExit=1;
+        addOptions("--exec= ");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                ,"/tt/TestJava.java: error: The executable for prover z3_4_3 is not specified - use -exec or define an openjml.prover.... property",-1
+                );
+    }
+    
+    @Test
+    public void testTimeoutBad() {
+        expectedExit=0;
+        addOptions("--timeout=ZZ");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                ,"/tt/TestJava.java: warning: Timeout value cannot be parsed as a double: ZZ",-1
+                );
+    }
+    
+    @Test
+    public void testTimeoutOK() {
+        expectedExit=0;
+        addOptions("--timeout", "");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                );
+    }
+    
+    @Test
+    public void testDebugOK() { // Test is noisy because debug feasibility turns on progress
+        expectedExit=0;
+        addOptions("--check-feasibility", "debug:");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
+                ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
+                );
+    }
+    
+    @Test
+    public void testDebugBad() { // Test is noisy because debug feasibility turns on progress
+        expectedExit=0;
+        addOptions("--check-feasibility", "debug:zzz");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                ,"/tt/TestJava.java: warning: debug feasibility starting number has bad format: zzz", -1
+                ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
+                ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
+                );
+    }
+    
+    @Test
+    public void testSMTout() {
+        expectedExit=0;
+        addOptions("--smt=smt/testSMToutZ.smt");
+        helpTCX("tt.TestJava","package tt; \n"
+                +"public class TestJava { }\n"
+                );
+        // FIXME - delete a.smt
+    }
+    
+    @Test
     public void testSimple() {
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"

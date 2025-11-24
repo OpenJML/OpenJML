@@ -142,13 +142,6 @@ public class escfiles2 extends EscBaseFiles {
         helpTCG();
     }
     
-    // gitbug877 is in escall3 as testSwitch
-    
-    @Test
-    public void gitbug879() {
-        helpTCG();
-    }
-    
     @Test
     public void gitbug812crash() {
         expectedExit = 1;
@@ -173,6 +166,23 @@ public class escfiles2 extends EscBaseFiles {
     @Test
     public void gitbug876() {
         helpTCG("--normal","--method=isNonPrime","--check-feasibility=none");
+    }
+    
+    // gitbug877 is in escall3 as testSwitch
+    
+    @Test
+    public void gitbug879() {
+        helpTCG();
+    }
+    
+    @Test
+    public void gitbug883() {
+        helpTCG("--esc-max-warnings=1","--check-feasibility=basic","--nullable-by-default","--timeout=60");
+    }
+    
+    @Test
+    public void gitbug883bad() {
+        helpTCG();
     }
     
     @Test

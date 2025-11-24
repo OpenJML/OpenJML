@@ -1,8 +1,9 @@
 #! /usr/bin/env bash
 
-cd $(dirname $BASH_SOURCE[0] )  
-BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+OJA="$OJA -cp . "
 
 rm -rf `find . -name C.class` actual; touch actual; 
 $OJA --compile srct/C.java ; cp srct/C.class srctt/C.class

@@ -218,6 +218,23 @@ public class scanner extends JmlTestSuite {
                 0);
     }
     
+    // This test gives test coverage for the situation in which a unicode character prematuresly ends right at end of file
+    @Test public void testUnicodeEndOfFile() {
+        try {
+            var chars = new char[] {'\\', 'u', '0' };
+            var c = main.context();
+            var scan = fac.newScanner(chars, 3, false);
+            scan.nextToken();
+        } catch (Exception e) {
+            // Just skip
+            // FIXME - crashing on creating JCDiagnostic.
+        }
+        
+    }
+    
+    // Illegal unicode characters, even in comments, prevent compiling this file.  See test unicodeErrors
+
+    
     /** This tests that the test harness records if not enough tokens are listed */
     @Test public void testHarness1() {
         helpFailure("Scanner not at EOF (read 1 tokens): expected:<token.end-of-input> but was:<token.identifier>",
@@ -1242,6 +1259,5 @@ public class scanner extends JmlTestSuite {
         checkMessages(
                  "/TEST.java:1: error: illegal text block open delimiter sequence, missing line terminator",7
                 ,"/TEST.java:2: error: illegal text block open delimiter sequence, missing line terminator",5);
-    }
-    
+    }    
 }

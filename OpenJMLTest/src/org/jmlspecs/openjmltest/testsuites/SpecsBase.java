@@ -307,8 +307,7 @@ public class SpecsBase extends TCBase {
         if (qualifiedName.substring(p).equals(".jml")) list.add(baseName);
         else System.out.println("IGNORING FILE " + qualifiedName + " in " + root);
         int numArgs = countTypeArgs(f,baseName);
-        Integer nn = counts.get(baseName);
-        if (nn == null || numArgs > nn) counts.put(baseName, numArgs);
+        counts.put(baseName, numArgs);
     }
     
     public static int getCountArg(String baseName) {

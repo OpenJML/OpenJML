@@ -74,7 +74,7 @@ SFBugs.gitbug481a5
 SFBugs.gitbug481a8
 SFBugs.gitbug481b
 SFBugs.gitbug481c
-SFBugs.gitbug671
+SFBugs.gitbug671                # crash during speculative attribution
 SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
 escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
@@ -88,14 +88,13 @@ escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
 escfiles.sfbug420X
 escfiles.sfbug420eOK
-escfiles.valuestrings
+escfiles.valuestrings           # string specs
 escfiles2.escRawding2
 escfiles2.escRawdingA
 escfiles2.escRawdingB
 escfiles2.gitbug450a		#	feasibility problems
 escfiles2.gitbug450b		#	feasibility problems
-escfiles2.gitbug861		#	needs checks within a compiler constat static initializer
-#escfilesdemo.escDemoTypesNoQuants
+escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfilesTrace.escDMZCashTrace
 escfilesTrace.escDemoChangeCase
 escfilesTrace.escDemoPaths
@@ -133,12 +132,11 @@ escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
-escfileslist2.test[gitbug784]
-escfileslist2.test[gitbug785]
+escfileslist2.test[gitbug784]   #   apache commons library
+escfileslist2.test[gitbug785]   #   Google guava library
 escfileslist2.test[gitbug878]   #   problem with type inference
 escfileslist2.test[gitbug880]   #   Needs better reasoning about String length
 escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
-escfileslist2.test[gitbug883bad] #	Needs better handling of 2D array
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
@@ -172,16 +170,19 @@ racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with i
 generics.testBinaryGeneric3c
 escfiles.sfbug420e
 primesc.locsetTests2
+esc2.testForEachBad     # probably simple syntax
+esc2.testNonNullElements4  ## Test cleanup?
 
-runscripts.crashXlint
-runscripts.gitbug883
+runscripts.crashXlint  # Xlint:exports problem
+escfiles2.gitbug883    # Matrix add 
+escfiles2.gitbug883bad #    Needs better handling of 2D array
 escfileslist1.test[choose-repeat]
-escfileslist1.test[gitbug489]
-escfileslist2.test[gitbug897]
-escfileslist2.test[gitbug890]
-escfileslist1.test[gitbug763]
+escfileslist1.test[gitbug489]   # try with resources and exceptions in finally block
+escfileslist2.test[gitbug897]   # substring and loop
+escfileslist2.test[gitbug890]   # problem proving array inequality
+escfileslist1.test[gitbug763]   # specs for string handling problem
 escfileslist2.test[gitbug814]
 
-SFBugs.gitbug651  # not yet working
+SFBugs.gitbug651  # not yet working -- problems with Map specifications
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
-## Issue 511, 842
+## Issue 842 -- specs for 812 and 814

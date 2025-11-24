@@ -114,28 +114,24 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void escDemoTypes() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 6;
         helpDemoFile("demo/Types.java","escDemoTypes","--typeQuants=true","--check-feasibility=precondition,exit");
     }
 
     @Test // Problem with reasoning about generic types // FIXME - does this need typeQuants?
     public void escDemoTypesAuto() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 6;
         helpDemoFile("demo/Types.java","escDemoTypes","--typeQuants=auto","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void escDemoTypesNoQuants() { // FIXME - does this need typeQuants?
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 6;
         helpDemoFile("demo/Types.java","escDemoTypesNoQuants","--typeQuants=false","--check-feasibility=precondition,exit");
     }
 
     @Test // FIXME - Problem with int / short conversions
     public void escDemoTime() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemoFile("demo/Time.java","escDemoTime","--check-feasibility=precondition,exit");
     }
@@ -157,14 +153,12 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void demoTaxpayer() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemoFile("demo/Taxpayer.java","demoTaxpayer","--check-feasibility=precondition,exit");
     }
 
     @Test
     public void demoBeancan() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemoFile("demo/BeanCan.java","demoBeancan","--code-math=bigint","--spec-math=bigint","--check-feasibility=precondition,exit");
     }
@@ -179,7 +173,6 @@ public class escfilesdemo extends EscBaseFiles {
     // FIXME - use testDemo -- move to Demo testcase file?
     @Test 
     public void demoCashAmount() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemoFile("demo/CashAmount.java","demoCashAmount","--esc-max-warnings=1","--check-feasibility=none");
     }
@@ -204,14 +197,12 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void escCashAmountPrivate2() {   // FIXME - should thius be in with demo files?
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
     }
 
     @Test
     public void demoSettableClock() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpDemo("settableClock","demoSettableClock","--check-feasibility=precondition,exit");
     }
@@ -230,7 +221,6 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void demoBinarySearch() {
-        Assume.assumeTrue(runLongTests);
         expectedExit = 6;
         helpDemoFile("verifythis/BinarySearch.java","demoBinarySearch","--code-math=safe","--check-feasibility=basic");
     }

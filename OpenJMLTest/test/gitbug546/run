@@ -1,18 +1,18 @@
+#! /usr/bin/env bash
 
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
-cd $(dirname "$BASH_SOURCE[0]" )
-BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
-
+BINX="$OJA $AGENT -jmltesting --esc --progress Test.java"
 ( \
 echo TEST-A; \
-$OJA -jmltesting --esc --progress Test.java ; \
+$BINX ; \
 echo TEST-B; \
-$OJA -jmltesting --esc --progress Test.java --check-feasibility=precondition ;\
+$BINX --check-feasibility=precondition ;\
 echo TEST-C; \
-$OJA -jmltesting --esc --progress Test.java --check-feasibility=preconditionOnly ;\
+$BINX --check-feasibility=preconditionOnly ;\
 echo TEST-D; \
-$OJA -jmltesting --esc --progress Test.java --check-feasibility=exit  ; \
+$BINX --check-feasibility=exit  ; \
 echo TEST-X; \
 ) >& actual
 
