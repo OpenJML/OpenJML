@@ -4,6 +4,7 @@
 cd $(dirname "${BASH_SOURCE[0]}")
 
 . ../../setup-coverage json
+mkdir -p ../../cov
 
 ERR=0
 DIRS=$@

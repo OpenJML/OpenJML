@@ -17,6 +17,10 @@ public class runscripts extends RunBase {
         doTest();
     }
 
+    @Test public void apiZ() {
+        doTest();
+    }
+
     @Test public void apiA() {
         doTest();
     }

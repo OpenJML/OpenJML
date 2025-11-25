@@ -6,8 +6,8 @@
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; result is the absolute path to this script file
 INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, which should be either .../OpenJML21 or the release folder
 
-. "$INSTALL/setup-exports"
+. "$INSTALL/setup-exports" ## Sets OPENJML_EXPORTS
 
 ## Now run the compiled Test program
-"$INSTALL/openjml-java" $EXPORTS "$@"
+"$INSTALL/openjml-java" $OPENJML_EXPORTS "$@"
 

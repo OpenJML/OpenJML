@@ -52,6 +52,7 @@ clean: cov-clean
 	rm -f `find . -name 'actual*'`
 	rm -f unittests/log*
 	rm -f smt/*.smt*
+	rm -f tempUserGuide
 
 
 release: .FORCE
@@ -71,12 +72,11 @@ temp-release temp-release/D.java:
 tutorial-tests: RunOpenJML.class .FORCE
 	@ ( echo Testing tutorial files ;\
 	    . $(TEST)/setup-coverage tutorialtests ; \
-            alias openjml="$OJA" ; \
 	    cd ${TEST}/../../openjml.github.io/tutorial; \
 	    ./test \
 	)
 
-USERGUIDE=${TEST}/tempUserGuide
+USERGUIDE=./tempUserGuide
 OVERLEAFID=620c2512d552cc226f5f4c94
 TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
 # Downloads the userguide (from Overleaf) and tests all the example files
@@ -103,7 +103,7 @@ userguide-tests-released:
 # but can also be run directly with this target, before an attempt to construct a release
 release-tests: prep RunOpenJML.class .FORCE
 	@ echo Running release tests with current development build
-	@ $(TEST)/releaseTests/runtests
+	@ ./releaseTests/runtests
 
 # Runs the unit tests, sequentially, which is time-consuming
 unittests-seq: prep RunOpenJML.class .FORCE
@@ -142,13 +142,12 @@ test:
 
 # Deletes all coverage data and html files
 cov-clean:
-	rm -rf ${TEST}/cov
-	mkdir ${TEST}/cov
+	rm -rf ./cov
+	mkdir ./cov
 
 # Runs all tests to produce coverage data
 # One can also run individual tests and individual unit tests, e.g. COV= runtests escfiles
 cov-test:
-	cd ${TEST}
 	COV= time make json-tests
 	COV= time ./unittests/runpar 
 	COV= time make userguide-tests
@@ -158,14 +157,15 @@ cov-test:
 
 # Creates or updates html files based on coverage data
 cov-report:
-	@rm -rf ${TEST}/cov/html
-	@( cd ${TEST}; rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
-	@( cd ${TEST}; java -jar ./jacoco/lib/jacococli.jar report --quiet cov/combined.exec --html cov/html \
-            --sourcefiles ../OpenJML21/src/jdk.compiler/share/classes \
-            --sourcefiles ../OpenJMLTest/src/ \
-            --classfiles ../OpenJMLTest/src/ \
-            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
-            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
+	@rm -rf "./cov/html"
+	@( rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
+	@( java -jar ./jacoco/lib/jacococli.jar report --quiet ./cov/combined.exec --html ./cov/html \
+	    --sourcefiles "./unittests" --classfiles "./unittests" \
+	    --sourcefiles ./../OpenJML21/src/jdk.compiler/share/classes \
+            --sourcefiles ./../OpenJMLTest/src/ \
+            --classfiles ./../OpenJMLTest/src/ \
+            --classfiles ./../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
+            --classfiles ./../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
 
 # Launches a browser on the current coverage data
 cov-show:

@@ -18,12 +18,19 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${INSTALL}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
 fi
 
-## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BIN
-. "${INSTALL}/setup-vars" javac
+## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BINJAVAC PR
+. "${INSTALL}/setup-vars"
 
 ## Run the executable for openjml (the javac equivalent)
 ## The following line fixes issue #876, but is a hack because the root problem and this solution are not understood, as documented in #908
 if [ -z "${OJ++}" ]; then export OJ= ; fi
-##echo "$BIN" $PR "$@"
-"$BIN" $PR "$@"
+
+## Uses OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS OPENJML_JVM OPENJML_EXPORTS
+if [ -z "$OPENJML_JVM" ]; then
+  ##echo "$BINJAVAC" "$@"
+  "$BINJAVAC" "$@"
+else
+  if [ ! -e "$INSTALL/RunOpenJML.class" ]; then ( cd "$INSTALL" ; "$INSTALL/openjml-compile" -cp . RunOpenJML.java ) ; fi
+  "$BINJAVA" $OPENJML_JVM -cp ".:$INSTALL" RunOpenJML "$@" $OPENJML_EXPORTS
+fi
 

@@ -192,6 +192,10 @@ public interface IAPI {
         return org.jmlspecs.openjml.Main.execute(args);
     }
             
+    static public void main(String ... args) {
+        org.jmlspecs.openjml.Main.main(args);  // Does a System.exit
+    }
+            
 //    /** Executes the jmldoc tool on the given command-line arguments. This is 
 //     * NOT CURRENTLY IMPLEMENTED and the API may change. */
 //    public int jmldoc(/*@non_null*/ String... args);

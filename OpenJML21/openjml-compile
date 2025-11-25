@@ -21,7 +21,7 @@ fi
 
 CP=".:$CL"
 
-. "$INSTALL/setup-exports"
+. "${INSTALL}/setup-exports"
 
-"$INSTALL/openjml" -cp "$CP" -p $MODULES $EXPORTS --compile "$@"
+"${INSTALL}/openjml" -cp "$CP" -p $MODULES $OPENJML_EXPORTS --compile "$@"
 

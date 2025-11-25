@@ -47,12 +47,11 @@ while true; do
   ## Have the lock and last I checked the make was not up to date, so do the compile
 
   ## Use make instead of the explicit compile to use make's up-to-date-ness checking
-  ## Make needs NJAVAC CP EXPORTS ROOT (hence these are exported)
+  ## Make needs NJAVAC CP OPENJML_EXPORTS ROOT (hence these are exported)
   echo Compiling for $@
   make unittestframework
 
   rm -f the.jml.lock ## Release the lock
-  if [ ! -e OpenJMLTestRunner.class ]; then echo Missing OpenJMLTestRunner.class $@; continue; fi ## Unexpectedly missing the compile result, so try all over again 
 
   echo Compilation complete
   break
@@ -62,5 +61,5 @@ SPECS=`(cd "$ROOT/../../Specs" ; pwd )`
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
-#( "$ROOT"/openjml-java $AGENT  -cp "unittests:src:$JUNIT" $EXPORTS OpenJMLTestRunner "$@" 2>&1 )
-( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$SPECS" "$NJAVA" $AGENT -cp "unittests:src:$JUNIT" $EXPORTS OpenJMLTestRunner "$@" 2>&1 )
+#( "$ROOT"/openjml-java $AGENT  -cp "unittests:src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
+( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$SPECS" "$NJAVA" $OPENJML_JVM -cp "src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )

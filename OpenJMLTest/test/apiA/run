@@ -4,7 +4,7 @@ LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
 
 rm -rf Run.class actual
-$BIN/openjml-compile Run.java > actual || exit 1
-$BIN/openjml-run Run >> actual
-diff actual expected && rm -rf actual
+$BIN/openjml-compile -cp . Run.java >> actual || exit 2
+$BIN/openjml-run -cp . Run >> actual || exit 3
+diff actual expected && rm -rf actual Run.class
 exit $?

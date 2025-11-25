@@ -1,4 +1,6 @@
-// This class is used to run openjml programmatically, including to run it for coverage testing.
+// This class is used to run openjml programmatically, in particular to run it for coverage testing.
+// This will not work if $EXPORTS contains paths to modules that have spaces in the paths
+
 import java.util.Arrays;
 
 public class RunOpenJML {
