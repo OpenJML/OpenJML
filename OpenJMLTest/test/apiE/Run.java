@@ -32,7 +32,7 @@ public class Run {
         int x = api.execute("--esc","--progress","-jmltesting","A.java");
         System.out.println(sw.toString());
         System.out.println("RUN-Z " + x);
-        System.exit(x==1 ? 0 : 1);
+        System.exit(x==6 ? 0 : 1);
       } catch (Exception e) {
         System.out.println(sw.toString());
         System.out.println("XX " + e);

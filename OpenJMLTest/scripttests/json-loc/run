@@ -8,6 +8,7 @@ cd $(dirname "${BASH_SOURCE[0]}")
 ERR=0
 
 . ../../setup-coverage jsonloc
+mkdir -p ../../cov
 
 echo JSON output location tests
 rm -rf *.json

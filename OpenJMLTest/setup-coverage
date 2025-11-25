@@ -1,20 +1,54 @@
 
+## Sets up coverage AND/OR profiling, depending on whether COV and PROF are set
+
+## Uses 
 
 ## Source this file
+if [ "$0" = "$BASH_SOURCE" ]; then
+    echo "Error: setup-coverage script must be sourced"
+    exit 1
+fi
+if [ -z "$1" ]; then
+    echo "script seup-coverage requires one argument"
+    exit 1;
+fi
 
-## Absolute path to the folder containing this file, which should be .../OpenJMLTest
+## The one argument provides the rootname of the $1.exec file, which will hold the coverage data
+
+## In order to obtain coverage data when running openjml, use $OJA as the executable.
+## The coverage agent ($AGENT) is a command-line option for 'java', whereas openjml is a version of 'javac'.
+## Consequently we have to run openjml programmatically, with the actual executable being a version of 'java', with the coverage agent attached.
+
+## $TEST is the absolute path to the folder containing this file, which should be .../OpenJMLTest
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the absolute path to this script file
-TEST=$(dirname "$FILE")
+TEST=$(dirname "$FILE") 
 
 if [ ! -e "$TEST/RunOpenJML.class" ]; then make -C "$TEST" RunOpenJML.class; fi
 
+INSTALL="$TEST"/../OpenJML21
+. "$INSTALL/setup-vars" ## uses INSTALL, sets BINJAVA
+
 export AGENT=
+export PR=
 export OJA="$TEST/../OpenJML21/openjml"
-if [ -n "${COV+set}" ]; then
+export OPENJML_JVM=
+
+## AGENT and PR are command-line arguments for **java**, not javac
+
+if [ -n "${COV++}" ]; then  ## Tests checks whether the variables are set, even if only to empty string
     # COV set, but may be empty
     mkdir -p "$TEST/cov"
     export AGENT="-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$TEST/cov/$1.exec"
-    export OJA="$TEST/../OpenJML21/openjml-java -cp $TEST $AGENT RunOpenJML"
+    export OJA="$BINJAVA -cp .:$TEST $PR $AGENT RunOpenJML"
     ## FIXME - OJA above will not work with spaces in paths
+    export OPENJML_JVM="$AGENT"
 fi
 
+# setup any profiling -- $PR is a command-line argument for **java**, not javac
+if [ -n "${PROF++}" ]; then
+  ## PROF is set to something
+    export PR=-agentpath:/Users/davidcok/profiler/lib/libasyncProfiler.dylib=start,event=cpu,file=profile.html
+    export OJA="$BINJAVA -cp .:$TEST $PR $AGENT RunOpenJML"
+    ## FIXME - OJA above will not work with spaces in paths
+    export OPENJML_JVM="$AGENT $PR"
+fi

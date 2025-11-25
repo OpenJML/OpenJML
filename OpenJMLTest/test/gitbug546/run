@@ -3,7 +3,7 @@
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
 
-BINX="$OJA $AGENT -jmltesting --esc --progress Test.java"
+BINX="$OJA -jmltesting --esc --progress -cp . Test.java"
 ( \
 echo TEST-A; \
 $BINX ; \

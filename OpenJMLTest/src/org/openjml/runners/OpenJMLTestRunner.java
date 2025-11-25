@@ -8,6 +8,7 @@
 // with a given number of threads, given timeout, and verbosity level.
 
 // FIXME -- running with more than one thread does not work because not all of OpenJDK/OpenJML is thread-safe.
+package org.openjml.runners;
 
 import org.jmlspecs.openjmltest.*;
 import org.jmlspecs.openjmltest.testsuites.*;
