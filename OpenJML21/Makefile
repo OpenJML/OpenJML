@@ -152,6 +152,8 @@ post: .FORCE
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); zip -qr ./openjml.zip * )
 
+RunOpenJML.class: RunOpenJML.java
+	./openjml-compile -cp . RunOpenJML.java
 
 USERGUIDE=tempUserGuide
 REFMANID=5ceee26404c2854a1590029f
