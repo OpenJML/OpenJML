@@ -69,7 +69,8 @@ temp-release temp-release/D.java:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
-tutorial-tests: RunOpenJML.class .FORCE
+tutorial-tests: 
+	@ (cd "$SRC" ; make RunOpenJML.class; )
 	@ ( echo Testing tutorial files ;\
 	    . $(TEST)/setup-coverage tutorialtests ; \
 	    cd ${TEST}/../../openjml.github.io/tutorial; \
