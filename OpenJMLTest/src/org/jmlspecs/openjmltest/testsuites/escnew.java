@@ -851,6 +851,80 @@ public class escnew extends EscBase {
     }
     
     @Test
+    public void testHavoc2() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  int i; int j;
+                  public void m1a() {
+                      i = 1; j = 2;
+                      //@ havoc i;
+                      //@ assert j == 2;
+                      //@ assert i == 1; // ERROR
+                  }
+                  public void m1b() {
+                      i = 1; j = 2;
+                      TestJava g = this;
+                      //@ havoc this.*;
+                      //@ assert g == this;
+                      //@ assert j == 2; // ERROR
+                      //@ assert g.i == 1; // ERROR
+                  }
+                  public void m1c() {
+                      i = 1; j = 2;
+                      TestJava g = this;
+                      //@ havoc g.i;
+                      //@ assert j == 2;
+                      //@ assert i == 1; // ERROR
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
+                ,anyorder(seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m1b", 11)
+                ,seq("/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m1b",11))
+                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Assert) in method m1c", 11
+                );
+    }
+    
+    @Test
+    public void testHavoc3() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  public void m1a(int[] a) {
+                      a[1] = 1; a[2] = 2; var b = a;
+                      //@ havoc b[2];
+                      //@ assert b == a;
+                      //@ assert a[1] == 1 && b[1] == 1;
+                      //@ assert a[2] == 2; // ERROR
+                  }
+                  //@ requires a.length > 5;
+                  public void m1b(int[] a) {
+                      a[1] = 1; a[2] = 2; var b = a;
+                      //@ havoc b[*];
+                      //@ assert b == a;
+                      //@ assert a[2] == 2; // ERROR
+                  }
+                  //@ requires a.length > 5;
+                  public void m1c(int[] a) {
+                      a[1] = 1; a[3] = 3; var b = a;
+                      //@ havoc b[1..2];
+                      //@ assert b == a;
+                      //@ assert a[3] == 3;
+                      //@ assert a[1] == 1; // ERROR
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m1b", 11
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Assert) in method m1c", 11
+                );
+    }
+    
+    @Test
     public void testHavocIsAssignable() {
         helpTCX("tt.TestJava",
                 """
