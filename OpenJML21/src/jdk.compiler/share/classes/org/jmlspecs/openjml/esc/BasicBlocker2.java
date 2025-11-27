@@ -1219,9 +1219,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     
     // FIXME - review and document
-    protected void havoc(JCExpression storeref) {
+    protected void havoc(JCExpression storeref, VarMap rootmap) {
         //System.out.println("HAVOC " + storeref + " " + storeref.getClass());
+        VarMap savedMap = currentMap;
+        currentMap = rootmap;
+
         if (storeref instanceof JCIdent) {
+            currentMap = savedMap;
             newIdentIncarnation((JCIdent)storeref,storeref.pos);
 
         } else if (storeref instanceof JCFieldAccess) {
@@ -1233,10 +1237,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     log.error(fa.pos,"jml.internal","Unexpected wildcard store-ref in havoc call");
             } else {
                 if (utils.isJMLStatic(fa.sym)) {
+                    currentMap = savedMap;
                     newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
                 } else {
                     int sp = fa.pos;
                     scan(fa.selected);
+                    currentMap = savedMap;
                     JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                     if (isDefined.add(oldfield.name)) {
                         if (utils.verbose()) utils.note("AddedFF " + oldfield.sym + " " + oldfield.name);
@@ -1259,6 +1265,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         } else if (storeref instanceof JmlStoreRefKeyword) { // FIXME - no longer used?
+            currentMap = savedMap;
             IJmlClauseKind t = ((JmlStoreRefKeyword)storeref).kind;
             if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
@@ -1276,6 +1283,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlSingleton sing) {
             IJmlClauseKind t = sing.kind;
+            currentMap = savedMap;
             if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
@@ -1301,10 +1309,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : BIGINT;
             if (!(index instanceof JmlRange range) || (range.lo == range.hi && range.lo != null)) {
             	// Single index -- FIXME - don't know about * in  indexed
-            	JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
             	if (index instanceof JmlRange r) index = r.lo;
             	scan(ex); ex = result;
             	scan(index); index = result;
+                currentMap = savedMap;
+                JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
 
             	JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index); // this is an arbitrary value
             	rhs.pos = sp;
@@ -1326,13 +1335,24 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } else if (!(ex instanceof JCArrayAccess ax && ax.index instanceof JmlRange ar)) {
             	// Range index -- indexed is not an array[*]
 
+                scan(ex); ex = result;
             	JmlRange r = range;
+            	JCExpression lo = r.lo;
+            	if (range.lo != null) {
+            	    scan(range.lo);
+            	    lo = result;
+            	}
+            	JCExpression hi = r.hi;
+                if (range.hi != null) {
+                    scan(range.hi);
+                    hi = result;
+                }
+                currentMap = savedMap;
         		JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
         		
         		if (r.lo == null && r.hi == null) {
             		// Entire array
 
-            		scan(ex); ex = result;
             		JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
             		expr.pos = sp;
             		expr.type = aa.type;
@@ -1345,7 +1365,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		// Range of array
             	    //System.out.println("HAVOC RANGE " + ex);
 
-            		scan(ex); ex = result;
 
             		JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
             		expr.pos = sp;
@@ -1356,8 +1375,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
 
             		int p = aa.pos;
-            		scan(range.lo);
-            		JCExpression lo = result;
             		JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
             		JCIdent ind = treeutils.makeIdent(p, decl.sym);
             		JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,ind,lo);
@@ -1369,9 +1386,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		oldelem.type = aa.type;
             		JCExpression eq = treeutils.makeEquality(p,newelem,oldelem);
 
-            		if (range.hi != null) {
-            			scan(range.hi);
-            			JCExpression hi = result;
+            		if (hi != null) {
             			comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
             		}
 
@@ -1396,13 +1411,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             	// So for havoc a[*][*] we want A' = (store A e' *) that is a modified version of A that is different just at all the instances of 
             	// (select (select B a) i) for all indices i 
         		int p = aa.pos;
-                JCIdent arr2 = getArrayIdent(indexType,ax.type,aa.pos);
-        		JCIdent nid = newArrayIncarnation(indexType,ax.type,sp);
         		
         		// Havoc entire 2D array
         		scan(ax.indexed); 
         		JCExpression axi = result;
-        		
+                currentMap = savedMap;
+
+                JCIdent arr2 = getArrayIdent(indexType,ax.type,aa.pos);
+                JCIdent nid = newArrayIncarnation(indexType,ax.type,sp);
+
         		JCExpression expr = new JmlBBArrayAssignment(nid,arr2,axi,null,null);
         		expr.pos = sp;
         		expr.type = aa.type;
@@ -1831,8 +1848,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitJmlStatementHavoc(JmlStatementHavoc that) { 
+        VarMap rootmap = currentMap.copy();
         for (JCExpression item : that.storerefs) {
-            havoc(item);
+            havoc(item, rootmap);
         }
     }
     

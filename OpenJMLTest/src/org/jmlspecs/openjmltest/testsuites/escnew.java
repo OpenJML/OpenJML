@@ -850,6 +850,123 @@ public class escnew extends EscBase {
                 );
     }
     
+    @Test
+    public void testHavocIsAssignable() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; //@ nullable_by_default
+                public class TestJava {
+                  public static int k;
+                  public int i;
+                  public int[] a;
+                  public TestJava t;
+                  //@ writes \\nothing;
+                  public void m1() {
+                    //@ havoc \\nothing
+                  }
+                  //@ writes \\nothing;
+                  public void m2() {
+                    //@ havoc \\everything;
+                  }
+                  //@ writes \\nothing;
+                  public void m3() { //@ assume t != null;
+                    //@ havoc k, t.k, TestJava.k, tt.TestJava.k;
+                  }
+                  //@ writes \\nothing;
+                  public void m4() {
+                    //@ havoc this.i, this.*;
+                  }
+                  //@ writes \\nothing;
+                  public void m5() {
+                    //@ assume a != null && t != null && 0 <= i && i < a.length;
+                    //@ havoc i;
+                  }
+                  //@ writes \\nothing;
+                  public void m6() {
+                    //@ assume t != null;
+                    //@ havoc t.i; //, t.*;
+                  }
+                  //@ writes \\nothing;
+                  public void m7() {
+                    //@ assume a != null && t != null && 0 <= i && i < a.length && 10 < a.length;
+                    //@ havoc a[i], a[1..2], a[*];
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: \\everything", 15
+                ,"/tt/TestJava.java:11: verify: Associated declaration",7
+                ,anyorder(seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: k", 15
+                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7)
+                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: t.k", 19
+                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7)
+                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: TestJava.k", 31
+                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7)
+                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: tt.TestJava.k", 46
+                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7))
+                ,anyorder(seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assignable) in method m4: this.i", 19
+                             ,"/tt/TestJava.java:19: verify: Associated declaration", 7)
+                         ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assignable) in method m4: this.*", 27
+                             ,"/tt/TestJava.java:19: verify: Associated declaration", 7))
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assignable) in method m5: i", 15
+                ,"/tt/TestJava.java:23: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assignable) in method m6: t.i", 16
+                ,"/tt/TestJava.java:28: verify: Associated declaration", 7
+                ,anyorder(seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable) in method m7: a[i]", 15
+                             ,"/tt/TestJava.java:33: verify: Associated declaration", 7)
+                         ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable) in method m7: a[1 .. 2]", 21
+                             ,"/tt/TestJava.java:33: verify: Associated declaration", 7)
+                         ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable) in method m7: a[*]", 30
+                             ,"/tt/TestJava.java:33: verify: Associated declaration", 7))
+                
+                );
+    }
+    
+    @Test
+    public void testHavocIsAssignableOK() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; //@ nullable_by_default
+                public class TestJava {
+                  public static int k;
+                  public int i;
+                  public int[] a;
+                  public TestJava t;
+                  //@ writes \\everything;
+                  public void m1() {
+                    //@ havoc \\nothing
+                  }
+                  //@ writes \\everything;
+                  public void m2() {
+                    //@ havoc \\everything;
+                  }
+                  //@ writes \\everything;
+                  public void m3() { //@ assume t != null;
+                    //@ havoc k, t.k, TestJava.k, tt.TestJava.k;
+                  }
+                  //@ writes \\everything;
+                  public void m4() {
+                    //@ havoc this.i, this.*;
+                  }
+                  //@ writes \\everything;
+                  public void m5() {
+                    //@ assume a != null && t != null && 0 <= i && i < a.length;
+                    //@ havoc i;
+                  }
+                  //@ writes \\everything;
+                  public void m6() {
+                    //@ assume t != null;
+                    //@ havoc t.i; //, t.*;
+                  }
+                  //@ writes \\everything;
+                  public void m7() {
+                    //@ assume a != null && t != null && 0 <= i && i < a.length && 10 < a.length;
+                    //@ havoc a[i], a[1..2], a[*];
+                  }
+                }
+                """
+                );
+    }
+    
     
     // FIXME _ check that different return or throw statements are properly pointed to
 

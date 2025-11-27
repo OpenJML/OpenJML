@@ -7,10 +7,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openjml.runners.ParameterizedWithNames;
 
-//import com.sun.tools.javac.util.Options;
-
-// FIXME - these were old tests - are they duplicates? should we use them?
-
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class esc1 extends EscBase {
