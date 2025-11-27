@@ -15843,6 +15843,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (that.indexed.type instanceof Type.ArrayType) { // Don't do these tests for JML types
 				index = convertExpr(that.index);
 				addArrayIndexChecks(that, index, indexed);
+				index = addImplicitConversion(index, syms.intType, index);
 			}
 		} else {
 			// In this case, the 'array' is a value type (a JML extension), so no checks for
@@ -21136,8 +21137,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
         } else if (e instanceof JCIdent id) {
-            if (utils.isJMLStatic(id.sym)) {
+            if (id.sym.owner instanceof MethodSymbol) {
+                // local variable
                 return id;
+            } else if (utils.isJMLStatic(id.sym)) {
+                return id; // FIXME - should we add a typename receiver?
             } else {
                 return M.at(id.pos).Select(currentEnv.currentReceiver, id.sym).setType(e.type);
             }            
