@@ -891,6 +891,11 @@ public class escnew extends EscBase {
                     //@ assume a != null && t != null && 0 <= i && i < a.length && 10 < a.length;
                     //@ havoc a[i], a[1..2], a[*];
                   }
+                  //@ writes \\nothing;
+                  public void m8() {
+                    int i;
+                    //@ havoc i;
+                  }
                 }
                 """
                 ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: \\everything", 15
@@ -961,6 +966,11 @@ public class escnew extends EscBase {
                   public void m7() {
                     //@ assume a != null && t != null && 0 <= i && i < a.length && 10 < a.length;
                     //@ havoc a[i], a[1..2], a[*];
+                  }
+                  //@ writes \\everything;
+                  public void m8() {
+                    int i;
+                    //@ havoc i;
                   }
                 }
                 """
