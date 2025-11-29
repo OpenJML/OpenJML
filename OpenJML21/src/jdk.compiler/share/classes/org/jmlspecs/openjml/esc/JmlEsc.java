@@ -121,7 +121,7 @@ public class JmlEsc extends JmlTreeScanner {
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);
         } catch (PropagatedException e) {
-        	utils.progress(1,Utils.NORMAL,"Operation not performed because of parse or type errors");
+        	utils.progress(1,Utils.PROGRESS,"Operation not performed because of parse or type errors");
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
         } catch (Main.JmlCanceledException e) {

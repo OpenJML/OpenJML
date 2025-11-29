@@ -8405,14 +8405,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                item = new StoreRefGroup.Item(r,(VarSymbol)fa.sym); // instance field
 	            }
 	        } else if (sr instanceof JCArrayAccess aa) {
-	            var arr = convertJML(aa.indexed);
-	            if (aa.index instanceof JmlRange range) {
-                    var lo = convertJML(range.lo);
-                    var hi = convertJML(range.hi);
-                    item =  new StoreRefGroup.Item(arr,M.at(range).JmlRange(lo, hi));
+	            if (aa.indexed instanceof JCArrayAccess aaa && aaa.index instanceof JmlRange rrr) {
+	                // Multi-dimensional array
+	                // FIXME - do something, but for now leave it out of the list
+	                item = null;
 	            } else {
-	                var index = convertJML(aa.index);
-                    item =  new StoreRefGroup.Item(arr,M.at(aa.index).JmlRange(index,index));
+	                var arr = convertJML(aa.indexed);
+	                if (aa.index instanceof JmlRange range) {
+	                    var lo = convertJML(range.lo);
+	                    var hi = convertJML(range.hi);
+	                    item =  new StoreRefGroup.Item(arr,M.at(range).JmlRange(lo, hi));
+	                } else {
+	                    var index = convertJML(aa.index);
+	                    item =  new StoreRefGroup.Item(arr,M.at(aa.index).JmlRange(index,index));
+	                }
 	            }
 	        } else {
 	            // ERORR 
@@ -21146,20 +21152,57 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 return M.at(id.pos).Select(currentEnv.currentReceiver, id.sym).setType(e.type);
             }            
         } else if (e instanceof JCArrayAccess aa) {
-            var arr = newTempIfNeeded(convertJML(aa.indexed));
-            addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
-            if (aa.index instanceof JmlRange r) {
+            int k = numStars(aa);
+            if (k == 0) {
+                if (!noStars(aa.indexed)) {
+                    utils.error(aa, "jml.message", "This pattern is not implemented for havoc: " + aa);
+                    throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
+                }
+                var arr = newTempIfNeeded(convertJML(aa.indexed));
+                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
+                var index = newTempIfNeeded(convertJML(aa.index));
+                addArrayIndexChecks(aa, index, arr);
+                return new JmlBBArrayAccess(null, arr, index, aa.pos, aa.type);
+                //return M.at(aa.pos).Indexed(arr, index).setType(e.type);
+            } else if (k == 1) {
+                if (!noStars(aa.indexed)) {
+                    utils.error(aa, "jml.message", "This pattern is not implemented for havoc: " + aa);
+                    throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
+                }
+                var arr = newTempIfNeeded(convertJML(aa.indexed));
+                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
+                var r = (JmlRange)aa.index;
                 var lo = r.lo == null ? null : newTempIfNeeded(convertJML(r.lo));
                 var hi = r.hi == null ? null : newTempIfNeeded(convertJML(r.hi));
                 // FIXME -- add array range checks
                 var rr = M.at(r.pos).JmlRange(lo,hi);
                 return new JmlBBArrayAccess(null, arr, rr, aa.pos, aa.type);
                 //return M.at(aa.pos).Indexed(arr, rr).setType(e.type);
-            } else {
-                var index = newTempIfNeeded(convertJML(aa.index));
-                addArrayIndexChecks(aa, index, arr);
-                return new JmlBBArrayAccess(null, arr, index, aa.pos, aa.type);
-                //return M.at(aa.pos).Indexed(arr, index).setType(e.type);
+            } else if (k > 2) {
+                utils.error(aa, "jml.message", "This pattern is not implemented for havoc: " + aa);
+                throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
+            } else { // k == 2
+                var aaa = (JCArrayAccess)aa.indexed;
+                if (!noStars(aaa.indexed)) {
+                    utils.error(aa, "jml.message", "This pattern is not implemented for havoc: " + aa);
+                    throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
+                }
+                var arr = newTempIfNeeded(convertJML(aaa.indexed));
+                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
+                var r = (JmlRange)aa.index;
+                var lo = r.lo == null ? null : newTempIfNeeded(convertJML(r.lo));
+                var hi = r.hi == null ? null : newTempIfNeeded(convertJML(r.hi));
+                // FIXME -- add array range checks
+                var rr = M.at(r.pos).JmlRange(lo,hi);
+                r = (JmlRange)aaa.index;
+                lo = r.lo == null ? null : newTempIfNeeded(convertJML(r.lo));
+                hi = r.hi == null ? null : newTempIfNeeded(convertJML(r.hi));
+                // FIXME -- add array range checks
+                var rrr = M.at(r.pos).JmlRange(lo,hi);
+                arr = new JmlBBArrayAccess(null, arr, rrr, aaa.pos, aaa.type);
+                arr = new JmlBBArrayAccess(null, arr, rr, aa.pos, aa.type);
+                //System.out.println("CONV " + aa + " " + arr);
+                return arr;
             }
         } else if (e instanceof JmlSingleton) {
             return e;
@@ -21167,6 +21210,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             System.out.println("CONVERTLHS " + " " + e + " " + e.getClass());
             return e;
         }
+    }
+    
+    public int numStars(JCExpression e) {
+        if (!(e instanceof JCArrayAccess a)) return 0;
+        if (a.index instanceof JmlRange) return 1 + numStars(a.indexed);
+        return 0;
+    }
+    
+    public boolean noStars(JCExpression e) {
+        if (!(e instanceof JCArrayAccess a)) return true;
+        if (a.index instanceof JmlRange) return false;
+        return noStars(a.indexed);
     }
     
     public void addTypeAssumption(JCExpression sr) {
@@ -23183,10 +23238,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			} else if (sr.receiver != null && sr.range != null) {
 				// array elements
-				JCExpression ft = freshTest(smaller, sr.receiver, targetEnv.allocCount);
-//				System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
-				ft = convertJML(ft); // Convert in current (smaller) environment
-//				System.out.println("CONVERTED FT " + ft);
+                JCExpression ft = null;
+			    JCExpression head = sr.receiver;
+                if (sr.receiver instanceof JCArrayAccess aa && aa.index instanceof JmlRange) {
+			        head = aa.indexed;
+			        while (head instanceof JCArrayAccess aaa && aaa.index instanceof JmlRange) {
+			            head = aaa.indexed;
+			        }
+			        // multi-dimensional type
+			        // FIXME - for now, presume nothing is fresh
+			    } 
+			    {
+			        ft = freshTest(smaller, head, targetEnv.allocCount);
+			        //				System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
+			        ft = convertJML(ft); // Convert in current (smaller) environment
+			        //				System.out.println("CONVERTED FT " + ft);
+			    }
 				JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
 				return ft == null ? ok : treeutils.makeOrSimp(smaller,  ft,  ok);
 			} else {
