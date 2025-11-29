@@ -925,6 +925,112 @@ public class escnew extends EscBase {
     }
     
     @Test
+    public void testHavoc4() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i] != null && a[i].length == 5;
+                  public void m1a(int[][] a) {
+                      a[1][1] = 1;
+                      int[] b = a[1];
+                      //@ havoc a[1];
+                      //@ assert b[1] == 1;
+                      //@ assert b == a[1]; // ERROR
+                  }
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i] != null && a[i].length == 5;
+                  public void m1b(int[][] a) {
+                      a[1][1] = 1;
+                      int[] b = a[1];
+                      //@ havoc a[*];
+                      //@ assert a[0] != null; // ERROR?
+                      //@ assert a.length == \\old(a.length);
+                      //@ assert b[1] == 1;
+                      //@ assert b == a[1]; // ERROR
+                  }
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i] != null && a[i].length == 5;
+                  public void m1c(int @NonNull [] @NonNull [] a) {
+                      a[1][1] = 1;
+                      int[] b = a[1];
+                      //@ havoc a[*];
+                      //@ assert a[0] != null; // ERROR?
+                      //@ assert a.length == \\old(a.length);
+                      //@ assert b[1] == 1;
+                      //@ assert b == a[1]; // ERROR
+                  }
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i] != null && a[i].length == 5;
+                  public void m1d(int @NonNull [] @NonNull [] a) {
+                      a[1][1] = 1;
+                      int[] b = a[1];
+                      int k = a[1].length;
+                      //@ havoc a[1][*];
+                      //@ assert b == a[1];
+                      //@ assert k == a[1].length;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
+                ,anyorder(seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method m1b", 11)
+                        ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b", 11))
+                ,anyorder(seq("/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Assert) in method m1c", 11)
+                        ,seq("/tt/TestJava.java:32: verify: The prover cannot establish an assertion (Assert) in method m1c", 11))
+                );
+    }
+    
+    @Test
+    public void testHavoc5() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i] != null && a[i].length == 5;
+                  public void m1a(int[][] a) {
+                      a[1][1] = 1;
+                      int[] b = a[1];
+                      int k = b.length;
+                      p: ;
+                      //@ havoc a[*][*];
+                      //@ assume \\forall int i; 0 <= i < a.length; a[i] == \\old(a[i], p);
+                      //@ assert k == b.length;
+                      //@ assert b == a[1];
+                  }
+                }
+                """
+//                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
+//                ,anyorder(seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method m1b", 11)
+//                        ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b", 11))
+//                ,anyorder(seq("/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Assert) in method m1c", 11)
+//                        ,seq("/tt/TestJava.java:32: verify: The prover cannot establish an assertion (Assert) in method m1c", 11))
+                );
+    }
+    
+    @Test
+    public void testHavoc6() {
+        expectedExit = 1;
+        addOptions("--normal");
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  public void m1(int[][] a) {
+                      //@ havoc a[*][1];
+                  }
+                  public void m2(int[][][] a) {
+                      //@ havoc a[*][*][*];
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: error: This pattern is not implemented for havoc: a[*][1]", 17
+                ,"/tt/TestJava.java:7: error: This pattern is not implemented for havoc: a[*][*][*]", 17
+                );
+    }
+    
+    @Test
     public void testHavocIsAssignable() {
         helpTCX("tt.TestJava",
                 """
