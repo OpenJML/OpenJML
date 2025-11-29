@@ -18072,25 +18072,28 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				newlist.add(convertJML(newtarget));
 			}
 		}
-		List<JCExpression> newlistx = expandStoreRefList(newlist.toList(), methodDecl.sym, true);
-		int p = pos.getPreferredPosition();
-		JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlistx);
-		for (JCExpression hv : newlistx) {
-			if (hv instanceof JCFieldAccess) {
-				var fa = (JCFieldAccess) hv;
-				havocModelFields(fa);
-			}
-		}
-		allocCounter++;
+//		List<JCExpression> newlistx = expandStoreRefList(newlist.toList(), methodDecl.sym, true);
+//		int p = pos.getPreferredPosition();
+//		JmlStatementHavoc st = M.at(p).JmlHavocStatement(newlistx);
+//		for (JCExpression hv : newlistx) {
+//			if (hv instanceof JCFieldAccess) {
+//				var fa = (JCFieldAccess) hv;
+//				havocModelFields(fa);
+//			}
+//		}
+		havocHelper(pos, newlist.toList());
+		
+//		allocCounter++;
 		// FIXME - this ought to work to preserve initialized values at the beginning of
 		// th e0th iteration, but makes loops infeasbile
 //        JCExpression id = treeutils.makeIdent(indexDecl.pos, indexDecl.sym);
 //        JCExpression e = treeutils.makeBinary(p, JCTree.Tag.GT, id, treeutils.zero);
 //        addStat(M.at(p).If(e, st, null));
-		addStat(st);
+//		addStat(st);
 		boolean allLocal = true;
+        List<JCExpression> newlistx = expandStoreRefList(newlist.toList(), methodDecl.sym, true);
 		{
-			for (JCExpression item : st.storerefs) {
+			for (JCExpression item : expandStoreRefList(newlistx, methodDecl.sym, true)) {
 				if (item instanceof JCIdent) {
 					addNullnessTypeCondition(item, ((JCIdent) item).sym, false);
 				} else if (item instanceof JCFieldAccess) {
@@ -21095,21 +21098,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     + that.getClass());
             return;
         }
+        havocHelper(that, that.storerefs);
+    }
+    
+    public void havocHelper(DiagnosticPosition pos, List<JCExpression> locsets) {
         try {
             var convertedExprs = new ListBuffer<JCExpression>();
-            for (var expr: that.storerefs) {
+            for (var expr: locsets) {
                 var converted = convertLHS2(expr);
                 convertedExprs.add(converted);
                 checkAccess2(assignableClauseKind, expr, expr, converted, true, treeutils.trueLit, true, null, false);
             }
             var lst = expandStoreRefListAll(convertedExprs.toList(), currentEnv.methodSym);
-            var stat = M.at(that).JmlHavocStatement(lst);
-            stat.setType(that.type);
+            var stat = M.at(pos).JmlHavocStatement(lst);
 
-            JmlLabeledStatement sttt = markUniqueLocation(stat);
+            JmlLabeledStatement sttt = markUniqueLocation(null);
             addStat(sttt);
             addStat(stat);
-            changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, lst)), sttt.label);
+            allocCounter++;
+            changeState(pos, List.<StoreRefGroup>of(convertFrameConditionList(pos, treeutils.trueLit, lst)), sttt.label);
             for (var sr: lst) {
                 if (sr instanceof JCArrayAccess aa && aa.index instanceof JmlRange) continue;
                 addTypeAssumption(sr);

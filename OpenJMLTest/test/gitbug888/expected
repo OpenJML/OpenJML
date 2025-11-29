@@ -27,6 +27,7 @@ test/gitbug888/Test.java:11: warning: There is no feasible path to program point
     //@  ensures \result == arr[N] + _sumFirstNElements(arr, N-1);
                                                        ^
 Feasibility check - after call : OK
+Feasibility check - end of axioms for _sumFirstNElements(int[],int) : OK
 Feasibility check - after call : OK
 Feasibility check - after call : OK
 Feasibility check - at loop exit : OK
@@ -71,6 +72,7 @@ test/gitbug888/Test2.java:7: warning: There is no feasible path to program point
     //@  ensures \result == (N == -1 ? 0 : arr[N] + _sumFirstNElements(arr, N-1));
                                                                       ^
 Feasibility check - after call : OK
+Feasibility check - end of axioms for _sumFirstNElements(int[],int) : OK
 Feasibility check - after call : OK
 Feasibility check - after call : OK
 Feasibility check - at loop exit : OK

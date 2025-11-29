@@ -3703,7 +3703,7 @@ public class JmlTree {
     	// isEverything=true, other fields null: \everything
     	// isEverything=false, local nonnull; others null: a local variable
     	// isEverything=false, expression nonull; others null: a locset expression (expression.type is \locset
-    	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or isngle index
+    	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or single index
     	public boolean isEverything;
     	/*@ nullable */ public Symbol local;
     	/*@ nullable */ public JCExpression expression;
