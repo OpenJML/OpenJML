@@ -37,7 +37,7 @@ public class Test {
     //@     setOne(c2);
     //@     ghost boolean b = Arrays.equals(c1, c2);
     //@     assert b; // Arrays.equals(c1, c2);
-    // @     assert arr.length == 0 <==> Arrays.equals(c1, c2);
+    //@     assert arr.length == 0 <==> Arrays.equals(c1, c2);
     //@     reachable;
     //@ }
     
@@ -50,12 +50,12 @@ public class Test {
     //@     assert c1 != c2;
     //@     assume c1.length  > 0;
     //@     assume c1.length == c2.length;
-    // @     setZero(c1);
-    // @     setOne(c2);
-    // @     assert \forall int i; 0 <= i < c1.length; c1[i] == 0;
-    // @     assert \forall int i; 0 <= i < c2.length; c2[i] == 1;
+    //@     setZero(c1);
+    //@     setOne(c2);
+    //@     assert \forall int i; 0 <= i < c1.length; c1[i] == 0;
+    //@     assert \forall int i; 0 <= i < c2.length; c2[i] == 1;
     //@     reachable;
-    //@     assert Arrays.equals(c1,c2);
+    //@     assert Arrays.equals(c1,c2);  // ERROR
     //@     reachable;
     //@ }
 

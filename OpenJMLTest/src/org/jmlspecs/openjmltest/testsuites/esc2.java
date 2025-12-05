@@ -46,9 +46,9 @@ public class esc2 extends EscBase {
 
               + "}"
               ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method m4",15
-              ,"$SPECS/java/util/List.jml:116: verify: Associated declaration",13
-              ,"$SPECS/java/util/Collection.jml:140: verify: Precondition conjunct is false: containsNull || o != null",33
-              ,"$SPECS/java/util/List.jml:107: verify: Precondition conjunct is false: containsNull || o != null",33
+              ,"$SPECS/java/util/List.jml:119: verify: Associated declaration",13
+              ,"$SPECS/java/util/Collection.jml:153: verify: Precondition conjunct is false: o != null",19
+              ,"$SPECS/java/util/List.jml:109: verify: Precondition conjunct is false: containsNull || o != null",33
 
                 );
 
@@ -145,12 +145,12 @@ public class esc2 extends EscBase {
 
                 , "/tt/TestJava.java:7: error: A \\count token is used outside the scope of a foreach loop", 23
                 ,"/tt/TestJava.java:11: error: A \\count token is used outside the scope of a foreach loop", 23
-                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:   value", 15
+                ,"/tt/TestJava.java:16: error: unexpected type\n  required: variable\n  found:    value", 15
                 ,"/tt/TestJava.java:16: error: Unexpected kind of LHS in a set statement: \\count",15
                 ,"/tt/TestJava.java:16: error: The LHS in a set statement must be a ghost variable",15
                 ,"/tt/TestJava.java:23: error: A \\values token is used outside the scope of a foreach loop", 45
                 ,"/tt/TestJava.java:27: error: A \\values token is used outside the scope of a foreach loop", 45
-                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:   value", 15
+                ,"/tt/TestJava.java:32: error: unexpected type\n  required: variable\n  found:    value", 15
                 ,"/tt/TestJava.java:32: error: Unexpected kind of LHS in a set statement: \\values",15
                 ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
                 );
