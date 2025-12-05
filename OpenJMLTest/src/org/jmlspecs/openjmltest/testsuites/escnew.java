@@ -882,7 +882,7 @@ public class escnew extends EscBase {
                 """
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
                 ,anyorder(seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m1b", 11)
-                ,seq("/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m1b",11))
+                         ,seq("/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m1b",11))
                 ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Assert) in method m1c", 11
                 );
     }
@@ -945,7 +945,7 @@ public class escnew extends EscBase {
                       a[1][1] = 1;
                       int[] b = a[1];
                       //@ havoc a[*];
-                      //@ assert a[0] != null; // ERROR?
+                      //@ assert a[0] != null;
                       //@ assert a.length == \\old(a.length);
                       //@ assert b[1] == 1;
                       //@ assert b == a[1]; // ERROR
@@ -956,7 +956,7 @@ public class escnew extends EscBase {
                       a[1][1] = 1;
                       int[] b = a[1];
                       //@ havoc a[*];
-                      //@ assert a[0] != null; // ERROR?
+                      //@ assert a[0] != null;
                       //@ assert a.length == \\old(a.length);
                       //@ assert b[1] == 1;
                       //@ assert b == a[1]; // ERROR
@@ -974,10 +974,8 @@ public class escnew extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
-                ,anyorder(seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method m1b", 11)
-                        ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b", 11))
-                ,anyorder(seq("/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Assert) in method m1c", 11)
-                        ,seq("/tt/TestJava.java:32: verify: The prover cannot establish an assertion (Assert) in method m1c", 11))
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b", 11
+                ,"/tt/TestJava.java:32: verify: The prover cannot establish an assertion (Assert) in method m1c", 11
                 );
     }
     
@@ -987,25 +985,19 @@ public class escnew extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
-                  //@ requires a.length > 5;
-                  //@ requires \\forall int i; 0 <= i < 5; a[i] != null && a[i].length == 5;
-                  public void m1a(int[][] a) {
-                      a[1][1] = 1;
-                      int[] b = a[1];
-                      int k = b.length;
-                      p: ;
-                      //@ havoc a[*][*];
-                      //@ assume \\forall int i; 0 <= i < a.length; a[i] == \\old(a[i], p);
+                  //@ requires fff.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; fff[i] != null && fff[i].length == 5;
+                  public void m1a(int[][] fff) {
+                      int[] b = fff[1];
+                      int k = fff[1].length;
+                      //@ assert fff[1].length == 5;
+                      //@ havoc fff[*][*];
+                      //@ assert fff[1].length == 5;
                       //@ assert k == b.length;
-                      //@ assert b == a[1];
+                      //@ assert b == fff[1];
                   }
                 }
                 """
-//                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m1a", 11
-//                ,anyorder(seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method m1b", 11)
-//                        ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b", 11))
-//                ,anyorder(seq("/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Assert) in method m1c", 11)
-//                        ,seq("/tt/TestJava.java:32: verify: The prover cannot establish an assertion (Assert) in method m1c", 11))
                 );
     }
     
@@ -1027,6 +1019,101 @@ public class escnew extends EscBase {
                 """
                 ,"/tt/TestJava.java:4: error: This pattern is not implemented for havoc: a[*][1]", 17
                 ,"/tt/TestJava.java:7: error: This pattern is not implemented for havoc: a[*][*][*]", 17
+                );
+    }
+    
+    @Test
+    public void testHavocNN() {
+        expectedExit = 6;
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  Object oo = new Object();
+                  @Nullable Object ooo;
+                  public void m1(Object a) {
+                      //@ havoc a;
+                      //@ assert a != null;
+                  }
+                  public void m2(@Nullable Object a) {
+                      //@ havoc a;
+                      //@ assert a != null; // ERROR
+                  }
+                  public void m3() {
+                      //@ havoc oo;
+                      //@ assert oo != null;
+                  }
+                  public void m4() {
+                      //@ havoc ooo;
+                      //@ assert ooo != null; // ERROR
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m2", 11
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method m4", 11
+                );
+    }
+    
+    @Test
+    public void testHavocNN1() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  public void m0(Object[] a) {
+                      //@ havoc a[*];
+                      //@ assert a[1] != null;
+                  }
+                  //@ requires a.length > 5;
+                  public void m1(@NonNull Object[] a) {
+                      //@ havoc a[*];
+                      //@ assert a[1] != null;
+                  }
+                  //@ requires a.length > 5;
+                  public void m2(@Nullable Object[] a) {
+                      //@ havoc a[*];
+                      //@ assert a[1] != null; // ERROR
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m2", 11
+                );
+    }
+    
+    @Test
+    public void testHavocNN2() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i].length > 5;
+                  public void m0(Object[][] a) {
+                      p:;
+                      //@ havoc a[1..2][3..4];
+                      //@ assert a[1] == \\old(a[1],p);
+                      //@ assert a[1] != null;
+                  }
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i].length > 5;
+                  public void m1(@NonNull Object[][] a) {
+                      p:;
+                      //@ havoc a[*][*];
+                      //@ assert a[1] == \\old(a[1],p);
+                      //@ assert a[2][3] != null;
+                  }
+                  //@ requires a.length > 5;
+                  //@ requires \\forall int i; 0 <= i < 5; a[i].length > 5;
+                  public void m2(@Nullable Object[][] a) {
+                      p:;
+                      //@ havoc a[*][*];
+                      //@ assert a[1] == \\old(a[1],p);
+                      //@ assert a[2][3] != null; // ERROR
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Assert) in method m2", 11
                 );
     }
     

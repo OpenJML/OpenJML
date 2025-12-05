@@ -3,10 +3,12 @@
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
 
-## FIXME - why does this not work with .jar files when in the script
 CP=.:commons-lang3-3.3.2.jar
 
-$OJA --rac Test.java -cp $CP >& actual
-"$BIN/openjml-java" Test -cp $CP >> actual 2>&1
-rm -rf Test.class
-diff actual expected && rm -rf actual
+rm -rf actual
+echo COMPILING >> actual
+"$BIN/openjml" --rac Test.java -cp $CP >> actual 2>&1
+echo RUNNING >> actual
+"$BIN/openjml-java" -cp $CP Test >> actual 2>&1
+
+diff actual expected && rm -rf actual Test.class

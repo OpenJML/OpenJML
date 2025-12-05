@@ -1417,40 +1417,46 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         		JCExpression axi = result;
                 currentMap = savedMap;
 
+                Type ctype = aa.type;
                 JCIdent arr2 = getArrayIdent(indexType,ax.type,aa.pos);
-                JCIdent nid = newArrayIncarnation(indexType,ax.type,sp);
+                JCIdent arr1 = getArrayIdent(indexType,ctype,aa.pos);
+                JCIdent nid = newArrayIncarnation(indexType,ctype,sp);
+                var range2 = ax.index;
+                var range1 = ax.index;
 
-        		JCExpression expr = new JmlBBArrayAssignment(nid,arr2,axi,null,null);
+        		JCExpression expr = new JmlBBArray2DHavoc(arr2,nid,arr1,axi,range2,range1);
         		expr.pos = sp;
         		expr.type = aa.type;
         		treeutils.copyEndPosition(expr, aa);
         		result = expr;
+//        		System.out.println("2DARR ASSUMING " + expr);
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
         		
-                JCExpression lo = treeutils.makeZeroEquivalentLit(aa,BIGINT);
-                JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
-                JCIdent ind = treeutils.makeIdent(p, decl.sym);
-                JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
-                JCExpression newelem = new JmlBBArrayAccess(nid,axi,ind);
-                newelem.pos = p;
-                newelem.type = aa.type;
-                JCExpression oldelem = new JmlBBArrayAccess(arr2,axi,ind);
-                oldelem.pos = p;
-                oldelem.type = aa.type;
-                JCExpression eq = treeutils.makeNeqObject(p,newelem,treeutils.nullLit);
-                JCExpression len = treeutils.makeEquality(p,treeutils.makeLength(aa, newelem),treeutils.makeLength(aa, oldelem));
-
-//                if (aa.hi != null) {
-//                    scan(aa.hi);
-//                    JCExpression hi = result;
-//                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
-//                }
-
-                // FIXME - set line and source
-                expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,
-                				treeutils.makeAnd(p, eq, len));
-                expr.setType(syms.booleanType);
-                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+//                JCExpression lo = treeutils.makeZeroEquivalentLit(aa,BIGINT);
+//                JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
+//                JCIdent ind = treeutils.makeIdent(p, decl.sym);
+//                JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
+//                JCExpression newelem = new JmlBBArrayAccess(nid,axi,ind);
+//                newelem.pos = p;
+//                newelem.type = aa.type;
+//                JCExpression oldelem = new JmlBBArrayAccess(arr2,axi,ind);
+//                oldelem.pos = p;
+//                oldelem.type = aa.type;
+//                JCExpression eq = treeutils.makeNeqObject(p,newelem,treeutils.nullLit);
+//                JCExpression len = treeutils.makeEquality(p,treeutils.makeLength(aa, newelem),treeutils.makeLength(aa, oldelem));
+//
+////                if (aa.hi != null) {
+////                    scan(aa.hi);
+////                    JCExpression hi = result;
+////                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
+////                }
+//
+//                // FIXME - set line and source
+//                expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,
+//                				treeutils.makeAnd(p, eq, len));
+//                expr.setType(syms.booleanType);
+//                System.out.println("2DARR ASSUMING-B " + expr);
+//                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                 
         		
         		// old array axi[*][*] ; new array nid[*][*]

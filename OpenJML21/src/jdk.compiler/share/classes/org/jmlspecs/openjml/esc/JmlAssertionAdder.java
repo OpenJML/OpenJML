@@ -21118,8 +21118,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             allocCounter++;
             changeState(pos, List.<StoreRefGroup>of(convertFrameConditionList(pos, treeutils.trueLit, lst)), sttt.label);
             for (var sr: lst) {
-                if (sr instanceof JCArrayAccess aa && aa.index instanceof JmlRange) continue;
-                addTypeAssumption(sr);
+                JCExpression pred = typeAssumption(sr);
+                if (pred != null) addAssume(sr, Label.IMPLICIT_ASSUME, pred);
             }
             result = stat; // I don't think this matters
         } catch (JmlNotImplementedException e) {
@@ -21231,49 +21231,110 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return noStars(a.indexed);
     }
     
-    public void addTypeAssumption(JCExpression sr) {
+    public JCExpression typeAssumption(JCExpression sr) {
         // FIXME - won't work for anything with wild-cards; also not all types here, nor explicit invariants like nullity
-        if (sr.type == null) return; // e.g. t.* has a null type
-        if (types.isSameType(sr.type, syms.intType)) {
-            var pred = treeutils.makeAnd(sr, 
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            treeutils.makeIntLiteral(sr,  Integer.MIN_VALUE), 
-                            sr),
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            sr,
-                            treeutils.makeIntLiteral(sr,  Integer.MAX_VALUE)));
-            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
-        } else if (types.isSameType(sr.type, syms.shortType)) {
-            var pred = treeutils.makeAnd(sr, 
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            treeutils.makeIntLiteral(sr,  Short.MIN_VALUE), 
-                            sr),
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            sr,
-                            treeutils.makeIntLiteral(sr,  Short.MAX_VALUE)));
-            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
+        if (sr.type == null) return null; // e.g. t.* has a null type
+        int k = numStars(sr);
+        //System.out.println("NUMSTARS " + k + " " + noStars(sr));
+        if (k == 1) {
+            var a = (JCArrayAccess)sr;
+            var index = (JmlRange)a.index;
+            var arr = a.indexed;
+            if (noStars(arr) && isNonNullLocal(a.type)) {
+                var d = newTempDecl(sr, syms.intType);
+                var id = treeutils.makeIdent(sr, d.sym);
+                var aa = new JmlBBArrayAccess(null, arr, id, sr.pos, sr.type);
+                JCExpression lo = (index.lo == null) ? null : treeutils.makeIntLe(sr, index.lo, id);
+                JCExpression hi = (index.hi == null) ? null : index.hiExclusive ? treeutils.makeIntLt(sr, id, index.hi) : treeutils.makeIntLe(sr, id, index.hi);
+                JCExpression e = lo == null ? hi : hi == null ? lo : treeutils.makeAnd(sr, lo, hi);
+                var pred = typeAssumption(aa);
+                pred = M.at(sr).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(d), e, pred);
+                pred.type = syms.booleanType;
+                //System.out.println("PRED " + pred);
+                return pred;
+            }
+        } else if (k == 2) {
+            var a = (JCArrayAccess)sr;
+            var index = (JmlRange)a.index;
+            var a1 = (JCArrayAccess)a.indexed;
+            var index2 = (JmlRange)a1.index;
+            var arr = a1.indexed;
+            if (noStars(arr)) {
+                boolean nn = isNonNullLocal(a.type);
+                if (!nn) return null;
+                var d = newTempDecl(sr, syms.intType);
+                var id = treeutils.makeIdent(sr, d.sym);
+                var dd = newTempDecl(sr, syms.intType);
+                var idd = treeutils.makeIdent(sr, dd.sym);
+                var aa = new JmlBBArrayAccess(null, arr, id, sr.pos, a1.type);
+                var aaa = new JmlBBArrayAccess(null, aa, idd, sr.pos, a.type);
+                var pred = typeAssumption(aaa);
+           //     System.out.println("ACC " + aaa + " " + aaa.type + " " + aa.type + " " + pred);
+                JCExpression lo = (index.lo == null) ? null : treeutils.makeIntLe(sr, index.lo, idd);
+                JCExpression hi = (index.hi == null) ? null : index.hiExclusive ? treeutils.makeIntLt(sr, idd, index.hi) : treeutils.makeIntLe(sr, idd, index.hi);
+                JCExpression e = lo == null ? hi : hi == null ? lo : treeutils.makeAnd(sr, lo, hi);
+                lo = (index2.lo == null) ? null : treeutils.makeIntLe(sr, index2.lo, id);
+                hi = (index2.hi == null) ? null : index2.hiExclusive ? treeutils.makeIntLt(sr, id, index2.hi) : treeutils.makeIntLe(sr, id, index2.hi);
+                JCExpression ee = lo == null ? hi : hi == null ? lo : treeutils.makeAnd(sr, lo, hi);
+                pred = M.at(sr).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(dd), e, pred);
+                pred.type = syms.booleanType;
+                pred = M.at(sr).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(d), ee, pred);
+                pred.type = syms.booleanType;
+          //      System.out.println("TWO " + sr + " " + pred);
+                return pred;
+            }
+        } else if (k == 0) {
+            if (sr.type.isReference()) {
+                Type t = sr.type;
+                if (isNonNullLocal(t)) {
+                    var pred = treeutils.makeNotNull(sr, sr);
+                    return pred;
+                    // FIXME - add invariant?
+                }
+            } else if (types.isSameType(sr.type, syms.intType)) {
+                var pred = treeutils.makeAnd(sr, 
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                treeutils.makeIntLiteral(sr,  Integer.MIN_VALUE), 
+                                sr),
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                sr,
+                                treeutils.makeIntLiteral(sr,  Integer.MAX_VALUE)));
+                return pred;
+            } else if (types.isSameType(sr.type, syms.shortType)) {
+                var pred = treeutils.makeAnd(sr, 
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                treeutils.makeIntLiteral(sr,  Short.MIN_VALUE), 
+                                sr),
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                sr,
+                                treeutils.makeIntLiteral(sr,  Short.MAX_VALUE)));
+                return pred;
+            }
+            if (types.isSameType(sr.type, syms.longType)) {
+                var pred = treeutils.makeAnd(sr, 
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                treeutils.makeLongLiteral(sr,  Long.MIN_VALUE), 
+                                sr),
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                sr,
+                                treeutils.makeLongLiteral(sr,  Long.MAX_VALUE)));
+                return pred;
+            }
+            if (types.isSameType(sr.type, syms.byteType)) {
+                var pred = treeutils.makeAnd(sr, 
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                treeutils.makeIntLiteral(sr,  Byte.MIN_VALUE), 
+                                sr),
+                        treeutils.makeBinarySimp(sr, Tag.LE,
+                                sr,
+                                treeutils.makeIntLiteral(sr,  Byte.MAX_VALUE)));
+                return pred;
+            }
+        } else {
+            throw new JmlNotImplementedException(sr, "wildcard pattern " + sr);
         }
-        if (types.isSameType(sr.type, syms.longType)) {
-            var pred = treeutils.makeAnd(sr, 
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            treeutils.makeLongLiteral(sr,  Long.MIN_VALUE), 
-                            sr),
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            sr,
-                            treeutils.makeLongLiteral(sr,  Long.MAX_VALUE)));
-            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
-        }
-        if (types.isSameType(sr.type, syms.byteType)) {
-            var pred = treeutils.makeAnd(sr, 
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            treeutils.makeIntLiteral(sr,  Byte.MIN_VALUE), 
-                            sr),
-                    treeutils.makeBinarySimp(sr, Tag.LE,
-                            sr,
-                            treeutils.makeIntLiteral(sr,  Byte.MAX_VALUE)));
-            addAssume(sr, Label.IMPLICIT_ASSUME, pred);
-        }
-        
+
+        return null;
     }
 
 	// OK

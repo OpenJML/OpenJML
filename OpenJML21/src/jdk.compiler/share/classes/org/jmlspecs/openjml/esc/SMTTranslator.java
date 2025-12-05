@@ -1238,9 +1238,26 @@ public class SMTTranslator extends JmlTreeScanner {
         }
     }
     
+    /** Parses an expression */
+    protected IExpr parse(SMT smt, String expr) {
+        try {
+            Configuration cf = smt.smtConfig;
+            IExpr e = cf.smtFactory.createParser(cf,cf.smtFactory.createSource(expr,null)).parseExpr();
+            return e;
+        } catch (Exception e) {
+            System.out.println("BAD EXPR: " + expr);
+            throw new RuntimeException(e);
+        }
+    }
+    
     /** Adds a command expressed as a string */
     protected void addCommand(SMT smt, String command) {
         commands.add(command(smt,command));
+    }
+    
+    /** Appends a command to the current command list */
+    protected void addCommand(ICommand command) {
+        commands.add(command);
     }
     
     protected ICommand makeCommand(SMT smt, String command) {
@@ -1950,10 +1967,22 @@ public class SMTTranslator extends JmlTreeScanner {
                         );
                 result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
                 return;
-            }
-            else if (tree instanceof JmlBBArrayAssignment) {
+            } else if (tree instanceof JmlBBArray2DHavoc havoc) {
+                // havoc of multi-dimensional array
+                IExpr topId = convertExpr(tree.args.get(0));
+                IExpr newId = convertExpr(tree.args.get(1));
+                IExpr oldId = convertExpr(tree.args.get(2));
+                IExpr arr = convertExpr(tree.args.get(3));
+                String ss = "(forall ((i Int)) (distinct (select (select " + topId + " " + arr + ") i) r))";
+                String s = "(forall ((r REF)) (=> " + ss + " (= (select " + newId + " r) (select " + oldId + " r))))";
+                result = parse(smt, s);
+                
+            } else if (tree instanceof JmlBBArrayAssignment) {
                 if (tree.args.length() <= 3) {
+                    // havoc of single-dimensional array
+                    // havocs #1[#2]
                     // [0] = store([1],[2], select([0],[2]))
+                    
                     IExpr arg0 = convertExpr(tree.args.get(0));
                     IExpr arg2 = convertExpr(tree.args.get(2));
                     IExpr.IFcnExpr sel = F.fcn(selectSym,
@@ -1967,7 +1996,9 @@ public class SMTTranslator extends JmlTreeScanner {
                             sel
                             );
                     result = F.fcn(eqSym, arg0,newarray);
+                    
                 } else if (tree.args.size() == 4) {
+                    // Assignment  #1[#2] = #3
                     // JML primitive array-like case
                     // [0] = store([1], [2], [3])
                     IExpr.IFcnExpr right = F.fcn(F.symbol("store"),
@@ -1978,6 +2009,7 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.fcn(eqSym, convertExpr(tree.args.get(0)),right);
                     
                 } else {
+                    // 2D Assignment: #1[#2][#3] = #4
                     // [0] = store([1],[2], store(select([1],[2]),[3],[4]))
                     IExpr.IFcnExpr sel = F.fcn(selectSym,
                             convertExpr(tree.args.get(1)),
