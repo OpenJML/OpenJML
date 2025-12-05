@@ -1,3 +1,5 @@
+COMPILING
+RUNNING
 Test.java:3: verify: JML null initialization of non_null field o
     Object o = null;
            ^
