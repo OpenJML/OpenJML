@@ -351,6 +351,7 @@ public abstract class JmlTestSuite {
     @After
     public void tearDown() throws Exception {
         context = null;
+        main.close();
         main = null;
         collector = null;
         options = null;

@@ -552,17 +552,20 @@ public class escm extends EscBase {
                   public void m(int[] a, TestJava t) {
                     int j;
                     //@ havoc j, i;
-                    // @ havoc this.i, super.j, t.i;
-                    // @ havoc this.*, t.*, super.*;
-                    // @ havoc a[i];
-                    // @ havoc a[i..i];
-                    // @ havoc a[i..];
-                    // @ havoc a[*];
+                    //@ havoc this.i, super.j, t.i;
+                    //@ havoc this.*, t.*, super.*;
+                    //@ havoc a[i];
+                    //@ havoc a[i..i];
+                    //@ havoc a[i..];
+                    //@ havoc a[*];
+                    //@ havoc \\nothing;
+                    //@ havoc \\everything;
                   }
                 }
                 class P { public int j; }
-                // FIXME - needs fixing for all the various syntaxes
                 """
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m", 15
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m", 15
                 );
     }
 

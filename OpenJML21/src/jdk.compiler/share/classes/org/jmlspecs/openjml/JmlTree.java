@@ -4328,22 +4328,19 @@ public class JmlTree {
         }        
     }
     
-//    // TODO: Not used?
-//    public static class JmlBBArrayHavoc extends JCMethodInvocation {
-//        public JmlBBArrayHavoc(JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression indexlo, JCExpression indexhi, JCExpression precondition, boolean above) {
-//            super(null,null,null);
-//            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
-//            list.append(newarrs);
-//            list.append(oldarrs);
-//            list.append(arr);
-//            list.append(indexlo);
-//            list.append(indexhi);
-//            list.append(precondition);
-//            this.above = above;
-//            args = list.toList();
-//        }
-//        public boolean above;
-//    }
+    public static class JmlBBArray2DHavoc extends JCMethodInvocation {
+        public JmlBBArray2DHavoc(JCIdent toparr, JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression range2, JCExpression range1) {
+            super(null,null,null);
+            ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            list.append(toparr);
+            list.append(newarrs);
+            list.append(oldarrs);
+            list.append(arr);
+            list.append(range2);
+            list.append(range1);
+            args = list.toList();
+        }
+    }
     
     public static class JmlBBFieldAssignment extends JCMethodInvocation {
         public JmlBBFieldAssignment(JCIdent newfield, JCIdent oldfield, JCExpression selected, JCExpression rhs) {

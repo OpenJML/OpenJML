@@ -1449,6 +1449,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             perr(that,e);
         }
     }
+    
+    @Override
+    public void visitIndexed(JCArrayAccess tree) {
+        try {
+            if (tree instanceof JmlBBArrayAccess aa && aa.arraysId != null) {
+                print("{"+aa.arraysId+"}");
+            }
+            super.visitIndexed(tree);
+        } catch (IOException e) {
+            perr(tree,e);
+        }
+    }
 
     /** Overridden in order to handle the case of a null selection field - this
      * means a * in a store-ref expression.

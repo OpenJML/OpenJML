@@ -983,6 +983,14 @@ public class JmlTreeUtils {
         if (optag == JCTree.Tag.AND) return makeAndSimp(pos.getStartPosition(), lhs, rhs);
         return makeBinary(pos, optag,  lhs, rhs);
     }
+    
+    public JCBinary makeIntLe(DiagnosticPosition pos, JCExpression lo, JCExpression hi) {
+        return makeBinary(pos, JCTree.Tag.LE, intleSymbol, lo, hi);
+    }
+
+    public JCBinary makeIntLt(DiagnosticPosition pos, JCExpression lo, JCExpression hi) {
+        return makeBinary(pos, JCTree.Tag.LT, intltSymbol, lo, hi);
+    }
 
 //    public JCExpression makeBinarySimp(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
 //        if (optag == JCTree.Tag.OR) return makeOrSimp(pos, lhs, rhs);
