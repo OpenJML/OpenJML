@@ -262,7 +262,16 @@ public class JmlOption {
     };
     public static final JmlOption TRACE = new JmlOption("--trace",false,false,"ESC: Enables tracing of counterexamples",null);
     public static final JmlOption SHOW = new JmlOption("--show",true,"","Show intermediate programs",null,false,"all");   // Has a default
-    public static final JmlOption SPLIT = new JmlOption("--split",true,"","Split proof into sections",null);
+    public static final JmlOption SPLIT = new JmlOption("--split",true,"","Split proof into sections",null) {
+        public boolean check(Context context, boolean negate) {
+            if (negate) {
+                JmlOptions options = JmlOptions.instance(context);
+                var nm = JmlOption.SPLIT.optionName();
+                options.put(nm, null);
+            }
+            return true;
+        }
+    };
     public static final JmlOption ESC_BV = new JmlOption("--esc-bv",true,"auto","ESC: If enabled, use bit-vector arithmetic (auto, true, false)",null) {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
