@@ -182,7 +182,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug883() {
-        helpTCG("--esc-max-warnings=1","--check-feasibility=basic","--nullable-by-default","--timeout=60");
+        helpTCG("--esc-max-warnings=1","--check-feasibility=precondition,exit","--nullable-by-default","--timeout=60");
     }
     
     @Test

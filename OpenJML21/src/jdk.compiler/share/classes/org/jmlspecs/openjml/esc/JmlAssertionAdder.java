@@ -4020,8 +4020,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     ee3.type = componentType;
                     var ee4 = treeutils.makeJmlMethodInvocation(pos, FunctionLikeExpressions.invariantForKind, syms.booleanType, ee3);
                     var ee5 = treeutils.makeNotNull(p, copy(ee3));
-                    var ee6 = treeutils.makeImplies(pos, ee5, ee4);
-                    var ss = M.at(pos).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(decl), treeutils.makeAnd(p, ee1, ee2), ee6);
+                    var ee7 = makeAllocExpression(pos, copy(ee3), null);
+                    var ee6 = treeutils.makeImplies(pos, ee5, treeutils.makeAnd(ee4, ee7));
+                    var ee8 = treeutils.makeAnd(p, ee1, ee2);
+                    var ss = M.at(pos).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(decl), ee8, ee6);
                     ss.type = syms.booleanType;
                     var sss = treeutils.makeImplies(pos, treeutils.makeNotNull(p, copy(id)), ss);
                     try {
