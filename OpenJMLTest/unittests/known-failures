@@ -82,7 +82,6 @@ escArithmeticModes2.testModSafeBB
 escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
 escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
 escfiles.esc2DArray		# <<<<<	problems with havocing arrays and array elements
-escfiles.esc2DArray2		# <<<<< problems with havocing arrays and array elements
 escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
@@ -153,7 +152,7 @@ escgeneric.testTypeOf
 escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
-escm.havocInit
+
 feasibility.ffinally
 feasibility.floopbreak
 feasibility.floopcondition
@@ -170,8 +169,6 @@ racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with i
 generics.testBinaryGeneric3c
 escfiles.sfbug420e
 primesc.locsetTests2
-esc2.testForEachBad     # probably simple syntax
-esc2.testNonNullElements4  ## Test cleanup?
 
 runscripts.crashXlint  # Xlint:exports problem
 escfiles2.gitbug883    # Matrix add 
@@ -179,9 +176,10 @@ escfiles2.gitbug883bad #    Needs better handling of 2D array
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[gitbug897]   # substring and loop
-escfileslist2.test[gitbug890]   # problem proving array inequality
 escfileslist1.test[gitbug763]   # specs for string handling problem
 escfileslist2.test[gitbug814]
+
+escfiles2.gitbug890
 
 SFBugs.gitbug651  # not yet working -- problems with Map specifications
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out

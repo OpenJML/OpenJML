@@ -77,7 +77,7 @@ public class Test {
     	int[] a1 = a[1];
         //@ havoc a[*][*];
     	//@ assert b == a;
-    	//@ assert a[1] == a1; // FIXME - SHOULD NOT FAIL
+    	//@ assert a[1] == a1; // SHOULD NOT FAIL
     	
     }
     
