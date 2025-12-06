@@ -1023,6 +1023,42 @@ public class escnew extends EscBase {
     }
     
     @Test
+    public void testHavoc7() {
+        helpTCX("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  public void m1() {
+                      int[][] a = new int[5][5];
+                      a[0][2] = 42;
+                      a[1][2] = 43;
+                      //@ havoc a[1..2][*];
+                      //@ check a[0][2] == 42;
+                      //@ check a[1][2] == 43; // ERROR
+                  }
+                  public void m2() {
+                      int[][] a = new int[5][5];
+                      int k = a.length;
+                      a[0][2] = 40;
+                      a[0][3] = 41;
+                      a[1][2] = 42;
+                      a[1][3] = 43;
+                      p: {}
+                      //@ havoc a[1..2][3..4];
+                      //@ check a[0][2] == 40;
+                      //@ check a[0][3] == 41;
+                      //@ check a[1][2] == 42;
+                      //@ check a[1][2] == \\old(a[1][2], p);
+                      //@ check a[1][3] == 43; // ERROR
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m1", 11
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Assert) in method m2", 11
+                );
+    }
+    
+    @Test
     public void testHavocNN() {
         expectedExit = 6;
         helpTCX("tt.TestJava",

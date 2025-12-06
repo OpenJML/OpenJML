@@ -1422,7 +1422,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 JCIdent arr1 = getArrayIdent(indexType,ctype,aa.pos);
                 JCIdent nid = newArrayIncarnation(indexType,ctype,sp);
                 var range2 = ax.index;
-                var range1 = ax.index;
+                var range1 = aa.index;
 
         		JCExpression expr = new JmlBBArray2DHavoc(arr2,nid,arr1,axi,range2,range1);
         		expr.pos = sp;

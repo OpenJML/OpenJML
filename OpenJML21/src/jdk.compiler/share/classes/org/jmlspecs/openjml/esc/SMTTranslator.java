@@ -432,6 +432,9 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+"))  (= ("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1)("+MAKEJAVAARRAYTYPE+" T2)) ("+JAVASUBTYPE+" T1 T2))))");
             addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (= ("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1)("+MAKEJMLARRAYTYPE+" T2)) ("+JMLSUBTYPE+" T1 T2))))");
         }
+        
+        addCommand(smt, "(define-fun |`arrayREF| ((id (Array REF (Array Int REF)))(arr REF)(i Int)) REF (select (select id arr) i))");
+        addCommand(smt, "(define-fun |`arrayInt| ((id (Array REF (Array Int Int)))(arr REF)(i Int)) Int (select (select id arr) i))");
 
         // The declaration + assertion form is nominally equivalent to the define_fcn form, but works better
         // for SMT solvers with modest (or no) support for quantifiers (like yices2).
@@ -1973,10 +1976,33 @@ public class SMTTranslator extends JmlTreeScanner {
                 IExpr newId = convertExpr(tree.args.get(1));
                 IExpr oldId = convertExpr(tree.args.get(2));
                 IExpr arr = convertExpr(tree.args.get(3));
-                String ss = "(forall ((i Int)) (distinct (select (select " + topId + " " + arr + ") i) r))";
-                String s = "(forall ((r REF)) (=> " + ss + " (= (select " + newId + " r) (select " + oldId + " r))))";
-                result = parse(smt, s);
+                JCExpression range2 = tree.args.get(4);
+                JCExpression range1 = tree.args.get(5);
                 
+                var lo = ((JmlRange)range2).lo;
+                var hi = ((JmlRange)range2).hi;
+                var excl = ((JmlRange)range2).hiExclusive || hi == null;
+                var strlo = lo == null ? "0" : lo.toString();
+                var strhi = hi == null ? ("(select " + arrayLength + " " + arr + ")") : hi == lo ? strlo : hi.toString();
+                String r1 = "(not (and (<= " + strlo + " i) (" + (excl ? "< i " : "<= i ") + strhi + ")))";
+                String r2 = "(and (<= " + strlo + " i) (" + (excl ? "< i " : "<= i ") + strhi + "))";
+                lo = ((JmlRange)range1).lo;
+                hi = ((JmlRange)range1).hi;
+                excl = ((JmlRange)range1).hiExclusive || hi == null;
+                strlo = lo == null ? "0" : lo.toString();
+                strhi = hi == null ? ("(select " + arrayLength + " " + arr + ")") : hi == lo ? strlo : hi.toString();
+                String r3 = "(not (and (<= " + strlo + " j) (" + (excl ? "< j " : "<= j ") + strhi + ")))";
+                String ss = "(forall ((i Int)) (or " + r1 + " (distinct (select (select " + topId + " " + arr + ") i) r)))";
+                String s1 = "(forall ((r REF)) (=> " + ss + " (= (select " + newId + " r) (select " + oldId + " r))))";
+                String s2 = "(forall ((r REF)) (=> " + ss + " (= (select " + newId + " r) (select " + oldId + " r))))";
+                String arrex = "(select (select " + topId + " " + arr + ") i)";
+                String aold = "(select (select " + oldId + " " + arrex +") j)";
+                String anew = "(select (select " + newId + " " + arrex +") j)";
+                String sss = "(forall ((i Int)) (=> " + r2 + " (forall ((j Int)) (=> " + r3 + " (= " + aold + " " + anew + ")))))";
+                sss = "(and " + s1 + " " + sss + ")";
+                result = parse(smt, sss);
+                //System.out.println("HAVOC " + smt.smtConfig.defaultPrinter.toString(result));
+                return;
             } else if (tree instanceof JmlBBArrayAssignment) {
                 if (tree.args.length() <= 3) {
                     // havoc of single-dimensional array
