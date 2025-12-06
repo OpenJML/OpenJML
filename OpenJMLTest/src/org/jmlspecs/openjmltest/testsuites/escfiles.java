@@ -646,7 +646,7 @@ public class escfiles extends EscBaseFiles {
     
     @Test
     public void splits3() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG("--no-split");
     }
     
