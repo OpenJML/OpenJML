@@ -184,3 +184,10 @@ escfiles2.gitbug890
 SFBugs.gitbug651  # not yet working -- problems with Map specifications
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
+
+SFBugs.gitbug444a
+escfiles2.gitbug812a
+escnew3.testCast1
+escfileslist1.test[gitbug768]   # problem with invariants
+primesc.jmlreal                 # feasibility check times out
+escfileslist1.test[gitbug755]
