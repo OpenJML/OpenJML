@@ -18,9 +18,6 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements3() {
-//        Assume.assumeTrue(!"z3_4_3".equals(solver));
-//        Assume.assumeTrue(!"cvc4".equals(solver));
-//        Assume.assumeTrue(!"yices2".equals(solver)); // TODO: yices2 cannot handle quantifiers - better error message
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -70,9 +67,6 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements() {
-//        Assume.assumeTrue(!"z3_4_3".equals(solver));
-//        Assume.assumeTrue(!"cvc4".equals(solver));
-//        Assume.assumeTrue(!"yices2".equals(solver)); // TODO: yices2 cannot handle quantifiers - better error message
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -118,9 +112,6 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements2() {
-//        Assume.assumeTrue(!"z3_4_3".equals(solver));
-//        Assume.assumeTrue(!"cvc4".equals(solver));
-//        Assume.assumeTrue(!"yices2".equals(solver)); // TODO: yices2 cannot handle quantifiers - better error message
         helpTCX("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 

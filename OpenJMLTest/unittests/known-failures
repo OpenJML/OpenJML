@@ -130,7 +130,8 @@ escTrace.testSimpleTrace
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
-escfileslist1.test[gitbug759]	#	Attempt at implementing a GCD
+escfileslist1.test[gitbug759]   #   Attempt at implementing a GCD
+escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
 escfileslist2.test[gitbug784]   #   apache commons library
 escfileslist2.test[gitbug785]   #   Google guava library
 escfileslist2.test[gitbug878]   #   problem with type inference
@@ -177,7 +178,9 @@ escfiles2.gitbug894    #
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[gitbug897]   # substring and loop
+escfileslist3.test[gitbug897]   # substring and loop
 escfileslist1.test[gitbug763]   # specs for string handling problem
+escfileslist2.test[gitbug763]   # specs for string handling problem
 
 escfiles2.gitbug890
 
@@ -189,5 +192,7 @@ SFBugs.gitbug444a
 escfiles2.gitbug812a
 escnew3.testCast1
 escfileslist1.test[gitbug768]   # problem with invariants
+escfileslist2.test[gitbug768]   # problem with invariants
 primesc.jmlreal                 # feasibility check times out
 escfileslist1.test[gitbug755]
+escfileslist2.test[gitbug755]
