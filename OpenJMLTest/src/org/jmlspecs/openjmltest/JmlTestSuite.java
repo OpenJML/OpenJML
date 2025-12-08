@@ -38,6 +38,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Context;
@@ -515,7 +516,7 @@ public abstract class JmlTestSuite {
      */
     protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
         try {
-            addMockFile(filename,new TestJavaFileObject(new URI("file:///" + filename),content));
+            addMockFile(filename,new MockJavaFileObject(new URI("file:///" + filename),content));
         } catch (Exception e) {
             fail("Exception in creating a URI: " + e);
         }

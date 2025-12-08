@@ -11,11 +11,11 @@ import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjmltest.JmlTestSuite;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.parser.JmlParser;
@@ -117,7 +117,7 @@ public class positions extends JmlTestSuite {
             int endpos = markedString.indexOf('#',prefpos+2)-2;
             String testString = markedString.replaceAll("#","");
             Log log = Log.instance(context);
-            log.useSource(new TestJavaFileObject(testString) );
+            log.useSource(new MockJavaFileObject(testString) );
             JmlParser parser = (JmlParser)parserFactory.newParser(testString, false, true, true);
             JCTree result;
             JCTree ztree = null;

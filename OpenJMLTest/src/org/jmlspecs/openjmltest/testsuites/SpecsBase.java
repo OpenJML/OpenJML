@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.file.JavacFileManager;
@@ -175,7 +176,7 @@ public class SpecsBase extends TCBase {
     public void helpTCFile(String filename, String s, String testClass) {
     	boolean foundErrors = false;
         try {
-            JavaFileObject f = new TestJavaFileObject(filename,s);
+            JavaFileObject f = new MockJavaFileObject(filename,s);
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);

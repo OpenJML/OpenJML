@@ -15,6 +15,7 @@ import com.sun.tools.javac.util.Options;
 import static org.junit.Assert.*;
 
 import org.jmlspecs.openjmltest.OutputCompare.*;
+import org.openjml.MockJavaFileObject;
 
 
 /** This is a base class for all tests that parse and typecheck a
@@ -75,7 +76,7 @@ public abstract class TCBase extends JmlTestSuite {
     // list are the expected messages and column numbers
     public void helpTCX(/*@ nullable*/String filename, String content, Object ... expected) {
         try {
-            JavaFileObject f = new TestJavaFileObject(filename,content);
+            JavaFileObject f = new MockJavaFileObject(filename,content);
             if (filename != null) addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);

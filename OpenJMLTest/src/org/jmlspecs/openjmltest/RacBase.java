@@ -17,6 +17,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.Strings;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -142,7 +143,7 @@ public abstract class RacBase extends JmlTestSuite {
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
-            JavaFileObject f = new TestJavaFileObject(filename,compilationUnitText);
+            JavaFileObject f = new MockJavaFileObject(filename,compilationUnitText);
             files.append(f);
             files.addAll(javamockFiles);
 
