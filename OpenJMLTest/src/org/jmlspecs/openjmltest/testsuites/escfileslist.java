@@ -40,6 +40,9 @@ import org.openjml.runners.ParameterizedWithNames;
 
 public class escfileslist extends EscBaseFiles implements Utils {
     
+    static double split1 = 0.330;
+    static double split2 = 0.665;
+    
     /** A list of test suites whose test are excluded from the list generated here */
     public static String[] testsuites = new String[]{
             "org.jmlspecs.openjmltest.testsuites.escfpfiles",
@@ -62,38 +65,6 @@ public class escfileslist extends EscBaseFiles implements Utils {
                 && (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) ,
                 testsuites);
     }
-
-//        var tests = new java.util.LinkedList<String>();
-//        var dir = new File("test");
-//        for (var f: dir.listFiles()) {
-//            String nm = f.getName();
-//            if (!f.isDirectory()) continue;
-//            if (!new java.io.File(f, "skip").exists() && !new java.io.File(f, "run").exists() && !nm.startsWith("rac")) {
-//                if (!new java.io.File(f, "rac").exists() || new java.io.File(f, "expected").exists()) {
-//                    tests.add(nm);
-//                }
-//            }
-//        }
-//        for (var suite: testsuites) {
-//            try {
-//                var escfiles = Class.forName(suite);
-//                var methods = java.util.Arrays.stream(escfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
-//                        .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-//                tests.removeAll(methods);
-//            } catch (Exception e) {
-//                System.out.println("FAILED TO FIND TESTS IN " + suite);
-//            }
-//        }
-//        tests.sort((e1,e2)->e1.compareTo(e2));
-//        for (var nn: tests) {
-//            if (!hasJavaFile(new File(dir,nn))) {
-//                System.out.println("No source files " + nn);
-//            }
-//            //System.out.println("ORPHANED " + tests);
-//        }
-//        var params = tests.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
-//        return params;
-//    }
 
     /** The name of the test, which is also the name of the directory (in OpenJMLTest/test), filled in from the
      * Parameters array for each individual test.

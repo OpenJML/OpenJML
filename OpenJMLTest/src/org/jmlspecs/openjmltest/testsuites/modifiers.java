@@ -1464,19 +1464,19 @@ public class modifiers extends TCBase {
     
     @Test public void testHelper1() {
         helpTCF("A.java","public class A{ /*@ helper */ void mzzz(){} }"
-                ,"/A.java:1: error: A helper method must be private or pure: mzzz",21
+                ,"/A.java:1: error: A helper method must be private or pure or final: mzzz",21
                 );
     }
      
     @Test public void testHelper2() {
         helpTCF("A.java","public class A{ /*@ helper protected */ void mzzz(){} }"
-                ,"/A.java:1: error: A helper method must be private or pure: mzzz",21
+                ,"/A.java:1: error: A helper method must be private or pure or final: mzzz",21
                 );
     }
      
     @Test public void testHelper3() {
         helpTCF("A.java","public class A{ /*@ helper public */ void mzzz(){} }"
-                ,"/A.java:1: error: A helper method must be private or pure: mzzz",21
+                ,"/A.java:1: error: A helper method must be private or pure or final: mzzz",21
                 );
     }
      
@@ -1487,13 +1487,18 @@ public class modifiers extends TCBase {
      
     @Test public void testHelper5() {
         helpTCF("A.java","public class A{ /*@ helper private spec_protected*/ void mzzz(){} }"
-                ,"/A.java:1: error: A helper method must be private or pure: mzzz",21
+                ,"/A.java:1: error: A helper method must be private or pure or final: mzzz",21
                 );
     }
      
     @Test public void testHelper6() {
         helpTCF("A.java","public class A{ /*@ helper private spec_public */ void m(){} }"
-                ,"/A.java:1: error: A helper method must be private or pure: m",21
+                ,"/A.java:1: error: A helper method must be private or pure or final: m",21
+                );
+    }
+     
+    @Test public void testHelper7() {
+        helpTCF("A.java","public class A{ /*@ helper final */ void m(){} }"
                 );
     }
      

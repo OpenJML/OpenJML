@@ -2231,7 +2231,6 @@ public class esc2 extends EscBase {
 
     @Test
     public void testFields() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*;/*@ nullable_by_default */  \n"
                 + "public class TestJava { \n" + "  int f; static int sf;\n" + "  int g; static int sg;\n"
                 + "  public static TestJava t;  //@ public static invariant t != null; \n"
@@ -2290,8 +2289,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testSwitch() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        addOptions("-escMaxWarnings=1");
+        addOptions("--esc--max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                 + "  int f; static int sf;\n" + "  int g; static int sg;\n" + "  static TestJava t;\n"
                 + "  public void inst1a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j!=0; */ }\n" // OK
@@ -2323,7 +2321,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testTryWithMethodCall() {
-        addOptions("-escMaxWarnings=1");
+        addOptions("--esc--max-warnings=1");
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava  {\n"
                 + "//@ public exceptional_behavior requires b;  signals (Exception e) true; signals (RuntimeException e) true;\n"
                 + "//@ also\n" + "//@ public normal_behavior requires !b; ensures true;\n"
