@@ -204,7 +204,6 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escCashAmountPrivate2() {   // FIXME - with demo files?
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
     }
@@ -285,7 +284,6 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escDoublyLinkedList() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTG();
     }
 
@@ -296,7 +294,7 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escSimpleString() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
+        // FIXME - CVC4 crashes or is long
         helpTG("--nonnull-by-default","-timeout=240");
     }
 
