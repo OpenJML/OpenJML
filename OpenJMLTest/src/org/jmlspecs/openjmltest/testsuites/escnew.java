@@ -2868,5 +2868,25 @@ public class escnew extends EscBase {
                 );
     }
 
+    @Test 
+    public void testSpecPureConstructor() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+
+                  public int i;
+
+                  //@ spec_pure
+                  public TestJava(int i) { this.i = i; }
+
+                  public void m() {
+                    var c = new TestJava(42);
+                  }
+                }
+                """
+                );
+    }
+
 
 }

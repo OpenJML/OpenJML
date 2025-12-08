@@ -29,6 +29,5 @@ public class MatrixAdd {
         }
         return c;
     }
-
 }
 

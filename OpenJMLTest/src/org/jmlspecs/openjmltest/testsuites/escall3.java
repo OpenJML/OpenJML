@@ -2081,4 +2081,42 @@ public class escall3 extends EscBase {
         );
     }
 
+    @Test
+    public void testLabel() {
+        helpTCX("tt.ZZ",
+            """
+            package tt;
+            public class ZZ {
+              public void m() {
+                int i = 0;
+                //@ p:;
+                i = 1;
+                //@ q:{}
+                i = 2;
+                //@ check \\old(i,p) == 0;
+                //@ check \\old(i,q) == 1;
+                //@ check i == 2;
+              }
+            }
+            """
+        );
+    }
+    @Test
+    public void testLabelBad() {
+        expectedExit = 1;
+        helpTCX("tt.ZZ",
+            """
+            package tt;
+            public class ZZ {
+              public void m() {
+                int i = 0;
+                //@ p:
+                i = 1;
+                //@ check i == 0;
+              }
+            }
+            """
+            ,"/tt/ZZ.java:5: error: ';' expected", 11
+        );
+    }
 }
