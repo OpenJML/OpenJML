@@ -225,7 +225,6 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver6() { 
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
@@ -377,7 +376,6 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField() { 
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
@@ -389,7 +387,6 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField2() { 
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
