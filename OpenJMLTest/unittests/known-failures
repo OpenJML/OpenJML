@@ -173,11 +173,11 @@ primesc.locsetTests2
 runscripts.crashXlint  # Xlint:exports problem
 escfiles2.gitbug883    # Matrix add 
 escfiles2.gitbug883bad #    Needs better handling of 2D array
+escfiles2.gitbug894    #
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[gitbug897]   # substring and loop
 escfileslist1.test[gitbug763]   # specs for string handling problem
-escfileslist2.test[gitbug814]
 
 escfiles2.gitbug890
 

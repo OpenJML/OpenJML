@@ -1022,8 +1022,10 @@ public class JmlParser extends JavacParser {
             			for (JCStatement s: stats) {
             				if (s instanceof JCVariableDecl) {
             					// OK
-            				} else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip) {
+            				} else if (s instanceof JCClassDecl || s instanceof JmlAbstractStatement || s instanceof JCSkip || s instanceof JmlBlock) {
             					// OK
+            				} else if (s instanceof JCLabeledStatement) {
+            				    // OK
             				} else if (!inJmlDeclaration && !inModelProgram && !inLocalOrAnonClass) { // FIXME - unsure of this test
             					utils.error(s.pos, "jml.expected.decl.or.jml");
             				}
@@ -2842,8 +2844,12 @@ public class JmlParser extends JavacParser {
                 			"Token " + id + " is not a type");
                 	return jmlF.at(p).Erroneous();
                 } else {
-                	utils.error(p, endPos(), "jml.message",
-                			"Token " + id + " does not introduce an expression");
+                    if (isEndJml(token)) {
+                        // There will be a subsequent error message
+                    } else {
+                        utils.error(p, endPos(), "jml.message",
+                                "Token " + id + " does not introduce an expression");
+                    }
                 	return jmlF.at(p).Erroneous();
                 }
             }
@@ -2884,8 +2890,12 @@ public class JmlParser extends JavacParser {
                             JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, token.toString(), kind, this);
                             return term3Rest(tt, typeArgs);
                         } else {
-                            utils.error(p, endPos(), "jml.message",
-                                    "Token " + token + " does not introduce an expression");
+                            if (isEndJml(token)) {
+                                // There will be a subsequent error message
+                            } else {
+                                utils.error(p, endPos(), "jml.message",
+                                        "Token " + token + " does not introduce an expression");
+                            }
                             return jmlF.at(p).Erroneous();
                         }
                     } else {
