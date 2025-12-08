@@ -9399,7 +9399,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    if (info.specCase.callee_only) continue;
 			    pushArithMode(info.parentMethodSymbol, true);
 			    try {
-			    x: if (!calleeIsPure && WarningCategory.instance(context).action(WarningCategory.IMPLICIT_EVERYTHING) != WarningCategory.WarnAction.QUIET) {
+			    x: if (!calleeIsPure) {
 			        if (print) System.out.println("SPECCASE " + info.parentMethodSymbol + " " + info.specCase);
 			        boolean hasAssignable = false;
 			        boolean isEverything = true;
@@ -9407,32 +9407,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			            // Spec case has a model method block
 			            isEverything = false;
 			            hasAssignable = true;
+			            effectivelyPure = false;
 			        } else for (var clause: info.specCase.clauses) {
 			            if (clause.clauseKind == assignableClauseKind && clause instanceof JmlMethodClauseStoreRef ext) {
 	                        if (printb) System.out.println("CLAUSE " + clause + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
 			                hasAssignable = true;
 			                if (ext.list != null) {
 			                    for (var sr: ext.list) {
-			                        if (printb) System.out.println("   SR " + sr + " " + (sr instanceof JmlSingleton s && s.kind == everythingKind));
-                                    effectivelyPure &= (!(sr instanceof JmlSingleton s && s.kind == nothingKind));
+			                        if (printb) System.out.println("   SR " + sr + " " + " " + sr.getClass() + " " + (sr instanceof JmlSingleton s && s.kind == everythingKind));
+                                    effectivelyPure &= (sr instanceof JmlSingleton s && s.kind == nothingKind);
                                     isEverything &= (sr instanceof JmlSingleton s && s.kind == everythingKind);
 			                    }
 			                }
 			            }
 			        }
 			        if (printb) System.out.println("EVERYTHING? " + calleeMethodSym + " " + isEverything + " " + hasAssignable + " " + info.parentMethodSymbol.owner + "." + info.parentMethodSymbol);
-			        if (!hasAssignable) effectivelyPure = false;
 			        // FIXME - enable the following when we can adjust all the tests. Also decide whether to issue the warning if the caller has assignable \everythig; also find the name of the caller
-                    if (!hasAssignable && utils.esc && !calleeMethodSym.isConstructor()) {
-                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, applySource, that,
-                                "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
-
-                    }
-                    if (hasAssignable && isEverything && utils.esc && hasSomeAssignable(methodDecl.sym)) {
-                        utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, applySource, that,
-                                "jml.message", "Method " + calleeMethodSym + 
-                                " has 'assignable \\everything', making its caller likely impossible to verify");
-
+                    var action = WarningCategory.instance(context).action(WarningCategory.IMPLICIT_EVERYTHING);
+                    if (action != WarningCategory.WarnAction.QUIET) {
+                        if (!hasAssignable && utils.esc && !calleeMethodSym.isConstructor()) {
+                            if (action == WarningCategory.WarnAction.WARN) {
+                                utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, applySource, that,
+                                    "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
+                            } else {
+                                utils.errorAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, applySource, that,
+                                        "jml.message", "Method " + calleeMethodSym + " has no assignable clause, so it is implicitly 'assignable \\everything', making its caller likely impossible to verify");
+                            }
+                        }
+                        if (hasAssignable && isEverything && utils.esc && hasSomeAssignable(methodDecl.sym)) {
+                            if (action == WarningCategory.WarnAction.WARN) {
+                                utils.warningAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, applySource, that,
+                                    "jml.message", "Method " + calleeMethodSym + 
+                                    " has 'assignable \\everything', making its caller likely impossible to verify");
+                            } else {
+                                utils.errorAndAssociatedDeclaration(info.specCase.sourcefile, info.specCase, applySource, that,
+                                        "jml.message", "Method " + calleeMethodSym + 
+                                        " has 'assignable \\everything', making its caller likely impossible to verify");
+                            }
+                        }
                     }
 			    }
                 if (print) System.out.println("   MAPPING " + info.decl.params + " -> " + trArgs);

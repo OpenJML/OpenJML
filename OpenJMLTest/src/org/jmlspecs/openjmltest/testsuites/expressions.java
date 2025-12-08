@@ -7,9 +7,9 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjmltest.IgnoreFalseAssumptions;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Assume;
 import org.junit.Test;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
@@ -59,7 +59,7 @@ public class expressions extends ParseBase {
         if (skip) return;
         try {
             if (failharness) throw new IllegalArgumentException();
-            Log.instance(context).useSource(new TestJavaFileObject(s));
+            Log.instance(context).useSource(new MockJavaFileObject(s));
             JmlParser p = ((JmlFactory)fac).newParser(s,false,jml);
             JCTree.JCExpression e = p.parseExpression();
             List<JCTree> out = ParseTreeScanner.walk(e);
@@ -108,7 +108,7 @@ public class expressions extends ParseBase {
         if (skip) return;
         try {
             if (failharness) throw new IllegalArgumentException();
-            Log.instance(context).useSource(new TestJavaFileObject(s));
+            Log.instance(context).useSource(new MockJavaFileObject(s));
             Parser p = ((JmlFactory)fac).newParser(s,false,true,true,false,jml);
             p.parseExpression();
             int i = 0;

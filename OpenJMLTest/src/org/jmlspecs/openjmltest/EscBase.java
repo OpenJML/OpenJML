@@ -20,6 +20,7 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.rules.Timeout;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
@@ -186,9 +187,9 @@ public abstract class EscBase extends JmlTestSuite {
     protected void helpTCX2(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/")+".java";
-            JavaFileObject f = new TestJavaFileObject(filename,inputSource);
+            JavaFileObject f = new MockJavaFileObject(filename,inputSource);
             String filename2 = classname2.replace(".","/")+".java";
-            JavaFileObject f2 = new TestJavaFileObject(filename2,inputSource2);
+            JavaFileObject f2 = new MockJavaFileObject(filename2,inputSource2);
             Log.instance(context).useSource(f);
             helpTCXList(new String[] {}, List.<JavaFileObject>of(f,f2),expectedResults);
         } catch (Exception e) {
@@ -203,7 +204,7 @@ public abstract class EscBase extends JmlTestSuite {
     protected void helpTCX(String classname, String inputSource, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/") +".java"; 
-            JavaFileObject f = new TestJavaFileObject(filename,inputSource);
+            JavaFileObject f = new MockJavaFileObject(filename,inputSource);
             Log.instance(context).useSource(f);
             helpTCXB(args,f, expectedResults);
         } catch (Exception e) {

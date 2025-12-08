@@ -10,6 +10,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.comp.JmlEnter;
@@ -98,7 +99,7 @@ abstract public class ParseBase extends JmlTestSuite {
      * @return the list of nodes in the resulting parse tree
      */
     public List<JCTree> parseCompilationUnit(String s) {
-        Log.instance(context).useSource(new TestJavaFileObject(s));
+        Log.instance(context).useSource(new MockJavaFileObject(s));
         parser = fac.newParser(s, false, jml);
         parser.addOrgJmlspecsLang = false;
         JCTree e = parser.parseCompilationUnit();

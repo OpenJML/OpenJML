@@ -10,9 +10,9 @@ import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjmltest.JmlTestSuite;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
@@ -45,6 +45,9 @@ public class scanner extends JmlTestSuite {
     
     String[] keys;
     
+    boolean skip;
+    boolean failHarness;
+    
     // TODO - do we need to collect and compare System.out,err
     
     /** Initializes a fresh scanner factory for each test */
@@ -55,6 +58,9 @@ public class scanner extends JmlTestSuite {
         org.jmlspecs.openjml.Extensions.register(context);
         fac = ScannerFactory.instance(context);
         keys = null;
+        print = false;
+        skip = false;
+        failHarness = false;
     }
 
     /** This is a helper routine to check tests that are supposed to issue
@@ -70,6 +76,7 @@ public class scanner extends JmlTestSuite {
     public void helpFailure(String failureMessage, String s, Object[] list, /*@nullable*/ int[] positions, int numErrors) {
         boolean failed = false;
         try {
+            if (skip) return;
             helpScanner(s,list,positions,numErrors);
         } catch (AssertionError a) {
             failed = true;
@@ -99,7 +106,8 @@ public class scanner extends JmlTestSuite {
      */
     public void helpScanner(String s, Object[] expected, int[] positions, int numErrors) {
         try {
-            Log.instance(context).useSource(new TestJavaFileObject(s) );
+            if (failHarness) throw new IllegalArgumentException();
+            Log.instance(context).useSource(new MockJavaFileObject(s) );
             JmlScanner sc = (JmlScanner)fac.newScanner(s, true);
             if (keys != null) {
                 for (String k: keys) { JmlOptions.instance(context).commentKeys.add(k); }
@@ -144,6 +152,25 @@ public class scanner extends JmlTestSuite {
         }
     }
     ////////////////////////////////////////////////////////////////////////
+    ///
+
+    /** This test is solely to add coverages of some otherwise untaken execution paths */
+    @Test public void testHarnessA() {
+        skip = true;
+        testHarness12();
+        testHarness13();
+    }
+    
+    @Test public void testHarnessB() {
+        for (int i = 0; i < 2; i++) {
+            failHarness = i == 0; // Expecting a stack trace to be printed
+            try {
+                helpScanner("",new Object[]{},null);
+            } catch (AssertionError ex) {
+                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", ex.getMessage());
+            }
+        }
+    }
     
     /** Test scanning something very simple */
     @Test public void testSomeJava() {
@@ -218,22 +245,17 @@ public class scanner extends JmlTestSuite {
                 0);
     }
     
-    // This test gives test coverage for the situation in which a unicode character prematuresly ends right at end of file
+    // This test gives test coverage for the situation in which a unicode character prematurely ends right at end of file
+    // Note that illegal unicode characters in Strins and comments cause the containing file (e.g. this scanner.java file) to
+    // fail to compile.  Instead use an array of chars as in the following test.
     @Test public void testUnicodeEndOfFile() {
-        try {
-            var chars = new char[] {'\\', 'u', '0' };
-            var c = main.context();
-            var scan = fac.newScanner(chars, 3, false);
-            scan.nextToken();
-        } catch (Exception e) {
-            // Just skip
-            // FIXME - crashing on creating JCDiagnostic.
-        }
-        
+        var chars = new char[] {'\\', 'u', '0' };
+        var c = main.context();
+        var jfo = new MockJavaFileObject("A.java", String.valueOf(chars));
+        Log.instance(c).useSource(jfo);
+        var scan = fac.newScanner(chars, 3, false);
+        scan.nextToken();
     }
-    
-    // Illegal unicode characters, even in comments, prevent compiling this file.  See test unicodeErrors
-
     
     /** This tests that the test harness records if not enough tokens are listed */
     @Test public void testHarness1() {

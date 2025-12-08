@@ -20,13 +20,13 @@ import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjmltest.RacBase;
 import org.jmlspecs.openjmltest.TCBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.file.JavacFileManager;

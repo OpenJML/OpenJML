@@ -1,4 +1,4 @@
-package org.jmlspecs.openjmltest;
+package org.openjml;
 import java.net.URI;
 
 import javax.tools.JavaFileObject;
@@ -14,7 +14,7 @@ import org.jmlspecs.openjml.Utils;
  * 
  * @author David Cok
  */
-public class TestJavaFileObject extends SimpleJavaFileObject {
+public class MockJavaFileObject extends SimpleJavaFileObject {
     
     /** The content of the mock file */
     //@ non_null
@@ -40,6 +40,16 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
         }
     }
 
+    private static URI makeURI(String filename) {
+        try {
+            return new URI("file:///" + filename);
+        } catch (Exception e) {
+            // If this exception is ever thrown, the TestJavaFileObject class will fail to be instantiated,
+            // aborting tests and any execution of openjml on startup.
+            throw new com.sun.tools.javac.util.PropagatedException(new org.jmlspecs.openjml.JmlInternalAbort("Failed to construct a mock URI in TestJavaFileObject.makeURI"));
+        }
+    }
+
 
     // TODO - will it be a problem if someone makes two of these objects in 
     // the same test (since they will have the same name)?
@@ -47,7 +57,7 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
      * with the given content and a made-up file name.
      * @param s The content of the file
      */
-    public TestJavaFileObject(/*@ non_null */ String s) {
+    public MockJavaFileObject(/*@ non_null */ String s) {
         super(uritest,Kind.SOURCE);
         content = s;
     }
@@ -59,10 +69,10 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
      * @param content the content of the pseudo file
      * @throws Exception if a URI cannot be created
      */
-    public TestJavaFileObject(/*@ nullable */String filename, /*@ non_null */String content) throws Exception {
+    public MockJavaFileObject(/*@ nullable */String filename, /*@ non_null */String content) {
         // This takes three slashes because the filename is supposed to be absolute.
         // In our case this is not a real file anyway, so we pretend it is absolute.
-        super(filename == null ? uritest : new URI("file:///" + filename),
+        super(filename == null ? uritest : makeURI(filename),
                 filename == null || filename.endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
         this.content = content;
     }
@@ -71,7 +81,7 @@ public class TestJavaFileObject extends SimpleJavaFileObject {
      * @param uri the URI to use
      * @param content the content of the pseudo file
      */
-    public TestJavaFileObject(/*@ non_null */URI uri, /*@ non_null */String content) {
+    public MockJavaFileObject(/*@ non_null */URI uri, /*@ non_null */String content) {
         super(uri,uri.getPath().endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
         this.content = content;
     }

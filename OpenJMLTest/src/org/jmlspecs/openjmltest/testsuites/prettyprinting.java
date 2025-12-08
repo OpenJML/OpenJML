@@ -5,9 +5,9 @@ import static org.junit.Assert.fail;
 
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.tree.JCTree;
@@ -32,7 +32,7 @@ public class prettyprinting extends ParseBase {
     public void helpPP(String code) {
         try {
             //print = true;
-            Log.instance(context).useSource(new TestJavaFileObject(code));
+            Log.instance(context).useSource(new MockJavaFileObject(code));
             Parser p = fac.newParser(code,false,true,true);
             //sc = ((JmlParser)p).getScanner();
             JCTree tree = p.parseCompilationUnit();
