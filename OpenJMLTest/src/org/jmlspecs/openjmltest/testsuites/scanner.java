@@ -148,7 +148,7 @@ public class scanner extends JmlTestSuite {
         } catch (Exception e) {
             // This is not expected to ever fail -- only if the scanner itself has an internal bug that causes an exception
             e.printStackTrace(out);
-            fail("Exception thrown while processing test: " + e);
+            fail("Exception thrown while processing test: " + e); // NOCOV: Does not show as covered because it always throws an error
         }
     }
     ////////////////////////////////////////////////////////////////////////

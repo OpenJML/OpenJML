@@ -41,6 +41,7 @@ public class expressions extends ParseBase {
         print = false;
         skip = false;
         failharness = false;
+        postOptions();
     }
     
     public void helpFailure(String failureMessage, String s, Object ... list) {

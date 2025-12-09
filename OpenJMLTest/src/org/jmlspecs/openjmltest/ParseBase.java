@@ -42,19 +42,24 @@ abstract public class ParseBase extends JmlTestSuite {
      * (avoiding the need to begin the test string with a JML comment annotation)
      */
     protected boolean jml;
+    
+    protected boolean skip = false;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         main.addOptions("compilePolicy","check");  // Don't do code generation
         main.addOptions("--specspath",   testspecpath);
+        print = false;
+        jml = false;
+    }
+    
+    public void postOptions() {
         // TODO - are the following needed?
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         sfac = ScannerFactory.instance(context);
         fac = (JmlFactory)JmlFactory.instance(context);
-        print = false;
-        jml = false;
     }
 
     @Override
@@ -78,6 +83,7 @@ abstract public class ParseBase extends JmlTestSuite {
     }
 
     public void checkParseErrors(String s, Object ... list) {
+        if (skip) return;
         parseCompilationUnit(s);
         checkDiagnostics(list);
     }
@@ -85,6 +91,7 @@ abstract public class ParseBase extends JmlTestSuite {
     public void checkParseFailure(String failureMessage, String s, Object ... list) {
         boolean failed = false;
         try {
+            if (skip) return;
             checkCompilationUnit(s,list);
         } catch (AssertionError a) {
             failed = true;
