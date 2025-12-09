@@ -27,6 +27,7 @@ public class prettyprinting extends ParseBase {
     public void setUp() throws Exception {
         super.setUp();
         print = false;
+        postOptions();
     }
 
     public void helpPP(String code) {

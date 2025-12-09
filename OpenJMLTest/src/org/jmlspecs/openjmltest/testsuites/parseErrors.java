@@ -7,11 +7,15 @@ import static org.junit.Assert.*;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class parseErrors extends ParseBase {
-
+    
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        // These options are needed for stringTemplate(); they have to be set before postOptions() is called
+        com.sun.tools.javac.util.Options.instance(main.context()).put("--source","21");
+        com.sun.tools.javac.util.Options.instance(main.context()).put("--enable-preview","--enable-preview");
         addOptions("--check");
+        postOptions();
     }
 
     @Test public void badTry() {
@@ -164,14 +168,31 @@ public class parseErrors extends ParseBase {
                 );
     }
     
-    @Ignore // FIXME - don't seem to be able to add a Java option to enable preview features
     @Test public void stringTemplate() {
-        addOptions("--source","21","--enable-preview");
         checkParseErrors("class A { String s = STR.\"My \\{x} template\"; }"
                 );
     }
     
     // Test harness tests -- checking that test failures are properly reported
+    
+    @Test
+    public void harnessSkip() {
+        skip = true;
+        harness1();
+//        harness1a();
+        harness2();
+        harness3();
+        harness4();
+        harness5();
+//        harness6();
+        harness7();
+        harness8();
+        harness9();
+        harness10();
+        harness11();
+        harness12();
+//        harness13();
+    }
     
     @Test
     public void harness1() {

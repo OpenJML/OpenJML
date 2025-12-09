@@ -21,6 +21,7 @@ public class compilationUnit extends ParseBase {
     public void setUp() throws Exception {
 //        jmldebug = true;
         super.setUp();
+        postOptions();
     }
 
   
