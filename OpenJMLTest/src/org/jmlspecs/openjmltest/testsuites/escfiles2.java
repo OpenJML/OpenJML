@@ -250,6 +250,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug922() {
+        expectedExit = 1;
         helpTCG();
     }
     
