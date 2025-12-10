@@ -2161,17 +2161,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/**
 	 * Issues a diagnostic message (note) containing the given message.
 	 */
-	public void notImplemented(DiagnosticPosition pos, String message, JavaFileObject file) {
-	    String key = pos.getPreferredPosition() + message;
-	    if (rac ? !racMessages.add(key) : !escMessages.add(key)) return;
-	    JavaFileObject prev = file == null ? null : log.useSource(file);
-	    utils.note(pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
-	    if (file != null) log.useSource(prev);
-	}
+    public void notImplemented(DiagnosticPosition pos, String message, JavaFileObject file) {
+        String key = pos.getPreferredPosition() + message;
+        if (rac ? !racMessages.add(key) : !escMessages.add(key)) return;
+        JavaFileObject prev = file == null ? null : log.useSource(file);
+        utils.note(pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
+        if (file != null) log.useSource(prev);
+    }
 
-	public void notImplemented(DiagnosticPosition pos, String message) {
-		notImplemented(pos, message, null);
-	}
+    public void notImplementedW(DiagnosticPosition pos, String message, JavaFileObject file) {
+        String key = pos.getPreferredPosition() + message;
+        if (rac ? !racMessages.add(key) : !escMessages.add(key)) return;
+        JavaFileObject prev = file == null ? null : log.useSource(file);
+        utils.warning(pos, rac ? "rac.not.implemented" : "esc.not.implemented", message);
+        if (file != null) log.useSource(prev);
+    }
+
+    public void notImplemented(DiagnosticPosition pos, String message) {
+        notImplemented(pos, message, null);
+    }
+
+    public void notImplementedW(DiagnosticPosition pos, String message) {
+        notImplementedW(pos, message, null);
+    }
 
 	/**
 	 * Adds an assertion with the given label and (already translated) expression to
@@ -15665,23 +15677,55 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** This translates the instanceof operation */
 	@Override
 	public void visitTypeTest(JCInstanceOf that) {
-		JCExpression lhs = convertExpr(that.getExpression());
+        JCExpression lhs = convertExpr(that.getExpression());
+        if (rac && that.pattern instanceof JCPattern pat) {
+            if (pat instanceof JCBindingPattern p) {
+                JCTree type = that.getType();
+                JCTree clazz = treeutils.makeType(type.pos, type.type);
+                JCExpression e = M.at(that).TypeTest(lhs, clazz); // FIXME - copy pat?
+                e.setType(that.type);
+                e = newTemp(e);
+                var cast = M.at(p).TypeCast(type.type, lhs);
+                var init = M.at(p).Conditional(e, cast, treeutils.nullLit).setType(cast.type);
+                addStat(M.at(p).VarDef(p.var.sym, init));
+                result = eresult = e;
+                return;
+            } else {
+                notImplemented(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
+                throw new JmlNotImplementedException(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
+            }
+        }
+        var pat = that.pattern;
+        JCExpression bindingAssumption = null;
+        if (!rac && pat instanceof JCPattern) {
+            if (pat instanceof JCBindingPattern bpat) {
+                if (!splitExpressions) {
+                    notImplementedW(pat, "binding pattern in this location");
+                } else {
+                    var stat = convert(bpat.var);
+                    JCIdent id = M.at(stat).Ident(bpat.var.sym);
+                    bindingAssumption = treeutils.makeEquality(pat.getPreferredPosition(), id, lhs);
+                }
+            } else {
+                notImplemented(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
+                throw new JmlNotImplementedException(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
+            }
+        }
 		JCTree type = that.getType();
 		JCTree clazz = treeutils.makeType(type.pos, type.type);
-
 
 		// No checks needed - Java allows (null instanceof type)
 		// The value is always false
 		JCExpression e = M.at(that).TypeTest(lhs, clazz);
 		e.setType(that.type);
-        boolean hasNullable = type.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nullableAnnotationSymbol.type);
+        boolean hasNullable = type.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nullableAnnotationSymbol.type); // FIXME - use some common method for this calculation
 		if (hasNullable) {
 	        JCExpression eqnull = treeutils.makeEqObject(that.pos, lhs, treeutils.makeNullLiteral(that.pos));
 		    e = treeutils.makeOr(e,  eqnull, e);
 		}
 		treeutils.copyEndPosition(e, that);
 		result = eresult = translatingJML ? e : newTemp(e);
-
+        if (bindingAssumption != null) addAssume(pat, Label.IMPLICIT_ASSUME, treeutils.makeImplies(pat, eresult, bindingAssumption));
 	}
 
 	public void addJavaCheck(DiagnosticPosition p, JCExpression cond, Label javaLabel, Label jmlLabel,
@@ -20162,11 +20206,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    addAssumeEqual(that, Label.IMPLICIT_ASSUME, id, eresult);
 //                    result = eresult = id;
 				}
-			} else {
+			} else { // rac
 				java.util.List<Bound> bounds = new java.util.LinkedList<Bound>();
 				JCExpression innerexpr = determineRacBounds(that.decls, that.range != null ? that.range : that.value, bounds);
 				if (innerexpr == null && rac) {
-					utils.note(that, "rac.not.implemented.quantified");
+					utils.warning(that, "rac.not.implemented.quantified");
 					return;
 				}
 				// The accumulator variable

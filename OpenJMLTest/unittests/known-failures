@@ -86,6 +86,7 @@ escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
 escfiles.sfbug420X
+escfiles.sfbug420e
 escfiles.sfbug420eOK
 escfiles.valuestrings           # string specs
 escfiles2.escRawding2
@@ -168,7 +169,6 @@ racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.rac1			# <<<<< review/improve error messages
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
 generics.testBinaryGeneric3c
-escfiles.sfbug420e
 primesc.locsetTests2
 
 runscripts.crashXlint  # Xlint:exports problem
