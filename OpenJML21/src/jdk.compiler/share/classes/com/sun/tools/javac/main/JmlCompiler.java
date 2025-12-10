@@ -188,7 +188,6 @@ public class JmlCompiler extends JavaCompiler {
             specFile = new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
         }
         if (debugParse) System.out.println("parser:     Found " + specFile);
-        if (debugParse) Utils.dumpStack();
         return specFile;
     }
     
@@ -403,7 +402,7 @@ public class JmlCompiler extends JavaCompiler {
         }
         return out;
     }
-    
+ 
     /** Parse the given file */
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
         if (inputFiles.contains(filename)) {
