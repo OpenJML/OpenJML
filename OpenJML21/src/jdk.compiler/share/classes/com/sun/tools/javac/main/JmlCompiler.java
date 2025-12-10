@@ -188,6 +188,7 @@ public class JmlCompiler extends JavaCompiler {
             specFile = new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
         }
         if (debugParse) System.out.println("parser:     Found " + specFile);
+        if (debugParse) Utils.dumpStack();
         return specFile;
     }
     
@@ -402,15 +403,24 @@ public class JmlCompiler extends JavaCompiler {
         }
         return out;
     }
- 
+    
     /** Parse the given file */
     public JCTree.JCCompilationUnit parse(JavaFileObject filename) {
+        if (inputFiles.contains(filename)) {
+            utils.error(filename, -1, "jml.message",  // FIXME - use the no position name
+                    "Parsing failed because there is an attempt to parse the file " + filename.getName() + " twice, likely indicating that the file does not actually declare the desired class");
+            var tree = (JmlCompilationUnit)make.TopLevel(List.<JCTree>nil());
+            tree.sourcefile = filename;
+            tree.specsCompilationUnit = tree;
+            return tree;
+        }
         JavaFileObject prev = log.useSource(filename);
         JavaFileObject specFile = null;
         boolean jmlOption = JmlOption.JML.isSet(context);
         noJML = !jmlOption;
         var charSeq = readSource(filename);
         try {
+            if (debugParse) System.out.println("parser: About to parse: " + filename + (noJML?" (ignoring JML)":""));
             if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
                 // If the file is a source file and there is a specs file, we ignore any JML in the source file
                 // We also always ignore the JML if -no-jml has been set
