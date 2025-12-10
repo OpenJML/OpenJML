@@ -791,4 +791,89 @@ public class racnew3 extends RacBase {
                 );
     }
 
+    @Test
+    public void testInstanceOfA() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava && ((TestJava)a).k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t) {
+                       //@ check t.k == 42;
+                       //@ check t.k == 43; // ERROR
+                    }
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.k = 42; t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: JML assertion is false"
+                );
+    }
+    
+    @Test
+    public void testInstanceOfB() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava tt && tt.k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t) {
+                       //@ check t.k == 42;
+                       //@ check t.k == 43; // ERROR
+                    }
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.k = 42; t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: JML assertion is false"
+                );
+    }
+    
+    @Test
+    public void testInstanceOfC() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava tt && tt.k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t && t.k == 42) {
+                        //@ unreachable; // ERROR is reachable
+                    } else {
+                        //@ unreachable; // OK
+                    }
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.k = 42; t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: JML unreachable statement reached"
+                );
+    }
+    
+    @Test
+    public void testInstanceOfD() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  public void m(A a) {
+                    //@ check \\forall int i; i == 0; (a instanceof TestJava t && t.k == 42);
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: JML assertion is false"
+                );
+    }
+   
 }

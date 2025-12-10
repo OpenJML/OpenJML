@@ -528,7 +528,7 @@ public class escfiles extends EscBaseFiles {
     
     @Test
     public void sfbug420eOK() {
-        helpTG(); // FIXME - not sure wheterh or not all methods should be checked here
+        helpTG("--method=push"); // FIXME - not sure wheterh or not all methods should be checked here
     }
     
     @Test

@@ -1930,5 +1930,87 @@ public class escnew3 extends EscBase {
         
     }
     
+    @Test
+    public void testInstanceOfA() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava && ((TestJava)a).k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t) {
+                       //@ check t.k == 42;
+                       //@ check t.k == 43; // ERROR
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m", 12
+                );
+    }
+    
+    @Test
+    public void testInstanceOfB() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava tt && tt.k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t) {
+                       //@ check t.k == 42;
+                       //@ check t.k == 43; // ERROR
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m", 12
+                );
+    }
+    
+    @Test
+    public void testInstanceOfC() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava tt && tt.k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t && t.k == 42) {
+                        //@ unreachable; // ERROR is reachable
+                    } else {
+                        //@ unreachable; // OK
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Unreachable) in method m", 13
+                );
+    }
+    
+    @Test
+    public void testInstanceOfD() {
+        helpTCX("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  public void m() {
+                    //@ check \\forall A a; a != null; (a instanceof TestJava t && t.k == 42);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: warning: Not implemented for static checking: binding pattern in this location", 53
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 9
+                );
+    }
+    
 
 }

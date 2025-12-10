@@ -1810,7 +1810,7 @@ public class racnew extends RacBase {
                 +"//@ set System.out.println(\"A \" + n ); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",25
+                ,"/tt/A.java:3: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",25
                 ,"A false"
                 ,"END"
         );
@@ -1972,7 +1972,7 @@ public class racnew extends RacBase {
                 +"//@ set System.out.println(\"A \" + n1); \n"
                 +"System.out.println(\"END\"); "
                 +"}}"
-                ,"/tt/A.java:3: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",23
+                ,"/tt/A.java:3: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression",23
                 ,"A 0"
                 ,"END"
         );
