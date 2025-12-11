@@ -49,12 +49,14 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
     public static real of(byte v) { return proto.from(v); } // FIXME - have matching problems if this method is not present (cf. racfiles.racreal)
     public static real of(bigint v) { return proto.from(v); }
     public static real of(java.math.BigInteger v) { return proto.from(v); }
+    public static real of(java.math.BigDecimal v) { return proto.from(v); }
     
     abstract protected real from(double v);
     abstract protected real from(long v);
              protected real from(int v) { return from((long)v); }
     abstract protected real from(bigint v);
     abstract protected real from(java.math.BigInteger v);
+    abstract protected real from(java.math.BigDecimal v);
     
     @Override
              public byte byteValue() {
@@ -156,6 +158,10 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         }
 
         public RealUsingDouble from(java.math.BigInteger d) {
+            return from(d.doubleValue());
+        }
+
+        public RealUsingDouble from(java.math.BigDecimal d) {
             return from(d.doubleValue());
         }
 
@@ -265,6 +271,11 @@ public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimi
         @Override
         public RealUsingBigDecimal from(java.math.BigInteger v) {
             return new RealUsingBigDecimal(new BigDecimal(v));
+       }
+
+        @Override
+        public RealUsingBigDecimal from(java.math.BigDecimal v) {
+            return new RealUsingBigDecimal(v);
        }
 
         @Override

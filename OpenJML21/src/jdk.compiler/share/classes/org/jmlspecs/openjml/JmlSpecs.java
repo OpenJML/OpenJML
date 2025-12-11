@@ -1783,6 +1783,7 @@ public class JmlSpecs {
         if (k == PURE) {
             Type ty = msym.getReturnType();
             if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
+            if (ty.isPrimitiveOrVoid()) return true; // Lemmas are pure methods that may return void
         }
         return false;  
     }
