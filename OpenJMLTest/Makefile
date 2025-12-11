@@ -19,8 +19,8 @@ openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	make userguide-tests
 	make json-tests
-	-make unittests-par
 	-make tutorial-tests
+	-make unittests-par
 
 ## This target is used when running tests as part of a github action
 openjml-test-git: prep
@@ -70,7 +70,6 @@ temp-release temp-release/D.java:
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
 tutorial-tests: 
-	@ (cd "$SRC" ; make RunOpenJML.class; )
 	@ ( echo Testing tutorial files ;\
 	    . $(TEST)/setup-coverage tutorialtests ; \
 	    cd ${TEST}/../../openjml.github.io/tutorial; \
