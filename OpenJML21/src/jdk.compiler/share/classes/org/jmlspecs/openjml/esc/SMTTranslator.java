@@ -891,13 +891,20 @@ public class SMTTranslator extends JmlTreeScanner {
         // define NULL as a REF: (declare-fun NULL () REF)
         c = new C_declare_fun(nullSym,emptyList, refSort);
         startCommands.add(c);
-        c = command(smt, "(define-sort SEQ (E) (Array Int E))");
+        if (useBV) {
+            c = command(smt,"(define-sort |#BV32#| () (_ BitVec 32))");
+            startCommands.add(c);
+            c = command(smt,"(define-sort |#BV64#| () (_ BitVec 64))");
+            startCommands.add(c);
+        }
+
+        c = command(smt, useBV ? "(define-sort SEQ (E) (Array |#BV32#| E))" : "(define-sort SEQ (E) (Array Int E))");
         startCommands.add(c);
         c = command(smt, "(define-sort SET (E) (Array E Bool))");
         startCommands.add(c);
         c = command(smt, "(define-sort MAP (K E) (Array K E))");
         startCommands.add(c);
-        c = command(smt, "(define-sort ARRAY (E) (Array Int E))");
+        c = command(smt, useBV ? "(define-sort ARRAY (E) (Array |#BV32#| E))" : "(define-sort ARRAY (E) (Array Int E))");
         startCommands.add(c);
         c = command(smt, "(define-sort STRINGJML ( ) (Array Int Int))");
         startCommands.add(c);
@@ -982,8 +989,6 @@ public class SMTTranslator extends JmlTreeScanner {
         
         // Constants
         if (useBV) {
-            addCommand(smt,"(define-sort |#BV32#| () (_ BitVec 32))");
-            addCommand(smt,"(define-sort |#BV64#| () (_ BitVec 64))");
             addCommand(smt,"(define-fun |#max32BV#| () |#BV32#| #x7fffffff)");
             addCommand(smt,"(define-fun |#min32BV#| () |#BV32#| #x80000000)");
             addCommand(smt,"(define-fun |#zero32BV#| () |#BV32#| #x00000000)");
@@ -3017,7 +3022,8 @@ public class SMTTranslator extends JmlTreeScanner {
             	if (v == null) {
             		v = seqLengths.size();
             		seqLengths.put(sort, v);
-            		addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array Int " + sort + ")) Int)");
+            		if (useBV) addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array |#BV32#| " + sort + ")) |#BV32#|)");
+            		else       addCommand(smt,"(declare-fun " + "seqLength"+v + "((Array Int " + sort + ")) Int)");
             	}
             	// Sequence length
             	IExpr sel = convertExpr(object);
@@ -3030,7 +3036,8 @@ public class SMTTranslator extends JmlTreeScanner {
             	if (v == null) {
             		v = arrLengths.size();
             		arrLengths.put(sort, v);
-            		addCommand(smt,"(declare-fun " + "arrLength"+v + "((Array Int " + sort + ")) Int)");
+            		if (useBV) addCommand(smt,"(declare-fun " + "arrLength"+v + "((Array |#BV32#| " + sort + ")) |#BV32#|)");
+            		else       addCommand(smt,"(declare-fun " + "arrLength"+v + "((Array Int " + sort + ")) Int)");
             	}
             	// Sequence length
             	IExpr sel = convertExpr(object);
