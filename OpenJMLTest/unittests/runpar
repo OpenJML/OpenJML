@@ -31,7 +31,7 @@ rm -f the.jml.lock unittestframework
 shopt -s expand_aliases
 
 if [ -z "$JOBS" ]; then
-    numjobs=6
+    numjobs=5
 else
     numjobs=$JOBS
 fi
