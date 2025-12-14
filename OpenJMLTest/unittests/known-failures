@@ -66,35 +66,6 @@ QuerySecret.testSameDG
 QuerySecret.testSameDG2
 QuerySecret.testSameDG3
 QuerySecret.testSameDG4
-SFBugs.gitbug481a1
-SFBugs.gitbug481a2
-SFBugs.gitbug481a3
-SFBugs.gitbug481a4
-SFBugs.gitbug481a5
-SFBugs.gitbug481a8
-SFBugs.gitbug481b
-SFBugs.gitbug481c
-SFBugs.gitbug671                # crash during speculative attribution
-SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
-escArithmeticModes2.testModJavaB
-escArithmeticModes2.testModSafeBB
-# escTraceTests - need work, but are successful at the moment
-escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
-escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
-escfiles.esc2DArray		# <<<<<	problems with havocing arrays and array elements
-escfiles.modelImport5 		#	static model import needs implementation
-escfiles.modelImport6           #	static model import needs implementation
-escfiles.modelImport7           #	static model import needs implementation
-escfiles.sfbug420X
-escfiles.sfbug420e
-escfiles.sfbug420eOK
-escfiles.valuestrings           # string specs
-escfiles2.escRawding2
-escfiles2.escRawdingA
-escfiles2.escRawdingB
-escfiles2.gitbug450a		#	feasibility problems
-escfiles2.gitbug450b		#	feasibility problems
-escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfilesTrace.escDMZCashTrace
 escfilesTrace.escDemoChangeCase
 escfilesTrace.escDemoPaths
@@ -128,6 +99,43 @@ escTrace.testEnsuresSafeTrace
 escTrace.testEnsuresTrace
 escTrace.testFieldTrace
 escTrace.testSimpleTrace
+# escTraceTests - need work, but are successful at the moment
+
+escfilesmodels.gitbug431
+escfilesmodels.gitbug461
+escfilesmodels.gitbug498
+escfilesmodels.gitbug673
+
+SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
+SFBugs.gitbug481a1
+SFBugs.gitbug481a2
+SFBugs.gitbug481a3
+SFBugs.gitbug481a4
+SFBugs.gitbug481a5
+SFBugs.gitbug481a8
+SFBugs.gitbug481b
+SFBugs.gitbug481c
+SFBugs.gitbug671                # crash during speculative attribution
+
+escArithmeticModes2.testModJavaB
+escArithmeticModes2.testModSafeBB
+escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
+escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
+escfiles.esc2DArray		# <<<<<	problems with havocing arrays and array elements
+escfiles.modelImport5 		#	static model import needs implementation
+escfiles.modelImport6           #	static model import needs implementation
+escfiles.modelImport7           #	static model import needs implementation
+escfiles.sfbug420X
+escfiles.sfbug420e
+escfiles.sfbug420eOK
+escfiles.valuestrings           # string specs
+escfiles2.escRawding2
+escfiles2.escRawdingA
+escfiles2.escRawdingB
+escfiles2.gitbug450a		#	feasibility problems
+escfiles2.gitbug450b		#	feasibility problems
+escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
+escfiles2.gitbug876
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
@@ -145,10 +153,6 @@ escfileslist3.test[staticInit]  #       Needs implementation of static initializ
 escfileslist3.test[textBlock4]  #       Handling of String, timeout
 escfileslist3.test[textBlock4b]	#	Handling of String, timeout
 escfileslist3.test[verifythis-2019-1]
-escfilesmodels.gitbug431
-escfilesmodels.gitbug461
-escfilesmodels.gitbug498
-escfilesmodels.gitbug673
 escgeneric.testGenericType1
 escgeneric.testTypeOf
 escgeneric.testTypeParameter2d
@@ -172,6 +176,7 @@ generics.testBinaryGeneric3c
 primesc.locsetTests2
 
 runscripts.crashXlint  # Xlint:exports problem
+escfiles2.gitbug812a
 escfiles2.gitbug883    # Matrix add 
 escfiles2.gitbug883bad #    Needs better handling of 2D array
 escfiles2.gitbug894    #
@@ -181,6 +186,10 @@ escfileslist2.test[gitbug897]   # substring and loop
 escfileslist3.test[gitbug897]   # substring and loop
 escfileslist1.test[gitbug763]   # specs for string handling problem
 escfileslist2.test[gitbug763]   # specs for string handling problem
+escfileslist1.test[gitbug768]   # problem with invariants
+escfileslist2.test[gitbug768]   # problem with invariants
+escfileslist1.test[gitbug755]
+escfileslist2.test[gitbug755]
 
 escfiles2.gitbug890
 
@@ -189,10 +198,5 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
 SFBugs.gitbug444a
-escfiles2.gitbug812a
 escnew3.testCast1
-escfileslist1.test[gitbug768]   # problem with invariants
-escfileslist2.test[gitbug768]   # problem with invariants
 primesc.jmlreal                 # feasibility check times out
-escfileslist1.test[gitbug755]
-escfileslist2.test[gitbug755]
