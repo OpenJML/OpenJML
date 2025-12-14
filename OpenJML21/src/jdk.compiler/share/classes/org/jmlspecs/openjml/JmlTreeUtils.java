@@ -498,9 +498,8 @@ public class JmlTreeUtils {
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isNullLit(JCTree tree) {
         if (tree == nullLit) return true;
-        if (!(tree instanceof JCLiteral)) return false;
-        if (((JCLiteral)tree).typetag != TypeTag.BOT) return false;
-        return true;
+        if (tree instanceof JCLiteral lit && lit.value == null) return true;
+        return false;
     }
     
     /** Returns true if the argument is a boolean Literal with value true */

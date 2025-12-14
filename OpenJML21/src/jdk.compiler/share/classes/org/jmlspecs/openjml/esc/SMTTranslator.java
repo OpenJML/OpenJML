@@ -1735,6 +1735,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 return F.createSortExpression(arraySym, intSort, s1);
             } else if (ts.startsWith("org.jmlspecs.lang.internal.seq") || ts.startsWith("\\seq")) {
                 Type t1 = t.getTypeArguments().head;
+                if (t1 == null) log.error("jml.internal", "No type argument supplied to " + ts);
                 ISort s1 = convertSort(t1);
                 var sort = F.createSortExpression(seqSym, s1);
                 //System.out.println("CONVERTING " + ts + " TO " + sort);

@@ -367,6 +367,7 @@ public abstract class RacBase extends JmlTestSuite {
                     compdiffs = ("No expected output file for compiler output");
                     System.out.println(compdiffs);
                 } else {
+                    compdiffs = ("No match to actual file: " + compdiffs.substring(0, Math.min(150, compdiffs.length())));
                     System.out.println(compdiffs);
                     // Delay failing on file differences until after an attempt to run the file
                 }
@@ -406,8 +407,8 @@ public abstract class RacBase extends JmlTestSuite {
                         fail("No expected output file for runtime output");
                     } else {
                         //System.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
-                        System.out.println(diffs);
-                        fail("Unexpected output: " + diffs);
+                        if (print) System.out.println(diffs);
+                        fail("Unexpected output: " + actRun);
                     }
                 }
             } else {
@@ -417,15 +418,16 @@ public abstract class RacBase extends JmlTestSuite {
                     }
                 }
             }
-            if (compdiffs != null) fail("Files differ: " + compdiffs);
+            if (compdiffs != null) {
+                if (!print) compdiffs = actRun;
+                fail("Files differ: " + compdiffs);
+            }
 
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             throw e;
-        } finally {
-            // Should close open objects
         }
     }
 }

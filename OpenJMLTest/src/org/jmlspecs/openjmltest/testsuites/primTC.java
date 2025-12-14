@@ -187,7 +187,9 @@ public class primTC extends TCBase {
                      method org.jmlspecs.lang.internal.real.of(\\bigint) is not applicable
                        (argument mismatch; java.lang.String cannot be converted to \\bigint)
                      method org.jmlspecs.lang.internal.real.of(java.math.BigInteger) is not applicable
-                       (argument mismatch; java.lang.String cannot be converted to java.math.BigInteger)""",22
+                       (argument mismatch; java.lang.String cannot be converted to java.math.BigInteger)
+                     method org.jmlspecs.lang.internal.real.of(java.math.BigDecimal) is not applicable
+                       (argument mismatch; java.lang.String cannot be converted to java.math.BigDecimal)""",22
                 ,"/TEST.java:5: error: incompatible types: boolean cannot be converted to \\real",23
                 ,"/TEST.java:6: error: incompatible types: boolean cannot be converted to \\real",28
                 ,"/TEST.java:7: error: incompatible types: boolean cannot be converted to \\real",28

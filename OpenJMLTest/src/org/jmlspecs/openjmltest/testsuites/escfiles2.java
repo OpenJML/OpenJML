@@ -331,8 +331,7 @@ public class escfiles2 extends EscBaseFiles {
         } catch (AssertionError a) {
             String expected =
                     """
-                    Files differ: Less actual output than expected: -- intentionally incorrect content --
-                    """;
+                    Files differ""";
             assertEquals("Incorrect harness failure:", expected, a.getMessage());
         } finally {
             out = System.out;
