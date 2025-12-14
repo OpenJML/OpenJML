@@ -31,6 +31,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
     }
     public void in() { indent = indents[++nindent]; }
     public void out() { indent = indents[--nindent]; }
+    public void scan(JCTree t) { if (t != null) t.accept(this); }
     
     public String shortName(JCTree tree) {
         String cl = tree.getClass().toString();
@@ -136,6 +137,20 @@ public class JmlAstPrinter extends JmlTreeScanner {
         builder.append("\n");
         in();
         super.visitIdent(tree);
+        out();
+    }
+    
+    public void visitLiteral(JCLiteral tree) {
+        start(tree);
+        builder.append(": ").append(tree.type).append(" ").append(tree).append(" ").append(tree.typetag).append(" " ).append(tree.value).append(" " ).append(tree.getClass().toString()).append("\n");
+    }
+    
+    public void visitBinary(JCBinary tree) {
+        start(tree);
+        builder.append(": ").append(tree.operator).append("\n");
+        in();
+        tree.lhs.accept(this);
+        tree.rhs.accept(this);
         out();
     }
     

@@ -8472,7 +8472,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        System.out.println("APPLY-OF " + that + " " + that.meth.type + " " + sym + " " + sym.isVarArgs() + " " + that.varargsElement);
 	    }
 	    if (that.meth.type == null) {
-	        System.out.println("APPLY " + that);
+	        if (print) System.out.println("APPLY " + that);
 	    } else if (that.meth.type.isErroneous()) {
 			System.out.println("ERRONEOUS TYPE " + that);
 			if (that.meth instanceof JCFieldAccess fa) System.out.println("  RECV " + fa + " " + fa.type);
@@ -8779,7 +8779,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCExpression a : args) {
 			if (iter.hasNext()) {
 				currentArgType = iter.next(); // handles varargs
-//				if (!iter.hasNext() && hasVarArgs) currentArgType = ((Type.ArrayType)currentArgType).getComponentType();
+				// Sometimes a actual argument can be null and be a null literal with a BOT type, and not the formal type.
+				// This situation can cause crashes if trnaslating code, even though that code is guarded by a a != null type of guard.
+				// This is at least the case if the formal type is some array type.
+				// So we 'fix' the type here.
+				// FIXME - enabling this line causes more problems than it solves!
+				//if (a.type.getTag() == TypeTag.BOT) a.type = currentArgType;
 			}
 			last = !iter.hasNext();
 			if (currentArgType != null && isFunctional(currentArgType) && a instanceof JCMemberReference) { // FIXME -
@@ -11522,6 +11527,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							}
 							if (print) System.out.println("APPLYHELPER-X4C " + clause);
 						}
+
 						if (print) System.out.println("APPLYHELPER-X5");
                         currentStatements = ensuresStats;
                         popArithMode();
@@ -12988,7 +12994,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        }
 		        return expr;
 		    } else {
-		        System.out.println("OLDIMPL-K " + origtype + " " + newtype + " " + expr + " " + isPrim + " " + newIsPrim);
 		        return expr;// RAC handles implicit conversions implicitly
 		    }
 		}
@@ -12997,8 +13002,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    return expr;
 		if (expr.type.getTag() == TypeTag.BOT || (expr instanceof JCLiteral && ((JCLiteral) expr).value == null))
 		    return expr;
-
-        System.out.println("OLDIMPL-B " + origtype + " " + newtype + " " + expr + " " + isPrim + " " + newIsPrim);
 
 //        Type unboxed = unboxedType(expr.type);
 //        int tag = unboxed.getTag();
@@ -13018,7 +13021,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME: This is a hack - should really translate the typevar
 				expr.type = boxedType(annotatedNewtype.stripMetadata());
 			}
-			System.out.println("UNBOX " + newtype + " " + origtype + " " + expr.type + " " + expr);
 			JCExpression mth = createUnboxingExpr(expr);
 			if (translatingJML || mth instanceof JCIdent) {
 				eresult = mth;
@@ -13033,7 +13035,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Don't do casts to a base type
 		if (!isPrim && !newIsPrim) {
 			Type t = expr.type.stripMetadata();
-	          System.out.println("OLDIMPL-C " + origtype + " " + newtype + " " + expr + " " + t + " " + (t instanceof Type.ForAll) + " " + types.isSubtype(t, newtype));
 			if (!(t instanceof Type.ForAll)) {
 				if (types.isSubtype(t, newtype))
 					return expr;
@@ -13060,7 +13061,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			eresult = t;
 			// FIXME - for integer promotions, add assumptions about range of value
 		}
-        System.out.println("OLDIMPL-Z " + origtype + " " + newtype + " " + expr + " " + eresult);
 		return eresult;
 	    }
 	}
@@ -14598,6 +14598,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            applyingLambda = false;
 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
+			if (equality) {
+			    if (treeutils.isNullLit(lhs)) {
+			        if (treeutils.isNullLit(rhs)) {
+		                result = eresult = optag == JCTree.Tag.EQ ? treeutils.trueLit : treeutils.falseLit;
+		                return;
+			        }
+			    }
+			}
 			if (lhs == null) { System.out.println("BINARY " + that + " " + that.lhs + " " + that.rhs + " " + lhs + " " + rhs); }
 //            applyingLambda = savedApplyingLambda;
 			Number n = treeutils.integralLiteral(lhs);
@@ -14833,6 +14841,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
+            if (equality) {
+                if (treeutils.isNullLit(lhs)) {
+                    if (treeutils.isNullLit(rhs)) {
+                        result = eresult = optag == JCTree.Tag.EQ ? treeutils.trueLit : treeutils.falseLit;
+                        return;
+                    }
+                }
+            }
 			if (equality && ((treeutils.isNullLit(rhs) && treeutils.typeLiteral(lhs) != null)
 					|| (treeutils.isNullLit(lhs) && treeutils.typeLiteral(rhs) != null))) {
 				result = eresult = treeutils.makeBooleanLiteral(that.pos, optag == JCTree.Tag.NE);
@@ -15208,7 +15224,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     && ((types.isSameType(newtype, BIGINT) && jmltypes.isJavaIntegral(jmltypes.unboxedTypeOrType(oldtype))) 
                      || (types.isSameType(newtype, REAL) && jmltypes.isNumeric(jmltypes.unboxedTypeOrType(oldtype))))) {
                     // FIXME - what if this is in JML where it cannot be a new statement
-                addAssert(expr, Label.UNDEFINED_NULL_UNBOX, treeutils.makeNotNull(expr,expr));
+                if (!isNonNullExplicit(expr.type)) addAssert(expr, Label.UNDEFINED_NULL_UNBOX, treeutils.makeNotNull(expr,expr));
                 expr = createUnboxingExpr(expr);
                 // The above is needed before we compute castexpr
                 castexpr = M.at(pos).TypeCast(newtype, expr);
@@ -15824,7 +15840,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitIndexed(JCArrayAccess that) {
-	    boolean print = false; //that.toString().contains("values");
+	    boolean print = false; // that.toString().contains("s[0]");
 	    var ntype = rac ? that.type : convertType(that.type);
         if (that.indexed.type.tsym == ARRAY.tsym) {
             result = eresult = convertExpr(makeMethodInvocation(that, that.indexed, "getUnchecked", that.index));
@@ -15841,7 +15857,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    
 		JCExpression indexed = convertExpr(that.indexed);
         if (print) {
-            System.out.println("INDEXED " + that + " " + that.type + " " + that.indexed.type + " " + ntype + " " + that.type.tsym.hashCode() + " " + indexed + " " + indexed.type + " " + ((JCFieldAccess)indexed).selected.type);
+            System.out.println("INDEXED " + that + " " + that.type + " " + that.indexed.type + " " + ntype + " " + that.type.tsym.hashCode() );
             System.out.println("  MAP " + typeActuals + " :: " + typevarMapping);
             //if (ntype.toString().equals("T")) Utils.dumpStack();
         }
@@ -15921,26 +15937,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     result = eresult = makeMethodInvocation(that, indexed, "getUnchecked", index);
                     eresult.type = that.type;
                     return;
-                }
-                if (indexed.type.tsym == seqTypeKind.getType(context).tsym) {
+                } else if (indexed.type.tsym == seqTypeKind.getType(context).tsym) {
                     index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
                     result = eresult = makeMethodInvocation(that, indexed, "get", index);
                     eresult.type = that.type;
                     return;
-                }
-                if (indexed.type.tsym == arrayTypeKind.getType(context).tsym) {
+                } else if (indexed.type.tsym == arrayTypeKind.getType(context).tsym) {
                     index = addConversion(index,bigintTypeKind.getType(context), index, false,false);
                     result = eresult = makeMethodInvocation(that, indexed, "getUnchecked", index);
                     eresult.type = that.type;
                     return;
-                }
-                if (indexed.type.tsym == setTypeKind.getType(context).tsym) {
+                } else if (indexed.type.tsym == setTypeKind.getType(context).tsym) {
                     index = addConversion(index,syms.objectType, index, false,false);
                     result = eresult = makeMethodInvocation(that, indexed, "contains", index);
                     eresult.type = that.type;
                     return;
-                }
-                if (indexed.type.tsym == mapTypeKind.getType(context).tsym) {
+                } else if (indexed.type.tsym == mapTypeKind.getType(context).tsym) {
                     index = addConversion(index,syms.objectType, index, false,false);
                     result = eresult = makeMethodInvocation(that, indexed, "get", index);
                     eresult.type = that.type;
@@ -15977,6 +15989,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression e2 = treeutils.makeElemtype(treeutils.makeTypeof(copy(indexed)));
 					e1 = treeutils.makeSubtype(e1, e1, e2);
 					addAssume(that, Label.IMPLICIT_ASSUME, e1);
+		            if (isNonNullLocal(that.type)) {
+		                e1 = treeutils.makeNotNull(save, save);
+		                addAssume(that, Label.IMPLICIT_ASSUME, e1);
+		            }
 				}
 			}
 			if (!translatingJML) {
@@ -17702,6 +17718,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
 	}
 	
+    public boolean isNonNullExplicit(Type t) {
+        return !utils.isJavaOrJmlPrimitiveType(t) && hasNonNull(t) ;
+    }
+
     public boolean isNonNullLocal(Type t) {
         return !utils.isJavaOrJmlPrimitiveType(t) && ( hasNonNull(t) || (!hasNullable(t) && attr.isNonNull(enclosingMethod,null) ));
     }

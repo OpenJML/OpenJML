@@ -5041,10 +5041,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     Type condType(List<DiagnosticPosition> positions, List<Type> condTypes) {
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
         var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        boolean hasBigint = condTypes.stream().anyMatch(t->t==BIGINT);
         if (condTypes.stream().anyMatch(t->t==REAL) && condTypes.stream().allMatch(t->jmltypes.isNumeric(t))) return REAL;
-        if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().anyMatch(t->jmltypes.isNumeric(t)&&!jmltypes.isJavaIntegral(t))) return REAL;
-    	if (condTypes.stream().anyMatch(t->t==BIGINT) && condTypes.stream().allMatch(t->jmltypes.isJavaIntegral(t))) return BIGINT;
-    	return super.condType(positions, condTypes);
+        if (hasBigint && condTypes.stream().allMatch(t->jmltypes.isAnyIntegral(t))) return BIGINT;
+        if (hasBigint && condTypes.stream().anyMatch(t->jmltypes.isAnyNumeric(t))) return REAL;
+        return super.condType(positions, condTypes);
     }
     
     @Override
@@ -6555,17 +6556,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        }
     }
     
-//    @Override
-//    public void visitTypeCast(JCTypeCast tree) {
-//        boolean prev = jmlresolve.setAllowJML(jmlenv.currentClauseKind != null);
-//
-//        Type clazztype = attribType(tree.clazz, env);  // FIXME - this call is repeated later in super.visitTypeCast
-//        chk.validate(tree.clazz, env);
-//        result = tree.type = check(tree, clazztype, KindSelector.VAL, resultInfo);
-//        jmlresolve.setAllowJML(prev);
-//        super.visitTypeCast(tree);
-//        result = tree.type;
-//    }
+    @Override
+    public void visitTypeCast(JCTypeCast tree) {
+        super.visitTypeCast(tree);
+        // FIXME - should check that in JML, the casting type must have its type arguments
+//        var targs = tree.type.getTypeArguments();
+//            if (targs == null || targs.isEmpty()) {
+//                // Should it have type arguments
+//                if (tree.type.toString().equals("\seq")) utils.error(tree, "jml.message", "A JML type in a cast must have type parameters: " + tree.clazz);
+//            }
+//        //}
+        result = tree.type;
+    }
     
     @Override
     public void visitTypeApply(JCTypeApply tree) {

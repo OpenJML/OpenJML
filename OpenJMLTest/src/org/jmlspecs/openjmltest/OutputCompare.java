@@ -374,7 +374,7 @@ public class OutputCompare {
                 fail("No expected output file");
             } else {
                 System.out.println(diffs);
-                fail("Unexpected output: " + diffs);
+                fail("Unexpected output");
             }
         } else {
             new File(actualLocation).delete();

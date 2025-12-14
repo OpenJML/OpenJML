@@ -1654,6 +1654,9 @@ public class Utils {
         if (excludes != null && !excludes.isEmpty()) {
             String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
             for (String exclude: splits) { //$NON-NLS-1$
+                if (exclude.equals("<init>") && methodDecl.sym.isConstructor()) {
+                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                }
                 if (fullyQualifiedName.equals(exclude) ||
                         fullyQualifiedSig.equals(exclude) ||
                         simpleName.equals(exclude)) {

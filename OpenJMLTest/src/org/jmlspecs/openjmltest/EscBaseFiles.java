@@ -173,9 +173,9 @@ public abstract class EscBaseFiles extends EscBase {
                 }
             }
             if (diffs != null) {
-                out.println("TEST DIFFERENCES: " + getTestName());
-                out.println(diffs);
-                fail("Files differ: " + diffs); // Does not return, so appears to be not covered by Jacoco
+                out.println("TEST DIFFERENCES: " + actCompile);
+                out.println(diffs.substring(0, Math.min(150, diffs.length())));
+                fail("Files differ"); // Does not return, so appears to be not covered by Jacoco
             }
             
             if (expectedExit != -1) {
@@ -187,8 +187,6 @@ public abstract class EscBaseFiles extends EscBase {
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             throw e; // These exceptions come from test failures and signal the JUnit infrastructure of the failure
-        } finally {
-            // Closes the Printwriter
         }
     }
 

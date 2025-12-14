@@ -855,7 +855,7 @@ public class racnew extends RacBase {
         
     }
     
-    @Test public void testLbl() {
+    @Test public void testLbl() { // FIXME - same as in racnew2?
         helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +

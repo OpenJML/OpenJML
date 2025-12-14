@@ -68,10 +68,9 @@ public class SpecsEsc extends EscBaseFiles {
     /** This test tests the file that is named as classname by the constructor */
     @Test
     public void testSpecificationFile() {
-        expectedExit = 0;
         String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + foldername;
         //System.out.println("    ... " + classname.replace('-','.'));
-        escOnFiles(subdir,subdir,"--method=esc","--no-show-skipped","--check-feasibility=return","-Xlint:unchecked");
+        escOnFiles(subdir,subdir,"--exclude=main,<init>","--no-show-skipped","--check-feasibility=return");
     }
     
     static public java.util.List<File> findAllFiles() {

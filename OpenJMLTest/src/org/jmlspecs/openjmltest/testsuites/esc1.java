@@ -2487,24 +2487,11 @@ public class esc1 extends EscBase {
     }
 
     @Test
-    public void testArraysMD4() {
+    public void testArraysMD4() { // In this test, the non_null says that 'a' is non_null; as the default is nullable a[0] might be null
         helpTCX("tt.TestJava", "package tt; import org.jmlspecs.annotation.*; \n" + "public class TestJava { \n"
                 + "  public void inst3a(boolean/*@non_null*/[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[1][3]; */ }\n" // BAD
-                + "  public void inst3b(boolean/*@non_null*/[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[0][2]; */ }\n" // BAD
-                                                                                                                                                                                                                        // -
-                                                                                                                                                                                                                        // a[0]
-                                                                                                                                                                                                                        // might
-                                                                                                                                                                                                                        // be
-                                                                                                                                                                                                                        // null;
-                                                                                                                                                                                                                        // even
-                                                                                                                                                                                                                        // if
-                                                                                                                                                                                                                        // it
-                                                                                                                                                                                                                        // isn't
-                                                                                                                                                                                                                        // a[0][2]
-                                                                                                                                                                                                                        // is
-                                                                                                                                                                                                                        // not
-                                                                                                                                                                                                                        // necessarily
-                                                                                                                                                                                                                        // true
+                + "  public void inst3b(boolean/*@non_null*/[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; */  a[1][2] = true ; /*@ assert a[0][2]; */ }\n" // BAD - a[0] might be null;
+                                                                                                                                                                                                                        // even if it isn't a[0][2] is not necessarily true
                 + "  public void inst3c(boolean/*@non_null*/[][] a) { /*@assume a.length == 10; assume a[1] != null; assume a[1].length == 5; *//*@ assume a[1][2]; assume a[0] != null; */  a[1][2] = false; /*@ assert a[0][2]; */ }\n" // BAD
                 + "}",
                 "/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Assert) in method inst3a", 171,
