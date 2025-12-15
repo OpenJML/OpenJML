@@ -26,6 +26,10 @@ public class SFBugs extends EscBaseFiles {
         super.setUp();
     }
     
+    // FIXME: Eventually, remove all --verify-exit=-1 options -- they have the effect of turning verification failures 
+    // into pure warnings, both the in the diagnostic messages and the returned error code.
+    // To fix this means editing all the expected output files.
+    
     public void helpTCG(String... opts) {
         super.helpTCG(addVEF(opts));
     }
@@ -46,7 +50,7 @@ public class SFBugs extends EscBaseFiles {
         String dir = "test/" + getTestName();
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
-        a.add(1,dir + cpathAddition);
+        a.add(1,dir);
         a.add("--verify-exit=-1");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));

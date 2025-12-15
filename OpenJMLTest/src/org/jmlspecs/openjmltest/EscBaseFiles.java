@@ -29,6 +29,17 @@ import com.sun.tools.javac.util.Log;
  */
 public abstract class EscBaseFiles extends EscBase {
 
+    /** options is a comma- or space-separated list of options to be added */
+    public EscBaseFiles() {
+        super();
+    }
+    
+    /** options is a comma- or space-separated list of options to be added */
+    public EscBaseFiles(String options, String solver) {
+        super(options, solver);
+    }
+    // FIXME - the options set in the above constructor are not used
+    
     protected String[] rac = null;
     
     /** The command-line to use to run ESC on a program */
@@ -40,22 +51,31 @@ public abstract class EscBaseFiles extends EscBase {
         super.setUp();
     }
     
+    /** Sets a common initial set of options for these file-based tests */
+    public java.util.List<String> collectArgs(String sourceDirOrFilename, String outDir, String ... opts) {
+        new File(outDir).mkdirs();
+        java.util.List<String> args = new LinkedList<String>();
+        args.add("-g");
+        args.add("--esc");
+        args.add("--no-purity-check");
+        args.add("-jmltesting");
+        args.add("--progress");
+        args.add("--timeout=300");
+        args.add("--code-math=java");
+        args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
+        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
+        args.add(sourceDirOrFilename);
+        if (solver != null) args.add("--prover="+solver);
+        args.addAll(Arrays.asList(opts));
+        return args;
+    }
+
+    
     /** Put here any test-specific additions to the class path */
     protected String cpathAddition = "";
 
 
     
-    /** options is a comma- or space-separated list of options to be added */
-    public EscBaseFiles() {
-        super();
-    }
-    
-    /** options is a comma- or space-separated list of options to be added */
-    public EscBaseFiles(String options, String solver) {
-        super(options, solver);
-    }
-    
-    // FIXME - the options set in the above constructor are not used
     
     /** runs a test in the folder with the given name, with the classpath set to that folder,
      * placing the output in an 'actual' file in that same folder
@@ -89,8 +109,8 @@ public abstract class EscBaseFiles extends EscBase {
     public void helpTG(String ... opts) {
         String dir = "test/" + getTestName();
         var a = new LinkedList<String>();
-        a.add(0,"-cp"); 
-        a.add(1,dir + cpathAddition);
+        a.add("-cp"); 
+        a.add(dir);
         a.add("--code-math=safe");
         a.add("--spec-math=bigint");
         a.add("--check-feasibility=precondition,reachable,exit,spec");
@@ -156,7 +176,7 @@ public abstract class EscBaseFiles extends EscBase {
         String actCompile = outDir + "/actual";
         new File(actCompile).delete();
         try (PrintWriter pw = new PrintWriter(actCompile)) {
-            java.util.List<String> args = setupForFiles(sourceDirname, outDir, opts);
+            java.util.List<String> args = collectArgs(sourceDirname, outDir, opts);
 
             // System.out.println("ARGS " + args);
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
@@ -190,24 +210,4 @@ public abstract class EscBaseFiles extends EscBase {
         }
     }
 
-    // FIXME - why not just use the regular setup
-    /** Sets a common initial set of options for these file-based tests */
-    public java.util.List<String> setupForFiles(String sourceDirOrFilename, String outDir, String ... opts) {
-        new File(outDir).mkdirs();
-        java.util.List<String> args = new LinkedList<String>();
-        args.add("-g");
-        args.add("--esc");
-        args.add("--no-purity-check");
-        args.add("-jmltesting");
-        //args.add("--verify-exit=-1");
-        args.add("--progress");
-        args.add("--timeout=300");
-        args.add("--code-math=java");
-        args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
-        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
-        args.add(sourceDirOrFilename);
-        if (solver != null) args.add("--prover="+solver);
-        args.addAll(Arrays.asList(opts));
-        return args;
-    }
 }

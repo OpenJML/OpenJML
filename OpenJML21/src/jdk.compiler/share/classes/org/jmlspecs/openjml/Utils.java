@@ -1523,7 +1523,7 @@ public class Utils {
      * In some cases, it's a bad idea to use JavaFileObject.equals, because copying a JavaFileObject can change the path name, even if they point to the same canonical path.
      * This function exists for where JavaFileObject.equals may fail.
      */
-    public static boolean ifSourcesEqual(JavaFileObject jfo1, JavaFileObject jfo2) {
+    public static boolean ifFilepathsEqual(JavaFileObject jfo1, JavaFileObject jfo2) {
         try {
             File file1 = new File(jfo1.getName());
             File file2 = new File(jfo2.getName());

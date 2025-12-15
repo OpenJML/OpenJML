@@ -1,37 +1,17 @@
 package org.openjml;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.PrintStream;
-import java.util.Collection;
-import java.util.Map;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.Main;
 
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.parser.*;
-import static com.sun.tools.javac.parser.Tokens.*;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 
 public interface IAPI {
     

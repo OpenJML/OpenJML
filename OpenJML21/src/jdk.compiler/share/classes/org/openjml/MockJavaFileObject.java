@@ -27,9 +27,10 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
     //@ non_null
     static final protected URI uritest = makeURI();
     
-    /** A utility method to make the URI, so it can handle the exceptions. 
+    /** A utility method to make the URI, so it can handle the exceptions;
+     * only make one of these (as it has a fixed filename) per compilation context 
      * We don't try to recover gracefully if the exception occurs - this is
-     * just used in testing anyway. */
+     * primarily used in testing anyway. */
     private static URI makeURI() {
         try {
             return new URI("file:///TEST.java");
@@ -40,6 +41,10 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
         }
     }
 
+    /** A utility method to make a URI, so it can handle the exceptions;
+     * only make one of these for a given filename per compilation context 
+     * We don't try to recover gracefully if the exception occurs - this is
+     * primarily used in testing anyway. */
     private static URI makeURI(String filename) {
         try {
             return new URI("file:///" + filename);
@@ -51,15 +56,14 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
     }
 
 
-    // TODO - will it be a problem if someone makes two of these objects in 
-    // the same test (since they will have the same name)?
     /** A constructor of a JavaFileObject of kind SOURCE,
      * with the given content and a made-up file name.
+     * Only make one of these per compilation context, because it has a fixed filename
      * @param s The content of the file
      */
-    public MockJavaFileObject(/*@ non_null */ String s) {
+    public MockJavaFileObject(/*@ non_null */ String content) {
         super(uritest,Kind.SOURCE);
-        content = s;
+        this.content = content;
     }
 
     /** Constructs a new JavaFileObject of kind SOURCE or OTHER depending on the
@@ -69,9 +73,7 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
      * @param content the content of the pseudo file
      * @throws Exception if a URI cannot be created
      */
-    public MockJavaFileObject(/*@ nullable */String filename, /*@ non_null */String content) {
-        // This takes three slashes because the filename is supposed to be absolute.
-        // In our case this is not a real file anyway, so we pretend it is absolute.
+    public MockJavaFileObject(/*@ non_null */String filename, /*@ non_null */String content) {
         super(filename == null ? uritest : makeURI(filename),
                 filename == null || filename.endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
         this.content = content;
@@ -95,27 +97,27 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
         return content;
     }
     
-    /** Overrides the parent method to allow name compatibility between 
-     * pseudo files of different kinds.  TODO _ better description of what the system uses this for
-     */
-    // Don't worry about whether the kinds match, just the file prefix
-    @Override
-    public boolean isNameCompatible(String simpleName, Kind kind) {
-        String s = uri.getPath();
-        if (kind == Kind.OTHER) {
-            int i = s.lastIndexOf('/');  // FIXME - is this branch ever used?
-            s = s.substring(i+1);
-            return s.startsWith(simpleName);
-        } else {
-            String baseName = simpleName + kind.extension;
-            return s.endsWith("/" + baseName);
-        }
-    }
+//    /** Overrides the parent method to allow name compatibility between 
+//     * pseudo files of different kinds.  TODO _ better description of what the system uses this for
+//     */
+//    // Don't worry about whether the kinds match, just the file prefix
+//    @Override
+//    public boolean isNameCompatible(String simpleName, Kind kind) {
+//        String s = uri.getPath();
+//        if (kind == Kind.OTHER) {
+//            int i = s.lastIndexOf('/');  // FIXME - is this branch ever used?
+//            s = s.substring(i+1);
+//            return s.startsWith(simpleName);
+//        } else {
+//            String baseName = simpleName + kind.extension;
+//            return s.endsWith("/" + baseName);
+//        }
+//    }
     
     /** Returns true if the receiver and argument represent the same file */
     public boolean equals(Object o) {
         if (!(o instanceof JavaFileObject jfo)) return false;
-        return Utils.ifSourcesEqual(this, jfo);
+        return Utils.ifFilepathsEqual(this, jfo);
     }
     
     /** A definition of hashCode, since we have a definition of equals */

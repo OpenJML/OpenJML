@@ -11,9 +11,9 @@ import java.util.*;
 import com.sun.tools.javac.util.Context;
 
 
-/** This class holds MockFiles. As it does not intend to hold very many the
+/** This class holds MockFiles. As it does not intend to hold very many, the
  * files are recorded in a Map that maps full (mock) path name to JavaFileObject.
- * Instances of the class org.jmlspecs.openjmltest.TestJavaFileObject can be used as 
+ * Instances of the class org.openjml.MockJavaFileObject can be used as 
  * mock files.
  */
 public class MockFiles {
