@@ -291,8 +291,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testSourcePathX() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath",src + "testNoErrors",
+                          { "-sourcepath",src + "testNoErrors",
                             "--no-purity-check",  //"-Xlint:unchecked",
                             src + "testNoErrors/A.java"
                           },0,0
@@ -306,8 +305,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testJML() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath",src + "testNoErrors",
+                          { "-sourcepath",src + "testNoErrors",
                             "--no-purity-check",
                             src + "testNoErrors/A.jml"
                           },2,0
@@ -325,8 +323,7 @@ public class compiler extends JmlTestSuite{
     public void testJML1() throws Exception {
         //print = true;
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath",src + "testJavaErrors2",
+                          { "-sourcepath",src + "testJavaErrors2",
                             "--specs-path",src + "testJavaErrors2",
                             "--no-purity-check",
                             src + "testJavaErrors2/A.java"
@@ -342,8 +339,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testJML1A() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath",src + "testJavaParseErrors",
+                          { "-sourcepath",src + "testJavaParseErrors",
                             "--specs-path",src + "testJavaParseErrors",
                             "--no-purity-check",
                             src + "testJavaParseErrors/A.jml"
@@ -362,8 +358,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testJML1B() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath",src + "testJavaErrors",
+                          { "-sourcepath",src + "testJavaErrors",
                             "--specs-path",src + "testJavaErrors",
                             "--no-purity-check",
                             src + "testJavaErrors/A.java"
@@ -378,9 +373,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoSource() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath",src + "testNoSource",
-                            "--specs-path",JmlTestSuite.runtime,
+                          { "-sourcepath",src + "testNoSource",
                             "--no-purity-check",
                             src + "testNoSource/A.jml"
                           },2,1
@@ -396,9 +389,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoErrors() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath"," ",
-                            "--specs-path",JmlTestSuite.runtime,
+                          { "-sourcepath"," ",
                             "--no-purity-check",
                             src + "testNoErrors/A.jml"
                           },2,1
@@ -411,9 +402,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoSourceParseError() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath"," ",
-                            "--specs-path",JmlTestSuite.runtime,
+                          { "-sourcepath"," ",
                             "--no-purity-check",
                             src + "testNoSourceParseError/A.jml"
                           },2,1
@@ -429,9 +418,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoSourceTypeError() throws Exception {
         helper(new String[]
-                          { "-classpath",JmlTestSuite.runtime,
-                            "-sourcepath"," ",
-                            "--specs-path",JmlTestSuite.runtime,
+                          { "-sourcepath"," ",
                             "--no-purity-check",
                             src + "testNoSourceTypeError/A.jml"
                           },2,1
@@ -445,9 +432,9 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoSourceWithClass() throws Exception {
         helper(new String[]
-                          { "-classpath", JmlTestSuite.runtime +z+src + "testNoSourceWithClass",
+                          { "-classpath", src + "testNoSourceWithClass",
                             "-sourcepath"," ",
-                            "--specs-path", JmlTestSuite.runtime +z+src + "testNoSourceWithClass",
+                            "--specs-path", src + "testNoSourceWithClass",
                             "--no-purity-check",
                             src + "testNoSourceWithClass/A.jml"
                           },2,1
@@ -517,7 +504,6 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                                 { "-Werror",
                                   "-sourcepath",src + "testNoErrors", // is also the spec path, so protects against spec errors in A.java
-                                  "-classpath",JmlTestSuite.bruntime, // does not exist, but isnot part of the specs path
                                   src + "testWarnings/A.java"
                                 },0,0
                                 ,""
@@ -525,16 +511,16 @@ public class compiler extends JmlTestSuite{
                                 );
     }
 
-    /** Checks that -Werror turns warnings into errors */  // FIXME - not working
+    /** Checks that -Werror turns warnings into errors */
     @Test
     public void testJML6WerrorD() throws Exception {
         helper(new String[]
                                 { "-Werror",
-                                  "-classpath", JmlTestSuite.bruntime, // does not exist, but isnot part of the specs path
+                                  "-classpath", "ZZZZZ", // does not exist, but is not part of the specs path
                                   src + "testWarnings/A.java"
                                 },1,0
                                 ,""
-                                ,"warning: A specification path directory does not exist: " + JmlTestSuite.bruntime + " (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                                ,"warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
                                 +"error: warnings found and -Werror specified"+eol
                                 +"1 error"+eol
                                 +"1 warning"+eol
@@ -549,8 +535,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testSourcePathXB() throws Exception {
         helper(new String[]
-                          { "-classpath", JmlTestSuite.bruntime,  // FIXME - needs annotations?
-                            "-sourcepath",src + "testNoErrors",
+                          { "-sourcepath",src + "testNoErrors",
                             "--specs-path","../../Specs/specs",
                             "--no-purity-check",  //"-Xlint:unchecked",
                             src + "testNoErrors/A.java"
@@ -564,7 +549,7 @@ public class compiler extends JmlTestSuite{
 //    public void testSourcePath3() throws Exception {
 //        helper(new String[]
 //                          { "-classpath"," ",
-//                            "-sourcepath",src + "testNoErrors"+z+runtime,
+//                            "-sourcepath",src + "testNoErrors",
 //                            src + "testNoErrors/A.java",  
 //                          },0,0,"",
 //                          "");
@@ -1222,8 +1207,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testExtension1() throws Exception {
         helper(new String[]
-                { "-classpath","../OpenJML21/runtime",
-                  "-sourcepath",src + "testNoErrors",
+                { "-sourcepath",src + "testNoErrors",
                   "--specs-path","../OpenJML21/release-temp",
                   "-lang=jml",
                   "-extensions=X", // Ignored when strict
@@ -1237,8 +1221,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testExtension2() throws Exception {
         helper(new String[]
-                { "-classpath","../OpenJML21/runtime",
-                  "-sourcepath",src + "testNoErrors",
+                { "-sourcepath",src + "testNoErrors",
                   "-extensions=X",
                   src + "testNoErrors/A.java"
                 },2,1
@@ -1250,8 +1233,7 @@ public class compiler extends JmlTestSuite{
     @Test @Ignore // FIXME - have not yet fixed how extensions are found
     public void testExtension() throws Exception {
         helper(new String[]
-                { "-classpath","../OpenJML21/runtime",
-                  "-sourcepath",src + "testExtension",
+                { "-sourcepath",src + "testExtension",
                   "-extensions=ext",
                   src + "testExtension/A.java"
                 },0,0

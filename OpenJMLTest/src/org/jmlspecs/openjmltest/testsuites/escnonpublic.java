@@ -47,7 +47,7 @@ public class escnonpublic extends EscBaseFiles {
 
     boolean enableSubexpressions = false;
     
-    public java.util.List<String> setupForFiles(String sourceDirname, String outDir, String ... opts) {
+    public java.util.List<String> collectArgs(String sourceDirname, String outDir, String ... opts) {
         Assume.assumeTrue( new File(dir).exists() );
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();

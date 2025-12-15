@@ -65,7 +65,7 @@ import com.sun.tools.javac.util.Position;
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestSuite {
-
+    
     /** The relative path from OpenJMLTest to the OpenJMLDemo repo */
     public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 
@@ -93,20 +93,8 @@ public abstract class JmlTestSuite {
         }
     }
     
-    // FIXME - not sure about these -- 'root' is an absolute path
-    static final public String bruntime = "../" + root + "/OpenJML/OpenJML21/bin-runtime";
-    static final public String  runtime = "../" + root + "/OpenJML/OpenJML21/runtime";
-
     /** Holds an absolute path to the location of system library spec files, that is the folder holding java/lang/*.jml etc. */
-    public final static String specsdir;
-    static {
-//        String s = System.getenv("OPENJML_INSTALL") + "/../../Specs/specs";
-//        try { 
-//            s = new File(s).getCanonicalPath();
-//        } catch (Exception e) {
-//        }
-        specsdir = Main.specs + "/specs";
-    }
+    public final static String specsdir = Main.specs + "/specs";
     
     public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
 
@@ -121,23 +109,14 @@ public abstract class JmlTestSuite {
 
     /** The name of the current test, injected by the initiating unit test structure (not used if a conventional JUnit test runner is used). */
     public String testname; // name is injected by the initiating unit test structure
+    /** The name of the current test, when the OpenJML custom test runner is used */
+    public String getTestName() { return testname; }
     
     /** This is here so we can get the name of a test, using name.getMethodName(), but this is valid only when
      * a conventional JUnit runner is used.
      **/
     @Rule public TestName testnameRule = new TestName();
     
-    /** Returns the name of the method 'i' steps up in the call stack */
-    public String getMethodName(int i) {
-    	return (new RuntimeException()).fillInStackTrace().getStackTrace()[i+1].getMethodName();
-    }
-    
-    public String getMethodName() { return getMethodName(0); }
-
-    
-    public String getTestName() { return testname; }
-    
-
     /** The java executable */
     // TODO: This is going to use the external setting for java, rather than
     // the current environment within Eclipse // FIXME - no longer valid
@@ -152,22 +131,16 @@ public abstract class JmlTestSuite {
     /** Cached value of the end of line character string */
     static final public String eol = System.getProperty("line.separator");
 
+    /** Adds arguments to the sequence of command-line arguments */
+    public void addOptions(String ... options) {
+    	main.addOptions(options);
+    }
+
     /** A Diagnostic listener that can report all the collected diagnostics */
     static public interface DiagnosticListenerX<S> extends DiagnosticListener<S> {
         public List<Diagnostic<? extends S>> getDiagnostics();
     }
     
-    /** Set in some testcase classes to ignore Notes reported by the tool. 
-     *  Set the value before calling super.setUp()
-     *  */
-    public boolean ignoreNotes = true;
-    
-    /** Adds arguments to the sequence of command-line arguments */
-    public void addOptions(String ... options) {
-    	main.addOptions(options);
-    }
-   
-
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
         /** Constructs a diagnostic listener that collects all of the diagnostics,
@@ -232,11 +205,10 @@ public abstract class JmlTestSuite {
         }
         
         public void run() {
-            try {
-                char[] cbuf = new char[10000];
-                // FIXME - should we close these Readers?
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
+            try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)){
+                char[] cbuf = new char[10000]; // The 10000 is arbitrary -- it just sets the max amount of input read at once
+                                            // If less is available, the reader just reads what is available
+                                            // If more is available, multiple reads will occur successfively
                 int n;
                 while ((n = br.read(cbuf)) != -1) {
                     input.append(cbuf,0,n);
@@ -261,7 +233,7 @@ public abstract class JmlTestSuite {
         }
     }
     
-    /** Used to set a timeout on a RAC process; returns true is the process was interrupted by the timeout */
+    /** Used to set a timeout on a RAC process; returns true if the process was interrupted by the timeout */
     public static boolean timeout(Process p, long milliseconds) {
         // Set a timer to interrupt the process if it does not return within the timeout period
         Timer timer = new Timer();
@@ -282,7 +254,6 @@ public abstract class JmlTestSuite {
     // References to various tools needed in testing
     protected Context context;
     protected Main main;
-    protected Options options; // FIXME - where why is this used
     
     /** This collection of mock files are those on the specs path */
     protected org.openjml.MockFiles mockFiles;
@@ -299,13 +270,18 @@ public abstract class JmlTestSuite {
      */
     public boolean print = true;
     
+    /** Set in some testcase classes to ignore Notes reported by the tool. 
+     *  Set the value before calling super.setUp()
+     *  */
+    public boolean ignoreNotes = true;
+
     /** Set this to true (in the setUp for a test, before calling super.setUp)
      * if you want diagnostics to be printed as they occur (as well as being collected).
      */
     public boolean printDiagnostics = System.getenv("VERBOSE") != null || System.getenv("PRINT") != null || System.getenv("SCANNER") != null || System.getenv("STACK") != null;
     
     /** A collector for all of the diagnostic messages*/
-    protected DiagnosticListenerX<JavaFileObject> collector;
+    protected DiagnosticListenerX<JavaFileObject> collector; // initialized in setUp()
     
     /** Set this to true (for an individual test) if you want debugging information */
     public boolean jmldebug = false;
@@ -336,16 +312,21 @@ public abstract class JmlTestSuite {
         collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printDiagnostics);    	
     }
     
+    /** Calls compile, converting the List of options to an array of options */
     public int compile(com.sun.tools.javac.util.List<String> args) {
     	return compile(args.toArray(new String[args.size()]));
     }
     
+    /** Calls compile, converting the jva.util.List of options to an array of options */
     public int compile(java.util.List<String> args) {
     	return compile(args.toArray(new String[args.size()]));
     }
     
+    /** Calls main.compile, i.e. runs openjml on the array of command-line arguments. Note that the called method will also
+     * use anything in main.mockFiles
+     */
     public int compile(String ... args) {
-		return main.compile(args, this.context).exitCode;
+		return main.compile(args, this.context).exitCode;  // FIXME - main already has context -- why do we need to pass it in
     }
     
     /** Nulls out all the references visible in this class */
@@ -355,8 +336,8 @@ public abstract class JmlTestSuite {
         main.close();
         main = null;
         collector = null;
-        options = null;
-        if (mockFiles != null) mockFiles.clear(); mockFiles = null;
+        if (mockFiles != null) mockFiles.clear(); 
+        mockFiles = null;
     }
 
     /** Does a tearDown and a setUp, in order to reset state for a second execution in the same test */
@@ -370,16 +351,9 @@ public abstract class JmlTestSuite {
     }
 
 
-    
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
-        printDiagnostics(collector.getDiagnostics());
-    }
-    
-    public void printDiagnostics(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
-        synchronized (System.out) {
-            out.println(diagnosticsToString(diagnostics));
-        }
+        out.println(diagnosticsToString(collector.getDiagnostics()));
     }
 
     public static String diagnosticsToString(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
@@ -398,7 +372,7 @@ public abstract class JmlTestSuite {
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
-    public void checkDiagnostics(Object[] expected) {
+    public void checkDiagnostics(Object ...  expected) {
         try {
             int i = 0;
             int k = 0;
@@ -446,19 +420,7 @@ public abstract class JmlTestSuite {
      * @param a a sequence of expected values, alternating between error message and column numbers
      */
     public void checkMessages(/* nonnullelements */Object ... a) {
-        try {
-            assertEquals("Wrong number of messages seen",a.length,2*collector.getDiagnostics().size());
-            List<Diagnostic<? extends JavaFileObject>> diags = collector.getDiagnostics();
-            if (print || (!noExtraPrinting && 2*diags.size() != a.length)) printDiagnostics();
-            assertEquals("Saw wrong number of errors ",a.length,2*diags.size());
-            for (int i = 0; i<diags.size(); ++i) {
-                assertEquals("Message for item " + i,a[2*i].toString(),noSource(diags.get(i)));
-                assertEquals("Column number for item " + i,((Integer)a[2*i+1]).intValue(),diags.get(i).getColumnNumber()); // Column number is 1-based
-            }
-        } catch (AssertionError ae) {
-            if (!print && !noExtraPrinting) printDiagnostics();
-            throw ae;
-        }
+        checkDiagnostics(a);
     }
     
     /** Checks that there are no diagnostic messages */
@@ -528,7 +490,7 @@ public abstract class JmlTestSuite {
      * @param filename the name of the file, including leading directory components 
      * @param file the JavaFileObject to be associated with this name
      */
-    protected void addMockFile(String filename, JavaFileObject file) {
+    protected void addMockFile(String filename, JavaFileObject file) { // FIXME - why not use the filename in the JavaFileObject
         if (filename.endsWith(".java")) javamockFiles.add(file);
         mockFiles.addMockFile(filename, file);
     }
@@ -549,12 +511,11 @@ public abstract class JmlTestSuite {
      *  source file may be null, in which case it is omitted from the generated string;
      *  line number may be -1, in which case it is omitted also */
     static String noSource(JCDiagnostic dd) {
-    	// This ought to match the format being used, but only does so manually
-    	var f = dd.getFormatter();
-    	var l = java.util.Locale.getDefault();
-    	String src = dd.getDiagnosticSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
-    	String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ":" );
-    	String sp = src.isEmpty() && ln.isEmpty() ? "" : " ";
+        var f = dd.getFormatter();
+        var l = java.util.Locale.getDefault();
+        String src = dd.getDiagnosticSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
+        String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ":" );
+        String sp = src.isEmpty() && ln.isEmpty() ? "" : " ";
         return src + ln + sp + dd.getPrefix() + dd.getMessage(l);
     }
 

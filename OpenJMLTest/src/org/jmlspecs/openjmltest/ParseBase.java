@@ -106,6 +106,7 @@ abstract public class ParseBase extends JmlTestSuite {
      * @return the list of nodes in the resulting parse tree
      */
     public List<JCTree> parseCompilationUnit(String s) {
+        // The following line sets the source material for error messages; the file name itself is immaterial
         Log.instance(context).useSource(new MockJavaFileObject(s));
         parser = fac.newParser(s, false, jml);
         parser.addOrgJmlspecsLang = false;

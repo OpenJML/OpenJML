@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest;
 
+import static org.junit.Assert.fail;
+
 import org.junit.Assert;
 
 
@@ -16,6 +18,8 @@ import org.junit.Assert;
  *
  */
 public abstract class RunBase extends JmlTestSuite {
+    
+    public int timeoutMS = 0; // in milliseconds
 
     public static final String[] args = new String[] { "./run" };
     
@@ -29,18 +33,15 @@ public abstract class RunBase extends JmlTestSuite {
             pb.inheritIO();
             pb.directory(new java.io.File(workingDir));
             process = pb.start();
-            try {
-                int exitCode = process.waitFor();
-                Assert.assertEquals("Test " + getTestName() + ": emitted a failure exit code:", 0, exitCode);
-            } catch (AssertionError e) {
-                throw e;
-            } catch (Throwable e) {
-                Assert.fail("Test " + getTestName() + ": threw exception " + e);
+            if (timeoutMS > 0 && timeout(process,timeoutMS)) {
+                fail("Test " + getTestName() + ": did not complete within the timeout period");
             }
+            int exitCode = process.waitFor();
+            Assert.assertEquals("Test " + getTestName() + ": emitted a failure exit code:", 0, exitCode);
         } catch (AssertionError e) {
             throw e;
         } catch (Throwable e) {
-            Assert.fail("Test " + getTestName() + ": failed to launch: " + e);
+            Assert.fail("Test " + getTestName() + ": failed to launch or to execute: " + e);
         }
     }
     
