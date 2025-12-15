@@ -2,8 +2,6 @@
 // Its arguments are a few options and then the names of OpenJML test suites.
 // If no test suites are listed, then all the test suites are run.
 
-// Any suites listed in the String array 'skips' below are not run.
-
 // The options allow choosing sequantial or parallel running,
 // with a given number of threads, given timeout, and verbosity level.
 
@@ -25,12 +23,6 @@ public class OpenJMLTestRunner {
     static ExecutorService eservice;
     static boolean sequential = true;
     static boolean verbose = false;
-
-    /** Test suites to skip, by simple suite name */
-    public static String[] skips = new String[]{};
-    {
-        Arrays.sort(skips);
-    }
 
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
@@ -115,10 +107,7 @@ public class OpenJMLTestRunner {
                 failures++;
                 continue;
             }
-            if (args.length == 0 && java.util.Arrays.binarySearch(skips,suiteName) >= 0) {
-                System.out.println("Skipping " + clazz);
-                continue;
-            }
+
             if (verbose) System.out.println("Queueing " + clazz);
             var cons = clazz.getConstructors();
             if (cons.length != 1) {
@@ -156,6 +145,18 @@ public class OpenJMLTestRunner {
                 System.out.println("NO METHOD FOUND FOR " + testName);
             }
             
+            // Execute any BeforeClass methods for the suite
+            Class c = clazz;
+            x: while (c != null) {
+                for (var m: c.getDeclaredMethods()) {
+                    var a = m.getAnnotationsByType(org.junit.BeforeClass.class);
+                    if (a.length != 0) {
+                        m.invoke(null); // A BeforeClass method must be public static
+                    }
+                }
+                c = c.getSuperclass();
+            }
+
             // If the tests are parameterized, get the parameters
             // TODO - this is just implemented for the case that the parameters are a list of test names
             // Default is that 'params' is a Collection with a single empty Object[] array
@@ -164,7 +165,7 @@ public class OpenJMLTestRunner {
                 // Requires there to be a mtestName
                 if (testName == null) {
                     // Do all the parameter sets
-                    Class c = clazz;
+                    c = clazz;
                     // Find the static method that is marked with the @Parameters annotation (and is executed to produce the list or parameter arrays)
                     Method pmethod = null;
                     x: while (c != null) {

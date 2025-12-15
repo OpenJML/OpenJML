@@ -34,14 +34,14 @@ public abstract class RunBase extends JmlTestSuite {
             pb.directory(new java.io.File(workingDir));
             process = pb.start();
             if (timeoutMS > 0 && timeout(process,timeoutMS)) {
-                fail("Test " + getTestName() + ": did not complete within the timeout period");
+                throw new AssertionError("Test " + getTestName() + ": did not complete within the timeout period");
             }
             int exitCode = process.waitFor();
             Assert.assertEquals("Test " + getTestName() + ": emitted a failure exit code:", 0, exitCode);
         } catch (AssertionError e) {
             throw e;
         } catch (Throwable e) {
-            Assert.fail("Test " + getTestName() + ": failed to launch or to execute: " + e);
+            throw new AssertionError("Test " + getTestName() + ": failed to launch or to execute: " + e);
         }
     }
     

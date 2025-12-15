@@ -129,7 +129,7 @@ public class OutputCompare {
         while (i < expectedErrors.length) {
             if (expectedErrors[i] == null) { i+=2; continue; }
             if (!(expectedErrors[i] instanceof Special)) {
-                if (comparePair(expectedErrors,i,diagListPos,false)) {
+                if (compareDiagnostic(expectedErrors,i,diagListPos,false)) {
                     diagListPos ++;
                     i += 2;
                 } else {
@@ -169,38 +169,65 @@ public class OutputCompare {
         return true;
     }
 
-    protected boolean comparePair(Object[] list, int i, int j, boolean issueErrors) {
-        int col = ((Integer)list[i+1]).intValue();
+    protected boolean compareDiagnostic(Object[] list, int i, int j, boolean issueErrors) {
+        failureLocation = j;
+        failureString = null;
+        failureCol = -1;
         if (collector.getDiagnostics().size() <= j) {
-            failureLocation = j;
-            failureString = null;
             return false;
         }
-        String act = JmlTestSuite.noSource(collector.getDiagnostics().get(j)).replace('\\','/');
+        var diag = collector.getDiagnostics().get(j);
+        String act = JmlTestSuite.noSource(diag).replace('\\','/');
         String exp = null;
         if (list[i] != null) {
             exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/');
         }
         long actualColumn = -1;
         if (!exp.equals(act)) {
-            failureLocation = j;
             failureString = exp;
-            failureCol = -1;
             if (issueErrors) {
                 assertEquals("Error " + j, exp, act);
             }
             return false;
-        } else if (col != (actualColumn = Math.abs(collector.getDiagnostics().get(j).getColumnNumber()))) {
-            failureLocation = j;
-            failureString = null;
+        } 
+        int col = ((Integer)list[i+1]).intValue();
+        if (col != (actualColumn = Math.abs(diag.getColumnNumber()))) {
             failureCol = col;
             if (issueErrors) {
                 assertEquals("Error " + j, col, actualColumn);
             }
             return false;
-        } else {
-            return true;
         }
+        long actualPosition = -1;
+        if (list[i+2] instanceof Integer ii) {
+            int p = ii;
+            if (p != (actualPosition = diag.getStartPosition())) {
+                if (issueErrors) {
+                    assertEquals("Error " + j, p, actualPosition);
+                }
+                return false;
+            }
+        }
+        if (list[i+3] instanceof Integer ii) {
+            int p = ii;
+            if (p != (actualPosition = diag.getPosition())) {
+                if (issueErrors) {
+                    assertEquals("Error " + j, p, actualPosition);
+                }
+                return false;
+            }
+        }
+        if (list[i+4] instanceof Integer ii) {
+            int p = ii;
+            if (p != (actualPosition = diag.getEndPosition())) {
+                if (issueErrors) {
+                    assertEquals("Error " + j, p, actualPosition);
+                }
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
