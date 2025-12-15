@@ -170,6 +170,11 @@ public class runscripts extends RunBase {
         }
     }
     
+    @Test public void runscriptTimeoutOK() {
+        timeoutMS=100000;
+        doTest();
+    }
+    
     @Test public void runscriptBadExit() {
         try {
             doTest();
@@ -198,13 +203,31 @@ public class runscripts extends RunBase {
                     .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
                 allfiles.removeAll(runmethods);
             }
-            if (allfiles.size() != 0) {
-                System.out.println("ORPHANED RUN TESTS: " + allfiles);
-            }
-            Assert.assertEquals("ORPHANED RUN TESTS: " + allfiles, allfiles.size(), 0);
-        } catch (Exception e) {
-            throw new AssertionError("Exception while determining test methods in racfileslist: " + e);
+            Assert.assertEquals("ORPHANED RUN TESTS: " + allfiles, 0, allfiles.size());
+        } catch (Exception e) { // Internal bug or configuration error -- should not happen for any successful or failing test
+            Assert.fail("Exception while determining test methods in racfileslist: " + e);
         }
-
+    }
+    
+    /** This test creates an orphan test (a folder with a run script that does not have an explicit test in this suite),
+     * checks that the anyOrphanedTests method detects the orphan test (and fails),
+     * and then deletes the temporary orphan test
+     */
+    @Test public void checkOrphanedTests() {
+        String nm = "test/checkOrphanedTestsTemp";
+        String run = nm+"/run";
+        try {
+            new java.io.File(nm).mkdir();
+            new java.io.File(run).createNewFile();
+            anyOrphanedTests();
+            Assert.fail("Failure in checkOrphanedTests"); // Internal bug or configuration error -- should not happen for any successful or failing test
+        } catch (AssertionError e) {
+            Assert.assertEquals("unexpected output", "ORPHANED RUN TESTS: [checkOrphanedTestsTemp] expected:<0> but was:<1>", e.getMessage());
+        } catch (Exception e) { // Internal bug or configuration error -- should not happen for any successful or failing test
+            Assert.fail("Exception in checkOrphanedTests: " + e);
+        } finally {
+            new java.io.File(run).delete();
+            new java.io.File(nm).delete();
+        }
     }
 }

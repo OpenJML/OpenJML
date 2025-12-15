@@ -55,8 +55,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      *  In a development environment, they are different -- OPENJML_INSTALL is the OpenJML21 folder, holding openjml, openjml-java etc.
      */
     public static final String install = System.getenv("OPENJML_INSTALL");
-    /** Absolute path to the folder that holds the 'specs' directory */
-    public static final String specs = System.getenv("OPENJML_SPECS") != null ? System.getenv("OPENJML_SPECS") : System.getenv("OPENJML_INSTALL");
+    /** Absolute path to the folder that holds the library specifications */
+    public static final String specs = (System.getenv("OPENJML_SPECS") != null ? System.getenv("OPENJML_SPECS") : System.getenv("OPENJML_INSTALL")) + "/specs";
     /** Absolute path to the folder holding Solvers-macos, etc. */
     public static final String solvers = System.getenv("OPENJML_SOLVERS") != null ? System.getenv("OPENJML_SOLVERS") : System.getenv("OPENJML_INSTALL");
 

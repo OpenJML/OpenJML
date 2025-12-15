@@ -317,7 +317,7 @@ public class JmlSpecs {
                 
         // Default for test or install environment
         if (Main.specs != null) {
-            String sy = Main.specs + "/specs";
+            String sy = Main.specs;
             try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
             File f = new File(sy);

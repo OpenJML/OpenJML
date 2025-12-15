@@ -1,0 +1,14 @@
+This folder contains tests and test results for testing all the library specification files.
+
+The SpecsBase suite tests each specification .jml file
+-- output of the test is in <classname>-actual
+-- output is compared against <classname>-expected or the output is presumed to be empty if there is no such expected file
+
+SpecsEsc and SpecsRac use the custom test method that is in the folder for the given class.
+The folder name is the classname with '.' characters replaced by '-' characters
+The folder contains one (arbitrarily named) .java file.
+In the SpecsEsc test suite, openjml --esc is run on this .java file and the output put in 'actual', which is expected to match 'expected'.
+  The esc proof attempt excludes the main method and constructor of the test file.
+In the SpecsRac test suite, openjml --rac is run on this .java file and the output put in 'actual-compile', which is expected to match 'expected-compile'
+  If the --rac compilation is successful, the compiled program is executed (using openjml-java) and the output put in 'actual-run', 
+  which is expected to match 'expected-run'.
