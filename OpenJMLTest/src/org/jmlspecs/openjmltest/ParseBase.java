@@ -25,17 +25,19 @@ import com.sun.tools.javac.util.Log;
 import static org.junit.Assert.*;
 
 /** This class is the base class for test suites that just are exercising the parser,
- * without doing any further typechecking.  FOr this purpose the parser can be
+ * without doing any further typechecking.  For this purpose the parser can be
  * called standalone, and the parse tree inspected. 
  * @author David Cok
  *
  */
 abstract public class ParseBase extends JmlTestSuite {
 
+    /** This is used as a specspath consisting of mock files */
     protected static String testspecpath = "$A"+z+"$B";
 
+    /** Just to hold this field between setup and use. */
     protected JmlFactory fac;
-    protected ScannerFactory sfac;
+    /** Just to hold this field between setup and use. */
     protected JmlParser parser;
 
     /** Set this to true in tests which start out the scanner in jml mode
@@ -43,22 +45,21 @@ abstract public class ParseBase extends JmlTestSuite {
      */
     protected boolean jml;
     
+    /** If true, do not check errors -- used primarily for harness tests */
     protected boolean skip = false;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        main.addOptions("compilePolicy","check");  // Don't do code generation
+ //       main.addOptions("compilePolicy","check");  // Don't do code generation  // FIXME
         main.addOptions("--specspath",   testspecpath);
         print = false;
         jml = false;
     }
     
     public void postOptions() {
-        // TODO - are the following needed?
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
-        sfac = ScannerFactory.instance(context);
         fac = (JmlFactory)JmlFactory.instance(context);
     }
 
@@ -66,33 +67,35 @@ abstract public class ParseBase extends JmlTestSuite {
     public void tearDown() throws Exception {
         super.tearDown();
         fac = null;
-        sfac = null;
+        parser = null;
     }
 
     /** Compiles the given string as the content of a compilation unit,
      * comparing the parse tree found to the expected node types and character
      * positions found in the second argument.
-     * @param s the content of a compilation unit
-     * @param list the expected parse tree formed by parsing the first argument
      * as a compilation unit, each node is represented by a node type (instance 
      * of Class) and character position (an int).
+     * 
+     * In this case the parse should be successful,
      */
-    public void checkCompilationUnit(String s, Object ... list) {
-        List<JCTree> out = parseCompilationUnit(s);
-        checkParseTree(out,list);
+    public void checkCompilationUnit(String text, Object ... expected) {
+        List<JCTree> out = parseCompilationUnit(text);
+        checkParseTree(out,expected);
     }
 
-    public void checkParseErrors(String s, Object ... list) {
+    /** Parse the given text (a compilation unit) and then compare any parse errors against 'expected'*/
+    public void checkParseErrors(String text, Object ... expected) {
         if (skip) return;
-        parseCompilationUnit(s);
-        checkDiagnostics(list);
+        parseCompilationUnit(text);
+        checkDiagnostics(expected);
     }
 
-    public void checkParseFailure(String failureMessage, String s, Object ... list) {
+    /** Test harness test */
+    public void checkParseFailure(String failureMessage, String text, Object ... expected) {
         boolean failed = false;
         try {
             if (skip) return;
-            checkCompilationUnit(s,list);
+            checkCompilationUnit(text,expected);
         } catch (AssertionError a) {
             failed = true;
             assertEquals("Failure message was incorrect in checkCompilationUnitFailure", failureMessage, a.getMessage());
@@ -105,10 +108,10 @@ abstract public class ParseBase extends JmlTestSuite {
      * @param s the string to parse
      * @return the list of nodes in the resulting parse tree
      */
-    public List<JCTree> parseCompilationUnit(String s) {
+    public List<JCTree> parseCompilationUnit(String text) {
         // The following line sets the source material for error messages; the file name itself is immaterial
-        Log.instance(context).useSource(new MockJavaFileObject(s));
-        parser = fac.newParser(s, false, jml);
+        Log.instance(context).useSource(new MockJavaFileObject(text));
+        parser = fac.newParser(text, false, jml);
         parser.addOrgJmlspecsLang = false;
         JCTree e = parser.parseCompilationUnit();
         return ParseTreeScanner.walk(e);

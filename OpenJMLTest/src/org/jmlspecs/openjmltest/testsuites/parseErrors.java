@@ -175,23 +175,26 @@ public class parseErrors extends ParseBase {
     
     // Test harness tests -- checking that test failures are properly reported
     
+    /** This test allows the included harness tests to complete without an AssertionError, thereby
+     *  allowing the normal execution route to be executed for coverage.
+     */
     @Test
     public void harnessSkip() {
         skip = true;
         harness1();
-//        harness1a();
+        harness1a();
         harness2();
         harness3();
         harness4();
         harness5();
-//        harness6();
+        harness6();
         harness7();
         harness8();
         harness9();
         harness10();
         harness11();
         harness12();
-//        harness13();
+        harness13();
     }
     
     @Test
