@@ -24,11 +24,6 @@ import org.junit.Assert;
 public class OutputCompare {
 
     DiagnosticListenerX<JavaFileObject> collector;
-
-    protected int failureLocation;
-    protected String failureString;
-    protected int failureCol;
-    
     protected int diagListPos;
     
     protected static class Special {
@@ -93,32 +88,15 @@ public class OutputCompare {
     /** Compares actual diagnostics against the given list of expected results */
     public void compareResults(Object[] expectedErrors, DiagnosticListenerX<JavaFileObject> collectorp) {
         collector = collectorp;
-        failureLocation = -1;
-        failureString = null;
         diagListPos = 0;
         if (!compareResults(expectedErrors)) {
-            if (collector.getDiagnostics().size() <= failureLocation) {
-                Assert.fail("Too little actual output: " + collector.getDiagnostics().size() + " diagnostics");
-            } else {
-                Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(failureLocation);
-                String act = JmlTestSuite.noSource(d);
-                long actualColumn = d.getColumnNumber();
-                if (failureString != null) {
-                    assertEquals("Error " + failureLocation, failureString, act);
-                } else {
-                    assertEquals("Error " + failureLocation, failureCol, actualColumn);
-                }
-            }
+            Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
+            fail("Failed to match diagnostic " + diagListPos + ": " + d);
         } else {
             Assert.assertEquals("Too little expected output: ",diagListPos,collector.getDiagnostics().size());
         }
     }
     
-    /** Compares actual diagnostics, beginning at position j, to given list. The
-     * returned result is either the initial value of j, if no match was made,
-     * or the value of j advanced over all matching items. If optional is false,
-     * then error messages are printed if no match is found.
-     */
     protected boolean compareResults(Object expectedErrors) {
         return compareResults(new Object[]{expectedErrors});
     }
@@ -129,11 +107,9 @@ public class OutputCompare {
         while (i < expectedErrors.length) {
             if (expectedErrors[i] == null) { i+=2; continue; }
             if (!(expectedErrors[i] instanceof Special)) {
-                if (compareDiagnostic(expectedErrors,i,diagListPos,false)) {
-                    diagListPos ++;
-                    i += 2;
+                if (compareDiagnostic(expectedErrors,i)) {
+                    i += i_step;
                 } else {
-                    diagListPos = initPos;
                     return false;
                 }
             } else if (expectedErrors[i] instanceof AnyOrder) {
@@ -168,65 +144,53 @@ public class OutputCompare {
         }
         return true;
     }
-
-    protected boolean compareDiagnostic(Object[] list, int i, int j, boolean issueErrors) {
-        failureLocation = j;
-        failureString = null;
-        failureCol = -1;
-        if (collector.getDiagnostics().size() <= j) {
-            return false;
-        }
-        var diag = collector.getDiagnostics().get(j);
-        String act = JmlTestSuite.noSource(diag).replace('\\','/');
+    
+    private int i_step;
+    protected boolean compareDiagnostic(Object[] list, int i) {
+        int k = i;
+        var diag = collector.getDiagnostics().get(diagListPos);
+        String act = JmlTestSuite.noSource(diag).replace('\\','/'); // FIXME - get rid of replace
         String exp = null;
-        if (list[i] != null) {
-            exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/');
+        if (list[i] != null) { // FIXME - is this ever null?
+            exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/'); // FIXME - get rid of replace
         }
-        long actualColumn = -1;
-        if (!exp.equals(act)) {
-            failureString = exp;
-            if (issueErrors) {
-                assertEquals("Error " + j, exp, act);
+        x: {
+            if (!act.equals(exp)) return false;
+            {
+                i++;
+                if (i >= list.length) break x;
+                if (list[i] instanceof Integer i1) {
+                    if (i1 != diag.getColumnNumber()) return false;
+                } else break x;
             }
-            return false;
-        } 
-        int col = ((Integer)list[i+1]).intValue();
-        if (col != (actualColumn = Math.abs(diag.getColumnNumber()))) {
-            failureCol = col;
-            if (issueErrors) {
-                assertEquals("Error " + j, col, actualColumn);
+            {
+                i++;
+                if (i >= list.length) break x;
+                if (list[i] instanceof Integer i1) {
+                    if (i+1 < list.length && list[i+1] instanceof Integer) {
+                        if (i1 != diag.getStartPosition()) return false;
+                    } else {
+                        if (i1 != diag.getPosition()) return false;
+                    }
+                } else break x;
             }
-            return false;
-        }
-        long actualPosition = -1;
-        if (list[i+2] instanceof Integer ii) {
-            int p = ii;
-            if (p != (actualPosition = diag.getStartPosition())) {
-                if (issueErrors) {
-                    assertEquals("Error " + j, p, actualPosition);
-                }
-                return false;
+            {
+                i++;
+                if (i >= list.length) break x;
+                if (list[i] instanceof Integer i1) {
+                    if (i1 != diag.getPosition()) return false;
+                } else break x;
             }
-        }
-        if (list[i+3] instanceof Integer ii) {
-            int p = ii;
-            if (p != (actualPosition = diag.getPosition())) {
-                if (issueErrors) {
-                    assertEquals("Error " + j, p, actualPosition);
-                }
-                return false;
-            }
-        }
-        if (list[i+4] instanceof Integer ii) {
-            int p = ii;
-            if (p != (actualPosition = diag.getEndPosition())) {
-                if (issueErrors) {
-                    assertEquals("Error " + j, p, actualPosition);
-                }
-                return false;
+            {
+                i++;
+                if (i >= list.length) break x;
+                if (list[i] instanceof Integer i1) {
+                    if (i1 != diag.getEndPosition()) return false;
+                } else break x;
             }
         }
-
+        i_step = i-k;
+        diagListPos++;
         return true;
     }
 
@@ -234,25 +198,13 @@ public class OutputCompare {
     protected boolean compareOneOf(Object[] list) {
         // None of lists[i] may be null or empty
         int i = 0;
-        int latestFailure = -2;
-        String latestString = null;
-        int latestCol = 0;
         while (i < list.length) {
             if (compareResults(list[i])) {
                 // Matched
-                failureLocation = -1;
                 return true;
             }
             i++;
-            if (failureLocation > latestFailure) {
-                latestFailure = failureLocation;
-                latestString = failureString;
-                latestCol = failureCol;
-            }
         }
-        failureLocation = latestFailure;
-        failureString = latestString;
-        failureCol = latestCol;
         return false;
     }
 
@@ -262,34 +214,22 @@ public class OutputCompare {
         boolean[] used = new boolean[list.length];
         for (int i=0; i<used.length; ++i) used[i] = false;
         int initPos = diagListPos;
-        int latestFailure = -2;
-        String latestString = null;
-        int latestCol = 0;
         int toMatch = list.length;
         more: while (toMatch > 0) {
             for (int i = 0; i < list.length; ++i) {
                 if (used[i]) continue;
-                failureLocation = -3;
                 if (compareResults(list[i])) {
                     // Matched
                     used[i] = true;
                     toMatch--;
                     continue more;
-                } else {
-                    if (failureLocation > latestFailure) {
-                        latestFailure = failureLocation;
-                        latestString = failureString;
-                        latestCol = failureCol;
-                    }
                 }
             }
             // No options match
             diagListPos = initPos;
-            failureLocation = latestFailure;
-            failureString = latestString;
-            failureCol = latestCol;
             return false;
         }
+        // everything matched
         return true;
     }
     
