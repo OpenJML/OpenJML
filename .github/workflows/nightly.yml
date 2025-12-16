@@ -98,7 +98,5 @@ jobs:
     - name: Run unit tests
       run: |
         make -C OpenJML/OpenJMLTest unittests-par
-
-    - name: Run full tests
-      run: |
-        make -C OpenJML/OpenJMLTest openjml-test-git
+	##the following would run all the above test steps in one step
+        ##make -C OpenJML/OpenJMLTest openjml-test-git
