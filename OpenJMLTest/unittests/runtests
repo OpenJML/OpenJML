@@ -57,7 +57,7 @@ while true; do
   break
 done
 
-SPECS=`(cd "$ROOT/../../Specs" ; pwd )`
+SPECS=`(cd "$ROOT/../../Specs/specs" ; pwd )`
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
