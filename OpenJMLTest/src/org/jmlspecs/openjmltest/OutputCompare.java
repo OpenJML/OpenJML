@@ -21,11 +21,25 @@ import org.jmlspecs.openjmltest.OutputCompare.Optional;
 import org.jmlspecs.openjmltest.OutputCompare.Seq;
 import org.junit.Assert;
 
+/** This class compares a sequence of observed (actual) diagnostics to an array of expected diagnostics.
+ * The expected set can be a flat array of messages and positions, but it can also include a nested 
+ * structure of the special expected diagnostic containers implemented here.
+ * 
+ * In the array of expected output, sequences of objects are either
+ * (a) one of the anyorder, options, oneof, or seq objects defined below
+ * (b) one or more sequences that begins with a diagnostic message and is
+ * followed by zero to four Integers designating 
+ * (i) zero -- a column number of -1
+ * (ii) one -- just a column number
+ * (iii) two -- column number, preferred position
+ * (iv) four -- column number, start position, preferred position, end position
+ * 
+ * Each thread using this functionality must use a separate instance; one instance can be used
+ * (successively within a single thread.
+ */
 public class OutputCompare {
 
-    DiagnosticListenerX<JavaFileObject> collector;
-    protected int diagListPos;
-    
+    /** This is the base class of special collections of expected diagnostics */
     protected static class Special {
         public String toString(String head, Object[] list) {
             String s = head + "(";
@@ -43,98 +57,125 @@ public class OutputCompare {
         public boolean compare(Object[] list) { return false; }
     }
     
+    /** This special diagnostic matches either by (a) not matching the next diagnostic
+     * or (b) having the contained expected objects completely match diagnostic beginning at
+     * the current value of diagListPos, and advancing diagListPos by 1.
+     */
     protected static class Optional extends Special {
-        public Object[] list;
-        public Optional(Object... list) {
-            this.list = list;
+        public Object[] expected;
+        public Optional(Object... expected) {
+            this.expected = expected;
         }
         public String toString() {
-            return toString("optional",list);
+            return toString("optional",expected);
         }
     }
     
+    /** This special diagnostic matches by having the diagnostic at diagListPos
+     * match one of the objects in the expected array, advancing diagListPos by one if successful.
+     */
     protected static class OneOf extends Special {
-        public Object[] list;
-        public OneOf(Object ... list) {
-            this.list = list;
+        public Object[] expected;
+        public OneOf(Object ... expected) {
+            this.expected = expected;
         }
         public String toString() {
-            return toString("oneof",list);
+            return toString("oneof",expected);
         }
     }
     
+    /** This special diagnostic matches by having the diagnostics beginning at diagListPos
+     * match all of the content of the 'expected' array in turn, advancing diagListPos
+     * as much as was matched.
+     */
     protected static class Seq extends Special {
-        public Object[] list;
-        public Seq(Object ... list) {
-            this.list = list;
+        public Object[] expected;
+        public Seq(Object ... expected) {
+            this.expected = expected;
         }
         public String toString() {
-            return toString("seq",list);
+            return toString("seq",expected);
         }
     }
     
+    /** This special diagnostic matches by having the diagnostics beginning at diagListPos
+     * match all of the objects in the expected array, but in any order, advancing diagListPos
+     * over all the diagnostics matched.
+     */
     protected static class AnyOrder extends Special {
-        public Object[] list;
-        public AnyOrder(Object ... list) {
-            this.list = list;
+        public Object[] expected;
+        public AnyOrder(Object ... expected) {
+            this.expected = expected;
         }
         public String toString() {
-            return toString("anyorder",list);
+            return toString("anyorder",expected);
         }
     }
 
-
+    DiagnosticListenerX<JavaFileObject> collector;
+    protected int nDiags;
+    protected int diagListPos;
     
-    /** Compares actual diagnostics against the given list of expected results */
+    /** Compares actual diagnostics against the given list of expected results; this is the 
+     * public entry point into this capability. The method either returns without error if the expected objects 
+     * completely match all of the observed diagnostics in the diagnostic collector or throws an 
+     * AssertionError with a message indicating the first diagnostic that does not match. */
     public void compareResults(Object[] expectedErrors, DiagnosticListenerX<JavaFileObject> collectorp) {
         collector = collectorp;
+        nDiags = collector.getDiagnostics().size();
         diagListPos = 0;
+        //System.out.println("START " + expectedErrors.length + " " + nDiags);
         if (!compareResults(expectedErrors)) {
-            Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
-            fail("Failed to match diagnostic " + diagListPos + ": " + d);
+            if (diagListPos < nDiags) {
+                Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
+                fail("Failed to match diagnostic " + diagListPos + ": " + d);
+            } else {
+                Assert.fail("Too much expected output: "  + nDiags + " diagnostics observed");
+            }
         } else {
-            Assert.assertEquals("Too little expected output: ",diagListPos,collector.getDiagnostics().size());
+            if (diagListPos < nDiags) {
+                Assert.fail("Too little expected output: " + nDiags + " diagnostics observed");
+            }
         }
     }
     
-    protected boolean compareResults(Object expectedErrors) {
-        return compareResults(new Object[]{expectedErrors});
-    }
-    
-    protected boolean compareResults(Object[] expectedErrors) {
+    /** Returns true if all the expectedErrors are matched against the diagnostics beginning at diagListPos.
+     * If result is true, diagListPos must be advanced. */
+    protected boolean compareResults(Object ... expectedErrors) {
         int i = 0;
         int initPos = diagListPos;
         while (i < expectedErrors.length) {
-            if (expectedErrors[i] == null) { i+=2; continue; }
+            //System.out.println("TEST " + i + " " + expectedErrors.length + " " + diagListPos + " " + nDiags);
             if (!(expectedErrors[i] instanceof Special)) {
-                if (compareDiagnostic(expectedErrors,i)) {
-                    i += i_step;
+                int n = compareDiagnostic(expectedErrors,i);
+                if (n > 0) {
+                    i += n;
                 } else {
                     return false;
                 }
-            } else if (expectedErrors[i] instanceof AnyOrder) {
-                if (compareAnyOrder(((AnyOrder)expectedErrors[i]).list)) {
+            } else if (expectedErrors[i] instanceof AnyOrder ao) {
+                if (compareAnyOrder(ao.expected)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
                     return false;
                 }
-            } else if (expectedErrors[i] instanceof OneOf) {
-                if (compareOneOf(((OneOf)expectedErrors[i]).list)) {
+            } else if (expectedErrors[i] instanceof OneOf oo) {
+                if (compareOneOf(oo.expected)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
                     return false;
                 }
-            } else if (expectedErrors[i] instanceof Optional) {
+            } else if (expectedErrors[i] instanceof Optional op) {
                 int initPos2 = diagListPos;
-                if (!compareResults(((Optional)expectedErrors[i]).list)) {
+                if (!compareResults(op.expected)) {
                     diagListPos = initPos2;
                 }
                 ++i;
                 // It is OK if the optional did not match
-            } else if (expectedErrors[i] instanceof Seq) {
-                if (compareResults(((Seq)expectedErrors[i]).list)) {
+            } else if (expectedErrors[i] instanceof Seq sq) {
+                if (compareResults(sq.expected)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
@@ -145,9 +186,13 @@ public class OutputCompare {
         return true;
     }
     
-    private int i_step;
-    protected boolean compareDiagnostic(Object[] list, int i) {
+    /** Compare one expected diagnostic at position diagListPos to expected output beginning at position i in expected.
+     * Return 0 if no match; if matched, return the number of array elements matched and advance diagListPos by 1.
+     * The match will be of one String and 0-4 Integers.
+     */
+    protected int compareDiagnostic(Object[] list, int i) {
         int k = i;
+        if (diagListPos == nDiags) return 0;
         var diag = collector.getDiagnostics().get(diagListPos);
         String act = JmlTestSuite.noSource(diag).replace('\\','/'); // FIXME - get rid of replace
         String exp = null;
@@ -155,22 +200,28 @@ public class OutputCompare {
             exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/'); // FIXME - get rid of replace
         }
         x: {
-            if (!act.equals(exp)) return false;
+            if (!act.equals(exp)) return 0;
             {
                 i++;
-                if (i >= list.length) break x;
+                if (i >= list.length) {
+                    if (-1 != diag.getColumnNumber()) return 0;
+                    break x;
+                }
                 if (list[i] instanceof Integer i1) {
-                    if (i1 != diag.getColumnNumber()) return false;
-                } else break x;
+                    if ((int)i1 != diag.getColumnNumber()) return 0;
+                } else {
+                    if (-1 != diag.getColumnNumber()) return 0;
+                    break x;
+                }
             }
             {
                 i++;
                 if (i >= list.length) break x;
                 if (list[i] instanceof Integer i1) {
                     if (i+1 < list.length && list[i+1] instanceof Integer) {
-                        if (i1 != diag.getStartPosition()) return false;
+                        if ((int)i1 != diag.getStartPosition()) return 0;
                     } else {
-                        if (i1 != diag.getPosition()) return false;
+                        if ((int)i1 != diag.getPosition()) return 0;
                     }
                 } else break x;
             }
@@ -178,28 +229,33 @@ public class OutputCompare {
                 i++;
                 if (i >= list.length) break x;
                 if (list[i] instanceof Integer i1) {
-                    if (i1 != diag.getPosition()) return false;
+                    if ((int)i1 != diag.getPosition()) return 0;
                 } else break x;
             }
             {
                 i++;
                 if (i >= list.length) break x;
                 if (list[i] instanceof Integer i1) {
-                    if (i1 != diag.getEndPosition()) return false;
+                    if ((int)i1 != diag.getEndPosition()) return 0;
                 } else break x;
             }
         }
-        i_step = i-k;
+        //System.out.println("MATCHED AT " + k + " " + i + " " + diagListPos);
         diagListPos++;
-        return true;
+        return i-k;
     }
 
-
-    protected boolean compareOneOf(Object[] list) {
-        // None of lists[i] may be null or empty
+    /** Compares the diagnostic at diagListPos to each of the Special objects in expected,
+     * reporting a successful match (true output and diagListPos advancing by one) if one of the expected objects matches;
+     * returns false if none of them do
+     * @param expected
+     * @return
+     */
+    protected boolean compareOneOf(Object[] expected) {
+        // None of expected[i] may be null or empty; all of them must be Special objects
         int i = 0;
-        while (i < list.length) {
-            if (compareResults(list[i])) {
+        while (i < expected.length) {
+            if (compareResults(expected[i])) {
                 // Matched
                 return true;
             }
@@ -209,23 +265,26 @@ public class OutputCompare {
     }
 
 
-    protected boolean compareAnyOrder(Object[] list) {
-        // None of lists[i] may be null or empty
-        boolean[] used = new boolean[list.length];
+    /** Compares the diagnostics beginning at diagListPos to each of the Special objects in expected,
+     * reporting a successful match (true output and diagListPos advancing by expected.length) if all of the expected objects match in some order;
+     * returns false if there is no order that matches. */
+    protected boolean compareAnyOrder(Object[] expected) {
+        // None of expected[i] may be null or empty; all of them must be Special objects
+        boolean[] used = new boolean[expected.length];
         for (int i=0; i<used.length; ++i) used[i] = false;
         int initPos = diagListPos;
-        int toMatch = list.length;
+        int toMatch = expected.length;
         more: while (toMatch > 0) {
-            for (int i = 0; i < list.length; ++i) {
+            for (int i = 0; i < expected.length; ++i) {
                 if (used[i]) continue;
-                if (compareResults(list[i])) {
+                if (compareResults(expected[i])) {
                     // Matched
                     used[i] = true;
                     toMatch--;
                     continue more;
                 }
             }
-            // No options match
+            // No remaining entries match
             diagListPos = initPos;
             return false;
         }
@@ -235,26 +294,23 @@ public class OutputCompare {
     
     public boolean ignoreNotes = true;
 
-    /** Compares two files, returning null if the same; returning a String of
+    /** Compares the contents of two files, line by line, returning null if the same; returning a String of
      * explanation if they are different.
      */
     public String compareFiles(String expected, String actual) {
-        BufferedReader exp = null,act = null;
         String diff = "";
-        try {
-            exp = new BufferedReader(new FileReader(expected));
-            act = new BufferedReader(new FileReader(actual));
+        try (BufferedReader exp = new BufferedReader(new FileReader(expected)); 
+             BufferedReader act = new BufferedReader(new FileReader(actual)))
+            {
             
             int line = 0;
             while (true) {
                 line++;
-                //boolean hasVerify = true;
                 String sexp = exp.readLine();
                 if (sexp != null) {
                     sexp = sexp.replace("\r\n", "\n");
                     sexp = JmlTestSuite.doReplacements(sexp);
                     sexp = sexp.replace('\\','/');
-                    //hasVerify = sexp.contains("verify: ");
                 }
                 while (true) {
                     String sact = act.readLine();
@@ -281,9 +337,10 @@ public class OutputCompare {
                             // OK
                         } else {         
                             if (sact.startsWith("Note: ") && ignoreNotes) continue;
-                            diff += ("Lines differ at " + line + JmlTestSuite.eol)
+                            diff = ("Lines differ at " + line + JmlTestSuite.eol)
                                     + ("EXP: " + sexp + JmlTestSuite.eol)
                                     + ("ACT: " + sact + JmlTestSuite.eol);
+                            return diff;
                         }
                     } 
                     break;
@@ -294,16 +351,12 @@ public class OutputCompare {
         } catch (Exception e) {
             diff += ("Exception on file comparison" + JmlTestSuite.eol);
         } finally {
-            try {
-                if (exp != null) exp.close();
-                if (act != null) act.close();
-            } catch (Exception e) {}
         }
         return diff.isEmpty() ? null : diff;
     }
     
-    /** Compare the content of 'actualFile' against the files dir + "/" + root and then with 1, 2, 3, etc.
-     * appended. If none match, then returns the diffs against the last one.
+    /** Compare the content of 'actualFile' against the files in folder dir that contain the string root within the filename.
+     * Emits an AssertionError failure if no file matches; deletes the actualFile if a file does match.
      */
     public void compareFileToMultipleFiles(String actualFile, String dir, String root) {
         String diffs = "";
@@ -324,6 +377,9 @@ public class OutputCompare {
         }
     }
 
+    /** Compares the test in 'output' to one or more expected-output files determined by the given directory and root.
+     * If there is no match the output text is written to a file with name given by 'actualLocation'.
+     */
     public void compareTextToMultipleFiles(String output, String dir, String root, String actualLocation) {
         String diffs = "";
         for (String f: new File(dir).list()) {
@@ -353,13 +409,10 @@ public class OutputCompare {
      * explanation string if they are different.
      */
     public String compareText(String expectedFile, String actual) {
-        //System.out.println("EFILE: " + new File(expectedFile).getAbsolutePath());
         String term = "\n|(\r(\n)?)"; // any of the kinds of line terminators
-        BufferedReader exp = null;
         String[] lines = actual.split(term,-1); // -1 so we do not discard empty lines
         String diff = "";
-        try {
-            exp = new BufferedReader(new FileReader(expectedFile));
+        try (BufferedReader exp = new BufferedReader(new FileReader(expectedFile))) {
             
             boolean same = true;
             int line = 0;
@@ -370,12 +423,12 @@ public class OutputCompare {
                     if (line == lines.length) return diff.isEmpty() ? null : diff;
 
                     else {
-                        diff += ("More actual input than expected" + JmlTestSuite.eol);
+                        diff = ("More actual input than expected" + JmlTestSuite.eol);
                         return diff;
                     }
                 }
                 if (line > lines.length) {
-                    diff += ("Less actual input than expected" + JmlTestSuite.eol);
+                    diff = ("Less actual input than expected" + JmlTestSuite.eol);
                     return diff;
                 }
                 sexp = JmlTestSuite.doReplacements(sexp);
@@ -389,9 +442,10 @@ public class OutputCompare {
                     if (k != -1 && sexp.contains("at ") && sexp.substring(0,k).equals(sact.substring(0,k))) {
                         // OK
                     } else {         
-                        diff += ("Lines differ at " + line + JmlTestSuite.eol)
+                        diff = ("Lines differ at " + line + JmlTestSuite.eol)
                             + ("EXP: " + sexp + JmlTestSuite.eol)
                             + ("ACT: " + sact + JmlTestSuite.eol);
+                        return diff;
                     }
                 }
             }
@@ -400,9 +454,6 @@ public class OutputCompare {
         } catch (Exception e) {
             diff += ("Exception on file comparison" + JmlTestSuite.eol);
         } finally {
-            try {
-                if (exp != null) exp.close();
-            } catch (Exception e) {}
         }
         return diff.isEmpty() ? null : diff;
     }

@@ -61,7 +61,7 @@ public class GhostModelStatement extends JmlExtension {
                 parser.accept(SEMI);
 
                 JCStatement st = toP(stats.first());
-                wrapup(st, clauseType, false);
+                wrapup(st, clauseType, false, true);
                 return st;
             } finally {
                 parser.setInJmlDeclaration(saved);

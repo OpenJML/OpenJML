@@ -513,7 +513,7 @@ public abstract class JmlTestSuite {
     static String noSource(JCDiagnostic dd) {
         var f = dd.getFormatter();
         var l = java.util.Locale.getDefault();
-        String src = dd.getDiagnosticSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
+        String src = dd.getSource() == null ? "" : (f.formatSource(dd,true,l) + ":");
         String ln = dd.getLineNumber() == Position.NOPOS ? "" : (dd.getLineNumber() + ":" );
         String sp = src.isEmpty() && ln.isEmpty() ? "" : " ";
         return src + ln + sp + dd.getPrefix() + dd.getMessage(l);

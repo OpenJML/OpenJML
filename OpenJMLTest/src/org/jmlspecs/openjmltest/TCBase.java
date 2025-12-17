@@ -62,23 +62,18 @@ public abstract class TCBase extends JmlTestSuite {
 
     /** Helper method for tests: pseudo filename, content is the test text; the remaining arguments are the expected messages and column/position numbers */
     public void helpTCF(/*@ nullable*/String filename, String content, Object ... expected) {
-        try {
-            JavaFileObject f = new MockJavaFileObject(filename,content);
-            if (filename != null) addMockFile("#B/" + filename,f);
-            Log.instance(context).useSource(f);
-            List<JavaFileObject> files = List.of(f);
-            // If additional Java options are wanted (e.g. -verbose), add them here
-            int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
-            
-            if (!specialCompare) checkDiagnostics(expected); // This comparator does not handle seq, anyorder etc.
-            else outputCompare.compareResults(expected, collector); // This comparator does not handle having more than one position number
-            
-            if (expectedExit == -1) expectedExit = expected.length == 0?0:1;
-            assertEquals("Wrong exit code",expectedExit, ex);
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
-        }
+        JavaFileObject f = new MockJavaFileObject(filename,content);
+        //if (filename != null) addMockFile("#B/" + filename,f);
+        //Log.instance(context).useSource(f);
+        List<JavaFileObject> files = List.of(f);
+        // If additional Java options are wanted (e.g. -verbose), add them here
+        int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
+
+        if (!specialCompare) checkDiagnostics(expected); // This comparator does not handle seq, anyorder etc.
+        else outputCompare.compareResults(expected, collector); // This comparator does not handle having more than one position number
+
+        if (expectedExit == -1) expectedExit = expected.length == 0?0:1;
+        assertEquals("Wrong exit code",expectedExit, ex);
     }
 }
 

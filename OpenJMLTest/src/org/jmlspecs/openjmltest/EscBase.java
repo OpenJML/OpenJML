@@ -108,14 +108,15 @@ public abstract class EscBase extends JmlTestSuite {
         return data;
     }
     
-    public void addOptions(String options) {
-        if (options != null) {
-            if (options.indexOf(',')>= 0) {
-            	addOptions(options.split(","));
-            } else {
-            	addOptions(options.split(","));
-            }
-        }
+    public void addOptions(String ... options) {
+        main.addOptions(options);
+//        if (options != null) {
+//            if (options.indexOf(',')>= 0) {
+//            	addOptions(options.split(","));
+//            } else {
+//            	addOptions(options.split(","));
+//            }
+//        }
     }
 
     /** options is a comma- or space-separated list of options to be added -- used in the parameterized JUnit tests*/
@@ -189,7 +190,7 @@ public abstract class EscBase extends JmlTestSuite {
             JavaFileObject f = new MockJavaFileObject(filename,inputSource);
             String filename2 = classname2.replace(".","/")+".java";
             JavaFileObject f2 = new MockJavaFileObject(filename2,inputSource2);
-            Log.instance(context).useSource(f);
+            //Log.instance(context).useSource(f);
             helpTCXList(new String[] {}, List.<JavaFileObject>of(f,f2),expectedResults);
         } catch (Exception e) {
             e.printStackTrace(out);
@@ -204,7 +205,7 @@ public abstract class EscBase extends JmlTestSuite {
         try {
             String filename = classname.replace(".","/") +".java"; 
             JavaFileObject f = new MockJavaFileObject(filename,inputSource);
-            Log.instance(context).useSource(f);
+            //Log.instance(context).useSource(f);
             helpTCXB(args,f, expectedResults);
         } catch (Exception e) {
             e.printStackTrace(out);
@@ -218,11 +219,11 @@ public abstract class EscBase extends JmlTestSuite {
     protected void helpTCXList(String[] allargs, List<JavaFileObject> files, Object... expectedResults) {
 
         try {
-            int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
             int ex = main.compile(allargs, files).exitCode;
+            int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
             if (captureOutput) collectOutput(false);
             synchronized (System.out) { 
-                if (print) printDiagnostics();
+                if (print ) printDiagnostics();
                 outputCompare.compareResults(expectedResults,collector);
                 if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = verifyExit;
                 if (ex != expectedExit) fail("Compile ended with exit code " + ex + " but expected " + expectedExit);

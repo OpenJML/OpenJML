@@ -66,6 +66,7 @@ public class generics extends TCBase {
         addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<Z> {  }");
         helpTCF("A.java","public class A<X> { java.util.Collection<X> t; }"
                 ,"/$A/java/util/Collection.jml:2: error: cannot find symbol\n  symbol: class Z",59
+                ,"$SPECS/java/util/Arrays.jml:1535: error: array required, but \\seq<Z> found", 64
                 );
     }
 

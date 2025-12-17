@@ -3,6 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import org.jmlspecs.openjml.JmlAstPrinter;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.ParseBase;
 import org.junit.Ignore;
@@ -18,6 +19,8 @@ import com.sun.tools.javac.util.Log;
  * each sequence of white space is replaced by a single space, so that the 
  * output formatting does not have to precisely match the input (unless
  * precise is set true, which it currently is).
+ * 
+ * It  also includes similar testsw for the JmlAstPrinter.
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class prettyprinting extends ParseBase {
@@ -225,5 +228,49 @@ public class prettyprinting extends ParseBase {
     }
     
     // FIXME - need to test every construct (lots more) for pretty printing; also for with and without jml comments
+    
+    public void helpAst(String text) {
+        Log.instance(context).useSource(new MockJavaFileObject(text));
+        Parser p = fac.newParser(text,false,true,true);
+        JCTree tree = p.parseCompilationUnit();
+        String output = JmlAstPrinter.print(tree, main.context());
+        System.out.println("TEXT: " + text);
+        System.out.println(output);
+    }
+    @Test
+    public void ast1() {
+        helpAst("package p; import static a.b.*; /*@ model import c.d; */ public class A {}");
+    }
+    
+    @Test
+    public void ast2() {
+        helpAst(
+            """
+            public class A {
+              Object o;
+              int i1 = 1 + -2*-(4.0) - 4/5 + 6L%7.0f;
+              long i2 = (4<<5) + (5>>6) + (7>>>8);
+              int j = true ? i : !false ? i : i;
+              int k = (i&j) + ( i|~j) + (i^k);
+              boolean m = (i==i) || (i<i) && (i!=1) && (i<=i) && (i>=i) && (i>i);
+              //@ ghost s = (true ==> false) && ( true <==> false) || (true <=!=> false);
+              //@ ghost boolean t = 0 < 1 < 2;
+            }
+            """);
+    }
+    
+    @Test
+    public void ast3() {
+        helpAst(
+            """
+            public class A {
+              static {
+                int i = 7;
+                i += 8;
+                assert i == i;
+              }
+            }
+            """);
+    }
    
 }
