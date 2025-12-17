@@ -2783,7 +2783,7 @@ public class esc2 extends EscBase {
             }
             """
                 ,"/tt/TestJava.java:4: warning: Inserting missing semicolon at the end of a assert statement", 21
-                ,"/tt/TestJava.java: error: warnings found and -Werror specified", -1
+                ,"error: warnings found and -Werror specified"
         );
     }
     

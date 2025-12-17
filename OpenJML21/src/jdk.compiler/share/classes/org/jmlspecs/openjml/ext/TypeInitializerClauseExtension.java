@@ -36,7 +36,7 @@ public class TypeInitializerClauseExtension extends JmlExtension {
             parser.currentMethodSpecs = null;
             initializer = parser.to(initializer);
             // FIXME parser.list.append(initializer);
-            wrapup(initializer, clauseType, false);
+            wrapup(initializer, clauseType, false, true);
             return initializer;
         }
         

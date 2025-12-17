@@ -426,7 +426,6 @@ public class escoption extends EscBase {
         addOptions("--dirs","p","--","Test.java");
         helpTCX("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
-                ,"warning: Ignoring q (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
         
@@ -483,6 +482,7 @@ public class escoption extends EscBase {
         addOptions("--no-dir","p");
         helpTCX("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: no- is only permitted for boolean options (and --warn)",-1
+                ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
         

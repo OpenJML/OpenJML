@@ -50,7 +50,7 @@ public class InlinedLoopStatement extends JmlExtension implements IJmlLoop {
             int pe = parser.endPos();
             parser.nextToken();
             JmlInlinedLoop st = parser.maker().at(pp).JmlInlinedLoop(null);
-            wrapup(st,clauseType,true);
+            wrapup(st, clauseType, true, true);
             return st;
         }
         

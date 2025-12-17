@@ -75,7 +75,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            if (this == elseKind) strictCheck(parser, e);
+            if (this == elseKind) strictCheck(e);
         }
     };
     
@@ -122,7 +122,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            strictCheck(parser, e);
+            strictCheck(e);
         }
     };
     
@@ -162,7 +162,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            strictCheck(parser, e);
+            strictCheck(e);
         }
     };
     

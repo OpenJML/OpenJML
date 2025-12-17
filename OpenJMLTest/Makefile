@@ -48,8 +48,9 @@ openjml: .FORCE
 ## Deletes all temporary files
 ## Many more to delete
 clean: cov-clean
-	rm -f `find . -name '*.class'`
-	rm -f `find . -name 'actual*'`
+	find . -name '*.class' -delete
+	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
+	find . -name 'actual*' -delete
 	rm -f unittests/log*
 	rm -f smt/*.smt*
 	rm -f tempUserGuide
@@ -144,6 +145,8 @@ test:
 cov-clean:
 	rm -rf ./cov
 	mkdir ./cov
+	find . -name '*.class' -delete
+	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 
 # Runs all tests to produce coverage data
 # One can also run individual tests and individual unit tests, e.g. COV= runtests escfiles

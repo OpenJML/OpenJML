@@ -135,6 +135,7 @@ public class JmlOption {
                 throw new RuntimeException();
             } catch (Exception e) {
                 Utils.instance(context).error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
+                options.put(JmlOption.EXITVERIFY.optionName(), JmlOption.EXITVERIFY.defaultValue().toString());
                 return false;
             }
             
