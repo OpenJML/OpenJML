@@ -50,7 +50,7 @@ jobs:
     - name: Test the release
       run: |
         make -C OpenJML/$FOLDER release-test || true
-    - uses: actions/upload-artifact@v4
+    - uses: pyTooling/upload-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
         path: OpenJML
@@ -76,13 +76,12 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Checkout actions 
-      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - uses: actions/download-artifact@v4
+    - name: Upload
+      uses: pyTooling/download-artifact@v6
       with:
-        name: openjml-buildi-${{ matrix.os }}
+        name: openjml-build-${{ matrix.os }}
         path: OpenJML
     - name: Run tutorial tests
       run: |
@@ -98,11 +97,10 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Checkout actions 
-      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - uses: actions/download-artifact@v4
+    - name: Upload
+      uses: pyTooling/download-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
         path: OpenJML
@@ -120,11 +118,10 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Checkout actions 
-      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - uses: actions/download-artifact@v4
+    - name: Upload
+      uses: pyTooling/download-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
         path: OpenJML
