@@ -100,7 +100,6 @@ jobs:
     - name: Checkout actions 
       uses: actions/checkout@v4
     - name: OS setup
-    :q
       uses: ./.github/actions/os-setup/
     - uses: actions/download-artifact@v4
       with:
