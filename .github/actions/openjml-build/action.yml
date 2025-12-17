@@ -1,0 +1,26 @@
+name: 'OpenJML Build
+description: 'A composite action that builds OPenJML in an existing check out'
+inputs:
+  test:
+    description: 'Whether to run the release test'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Build OpenJML release on Windows
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        cd /mnt/d/a/OpenJML/OpenJML
+        cd OpenJML/OpenJML21
+        bash ./configure
+        make release
+    - name: Build OpenJML release on non-Windows
+      if: runner.os != 'Windows'
+      run: |
+        cd OpenJML/OpenJML21
+        bash ./configure
+    - name: Test the build
+      if: ${{ inputs.test }}
+        make release-test
