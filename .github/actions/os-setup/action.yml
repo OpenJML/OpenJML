@@ -5,14 +5,17 @@ runs:
   steps:
     - name: Manually sync certs
       if: runner.os == 'Linux'
+      shell: bash
       run: cert-sync /etc/ssl/certs/ca-certificates.crt
     - name: MacOSX additions
       if: runner.os == 'MacOS'
+      shell: bash
       run: |
         brew install coreutils
         brew install autoconf
     - name: Linux additions
       if: runner.os == 'Linux'
+      shell: bash
       run: |
         sudo apt-get update
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
