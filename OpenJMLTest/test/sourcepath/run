@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /usr/env bash
 
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
@@ -6,17 +6,17 @@ LOCAL=$(dirname "$BASH_SOURCE[0]" )
 rm -rf *.class */*.class
 (\
 echo Test 1 uses B.java from . ;\
-$OJA -cp . --esc A.java ;\
+openjml -cp . --esc A.java ;\
 echo Test 2 uses B.java from srcp ;\
-$OJA -cp . --source-path srcp --esc A.java ;\
+openjml -cp . --source-path srcp --esc A.java ;\
 echo Test 2a cannot find B.java ;\
-$OJA -cp . --source-path srce --esc A.java ;\
+openjml -cp . --source-path srce --esc A.java ;\
 echo Test 3 uses B.java from .;\
-$OJA -cp . --esc srcx/A.java ;\
+openjml -cp . --esc srcx/A.java ;\
 echo Test 4 uses B.java from srcp ;\
-$OJA -cp . --source-path srcp --specs-path srce --esc srcx/A.java ;\
+openjml -cp . --source-path srcp --specs-path srce --esc srcx/A.java ;\
 echo Test 4a cannot find B.java;\
-$OJA -cp . --source-path srce --specs-path srce --esc srcx/A.java ;\
+openjml -cp . --source-path srce --specs-path srce --esc srcx/A.java ;\
 ) >& actual
 
 diff expected actual && rm -rf actual

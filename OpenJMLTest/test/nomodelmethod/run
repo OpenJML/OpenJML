@@ -6,16 +6,16 @@ LOCAL=$(dirname "$BASH_SOURCE[0]" )
 ERR=0
 (\
 rm -f *.class ;\
-$OJA --rac T.java ;\
-$OJA -Xprefer:source --compile P.java ;\
-$BIN/openjml-java T ;\
+openjml --rac T.java ;\
+openjml -Xprefer:source --compile P.java ;\
+openjml-java T ;\
 ) >& actual
 (diff actual RUN.out || ERR=1 ) && rm -rf actual
 
 (\
 rm -f *.class ;\
-$OJA --rac T.java P.java ;\
-$BIN/openjml-java T ;\
+openjml --rac T.java P.java ;\
+openjml-java T ;\
 ) >& actual2
 (diff actual2 RUN2.out || ERR=1) && rm -rf actual2
 

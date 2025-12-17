@@ -1,6 +1,6 @@
 ## This script is sourced
 
-OJB="$OJA -java -cp ."
+OJB="openjml -java -cp ."
 
 rm -f src/A.class A.class
 

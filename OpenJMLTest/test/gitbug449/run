@@ -7,8 +7,8 @@ CP=.:commons-lang3-3.3.2.jar
 
 rm -rf actual
 echo COMPILING >> actual
-"$BIN/openjml" --rac Test.java -cp $CP >> actual 2>&1
+"openjml" --rac Test.java -cp $CP >> actual 2>&1
 echo RUNNING >> actual
-"$BIN/openjml-java" -cp $CP Test >> actual 2>&1
+"openjml-java" -cp $CP Test >> actual 2>&1
 
 diff actual expected && rm -rf actual Test.class

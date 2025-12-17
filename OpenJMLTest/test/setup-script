@@ -4,4 +4,4 @@
 
 cd "$LOCAL"
 BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+PATH=$BIN:$PATH

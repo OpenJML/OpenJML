@@ -5,11 +5,11 @@ LOCAL=$(dirname "$BASH_SOURCE[0]" )
 
 (\
 echo Test 1 ;\
-$OJA --check --require-white-space Test.java ;\
+openjml --check --require-white-space Test.java ;\
 echo Test 2 ;\
-$OJA --check Test.java ;\
+openjml --check Test.java ;\
 echo Test 3 ;\
-$OJA --check --no-require-white-space Test.java ;\
+openjml --check --no-require-white-space Test.java ;\
 ) >& actual
 
 diff expected actual && rm -rf actual
