@@ -67,7 +67,9 @@ jobs:
       shell: wsl-bash {0}
       run: |
         pwd
-        cd OpenJML/OpenJML21
+        cd /mnt/d/a/OpenJML/OpenJML
+        ls
+        cd OpenJML21
         pwd
         bash ./configure
         make release release-test
