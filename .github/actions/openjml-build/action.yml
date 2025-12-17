@@ -1,5 +1,5 @@
-name: 'OpenJML Build
-description: 'A composite action that builds OPenJML in an existing check out'
+name: 'OpenJML Build'
+description: 'A composite action that builds OpenJML in an existing check out'
 inputs:
   test:
     description: 'Whether to run the release test'
