@@ -64,6 +64,7 @@ jobs:
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
+      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
       run: |
         basic() {
           pwd
@@ -71,8 +72,11 @@ jobs:
           bash ./configure
           make release release-test
         }
-        basic
-      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+        pwd
+        cd OpenJML/OpenJML21
+        pwd
+        bash ./configure
+        make release release-test
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
       run: |
