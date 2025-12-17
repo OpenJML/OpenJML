@@ -67,8 +67,6 @@ jobs:
       run: |
         basic() {
           pwd
-          cd D:/a/OpenJML/OpenJML
-          pwd
           cd OpenJML/$FOLDER
           bash ./configure
           make release release-test
