@@ -81,9 +81,9 @@ jobs:
       run: |
         make -C OpenJML/$FOLDER release-test || true
     - uses: actions/upload-artifact@v4
-        with:
-          name: openjml-build
-          path: OpenJML
+      with:
+        name: openjml-build
+        path: OpenJML
 
     - name: Run userguide tests
       run: |
