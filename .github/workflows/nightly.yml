@@ -55,7 +55,7 @@ jobs:
         java-version: 1.21
     - name: Checkout OpenJML
       run: |
-        echo branch $BRANCH "::" ${BRANCH}
+        echo branch ${{ github.ref_name }} $BRANCH "::" ${BRANCH}
         git config --global core.autocrlf input
         git clone -b dev-21 --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b dev-21 --depth 1 https://github.com/OpenJML/Specs
@@ -70,7 +70,7 @@ jobs:
         pwd
         cd /mnt/d/a/OpenJML/OpenJML
         ls
-        cd OpenJML21
+        cd OpenJML/OpenJML21
         pwd
         bash ./configure
         make release release-test
