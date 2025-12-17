@@ -52,8 +52,9 @@ jobs:
         make -C OpenJML/$FOLDER release-test || true
     - uses: actions/upload-artifact@v4
       with:
-        name: openjml-build
+        name: openjml-build-${{ matrix.os }}
         path: OpenJML
+        overwrite: true
 
     - name: Run userguide tests
       run: |
@@ -81,7 +82,7 @@ jobs:
       uses: ./.github/actions/os-setup/
     - uses: actions/download-artifact@v4
       with:
-        name: openjml-build
+        name: openjml-buildi-${{ matrix.os }}
         path: OpenJML
     - name: Run tutorial tests
       run: |
