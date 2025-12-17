@@ -43,6 +43,10 @@ jobs:
     - name: Setup WSL for Windows
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
+    - name: WSL additions
+      if: runner.os == 'Windows'
+      run: |
+        sudo apt-get install autoconf
       ##uses: egor-tensin/setup-cygwin@v3
       ##with:
       ##  platform: x64
