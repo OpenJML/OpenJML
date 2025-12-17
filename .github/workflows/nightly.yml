@@ -26,9 +26,9 @@ jobs:
 
     steps:
     - name: Checkout actions
-        uses: actions/checkout@v4
+      uses: actions/checkout@v4
     - name: OS setup
-        uses: ./.github/actions/os-setup/
+      uses: ./.github/actions/os-setup/
     - name: Checkout OpenJML
       run: |
         echo branch ${{ github.ref_name }} $BRANCH "::" ${BRANCH}
@@ -90,9 +90,9 @@ jobs:
 
     steps:
     - name: Checkout actions 
-        uses: actions/checkout@v4
+      uses: actions/checkout@v4
     - name: OS setup
-        uses: ./.github/actions/os-setup/
+      uses: ./.github/actions/os-setup/
 
     - uses: actions/download-artifact@v4
       with:
