@@ -317,8 +317,8 @@ public class OpenJMLTestRunner {
                     synchronized (System.out) { 
                         System.out.println("Test FAILED: " + qualname);
                         System.out.print(e);
-                        System.out.println("  [Show stack using TSTACK=]");
-                        if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+                        System.out.println("  [Show stack using STACK=]");
+                        if (System.getenv("STACK") != null) e.printStackTrace(System.out);
                     }
                 } finally {
                     if (t != null) t.tearDown(); // FIXME - should we use the @After methods
@@ -327,8 +327,9 @@ public class OpenJMLTestRunner {
                 // normal failure
             } catch (Exception e) {
                 System.out.println("Test FAILED: " + qualname);
-                System.out.println("Failed to construct or execute or teardown test: " + e);
-                if (System.getenv("TSTACK") != null) e.printStackTrace(System.out);
+                System.out.print("Failed to construct or execute or teardown test: " + e);
+                System.out.println("  [Show stack using STACK=]");
+                if (System.getenv("STACK") != null) e.printStackTrace(System.out);
             }
         }
     }

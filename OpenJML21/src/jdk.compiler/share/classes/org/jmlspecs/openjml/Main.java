@@ -640,8 +640,8 @@ public class Main extends com.sun.tools.javac.main.Main {
      */
     @Override
     protected void bugMessage(Throwable ex) {
-        stdErr.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
-        ex.printStackTrace(stdErr);
+        stdOut.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
+        ex.printStackTrace(stdOut);
     }
 
 

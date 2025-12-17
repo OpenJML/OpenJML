@@ -121,7 +121,7 @@ json-tests: .FORCE RunOpenJML.class
 	@ ${TEST}/scripttests/json-loc/run
 
 RunOpenJML.class:
-	$(TEST)/../OpenJML21/openjml-compile RunOpenJML.java
+	@ $(TEST)/../OpenJML21/openjml-compile RunOpenJML.java
 
 .FORCE:
 
