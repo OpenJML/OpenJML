@@ -44,8 +44,7 @@ jobs:
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
       with: 
-        additional-packages:
-              autoconf
+        additional-packages: autoconf
       ##uses: egor-tensin/setup-cygwin@v3
       ##with:
       ##  platform: x64
