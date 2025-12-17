@@ -73,6 +73,7 @@ public abstract class TCBase extends JmlTestSuite {
         else outputCompare.compareResults(expected, collector); // This comparator does not handle having more than one position number
 
         if (expectedExit == -1) expectedExit = expected.length == 0?0:1;
+//        if (expectedExit != ex) printDiagnostics();
         assertEquals("Wrong exit code",expectedExit, ex);
     }
 }

@@ -360,13 +360,13 @@ public class Main {
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
-            ex.printStackTrace(System.out); // OPENJML
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = false; // OPENJML - changed to false
+            log.error("jml.internal", "Unexpected Throwable error caught. Use STACK= to see the stack trace"); // OPENJML
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {

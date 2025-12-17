@@ -49,9 +49,12 @@ public class bugs extends TCBase {
     
     @Test
     public void testMiscBug4() {
-    	expectedExit = 4; // FIXME - crashes in type attribution, but requires a complicated expression
+    	expectedExit = 1; // FIXME - crashes in type attribution, but requires a complicated expression
         helpTCF("A.java","public class A { //@ ensures equals(\\result.equals(b).c(p(0))); \n Object m(int j) { return null; } String b; StringBuffer a; int[] q; /*@ pure*/int p(int i) { return 0; }}"
-                ,"/A.java:1: error: boolean cannot be dereferenced",54);
+                ,"/A.java:1: error: boolean cannot be dereferenced",54
+                ,"/A.java: error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can.\n"
+                        + "  Reason: Unexpected Throwable error caught. Use STACK= to see the stack trace", -1
+                );
     }
 
     /** There was a problem with a JML keyword being unrecognized after a JML statement 

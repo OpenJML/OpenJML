@@ -234,7 +234,7 @@ public class JmlCompiler extends JavaCompiler {
         } catch (AssertionError e) {
             // Some parse errors cause an AssertionError. This catches it and converts it to 
             // the empty list, which is the usual way to communicate that the chain of compiler phases
-            // is to be aborted. An error message is presumbed to have been emitted when the AssertionError is thrown.
+            // is to be aborted. An error message is presumed to have been emitted when the AssertionError is thrown.
             return List.<JCCompilationUnit>nil();
         }
     }
