@@ -66,7 +66,9 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         basic() {
+          pwd
           cd D:/a/OpenJML/OpenJML
+          pwd
           cd OpenJML/$FOLDER
           bash ./configure
           make release release-test
@@ -85,15 +87,15 @@ jobs:
 
     - name: Run userguide tests
       run: |
-        make -C OpenJML/OpenJMLTest userguide-tests-released || true
+        PATH=OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || true
 
     - name: Run tutorial tests
       run: |
-        make -C OpenJML/OpenJMLTest tutorial-tests || true
+        PATH=OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests || true
 
     - name: Run json tests
       run: |
-        make -C OpenJML/OpenJMLTest json-tests || true
+        PATH=OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests || true
 
     - name: Run unit tests
       run: |
