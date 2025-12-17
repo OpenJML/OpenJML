@@ -43,7 +43,8 @@ jobs:
     - name: Setup WSL for Windows
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
-      with: additional-packages
+      with: 
+        additional-packages:
               autoconf
       ##uses: egor-tensin/setup-cygwin@v3
       ##with:
