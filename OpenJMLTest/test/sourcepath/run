@@ -1,4 +1,4 @@
-#! /usr/env bash
+#! /usr/bin/env bash
 
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
