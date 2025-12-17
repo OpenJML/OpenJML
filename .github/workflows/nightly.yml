@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os: [ ubuntu-22.04, macos-14, windows-latest ]
+        os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
     steps:
@@ -60,8 +60,8 @@ jobs:
       run: |
         echo branch ${{ github.ref_name }} $BRANCH "::" ${BRANCH}
         git config --global core.autocrlf input
-        git clone -b dev-21 --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b dev-21 --depth 1 https://github.com/OpenJML/Specs
+        git clone -b ${{ github.ref_name }} --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b ${{ github.ref_name }} --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
@@ -70,11 +70,8 @@ jobs:
       if: runner.os == 'Windows'
       shell: wsl-bash {0}
       run: |
-        pwd
         cd /mnt/d/a/OpenJML/OpenJML
-        ls
         cd OpenJML/OpenJML21
-        pwd
         bash ./configure
         make release release-test
     - name: Build OpenJML release on non-Windows
@@ -115,7 +112,7 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os: [ ubuntu-22.04, macos-14, windows-latest ]
+        os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
     steps:
