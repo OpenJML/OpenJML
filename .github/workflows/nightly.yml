@@ -45,7 +45,6 @@ jobs:
       uses: Vampire/setup-wsl@v6
       with: 
         distribution: Ubuntu
-        additional-packages: autoconf
       ##uses: egor-tensin/setup-cygwin@v3
       ##with:
       ##  platform: x64
