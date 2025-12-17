@@ -44,7 +44,7 @@ jobs:
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
       with: 
-        distribution: Ubuntu
+        distribution: Ubuntu-24.04
         additional-packages: autoconf
       ##uses: egor-tensin/setup-cygwin@v3
       ##with:
@@ -138,7 +138,7 @@ jobs:
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
       with:
-        distribution: Ubuntu
+        distribution: Ubuntu-24.04
 
     - uses: actions/download-artifact@v4
       with:
