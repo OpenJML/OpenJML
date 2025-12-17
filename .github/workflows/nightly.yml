@@ -85,9 +85,9 @@ jobs:
       run: |
         make -C OpenJML/$FOLDER release-test || true
 
-    - name: Run userguide tests
+    - name: Run userguide tests -- tests are actually run from the examples subfolders, hence the PATH
       run: |
-        PATH=OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || true
+        PATH=../../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || true
 
     - name: Run tutorial tests
       run: |
@@ -95,7 +95,7 @@ jobs:
 
     - name: Run json tests
       run: |
-        PATH=OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests || true
+        PATH=OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests 
 
     - name: Run unit tests
       run: |

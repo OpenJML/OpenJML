@@ -14,7 +14,7 @@ if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-## Source the file that sets AGENT and OJA, if requested because COV is set
+## Source the file that sets OPENJML_JVM, if requested because COV is set
 . $LOCAL/../setup-coverage releasetests
 
 

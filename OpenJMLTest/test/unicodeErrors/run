@@ -3,6 +3,6 @@
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
  
-$OJA --check A.java >& actual
+openjml --check A.java >& actual
 
 diff expected actual && rm -rf actual

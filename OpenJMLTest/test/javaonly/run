@@ -13,14 +13,14 @@ touch actual
 
 ## Tests the -java option 
 echo "Test -java" >> actual 2>&1
-$OJA -java -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
+openjml -java -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
 
 ## Tests that errors result if there is no -java option
 echo "Test without -java" >> actual 2>&1
-$OJA -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
+openjml -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
 
 echo "Test that -java must be first" >> actual 2>&1
 ## Tests that the -java option must be first >> actual 2>&1
-$OJA -classpath ../compiler -java --no-purity-check ../compiler/testNoErrors/A.java >> actual 2>&1
+openjml -classpath ../compiler -java --no-purity-check ../compiler/testNoErrors/A.java >> actual 2>&1
 
 diff actual expected && rm -rf actual
