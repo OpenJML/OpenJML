@@ -40,7 +40,7 @@ jobs:
         sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
         sudo apt-get install autoconf 
         sudo apt-get install libasound2-dev
-    - name: Setup Cygwin for Windows
+    - name: Setup WSL for Windows
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
       ##uses: egor-tensin/setup-cygwin@v3
@@ -55,9 +55,10 @@ jobs:
         java-version: 1.21
     - name: Checkout OpenJML
       run: |
+        echo branch $BRANCH "::" ${BRANCH}
         git config --global core.autocrlf input
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/Specs
+        git clone -b dev-21 --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b dev-21 --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
