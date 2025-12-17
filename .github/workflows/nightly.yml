@@ -16,6 +16,16 @@ env:
 
 jobs:
 
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix-config: ${{ steps.set-matrix.outputs.matrix }} # Define output
+    steps:
+      - id: set-matrix
+        run: |
+          # Example: read from a file or generate JSON
+          echo "::set-output name=matrix::[{\"os\":\"[ ubuntu-22.04, macos-14 ]\"}]"
+
   build:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -90,10 +100,11 @@ jobs:
     - name: Checkout actions 
       uses: actions/checkout@v4
     - name: OS setup
+    :q
       uses: ./.github/actions/os-setup/
     - uses: actions/download-artifact@v4
       with:
-        name: openjml-build
+        name: openjml-build-${{ matrix.os }}
         path: OpenJML
     - name: Run json tests
       run: |
@@ -115,7 +126,7 @@ jobs:
       uses: ./.github/actions/os-setup/
     - uses: actions/download-artifact@v4
       with:
-        name: openjml-build
+        name: openjml-build-${{ matrix.os }}
         path: OpenJML
     - name: Run userguide tests
       run: |

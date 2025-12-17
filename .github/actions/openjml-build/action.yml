@@ -3,6 +3,7 @@ description: 'A composite action that builds OpenJML in an existing check out'
 inputs:
   test:
     description: 'Whether to run the release test'
+    type: boolean
     required: true
 
 runs:
