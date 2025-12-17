@@ -18,9 +18,12 @@ runs:
         make release
     - name: Build OpenJML release on non-Windows
       if: runner.os != 'Windows'
+      shell: bash
       run: |
         cd OpenJML/OpenJML21
         bash ./configure
     - name: Test the build
       if: ${{ inputs.test }}
+      shell: bash
+      run: |
         make release-test
