@@ -76,6 +76,8 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Checkout actions 
+      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
     - name: Upload
@@ -97,6 +99,8 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Checkout actions 
+      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
     - name: Upload
@@ -118,6 +122,8 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Checkout actions 
+      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
     - name: Upload
