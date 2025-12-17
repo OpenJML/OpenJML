@@ -22,8 +22,10 @@ runs:
       run: |
         cd OpenJML/OpenJML21
         bash ./configure
+        make release
     - name: Test the build
       if: ${{ inputs.test }}
       shell: bash
       run: |
+        cd OpenJML/OpenJML21
         make release-test
