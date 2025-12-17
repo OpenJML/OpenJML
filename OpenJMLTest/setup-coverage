@@ -9,13 +9,13 @@ if [ "$0" = "$BASH_SOURCE" ]; then
     exit 1
 fi
 if [ -z "$1" ]; then
-    echo "script seup-coverage requires one argument"
-    exit 1;
+    echo "script setup-coverage requires one argument"
+    exit 1
 fi
 
 ## The one argument provides the rootname of the $1.exec file, which will hold the coverage data
 
-## In order to obtain coverage data when running openjml, use $OJA as the executable.
+## In order to obtain coverage data when running openjml, use include $OPENJML_JVM in the command-line
 ## The coverage agent ($AGENT) is a command-line option for 'java', whereas openjml is a version of 'javac'.
 ## Consequently we have to run openjml programmatically, with the actual executable being a version of 'java', with the coverage agent attached.
 

@@ -77,6 +77,12 @@ tutorial-tests:
 	    ./test \
 	)
 
+tutorial-tests-git: 
+	@ ( echo Testing tutorial files ;\
+	    cd ${TEST}/../../openjml.github.io/tutorial; \
+	    ./test \
+	)
+
 USERGUIDE=./tempUserGuide
 OVERLEAFID=620c2512d552cc226f5f4c94
 TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
