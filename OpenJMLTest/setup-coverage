@@ -23,7 +23,7 @@ fi
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the absolute path to this script file
 TEST=$(dirname "$FILE") 
 
-if [ ! -e "$TEST/RunOpenJML.class" ]; then make -C "$TEST" RunOpenJML.class; fi
+if [ ! -e "$TEST/RunOpenJML.class" ]; then make -C "$TEST" org.openjml.RunOpenJML.class; fi
 
 INSTALL="$TEST"/../OpenJML21
 . "$INSTALL/setup-vars" ## uses INSTALL, sets BINJAVA

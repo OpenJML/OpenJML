@@ -108,26 +108,26 @@ userguide-tests-released:
 # The 'release tests' are a small set of tests that are used to verify that a openjml build is basically OK.
 # It is run as part of the github action that builds a release
 # but can also be run directly with this target, before an attempt to construct a release
-release-tests: prep RunOpenJML.class .FORCE
+release-tests: prep .FORCE
 	@ echo Running release tests with current development build
 	@ ./releaseTests/runtests
 
 # Runs the unit tests, sequentially, which is time-consuming
-unittests-seq: prep RunOpenJML.class .FORCE
+unittests-seq: prep .FORCE
 	@ $(TEST)/unittests/runseq
 			
 # Runs the unit tests with some parallelism (default 5 parallel jobs).
 # Set the number of jobs like this: JOBS=n make unittests-par
-unittests-par: prep RunOpenJML.class .FORCE
+unittests-par: prep .FORCE
 	@ ${TEST}/unittests/runpar
 
 # Executes the tests of JSON output and input
-json-tests: .FORCE RunOpenJML.class
+json-tests: .FORCE 
 	@ ${TEST}/scripttests/json/run
 	@ ${TEST}/scripttests/json-loc/run
 
-RunOpenJML.class:
-	@ $(TEST)/../OpenJML21/openjml-compile RunOpenJML.java
+#RunOpenJML.class:
+#	@ $(TEST)/../OpenJML21/openjml-compile RunOpenJML.java
 
 .FORCE:
 

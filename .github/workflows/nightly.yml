@@ -38,8 +38,8 @@ jobs:
 
     steps:
     - name: Matrix
-      run: |
-        echo  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+      #run: |
+      #  echo  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
     - name: Checkout actions
       uses: actions/checkout@v4
     - name: OS setup
