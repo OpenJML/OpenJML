@@ -13,7 +13,6 @@ env:
   BRANCH: ${{ github.ref_name }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
-  OSES: "[ macos-14 ]"
 
 jobs:
 
@@ -26,14 +25,14 @@ jobs:
       - id: set-matrix
         run: |
           ## Just use one instance of each kind of OS
-          echo "::set-output name=matrix::\"[ macos-14 ]\""
+          echo "::set-output name=matrix::{[ \"macos-14\" ]}"
 
   build:
     needs: prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ env.OSES }}
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
         #os: [ macos-14 ]
       fail-fast: false
 
@@ -103,7 +102,8 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os: [ ubuntu-22.04, macos-14 ]
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        #os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
     steps:
@@ -130,7 +130,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ env.OSES }}
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
       fail-fast: false
 
     steps:
