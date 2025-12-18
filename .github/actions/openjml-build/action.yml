@@ -23,7 +23,7 @@ runs:
       shell: bash
       run: |
         cd OpenJML/OpenJML21
-        bash OpenJML/O/configure
+        bash ./configure
         make release
         cd ../..
     - name: Test the build
