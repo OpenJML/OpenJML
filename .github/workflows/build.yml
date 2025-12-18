@@ -68,6 +68,13 @@ jobs:
         interval: '2000'
         ttl: '10'
 
+    - name: github upload
+      uses: pyTooling/upload-artifact@v6
+      with:
+        name: openjml-release-${{ matrix.os }}
+        path: OpenJML/OpenJML21/release-temp/*.zip
+        overwrite: true
+        include-hidden-files: true
 
     - name: Copy OpenJML build into GitHub release
       run: |
@@ -76,6 +83,7 @@ jobs:
         cd $FOLDER/release-temp
         export f=openjml-${{ matrix.os }}-${ver}.zip
         mv *.zip $f
+        ls -la $f
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
@@ -86,3 +94,21 @@ jobs:
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
+
+  upload:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        ## Omitting ubuntu-24 because the cert-sync command fails
+        os: [ ubuntu-22.04, macos-14, macos-15 ]
+      fail-fast: false
+    steps:
+    - name: Download
+      uses: pyTooling/download-artifact@v6
+      with:
+        name: openjml-release-${{ matrix.os }}
+        path: release.zip
+    - name: check
+      run: |
+        ls -la release.zip
