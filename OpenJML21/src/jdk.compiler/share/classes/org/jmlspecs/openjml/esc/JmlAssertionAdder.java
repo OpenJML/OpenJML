@@ -9374,7 +9374,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //	            receiverType = calleeMethodSym.owner.type;
 //	        }
 
-		    if (apply != null) addTerminationCheck(apply, trArgs);
+		    if (apply != null && !translatingJML) addTerminationCheck(apply, trArgs);
 
 
 			if (print)
