@@ -1,4 +1,12 @@
-name: Nightly test of  OpenJML
+name: Nightly test of OpenJML
+
+## This workflow runs all the unit and functionality tests on a build of the current developmenet environment for OpenJML
+## that is, on the HEAD of branch dev-21 as it has been pushed to the github repo.
+## The workflow is divided into jobs: the main job builds OpenJLM on each tested OS; then there are four jobs that do the actual testing.
+## This separation allows the testing to be done in parallel across all 4 kinds of tets and all the OSes; if the 4 kinds of tests were executed sequentially
+## a failure of one would prevent testing the rest.
+## The drawback of this organization is that a failure to build one of the OSes prevents testing all of the tests for all OSes, because of how github 
+## workflow job dependencies work.
 
 on:
   workflow_dispatch:
@@ -25,21 +33,19 @@ jobs:
       - id: set-matrix
         run: |
           ## Edit the list here to add or remove OSes from being tested by this workflow
-          echo 'matrix=[ "macos-14", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
+          echo 'matrix=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
 
+  ## This job builds a development version of OpenJML as part of a trial release build
+  ## and then uploads the built environment as a github artifact
   build:
     needs: prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        #os: [ macos-14 ]
       fail-fast: false
 
     steps:
-    #- name: Matrix
-      #run: |
-      #  echo  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
     - name: Checkout actions
       uses: actions/checkout@v4
     - name: OS setup
@@ -66,15 +72,13 @@ jobs:
         overwrite: true
         include-hidden-files: true
 
+  ## This job downloads the built environment and runs the unit tests 
   unit-test:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Just use one instance of each kind of OS
-        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        os: [ macos-14 ]
-        ##os: [ ubuntu-22.04, macos-14 ]
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
       fail-fast: false
 
     steps:
@@ -89,19 +93,17 @@ jobs:
         path: OpenJML
     - name: Run unit tests
       run: |
-        PATH=../../OpenJML21:$PATH make -C OpenJML/OpenJMLTest unittests-par
+        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest unittests-par
         ##the following would run all the above test steps in one step
         ##make -C OpenJML/OpenJMLTest openjml-test-git
 
+  ## This job downloads the built environment and runs the tutorial tests
   tutorial-test:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Just use one instance of each kind of OS
-        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        os: [ macos-14 ]
-        ##os: [ ubuntu-22.04, macos-14 ]
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
       fail-fast: false
 
     steps:
@@ -118,15 +120,13 @@ jobs:
       run: |
         PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests-git
 
+  ## This job downloads the built environment and then runs the json tests
   json-test:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Just use one instance of each kind of OS
-        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        os: [ macos-14 ]
-        #os: [ ubuntu-22.04, macos-14 ]
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
       fail-fast: false
 
     steps:
@@ -148,13 +148,14 @@ jobs:
       run: |
         PATH=../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests
 
+  ## This job downloads the build environment and then runs the userguide tests
+  ## (which involves cloning the userguide and its examples from OverLeaf)
   userguide-test:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-14 ]
-        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
       fail-fast: false
 
     steps:

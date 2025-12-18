@@ -4,7 +4,7 @@ runs:
   using: 'composite'
   steps:
     - name: Manually sync certs
-      if: runner.os == 'Linux'
+      if: runner.name == 'ubuntu-22.04'
       shell: bash
       run: cert-sync /etc/ssl/certs/ca-certificates.crt
     - name: MacOSX additions
