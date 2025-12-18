@@ -28,6 +28,7 @@ jobs:
           echo "::set-output name=matrix::[{\"os\":\"[ macos-14 ]\"}]"
 
   build:
+    needs: prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
