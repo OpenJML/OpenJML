@@ -54,11 +54,15 @@ jobs:
         test: false
     - name: Test the release
       run: |
+        pwd
+        ls ..
+        echo PP
+        ls ../..
         make -C OpenJML/$FOLDER release-test || true
     - uses: pyTooling/upload-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
-        path: .
+        path: ..
         overwrite: true
         include-hidden-files: true
 
