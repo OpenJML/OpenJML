@@ -67,12 +67,13 @@ jobs:
         ##make -C OpenJML/OpenJMLTest openjml-test-git
 
   tutorial-test:
-    needs: build
+    needs: build prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os: [ ubuntu-22.04, macos-14 ]
+        os: ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        ##os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
     steps:
@@ -108,6 +109,11 @@ jobs:
       with:
         name: openjml-build-${{ matrix.os }}
         path: OpenJML
+    - name: data
+      run: |
+        ls
+        pwd
+        ls ..
     - name: Run json tests
       run: |
         PATH=../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests
