@@ -24,17 +24,16 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          ## Just use one instance of each kind of OS
+          ## Edit the list here to add or remove OSes from being tested by this workflow
           echo 'matrix=[ "macos-14", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
-          #echo "::set-output name=matrix::{[ \"macos-14\" ]}"
 
   build:
     needs: prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        os: [ macos-14 ]
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        #os: [ macos-14 ]
       fail-fast: false
 
     steps:

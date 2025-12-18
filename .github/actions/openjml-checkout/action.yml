@@ -11,8 +11,12 @@ runs:
     - name: Checkout OpenJML repos
       shell: bash
       run: |
+        pwd
+        ls
         git config --global core.autocrlf input
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
+        pwd
+        ls
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
