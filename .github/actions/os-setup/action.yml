@@ -22,6 +22,7 @@ runs:
         sudo apt-get install libfontconfig1-dev
         sudo apt-get install autoconf
         sudo apt-get install libasound2-dev
+        sudo apt-get install libx11-dev libxext-dev libxrender-dev libxt-dev
     - name: Setup WSL for Windows
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
