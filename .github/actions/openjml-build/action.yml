@@ -30,4 +30,8 @@ runs:
       if: ${{ inputs.test }}
       shell: bash
       run: |
+        ls OpenJML
+        pwd
+        ls
         make -C OpenJML/OpenJML21 release-test
+        ls OpenJML/OpenJML21
