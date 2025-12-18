@@ -42,7 +42,7 @@ jobs:
     strategy:
       matrix:
         ## Omitting ubuntu-24 because the cert-sync command fails
-        os: [ ubuntu-22.04, macos-14, macos-15 ]
+        os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
     steps:
@@ -101,7 +101,7 @@ jobs:
     strategy:
       matrix:
         ## Omitting ubuntu-24 because the cert-sync command fails
-        os: [ ubuntu-22.04, macos-14, macos-15 ]
+        os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
     steps:
     - name: Download

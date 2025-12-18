@@ -58,7 +58,7 @@ jobs:
     - uses: pyTooling/upload-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
-        path: OpenJML
+        path: .
         overwrite: true
         include-hidden-files: true
 
@@ -85,7 +85,7 @@ jobs:
         path: OpenJML
     - name: Run unit tests
       run: |
-        PATH=../OpenJML21:$PATH make -C OpenJML/OpenJMLTest unittests-par
+        PATH=../../OpenJML21:$PATH make -C OpenJML/OpenJMLTest unittests-par
         ##the following would run all the above test steps in one step
         ##make -C OpenJML/OpenJMLTest openjml-test-git
 
