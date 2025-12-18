@@ -67,7 +67,7 @@ jobs:
         ##make -C OpenJML/OpenJMLTest openjml-test-git
 
   tutorial-test:
-    needs: build prepare-matrix
+    needs: [ build, prepare-matrix ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
