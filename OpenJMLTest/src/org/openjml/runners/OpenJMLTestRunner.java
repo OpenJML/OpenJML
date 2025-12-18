@@ -311,13 +311,15 @@ public class OpenJMLTestRunner {
                     } else {
                         throw new RuntimeException("Test suite " + n.getClass() + " does not extend JmlTestSuite");
                     }
+                } catch (AssertionError e) {
+                    // continue
                 } catch (Throwable e) {
                     if (e.getCause() != null) e = e.getCause();
                     synchronized (sfailures) { failures++; }
                     synchronized (System.out) { 
                         System.out.println("Test FAILED: " + qualname);
-                        System.out.print(e);
-                        System.out.println("  [Show stack using STACK=]");
+                        if (!(e instanceof AssertionError)) System.out.println("  [Show stack using STACK=]");
+                        System.out.println(e);
                         if (System.getenv("STACK") != null) e.printStackTrace(System.out);
                     }
                 } finally {
