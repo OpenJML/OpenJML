@@ -96,7 +96,7 @@ jobs:
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
 
   upload:
-    needs: build
+    needs: [ prepare, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

@@ -30,7 +30,7 @@ if [ -z "$OPENJML_JVM" ]; then
   ##echo "$BINJAVAC" "$@"
   "$BINJAVAC" "$@"
 else
-  if [ ! -e "$INSTALL/RunOpenJML.class" ]; then ( cd "$INSTALL" ; "$INSTALL/openjml-compile" -cp . RunOpenJML.java ) ; fi
-  "$BINJAVA" $OPENJML_JVM -cp ".:$INSTALL" RunOpenJML "$@" $OPENJML_EXPORTS
+  #if [ ! -e "$INSTALL/RunOpenJML.class" ]; then ( cd "$INSTALL" ; "$INSTALL/openjml-compile" -cp . RunOpenJML.java ) ; fi
+  "$BINJAVA" $OPENJML_JVM -cp ".:$INSTALL" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
 fi
 
