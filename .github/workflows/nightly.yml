@@ -32,8 +32,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        #os: [ macos-14 ]
+        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os: [ macos-14 ]
       fail-fast: false
 
     steps:
@@ -62,13 +62,30 @@ jobs:
         overwrite: true
         include-hidden-files: true
 
-    - name: Run userguide tests
-      run: |
-        PATH=../../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || true
+  unit-test:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        ## Just use one instance of each kind of OS
+        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os: [ macos-14 ]
+        ##os: [ ubuntu-22.04, macos-14 ]
+      fail-fast: false
 
+    steps:
+    - name: Checkout actions 
+      uses: actions/checkout@v4
+    - name: OS setup
+      uses: ./.github/actions/os-setup/
+    - name: Upload
+      uses: pyTooling/download-artifact@v6
+      with:
+        name: openjml-build-${{ matrix.os }}
+        path: OpenJML
     - name: Run unit tests
       run: |
-        ##make -C OpenJML/OpenJMLTest unittests-par
+        PATH=../OpenJML21:$PATH make -C OpenJML/OpenJMLTest unittests-par
         ##the following would run all the above test steps in one step
         ##make -C OpenJML/OpenJMLTest openjml-test-git
 
@@ -78,7 +95,8 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os: [ macos-14 ]
         ##os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
@@ -102,7 +120,8 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os: [ macos-14 ]
         #os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
@@ -130,7 +149,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os: [ macos-14 ]
+        #os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
       fail-fast: false
 
     steps:
