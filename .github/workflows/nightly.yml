@@ -32,8 +32,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        #os: ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        os: [ macos-14 ]
+        os: ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        #os: [ macos-14 ]
       fail-fast: false
 
     steps:
@@ -60,6 +60,7 @@ jobs:
         name: openjml-build-${{ matrix.os }}
         path: OpenJML
         overwrite: true
+        include-hidden-files: true
 
     - name: Run userguide tests
       run: |
