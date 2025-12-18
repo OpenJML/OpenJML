@@ -25,17 +25,21 @@ jobs:
       - id: set-matrix
         run: |
           ## Just use one instance of each kind of OS
-          echo "::set-output name=matrix::[{\"os\":[ \"macos-14\" ]}]"
+          echo "::set-output name=matrix::\"[ macos-14 ]\""
 
   build:
     needs: prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        #os: ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+        os: [ macos-14 ]
       fail-fast: false
 
     steps:
+    - name: Matrix
+      run: |
+        echo  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
     - name: Checkout actions
       uses: actions/checkout@v4
     - name: OS setup
