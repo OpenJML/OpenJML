@@ -78,7 +78,7 @@ jobs:
     strategy:
       matrix:
         ## Just use one instance of each kind of OS
-        os: ${{ env.OSES }}
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
         ##os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
 
