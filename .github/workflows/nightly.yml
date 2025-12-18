@@ -32,7 +32,6 @@ jobs:
     strategy:
       matrix:
         os: ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
-        os: [ macos-14 ]
       fail-fast: false
 
     steps:
