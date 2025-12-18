@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Matrix
+    #- name: Matrix
       #run: |
       #  echo  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
     - name: Checkout actions
