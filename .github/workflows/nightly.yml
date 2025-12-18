@@ -46,10 +46,20 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Checkout actions
-      uses: actions/checkout@v4
     - name: OS setup
       uses: ./.github/actions/os-setup/
+    - name: init
+      run: |
+        echo Initial state
+        pwd
+        ls
+    - name: Checkout actions
+      uses: actions/checkout@v6
+    - name: after initialization
+      run: |
+        echo post-checkout state
+        pwd
+        ls
     - name: Checkout OpenJML
       uses: ./.github/actions/openjml-checkout/
       with:
