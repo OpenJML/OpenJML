@@ -135,7 +135,7 @@ jobs:
         sparse-checkout: ./.github
         path: ACTIONS
     - name: OS setup
-      uses: ACTIONS/.github/actions/os-setup/
+      uses: ./ACTIONS/.github/actions/os-setup/
     - name: Download github artifact
       uses: pyTooling/download-artifact@v6
       with:
