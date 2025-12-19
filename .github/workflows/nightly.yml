@@ -74,7 +74,7 @@ jobs:
         include-hidden-files: true
 
   ## This job downloads the built environment and runs the development release tests 
-  unit-test:
+  release-test:
     needs: [prepare-matrix, build]
     runs-on: ${{ matrix.os }}
     strategy:
