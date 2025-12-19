@@ -55,16 +55,6 @@ jobs:
         ref: ${{ github.ref_name }}
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - name: init
-      run: |
-        echo Initial state
-        pwd
-        ls
-    - name: after initialization
-      run: |
-        echo post-checkout state
-        pwd
-        ls
     - name: Checkout OpenJML
       uses: ./.github/actions/openjml-checkout/
       with:
@@ -75,11 +65,7 @@ jobs:
         test: false
     - name: Test the release
       run: |
-        pwd
-        ls ..
-        echo PP
-        ls ../..
-        make -C OpenJML/$FOLDER release-test || true
+        make -C $FOLDER release-test
     - uses: pyTooling/upload-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
@@ -89,7 +75,7 @@ jobs:
 
   ## This job downloads the built environment and runs the unit tests 
   unit-test:
-    needs: build
+    needs: [prepare-matrix, build]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -114,7 +100,7 @@ jobs:
 
   ## This job downloads the built environment and runs the tutorial tests
   tutorial-test:
-    needs: build
+    needs: [prepare-matrix, build]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -137,7 +123,7 @@ jobs:
 
   ## This job downloads the built environment and then runs the json tests
   json-test:
-    needs: build
+    needs: [prepare-matrix, build]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -168,7 +154,7 @@ jobs:
   ## This job downloads the build environment and then runs the userguide tests
   ## (which involves cloning the userguide and its examples from OverLeaf)
   userguide-test:
-    needs: build
+    needs: [prepare-matrix, build]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
