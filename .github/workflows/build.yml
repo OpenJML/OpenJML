@@ -7,7 +7,8 @@ name: Build OpenJML
 ## If a release with current release number already exists, the workflow fails (though you can inspect to see if the release build was successful).
 ## The build manager must check that the release was successfully created, edit the release notes and manually publich the release to make it public.
 
-## FIXME: the lists of releases to be buil appears to two places in this workflow
+## FIXME: the list of releases to be built appears in two places in this workflow
+## FIXME: The actions/checkout is overkill -- all that is needed is version.txt and .github
 
 on:
   workflow_dispatch:
@@ -24,9 +25,12 @@ env:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }} # Define output
+
 
     steps:
-    ## The following step just checks out the OpenJML repo on the branch that cause the push, which is all we need to determine the version
+    ## The following step just checks out the OpenJML repo on the branch that caused the push, which is all we need to determine the version
     ## A workflow_dispatch trigger might do the checkout at the main branch.
     ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJML21, OpenJMLTest etc.
     - name: Checkout repo
@@ -89,8 +93,6 @@ jobs:
         export ver=`cat version.txt`
         export f=openjml-${{ matrix.os }}-${ver}.zip
         cp OpenJML21/release-temp/*.zip $f
-        ls
-        pwd
 
     - name: Upload github artifact
       uses: pyTooling/upload-artifact@v6
@@ -111,19 +113,24 @@ jobs:
         os: [ ubuntu-22.04, macos-14 ]
       fail-fast: false
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@v6
+    - name: OS setup
+      uses: ./.github/actions/os-setup/
     - name: Download github artifact
       uses: pyTooling/download-artifact@v6
       with:
         name: openjml-release-${{ matrix.os }}
     - name: Copy OpenJML build into GitHub release
       run: |
-        export ver=`cat version.txt`
+        export ver=${{ steps.version.outputs.version }}
         export f=openjml-${{ matrix.os }}-${ver}.zip
 
         if [[ -f "$f" ]]; then
           echo Downloaded zip file $f
         else
           echo Expected file not found $f
+          pwd
           ls -la
           exit 1
         fi
@@ -133,4 +140,3 @@ jobs:
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
         curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"
-
