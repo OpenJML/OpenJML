@@ -85,15 +85,15 @@ jobs:
         ls -laR
 
     - name: OS setup
-      uses: ACTIONS/.github/actions/os-setup/
+      uses: ./ACTIONS/.github/actions/os-setup/
 
     - name: Checkout OpenJML
-      uses: ACTIONS/.github/actions/openjml-checkout/
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: $BRANCH
 
     - name: Build OpenJML
-      uses: ACTIONS/.github/actions/openjml-build/
+      uses: ./ACTIONS/.github/actions/openjml-build/
       with:
         test: true
 
