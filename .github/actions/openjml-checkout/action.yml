@@ -15,8 +15,8 @@ runs:
         # Not checking out the main repo, because it was already checked out by actions/checkout
         # But note that the initial workflow working directory is inside the OpenJML repo -- it is not
         # at the openJML level that contains the repo. Hence we have to go up a level when cloning the rest of the repos
-        #git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
         cd ..
+        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
