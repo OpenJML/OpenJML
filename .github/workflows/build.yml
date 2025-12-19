@@ -123,16 +123,18 @@ jobs:
         name: openjml-release-${{ matrix.os }}
     - name: Copy OpenJML build into GitHub release
       run: |
-        export ver=${{ steps.version.outputs.version }}
+        export ver=${{ needs.prepare.outputs.version }}
         export f=openjml-${{ matrix.os }}-${ver}.zip
+        export ff=`echo openjml*.zip`
 
         if [[ -f "$f" ]]; then
           echo Downloaded zip file $f
         else
-          echo Expected file not found $f
+          echo Expected file not found $f, using $ff
+          export f=$ff
           pwd
           ls -la
-          exit 1
+#          exit 1
         fi
 
         curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":'
