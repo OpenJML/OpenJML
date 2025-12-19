@@ -26,20 +26,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Init
-      run: |
-        pwd
-        ls -la
-    ## The following step just checks out the OpenJML repo, which is all we need to determine the version
+    ## The following step just checks out the OpenJML repo on the branch that cause the push, which is all we need to determine the version
+    ## A workflow_dispatch trigger might do the checkout at the main branch.
     ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJML21, OpenJMLTest etc.
     - name: Checkout repo
       uses: actions/checkout@v6
     - name: Determine version
       id: version
       run: |
-        git status
-        pwd
-        ls
         export ver=`cat version.txt`
         echo Building release $ver
         echo "version=$ver" >> "$GITHUB_OUTPUT"
@@ -121,17 +115,19 @@ jobs:
       uses: pyTooling/download-artifact@v6
       with:
         name: openjml-release-${{ matrix.os }}
-    - name: check
-      run: |
-        ls -la .
-        pwd
-        ls -la openjml-*.zip
-
     - name: Copy OpenJML build into GitHub release
       run: |
         export ver=`cat OpenJML/version.txt`
         export f=openjml-${{ matrix.os }}-${ver}.zip
-        ls -la
+
+        if [[ -f "$f" ]]; then
+          echo Downloaded zip file $f
+        else
+          echo Expected file not found $f
+          ls -la
+          exit 1
+        fi
+
         curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep '"id":'
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
