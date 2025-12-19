@@ -2,16 +2,16 @@ name: Nightly test of OpenJML
 
 ## This workflow runs all the unit and functionality tests on a build of the current developmenet environment for OpenJML
 ## that is, on the HEAD of branch dev-21 as it has been pushed to the github repo.
-## The workflow runs each designated OS as a separate matrixed job. The job does a build and then seequentially runs a number of tests.
+## The workflow runs each designated OS as a separate matrixed job. The job does a build and then sequentially runs a number of tests.
 ##
-## The disadvantage of this design is that the 5 test tasks are run sequentially. In one fails, the rest are not tested.
+## The disadvantage of this design is that the various test tasks are run sequentially. If one fails, the rest are not tested.
 ## But if we mark them to continue on error in some way, they do not show up as failed in the workflow summary.
 ##
 ## A different design would put the test tasks in separate jobs, which could then run concurrently. However this requires
-## either doing a full build for each of these test tasks, which is time consuming, or upload ing and downloading a github artifact that
+## either doing a full build for each of these test tasks, which is time consuming, or uploading and downloading a github artifact that
 ## contained the full built repo checkout. This latter 'worked' but frequently failed because the artifacts took too much space.
 
-## FIXME: The setting of PATH uses : where it might need ; for some OSes
+## FIXME: The setting of PATH uses : where it might need ; for some OSes; it would be better if adjustments to PATH were not needed at all
 
 on:
   workflow_dispatch:

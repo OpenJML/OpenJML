@@ -13,7 +13,7 @@ name: Build OpenJML
 ## the github artifact cache.
 
 ## FIXME: the list of releases to be built appears in two places in this workflow
-## FIXME: The actions/checkout is overkill -- all that is needed is version.txt and .github
+## FIXME: The name of the github artifact is the same no matter the version being produced, so two concurrent workflows for differetn versions may conflict
 
 on:
   workflow_dispatch:
@@ -32,7 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }} # Define output
-
 
     steps:
     ## The following step just checks out the OpenJML repo on the branch that caused the push, which is all we need to determine the version
