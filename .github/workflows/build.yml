@@ -41,11 +41,11 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v6
       with:
-        sparse_checkout: 'version.txt'
+        sparse-checkout: 'version.txt'
     - name: Determine version
       id: version
       run: |
-        ls
+        ls -laR
         export ver=`cat version.txt`
         echo Building release $ver
         echo "version=$ver" >> "$GITHUB_OUTPUT"
@@ -78,21 +78,22 @@ jobs:
       uses: actions/checkout@v6
       with:
         sparse-checkout: ./.github
+        path: ACTIONS
     - name: data
       run: |
         pwd
-        ls -la
+        ls -laR
 
     - name: OS setup
-      uses: ./.github/actions/os-setup/
+      uses: ACTIONS/.github/actions/os-setup/
 
     - name: Checkout OpenJML
-      uses: ./.github/actions/openjml-checkout/
+      uses: ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: $BRANCH
 
     - name: Build OpenJML
-      uses: ./.github/actions/openjml-build/
+      uses: ACTIONS/.github/actions/openjml-build/
       with:
         test: true
 
@@ -130,8 +131,11 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v6
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
     - name: OS setup
-      uses: ./.github/actions/os-setup/
+      uses: ACTIONS/.github/actions/os-setup/
     - name: Download github artifact
       uses: pyTooling/download-artifact@v6
       with:
