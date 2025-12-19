@@ -14,13 +14,19 @@ runs:
         pwd
         ls
         git config --global core.autocrlf input
-        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
+        # Not checking out the main repo, because it was already checked out by actions/checkout
+        # But note that the initial workflow working directory is inside the OpenJML repo -- it is not
+        # at the openJML level that contains the repo. Hence we have to go up a level when cloning the rest of the repos
+        #git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
         pwd
         ls
+        cd ..
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
+        ls -la
         pwd
+        cd OpenJML
         ls
