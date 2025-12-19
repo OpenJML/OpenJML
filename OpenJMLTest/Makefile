@@ -154,12 +154,11 @@ cov-clean:
 # Runs all tests to produce coverage data
 # One can also run individual tests and individual unit tests, e.g. COV= runtests escfiles
 cov-test:
-	COV= time make json-tests
-	COV= time ./unittests/runpar 
-	COV= time make userguide-tests
-	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
-	## COV= make release-tests ## FIXME: Not yet working
-	## FIXME - also test examples in documentation
+	- COV= time make json-tests
+	- COV= time make release-tests
+	- COV= time make tutorial-tests
+	- COV= time make userguide-tests
+	- COV= time ./unittests/runpar 
 
 # Creates or updates html files based on coverage data
 cov-report:
