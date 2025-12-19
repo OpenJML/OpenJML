@@ -53,8 +53,9 @@ jobs:
       run: |
         export ver=${{ steps.version.outputs.version }}
         echo Version $ver from branch $BRANCH
+        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
-        echo Created release with id $id
+        echo Created release $ver with id $id
 
   build:
     runs-on: ${{ matrix.os }}

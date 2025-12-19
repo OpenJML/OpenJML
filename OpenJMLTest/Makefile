@@ -126,9 +126,6 @@ json-tests: .FORCE
 	@ ${TEST}/scripttests/json/run
 	@ ${TEST}/scripttests/json-loc/run
 
-#RunOpenJML.class:
-#	@ $(TEST)/../OpenJML21/openjml-compile RunOpenJML.java
-
 .FORCE:
 
 ##### The following are debugging tests
