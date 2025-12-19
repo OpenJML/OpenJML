@@ -5,7 +5,12 @@ name: Build OpenJML
 ## The workflow clones the master branch of all the OpenJML components, builds the release, running the release tests, packaging it into a zip file,
 ## creates a GitHub release entry in the OpenJML project and uploads the zip file to the release.
 ## If a release with current release number already exists, the workflow fails (though you can inspect to see if the release build was successful).
-## The build manager must check that the release was successfully created, edit the release notes and manually publich the release to make it public.
+## The (human) build manager must check that the release was successfully created, edit the release notes and manually publich the release to make it public.
+
+## The advantage of separating the release build from the release creation and upload is this: if the release creation (the prepare job) fails because a
+## release by that name already exists, then the time-consuming build will still complete. If then the already existing draft release is deleted externally,
+## the failed prepare and upload tasks can be rerun quickly without having to redo the build jobs, so long as the build artifact has not been deleted from
+## the github artifact cache.
 
 ## FIXME: the list of releases to be built appears in two places in this workflow
 ## FIXME: The actions/checkout is overkill -- all that is needed is version.txt and .github
@@ -35,9 +40,12 @@ jobs:
     ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJML21, OpenJMLTest etc.
     - name: Checkout repo
       uses: actions/checkout@v6
+      with:
+        sparse_checkout: 'version.txt'
     - name: Determine version
       id: version
       run: |
+        ls
         export ver=`cat version.txt`
         echo Building release $ver
         echo "version=$ver" >> "$GITHUB_OUTPUT"
@@ -68,6 +76,12 @@ jobs:
     ## The following step checks out the OpenJML repo, which is needed to get the actions in the next few steps
     - name: Checkout repo
       uses: actions/checkout@v6
+      with:
+        sparse-checkout: ./.github
+    - name: data
+      run: |
+        pwd
+        ls -la
 
     - name: OS setup
       uses: ./.github/actions/os-setup/
