@@ -29,12 +29,15 @@ jobs:
     - name: Init
       run: |
         pwd
-        ls
+        ls -la
+    ## The following step just checks out the OpenJML repo, which is all we need to determine the version
+    ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJML21, OpenJMLTest etc.
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Determine version
       id: version
       run: |
+        git status
         pwd
         ls
         export ver=`cat version.txt`
@@ -63,6 +66,10 @@ jobs:
       fail-fast: false
 
     steps:
+    ## The following step checks out the OpenJML repo, which is needed to get the actions in the next few steps
+    - name: Checkout repo
+      uses: actions/checkout@v6
+
     - name: OS setup
       uses: ./.github/actions/os-setup/
 

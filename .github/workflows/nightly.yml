@@ -46,6 +46,10 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Checkout actions
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.ref_name }}
     - name: OS setup
       uses: ./.github/actions/os-setup/
     - name: init
@@ -53,8 +57,6 @@ jobs:
         echo Initial state
         pwd
         ls
-    - name: Checkout actions
-      uses: actions/checkout@v6
     - name: after initialization
       run: |
         echo post-checkout state
