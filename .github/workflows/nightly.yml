@@ -41,34 +41,36 @@ jobs:
     steps:
     - name: Checkout actions
       uses: actions/checkout@v6
+        sparse-checkout: ./.github
+        path: ACTIONS
     - name: OS setup
-      uses: ./.github/actions/os-setup/
+      uses: ./ACTIONS/.github/actions/os-setup/
     - name: Checkout OpenJML
-      uses: ./.github/actions/openjml-checkout/
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
     - name: Build OpenJML
-      uses: ./.github/actions/openjml-build/
+      uses: ./ACTIONS/.github/actions/openjml-build/
       with:
         test: false ## These tests of the release are performed in the build workflow
 
     - name: Run release tests
       run: |
-        PATH=../../$FOLDER:$PATH make -C OpenJMLTest release-tests || true
+        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest release-tests || true
 
     - name: Run json tests
       run: |
-        PATH=../../../$FOLDER:$PATH make -C OpenJMLTest json-tests || true
+        PATH=../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests || true
 
     - name: Run userguide tests
       run: |
-        PATH=../../../../$FOLDER:$PATH make -C OpenJMLTest userguide-tests-released || true
+        PATH=../../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || true
 
     - name: Run tutorial tests
       run: |
-        PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJMLTest tutorial-tests-git || true
+        PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests-git || true
 
     - name: Run unit tests
       run: |
-        PATH=../../$FOLDER:$PATH make -C OpenJMLTest unittests-par || true
+        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest unittests-par || true
 

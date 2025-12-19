@@ -99,7 +99,7 @@ jobs:
 
     - name: Check current GitHub release number against version.txt
       run: |
-        export ver=`cat version.txt`
+        export ver=`cat OpenJML/version.txt`
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
