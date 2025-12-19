@@ -106,9 +106,9 @@ jobs:
 
     - name: Copy zip for upload
       run: |
-        export ver=`cat version.txt`
+        export ver=`cat OpenJML/version.txt`
         export f=openjml-${{ matrix.os }}-${ver}.zip
-        cp $FOLDER/release-temp/*.zip $f
+        cp OpenJML/$FOLDER/release-temp/*.zip $f
 
     - name: Upload github artifact
       uses: pyTooling/upload-artifact@v6
