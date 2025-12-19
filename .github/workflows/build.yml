@@ -79,16 +79,16 @@ jobs:
 
     - name: Check current GitHub release number against version.txt
       run: |
-        export ver=`cat OpenJML/version.txt`
+        export ver=`cat version.txt`
         export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
 
     - name: Copy zip for upload
       run: |
-        export ver=`cat OpenJML/version.txt`
+        export ver=`cat version.txt`
         export f=openjml-${{ matrix.os }}-${ver}.zip
-        cp OpenJML/OpenJML21/release-temp/*.zip $f
+        cp OpenJML21/release-temp/*.zip $f
         ls
         pwd
 
@@ -117,7 +117,7 @@ jobs:
         name: openjml-release-${{ matrix.os }}
     - name: Copy OpenJML build into GitHub release
       run: |
-        export ver=`cat OpenJML/version.txt`
+        export ver=`cat version.txt`
         export f=openjml-${{ matrix.os }}-${ver}.zip
 
         if [[ -f "$f" ]]; then
