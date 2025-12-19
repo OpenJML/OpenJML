@@ -32,7 +32,6 @@ jobs:
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
   build:
-    needs: prepare-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -42,8 +41,6 @@ jobs:
     steps:
     - name: Checkout actions
       uses: actions/checkout@v6
-      with:
-        ref: ${{ github.ref_name }}
     - name: OS setup
       uses: ./.github/actions/os-setup/
     - name: Checkout OpenJML
