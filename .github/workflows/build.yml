@@ -92,7 +92,7 @@ jobs:
       run: |
         export ver=`cat version.txt`
         export f=openjml-${{ matrix.os }}-${ver}.zip
-        cp OpenJML21/release-temp/*.zip $f
+        cp $FOLDER/release-temp/*.zip $f
 
     - name: Upload github artifact
       uses: pyTooling/upload-artifact@v6
@@ -126,7 +126,7 @@ jobs:
         export ver=${{ needs.prepare.outputs.version }}
         export f=openjml-${{ matrix.os }}-${ver}.zip
         export ff=`echo openjml*.zip`
-
+        echo $ver $f $ff
         if [[ -f "$f" ]]; then
           echo Downloaded zip file $f
         else
@@ -134,9 +134,7 @@ jobs:
           export f=$ff
           pwd
           ls -la
-#          exit 1
         fi
-
         export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
