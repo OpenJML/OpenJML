@@ -2,14 +2,14 @@ name: Nightly test of OpenJML
 
 ## This workflow runs all the unit and functionality tests on a build of the current developmenet environment for OpenJML
 ## that is, on the HEAD of branch dev-21 as it has been pushed to the github repo.
-## The workflow is divided into jobs: the main job builds OpenJLM on each tested OS; then there are four jobs that do the actual testing.
-## This separation allows the testing to be done in parallel across all 4 kinds of tets and all the OSes; if the 4 kinds of tests were executed sequentially
+## The workflow is divided into jobs: the main job builds OpenJLM on each tested OS; then there are five jobs that do the actual testing.
+## This separation allows the testing to be done in parallel across all 5 kinds of tests and all the OSes; if the 5 kinds of tests were executed sequentially
 ## a failure of one would prevent testing the rest.
 ## The drawback of this organization is that a failure to build one of the OSes prevents testing all of the tests for all OSes, because of how github 
-## workflow job dependencies work. Another drawback is the need to setup the OS and checout the repo for each of the four tests
+## workflow job dependencies work. Another drawback is the need to setup the OS and checkout the repo for each of the five tests
 
-## FIXME: In the tests we checkout the repo and then we download the artifact on top of it. I'm not sure they are aligned.
-## What would really be good is a way to just checkout the .github folder, recursively
+## FIXME: The actions/checkout clones the entire OpenJML repo, when we only need version.txt and the .github folder. Put in something mxfore efficient.
+## FIXME: The setting of PATH uses : where it might need ; for some OSes
 
 on:
   workflow_dispatch:
@@ -73,6 +73,29 @@ jobs:
         overwrite: true
         include-hidden-files: true
 
+  ## This job downloads the built environment and runs the development release tests 
+  unit-test:
+    needs: [prepare-matrix, build]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:  ${{ fromJson(needs.prepare-matrix.outputs.matrix-config) }}
+      fail-fast: false
+
+    steps:
+    - name: Checkout actions 
+      uses: actions/checkout@v6
+    - name: OS setup
+      uses: ./.github/actions/os-setup/
+    - name: Download artifact
+      uses: pyTooling/download-artifact@v6
+      with:
+        name: openjml-build-${{ matrix.os }}
+        path: TEST
+    - name: Run release tests
+      run: |
+        PATH=../../$FOLDER:$PATH make -C TEST/OpenJML/OpenJMLTest release-tests
+
   ## This job downloads the built environment and runs the unit tests 
   unit-test:
     needs: [prepare-matrix, build]
@@ -87,16 +110,14 @@ jobs:
       uses: actions/checkout@v6
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - name: Download
+    - name: Download artifact
       uses: pyTooling/download-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
-        path: ..
+        path: TEST
     - name: Run unit tests
       run: |
-        PATH=../../$FOLDER:$PATH make -C OpenJMLTest unittests-par
-        ##the following would run all the above test steps in one step
-        ##make -C OpenJML/OpenJMLTest openjml-test-git
+        PATH=../../$FOLDER:$PATH make -C TEST/OpenJML/OpenJMLTest unittests-par
 
   ## This job downloads the built environment and runs the tutorial tests
   tutorial-test:
@@ -112,7 +133,7 @@ jobs:
       uses: actions/checkout@v6
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - name: Upload
+    - name: Download artifact
       uses: pyTooling/download-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
@@ -135,23 +156,16 @@ jobs:
       uses: actions/checkout@v6
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - name: Upload
+    - name: Download artifact
       uses: pyTooling/download-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
         path: TEST
-    - name: data
-      run: |
-        ls
-        pwd
-        ls ..
-        pwd
-        ls TEST
     - name: Run json tests
       run: |
         PATH=../../../$FOLDER:$PATH make -C TEST/OpenJML/OpenJMLTest json-tests
 
-  ## This job downloads the build environment and then runs the userguide tests
+  ## This job downloads the built environment and then runs the userguide tests
   ## (which involves cloning the userguide and its examples from OverLeaf)
   userguide-test:
     needs: [prepare-matrix, build]
@@ -166,12 +180,12 @@ jobs:
       uses: actions/checkout@v6
     - name: OS setup
       uses: ./.github/actions/os-setup/
-    - name: Upload
+    - name: Download artifact
       uses: pyTooling/download-artifact@v6
       with:
         name: openjml-build-${{ matrix.os }}
-        path: ..
+        path: TEST
     - name: Run userguide tests
       run: |
-        PATH=../../../../$FOLDER:$PATH make -C OpenJMLTest userguide-tests-released
+        PATH=../../../../$FOLDER:$PATH make -C TEST/OpenJML/OpenJMLTest userguide-tests-released
 
