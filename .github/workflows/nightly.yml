@@ -41,6 +41,7 @@ jobs:
     steps:
     - name: Checkout actions
       uses: actions/checkout@v6
+      with:
         sparse-checkout: ./.github
         path: ACTIONS
     - name: OS setup
