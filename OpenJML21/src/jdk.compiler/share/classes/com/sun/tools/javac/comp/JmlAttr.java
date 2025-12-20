@@ -5107,19 +5107,47 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return null;
     }
     
+    private static int intValue(Type x) { return ((Number)x.constValue()).intValue(); }
+
     @Override
     public void visitJmlBinary(JmlBinary that) {  // FIXME - how do we handle unboxing, casting
+        // FIXME Attr.visitBinary does constant folding; should we do that here or do we preserve the AST?
         Type TYPE = JmlPrimitiveTypes.TYPETypeKind.getType(context);
         switch (that.op.keyword()) {
             case equivalenceID:
             case inequivalenceID:
-            case impliesID:
-            case reverseimpliesID:
+            case reverseimpliesID: // Nothing special -- this operator is deprecated
                 attribExpr(that.lhs,env,syms.booleanType);
                 attribExpr(that.rhs,env,syms.booleanType);
                 result = syms.booleanType;
                 break;
-                
+
+            case impliesID:
+            {
+                Type owntype = syms.booleanType;
+                // Adapted from Attr.visitBinary for AND/OR
+                Type left = chk.checkNonVoid(that.lhs.pos(), attribExpr(that.lhs, env, syms.booleanType));
+                MatchBindings lhsBindings = matchBindings;
+                List<BindingSymbol> propagatedBindings = lhsBindings.bindingsWhenTrue;
+                Env<AttrContext> rhsEnv = bindingEnv(env, propagatedBindings);
+                Type right;
+                try {
+                    right = chk.checkNonVoid(that.rhs.pos(), attribExpr(that.rhs, rhsEnv, syms.booleanType));
+                } finally {
+                    rhsEnv.info.scope.leave();
+                }
+                matchBindings = matchBindingsComputer.binary(that, lhsBindings, matchBindings);
+                // If both arguments are constants, fold them.
+                if (left.constValue() != null && right.constValue() != null) {
+                    Type ctype = syms.booleanType.constType((Integer)( (1-intValue(left)) | intValue(right)));
+                    if (ctype != null) {
+                        owntype = cfolder.coerce(ctype, owntype);
+                    }
+                }
+                result = owntype;
+                break;
+            }
+
             case lockltID:
             case lockleID:
                 attribExpr(that.lhs,env,syms.objectType);

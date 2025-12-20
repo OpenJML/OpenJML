@@ -111,20 +111,20 @@ public class primrac extends RacBase {
     @Test
     public void racbigint() { // FIXME - do these duplicate
         expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint");
+        helpCompileRun("bigint");
     }
 
     @Test
     public void racreal() {  // FIXME - do these duplicate
         expectedExit = 0;
-        helpTCF("test/racreal","test/racreal","real");
+        helpCompileRun("real");
     }
     
     
     @Test 
     public void valuestrings() {
         expectedRACExit = 0;
-        helpTCF("test/valuestrings","test/valuestrings","JMLStringTest");
+        helpCompileRun("JMLStringTest");
     }
 
 

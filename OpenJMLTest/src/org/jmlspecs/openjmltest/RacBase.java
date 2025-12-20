@@ -88,7 +88,7 @@ public abstract class RacBase extends JmlTestSuite {
         // Use the default specs path for tests
         testspecpath = testspecpath1;
         // Define a new collector that filters out the notes
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(false,false);
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(false,null);
         super.setUp();
         
         // Setup the options
@@ -112,7 +112,7 @@ public abstract class RacBase extends JmlTestSuite {
     public static String macstring = "Exception in thread \"main\" ";
 
     public String setupOutdir() {
-        outdir = System.getenv("OPENJML_INSTALL") + "/../OpenJMLTest/testcompiles/" + getTestName();
+        outdir = root + "/OpenJML/OpenJMLTest/testcompiles/" + getTestName();
         var d = new java.io.File(outdir);
         d.mkdirs();
         defrac[3] = outdir;
@@ -129,10 +129,10 @@ public abstract class RacBase extends JmlTestSuite {
      * @param compilationUnitText the compilation unit text which will be put in a mock file
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCX(String classname, String compilationUnitText, Object... list) {
+    public void helpTCX(String classname, String compilationUnitText, Object... expectedDiagnostics) {
         // Source files are synthetic
         // Compile destination is destdir
-        // Expected output is containted in the test code (not in a file)
+        // Expected output is contained in the test code (not in a file)
         String destdir = setupOutdir();
         new java.io.File(destdir).delete(); // Make sure old builds are deleted
         new java.io.File(destdir).mkdir();
@@ -151,19 +151,21 @@ public abstract class RacBase extends JmlTestSuite {
 
             int ex = main.compile(new String[]{"-d", destdir},files.toList()).exitCode;
             if (print) printDiagnostics();
+            
+            // FIXME - change this to use outputCOmpare
             int observedMessages = collector.getDiagnostics().size() - expectedNotes;
             if (observedMessages < 0) observedMessages = 0;
 
             for (int i=0; i<observedMessages; i++) {
                 int k = 2*i + 2*expectedNotes;
-                if (k >= list.length) {
+                if (k >= expectedDiagnostics.length) {
                     if (!print) printDiagnostics();
                     fail("More diagnostics than expected");
                 }
-                String expected = list[k].toString();
+                String expected = expectedDiagnostics[k].toString();
                 String s = noSource(collector.getDiagnostics().get(i));
                 assertEquals("Message " + i, expected, s);
-                assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
+                assertEquals("Message " + i, ((Integer)expectedDiagnostics[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
             }
             assertEquals("Compile ended with exit code:", expectedExit, ex);
             if (ex != 0 && !continueAnyway) return;
@@ -204,9 +206,9 @@ public abstract class RacBase extends JmlTestSuite {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
                 	//out.println("ACT: " + line);
-                	if (i < list.length) {
-                		String expected = list[i].toString();
-                        expected = expected.replace("$SPECS", specsdir);
+                	if (i < expectedDiagnostics.length) {
+                		String expected = expectedDiagnostics[i].toString();
+                        expected = expected.replace("$SPECS", specsdir);  // FIXME - use doReplacements
                         expected = expected.replace("#DEMO", OpenJMLDemoPath);
                 		//out.println("EXP: " + expected);
                 		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
@@ -226,9 +228,9 @@ public abstract class RacBase extends JmlTestSuite {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
                     //out.println("ERR-ACT: " + actual);
-                    if (i < list.length) {
-                        String expected = list[i].toString();
-                        expected = expected.replace("#DEMO", OpenJMLDemoPath);
+                    if (i < expectedDiagnostics.length) {
+                        String expected = expectedDiagnostics[i].toString();
+                        expected = expected.replace("#DEMO", OpenJMLDemoPath);  // FIXME - use doReplacements
                         //out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
@@ -240,11 +242,11 @@ public abstract class RacBase extends JmlTestSuite {
                 }
             }
 
-            if (i != list.length && !print) { // if print, then we already printed
+            if (i != expectedDiagnostics.length && !print) { // if print, then we already printed
                 printDiagnostics();
             }
-            assertFalse("More output than specified: " + i + " vs. " + list.length + " lines", i > list.length);
-            assertFalse("Less output than specified: " + i + " vs. " + list.length + " lines", i < list.length);
+            assertFalse("More output than specified: " + i + " vs. " + expectedDiagnostics.length + " lines", i > expectedDiagnostics.length);
+            assertFalse("Less output than specified: " + i + " vs. " + expectedDiagnostics.length + " lines", i < expectedDiagnostics.length);
             if (p.exitValue() != expectedRACExit) fail("Exit code was " + p.exitValue());
         } catch (Exception e) {
             e.printStackTrace(System.out);
@@ -266,17 +268,6 @@ public abstract class RacBase extends JmlTestSuite {
                 }
             }
             throw e;
-        } finally {
-//            if (r != null) 
-//                try { r.close(); } 
-//                catch (java.io.IOException e) { 
-//                    // Give up if there is an exception
-//                }
-//            if (rerr != null) 
-//                try { rerr.close(); } 
-//                catch (java.io.IOException e) {
-//                    // Give up if there is an exception
-//                }
         }
     }
     
@@ -292,17 +283,19 @@ public abstract class RacBase extends JmlTestSuite {
         runrac = true;
     }
 
+    /** Runs a test (RAC compilation only) on a test folder whose name is the same as the test name. */
     public void helpCompileOnly(String ... opts) {
         String dir = "test/" + getTestName();
         helpTCF(dir, dir, null, opts);
     }
 
+    /** Runs a test (RAC compilation and then running the compiled program) on a test folder whose name is the same as the test name. */
     public void helpCompileRun(String mainClassname, String ... opts) {
         String dir = "test/" + getTestName();
         helpTCF(dir, dir, mainClassname, opts);
     }
 
-    /** This method does compiles a test with RAC whose source is in a given directory,
+    /** This method compiles a test with RAC whose source is in a given directory,
      * and then runs the compiled program.  The compilation is expected to have no errors.
      * the number of expected diagnostics is set by 'expectedErrors'.
      * 

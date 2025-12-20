@@ -54,6 +54,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
     
     /** Abbreviated name of the class of the JCTree node */
     public String shortName(Object tree) {
+        if (tree == null) return "<null>";
         String key = "JCTree$";
         String key2 = "JmlTree$";
         String cl = tree.getClass().toString();
@@ -67,8 +68,9 @@ public class JmlAstPrinter extends JmlTreeScanner {
     }
     
     public void start(JCTree tree) {
+        String cvalue = (tree.type != null && tree.type.constValue() != null) ? "[" + (tree.type.toString().equals("boolean") ? (((Number)tree.type.constValue()).intValue()!=0)  : tree.type.constValue().toString() ) + "]" : "";
         builder.append(indent).append(shortName(tree)).append(sp).append(tree.getTag()).append(": ");
-        if (tree instanceof JCExpression) builder.append(type(tree)).append(" : ");
+        if (tree instanceof JCExpression) builder.append(type(tree)).append(cvalue).append(" : ");
     }
     
     public String type(JCTree tree) {
@@ -79,6 +81,7 @@ public class JmlAstPrinter extends JmlTreeScanner {
     /** Called for any trees with visit methods that are not implemented */
     public void visitTree(JCTree tree) {
         start(tree);
+        
         builder.append(" ?????").append(eol);
         in();
 //        super.visitTree(tree);
@@ -184,9 +187,18 @@ public class JmlAstPrinter extends JmlTreeScanner {
         builder.append(tree.getValue()).append(sp).append(tree.typetag).append(sp).append(shortName(tree.getValue())).append(eol);
     }
     
-    public void visitBinary(JCBinary tree) { // FIXME - JmlBinary
+    public void visitBinary(JCBinary tree) {
         start(tree);
         builder.append(tree.opcode).append(sp).append(tree.operator).append(eol);
+        in();
+        tree.lhs.accept(this);
+        tree.rhs.accept(this);
+        out();
+    }
+    
+    public void visitJmlBinary(JmlBinary tree) {
+        start(tree);
+        builder.append(tree.op).append(eol);
         in();
         tree.lhs.accept(this);
         tree.rhs.accept(this);

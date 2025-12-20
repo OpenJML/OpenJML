@@ -567,6 +567,10 @@ public class JmlCompiler extends JavaCompiler {
 //        	}
 //        }
 
+        if (JmlOption.includes(context, JmlOption.SHOW, "typed-ast")) {
+            for (var env: results) if (((JmlCompilationUnit)env.toplevel).sourcefile.toString().contains(".java")) System.out.println(JmlAstPrinter.print(env.toplevel, context));
+        }
+
         String ss = JmlOption.SHOW.value(context);
         if (ss != null && ss.contains("typedjson")) {
             writeJson(results, true);

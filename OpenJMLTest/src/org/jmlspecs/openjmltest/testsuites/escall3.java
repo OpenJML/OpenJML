@@ -2101,6 +2101,7 @@ public class escall3 extends EscBase {
             """
         );
     }
+
     @Test
     public void testLabelBad() {
         expectedExit = 1;
@@ -2117,6 +2118,21 @@ public class escall3 extends EscBase {
             }
             """
             ,"/tt/ZZ.java:5: error: ';' expected", 11
+        );
+    }
+
+    @Test
+    public void testImpliesInstanceof() {
+        helpTCX("tt.ZZ",
+            """
+            package tt;
+            public class ZZ {
+              //@ requires o == (Integer)42 || o == "abc";
+              public void m(Object o) {
+                //@ assert o instanceof Integer i ==> i == 42;
+              }
+            }
+            """
         );
     }
 }
