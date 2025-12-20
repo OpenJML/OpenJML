@@ -45,7 +45,7 @@ public abstract class RunBase extends JmlTestSuite {
         }
     }
     
-    /** A helper method that runs a test in the folder 'test/testname' where testname is the both
+    /** A helper method that runs a test in the folder 'test/testname' where testname is both
      * the name of the test method and the name of the test folder.
      */
     public void doTest() {

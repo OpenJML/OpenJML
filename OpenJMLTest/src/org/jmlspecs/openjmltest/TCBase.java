@@ -44,10 +44,10 @@ public abstract class TCBase extends JmlTestSuite {
         addOptions("--specs-path",   testspecpath + z + "$SY" );
         addOptions("--source-path",   testSourcePath);
         addOptions("--class-path",   "src" + z + testSourcePath);
+        addOptions("-Xlint:unchecked");
         addOptions(JmlOption.PURITYCHECK.optionName()+"=false");    // FIXME - get rid of this eventually
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
-        //print = true;
     }
     
     @Override @org.junit.After
@@ -63,17 +63,16 @@ public abstract class TCBase extends JmlTestSuite {
     /** Helper method for tests: pseudo filename, content is the test text; the remaining arguments are the expected messages and column/position numbers */
     public void helpTCF(/*@ nullable*/String filename, String content, Object ... expected) {
         JavaFileObject f = new MockJavaFileObject(filename,content);
-        //if (filename != null) addMockFile("#B/" + filename,f);
-        //Log.instance(context).useSource(f);
         List<JavaFileObject> files = List.of(f);
-        // If additional Java options are wanted (e.g. -verbose), add them here
-        int ex = main.compile(new String[]{ "-Xlint:unchecked" }, files).exitCode;
+        
+        // Includes any options already added through addOptions()
+        int ex = main.compile(new String[]{ }, files).exitCode; // FIXME - get rid of first argument?
 
         if (!specialCompare) checkDiagnostics(expected); // This comparator does not handle seq, anyorder etc.
         else outputCompare.compareResults(expected, collector); // This comparator does not handle having more than one position number
 
         if (expectedExit == -1) expectedExit = expected.length == 0?0:1;
-//        if (expectedExit != ex) printDiagnostics();
+        if (expectedExit != ex) printDiagnostics();
         assertEquals("Wrong exit code",expectedExit, ex);
     }
 }

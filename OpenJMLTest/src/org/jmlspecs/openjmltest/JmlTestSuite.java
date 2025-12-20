@@ -1,20 +1,18 @@
 package org.jmlspecs.openjmltest;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -28,8 +26,6 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
-import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjmltest.OutputCompare.AnyOrder;
 import org.jmlspecs.openjmltest.OutputCompare.OneOf;
 import org.jmlspecs.openjmltest.OutputCompare.Optional;
@@ -40,7 +36,6 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.openjml.MockJavaFileObject;
 
-import com.sun.tools.javac.file.JavacFileManager;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
 import com.sun.tools.javac.util.Log;
@@ -65,7 +60,9 @@ import com.sun.tools.javac.util.Position;
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestSuite {
-    
+
+    public java.io.PrintStream out = System.out;
+
     /** The relative path from OpenJMLTest to the OpenJMLDemo repo */
     public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 
@@ -78,18 +75,17 @@ public abstract class JmlTestSuite {
     static final public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
     {
         if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
-            System.out.println("The current working directory for tests is incorrect");
+            out.println("The current working directory for tests is incorrect");
             System.exit(1);
         }
     }
     
-    public java.io.PrintStream out = System.out;
     public java.io.PrintStream tempout;
     {
         try {
             tempout = new java.io.PrintStream("tempout.txt");
         } catch (FileNotFoundException e) {
-            System.out.println("Could not create temp file");
+            out.println("Could not create temp file");
         }
     }
     
@@ -144,19 +140,19 @@ public abstract class JmlTestSuite {
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
         /** Constructs a diagnostic listener that collects all of the diagnostics,
-         * with the ability to filter out the notes.
-         * @param noNotes if true, no notes (only errors and warnings) are collected
+         * with the ability to filter out the notes.  If print is true, diagnostics are printed
+         * as well as collected.
          */
-        public FilteredDiagnosticCollector(boolean noNotes, boolean print) {
+        public FilteredDiagnosticCollector(boolean noNotes, /*@ nullable */ PrintStream out) {
             this.noNotes = noNotes;
-            this.print = print;
+            this.out = out;
         }
         
         /** If true, no notes are collected; some test output contains notes, so this must generally be false */
         boolean noNotes = false;
-        /** Generally false, but if true, diagnostics are printed (as well as being collected) -- helpful for seeing diagnostic messages
+        /** Generally null, but if not null, diagnostics are printed (as well as being collected) -- helpful for seeing diagnostic messages
          * in the context of debugging output. */
-        boolean print = false;
+        PrintStream out = null;
         
         // FIXME - comment
         Context context;
@@ -169,11 +165,7 @@ public abstract class JmlTestSuite {
          * implemented here to collect the diagnstic. */
         public void report(Diagnostic<? extends S> diagnostic) {
             diagnostic.getClass(); // null check
-        	//if (System.getenv("NOJML")==null) System.out.println("LOG-VDH " + Log.instance(context).getDiagnosticFormatter().getClass() + " " + Log.instance(context).getDiagnosticFormatter().hashCode());
-            //if (print) System.out.println(Log.instance(context).getDiagnosticFormatter().format(diagnostic, Locale.getDefault()));
-            if (print) System.out.println(diagnostic.toString());
-            //((JCDiagnostic)diagnostic).setFormatter(Log.instance(context).getDiagnosticFormatter());
-            //if (print) System.out.println(diagnostic.toString());
+            if (out != null) out.println(diagnostic.toString());
             if (!noNotes || diagnostic.getKind() != Diagnostic.Kind.NOTE ||
             		diagnostic.getMessage(java.util.Locale.getDefault()).contains("Associated")) // FIXME - what 'kind' are associated declaration messages?
                 diagnostics.add(diagnostic);
@@ -208,7 +200,7 @@ public abstract class JmlTestSuite {
             try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)){
                 char[] cbuf = new char[10000]; // The 10000 is arbitrary -- it just sets the max amount of input read at once
                                             // If less is available, the reader just reads what is available
-                                            // If more is available, multiple reads will occur successfively
+                                            // If more is available, multiple reads will occur successively
                 int n;
                 while ((n = br.read(cbuf)) != -1) {
                     input.append(cbuf,0,n);
@@ -296,7 +288,7 @@ public abstract class JmlTestSuite {
         }
         try {
             main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
-            setCollector(ignoreNotes, printDiagnostics);
+            setCollector(ignoreNotes, printDiagnostics ? out : null);
             context = main.initialize(collector);
             ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
 
@@ -308,8 +300,8 @@ public abstract class JmlTestSuite {
         }
     }
     
-    public void setCollector(boolean ignoreNotes, boolean printDiagnostics) {
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printDiagnostics);    	
+    public void setCollector(boolean ignoreNotes, PrintStream printer) {
+        collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printer);    	
     }
     
     /** Calls compile, converting the List of options to an array of options */
@@ -317,7 +309,7 @@ public abstract class JmlTestSuite {
     	return compile(args.toArray(new String[args.size()]));
     }
     
-    /** Calls compile, converting the jva.util.List of options to an array of options */
+    /** Calls compile, converting the java.util.List of options to an array of options */
     public int compile(java.util.List<String> args) {
     	return compile(args.toArray(new String[args.size()]));
     }
@@ -372,7 +364,7 @@ public abstract class JmlTestSuite {
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
-    public void checkDiagnostics(Object ...  expected) {
+    public void checkDiagnostics(Object ...  expected) { // FIXME - change to an outputCompare
         try {
             int i = 0;
             int k = 0;

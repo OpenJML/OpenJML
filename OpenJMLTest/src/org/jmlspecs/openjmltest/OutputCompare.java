@@ -350,7 +350,6 @@ public class OutputCompare {
             diff += ("No expected file found: " + expected + JmlTestSuite.eol);
         } catch (Exception e) {
             diff += ("Exception on file comparison" + JmlTestSuite.eol);
-        } finally {
         }
         return diff.isEmpty() ? null : diff;
     }
@@ -420,9 +419,9 @@ public class OutputCompare {
                 line++;
                 String sexp = exp.readLine();
                 if (sexp == null) {
-                    if (line == lines.length) return diff.isEmpty() ? null : diff;
-
-                    else {
+                    if (line == lines.length) {
+                        return diff.isEmpty() ? null : diff;
+                    } else {
                         diff = ("More actual input than expected" + JmlTestSuite.eol);
                         return diff;
                     }
@@ -453,9 +452,7 @@ public class OutputCompare {
             diff += ("No expected file found: " + expectedFile + JmlTestSuite.eol);
         } catch (Exception e) {
             diff += ("Exception on file comparison" + JmlTestSuite.eol);
-        } finally {
         }
         return diff.isEmpty() ? null : diff;
     }
-
 }
