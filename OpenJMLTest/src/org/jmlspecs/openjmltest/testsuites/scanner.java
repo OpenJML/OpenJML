@@ -54,7 +54,7 @@ public class scanner extends JmlTestSuite {
     @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
-    	main.addOptions("--no-require-white-space");
+    	addOptions("--no-require-white-space");
         org.jmlspecs.openjml.Extensions.register(context);
         fac = ScannerFactory.instance(context);
         keys = null;
@@ -1183,7 +1183,7 @@ public class scanner extends JmlTestSuite {
     }
     
     @Test public void testRequireWhiteSpace() {
-        main.addOptions("--require-white-space");
+        addOptions("--require-white-space");
         helpScanner("/*@requires@*/",
                 new Object[]{EOF},
                 new int[] {14,14},

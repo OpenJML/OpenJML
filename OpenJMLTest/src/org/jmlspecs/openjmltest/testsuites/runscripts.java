@@ -159,10 +159,12 @@ public class runscripts extends RunBase {
         }
     }
     
+    // The JUnit 4 timeout option on the Test annotation does not work here -- FIXME - because the OpenJMLTestRunner does not read it
     @Test public void runscriptTimeout() {
         try {
             timeoutMS=1000;
             doTest();
+            org.junit.Assert.fail("Did not timeout");
         } catch (AssertionError e) {
             org.junit.Assert.assertEquals("unexpected output", 
                     "Test runscriptTimeout: did not complete within the timeout period",

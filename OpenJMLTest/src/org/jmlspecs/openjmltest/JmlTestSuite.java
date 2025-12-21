@@ -63,6 +63,11 @@ public abstract class JmlTestSuite {
 
     public java.io.PrintStream out = System.out;
 
+    /** A purposefully short abbreviation for the system path separator
+     * ( ; or : )
+     */
+    public static final String z = java.io.File.pathSeparator;
+    
     /** The relative path from OpenJMLTest to the OpenJMLDemo repo */
     public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 
@@ -119,11 +124,6 @@ public abstract class JmlTestSuite {
     // Needed for RAC tests
     protected String jdk = System.getProperty("java.home") + "/bin/java";
 
-    /** A purposefully short abbreviation for the system path separator
-     * ( ; or : )
-     */
-    static final public String z = java.io.File.pathSeparator;
-    
     /** Cached value of the end of line character string */
     static final public String eol = System.getProperty("line.separator");
 
@@ -225,6 +225,8 @@ public abstract class JmlTestSuite {
         }
     }
     
+    // FIXME - use JUnit's facility for timeout?
+    
     /** Used to set a timeout on a RAC process; returns true if the process was interrupted by the timeout */
     public static boolean timeout(Process p, long milliseconds) {
         // Set a timer to interrupt the process if it does not return within the timeout period
@@ -260,7 +262,7 @@ public abstract class JmlTestSuite {
     /** Set this to true in a test to print out more detailed information about
      * what the test is doing (as a debugging aid).
      */
-    public boolean print = true;
+    public boolean print = false;
     
     /** Set in some testcase classes to ignore Notes reported by the tool. 
      *  Set the value before calling super.setUp()
@@ -345,18 +347,23 @@ public abstract class JmlTestSuite {
 
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
-        out.println(diagnosticsToString(collector.getDiagnostics()));
+        out.print(diagnosticsToString(collector.getDiagnostics())); // diagnostic string includes a eol
+        out.flush();
+    }
+    
+    public static String diagnosticToString(Diagnostic<? extends JavaFileObject> diag) {
+        long line = diag.getLineNumber();
+        long start = diag.getStartPosition();
+        long pos = diag.getPosition();
+        long end = diag.getEndPosition();
+        long col = diag.getColumnNumber();
+        return (noSource(diag) + " line=" + line + " col=" + col + " start=" + start + " pos=" + pos + " end=" + end);
     }
 
     public static String diagnosticsToString(Iterable<Diagnostic<? extends JavaFileObject>> diagnostics) {
         String r = "";
         for (Diagnostic<? extends JavaFileObject> dd: diagnostics) {
-            long line = dd.getLineNumber();
-            long start = dd.getStartPosition();
-            long pos = dd.getPosition();
-            long end = dd.getEndPosition();
-            long col = dd.getColumnNumber();
-            r += (noSource(dd) + " line=" + line + " col=" + col + " pos=" + pos + " start=" + start + " end=" + end + "\n");
+            r += diagnosticToString(dd) + "\n";
         }
         return r;
     }
@@ -365,6 +372,7 @@ public abstract class JmlTestSuite {
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
     public void checkDiagnostics(Object ...  expected) { // FIXME - change to an outputCompare
+//        outputCompare.compareResults(expected,  collector, true);
         try {
             int i = 0;
             int k = 0;

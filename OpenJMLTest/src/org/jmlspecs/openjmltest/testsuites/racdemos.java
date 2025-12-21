@@ -41,15 +41,14 @@ public class racdemos extends RacBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        setUpForFiles();
         super.setUp();
         Assume.assumeTrue( new File(OpenJMLDemoPath).exists() );
     }
     
     public void helpCompileRunDemo(String dir, String mainClassname, String ... opts) {
         String adir = OpenJMLDemoPath + dir;
-        if (opts.length == 0) helpTCF(adir, adir, mainClassname, "-cp", adir);
-        else helpTCF(adir, adir, mainClassname, org.jmlspecs.openjml.Utils.concat(new String[] { "-cp", adir}, opts));
+        if (opts.length == 0) helpRac(adir, adir, mainClassname, "-cp", adir);
+        else helpRac(adir, adir, mainClassname, org.jmlspecs.openjml.Utils.concat(new String[] { "-cp", adir}, opts));
     }
 
     
@@ -93,14 +92,14 @@ public class racdemos extends RacBase {
     public void demoQueue() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java", "test/racQueue","Queue");
+        helpRac(OpenJMLDemoPath + "/src/openjml/demo/Queue.java", "test/racQueue","Queue");
     }
 
     @Test
     public void demoTime() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java", "test/racTime","Time");
+        helpRac(OpenJMLDemoPath + "/src/openjml/demo/Time.java", "test/racTime","Time");
     }
 
 
@@ -133,7 +132,7 @@ public class racdemos extends RacBase {
         expectedExit = 1;
         runrac = false;
         expectedRACExit = 0;
-        helpTCF(dir,dir+"/../bug","Game","-cp",dir,"-progress","-racJavaChecks");
+        helpRac(dir,dir+"/../bug","Game","-cp",dir,"-progress","-racJavaChecks");
     }
 
 

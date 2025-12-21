@@ -38,9 +38,7 @@ public class primrac extends RacBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        setUpForFiles();
         super.setUp();
-        ignoreNotes = true;
     }
     
     @Test
@@ -126,7 +124,4 @@ public class primrac extends RacBase {
         expectedRACExit = 0;
         helpCompileRun("JMLStringTest");
     }
-
-
-
 }

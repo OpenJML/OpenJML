@@ -14,28 +14,28 @@ public class purity extends TCBase {
 //        noCollectDiagnostics = true;
 //        jmldebug = true;
         super.setUp();
-        main.addOptions("--no-require-white-space");
-       // main.addOptions("--no-purity-check");  // Do not warn about library calls -- everything else is warned about
+        addOptions("--no-require-white-space");
+       // addOptions("--no-purity-check");  // Do not warn about library calls -- everything else is warned about
     }
 
     /** Test scanning something very simple */
     @Test
     public void testPure() {
-        helpTC(" class A { /*@ pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
+        helpTCText(null, " class A { /*@ pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
                 );
     }
 
     /** Test scanning something very simple */
     @Test
     public void testSpecPure() {
-        helpTC(" class A { /*@ spec_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
+        helpTCText(null, " class A { /*@ spec_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
                 );
     }
 
     /** Test scanning something very simple */
     @Test
     public void testStrictlyPure() {
-        helpTC(" class A { /*@ strictly_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
+        helpTCText(null, " class A { /*@ strictly_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
                 );
     }
 
@@ -43,7 +43,7 @@ public class purity extends TCBase {
     @Test
     public void testPure2() {
         expectedExit = 0;
-        helpTC(" class A {  boolean m() { return true; }  \n //@ invariant m(); \n}"
+        helpTCText(null, " class A {  boolean m() { return true; }  \n //@ invariant m(); \n}"
                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()",17
                );
     }
@@ -51,7 +51,7 @@ public class purity extends TCBase {
     @Test
     public void testSpecFile() {
         addMockFile("$A/A.jml","public class A { /*@pure*/ int m();  //@ invariant m() == 0; \n}");
-        helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
+        helpTCText("A.java","public class A {  int m() { return 0; }  \n }"
                 );
         
     }
@@ -60,7 +60,7 @@ public class purity extends TCBase {
     public void testSpecFile2() {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
-        helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
+        helpTCText("A.java","public class A {  int m() { return 0; }  \n }"
                 ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: A.m()",44
                 );
         
@@ -70,7 +70,7 @@ public class purity extends TCBase {
     public void testSpecFile3() {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  /*@ pure */ int m();  //@ invariant m() == 0; \n}");
-        helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
+        helpTCText("A.java","public class A {  int m() { return 0; }  \n }"
                 );
         
     }
@@ -79,7 +79,7 @@ public class purity extends TCBase {
     public void testSpecFile3a() {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
-        helpTCF("A.java","public class A {  int m() { return 0; }  \n }"
+        helpTCText("A.java","public class A {  int m() { return 0; }  \n }"
                 ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: A.m()",44
                 );
         
@@ -87,24 +87,23 @@ public class purity extends TCBase {
     
     @Test
     public void testPureAssign() {
-        helpTC(" class A {  boolean b,bb;  \n //@ invariant (b=bb); \n}"
+        helpTCText(null, " class A {  boolean b,bb;  \n //@ invariant (b=bb); \n}"
                 ,"/TEST.java:2: error: Assignments are not allowed where pure expressions are expected",18
                 );
     }
 
     @Test
     public void testPureAssignOp() {
-        helpTC(" class A {  int b,bb;  \n //@ invariant (b+=bb)==0; \n}"
+        helpTCText(null, " class A {  int b,bb;  \n //@ invariant (b+=bb)==0; \n}"
                 ,"/TEST.java:2: error: Assignments are not allowed where pure expressions are expected",18
                 );
     }
 
     @Test
     public void testModelMethodIncDec() {
-        expectedExit = 6;
-        specialCompare = true;
+        expectedExit = 6; // Doing an esc run so the assignable clause is checked
         addOptions("--esc", "--spec-math=java"); // FIXME - : `THIS.b should be a non-translated expression
-        helpTC(" class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
+        helpTCText(null, " class A {  int b;  \n //@ pure model boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
                 ,anyorder(
                 seq("/TEST.java:2: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",46
                 ,"/TEST.java:2: verify: Associated declaration: /TEST.java:2:",6
@@ -118,10 +117,9 @@ public class purity extends TCBase {
 
     @Test
     public void testMethodIncDec() {
-        expectedExit = 6;
-        specialCompare = true;
+        expectedExit = 6; // Doing an esc run so the assignable clause is checked
         addOptions("--esc", "--code-math=java");
-        helpTC(" class A {  int b;  \n //@ pure \n boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
+        helpTCText(null, " class A {  int b;  \n //@ pure \n boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
                 ,anyorder(
                 seq("/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",31
                 ,"/TEST.java:2: verify: Associated declaration: /TEST.java:3:",6
@@ -135,35 +133,35 @@ public class purity extends TCBase {
 
     @Test
     public void testPureIncrement() {
-        helpTC(" class A {  int b;  \n //@ invariant 0==(++b); \n}"
+        helpTCText(null, " class A {  int b;  \n //@ invariant 0==(++b); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
                 );
     }
 
     @Test
     public void testPureIncrement2() {
-        helpTC(" class A {  int b,bb;  \n //@ invariant 0==(b++); \n}"
+        helpTCText(null, " class A {  int b,bb;  \n //@ invariant 0==(b++); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",21
                 );
     }
 
     @Test
     public void testPureDecrement() {
-        helpTC(" class A {  int b,bb;  \n //@ invariant 0==(--b); \n}"
+        helpTCText(null, " class A {  int b,bb;  \n //@ invariant 0==(--b); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",20
                 );
     }
 
     @Test
     public void testPureDecrement2() {
-        helpTC(" class A {  int b,bb;  \n //@ invariant 0==(b--); \n}"
+        helpTCText(null, " class A {  int b,bb;  \n //@ invariant 0==(b--); \n}"
                 ,"/TEST.java:2: error: Increment and decrement operators are not allowed where pure expressions are expected",21
                 );
     }
 
     @Test
     public void testPureArrayAllocation() {
-        helpTC(" class A {  /*@ strictly_pure */ void m() { var a = new int[5]; }}"
+        helpTCText(null, " class A {  /*@ strictly_pure */ void m() { var a = new int[5]; }}"
                 ,"/TEST.java:1: error: Array allocations are not permitted in strictly_pure methods",53
                 ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:",17
                 );
@@ -171,7 +169,7 @@ public class purity extends TCBase {
 
     @Test
     public void testPureObjectAllocation() {
-        helpTC(" class A {  /*@ strictly_pure */ void m() { var a = new Object(); }}"
+        helpTCText(null, " class A {  /*@ strictly_pure */ void m() { var a = new Object(); }}"
                 ,"/TEST.java:1: error: Object allocations are not permitted in strictly_pure methods",53
                 ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:",17
                 );
@@ -180,7 +178,7 @@ public class purity extends TCBase {
     /** Test a method in a pure class */
     @Test
     public void testPureClass() {
-        helpTC(" class A extends B {  \n //@ invariant mm(); \n} /*@ pure */ class B { boolean mm() { return true; } }"
+        helpTCText(null, " class A extends B {  \n //@ invariant mm(); \n} /*@ pure */ class B { boolean mm() { return true; } }"
                 );
     }
 
@@ -188,7 +186,7 @@ public class purity extends TCBase {
     @Test
     public void testPureClass2() {
         expectedExit = 0;
-        helpTC(" class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B { boolean mm() { return true; } }"
+        helpTCText(null, " class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B { boolean mm() { return true; } }"
                 );
     }
 
@@ -196,7 +194,7 @@ public class purity extends TCBase {
     @Test
     public void testPureClass2a() {
         expectedExit = 0;
-        helpTC(" class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B {  }"
+        helpTCText(null, " class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B {  }"
                 ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.mm()",18
                 );
     }
@@ -204,29 +202,25 @@ public class purity extends TCBase {
     /** Test that pure from enclosing class does apply */
     @Test
     public void testPureClass3() {
-        expectedExit = 0;
-        helpTC(" /*@ pure */ class A  {  static class B { //@ invariant mm(); \n boolean mm() { return true; } }\n } "
+        helpTCText(null, " /*@ pure */ class A  {  static class B { //@ invariant mm(); \n boolean mm() { return true; } }\n } "
                 );
     }
 
     @Test
     public void testCollection() {
-        expectedExit = 0;
-        helpTC(" class A { /*@ pure */ public int m(java.util.Vector v) { return v.size(); }\n } "
+        helpTCText(null, " class A { /*@ pure */ public int m(java.util.Vector v) { return v.size(); }\n } "
                 );
     }
 
     @Test
     public void testCollection2() {
-        expectedExit = 0;
-        helpTC(" class A  {  public void m(java.util.Vector v) { //@ assert 0 == v.size(); \n }} "
+        helpTCText(null, " class A  {  public void m(java.util.Vector v) { //@ assert 0 == v.size(); \n }} "
                 );
     }
 
     @Test
     public void testCollection3() {
-        expectedExit = 1;
-        helpTC(" class A  {  public void m(java.util.Vector v) { //@ assert 0 == v.size(); }\n } " // Intentional typo
+        helpTCText(null, " class A  {  public void m(java.util.Vector v) { //@ assert 0 == v.size(); }\n } " // Intentional typo
                 ,"/TEST.java:2: error: illegal start of type", 2
                 ,"/TEST.java:2: error: reached end of file while parsing", 3
                 );
@@ -235,7 +229,7 @@ public class purity extends TCBase {
     @Test
     public void testPureNotSpecPure() {
         expectedExit = 0;
-        helpTC(" class A { /*@ pure */ Object m() { return new Object(); }  \n //@ invariant m() != null; \n}"
+        helpTCText(null, " class A { /*@ pure */ Object m() { return new Object(); }  \n //@ invariant m() != null; \n}"
                 ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()", 17
                 );
     }

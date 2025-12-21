@@ -51,8 +51,7 @@ abstract public class ParseBase extends JmlTestSuite {
     @Override
     public void setUp() throws Exception {
         super.setUp();
- //       main.addOptions("compilePolicy","check");  // Don't do code generation  // FIXME
-        main.addOptions("--specspath",   testspecpath);
+        addOptions("--specspath",   testspecpath);
         print = false;
         jml = false;
     }
@@ -81,6 +80,7 @@ abstract public class ParseBase extends JmlTestSuite {
     public void checkCompilationUnit(String text, Object ... expected) {
         List<JCTree> out = parseCompilationUnit(text);
         checkParseTree(out,expected);
+        checkMessages(); // Checks that there are no diagnostics
     }
 
     /** Parse the given text (a compilation unit) and then compare any parse errors against 'expected'*/

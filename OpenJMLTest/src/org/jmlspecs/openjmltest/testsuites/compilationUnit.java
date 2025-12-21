@@ -133,7 +133,7 @@ public class compilationUnit extends ParseBase {
                 JCFieldAccess.class, 1,13,24,
                 JCFieldAccess.class, 1,4,13,
                 JCIdent.class, 1,1,4
-                              );
+                );
         checkMessages();
     }
 
@@ -149,7 +149,7 @@ public class compilationUnit extends ParseBase {
                 JCFieldAccess.class, 1,13,24,
                 JCFieldAccess.class, 1,4,13,
                 JCIdent.class, 1,1,4
-                              );
+                );
         checkMessages();
     }
 
@@ -170,7 +170,7 @@ public class compilationUnit extends ParseBase {
                 JCFieldAccess.class, 38,50,61,
                 JCFieldAccess.class, 38,41,50,
                 JCIdent.class, 38,38,41
-                              );
+                );
         checkMessages();
     }
 
@@ -335,6 +335,7 @@ public class compilationUnit extends ParseBase {
     // The harness tests test that the test routines report errors as expected (and, for example, do not crash)
     // Some variations are present to fill out test coverage
     
+    // FIXME - compare to harness tests in parseErrors
     @Test
     public void harness1() {
         noExtraPrinting = true;

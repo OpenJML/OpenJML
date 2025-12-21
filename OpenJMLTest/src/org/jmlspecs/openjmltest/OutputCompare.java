@@ -115,73 +115,87 @@ public class OutputCompare {
     DiagnosticListenerX<JavaFileObject> collector;
     protected int nDiags;
     protected int diagListPos;
+    protected int expectedUsed;
+    protected int itemThatDiffers = -1;
     
     /** Compares actual diagnostics against the given list of expected results; this is the 
      * public entry point into this capability. The method either returns without error if the expected objects 
      * completely match all of the observed diagnostics in the diagnostic collector or throws an 
      * AssertionError with a message indicating the first diagnostic that does not match. */
-    public void compareResults(Object[] expectedErrors, DiagnosticListenerX<JavaFileObject> collectorp) {
+    public int compareResults(Object[] expectedErrors, DiagnosticListenerX<JavaFileObject> collectorp, boolean compareAll) {
         collector = collectorp;
         nDiags = collector.getDiagnostics().size();
         diagListPos = 0;
         //System.out.println("START " + expectedErrors.length + " " + nDiags);
-        if (!compareResults(expectedErrors)) {
+        if (!compareResultsX(expectedErrors)) {
             if (diagListPos < nDiags) {
                 Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
-                fail("Failed to match diagnostic " + diagListPos + ": " + d);
-            } else {
-                Assert.fail("Too much expected output: "  + nDiags + " diagnostics observed");
+                String reason = switch (itemThatDiffers) { case 0 -> " (text)"; case 1 -> " (col)"; case 2 -> " (start)"; case 3 -> " (pos)"; case 4 -> " (end)"; default -> ""; };
+                fail("Failed to match diagnostic " + diagListPos + reason+ ": " + JmlTestSuite.diagnosticToString(d));
+            } else if (compareAll && expectedUsed < expectedErrors.length) {
+                Assert.fail("Fewer errors observed (" + nDiags + ") than expected. First extra: " + expectedErrors[expectedUsed]);
             }
         } else {
             if (diagListPos < nDiags) {
-                Assert.fail("Too little expected output: " + nDiags + " diagnostics observed");
+                Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
+                Assert.fail("More errors observed (" + nDiags + ") than expected. First extra: " + JmlTestSuite.diagnosticToString(d));
+            } else if (compareAll && expectedUsed < expectedErrors.length) {
+                Assert.fail("Fewer errors observed (" + nDiags + ") than expected. First extra: " + expectedErrors[expectedUsed]);
             }
         }
+        return expectedUsed;
     }
     
-    /** Returns true if all the expectedErrors are matched against the diagnostics beginning at diagListPos.
-     * If result is true, diagListPos must be advanced. */
-    protected boolean compareResults(Object ... expectedErrors) {
+    /** Returns true if the expectedErrors are matched against the diagnostics beginning at diagListPos.
+     * If result is false, then the diagnostic at diagListPos does not match the corresponding expected diagnostic
+     * If result is true, diagListPos must be advanced and 
+     * expectedUsed gives how much of the expectedDiags has been matched 
+     *
+     **/
+    protected boolean compareResultsX(Object ... expectedDiags) {
         int i = 0;
         int initPos = diagListPos;
-        while (i < expectedErrors.length) {
+        while (i < expectedDiags.length) {
             //System.out.println("TEST " + i + " " + expectedErrors.length + " " + diagListPos + " " + nDiags);
-            if (!(expectedErrors[i] instanceof Special)) {
-                int n = compareDiagnostic(expectedErrors,i);
+            if (!(expectedDiags[i] instanceof Special)) {
+                int n = compareDiagnostic(expectedDiags,i);
                 if (n > 0) {
                     i += n;
                 } else {
                     return false;
                 }
-            } else if (expectedErrors[i] instanceof AnyOrder ao) {
+            } else if (expectedDiags[i] instanceof AnyOrder ao) {
                 if (compareAnyOrder(ao.expected)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
+                    itemThatDiffers = -1;
                     return false;
                 }
-            } else if (expectedErrors[i] instanceof OneOf oo) {
+            } else if (expectedDiags[i] instanceof OneOf oo) {
                 if (compareOneOf(oo.expected)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
+                    itemThatDiffers = -1;
                     return false;
                 }
-            } else if (expectedErrors[i] instanceof Optional op) {
+            } else if (expectedDiags[i] instanceof Optional op) {
                 int initPos2 = diagListPos;
-                if (!compareResults(op.expected)) {
+                if (!compareResultsX(op.expected)) {
                     diagListPos = initPos2;
                 }
                 ++i;
                 // It is OK if the optional did not match
-            } else if (expectedErrors[i] instanceof Seq sq) {
-                if (compareResults(sq.expected)) {
+            } else if (expectedDiags[i] instanceof Seq sq) {
+                if (compareResultsX(sq.expected)) {
                     ++i;
                 } else {
                     diagListPos = initPos;
                     return false;
                 }
             }
+            expectedUsed = i;
         }
         return true;
     }
@@ -200,15 +214,20 @@ public class OutputCompare {
             exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/'); // FIXME - get rid of replace
         }
         x: {
+            itemThatDiffers = 0;
             if (!act.equals(exp)) return 0;
             {
                 i++;
                 if (i >= list.length) {
-                    if (-1 != diag.getColumnNumber()) return 0;
-                    break x;
+                    if (-1 == diag.getColumnNumber()) break x;
+                    itemThatDiffers = 1;
+                    return 0;
                 }
                 if (list[i] instanceof Integer i1) {
-                    if ((int)i1 != diag.getColumnNumber()) return 0;
+                    if ((int)i1 != diag.getColumnNumber()) {
+                        itemThatDiffers = 1;
+                        return 0;
+                    }
                 } else {
                     if (-1 != diag.getColumnNumber()) return 0;
                     break x;
@@ -219,9 +238,15 @@ public class OutputCompare {
                 if (i >= list.length) break x;
                 if (list[i] instanceof Integer i1) {
                     if (i+1 < list.length && list[i+1] instanceof Integer) {
-                        if ((int)i1 != diag.getStartPosition()) return 0;
+                        if ((int)i1 != diag.getStartPosition()) {
+                            itemThatDiffers = 2;
+                            return 0;
+                        }
                     } else {
-                        if ((int)i1 != diag.getPosition()) return 0;
+                        if ((int)i1 != diag.getPosition()) {
+                            itemThatDiffers = 3;
+                            return 0;
+                        }
                     }
                 } else break x;
             }
@@ -229,15 +254,22 @@ public class OutputCompare {
                 i++;
                 if (i >= list.length) break x;
                 if (list[i] instanceof Integer i1) {
-                    if ((int)i1 != diag.getPosition()) return 0;
+                    if ((int)i1 != diag.getPosition()) {
+                        itemThatDiffers = 3;
+                        return 0;
+                    }
                 } else break x;
             }
             {
                 i++;
                 if (i >= list.length) break x;
                 if (list[i] instanceof Integer i1) {
-                    if ((int)i1 != diag.getEndPosition()) return 0;
-                } else break x;
+                    if ((int)i1 != diag.getEndPosition()) {
+                        itemThatDiffers = 4;
+                        return 0;
+                    }
+                    i++;
+                } break x;
             }
         }
         //System.out.println("MATCHED AT " + k + " " + i + " " + diagListPos);
@@ -255,7 +287,7 @@ public class OutputCompare {
         // None of expected[i] may be null or empty; all of them must be Special objects
         int i = 0;
         while (i < expected.length) {
-            if (compareResults(expected[i])) {
+            if (compareResultsX(expected[i])) {
                 // Matched
                 return true;
             }
@@ -277,7 +309,7 @@ public class OutputCompare {
         more: while (toMatch > 0) {
             for (int i = 0; i < expected.length; ++i) {
                 if (used[i]) continue;
-                if (compareResults(expected[i])) {
+                if (compareResultsX(expected[i])) {
                     // Matched
                     used[i] = true;
                     toMatch--;

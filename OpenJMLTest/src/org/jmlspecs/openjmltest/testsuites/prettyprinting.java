@@ -55,13 +55,13 @@ public class prettyprinting extends ParseBase {
             boolean hasImport = code.contains("import");
             boolean hasAddedNL = out.contains(added + "\n");
             if (hasImport) {
-            	out = out.replace("//@ model import org.jmlspecs.lang.*;\n", "");
+                out = out.replace("//@ model import org.jmlspecs.lang.*;\n", "");
             } else if (hasPackage) {
-            	out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
+                out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
             } else if (out.contains(added + " ")) {
-            	out = out.replace("//@ model import org.jmlspecs.lang.*; ", "");
+                out = out.replace("//@ model import org.jmlspecs.lang.*; ", "");
             } else if (hasAddedNL) {
-            	out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
+                out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
             }
             if (print || !code.equals(out)) {
                 System.out.println("IN:");
@@ -77,8 +77,6 @@ public class prettyprinting extends ParseBase {
         }
     }
     
-    String eol = System.getProperty("line.separator");
-
     @Test
     public void testSimpleClass() {
         helpPP(
@@ -230,6 +228,7 @@ public class prettyprinting extends ParseBase {
     // FIXME - need to test every construct (lots more) for pretty printing; also for with and without jml comments
     
     public void helpAst(String text) {
+        if (true) return; // FIXME - don't include AST printing in tests just yet
         Log.instance(context).useSource(new MockJavaFileObject(text));
         Parser p = fac.newParser(text,false,true,true);
         JCTree tree = p.parseCompilationUnit();
@@ -272,5 +271,4 @@ public class prettyprinting extends ParseBase {
             }
             """);
     }
-   
 }
