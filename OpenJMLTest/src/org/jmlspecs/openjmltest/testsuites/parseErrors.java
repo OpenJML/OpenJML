@@ -12,8 +12,8 @@ public class parseErrors extends ParseBase {
     public void setUp() throws Exception {
         super.setUp();
         // These options are needed for stringTemplate(); they have to be set before postOptions() is called
-        com.sun.tools.javac.util.Options.instance(main.context()).put("--source","21");
-        com.sun.tools.javac.util.Options.instance(main.context()).put("--enable-preview","--enable-preview");
+        addOptions("--source","21");
+        addOptions("--enable-preview","--enable-preview");
         addOptions("--check");
         postOptions();
     }
@@ -27,7 +27,7 @@ public class parseErrors extends ParseBase {
 
     @Test public void orphanCatch() {
         checkParseErrors("class A { public A() { catch(Exception e) {}} }"
-                ,"/TEST.java:1: error: 'catch' without 'try'", 24, 23, 23, 23 // FIXME - Beeeter would be end=28
+                ,"/TEST.java:1: error: 'catch' without 'try'", 24, 23, 23, 23 // FIXME - Better would be end=28
                 );
     }
 
@@ -89,8 +89,6 @@ public class parseErrors extends ParseBase {
                 ,"/TEST.java:1: error: not a statement", 41, 40, 40, 40
                 ,"/TEST.java:1: error: Expected a declaration or a JML construct inside the JML annotation here", 41, 40, 40, 40
                 );
-
-
     }
 
     // FIXME - not sure this helps coverage
@@ -101,7 +99,6 @@ public class parseErrors extends ParseBase {
                 ,"/TEST.java:1: error: not a statement", 39, 37, 38, 38
                 ,"/TEST.java:1: error: Expected a declaration or a JML construct inside the JML annotation here", 38, 37, 37, 37
                 );
-
     }
 
     @Test public void missingCase() {
@@ -391,8 +388,4 @@ public class parseErrors extends ParseBase {
                     a.getMessage());
         }
     }
-
-
-
-
 }

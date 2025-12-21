@@ -38,14 +38,13 @@ public class compiler extends JmlTestSuite{
     boolean capture = true;
     String projHome;
     {
-        String h = System.getProperty("openjml.eclipseProjectLocation");
-        if (h == null) h = JmlTestSuite.root + "/OpenJML21/OpenJMLTest";
+        var h = JmlTestSuite.root + "/OpenJML21/OpenJMLTest";
         projHome = h.replace("C:","").replace("\\","/");
     }
     String specsHome;
     {
     	try {
-    		specsHome = JmlTestSuite.root + "/Specs";
+    		specsHome = JmlTestSuite.root + "/Specs"; // FIXM - /Specs/specs ???
     	} catch (Exception e) {
     		specsHome = null;
     	}
@@ -94,7 +93,7 @@ public class compiler extends JmlTestSuite{
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = bout.toString();
         String errOutput = berr.toString();
-        actualOutput = actualOutput.replace("\\","/");
+        actualOutput = actualOutput.replace("\\","/");  // FIXME - no longer need these?
         //actualOutput = actualOutput.replaceAll("temp-release/", "");
         errOutput = errOutput.toString().replace("\\","/");
 
@@ -110,7 +109,7 @@ public class compiler extends JmlTestSuite{
         } else {
             expected = output[0];
         }
-        expected = JmlTestSuite.doReplacements(expected.replace("${PROJ}",projHome));
+        expected = JmlTestSuite.doReplacements(expected.replace("${PROJ}",projHome)); // FIXME - normalize these replacements
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
@@ -543,17 +542,6 @@ public class compiler extends JmlTestSuite{
                           ,""
                           );
     }
-
-//    /** Tests that specs files are not found with empty specs path */
-//    @Test
-//    public void testSourcePath3() throws Exception {
-//        helper(new String[]
-//                          { "-classpath"," ",
-//                            "-sourcepath",src + "testNoErrors",
-//                            src + "testNoErrors/A.java",  
-//                          },0,0,"",
-//                          "");
-//    }
 
     // This test requires jmlruntime.jar to have been created - run the Makefile
     // in the OpenJML project
@@ -1210,7 +1198,7 @@ public class compiler extends JmlTestSuite{
                 { "-sourcepath",src + "testNoErrors",
                   "--specs-path","../OpenJML21/release-temp",
                   "-lang=jml",
-                  "-extensions=X", // Ignored when strict
+                  "--extensions=X", // Ignored when strict
                   src + "testNoErrors/A.java"
                 },0,0
                 ,""
@@ -1222,7 +1210,7 @@ public class compiler extends JmlTestSuite{
     public void testExtension2() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                  "-extensions=X",
+                  "--extensions=X",
                   src + "testNoErrors/A.java"
                 },2,1
                 ,"error: Failed to load extension X: No such package found"
@@ -1234,7 +1222,7 @@ public class compiler extends JmlTestSuite{
     public void testExtension() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testExtension",
-                  "-extensions=ext",
+                  "--extensions=ext",
                   src + "testExtension/A.java"
                 },0,0
                 ,""

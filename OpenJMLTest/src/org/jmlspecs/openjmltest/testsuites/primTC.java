@@ -7,17 +7,10 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class primTC extends TCBase {
 
-    @Override
-    public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
-//        jmldebug = true;
-        super.setUp();
-    }
-    
     // bigint tests
 
     @Test public void jmlbigint() {
-        helpTC(
+        helpTCText(null, 
             """
             class A {
               public void test1() {
@@ -121,7 +114,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmlbigintFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -140,7 +133,7 @@ public class primTC extends TCBase {
     // real tests
     
     @Test public void jmlreal() {
-        helpTC(
+        helpTCText(null, 
                 """
                 class A {
                   public void test1() {
@@ -211,7 +204,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmlrealFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -230,7 +223,7 @@ public class primTC extends TCBase {
     // TYPE tests
     
     @Test public void jmlTYPE() {
-        helpTC(
+        helpTCText(null, 
             """
             class A {
               public static void m() {
@@ -266,7 +259,7 @@ public class primTC extends TCBase {
     }
     
     @Test public void jmlTYPEFlow() {
-        helpTC(
+        helpTCText(null, 
             """
             class A {
               //@ ghost \\TYPE b ;
@@ -284,7 +277,7 @@ public class primTC extends TCBase {
     // string tests
     
     @Test public void jmlstring() {
-        helpTC(
+        helpTCText(null, 
                 """
                 class A {
                   void m() {
@@ -351,7 +344,7 @@ public class primTC extends TCBase {
     }
     
     @Test public void jmlstringFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -370,7 +363,7 @@ public class primTC extends TCBase {
     // array tests
 
     @Test public void jmlarray() {
-        helpTC(
+        helpTCText(null, 
                 """
                 class A {
                   void m() {
@@ -417,7 +410,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmlarrayFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -435,7 +428,7 @@ public class primTC extends TCBase {
     // Seq tests
 
     @Test public void jmlseq() {
-        helpTC(
+        helpTCText(null, 
                 """
                 class A {
                   void m() {
@@ -527,7 +520,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmlseqFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -546,7 +539,7 @@ public class primTC extends TCBase {
     // Set tests
     
     @Test public void jmlset() {
-        helpTC(
+        helpTCText(null, 
                 """
                 class A {
                     void test() {
@@ -609,7 +602,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmlsetFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -627,7 +620,7 @@ public class primTC extends TCBase {
     // Map tests
 
     @Test public void jmlmap() {
-        helpTC(
+        helpTCText(null, 
             """
             class A {
                 void test() {
@@ -659,7 +652,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmlmapFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -675,7 +668,7 @@ public class primTC extends TCBase {
     }
     
     @Test public void jmlrangeFlow() {// Flow tests (won't be detected if there are typechecking errors)
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           void m() {
@@ -691,7 +684,7 @@ public class primTC extends TCBase {
     }
     
     @Test public void jmlrangeFinal() {
-        helpTC(
+        helpTCText(null, 
         """
           class A {
           //@ ghost public static \\range r = 2 .. 3 ;
@@ -712,7 +705,7 @@ public class primTC extends TCBase {
     }
     
     @Test public void jmlrangeParse() {
-        helpTC(
+        helpTCText(null, 
         """
         public class R {
           void m() {
@@ -726,7 +719,7 @@ public class primTC extends TCBase {
     }
 
     @Test public void jmldatagroup() {
-        helpTC(
+        helpTCText(null, 
         """
         class A {
           //@ public model \\datagroup d; // OK
@@ -766,16 +759,16 @@ public class primTC extends TCBase {
 
      // FIXME - do we allow direct assignment?
 //    @Test public void testArrayType() {
-//        helpTC(" class A { void m() { //@ ghost \\array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
+//        helpTCFText(null, " class A { void m() { //@ ghost \\array<Object> b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}"
 //                );
 //    }
 
     @Test public void testIntsetType() {
-        helpTC(" class A { void m() { //@ ghost \\intset b; havoc b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
+        helpTCText(null, " class A { void m() { //@ ghost \\intset b; havoc b; ghost \\bigint i = 0; ghost boolean o = b[i];  set b[i] = true; \n}}");
     }
 
     @Test public void testIntmapType() {
-        helpTC(" class A { void m() { //@ ghost \\intmap<Object> b; havoc b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
+        helpTCText(null, " class A { void m() { //@ ghost \\intmap<Object> b; havoc b; ghost \\bigint i = 0; ghost Object o = b[i]; set b[i] = o; \n}}");
     }
 
    // FIXME - need to be able to initialize JML types

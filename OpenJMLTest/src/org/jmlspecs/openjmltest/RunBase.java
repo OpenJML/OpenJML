@@ -19,9 +19,11 @@ import org.junit.Assert;
  */
 public abstract class RunBase extends JmlTestSuite {
     
-    public int timeoutMS = 0; // in milliseconds
+    /** Timeout to apply to the test, in milliseconds; <=0 means no timeout */
+    public int timeoutMS = 0;
 
-    public static final String[] args = new String[] { "./run" };
+    /** Convenient holder for the array needed by the ProcessBuilder */
+    protected static final String[] args = new String[] { "./run" };
     
     /** Runs the 'run' executable within the 'workingDir' folder, reporting a test success if 
      * the exit code is 0 and failure for any other result.

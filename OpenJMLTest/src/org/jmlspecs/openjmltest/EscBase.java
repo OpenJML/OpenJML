@@ -108,19 +108,8 @@ public abstract class EscBase extends JmlTestSuite {
         return data;
     }
     
-    public void addOptions(String ... options) {
-        main.addOptions(options);
-//        if (options != null) {
-//            if (options.indexOf(',')>= 0) {
-//            	addOptions(options.split(","));
-//            } else {
-//            	addOptions(options.split(","));
-//            }
-//        }
-    }
-
     /** options is a comma- or space-separated list of options to be added -- used in the parameterized JUnit tests*/
-    protected String options;
+    protected String options;  // FIXME - remove?
     /** The name of the solver to be used */
     protected String solver;
     
@@ -224,7 +213,7 @@ public abstract class EscBase extends JmlTestSuite {
             if (captureOutput) collectOutput(false);
             synchronized (System.out) { 
                 if (print ) printDiagnostics();
-                outputCompare.compareResults(expectedResults,collector);
+                outputCompare.compareResults(expectedResults,collector,true);
                 if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = verifyExit;
                 if (ex != expectedExit) fail("Compile ended with exit code " + ex + " but expected " + expectedExit);
             }

@@ -22,6 +22,8 @@ import com.sun.tools.javac.util.Log;
 
 import static org.junit.Assert.*;
 
+// FIXME - verify that the output that occurs is desired
+
 /** These test the AST structure produced by parsing various expressions -
  * checking the node type and position.
  * @author David Cok
@@ -124,7 +126,7 @@ public class expressions extends ParseBase {
         }
     }
     
-    String noSource(JCDiagnostic dd) {
+    String noSource(JCDiagnostic dd) {  // FIXME - delete in favor of JmlTestSuite.noSource?
         return dd.getMessage(java.util.Locale.getDefault());
     }
     
@@ -168,7 +170,6 @@ public class expressions extends ParseBase {
     			,JCIdent.class, 32,32,35
          );
     }
-
 
     /** Test scanning something very simple */
     @Test
@@ -247,7 +248,6 @@ public class expressions extends ParseBase {
             print = true; // Intentionally prints output
             helpExprErrors(" \\max","reached end of file while parsing");
     }
-
 
     /** Test that fails */
     @Test
@@ -883,7 +883,4 @@ public class expressions extends ParseBase {
     }
 
 // TODO: other expressions, etc.
-
-
 }
-

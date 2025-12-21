@@ -1,38 +1,15 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
-import javax.tools.JavaFileObject;
-
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjmltest.RacBase;
-import org.jmlspecs.openjmltest.TCBase;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
-import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
-
-import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
 
 
 /** This suite of tests runs openjml --rac on a set of custom written test files that
@@ -103,7 +80,7 @@ public class SpecsRac extends RacBase {
                 break;
             }
         }
-        helpTCF(subdir,subdir,testname);
+        helpRac(subdir,subdir,testname);
     }
     
     static public java.util.List<File> findAllFiles() {
