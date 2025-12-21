@@ -14,17 +14,17 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 
 // FIXME - compare to release tests!!!!!!
-// FIXME - these tests set various static stuff (System.out, System.err, Main.useJML) -- how is this thread safe?
+// FIXME - these tests set various static stuff (Main.useJML) -- how is this thread safe?
 
 /** Tests running the tool as if from the command-line (for typechecking);
  * includes erroneous command-line argument combinations and combinations
  * of class, source, and specs paths. */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class compiler extends JmlTestSuite{
-    
+
     public static final String relsrc = "releaseTests/src";
     public static final String src = "test/compiler/";
-    
+
     @Rule
     public TestName name = new TestName();
 
@@ -43,32 +43,32 @@ public class compiler extends JmlTestSuite{
     }
     String specsHome;
     {
-    	try {
-    		specsHome = JmlTestSuite.root + "/Specs"; // FIXM - /Specs/specs ???
-    	} catch (Exception e) {
-    		specsHome = null;
-    	}
+        try {
+            specsHome = JmlTestSuite.root + "/Specs"; // FIXME - /Specs/specs ???
+        } catch (Exception e) {
+            specsHome = null;
+        }
     }
     String expectedFile = null;
-    
+
     @Before
     public void setUp() throws Exception {
         //capture = false; print = true;
-        savederr = System.err;
-        savedout = System.out;
-        if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
-        if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+        savederr = this.err;
+        savedout = this.out; // FIXME - why not use th ecapture facility in jmlTestSuite
+        if (capture) this.err = new PrintStream(berr=new ByteArrayOutputStream(10000));
+        if (capture) this.out = new PrintStream(bout=new ByteArrayOutputStream(10000));
     }
-    
+
     @After
     public void tearDown() {
         // Do this just in case the test fails without having reset the streams
         berr = null;
         bout = null;
-        System.setErr(savederr);
-        System.setOut(savedout);
+        this.err = savederr;
+        this.out = savedout;
     }
-    
+
     /** This is a helper method that runs the compiler on the given set of
      * command-line arguments, checking the result
      * @param args the command-line arguments
@@ -84,20 +84,20 @@ public class compiler extends JmlTestSuite{
         try {
             exitCode = org.jmlspecs.openjml.Main.execute(args);
         } finally {
-            System.err.flush();
-            System.out.flush();
-            System.setErr(savederr);
-            System.setOut(savedout);
+            this.err.flush();
+            this.out.flush();
+            this.err = savederr;
+            this.out = savedout;
         }
         if (berr == null) return;
         // Depending on how the log is setup, error output can go to either bout or berr
         String actualOutput = bout.toString();
         String errOutput = berr.toString();
         actualOutput = actualOutput.replace("\\","/");  // FIXME - no longer need these?
-        //actualOutput = actualOutput.replaceAll("temp-release/", "");
         errOutput = errOutput.toString().replace("\\","/");
 
         String expected;
+        String expectedErr = "";
         if (expectedFile != null) {
             try {
                 expected = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(expectedFile)));
@@ -107,34 +107,36 @@ public class compiler extends JmlTestSuite{
                 org.junit.Assert.fail(ee.toString());
             }
         } else {
-            expected = output[0];
+            expected = JmlTestSuite.doReplacements(output[0]);
+            if (output.length > 1) {
+                expectedErr = JmlTestSuite.doReplacements(output[1]);
+            }
         }
-        expected = JmlTestSuite.doReplacements(expected.replace("${PROJ}",projHome)); // FIXME - normalize these replacements
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
         actualOutput = removeNotes(actualOutput);
 
-        if (print) System.out.println("EXPECTING: " + output[0]);
+        if (print) this.out.println("EXPECTING: " + expected);
         print = false;
-        if (print) System.out.println("ACTUAL OUT: " + actualOutput);
-        if (print) System.out.println("ACTUAL ERR: " + errOutput);
+        if (print) this.out.println("ACTUAL OUT: " + actualOutput);
+        if (print) this.out.println("ACTUAL ERR: " + errOutput);
         if (output.length <= 1 && errOutput.length() == 0 && !actualOutput.startsWith("Note:")) errOutput = actualOutput;
         if (capture) try {
             String tail = "";
-            if (print) System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + errOutput);
+            if (print) this.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + errOutput);
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
             else if (all == 1 && !actualOutput.startsWith(expected)) {
-                fail("Output does not begin with: " + expected + eol + "Instead is: " + errOutput);
+                fail("Output does not begin with: " + expected + eol + "Instead is: " + actualOutput);
             } else if (all == 2 && actualOutput.indexOf(expected) == -1 ) {
-                fail("Output does not end with: " + expected + eol + "Instead is: " + errOutput);
+                fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
             }
             if (output.length > 1) {
-                expected = output[1].replace("${PROJ}",projHome).replaceAll("\r", "");
+                expected = output[1].replaceAll("\r", "");
                 int k = actualOutput.indexOf("Note:");
                 String actual = k>=0 ? actualOutput.substring(0,k) : actualOutput; 
-                if (print) System.out.println("TEST: " + getTestName() + " STANDARD OUT: " + eol + actual);
+                if (print) this.out.println("TEST: " + getTestName() + " STANDARD OUT: " + eol + actual);
                 if (all == 0) {
                     assertEquals("The standard out is wrong",expected+tail,actual);
                 } else if (all == -1) {
@@ -146,20 +148,20 @@ public class compiler extends JmlTestSuite{
             assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
             if (!print) {
-                System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + berr.toString());
-                System.out.println("ACTUAL OUT: " + actualOutput);
-                System.out.println("ACTUAL ERR: " + errOutput);
+                this.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + berr.toString());
+                this.out.println("ACTUAL OUT: " + actualOutput);
+                this.out.println("ACTUAL ERR: " + errOutput);
             }
             throw ex;
         }
     }
-    
+
     public String removeNotes(String input) {
         while (true) {
-        	int p = input.indexOf("Note: ");
-        	if (p < 0) break;
-        	int q = input.indexOf("\n",p);
-        	input = input.substring(0, p) + input.substring(q+1);
+            int p = input.indexOf("Note: ");
+            if (p < 0) break;
+            int q = input.indexOf("\n",p);
+            input = input.substring(0, p) + input.substring(q+1);
         }
         return input;
     }
@@ -170,32 +172,38 @@ public class compiler extends JmlTestSuite{
         String failureMessage = "error: The main entry point org.jmlspecs.openjml.Main.main was called with a null argument" + eol;
         helper(null,2,-1,failureMessage);
     }
-    
+
     /** Test with no arguments at all (empty array for args), which should
      * produce the help message. */
     @Test
     public void testNoArgs() throws Exception {
-        String failureMessage = "Usage: openjml <options> <source files>" + eol +
-                                "Use option '-?' to list options" + eol;
+        String failureMessage =
+                """
+                Usage: openjml <options> <source files>
+                Use option '-?' to list options
+                """;
         helper(new String[]{},2,1,"",failureMessage);
     }
-    
+
     /** Tests an unknown option */
     @Test
     public void testBadOption() throws Exception {
-        String failureMessage = "error: invalid flag: -ZZZ" + eol +
-                                "Usage: openjml <options> <source files>" + eol + 
-                                "use --help for a list of possible options" + eol;
+        String failureMessage =
+                """
+                error: invalid flag: -ZZZ
+                Usage: openjml <options> <source files>
+                use --help for a list of possible options
+                """;
         helper(new String[]{"-ZZZ",src + "testNoErrors/A.java"},2,0,failureMessage);
     }
-    
+
     /** Tests a bad command */
     @Test
     public void testBadCommand() throws Exception {
         String failureMessage = "error: Invalid parameter to the --command option: zzz" + eol;
         helper(new String[]{"-command=zzz",src + "testNoErrors/A.java"},2,0,failureMessage);
     }
-    
+
     /** Tests setting the specs path through the command-line option, by using non-existent 
      * directories that then get complaints
      * @throws Exception
@@ -203,83 +211,83 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testSpecPath() throws Exception {
         helper(new String[]
-                  {"-classpath","cpath"+z+"cpath2",
-                   "-sourcepath","spath",
-                   "--specs-path","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z",
-                   "--no-purity-check",
-                   src + "testNoErrors/A.java"},
-                  0,
-                  1,
-//                  "openjml: file not found: A.java" + eol +
-//                  "Usage: openjml <options> <source files>" + eol +
-//                  "use -help for a list of possible options" + eol +
-                  "warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                  "warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                  "warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                  "warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                  "warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
-                  );
+                {"-classpath","cpath"+z+"cpath2",
+                        "-sourcepath","spath",
+                        "--specs-path","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z",
+                        "--no-purity-check",
+                        src + "testNoErrors/A.java"},
+                0,
+                1,
+                //                  "openjml: file not found: A.java" + eol +
+                //                  "Usage: openjml <options> <source files>" + eol +
+                //                  "use -help for a list of possible options" + eol +
+                "warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
+                );
     }
-    
+
     /** Tests a recursive definition for the specspath */
     @Test
     public void testRecursiveCP() throws Exception {
         helper(new String[]
-                          { "-classpath",src + "testNoErrors"+z+"$CP",
-                            src + "testNoErrors/A.java",  
-                          },0,0,"warning: $CP is included in the specs path recursively or multiple times"+eol
-                          + "1 warning" + eol);
+                { "-classpath",src + "testNoErrors"+z+"$CP",
+                        src + "testNoErrors/A.java",  
+                },0,0,"warning: $CP is included in the specs path recursively or multiple times"+eol
+                + "1 warning" + eol);
     }
 
     /** Test verbose with no specs used */
     @Test
     public void testDuplicateParse() throws Exception {
         helper(new String[]
-                          { "-classpath",src + "testNoErrors"+z+"bin",
-                            src + "testNoErrors/A.java", "-jmlverbose" 
-                          },0,2,"",
-                          //"parsing ${PROJ}/test/testNoErrors/A.java" + eol +
-                          //"parsing ${PROJ}/test/testNoErrors/A.refines-java" + eol +
-                          "entering test/testNoErrors/A.java" + eol +
-                          "  completed entering test/testNoErrors/A.java" + eol +
-                          "typechecking A" + eol +
-                          "No specs for java.lang.Object" + eol + 
-                          "typechecked A" + eol +
-                          //"flow checks A" + eol + 
-                          "");
+                { "-classpath",src + "testNoErrors"+z+"bin",
+                        src + "testNoErrors/A.java", "-jmlverbose" 
+                },0,2,"",
+                //"parsing ${PROJ}/test/testNoErrors/A.java" + eol +
+                //"parsing ${PROJ}/test/testNoErrors/A.refines-java" + eol +
+                "entering test/testNoErrors/A.java" + eol +
+                "  completed entering test/testNoErrors/A.java" + eol +
+                "typechecking A" + eol +
+                "No specs for java.lang.Object" + eol + 
+                "typechecked A" + eol +
+                //"flow checks A" + eol + 
+                "");
     }
 
-    
+
     /** Test that specs in the java file are ignored */
     @Test
     public void testIgnoreJava() throws Exception {
         helper(new String[]
-                          { "-classpath",src + "testJavaErrors"+z+"bin",
-                            src + "testJavaErrors/A.java"
-                          },0,2,"",
-                          //"parsing ${PROJ}/test/testJavaErrors/A.java" + eol +
-                          // stuff about specs path comes in here
-                          //"parsing ${PROJ}/test/testJavaErrors/A.refines-java" + eol +
-                          "entering test/testJavaErrors/A.java" + eol +
-                          "  completed entering test/testJavaErrors/A.java" + eol +
-                          "No specs for java.lang.annotation.Annotation" + eol +
-                          "No specs for org.jmlspecs.annotation.Ghost" + eol +
-                          "typechecking A" + eol +
-                          "No specs for java.lang.Object" + eol +
-                          "typechecked A" + eol +
-                          //"flow checks A" + eol + 
-                          "");
+                { "-classpath",src + "testJavaErrors"+z+"bin",
+                        src + "testJavaErrors/A.java"
+                },0,2,"",
+                //"parsing ${PROJ}/test/testJavaErrors/A.java" + eol +
+                // stuff about specs path comes in here
+                //"parsing ${PROJ}/test/testJavaErrors/A.refines-java" + eol +
+                "entering test/testJavaErrors/A.java" + eol +
+                "  completed entering test/testJavaErrors/A.java" + eol +
+                "No specs for java.lang.annotation.Annotation" + eol +
+                "No specs for org.jmlspecs.annotation.Ghost" + eol +
+                "typechecking A" + eol +
+                "No specs for java.lang.Object" + eol +
+                "typechecked A" + eol +
+                //"flow checks A" + eol + 
+                "");
     }
 
     /** Test that the source path is used to find input java files */
     @Test
     public void testSourcePath() throws Exception {
         helper(new String[]
-                          { "-classpath"," ",
-                            "-sourcepath",src + "testNoErrors",
-                            src + "testNoErrors/A.java",  
-                          },0,0,"",
-                          "");
+                { "-classpath"," ",
+                        "-sourcepath",src + "testNoErrors",
+                        src + "testNoErrors/A.java",  
+                },0,0,"",
+                "");
     }
 
     /** Tests using source path but including java spec files - may encounter
@@ -290,12 +298,12 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testSourcePathX() throws Exception {
         helper(new String[]
-                          { "-sourcepath",src + "testNoErrors",
-                            "--no-purity-check",  //"-Xlint:unchecked",
-                            src + "testNoErrors/A.java"
-                          },0,0
-                          ,""
-                          );
+                { "-sourcepath",src + "testNoErrors",
+                        "--no-purity-check",  //"-Xlint:unchecked",
+                        src + "testNoErrors/A.java"
+                },0,0
+                ,""
+                );
     }
 
     /** Tests using having a .jml file on the command line.
@@ -304,14 +312,14 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testJML() throws Exception {
         helper(new String[]
-                          { "-sourcepath",src + "testNoErrors",
-                            "--no-purity-check",
-                            src + "testNoErrors/A.jml"
-                          },2,0
-                          ,""
-                          ,"warning: .jml files on the command-line are ignored: " + src + "testNoErrors/A.jml" + eol +
-                           "error: no source files" + eol
-                          );
+                { "-sourcepath",src + "testNoErrors",
+                        "--no-purity-check",
+                        src + "testNoErrors/A.jml"
+                },2,0
+                ,""
+                ,"warning: .jml files on the command-line are ignored: " + src + "testNoErrors/A.jml" + eol +
+                "error: no source files" + eol
+                );
     }
 
     /** Tests using having a .jml file on the command line, but the corresponding
@@ -322,13 +330,13 @@ public class compiler extends JmlTestSuite{
     public void testJML1() throws Exception {
         //print = true;
         helper(new String[]
-                          { "-sourcepath",src + "testJavaErrors2",
-                            "--specs-path",src + "testJavaErrors2",
-                            "--no-purity-check",
-                            src + "testJavaErrors2/A.java"
-                          },1,1
-                          ,src + "testJavaErrors2/A.java:2: error: incompatible types"
-                          );
+                { "-sourcepath",src + "testJavaErrors2",
+                        "--specs-path",src + "testJavaErrors2",
+                        "--no-purity-check",
+                        src + "testJavaErrors2/A.java"
+                },1,1
+                ,src + "testJavaErrors2/A.java:2: error: incompatible types"
+                );
     }
 
     /** Tests using having a .jml file on the command line, but the corresponding
@@ -338,15 +346,15 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testJML1A() throws Exception {
         helper(new String[]
-                          { "-sourcepath",src + "testJavaParseErrors",
-                            "--specs-path",src + "testJavaParseErrors",
-                            "--no-purity-check",
-                            src + "testJavaParseErrors/A.jml"
-                          },2,1
-                          ,""
-                          ,"error: no source files" + eol
-                          //,src + "testJavaParseErrors/A.java:2: error: illegal start of expression"
-                          );
+                { "-sourcepath",src + "testJavaParseErrors",
+                        "--specs-path",src + "testJavaParseErrors",
+                        "--no-purity-check",
+                        src + "testJavaParseErrors/A.jml"
+                },2,1
+                ,""
+                ,"error: no source files" + eol
+                //,src + "testJavaParseErrors/A.java:2: error: illegal start of expression"
+                );
     }
 
     /** Tests using having a .jml file on the command line, but the corresponding
@@ -357,13 +365,13 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testJML1B() throws Exception {
         helper(new String[]
-                          { "-sourcepath",src + "testJavaErrors",
-                            "--specs-path",src + "testJavaErrors",
-                            "--no-purity-check",
-                            src + "testJavaErrors/A.java"
-                          },0,0,
-                          ""
-                          );
+                { "-sourcepath",src + "testJavaErrors",
+                        "--specs-path",src + "testJavaErrors",
+                        "--no-purity-check",
+                        src + "testJavaErrors/A.java"
+                },0,0,
+                ""
+                );
     }
 
     /** Tests having a .jml file on the command line.
@@ -372,14 +380,14 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoSource() throws Exception {
         helper(new String[]
-                          { "-sourcepath",src + "testNoSource",
-                            "--no-purity-check",
-                            src + "testNoSource/A.jml"
-                          },2,1
-                          ,""
-                          ,"error: no source files" + eol
-                          //,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol 
-                          );
+                { "-sourcepath",src + "testNoSource",
+                        "--no-purity-check",
+                        src + "testNoSource/A.jml"
+                },2,1
+                ,""
+                ,"error: no source files" + eol
+                //,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSource/A.jml" + eol 
+                );
     }
 
     /** Tests using having a .jml file on the command line.
@@ -388,42 +396,42 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoErrors() throws Exception {
         helper(new String[]
-                          { "-sourcepath"," ",
-                            "--no-purity-check",
-                            src + "testNoErrors/A.jml"
-                          },2,1
-                          ,""
-                          ,"error: no source files" + eol
-                          //,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol
-                          );
+                { "-sourcepath"," ",
+                        "--no-purity-check",
+                        src + "testNoErrors/A.jml"
+                },2,1
+                ,""
+                ,"error: no source files" + eol
+                //,"error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoErrors/A.jml" + eol
+                );
     }
 
     @Test
     public void testNoSourceParseError() throws Exception {
         helper(new String[]
-                          { "-sourcepath"," ",
-                            "--no-purity-check",
-                            src + "testNoSourceParseError/A.jml"
-                          },2,1
-                          ,""
-                          ,"error: no source files" + eol
-//                        ,src + "testNoSourceParseError/A.jml:4: error: illegal start of expression" + eol +
-//                           "int i = ;" + eol +
-//                           "        ^" + eol +
-//                           "error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSourceParseError/A.jml" + eol
-                          );
+                { "-sourcepath"," ",
+                        "--no-purity-check",
+                        src + "testNoSourceParseError/A.jml"
+                },2,1
+                ,""
+                ,"error: no source files" + eol
+                //                        ,src + "testNoSourceParseError/A.jml:4: error: illegal start of expression" + eol +
+                //                           "int i = ;" + eol +
+                //                           "        ^" + eol +
+                //                           "error: There is no java or binary file on the sourcepath corresponding to the given jml file: test/testNoSourceParseError/A.jml" + eol
+                );
     }
 
     @Test
     public void testNoSourceTypeError() throws Exception {
         helper(new String[]
-                          { "-sourcepath"," ",
-                            "--no-purity-check",
-                            src + "testNoSourceTypeError/A.jml"
-                          },2,1
-                          ,""
-                          ,"error: no source files" + eol
-                           );
+                { "-sourcepath"," ",
+                        "--no-purity-check",
+                        src + "testNoSourceTypeError/A.jml"
+                },2,1
+                ,""
+                ,"error: no source files" + eol
+                );
     }
 
     // FIXME - the jml and class files do not match - we should get type errors
@@ -431,99 +439,99 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testNoSourceWithClass() throws Exception {
         helper(new String[]
-                          { "-classpath", src + "testNoSourceWithClass",
-                            "-sourcepath"," ",
-                            "--specs-path", src + "testNoSourceWithClass",
-                            "--no-purity-check",
-                            src + "testNoSourceWithClass/A.jml"
-                          },2,1
-                          ,""
-                          ,"error: no source files" + eol 
-                          );
+                { "-classpath", src + "testNoSourceWithClass",
+                        "-sourcepath"," ",
+                        "--specs-path", src + "testNoSourceWithClass",
+                        "--no-purity-check",
+                        src + "testNoSourceWithClass/A.jml"
+                },2,1
+                ,""
+                ,"error: no source files" + eol 
+                );
     }
 
     /** Checks that -nowarn turns off warnings. */
     @Test
     public void testWarnings() throws Exception {
         helper(new String[]
-                                { "-nowarn", 
-                                  src + "testWarnings/A.java"
-                                },0,0
-                                ,""
-                                );
+                { "-nowarn", 
+                        src + "testWarnings/A.java"
+                },0,0
+                ,""
+                );
     }
 
     /** Checks that -Werror turns warnings into errors */  // FIXME - not working
     @Test
     public void testJML6Werror() throws Exception {
         helper(new String[]
-                                { "-Werror",
-                                  src + "testWarnings/A.java"
-                                },1,0
-                                ,""
-                                ,src + "testWarnings/A.java:3: warning: There is no point to a specification case having more visibility than its method"+eol
-                                +"  //@ public normal_behavior"+eol
-                                +"      ^"+eol
-                                +"error: warnings found and -Werror specified"+eol
-                                +"1 error"+eol
-                                +"1 warning"+eol
-                                );
+                { "-Werror",
+                        src + "testWarnings/A.java"
+                },1,0
+                ,""
+                ,src + "testWarnings/A.java:3: warning: There is no point to a specification case having more visibility than its method"+eol
+                +"  //@ public normal_behavior"+eol
+                +"      ^"+eol
+                +"error: warnings found and -Werror specified"+eol
+                +"1 error"+eol
+                +"1 warning"+eol
+                );
     }
 
     /** Checks that -Werror turns warnings into errors */
     @Test
     public void testJML6WerrorA() throws Exception {
         helper(new String[]
-                                { "-Werror",
-                                  "--specs-path",src + "testNoErrors", // protects against spec errors in A.java
-                                  src + "testWarnings/A.java"
-                                },0,0
-                                ,""
-                                ,""
-                                );
+                { "-Werror",
+                        "--specs-path",src + "testNoErrors", // protects against spec errors in A.java
+                        src + "testWarnings/A.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
 
     /** Checks that -Werror turns warnings into errors */  // FIXME - not working
     @Test
     public void testJML6WerrorB() throws Exception {
         helper(new String[]
-                                { "-Werror",
-                                  "-sourcepath",src + "testNoErrors", // is also the spec path, so protects against spec errors in A.java
-                                  "--specs-path","",
-                                  src + "testWarnings/A.java"
-                                },0,0
-                                ,""
-                                ,""
-                                );
+                { "-Werror",
+                        "-sourcepath",src + "testNoErrors", // is also the spec path, so protects against spec errors in A.java
+                        "--specs-path","",
+                        src + "testWarnings/A.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
 
     /** Checks that -Werror turns warnings into errors */  // FIXME - not working
     @Test
     public void testJML6WerrorC() throws Exception {
         helper(new String[]
-                                { "-Werror",
-                                  "-sourcepath",src + "testNoErrors", // is also the spec path, so protects against spec errors in A.java
-                                  src + "testWarnings/A.java"
-                                },0,0
-                                ,""
-                                ,""
-                                );
+                { "-Werror",
+                        "-sourcepath",src + "testNoErrors", // is also the spec path, so protects against spec errors in A.java
+                        src + "testWarnings/A.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
 
     /** Checks that -Werror turns warnings into errors */
     @Test
     public void testJML6WerrorD() throws Exception {
         helper(new String[]
-                                { "-Werror",
-                                  "-classpath", "ZZZZZ", // does not exist, but is not part of the specs path
-                                  src + "testWarnings/A.java"
-                                },1,0
-                                ,""
-                                ,"warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
-                                +"error: warnings found and -Werror specified"+eol
-                                +"1 error"+eol
-                                +"1 warning"+eol
-                                );
+                { "-Werror",
+                        "-classpath", "ZZZZZ", // does not exist, but is not part of the specs path
+                        src + "testWarnings/A.java"
+                },1,0
+                ,""
+                ,"warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                +"error: warnings found and -Werror specified"+eol
+                +"1 error"+eol
+                +"1 warning"+eol
+                );
     }
 
     /** Tests using source path but including java spec files - may encounter
@@ -534,13 +542,13 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testSourcePathXB() throws Exception {
         helper(new String[]
-                          { "-sourcepath",src + "testNoErrors",
-                            "--specs-path","../../Specs/specs",
-                            "--no-purity-check",  //"-Xlint:unchecked",
-                            src + "testNoErrors/A.java"
-                          },0,0
-                          ,""
-                          );
+                { "-sourcepath",src + "testNoErrors",
+                        "--specs-path","../../Specs/specs",
+                        "--no-purity-check",  //"-Xlint:unchecked",
+                        src + "testNoErrors/A.java"
+                },0,0
+                ,""
+                );
     }
 
     // This test requires jmlruntime.jar to have been created - run the Makefile
@@ -550,17 +558,17 @@ public class compiler extends JmlTestSuite{
     @Test 
     public void testSourcePath4() throws Exception {
         if (!new java.io.File("../OpenJML21/release-temp/jmlruntime.jar").exists()) {
-            System.setErr(savederr);
-            System.setOut(savedout);
-            System.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
+            this.err = savederr;  // FIXME
+            this.out = savedout;
+            this.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
         } else {
             helper(new String[]
-                          { "-classpath","../OpenJML21/release-temp/jmlruntime.jar",
+                    { "-classpath","../OpenJML21/release-temp/jmlruntime.jar",
                             "-sourcepath",src + "testNoErrors",
                             "--specs-path","",
                             src + "testNoErrors/A.java",  
-                          },0,0,"",
-                          "");
+                    },0,0,"",
+                    "");
         }
     }
 
@@ -568,252 +576,253 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testSourcePath5() throws Exception {
         helper(new String[]
-                          { "-classpath","bin",
-                            "-sourcepath",src + "testNoErrors",
-                            "--specs-path","",
-                            src + "testNoErrors/A.java", 
-                          },0,0,"",
-                          "");
+                { "-classpath","bin",
+                        "-sourcepath",src + "testNoErrors",
+                        "--specs-path","",
+                        src + "testNoErrors/A.java", 
+                },0,0,"",
+                "");
     }
 
     @Test
     public void testSourcePath2() throws Exception {
         helper(new String[]
-                          { "-classpath","bin",
-                            "-sourcepath",src + "testNoErrors",
-                            src + "testNoErrors/A.java"
-                          },0,0,"",
-                          "");
+                { "-classpath","bin",
+                        "-sourcepath",src + "testNoErrors",
+                        src + "testNoErrors/A.java"
+                },0,0,"",
+                "");
     }
 
     /** Tests that super files are read and processed */
     @Test
     public void testSuperRead() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            src + "testSuperRead/A.java"
-                          },1,1
-                          ,""
-                          ,src + "testSuperRead/B.jml:3: error: This JML modifier is not allowed for a type declaration"
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        src + "testSuperRead/A.java"
+                },1,1
+                ,""
+                ,src + "testSuperRead/B.jml:3: error: This JML modifier is not allowed for a type declaration"
+                );
     }
-    
+
     // Tests of -java are in runscripts.javaOnly. They cannot be part of a 
     // test suite because they set the static field Utils.isjml
-    
+
     /** Tests an invalid use of key */
     @Test
     public void testKeys() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            src + "testKeys/D.java"
-                          },0,0
-                          ,""
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        src + "testKeys/D.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
-    
+
     /** Tests a single negative key that guards a line with an error */
     @Test
     public void testKeys1() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            src + "testKeys/A.java"
-                          },1,1
-                          ,src + "testKeys/A.java:4: error: cannot find symbol"
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        src + "testKeys/A.java"
+                },1,1
+                ,src + "testKeys/A.java:4: error: cannot find symbol"
+                ,""
+                );
     }
-    
+
     /** Tests a single negative key that guards a line with an error */
     @Test
     public void testKeys1a() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            "-keys","K2",
-                            src + "testKeys/A.java"
-                          },1,1
-                          ,src + "testKeys/A.java:4: error: cannot find symbol"
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        "-keys","K2",
+                        src + "testKeys/A.java"
+                },1,1
+                ,src + "testKeys/A.java:4: error: cannot find symbol"
+                ,""
+                );
     }
-    
+
     /** Tests a single negative key that guards a line with an error */
     @Test
     public void testKeys2() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            "-keys","K1",
-                            src + "testKeys/A.java"
-                          },0,1
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        "-keys","K1",
+                        src + "testKeys/A.java"
+                },0,1
+                ,""
+                );
     }
-    
+
     /** Tests a single positive key that guards a line with an error */
     @Test
     public void testKeys3() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            "-keys","K2",
-                            src + "testKeys/B.java"
-                          },1,1
-                          ,src + "testKeys/B.java:4: error: cannot find symbol"
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        "-keys","K2",
+                        src + "testKeys/B.java"
+                },1,1
+                ,src + "testKeys/B.java:4: error: cannot find symbol"
+                ,""
+                );
     }
-    
+
     /** Tests a single positive key that guards a line with an error */
     @Test
     public void testKeys4() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            src + "testKeys/B.java"
-                          },0,0
-                          ,""
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        src + "testKeys/B.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
-    
+
     /** Tests a single positive key that guards a line with an error */
     @Test
     public void testKeys4a() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            "-keys","K3",
-                            src + "testKeys/B.java"
-                          },0,0
-                          ,""
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        "-keys","K3",
+                        src + "testKeys/B.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
-    
+
     /** Tests a single positive key that guards a line with an error */
     @Test
     public void testKeys5() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            "-keys","K4,K2",
-                            src + "testKeys/C.java"
-                          },0,0
-                          ,""
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        "-keys","K4,K2",
+                        src + "testKeys/C.java"
+                },0,0
+                ,""
+                ,""
+                );
     }
-    
+
     /** Tests a single positive key that guards a line with an error */
     @Test
     public void testKeys6() {
         helper(new String[]
-                          { "-classpath","bin", 
-                            "-sourcepath",src,
-                            "--specs-path",src,
-                            "--no-purity-check",
-                            "-keys","K2,K3",
-                            src + "testKeys/C.java"
-                          },1,1
-                          ,src + "testKeys/C.java:10: error: cannot find symbol"
-                          ,""
-                          );
+                { "-classpath","bin", 
+                        "-sourcepath",src,
+                        "--specs-path",src,
+                        "--no-purity-check",
+                        "-keys","K2,K3",
+                        src + "testKeys/C.java"
+                },1,1
+                ,src + "testKeys/C.java:10: error: cannot find symbol"
+                ,""
+                );
     }
-    
+
     /** Tests an unmatched quote */
     @Test
     public void testBadEqual() {
         helper(new String[]
-                          { "--zzz=yyy"
-                          },2,0
-                          ,""
-                          ,"""
-                           error: invalid flag: --zzz=yyy
-                           Usage: openjml <options> <source files>
-                           use --help for a list of possible options
-                           """
-                          );
+                { "--zzz=yyy"
+                },2,0
+                ,""
+                ,"""
+                        error: invalid flag: --zzz=yyy
+                        Usage: openjml <options> <source files>
+                        use --help for a list of possible options
+                        """
+                );
     }
-    
+
     /** Tests an unmatched quote */
     @Test
     public void testOrphanQuote() {
         helper(new String[]
-                          { "\""
-                          },2,0
-                          ,""
-                          ,"""
-                           error: invalid flag: "
-                           Usage: openjml <options> <source files>
-                           use --help for a list of possible options
-                           """
-                          );
+                { "\""
+                },2,0
+                ,""
+                ,"""
+                        error: invalid flag: "
+                        Usage: openjml <options> <source files>
+                        use --help for a list of possible options
+                        """
+                );
     }
-    
+
     /** Tests an unmatched quote with content */
     @Test
     public void testOrphanQuote2() {
         helper(new String[]
-                          { "\"--check"
-                          },2,0
-                          ,""
-                          ,"""
-                           error: invalid flag: "--check
-                           Usage: openjml <options> <source files>
-                           use --help for a list of possible options
-                           """
-                          );
+                { "\"--check"
+                },2,0
+                ,""
+                ,"""
+                        error: invalid flag: "--check
+                        Usage: openjml <options> <source files>
+                        use --help for a list of possible options
+                        """
+                );
     }
-    
+
+    // FIXME - perhaps this should be in typechecking or esc tests
     @Test
     public void testModelBug() throws Exception {
         helper(new String[]
-                          { "--no-purity-check",  //"-Xlint:unchecked",
-                            src+"testModelBug/ModelClassExampleBug.java",
-                            src+"testModelBug/ModelClassExampleBugSub.java",
-                            src+"testModelBug/ModelClassExampleBugSub2.java"
-                          },1,0
-                          ,""
-                          ,src+"testModelBug/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
-                           "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
-                           "                                                                      ^" + eol +
-                           src+"testModelBug/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
-                           "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
-                           "                                                                                 ^" + eol +
-                           src+"testModelBug/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
-                           "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
-                           "                                                                        ^" + eol +
-                           src+"testModelBug/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
-                           "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
-                           "                                                                                   ^" + eol +
-                           "4 errors" + eol
-                          );
+                { "--no-purity-check",  //"-Xlint:unchecked",
+                        src+"testModelBug/ModelClassExampleBug.java",
+                        src+"testModelBug/ModelClassExampleBugSub.java",
+                        src+"testModelBug/ModelClassExampleBugSub2.java"
+                },1,0
+                ,""
+                ,src+"testModelBug/ModelClassExampleBugSub.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
+                "                                                                      ^" + eol +
+                src+"testModelBug/ModelClassExampleBugSub2.java:9: error: non-static type variable E cannot be referenced from a static context" + eol +
+                "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
+                "                                                                                 ^" + eol +
+                src+"testModelBug/ModelClassExampleBugSub.java:9: error: cannot select a static class from a parameterized type" + eol +
+                "    public static class SIndexedContents extends ModelClassExampleBug<E>.SContents { // ERROR" + eol +
+                "                                                                        ^" + eol +
+                src+"testModelBug/ModelClassExampleBugSub2.java:9: error: cannot select a static class from a parameterized type" + eol +
+                "        public static model class SMIndexedContents extends ModelClassExampleBug<E>.SMContents { // ERROR" + eol +
+                "                                                                                   ^" + eol +
+                "4 errors" + eol
+                );
     }
-    
+
     @Test
     public void testOptionLang() {
         helper(new String[] {"--lang=zzz","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
@@ -1183,23 +1192,23 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testModelBug2() throws Exception {
         helper(new String[]
-                          { "--no-purity-check",  //"-Xlint:unchecked",
-                            src+"testModelBug2/NonGenericModelClassExampleBug.java",
-                            src+"testModelBug2/NonGenericModelClassExampleBugSub.java",
-                          },0,0
-                          ,""
-                          ,""
-                          );
+                { "--no-purity-check",  //"-Xlint:unchecked",
+                        src+"testModelBug2/NonGenericModelClassExampleBug.java",
+                        src+"testModelBug2/NonGenericModelClassExampleBugSub.java",
+                },0,0
+                ,""
+                ,""
+                );
     }
 
     @Test
     public void testExtension1() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                  "--specs-path","../OpenJML21/release-temp",
-                  "-lang=jml",
-                  "--extensions=X", // Ignored when strict
-                  src + "testNoErrors/A.java"
+                        "--specs-path","../OpenJML21/release-temp",
+                        "-lang=jml",
+                        "--extensions=X", // Ignored when strict
+                        src + "testNoErrors/A.java"
                 },0,0
                 ,""
                 ,""
@@ -1210,8 +1219,8 @@ public class compiler extends JmlTestSuite{
     public void testExtension2() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                  "--extensions=X",
-                  src + "testNoErrors/A.java"
+                        "--extensions=X",
+                        src + "testNoErrors/A.java"
                 },2,1
                 ,"error: Failed to load extension X: No such package found"
                 ,""
@@ -1222,19 +1231,19 @@ public class compiler extends JmlTestSuite{
     public void testExtension() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testExtension",
-                  "--extensions=ext",
-                  src + "testExtension/A.java"
+                        "--extensions=ext",
+                        src + "testExtension/A.java"
                 },0,0
                 ,""
                 );
     }
-    
-    
+
+
     // The remaining tests are replicates of those executed by 'make release-test'
     // FIXME - check the version
     // FIXME - testOK2, testOK3, testJmlBad2
     // FIXME - test RAC-OK, SIMPLE, etc.
-    
+
     @Test
     public void release_testJmlHelpSimp() throws Exception {
         helper(new String[]
@@ -1326,69 +1335,69 @@ public class compiler extends JmlTestSuite{
 
     @Test
     public void release_testJmlBad3() throws Exception {  // FIXME - shouldn't this have error mesages
-    	expectedFile = "releaseTests/testJmlBad3/expected";
-    	helper(new String[]
+        expectedFile = "releaseTests/testJmlBad3/expected";
+        helper(new String[]
                 { "-check","-java"
                 },2,0
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testOK1() throws Exception {
-    	helper(new String[]
-    			{ "--no-purity-check","--specs-path","releaseTests/testOK1","temp-release/B.java"
-    			},0,0
-    			,""
-    			);
+        helper(new String[]
+                { "--no-purity-check","--specs-path","releaseTests/testOK1","temp-release/B.java"
+                },0,0
+                ,""
+                );
     }
-    
+
     // FIXME - missing the verbose test - testOK3
     // FIXME - missing all the rac tests
 
     // Testing typechecking without org.jmlspecs.annotation.*
     @Test @Ignore // FIXME: Cannot currently turn off internal runtime library
     public void release_testRuntime1() throws Exception {
-    	expectedFile = "releaseTests/testRuntime1/expected";
-    	helper(new String[]
-    			{ "temp-release/C.java", "-jmltesting", "-classpath", ".", "--no-purity-check"
-    			},3,0
-    			,""
-    			);
+        expectedFile = "releaseTests/testRuntime1/expected";
+        helper(new String[]
+                { "temp-release/C.java", "-jmltesting", "-classpath", ".", "--no-purity-check"
+                },3,0
+                ,""
+                );
     }
-    
+
     // Testing typechecking with normal internal libraries
     @Test
     public void release_testRuntime4() throws Exception {
-    	expectedFile = "releaseTests/testRuntime4/expected";
-    	helper(new String[]
-    			{ "temp-release/C.java", "--no-purity-check",
-    			},0,0
-    			,""
-    			);
+        expectedFile = "releaseTests/testRuntime4/expected";
+        helper(new String[]
+                { "temp-release/C.java", "--no-purity-check",
+                },0,0
+                ,""
+                );
     }
-    
+
     // Testing typechecking with normal internal libaries
     @Test
     public void release_testRuntime5() throws Exception {
-    	expectedFile = "releaseTests/testRuntime5/expected";
-    	helper(new String[]
-    			{ "temp-release/D.java", "--no-purity-check",
-    			},0,0
-    			,""
-    			);
+        expectedFile = "releaseTests/testRuntime5/expected";
+        helper(new String[]
+                { "temp-release/D.java", "--no-purity-check",
+                },0,0
+                ,""
+                );
     }
-    
+
     @Test
     public void release_testEsc1() throws Exception {
-    	expectedFile = "releaseTests/testEsc1/expected";
-    	helper(new String[]
-    			{ "--no-purity-check", "--esc", relsrc + "/testEsc/A.java", "-classpath", relsrc + "/testEsc"
-    			},6,0
-    			,""
-    			);
+        expectedFile = "releaseTests/testEsc1/expected";
+        helper(new String[]
+                { "--no-purity-check", "--esc", relsrc + "/testEsc/A.java", "-classpath", relsrc + "/testEsc"
+                },6,0
+                ,""
+                );
     }
-    
+
     @Test
     public void release_testEsc2() throws Exception {
         expectedFile = "releaseTests/testEsc2/expected";
@@ -1398,7 +1407,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testEsc3() throws Exception {
         expectedFile = "releaseTests/testEsc2/expected";
@@ -1409,37 +1418,37 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath1() throws Exception {
-    	expectedFile = "releaseTests/testPath1/expected";
-    	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", 
-    			},1,0
-    			,""
-    			);
+        expectedFile = "releaseTests/testPath1/expected";
+        helper(new String[]
+                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", 
+                },1,0
+                ,""
+                );
     }
-    
+
     @Test
     public void release_testPath2() throws Exception {
-    	expectedFile = "releaseTests/testPath2/expected";
-    	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data"
-    			},1,1
-    			,""
-    			);
+        expectedFile = "releaseTests/testPath2/expected";
+        helper(new String[]
+                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data"
+                },1,1
+                ,""
+                );
     }
-    
+
     @Test
     public void release_testPath3() throws Exception {
-    	expectedFile = "releaseTests/testPath3/expected";
-    	helper(new String[]
-    			{ "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "--specs-path", relsrc + "/testPath/data-specs"
-    			},1,1
-    			,""
-    			);
+        expectedFile = "releaseTests/testPath3/expected";
+        helper(new String[]
+                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "--specs-path", relsrc + "/testPath/data-specs"
+                },1,1
+                ,""
+                );
     }
-    
+
     @Test
     public void release_testPath4() throws Exception {
         expectedFile = "releaseTests/testPath4/expected";
@@ -1449,7 +1458,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath5() throws Exception {
         expectedFile = "releaseTests/testPath5/expected";
@@ -1459,7 +1468,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath6() throws Exception {
         expectedFile = "releaseTests/testPath6/expected";
@@ -1469,7 +1478,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath7() throws Exception {
         expectedFile = "releaseTests/testPath7/expected";
@@ -1479,7 +1488,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath8() throws Exception {
         expectedFile = "releaseTests/testPath8/expected";
@@ -1489,7 +1498,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath9() throws Exception {
         expectedFile = "releaseTests/testPath9/expected";
@@ -1499,7 +1508,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testPath10() throws Exception {
         expectedFile = "releaseTests/testPath10/expected";
@@ -1509,7 +1518,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     @Test
     public void release_testCheck1() throws Exception {
         expectedFile = "releaseTests/testCheck1/expected";
@@ -1519,7 +1528,7 @@ public class compiler extends JmlTestSuite{
                 ,""
                 );
     }
-    
+
     // FIXME - testAPI
     // FIXME - jmldoc and prettyprinting
 

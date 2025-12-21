@@ -47,14 +47,12 @@ public class positions extends JmlTestSuite {
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
         main.postOptionProcessing();
-        //org.jmlspecs.openjml.Extensions.register(context);   // Loads JML stuff
         try {
             // Makes sure that components are instantiated without circularity
-            //org.jmlspecs.openjml.JmlOptions.instance(context).optionsAllSet = true;
             com.sun.tools.javac.main.JmlCompiler.instance(context);
             parserFactory = ParserFactory.instance(context);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
         }
     }
 
@@ -68,20 +66,21 @@ public class positions extends JmlTestSuite {
     }
     
     public static class Print extends JmlTreeScanner {
+        java.io.PrintStream out;
         
-        
-        public Print() {
+        public Print(java.io.PrintStream out) {
+            this.out = out;
         }
         
         public void scan(JCTree tree) {
             if(tree!=null) {
-                System.out.println(tree.getClass());
+                out.println(tree.getClass());
                 tree.accept(this);
             }
         }
         
-        static void print(JCTree tree) {
-            tree.accept(new Print());
+        static void print(JCTree tree, java.io.PrintStream out) {
+            tree.accept(new Print(out));
         }
 
     }
@@ -99,7 +98,7 @@ public class positions extends JmlTestSuite {
             if (done != null) return;
             if (tree == null) return;
             if (tree.getClass() == clazz) { done = tree; return; }
-            if(tree!=null) tree.accept(this);
+            if(tree != null) tree.accept(this);
         }
         
         static JCTree find(Class<?> clazz, JCTree tree) {
@@ -107,7 +106,6 @@ public class positions extends JmlTestSuite {
             tree.accept(f);
             return f.done;
         }
-
     }
 
     public void helpParser(boolean compunit, String markedString, Class<?> clazz, int numErrors) {
@@ -117,7 +115,7 @@ public class positions extends JmlTestSuite {
             int endpos = markedString.indexOf('#',prefpos+2)-2;
             String testString = markedString.replaceAll("#","");
             Log log = Log.instance(context);
-            log.useSource(new MockJavaFileObject(testString) );
+            log.useSource(new MockJavaFileObject(testString));
             JmlParser parser = (JmlParser)parserFactory.newParser(testString, false, true, true);
             JCTree result;
             JCTree ztree = null;
@@ -155,13 +153,13 @@ public class positions extends JmlTestSuite {
                 assertEquals("end position", endpos, parser.getEndPos(result));
             }
             } catch (AssertionError e) {
-                System.out.println(clazz + " " + startpos + " " + prefpos + " " + endpos);
-                System.out.println(testString);
-                if (e.getMessage().contains("failed to find")) Print.print(ztree);
+                this.out.println(clazz + " " + startpos + " " + prefpos + " " + endpos);
+                this.out.println(testString);
+                if (e.getMessage().contains("failed to find")) Print.print(ztree, this.out);
                 throw e;
             }
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         }
     }

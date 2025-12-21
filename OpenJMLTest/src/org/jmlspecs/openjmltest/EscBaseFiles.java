@@ -40,14 +40,9 @@ public abstract class EscBaseFiles extends EscBase {
     }
     // FIXME - the options set in the above constructor are not used
     
-    protected String[] rac = null;
-    
-    /** The command-line to use to run ESC on a program */
-    protected String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime",null};
 
     @Override
     public void setUp() throws Exception {
-        rac = sysrac;
         super.setUp();
     }
     
@@ -178,7 +173,7 @@ public abstract class EscBaseFiles extends EscBase {
         try (PrintWriter pw = new PrintWriter(actCompile)) {
             java.util.List<String> args = collectArgs(sourceDirname, outDir, opts);
 
-            // System.out.println("ARGS " + args);
+            // this.out.println("ARGS " + args);
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
 
             String diffs = null;
@@ -187,14 +182,14 @@ public abstract class EscBaseFiles extends EscBase {
             for (String name: files) {
                 diffs = outputCompare.compareFiles(outDir + "/" + name, actCompile);
                 if (diffs == null) {
-                    if (files.length != 1) System.out.println("Matched: " + name);
+                    if (files.length != 1) this.out.println("Matched: " + name);
                     new File(actCompile).delete();
                     break;
                 }
             }
             if (diffs != null) {
-                out.println("TEST DIFFERENCES: " + actCompile);
-                out.println(diffs.substring(0, Math.min(150, diffs.length())));
+                this.out.println("TEST DIFFERENCES: " + actCompile);
+                this.out.println(diffs.substring(0, Math.min(150, diffs.length())));
                 fail("Files differ"); // Does not return, so appears to be not covered by Jacoco
             }
             
@@ -203,7 +198,7 @@ public abstract class EscBaseFiles extends EscBase {
             }
 
         } catch (Exception e) {
-            e.printStackTrace(out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             throw e; // These exceptions come from test failures and signal the JUnit infrastructure of the failure

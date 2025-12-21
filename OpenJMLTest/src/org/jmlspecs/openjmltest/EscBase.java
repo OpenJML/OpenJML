@@ -109,7 +109,7 @@ public abstract class EscBase extends JmlTestSuite {
     }
     
     /** options is a comma- or space-separated list of options to be added -- used in the parameterized JUnit tests*/
-    protected String options;  // FIXME - remove?
+    protected String options;  // FIXME - remove?run
     /** The name of the solver to be used */
     protected String solver;
     
@@ -211,20 +211,20 @@ public abstract class EscBase extends JmlTestSuite {
             int ex = main.compile(allargs, files).exitCode;
             int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
             if (captureOutput) collectOutput(false);
-            synchronized (System.out) { 
+            { 
                 if (print ) printDiagnostics();
                 outputCompare.compareResults(expectedResults,collector,true);
                 if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = verifyExit;
                 if (ex != expectedExit) fail("Compile ended with exit code " + ex + " but expected " + expectedExit);
             }
         } catch (Exception e) {
-            synchronized (System.out) { 
+            { 
                 printDiagnostics();
                 e.printStackTrace(out);
                 fail("Exception thrown while processing test: " + e);
             }
         } catch (AssertionError e) {
-            synchronized (System.out) { 
+            { 
                 if (!print && !noExtraPrinting) printDiagnostics();
                 throw e;
             }

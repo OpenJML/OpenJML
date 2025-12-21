@@ -1,7 +1,6 @@
 package org.jmlspecs.openjmltest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,8 +20,6 @@ import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Log;
-
-import static org.junit.Assert.*;
 
 /** This class is the base class for test suites that just are exercising the parser,
  * without doing any further typechecking.  For this purpose the parser can be
@@ -69,20 +66,6 @@ abstract public class ParseBase extends JmlTestSuite {
         parser = null;
     }
 
-    /** Compiles the given string as the content of a compilation unit,
-     * comparing the parse tree found to the expected node types and character
-     * positions found in the second argument.
-     * as a compilation unit, each node is represented by a node type (instance 
-     * of Class) and character position (an int).
-     * 
-     * In this case the parse should be successful,
-     */
-    public void checkCompilationUnit(String text, Object ... expected) {
-        List<JCTree> out = parseCompilationUnit(text);
-        checkParseTree(out,expected);
-        checkMessages(); // Checks that there are no diagnostics
-    }
-
     /** Parse the given text (a compilation unit) and then compare any parse errors against 'expected'*/
     public void checkParseErrors(String text, Object ... expected) {
         if (skip) return;
@@ -90,19 +73,6 @@ abstract public class ParseBase extends JmlTestSuite {
         checkDiagnostics(expected);
     }
 
-    /** Test harness test */
-    public void checkParseFailure(String failureMessage, String text, Object ... expected) {
-        boolean failed = false;
-        try {
-            if (skip) return;
-            checkCompilationUnit(text,expected);
-        } catch (AssertionError a) {
-            failed = true;
-            assertEquals("Failure message was incorrect in checkCompilationUnitFailure", failureMessage, a.getMessage());
-        }
-        assertTrue("Test Harness failed to report an error", failed);
-    }
-    
     /** Parses the content of a compilation unit, producing a list of nodes of
      * the parse tree
      * @param s the string to parse

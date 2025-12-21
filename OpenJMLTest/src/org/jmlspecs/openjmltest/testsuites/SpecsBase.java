@@ -154,10 +154,10 @@ public class SpecsBase extends TCBase {
                     String exp = java.nio.file.Files.readString(Paths.get(expfile));
                     if (!exp.equals(act)) {
                         foundError = "unexpected output";
-                        System.out.println(act);
+                        this.out.println(act);
                         java.nio.file.Files.writeString(Paths.get(actfile), act);
                     } else {
-                        // System.out.println("Output matched for " + testClass);
+                        // this.out.println("Output matched for " + testClass);
                         new java.io.File(actfile).delete();
                     }
                 } else {
@@ -173,7 +173,7 @@ public class SpecsBase extends TCBase {
             }
             assertTrue("Found errors checking specs for " + foundError, foundError == null);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Failed to test " + className + ": " + e);
         }
     }

@@ -61,7 +61,12 @@ import com.sun.tools.javac.util.Position;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public abstract class JmlTestSuite {
 
+    // By default the output from a test case goes to System.out
+    // But where the output is captured and checked as part of the test case,
+    // these fields should be temporarily set to some stream that is unique to the test case
+    // or at least to the thread running it.
     public java.io.PrintStream out = System.out;
+    public java.io.PrintStream err = System.err;
 
     /** A purposefully short abbreviation for the system path separator
      * ( ; or : )
@@ -289,7 +294,7 @@ public abstract class JmlTestSuite {
             fail("Cannot test with NOJML= within the test suite. Use a scripted test.");
         }
         try {
-            main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(System.out, true));
+            main = new org.jmlspecs.openjml.Main("openjml-unittest",new PrintWriter(out, true));
             setCollector(ignoreNotes, printDiagnostics ? out : null);
             context = main.initialize(collector);
             ((FilteredDiagnosticCollector<JavaFileObject>)collector).context = context;
@@ -298,7 +303,7 @@ public abstract class JmlTestSuite {
             Log.alwaysReport = true; // Always report errors (even if they would be suppressed because they are at the same position
         } catch (Throwable t) {
             fail("EXCEPTION IN SETUP");
-            t.printStackTrace(System.out);
+            t.printStackTrace(out);
         }
     }
     
@@ -347,8 +352,8 @@ public abstract class JmlTestSuite {
 
     /** Prints out the errors collected by the diagnostic listener */
     public void printDiagnostics() {
-        out.print(diagnosticsToString(collector.getDiagnostics())); // diagnostic string includes a eol
-        out.flush();
+        this.out.print(diagnosticsToString(collector.getDiagnostics())); // diagnostic string includes a eol
+        this.out.flush();
     }
     
     public static String diagnosticToString(Diagnostic<? extends JavaFileObject> diag) {
@@ -367,68 +372,14 @@ public abstract class JmlTestSuite {
         }
         return r;
     }
-
+    
     /** Checks that all of the collected diagnostic messages match the data supplied, throwing an AssertionError if not.
      * The input list is expected to have a sequence of message, column, start, position, end for each diagnostic in sequence.
      * If there is just one number, it is the column */
     public void checkDiagnostics(Object ...  expected) { // FIXME - change to an outputCompare
-//        outputCompare.compareResults(expected,  collector, true);
-        try {
-            int i = 0;
-            int k = 0;
-            Object p1,p2,p3,p4;
-            for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
-                if (k >= expected.length) break;
-                Object m = expected[k];
-                assertTrue("Expected a message string instead of " + m,
-                            m instanceof String);
-                String message = doReplacements((String)m);
-                k++;
-                assertEquals("Message " + i + " mismatch",message,noSource(dd));
-                p1 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
-                p2 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
-                p3 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
-                p4 = (k < expected.length && expected[k] instanceof Integer) ? expected[k++] : null;
-                if (p4 != null) {
-                    // Have 4 numbers
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
-                    assertEquals("Start for message " + i,((Integer)p2).intValue(),dd.getStartPosition());
-                    assertEquals("Position for message " + i,((Integer)p3).intValue(),dd.getPosition());
-                    assertEquals("End for message " + i,((Integer)p4).intValue(),dd.getEndPosition());
-                } else {
-                    // Expect only one number
-                    assertTrue("No positions given for message " + i, p1 != null);
-                    assertTrue("Expected 0 or 3 position values after the column value", p2 == null);
-                    assertEquals("Column for message " + i,((Integer)p1).intValue(),dd.getColumnNumber());
-                }
-                i++;
-            }
-            assertTrue("Fewer errors observed (" + collector.getDiagnostics().size() + ") than expected. First extra: " + 
-                        (k < expected.length ? expected[k] : ""),
-                    k >= expected.length);
-            assertTrue("More errors observed (" + collector.getDiagnostics().size() + ") than expected (" + i + ")",
-                    i >= collector.getDiagnostics().size());
-        } catch (AssertionError e) {
-            if (!noExtraPrinting) printDiagnostics();
-            throw e;
-        }
-
-    }
-
-    /** Checks that all of the collected messages match the data supplied
-     * in the arguments.
-     * @param a a sequence of expected values, alternating between error message and column numbers
-     */
-    public void checkMessages(/* nonnullelements */Object ... a) {
-        checkDiagnostics(a);
+        outputCompare.compareResults(expected,  collector, true);
     }
     
-    /** Checks that there are no diagnostic messages */
-    public void checkMessages() {
-        if (print || (!noExtraPrinting && 0 != 2*collector.getDiagnostics().size())) printDiagnostics();
-        assertEquals("Saw wrong number of messages ",0,collector.getDiagnostics().size());
-    }
-
     protected ByteArrayOutputStream berr;
     protected ByteArrayOutputStream bout;
     protected PrintStream savederr;
@@ -440,27 +391,28 @@ public abstract class JmlTestSuite {
      * capturing; call with the argument=false to stop capturing, at which point the Strings recordedOut 
      * and recordedErr will contain the collected output (access them through output() and errorOutput() ).
      * 
-     * This facility is NOT THREAD-SAFE because it changes System.out and System.err within this process.
+     * To be thread-safe and to work with this output collection, tests must all use this.out and this.err,
+     * not System.out and System.err.
      */
     public void collectOutput(boolean collect) {
         if (collect) {
             if (bout != null) return; // Already collecting
             recordedOut = null;
             recordedErr = null;
-            savederr = System.err;
-            savedout = System.out;
-            System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
-            System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+            savederr = this.err;
+            savedout = this.out;
+            this.err = new PrintStream(berr=new ByteArrayOutputStream(10000));
+            this.out = new PrintStream(bout=new ByteArrayOutputStream(10000));
         } else {
             if (bout == null) return; // Already not collecting
-            System.err.flush();
-            System.out.flush();
+            this.err.flush();
+            this.out.flush();
             recordedErr = berr.toString();
             recordedOut = bout.toString();
             berr = null;
             bout = null;
-            System.setErr(savederr);
-            System.setOut(savedout);
+            this.err = savederr;
+            this.out = savedout;
         }
     }
     

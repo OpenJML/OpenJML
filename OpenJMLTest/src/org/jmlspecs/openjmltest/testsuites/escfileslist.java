@@ -103,7 +103,7 @@ public class escfileslist extends EscBaseFiles implements Utils {
                     if (line.startsWith("ARGS=\"")) args = line.substring(6, line.length()-1).trim();
                 }
             } catch (Exception e) {
-                System.out.println("EXCEPTION " + e);
+                this.out.println("EXCEPTION " + e);
                 return noargs;
             }
         }
@@ -116,11 +116,11 @@ public class escfileslist extends EscBaseFiles implements Utils {
     @Test
     public void listTests() {
         if (getClass() != escfileslist.class) return;
-        for (var d: escfileslist1.data()) System.out.print(d[0] + " ");
-        System.out.println(";");
-        for (var d: escfileslist2.data()) System.out.print(d[0] + " ");
-        System.out.println(";");
-        for (var d: escfileslist3.data()) System.out.print(d[0] + " ");
-        System.out.println(";");
+        for (var d: escfileslist1.data()) this.out.print(d[0] + " ");
+        this.out.println(";");
+        for (var d: escfileslist2.data()) this.out.print(d[0] + " ");
+        this.out.println(";");
+        for (var d: escfileslist3.data()) this.out.print(d[0] + " ");
+        this.out.println(";");
     }
 }

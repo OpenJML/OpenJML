@@ -242,18 +242,18 @@ public class OpenJMLTestRunner {
         Note that more than one threadTask may be executing, so access to the queue is synchTest synchronized.
     */
     static public void threadTask() {
-        if (verbose) synchronized (System.out) { System.out.println("Launching " + Thread.currentThread().getName()); }
+        if (verbose) { System.out.println("Launching " + Thread.currentThread().getName()); }
         UnitTest t;
         while (true) {
             // Synchronize here even though we are using a synchronized list, so the size() and remove() calls are in one critical block
             synchronized(tasks) { t = tasks.size() == 0 ? null : tasks.remove(0); }
             if (t == null) {
-                if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " exiting"); }
+                if (verbose) { System.out.println("Thread " + Thread.currentThread().getName() + " exiting"); }
                 return;
             }
-            if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " has task " + t.method); }
+            if (verbose) { System.out.println("Thread " + Thread.currentThread().getName() + " has task " + t.method); }
             t.run(); // Output from the task itself is not synchronized
-            if (verbose) synchronized (System.out) { System.out.println("Thread " + Thread.currentThread().getName() + " completed task " + t.method); }
+            if (verbose) { System.out.println("Thread " + Thread.currentThread().getName() + " completed task " + t.method); }
         }
     }
 
@@ -297,7 +297,7 @@ public class OpenJMLTestRunner {
             String qualname = clazz + "." + fullname;
             synchronized (stests) { tests++; }
             try {
-                synchronized (System.out) { System.out.println("Testing " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
+                { System.out.println("Testing " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
                 JmlTestSuite t = null;
                 try {
                     // Essentially, we are creating our own JUnit test runner here, to control the output and metrics
@@ -309,29 +309,20 @@ public class OpenJMLTestRunner {
                         t.setUp(); // FIXME - should we use the @Before methods
                         method.invoke(t); // invokes the specific test within the testcase -- any output directly to System.out is not synchronized
                     } else {
-                        throw new RuntimeException("Test suite " + n.getClass() + " does not extend JmlTestSuite");
-                    }
-                } catch (AssertionError e) {
-                    // continue
-                } catch (Throwable e) {
-                    if (e.getCause() != null) e = e.getCause();
-                    synchronized (sfailures) { failures++; }
-                    synchronized (System.out) { 
-                        System.out.println("Test FAILED: " + qualname);
-                        if (!(e instanceof AssertionError)) System.out.println("  [Show stack using STACK=]");
-                        System.out.println(e);
-                        if (System.getenv("STACK") != null) e.printStackTrace(System.out);
+                        org.junit.Assert.fail("Test suite " + n.getClass() + " does not extend JmlTestSuite");
                     }
                 } finally {
                     if (t != null) t.tearDown(); // FIXME - should we use the @After methods
                 }
-            } catch (AssertionError e) {
-                // normal failure
-            } catch (Exception e) {
-                System.out.println("Test FAILED: " + qualname);
-                System.out.print("Failed to construct or execute or teardown test: " + e);
-                System.out.println("  [Show stack using STACK=]");
-                if (System.getenv("STACK") != null) e.printStackTrace(System.out);
+            } catch (Throwable e) {
+                if (e.getCause() != null) e = e.getCause();
+                synchronized (sfailures) { failures++; }
+                { 
+                    System.out.println("Test FAILED: " + qualname);
+                    System.out.println("  [Show stack using STACK= ]");
+                    System.out.println(e);
+                    if (System.getenv("STACK") != null) e.printStackTrace(System.out);
+                }
             }
         }
     }

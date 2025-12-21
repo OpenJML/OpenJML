@@ -170,7 +170,6 @@ feasibility.fspecB
 
 racfiles.gitbug534		# <<<<< recursive call -- incorrect rac translation 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
-racfiles.rac1			# <<<<< review/improve error messages
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
 generics.testBinaryGeneric3c
 primesc.locsetTests2
