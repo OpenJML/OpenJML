@@ -240,7 +240,7 @@ public abstract class RacBase extends JmlTestSuite {
             assertFalse("Less output than specified: " + i + " vs. " + expectedDiagnostics.length + " lines", i < expectedDiagnostics.length);
             if (p.exitValue() != expectedRACExit) fail("Exit code was " + p.exitValue());
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             if (!print) printDiagnostics();
@@ -362,7 +362,7 @@ public abstract class RacBase extends JmlTestSuite {
                 String output = out.input().replaceAll("@[0-9abcdef]+", "@########");
                 ex = p.exitValue();
                 output = "OUT:" + eol + output + eol + "ERR:" + eol + err.input();
-                if (print) System.out.println(output);
+                if (print) this.out.println(output);
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {
                     if (!file.contains(expected_run)) continue;
@@ -379,8 +379,8 @@ public abstract class RacBase extends JmlTestSuite {
                     if (diffs.isEmpty()) {
                         fail("No expected output file for runtime output");
                     } else {
-                        //System.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
-                        if (print) System.out.println(diffs);
+                        //this.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
+                        if (print) this.out.println(diffs);
                         fail("Unexpected output: " + actRun);
                     }
                 }

@@ -33,18 +33,18 @@ public class jmldoc extends JmlTestSuite {
     public void setUp() throws Exception {
         //capture = false;
         //print = true;
-        savederr = System.err;
-        savedout = System.out;
-        if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
-        if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+        savederr = this.err;  // FIXME - use faility in JmlTestSuite
+        savedout = this.out;
+        if (capture) this.err = (new PrintStream(berr=new ByteArrayOutputStream(10000)));
+        if (capture) this.out = (new PrintStream(bout=new ByteArrayOutputStream(10000)));
     }
     
     @After
     public void tearDown() {
         berr = null;
         bout = null;
-        System.setErr(savederr);
-        System.setOut(savedout);
+        this.err = savederr;
+        this.out = savedout;
     }
     
     /** This is a helper method that runs the compiler on the given set of

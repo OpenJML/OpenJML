@@ -31,7 +31,7 @@ import org.openjml.runners.ParameterizedWithNames;
 public class SpecsEsc extends EscBaseFiles {
 
     /** The name of the subfolder of OpenJMLTest that holds the data for this suite */
-    public static final String testdir = "testSpecs";
+    public static final String testdir = "testspecs";
     
     /** Returns the parameters for this parameterized test suite */
     @Parameters
@@ -71,13 +71,13 @@ public class SpecsEsc extends EscBaseFiles {
     /** This test tests the file that is named as classname by the constructor */
     @Test
     public void testSpecificationFile() {
-        String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + "testspecs" + "/" + foldername;
+        String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + testdir + "/" + foldername;
         // Note that escOnFiles contributes its own options
         escOnFiles(subdir,subdir,"--exclude=main,<init>","--no-show-skipped","--check-feasibility=return");
     }
     
     static public java.util.List<File> findAllFiles() {
-        File dir = new File("testspecs");
+        File dir = new File("testspecs"); // Presumes working directory is OpenJMLTest
         java.util.List<File> classes = new ArrayList<>();
         for (File f: dir.listFiles()) {
             if (f.isDirectory()) classes.add(f);

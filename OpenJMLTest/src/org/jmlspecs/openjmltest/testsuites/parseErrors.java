@@ -201,22 +201,23 @@ public class parseErrors extends ParseBase {
             checkParseErrors("public c A {}");
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message",
-                    "More errors observed (1) than expected (0)",
+                    "More errors observed (1) than expected. First extra: /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7",
                     a.getMessage());
         }
     }
     
     @Test
     public void harness1a() {
-        out = tempout;
+        var savedout = this.out;
+        this.out = tempout;
         try {
             checkParseErrors("public c A {}");
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message",
-                    "More errors observed (1) than expected (0)",
+                    "More errors observed (1) than expected. First extra: /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7",
                     a.getMessage());
         } finally {
-            out = System.out;
+            out = savedout;
         }
     }
     
@@ -229,7 +230,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "No positions given for message 0", 
+                    "Failed to match diagnostic 0 (col): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -258,7 +259,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Message 0 mismatch expected:<[ZZZ]> but was:<[/TEST.java:1: error: class, interface, enum, or record expected]>", 
+                    "Failed to match diagnostic 0 (text): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -272,7 +273,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Column for message 0 expected:<99> but was:<8>", 
+                    "Failed to match diagnostic 0 (col): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -286,7 +287,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Start for message 0 expected:<7> but was:<0>", 
+                    "Failed to match diagnostic 0 (start): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -300,7 +301,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Position for message 0 expected:<-10> but was:<7>", 
+                    "Failed to match diagnostic 0 (pos): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -314,7 +315,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "End for message 0 expected:<-10> but was:<7>", 
+                    "Failed to match diagnostic 0 (end): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -328,7 +329,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Expected 0 or 3 position values after the column value", 
+                    "Failed to match diagnostic 0 (pos): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -370,7 +371,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Expected a message string instead of 8", 
+                    "Failed to match diagnostic 0 (text): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -384,7 +385,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "No positions given for message 0", 
+                    "Failed to match diagnostic 0 (text): /TEST.java:1: error: orphaned case line=1 col=24 start=23 pos=23 end=23", 
                     a.getMessage());
         }
     }

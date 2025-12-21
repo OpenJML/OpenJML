@@ -605,7 +605,7 @@ public class escoption extends EscBase {
     // FIXME - these tests abort the unittests -- something is wrong with capturing and testing the stdout/stderr
 //    @Test
 //    public void checkStdout() {
-//        System.out.println("OUT");
+//        this.out.println("OUT");
 //        org.junit.Assert.assertEquals("OUT\n",output());
 //    }
 //    

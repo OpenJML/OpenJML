@@ -43,12 +43,8 @@ public class escfilesTrace extends EscBaseFiles {
 
     boolean enableSubexpressions = false;
     
-    /** The command-line to use to run ESC on a program */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime",null};
-
     @Override
     public void setUp() throws Exception {
-        rac = sysrac;
         super.setUp();
     }
 
@@ -81,13 +77,13 @@ public class escfilesTrace extends EscBaseFiles {
     @Test // @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void escDemoPaths() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Paths.java","test/escDemoPaths","-s-ubexpressions","--progress");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Paths.java","test/escDemoPaths","--subexpressions","--progress");
     }
 
     @Test 
     public void escDemoChangeCase() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","-noInternalSpecs","--progress","--method=changeCase","-escMaxWarnings=1","--subexpressions","-jmltesting");
+        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","--progress","--method=changeCase","-escMaxWarnings=1","--subexpressions","-jmltesting");
     }
 
     @Test

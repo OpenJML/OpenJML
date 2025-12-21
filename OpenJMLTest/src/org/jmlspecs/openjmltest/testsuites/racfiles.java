@@ -45,14 +45,13 @@ public class racfiles extends RacBase {
         helpCompileRun("T");
     }
 
-    /** Testing using system specs */
-    @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
+    @Test
     public void rac1() {
-        helpCompileRun("Bug1");
+        expectedRACExit = 1;
+        helpCompileRun("Bug1","--rac-java-checks");
     }
 
-    /** Testing using system specs */
-    @Test  // FIXME - problems with library specs - RAC cannot handle ghost variables when it does not compile the class file
+    @Test
     public void rac1a() {
         helpCompileRun("Bug1");
     }

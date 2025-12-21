@@ -64,15 +64,15 @@ public class prettyprinting extends ParseBase {
                 out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
             }
             if (print || !code.equals(out)) {
-                System.out.println("IN:");
-                System.out.print(code);
-                System.out.println("OUT:");
-                System.out.print(out);
+                this.out.println("IN:");
+                this.out.print(code);
+                this.out.println("OUT:");
+                this.out.print(out);
                 //printTree(ParseTreeScanner.walk(tree));
             }
             assertEquals("Output differs",code,out);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         }
     }
@@ -233,8 +233,8 @@ public class prettyprinting extends ParseBase {
         Parser p = fac.newParser(text,false,true,true);
         JCTree tree = p.parseCompilationUnit();
         String output = JmlAstPrinter.print(tree, main.context());
-        System.out.println("TEXT: " + text);
-        System.out.println(output);
+        this.out.println("TEXT: " + text);
+        this.out.println(output);
     }
     @Test
     public void ast1() {

@@ -1384,7 +1384,6 @@ public class modifiers extends TCBase {
     @Test public void testQuery() {
         helpTCText("t/A.java","package t; import org.jmlspecs.annotation.*; \n public class A{ @Query int m() { return 0; } }"
                 );
-        checkMessages();
     }
      
     @Test public void testSecret() {

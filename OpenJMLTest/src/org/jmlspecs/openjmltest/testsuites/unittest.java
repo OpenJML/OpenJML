@@ -52,6 +52,4 @@ public class unittest extends org.jmlspecs.openjmltest.JmlTestSuite {
         String s = sp.toString();
         assertEquals("[3:5 0]", s);
     }
-    
-
 }

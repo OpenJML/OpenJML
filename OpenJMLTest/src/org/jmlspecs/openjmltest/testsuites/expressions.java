@@ -34,6 +34,8 @@ public class expressions extends ParseBase {
     
     public boolean skip = false;
     public boolean failharness = false;
+    
+    // FIXME - capture output and check it -- can we do so thread safely?
 
     @Override
     public void setUp() throws Exception {
@@ -60,28 +62,29 @@ public class expressions extends ParseBase {
 
     public void helpExpr(String s, Object... list) {
         if (skip) return;
+        List<JCTree> nodes = null;
+        JmlParser p = null;
         try {
             if (failharness) throw new IllegalArgumentException();
             Log.instance(context).useSource(new MockJavaFileObject(s));
-            JmlParser p = ((JmlFactory)fac).newParser(s,false,jml);
+            p = ((JmlFactory)fac).newParser(s,false,jml);
             JCTree.JCExpression e = p.parseExpression();
-            List<JCTree> out = ParseTreeScanner.walk(e);
+            nodes = ParseTreeScanner.walk(e);
             int i = 0;
             int k = 0;
             if (print) {
-                for (JCTree t: out) {
-                    System.out.println(t.getClass() 
+                for (JCTree t: nodes) {
+                    this.out.println(t.getClass() 
                             + " " + t.getStartPosition() 
                             + " " + t.getPreferredPosition() 
                             + " " + p.getEndPos(t));
                 }
             }
-            if (print || collector.getDiagnostics().size() != 0) {
-                printDiagnostics();
-            }
+            printDiagnostics(); // There should be no errors
             assertTrue("Saw unexpected errors", collector.getDiagnostics().size() == 0);
+
             Object p1, p2, p3;
-            for (JCTree t: out) {
+            for (JCTree t: nodes) {
                 assertEquals("Class not matched at token " + k, list[i++], t.getClass());
                 p1 = list[i++];
                 p2 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
@@ -101,8 +104,16 @@ public class expressions extends ParseBase {
             }
             assertTrue("Incorrect number of nodes listed", i == list.length);
             assertTrue("Not at end of input", p.getScanner().token().kind == TokenKind.EOF);
+        } catch (AssertionError e) {
+            if (nodes != null) for (JCTree t: nodes) {
+                this.out.println(t.getClass() 
+                        + " " + t.getStartPosition() 
+                        + " " + t.getPreferredPosition() 
+                        + " " + p.getEndPos(t));
+            }
+            throw e;
         } catch (Exception e) { // An exception is thrown only if there is an internal bug
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e); // NOCOV: Always throws exception -- won't show as covered
         }
     }
@@ -121,14 +132,134 @@ public class expressions extends ParseBase {
                 assertEquals("Error message " + i,list[i++],noSource((JCDiagnostic)dd));
             }
         } catch (Exception e) { // An exception is thrown only if there is an internal bug
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e); // NOCOV: Always throws exception -- won't show as covered
         }
     }
     
-    String noSource(JCDiagnostic dd) {  // FIXME - delete in favor of JmlTestSuite.noSource?
-        return dd.getMessage(java.util.Locale.getDefault());
+//    String noSource(JCDiagnostic dd) {  // FIXME - delete in favor of JmlTestSuite.noSource?
+//        return dd.getMessage(java.util.Locale.getDefault());
+//    }
+    
+    /////////////////////////////////////////////////////////
+    
+
+    /** Test that fails */
+    @Test
+    public void testFailure1() {
+        jml = false;
+        helpFailure("Incorrect number of nodes listed", "a",
+                JCIdent.class, 0, 1,
+                JCIdent.class, 0, 1);
     }
+    
+    /** Test that fails */
+    @Test
+    public void testFailure3() {
+        try {
+            jml = false; // Intentionally prints output
+            helpExpr("#",
+                    JCIdent.class, 0, 1,
+                    JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Saw unexpected errors", ex.getMessage());
+        }
+    }
+
+    /** Test that fails */
+    @Test
+    public void testFailure4() {
+        try {
+            jml = false;
+            helpExpr("a a",
+                    JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Not at end of input", ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testFailure5() {
+        try { 
+            helpExprErrors(" \\max","reached end of file while parsing","ZZZ");
+        } catch (AssertionError ex) {
+            assertEquals("Saw wrong number of errors  expected:<2> but was:<1>", ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testFailure6() {
+        print = true; // Intentionally prints output
+        helpExprErrors(" \\max","/TEST.java:1: error: reached end of file while parsing");
+    }
+
+    /** Test that fails */
+    @Test
+    public void testFailure0() {
+        try { 
+            jml = false;
+            helpFailure("", "a", JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Test harness failed to report an error", ex.getMessage());
+        }
+    }
+
+    /** Test that fails */
+    @Test
+    public void testFailure2() {
+        try { 
+            jml = false;
+            helpFailure("ZZZ", "a",
+                                JCIdent.class, 0, 1,
+                                JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Failure report wrong expected:<[ZZZ]> but was:<[Incorrect number of nodes listed]>",
+                    ex.getMessage());
+        }
+    }
+    
+    // These tests are simply to improve coverage in failure paths of the helper methods
+    @Test
+    public void testFailureNone() {
+        skip = true;
+        testFailure0();
+        testFailure2();
+        testFailure3();
+        testFailure4();
+        jml = true;
+        testFailure5();
+    }
+
+    // These tests are simply to improve coverage in failure paths of the helper methods
+    @Test
+    public void testFailureNone1() {
+        skip = false;
+        for (int i = 0; i<2; i++) {
+            failharness = i == 0; // Intentional failure and stack output
+            skip = i != 0;
+            try {
+                helpExpr("");
+            } catch (AssertionError e) {
+                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", e.getMessage());
+            }
+        }
+    }
+
+    // These tests are simply to improve coverage in failure paths of the helper methods
+    @Test
+    public void testFailureNone2() {
+        for (int i = 0; i<2; i++) {
+            failharness = i == 0; // Intentional failure and stack output
+            skip = i != 0;
+            try {
+                helpExprErrors("");
+            } catch (AssertionError e) {
+                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", e.getMessage());
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
     
     // Each bit of source text (in this series of tests, each must be a
     // JML expression) is parsed into a tree of nodes. The expected data
@@ -199,122 +330,6 @@ public class expressions extends ParseBase {
         helpExpr("a",
                 JCIdent.class ,0,0,1);
     }
-
-    /** Test that fails */
-    @Test
-    public void testFailure1() {
-        jml = false;
-        helpFailure("Incorrect number of nodes listed", "a",
-                JCIdent.class, 0, 1,
-                JCIdent.class, 0, 1);
-    }
-    
-    /** Test that fails */
-    @Test
-    public void testFailure3() {
-        try {
-            jml = false; // Intentionally prints output
-            helpExpr("#",
-                    JCIdent.class, 0, 1,
-                    JCIdent.class, 0, 1);
-        } catch (AssertionError ex) {
-            assertEquals("Saw unexpected errors", ex.getMessage());
-        }
-    }
-
-    /** Test that fails */
-    @Test
-    public void testFailure4() {
-        try {
-            jml = false;
-            helpExpr("a a",
-                    JCIdent.class, 0, 1);
-        } catch (AssertionError ex) {
-            assertEquals("Not at end of input", ex.getMessage());
-        }
-    }
-    
-    @Test
-    public void testFailure5() {
-        try { 
-            helpExprErrors(" \\max","reached end of file while parsing","ZZZ");
-        } catch (AssertionError ex) {
-            assertEquals("Saw wrong number of errors  expected:<2> but was:<1>", ex.getMessage());
-        }
-    }
-
-    @Test
-    public void testFailure6() {
-            print = true; // Intentionally prints output
-            helpExprErrors(" \\max","reached end of file while parsing");
-    }
-
-    /** Test that fails */
-    @Test
-    public void testFailure0() {
-        try { 
-            jml = false;
-            helpFailure("", "a", JCIdent.class, 0, 1);
-        } catch (AssertionError ex) {
-            assertEquals("Test harness failed to report an error", ex.getMessage());
-        }
-    }
-
-    /** Test that fails */
-    @Test
-    public void testFailure2() {
-        try { 
-            jml = false;
-            helpFailure("ZZZ", "a",
-                                JCIdent.class, 0, 1,
-                                JCIdent.class, 0, 1);
-        } catch (AssertionError ex) {
-            assertEquals("Failure report wrong expected:<[ZZZ]> but was:<[Incorrect number of nodes listed]>",
-                    ex.getMessage());
-        }
-    }
-    
-    // These tests are simply to improve coverage in failure paths of the helper methods
-    @Test
-    public void testFailureNone() {
-        skip = true;
-        testFailure0();
-        testFailure2();
-        testFailure3();
-        testFailure4();
-        jml = true;
-        testFailure5();
-    }
-
-    // These tests are simply to improve coverage in failure paths of the helper methods
-    @Test
-    public void testFailureNone1() {
-        skip = false;
-        for (int i = 0; i<2; i++) {
-            failharness = i == 0; // Intentional failure and stack output
-            skip = i != 0;
-            try {
-                helpExpr("");
-            } catch (AssertionError e) {
-                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", e.getMessage());
-            }
-        }
-    }
-
-    // These tests are simply to improve coverage in failure paths of the helper methods
-    @Test
-    public void testFailureNone2() {
-        for (int i = 0; i<2; i++) {
-            failharness = i == 0; // Intentional failure and stack output
-            skip = i != 0;
-            try {
-                helpExprErrors("");
-            } catch (AssertionError e) {
-                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", e.getMessage());
-            }
-        }
-    }
-
     /** Test scanning Java binary expression to check node positions */
     @Test
     public void testBinary() {
@@ -633,7 +648,7 @@ public class expressions extends ParseBase {
     /** Test scanning \max(\lockset) expression */
     @Test
     public void testMaxLocksetError2() {
-        helpExprErrors(" \\max","reached end of file while parsing");
+        helpExprErrors(" \\max","/TEST.java:1: error: reached end of file while parsing");  // FIXME - a duplicate test?
     }
 
     /** Test precedence of <= operator */

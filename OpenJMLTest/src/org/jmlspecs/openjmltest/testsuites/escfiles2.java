@@ -325,7 +325,8 @@ public class escfiles2 extends EscBaseFiles {
     public void escharness2() {
         // When a comparison difference is found, the behavior is to print out the differences to 'out'
         // For the purpose of this test, we redirect that output.
-        out = tempout;
+        var savedout = this.out;
+        this.out = tempout;
         try {
             helpTCG("--check");
         } catch (AssertionError a) {
@@ -334,7 +335,7 @@ public class escfiles2 extends EscBaseFiles {
                     Files differ""";
             assertEquals("Incorrect harness failure:", expected, a.getMessage());
         } finally {
-            out = System.out;
+            this.out = savedout;
         }
     }
 
