@@ -28,45 +28,18 @@ public class compiler extends JmlTestSuite{
     @Rule
     public TestName name = new TestName();
 
-    ByteArrayOutputStream berr;
-    ByteArrayOutputStream bout;
-    PrintStream savederr;
-    PrintStream savedout;
-    static String eol = System.getProperty("line.separator");
-    static String z = java.io.File.pathSeparator;
-    boolean print = false;
     boolean capture = true;
-    String projHome;
-    {
-        var h = JmlTestSuite.root + "/OpenJML21/OpenJMLTest";
-        projHome = h.replace("C:","").replace("\\","/");
-    }
-    String specsHome;
-    {
-        try {
-            specsHome = JmlTestSuite.root + "/Specs"; // FIXME - /Specs/specs ???
-        } catch (Exception e) {
-            specsHome = null;
-        }
-    }
     String expectedFile = null;
 
     @Before
     public void setUp() throws Exception {
         //capture = false; print = true;
-        savederr = this.err;
-        savedout = this.out; // FIXME - why not use th ecapture facility in jmlTestSuite
-        if (capture) this.err = new PrintStream(berr=new ByteArrayOutputStream(10000));
-        if (capture) this.out = new PrintStream(bout=new ByteArrayOutputStream(10000));
+        if (capture) collectSystemOutput(true);
     }
 
     @After
     public void tearDown() {
         // Do this just in case the test fails without having reset the streams
-        berr = null;
-        bout = null;
-        this.err = savederr;
-        this.out = savedout;
     }
 
     /** This is a helper method that runs the compiler on the given set of
@@ -80,21 +53,15 @@ public class compiler extends JmlTestSuite{
      * then they are the expected error and standard output 
      */
     public void helper(String[] args, int expectedExitCode, int all, String ... output) {
-        int exitCode;
+        int exitCode = 4;
         try {
             exitCode = org.jmlspecs.openjml.Main.execute(args);
         } finally {
-            this.err.flush();
-            this.out.flush();
-            this.err = savederr;
-            this.out = savedout;
+            if (capture) collectSystemOutput(false);
         }
-        if (berr == null) return;
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualOutput = bout.toString();
-        String errOutput = berr.toString();
-        actualOutput = actualOutput.replace("\\","/");  // FIXME - no longer need these?
-        errOutput = errOutput.toString().replace("\\","/");
+        String actualOutput = output();
+        String errOutput = errorOutput();
 
         String expected;
         String expectedErr = "";

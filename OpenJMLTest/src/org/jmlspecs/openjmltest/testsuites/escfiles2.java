@@ -92,6 +92,16 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug726() {
+        helpTCG("--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug726a() {
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug761() {
         helpTCG("--check");
     }

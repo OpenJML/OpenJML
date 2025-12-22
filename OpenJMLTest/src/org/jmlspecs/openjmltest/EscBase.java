@@ -143,7 +143,7 @@ public abstract class EscBase extends JmlTestSuite {
 
     @Override
     public void setUp() throws Exception {
-        if (captureOutput) collectOutput(true);
+        if (captureOutput) collectSystemOutput(true);
         testspecpath = testspecpath1;
         ignoreNotes = true;
         super.setUp(); // Uses ignoreNotes
@@ -210,7 +210,7 @@ public abstract class EscBase extends JmlTestSuite {
         try {
             int ex = main.compile(allargs, files).exitCode;
             int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
-            if (captureOutput) collectOutput(false);
+            if (captureOutput) collectSystemOutput(false);
             { 
                 if (print ) printDiagnostics();
                 outputCompare.compareResults(expectedResults,collector,true);

@@ -394,32 +394,63 @@ public abstract class JmlTestSuite {
      * To be thread-safe and to work with this output collection, tests must all use this.out and this.err,
      * not System.out and System.err.
      */
-    public void collectOutput(boolean collect) {
+//    public void collectOutput(boolean collect) {
+//        if (collect) {
+//            if (bout != null) return; // Already collecting
+//            recordedOut = null;
+//            recordedErr = null;
+//            savederr = System.err;
+//            savedout = System.out;
+//            this.err = new PrintStream(berr=new ByteArrayOutputStream(10000));
+//            this.out = new PrintStream(bout=new ByteArrayOutputStream(10000));
+//        } else {
+//            if (bout == null) return; // Already not collecting
+//            this.err.flush();
+//            this.out.flush();
+//            recordedErr = berr.toString();
+//            recordedOut = bout.toString();
+//            this.err = savederr;
+//            this.out = savedout;
+//        }
+//    }
+    
+    public void collectSystemOutput(boolean collect) {
         if (collect) {
             if (bout != null) return; // Already collecting
+            //System.out.println("STARTING COLLECTING");
             recordedOut = null;
             recordedErr = null;
-            savederr = this.err;
-            savedout = this.out;
-            this.err = new PrintStream(berr=new ByteArrayOutputStream(10000));
-            this.out = new PrintStream(bout=new ByteArrayOutputStream(10000));
+            savederr = System.err;
+            savedout = System.out;
+            System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
+            System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+            this.out = System.out;
+            //savedout.println("STARTING COLLECTING-A");
         } else {
             if (bout == null) return; // Already not collecting
-            this.err.flush();
-            this.out.flush();
+            System.err.flush();
+            System.out.flush();
+            System.setErr(savederr);
+            System.setOut(savedout);
+            //System.out.println("ENDED COLLECTING-A " + recordedOut);
+            this.out = System.out;
             recordedErr = berr.toString();
             recordedOut = bout.toString();
-            berr = null;
-            bout = null;
-            this.err = savederr;
-            this.out = savedout;
+            bout = berr = null;
+            //System.out.println("ENDED COLLECTING " + recordedOut);
         }
     }
     
     /** Returns the standard-out output; valid once collectOutput(false) has been called. */
-    public String output() { return recordedOut; }
+    public String output() { 
+        if (bout != null) collectSystemOutput(false);
+        return recordedOut;
+    }
     /** Returns the standard-err output; valid once collectOutput(false) has been called. */
-    public String errorOutput() { return recordedErr; }
+    public String errorOutput() { 
+        if (berr != null) collectSystemOutput(false);
+        return recordedErr;
+    }
 
 
     /** Used to add a pseudo file to the file system. Note that for testing, a 

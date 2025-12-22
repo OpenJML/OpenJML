@@ -1800,13 +1800,19 @@ public class JmlSpecs {
     }
 
     public JmlToken determinePurity(MethodSymbol msym) {
-        boolean print = false; // msym.toString().contains("add");// && msym.owner.toString().equals("java.util.Collection");
+        boolean print = false && msym.owner.toString().equals("java.util.Collection");
         JmlModifiers mods = getSpecsModifiers(msym);
         if (print) System.out.println("DP_REQUEST " + msym.owner + " " + msym + " " + mods);
         if (mods != null) {
             var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
             if (print) System.out.println("DIRECT  " + msym.owner + " " + msym + " " + a);
             if (a != null) return a;
+            var an = utils.findMod(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
+            if (an != null) {
+                // FIXME - should really turn annotations into modifier tokens
+                a = new JmlToken(an.kind, an.sourcefile, an.pos, an.pos, null);
+                return a;
+            }
         }
         JmlToken best = null;
         for (var mp: utils.parents(msym, false)) {

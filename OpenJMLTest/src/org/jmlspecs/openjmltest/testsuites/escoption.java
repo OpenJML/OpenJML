@@ -31,7 +31,7 @@ public class escoption extends EscBase {
  
     @Test
     public void testOptionValueBoolean() {
-        collectOutput(false);
+        collectSystemOutput(false);
         JmlOptions options = JmlOptions.instance(main.context());
         Assert.assertEquals("A", "openjml",JmlOption.LANG.value(context));
         Assert.assertEquals("B", "openjml",JmlOption.LANG.value(context));
@@ -54,7 +54,7 @@ public class escoption extends EscBase {
     // FIXME -- adjust JmlOption calls
     @Test
     public void testOptionValue() {
-        collectOutput(false);
+        collectSystemOutput(false);
         JmlOptions options = JmlOptions.instance(context);
         Assert.assertEquals(null, JmlOption.METHOD.value(main.context()));
         Assert.assertEquals(null, options.get("-method"));
