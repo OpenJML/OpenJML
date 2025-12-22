@@ -265,6 +265,11 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug932() {
+        helpTCG();
+    }
+    
+    @Test
     public void gitbug903() {
         helpTCG();
     }
