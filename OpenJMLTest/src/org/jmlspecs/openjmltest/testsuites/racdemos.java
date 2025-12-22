@@ -81,11 +81,9 @@ public class racdemos extends RacBase {
 
     @Test
     public void demoecu2a() {
-        //collectOutput(true);
         expectedExit = 0;
         expectedRACExit = 0;
         helpCompileRunDemo("/src/openjml/ecu2a","IgnitionTest");
-        //collectOutput(false);
     }
 
     @Test

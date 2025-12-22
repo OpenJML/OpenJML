@@ -9080,7 +9080,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
-		boolean print =  Utils.debug("trans"); //  || that.toString().contains("zrange.isEmpty()");
+		boolean print = Utils.debug("trans"); //  || that.toString().contains("zrange.isEmpty()");
         boolean printb = print;
         //print |= that.toString().contains("cops.id");
     	if (print) {
@@ -9258,8 +9258,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// parent class,
 					// the children see 'this' with the type of the child and see the combined specs
 					// accordingly
-					convertedReceiver = currentEnv.currentReceiver;
-					receiverType = currentEnv.currentReceiver.type;
+				    if (faid.name == names._this) {
+				        convertedReceiver = currentEnv.currentReceiver;
+				        receiverType = currentEnv.currentReceiver.type;
+				    } else {
+                        receiverType = fa.selected.type;
+				        if (currentEnv.currentReceiver instanceof JCIdent id && id.name == names._this) {
+				            convertedReceiver = fa.selected;
+				        } else {
+	                        System.out.println("SUPER " + that + " " + currentEnv.currentReceiver);
+                            convertedReceiver = fa.selected; // FIXME - should this be the super of the current receiver???
+				        }
+				    }
 				} else if (calleeMethodSym.isStatic()) {
                     receiverType = fa.selected.type;
                     // This is static, but we still convert the receiver so that any errors in its evaluation are discovered
@@ -9374,11 +9384,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //	            receiverType = calleeMethodSym.owner.type;
 //	        }
 
-		    if (apply != null) {
-		        if (!translatingJML || !(currentEnv.enclosingClauseKind instanceof StatementExprExtensions.StatementExprType)) {
-		            addTerminationCheck(apply, trArgs);
-		        }
-		    }
+            if (apply != null) {
+                if (!translatingJML || !(currentEnv.enclosingClauseKind instanceof StatementExprExtensions.StatementExprType)) {
+                    //System.out.println("TERM CHECK FOR " + currentEnv.enclosingClauseKind + " " + enclosingMethod + " "  +apply);
+                    addTerminationCheck(apply, trArgs);
+                }
+            }
 
 
 			if (print)
@@ -16405,8 +16416,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (that.sym == null) {
 			utils.error(that, "jml.message", "NULL SYMBOL " + that);
 		}
+		if (rac && that.sym.name == names._super) {
+		    // FIXME This translation of super will not work if the currentReceiver is not 'this' 
+		    result = eresult = that;
+		    return;
+		}
 		if (translatingLambda && that.sym.name == names._this) {
-			copy(currentEnv.currentReceiver);
+			copy(currentEnv.currentReceiver); // FIXME - needs to assign the copy to something?
 			return;
 		}
 		
@@ -18255,6 +18271,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JmlStatementLoop loop : loopSpecs) {
 				if (loop.clauseType == loopinvariantClause) {
 					JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loop;
+			        currentEnv = currentEnv.pushEnvCopy();
+			        currentEnv.enclosingClauseKind = loop.clauseType;
 					try {
 						JCExpression copy = copy(inv.expression); // Might throw NoModelMethod
 						addTraceableComment(inv, copy, inv.toString());
@@ -18262,6 +18280,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						addAssert(inv, Label.LOOP_INVARIANT_PRELOOP, e);
 					} catch (NoModelMethod e) {
 						// continue - skip the assertion
+					} finally {
+					    currentEnv = currentEnv.popEnv();
 					}
 				}
 			}
@@ -18278,12 +18298,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCBreak br = M.at(pos).Break(null);
 		br.target = loop;
         if (loopSpecs != null) {
+            currentEnv = currentEnv.pushEnvCopy();
             for (JmlStatementLoop loopStat : loopSpecs) {
                 if (loopStat.clauseType == loopinvariantClause) {
                     JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loopStat;
                     try {
                         JCExpression copy = copy(inv.expression); // Might throw NoModelMethod
                         addTraceableComment(inv, copy, inv.toString());
+                        currentEnv.enclosingClauseKind = inv.clauseType;
                         JCExpression e = inv.translated ? copy : convertJML(copy);
                         addAssert(inv, Label.LOOP_INVARIANT_ENDLOOP, e);
                     } catch (NoModelMethod e) {
@@ -18291,6 +18313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
+            currentEnv.popEnv();
         }
 		addStat(br);
 		JCBlock bl = popBlock(pos, check);
@@ -18368,10 +18391,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		// Assume the invariants
+        currentEnv = currentEnv.pushEnvCopy();
 		if (loopSpecs != null) {
 			for (JmlStatementLoop loop : loopSpecs) {
 				if (loop.clauseType == loopinvariantClause) {
 					JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loop;
+			        currentEnv.enclosingClauseKind = inv.clauseType;
 					try {
 						JCExpression copy = copy(inv.expression);
 						addTraceableComment(inv, copy, inv.toString());
@@ -18379,7 +18404,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						addAssume(inv, Label.LOOP_INVARIANT_ASSUMPTION, e);
 					} catch (NoModelMethod e) {
 						// continue - no assertions added
-					}
+ 					}
 				}
 			}
 		}
@@ -18389,6 +18414,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JmlStatementLoop loop : loopSpecs) {
 				if (loop.clauseType == loopdecreasesClause) {
 					JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loop;
+                    currentEnv.enclosingClauseKind = inv.clauseType;
 					try {
 						JCExpression copy = copy(inv.expression);
 						addTraceableComment(inv, copy, inv.toString(), "Initial value of Loop Decreases expression");
@@ -18403,6 +18429,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
+		currentEnv = currentEnv.popEnv();
 	}
 
 	/** Check that the variants are non-negative */
@@ -18422,10 +18449,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Asserts the invariants and that the variants are decreasing */
 	protected void loopHelperAssertInvariants(List<JmlStatementLoop> loopSpecs, java.util.List<JCIdent> decreasesIDs) {
-		if (loopSpecs != null) {
+		if (loopSpecs != null) try  {
+            currentEnv = currentEnv.pushEnvCopy();
 			for (JmlStatementLoop loop : loopSpecs) {
 				if (loop.clauseType == loopinvariantClause) {
-					JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loop;
+				    JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loop;
+                    currentEnv.enclosingClauseKind = loop.clauseType;
 					try {
 						JCExpression copy = copy(inv.expression);
 						addTraceableComment(inv, copy, inv.toString());
@@ -18441,6 +18470,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			for (JmlStatementLoop loop : loopSpecs) {
 				if (loop.clauseType == loopdecreasesClause) {
 					JmlStatementLoopExpr inv = (JmlStatementLoopExpr) loop;
+                    currentEnv.enclosingClauseKind = loop.clauseType;
 					try {
 						JCExpression copy = copy(inv.expression);
 						addTraceableComment(inv, copy, inv.toString());
@@ -18460,6 +18490,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 				}
 			}
+		} finally {
+		    currentEnv.popEnv();
 		}
 
 	}
@@ -21025,7 +21057,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public void visitJmlStatementExpr(JmlStatementExpr that) {
 		boolean pv = checkAccessEnabled; // Don't check access during JML statements
 		checkAccessEnabled = false;
-
+		currentEnv = currentEnv.pushEnvCopy();
+		currentEnv.enclosingClauseKind = that.clauseType;
+		
 		boolean saved = assumingPostConditions;
 		assumingPostConditions = false;
 		try {
@@ -21143,6 +21177,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} finally {
 			checkAccessEnabled = pv;
 			assumingPostConditions = saved;
+		     currentEnv = currentEnv.popEnv();
 		}
 	}
 
@@ -21422,13 +21457,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitJmlStatementLoopExpr(JmlStatementLoopExpr that) {
-		boolean saved = assumingPostConditions;
-		assumingPostConditions = false;
-		JmlStatementLoopExpr st = M.at(that).JmlStatementLoopExpr(that.clauseType, convertExpr(that.expression));
-		st.setType(that.type);
-		// st.sym = that.sym;
-		result = st;
-		assumingPostConditions = saved;
+        currentEnv = currentEnv.pushEnvCopy();
+        currentEnv.enclosingClauseKind = that.clauseType;
+        try {
+            boolean saved = assumingPostConditions;
+            assumingPostConditions = false;
+            JmlStatementLoopExpr st = M.at(that).JmlStatementLoopExpr(that.clauseType, convertExpr(that.expression));
+            st.setType(that.type);
+            // st.sym = that.sym;
+            result = st;
+            assumingPostConditions = saved;
+        } finally {
+            currentEnv = currentEnv.popEnv();
+        }
 	}
 
 	@Override
