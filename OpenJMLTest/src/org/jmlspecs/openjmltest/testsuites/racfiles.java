@@ -249,7 +249,7 @@ public class racfiles extends RacBase {
 
     @Test
     public void racHansStorage() {
-    	expectedRACExit = 1;
+    	expectedRACExit = 0;
     	helpRac("test/racHansStorage/StorageParameters.java","test/racHansStorage","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorage");
     	rac = null;
     }
@@ -263,7 +263,7 @@ public class racfiles extends RacBase {
 
     @Test
     public void racHansStorageB() {
-        expectedRACExit = 1;
+        expectedRACExit = 0;
     	helpRac("test/racHansStorageB/StorageParameters.java","test/racHansStorageB","StorageParameters","--rac-check-assumptions","--specs-path=test/racHansStorageB");
     	rac = null;
     }

@@ -123,8 +123,8 @@ unittests-par: prep .FORCE
 
 # Executes the tests of JSON output and input
 json-tests: .FORCE 
-	@ ${TEST}/scripttests/json/run
-	@ ${TEST}/scripttests/json-loc/run
+	@ ${TEST}/jsontests/json/run
+	@ ${TEST}/jsontests/json-loc/run
 
 .FORCE:
 
