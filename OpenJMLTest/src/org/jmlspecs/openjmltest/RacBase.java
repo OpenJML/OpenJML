@@ -156,7 +156,6 @@ public abstract class RacBase extends JmlTestSuite {
             int ex = main.compile(new String[]{"-d", destdir},files.toList()).exitCode;
             if (print) printDiagnostics();
 
-            // FIXME - change this to use outputCOmpare
             int expectedUsed = new OutputCompare().compareResults(expectedDiagnostics, collector, false);
             assertEquals("Compile ended with exit code:", expectedExit, ex);
             if (ex != 0 && !continueAnyway) return;
@@ -199,8 +198,6 @@ public abstract class RacBase extends JmlTestSuite {
                     //out.println("ACT: " + line);
                     if (i < expectedDiagnostics.length) {
                         String expected = doReplacements(expectedDiagnostics[i].toString());
-//                        expected = expected.replace("$SPECS", specsdir);  // FIXME - use doReplacements
-//                        expected = expected.replace("#DEMO", OpenJMLDemoPath);
                         //out.println("EXP: " + expected);
                         if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
                             expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
@@ -221,7 +218,6 @@ public abstract class RacBase extends JmlTestSuite {
                     //out.println("ERR-ACT: " + actual);
                     if (i < expectedDiagnostics.length) {
                         String expected = doReplacements(expectedDiagnostics[i].toString());
-                        //expected = expected.replace("#DEMO", OpenJMLDemoPath);  // FIXME - use doReplacements
                         //out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
