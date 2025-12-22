@@ -1,4 +1,0 @@
-#! /bin/bash
-
-LOC=$(dirname "${BASH_SOURCE[0]}")
-$LOC/runtests "$@" | tee $LOC/log-scripttests | egrep -v '(Testing|Matched|Skip|481)' | tee $LOC/log-scripttests-filt

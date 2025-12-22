@@ -842,18 +842,37 @@ public class escnew3 extends EscBase {
                 + "public class TestJava { \n"
                 + "  //@ requires iii == 10;\n"
                 + "  public void m(int iii) {\n"
-                + "     a:{};\n"
+                + "     a:;\n"
                 + "     iii = 12;\n"
                 + "     b:{};\n"
                 + "     iii = 14;\n"
-                + "     //@ assert \\old(iii) == 10;\n"
-                + "     //@ assert \\old(iii,a) == 10;\n"
-                + "     //@ assert \\old(iii,b) == 12;\n"
-                + "     //@ assert iii == 14;\n"
+                + "     //@ check \\old(iii) == 10;\n"
+                + "     //@ check \\old(iii,a) == 10;\n"
+                + "     //@ check \\old(iii,b) == 12;\n"
+                + "     //@ check iii == 14;\n"
                 + "    }\n"
                 + "}"
                  );
-        
+    }
+
+    @Test
+    public void testGhostLabels() {
+        helpTCX("tt.TestJava",
+                  "package tt; \n"
+                + "public class TestJava { \n"
+                + "  //@ requires iii == 10;\n"
+                + "  public void m(int iii) {\n"
+                + "     //@ a:;\n"
+                + "     iii = 12;\n"
+                + "     //@ b:{};\n"
+                + "     iii = 14;\n"
+                + "     //@ check \\old(iii) == 10;\n"
+                + "     //@ check \\old(iii,a) == 10;\n"
+                + "     //@ check \\old(iii,b) == 12;\n"
+                + "     //@ check iii == 14;\n"
+                + "    }\n"
+                + "}"
+                 );
     }
 
      @Test
@@ -869,10 +888,10 @@ public class escnew3 extends EscBase {
                 + "     k = 12;\n"
                 + "     b:{}\n"
                 + "     k = 14;\n"    // Line 10
-                + "     //@ assert \\old(mm()) == 10;\n"
-                + "     //@ assert \\old(mm(),a) == 10;\n"
-                + "     //@ assert \\old(mm(),b) == 12;\n"
-//                + "     //@ assert mm() == 14;\n"
+                + "     //@ check \\old(mm()) == 10;\n"
+                + "     //@ check \\old(mm(),a) == 10;\n"
+                + "     //@ check \\old(mm(),b) == 12;\n"
+                + "     //@ check mm() == 14;\n"
                 + "    }\n"
                 + "}"
                  );

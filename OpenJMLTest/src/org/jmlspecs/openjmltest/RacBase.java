@@ -88,8 +88,6 @@ public abstract class RacBase extends JmlTestSuite {
 
         // Use the default specs path for tests
         testspecpath = testspecpath1;
-        // Define a new collector that filters out the notes
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(false,null);
         super.setUp();
 
         // Setup the options
@@ -101,7 +99,6 @@ public abstract class RacBase extends JmlTestSuite {
         addOptions("--rac-show-source=none"); // To make the test output more stable and smaller
         expectedExit = 0;
         expectedRACExit = 0;
-        ignoreNotes = true;
         print = false;
     }
 

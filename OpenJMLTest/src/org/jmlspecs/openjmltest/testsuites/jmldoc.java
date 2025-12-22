@@ -51,7 +51,7 @@ public class jmldoc extends JmlTestSuite {
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = ""; //exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
-            if (print) System.out.println("TEST: " + getTestName() + " exit=" + e + eol + errOutput);
+            if (print) System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + errOutput);
             String expected = output[0];
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
