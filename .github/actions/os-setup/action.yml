@@ -14,7 +14,7 @@ runs:
         brew install coreutils
         brew install autoconf
         export sep=":"
-O    - name: Linux additions
+    - name: Linux additions
       if: runner.os == 'Linux'
       shell: bash
       run: |
