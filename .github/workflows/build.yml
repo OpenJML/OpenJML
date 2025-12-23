@@ -27,11 +27,20 @@ env:
   FOLDER: OpenJML21
 
 jobs:
+  export-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      oses: ${{ steps.export.outputs.oslist }}
+    steps:
+    - id: export
+      run: |
+        ## Edit the list of OSes here
+        echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
+
   prepare:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }} # Define output
-      oses: ${{ steps.export.outputs.oslist }}
 
     steps:
     ## The following step just checks out the OpenJML repo on the branch that caused the push, which is all we need to determine the version
@@ -41,10 +50,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         sparse-checkout: 'version.txt'
-    - id: export
-      run: |
-        ## Edit the list of OSes here
-        echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
+
     - name: Determine version
       id: version
       run: |
@@ -69,6 +75,7 @@ jobs:
         echo Created release $ver with id $id
 
   build:
+    needs: export-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -124,7 +131,7 @@ jobs:
   ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction, 
   ## which is presumed to be the most recent
   upload:
-    needs: [ prepare, build ]
+    needs: [ export-matrix, prepare, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
