@@ -51,7 +51,6 @@ jobs:
     strategy:
       matrix:
         os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
-        #os: [ macos-14, ubuntu-22.04, ubuntu-latest ]
       fail-fast: false
 
     steps:
@@ -73,7 +72,6 @@ jobs:
 
     - name: Variable
       run: |
-        echo ${{ fromJson(needs.export-matrix.outputs.oses) }}
         export failures=""
 
     - name: Run release tests
@@ -100,10 +98,11 @@ jobs:
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
   unittests:
+    needs: export-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-14, ubuntu-22.04, ubuntu-latest ]
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -125,6 +124,6 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest unittests-par || true
+        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest unittests-par 
 
 
