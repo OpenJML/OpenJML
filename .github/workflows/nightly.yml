@@ -42,7 +42,7 @@ jobs:
       id: export
       shell: bash
       run: |
-        echo "matrix='[ macos-14, ubuntu-22.04, ubuntu-latest ]'"
+        echo "matrix='[ macos-14, ubuntu-22.04, ubuntu-latest ]'" >> "$GITHUB_OUTPUT"
     
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
