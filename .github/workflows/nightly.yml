@@ -72,23 +72,31 @@ jobs:
       with:
         test: false ## These tests of the release are performed in the build workflow
 
+    - name: Variable
+      run: |
+        export failures=""
+
     - name: Run release tests
       run: |
         echo ${{ fromJson(needs.matrix.outputs.oses) }}
-        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest release-tests || true
+        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest release-tests || failures="$failures release tests failed\n"
 
     - name: Run json tests
       run: |
-        PATH=../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests || true
+        PATH=../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests || failures="$failures json tests failed\n"
 
     - name: Run userguide tests
       run: |
-        PATH=../../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || true
+        PATH=../../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || failures="$failures userguide tests failed"
 
     - name: Run tutorial tests
       run: |
-        PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests-git || true
+        PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests-git || failures="$failures tutorial tests failed"
 
+    - name: Report
+      run: |
+        if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
+        
 
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
