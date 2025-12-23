@@ -127,6 +127,7 @@ jobs:
         path: '*.zip'
         overwrite: true
         include-hidden-files: true
+        retention-days: 1
 
   ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction, 
   ## which is presumed to be the most recent
