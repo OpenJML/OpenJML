@@ -12,7 +12,6 @@ name: Build OpenJML
 ## the failed prepare and upload tasks can be rerun quickly without having to redo the build jobs, so long as the build artifact has not been deleted from
 ## the github artifact cache.
 
-## FIXME: the list of releases to be built appears in two places in this workflow
 ## FIXME: The name of the github artifact is the same no matter the version being produced, so two concurrent workflows for differetn versions may conflict
 
 on:
@@ -27,11 +26,18 @@ env:
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
+  export-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+    steps:
+
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }} # Define output
+      oses: ${{ steps.export.outputs.oslist }}
 
     steps:
     ## The following step just checks out the OpenJML repo on the branch that caused the push, which is all we need to determine the version
@@ -41,6 +47,10 @@ jobs:
       uses: actions/checkout@v6
       with:
         sparse-checkout: 'version.txt'
+    - id: export
+      run: |
+        ## Edit the list of OSes here
+        echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
     - name: Determine version
       id: version
       run: |
@@ -68,7 +78,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-22.04, macos-14 ]
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -124,8 +134,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Omitting ubuntu-24 because the cert-sync command fails
-        os: [ ubuntu-22.04, macos-14 ]
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
     steps:
     - name: Checkout repo

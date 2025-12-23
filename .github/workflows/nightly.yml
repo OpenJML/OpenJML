@@ -14,7 +14,6 @@ name: Nightly test of OpenJML
 ## As a compromise, two jobs are used: one jobs builds OpenJLM and runs the very long-running unit tests; the other builds OpenJLM are runs 
 ## the other, shorter running, test suites.
 
-## FIXME: The matrix of OSes occurs in two places
 ## FIXME: The setting of PATH uses : where it might need ; for some OSes; it would be better if adjustments to PATH were not needed at all
 
 on:
