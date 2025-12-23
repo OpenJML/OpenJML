@@ -574,13 +574,18 @@ public class JmlOption {
 //        return interpretBoolean(v);
 //    }
 
+   
     /** This is used for those options that allow a number of suboptions; it tests whether
-     * value is one of the comma-separated suboptions.
+     * any one of the values is one of the comma-separated suboptions.
      */
-    public static boolean includes(Context context, JmlOption option, String value) {
-        String v = option.value(context);
-        return "all".equals(v) || java.util.Arrays.stream(v.split(",")).anyMatch(s->value.equals(s));
-        //return "all".equals(v) || ( v.equals(value) || v.startsWith(value + ",") || v.endsWith("," + value) || v.contains("," + value +","));
+    public boolean includes(Context context, String ... values) {
+        String[] strings = this.value(context).split(",");
+        for (var v: values) {
+            for (var vv: strings) {
+                if (v.equals(vv)) return true;
+            }
+        }
+        return false;
     }
     
     /** Valid only for boolean options -- returns true or false per the option's value */

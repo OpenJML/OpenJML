@@ -12,7 +12,7 @@ test/racHansStorageB/StorageParameters.jml:16: verify: Associated declaration: t
     public StorageParameters(long totalBackingStore, long[] sizes );
            ^
 test/racHansStorageB/StorageParameters.jml:6: verify: JML precondition is false
-      public behavior       
+      public behavior
              ^
 test/racHansStorageB/StorageParameters.java:9: verify: JML assignment of null to a non_null variable
         this.configurationSizes = sizes;

@@ -885,7 +885,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		activeExceptions = new HashSet<>();
 		findActiveExceptions(pmethodDecl);
 
-        if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_none)) {
+        if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none)) {
             // This block is added to enable checking that perconditions are consistent in methods without bodies
             JCStatement halt = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
                     ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);

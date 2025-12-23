@@ -254,9 +254,9 @@ public class MethodProverSMT {
         int prevErrors = log.nerrors;
 
         boolean print = jmlesc.verbose;
-        boolean printPrograms = JmlOption.includes(context, JmlOption.SHOW, "translated");
-        boolean printBB = JmlOption.includes(context, JmlOption.SHOW, "bb");
-        boolean printSMT = JmlOption.includes(context, JmlOption.SHOW, "smt");
+        boolean printPrograms = JmlOption.SHOW.includes(context, "translated", "all");
+        boolean printBB = JmlOption.SHOW.includes(context, "bb", "all");
+        boolean printSMT = JmlOption.SHOW.includes(context, "smt", "all");
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         
@@ -1156,7 +1156,7 @@ public class MethodProverSMT {
                             extra = ": " + assertStat.description;
                         }
                         
-                        if (JmlOption.includes(context, JmlOption.SHOW,"translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+                        if (JmlOption.SHOW.includes(context, "translated", "all")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                         int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                         String loc;
 //                        if (epos == Position.NOPOS || pos != assertStat.pos) {
@@ -1521,7 +1521,7 @@ public class MethodProverSMT {
                         extra = ": " + assertStat.description;
                     }
                     
-                    if (JmlOption.includes(context, JmlOption.SHOW, "translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+                    if (JmlOption.SHOW.includes(context, "translated", "all")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
