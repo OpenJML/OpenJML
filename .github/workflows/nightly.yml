@@ -10,7 +10,11 @@ name: Nightly test of OpenJML
 ## A different design would put the test tasks in separate jobs, which could then run concurrently. However this requires
 ## either doing a full build for each of these test tasks, which is time consuming, or uploading and downloading a github artifact that
 ## contained the full built repo checkout. This latter 'worked' but frequently failed because the artifacts took too much space.
+##
+## As a compromise, two jobs are used: one jobs builds OpenJLM and runs the very long-running unit tests; the other builds OpenJLM are runs 
+## the other, shorter running, test suites.
 
+## FIXME: The matrix of OSes occurs in two places
 ## FIXME: The setting of PATH uses : where it might need ; for some OSes; it would be better if adjustments to PATH were not needed at all
 
 on:
@@ -29,13 +33,25 @@ env:
 
 jobs:
 
+  export-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.export.outputs.matrix }}
+    steps:
+    - name: Export matrix
+      id: export
+      shell: bash
+      run: |
+        echo "matrix='[ macos-14, ubuntu-22.04, ubuntu-latest ]'"
+    
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
-  build:
+  othertests:
+    needs: export-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-14, ubuntu-22.04, ubuntu-latest ]
+        os: ${{ fromJson(needs.export-matrix.outputs.matrix }}
       fail-fast: false
 
     steps:
@@ -71,7 +87,35 @@ jobs:
       run: |
         PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests-git || true
 
+
+  ## This job builds a development version of OpenJML as part of a trial release build
+  ## and then runs various unit and functionality tests
+  unittests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-14, ubuntu-22.04, ubuntu-latest ]
+      fail-fast: false
+
+    steps:
+    - name: Checkout actions
+      uses: actions/checkout@v6
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+    - name: Checkout OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
+      with:
+        branch: ${{ github.ref_name }}
+    - name: Build OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-build/
+      with:
+        test: false ## These tests of the release are performed in the build workflow
+
     - name: Run unit tests
       run: |
         PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest unittests-par || true
+
 
