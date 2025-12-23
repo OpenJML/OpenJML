@@ -67,7 +67,8 @@ jobs:
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
-        test: false ## These tests of the release are performed in the build workflow
+        ## These tests of the release are performed in the build workflow
+        test: false
 
     - name: Variable
       run: |
