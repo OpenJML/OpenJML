@@ -13,7 +13,8 @@ runs:
       run: |
         brew install coreutils
         brew install autoconf
-    - name: Linux additions
+        export sep=":"
+O    - name: Linux additions
       if: runner.os == 'Linux'
       shell: bash
       run: |
@@ -23,6 +24,8 @@ runs:
         sudo apt-get install autoconf
         sudo apt-get install libasound2-dev
         sudo apt-get install libx11-dev libxext-dev libxrender-dev libxt-dev
+        export sep=":"
+
     - name: Setup WSL for Windows
       if: runner.os == 'Windows'
       uses: Vampire/setup-wsl@v6
@@ -33,6 +36,10 @@ runs:
       ##with:
       ##  platform: x64
       ##  packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
+    - name: WSL additions
+      run: |
+        export sep=";"
+
     - name: setup python
       uses: actions/setup-python@v5
     - name: Set up JDK21
