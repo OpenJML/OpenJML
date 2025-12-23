@@ -96,47 +96,44 @@ public class escm extends EscBase {
     @Test
     public void testNestedClassSpecs() {
         addOptions("--check-feasibility=precondition,exit");
-        //addOptions("-progress");
-        helpTCX("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public TestJava t;\n"
-                +"  public int a;\n"
-                +"  public static int b;\n"
-                
-                +"  public void m1(TestJava o) {\n"
-                +"       class C {  \n"
-                +"           //@ public invariant false;\n" 
-                +"           void m() {  }};\n"  // Line 10
-                +"       C x;\n"
-                +"       class D { void m() {  }};\n"
-                +"       D y = new D() { /*@ public invariant false;*/ void m() {}};\n"
-                +"       class E { /*@ public invariant false;*/void mm() {  }};\n"
-                +"       E z = new E() {  void mm() {}};\n"
-                +"  }\n"
-                
-                +"  public static class A {\n"
-                +"     //@ public invariant false;\n"
-                +"     public void m2() {\n"
-                +"     }\n"
-                +"  }\n"
-
-                +"  /*@ pure */ public TestJava() { t = new TestJava(); }\n"
-                
-                +"}"
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
-                ,"/tt/TestJava.java:9: verify: Associated declaration",23
-                ,"/tt/TestJava.java:10: verify: Invariants+Preconditions appear to be contradictory in method C.m()",17  // The false invariant is triggered as a constructor postcondition
-                ,"/tt/TestJava.java:13: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.1.m()",59 // m() of anonymous D
-                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
-                ,"/tt/TestJava.java:14: verify: Associated declaration",29
-                ,"/tt/TestJava.java:14: verify: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
-                ,"/tt/TestJava.java:15: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.2.mm()",30
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
-                //,"/tt/TestJava.java:7: verify: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",15
-                ,"/tt/TestJava.java:18: verify: Associated declaration",17
-                ,"/tt/TestJava.java:19: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()",18
+        helpTCX("TestJava",
+                """
+                import org.jmlspecs.annotation.*;
+                @NonNullByDefault public class TestJava {
+                  public TestJava t;
+                  public int a;
+                  public static int b;
+                  public void m1(TestJava o) {
+                       class C {
+                           //@ public invariant false;
+                           void m() {  }};  // Line 10
+                       C x;
+                       class D { void m() {  }}
+                       D y = new D() { /*@ public invariant false;*/ void m() {}};
+                       // After execution of D(), D's invariants are assumed, which includes assuming false -- hence the feasibility failure
+                       class E { /*@ public invariant false;*/void mm() {  }};
+                       E z = new E() {  void mm() {}};
+                  }
+                  public static class A {
+                     //@ public invariant false;
+                     public void m2() {
+                     }
+                  }
+                  /*@ pure */ public TestJava() { t = new TestJava(); }
+                }
+                """
+                ,"/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
+                ,"/TestJava.java:8: verify: Associated declaration",23
+                ,"/TestJava.java:9: verify: Invariants+Preconditions appear to be contradictory in method C.m()",17  // The false invariant is triggered as a constructor postcondition
+                ,"/TestJava.java:12: verify: Invariants+Preconditions appear to be contradictory in method TestJava.1.m()",59 // m() of anonymous D
+                ,"/TestJava.java:14: verify: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
+                ,"/TestJava.java:14: verify: Associated declaration",29
+                ,"/TestJava.java:14: verify: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
+                ,"/TestJava.java:15: verify: Invariants+Preconditions appear to be contradictory in method TestJava.2.mm()",30
+                ,"/TestJava.java:6: verify: There is no feasible path to program point at program exit in method TestJava.m1(TestJava)",15
+                ,"/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
+                ,"/TestJava.java:18: verify: Associated declaration",17
+                ,"/TestJava.java:19: verify: Invariants+Preconditions appear to be contradictory in method TestJava.A.m2()",18
                 );
     }
     

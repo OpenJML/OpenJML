@@ -1,6 +1,6 @@
 OUT:
 test/racHansStorage/StorageParameters.jml:7: verify: JML precondition is false
-      public behavior       
+      public behavior
              ^
 test/racHansStorage/StorageParameters.java:10: verify: JML assignment of null to a non_null variable
         this.configurationSizes = sizes;

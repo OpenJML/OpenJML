@@ -210,22 +210,19 @@ public class JmlCompiler extends JavaCompiler {
     public List<JCCompilationUnit> parseFiles(Iterable<JavaFileObject> fileObjects) {
         try {
             var compunits = super.parseFiles(fileObjects);
-            String ss = JmlOption.SHOW.value(context); // FIXME - check this use of ss != null
-            if (ss != null) {
-                if (ss.contains("ast")) {
-                    for (var cu: compunits) {
-                        System.out.println(JmlAstPrinter.print(cu, context));
-//                        if (specCU != null) {
-//                            System.out.println(JmlAstPrinter.print(specCU, context));
-//                        }
-                    }
+            if (JmlOption.SHOW.includes(context,"ast")) {
+                for (var cu: compunits) {
+                    System.out.println(JmlAstPrinter.print(cu, context));
+                    //                        if (specCU != null) {
+                    //                            System.out.println(JmlAstPrinter.print(specCU, context));
+                    //                        }
                 }
-
-                if (ss.startsWith("json")) {
-                    writeJson(compunits, false);
-                }
-
             }
+
+            if (JmlOption.SHOW.includes(context,"json")) {
+                writeJson(compunits, false);
+            }
+
             if (org.jmlspecs.openjml.Utils.instance(context).cmd == org.jmlspecs.openjml.Main.Cmd.PARSE) {
                 // empty out the list of ASTs so that there is no further action in compilation
                 compunits  = List.<JCCompilationUnit>nil();
@@ -567,12 +564,11 @@ public class JmlCompiler extends JavaCompiler {
 //        	}
 //        }
 
-        if (JmlOption.includes(context, JmlOption.SHOW, "typed-ast")) {
+        if (JmlOption.SHOW.includes(context, "typed-ast")) {
             for (var env: results) if (((JmlCompilationUnit)env.toplevel).sourcefile.toString().contains(".java")) System.out.println(JmlAstPrinter.print(env.toplevel, context));
         }
 
-        String ss = JmlOption.SHOW.value(context);
-        if (ss != null && ss.contains("typedjson")) {
+        if (JmlOption.SHOW.includes(context, "typed-json")) {
             writeJson(results, true);
         }
         
@@ -597,9 +593,9 @@ public class JmlCompiler extends JavaCompiler {
             }
         }
         if (utils.check) {
-        	if (JmlOption.includes(context,JmlOption.SHOW,"program")) { 
-        		envs.stream().forEach(e->System.out.println(e.toplevel.toString()));
-        	}
+            if (JmlOption.SHOW.includes(context,"program","all")) { 
+                envs.stream().forEach(e->System.out.println(e.toplevel.toString()));
+            }
             return noresults; // Empty list - do nothing more
         } else if (utils.doc) {
             return noresults; // Empty list - do nothing more
@@ -683,7 +679,7 @@ public class JmlCompiler extends JavaCompiler {
         
         if (env.tree instanceof JCClassDecl) {
             JCTree newtree= null;
-            if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
+            if (JmlOption.SHOW.includes(context,"translated","all")) {
                 // FIXME - these are not writing out during rac, at least in debug in development, to the console
                 noticeWriter.println(String.format("[jmlrac] Translating: %s", currentFile));
                 noticeWriter.println(
@@ -726,7 +722,7 @@ public class JmlCompiler extends JavaCompiler {
 
                 // Add the Import: import org.jmlspecs.runtime.*;
                 
-                if (JmlOption.includes(context,JmlOption.SHOW,"translated")) {
+                if (JmlOption.SHOW.includes(context,"translated","all")) {
                     noticeWriter.println(String.format("[jmlrac] RAC Transformed: %s", currentFile));
                     // this could probably be better - is it OK to modify the AST beforehand? JLS
                     noticeWriter.println(

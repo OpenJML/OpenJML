@@ -292,13 +292,13 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(/*@non_null*/ JmlMethodDecl methodDecl) {
-        boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated") || JmlOption.includes(context, JmlOption.SHOW, "program");
+        boolean printPrograms = this.verbose || JmlOption.SHOW.includes(context, "translated", "all") || JmlOption.SHOW.includes(context, "program", "all");
                 
         String proverToUse = pickProver();
 
         boolean isConstructor = methodDecl.sym.isConstructor();
         //boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
-        boolean doEsc = methodDecl.body != null || !org.jmlspecs.openjml.JmlOption.includes(context,JmlOption.FEASIBILITY, org.jmlspecs.openjml.Strings.feas_none);
+        boolean doEsc = methodDecl.body != null || !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none);
             // TODO: Could check that abstract or native methods have consistent specs
 
         // Don't do ESC on the constructor of Object

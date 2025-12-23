@@ -215,7 +215,9 @@ public class OutputCompare {
         }
         x: {
             itemThatDiffers = 0;
-            if (!act.equals(exp)) return 0;
+            if (!act.equals(exp)) {
+                return 0;
+            }
             {
                 i++;
                 if (i >= list.length) {

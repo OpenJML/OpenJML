@@ -121,7 +121,6 @@ escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
 escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
 escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
-escfiles.esc2DArray		# <<<<<	problems with havocing arrays and array elements
 escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
@@ -135,7 +134,7 @@ escfiles2.escRawdingB
 escfiles2.gitbug450a		#	feasibility problems
 escfiles2.gitbug450b		#	feasibility problems
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
-escfiles2.gitbug876
+escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
@@ -168,7 +167,6 @@ feasibility.fprecondition2
 feasibility.fspecA
 feasibility.fspecB
 
-racfiles.gitbug534		# <<<<< recursive call -- incorrect rac translation 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
 generics.testBinaryGeneric3c
@@ -178,7 +176,7 @@ bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
 escfiles2.gitbug883    # Matrix add 
 escfiles2.gitbug883bad #    Needs better handling of 2D array
-escfiles2.gitbug894    #
+escfiles2.gitbug894    # unsuccessful specs for uniqueCharString
 escfileslist1.test[choose-repeat]
 escfileslist1.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[gitbug897]   # substring and loop
@@ -187,15 +185,15 @@ escfileslist1.test[gitbug763]   # specs for string handling problem
 escfileslist2.test[gitbug763]   # specs for string handling problem
 escfileslist1.test[gitbug768]   # problem with invariants
 escfileslist2.test[gitbug768]   # problem with invariants
-escfileslist1.test[gitbug755]
-escfileslist2.test[gitbug755]
 
-escfiles2.gitbug890
+escfiles2.gitbug890 # Array.equals problem
+escfiles2.gitbug932 # mistranslation of super in specs
+racfiles.gitbug932  # mistranslation of super in specs
 
 SFBugs.gitbug651  # not yet working -- problems with Map specifications
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
-SFBugs.gitbug444a
-escnew3.testCast1
+SFBugs.gitbug444a               # inadequate specifications in the given problem
+##escnew3.testCast1             # misses a check failure sometimes
 primesc.jmlreal                 # feasibility check times out
