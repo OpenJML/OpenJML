@@ -51,7 +51,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.matrix }}
+        os: ${{ fromJson(needs.export-matrix.outputs.matrix) }}
       fail-fast: false
 
     steps:
