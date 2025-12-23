@@ -30,7 +30,7 @@ runs:
         make release
         cd ..
     - name: Test the build
-      if: ${{ inputs.test }}
+      if: ${{ inputs.test == true }}
       shell: bash
       run: |
         make -C OpenJML/OpenJML21 release-test

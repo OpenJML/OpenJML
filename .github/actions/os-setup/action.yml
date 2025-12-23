@@ -40,7 +40,7 @@ runs:
       if: runner.os == 'Windows'
       shell: wsl-bash
       run: |
-        export sep=";"
+        export sep=":"
 
     - name: setup python
       uses: actions/setup-python@v5
