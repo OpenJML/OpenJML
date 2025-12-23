@@ -13,7 +13,9 @@ runs:
       run: |
         brew install coreutils
         brew install autoconf
-        export sep=":"
+        echo 'sep=:' >> $GITHUB_ENV
+        echo 'sepsemi=\\\;' >> $GITHUB_ENV
+
     - name: Linux additions
       if: runner.os == 'Linux'
       shell: bash
@@ -24,7 +26,7 @@ runs:
         sudo apt-get install autoconf
         sudo apt-get install libasound2-dev
         sudo apt-get install libx11-dev libxext-dev libxrender-dev libxt-dev
-        export sep=":"
+        echo 'sep=:' >> $GITHUB_ENV
 
     - name: Setup WSL for Windows
       if: runner.os == 'Windows'
@@ -40,7 +42,7 @@ runs:
       if: runner.os == 'Windows'
       shell: wsl-bash
       run: |
-        export sep=":"
+        echo 'sep=:' >> $GITHUB_ENV
 
     - name: setup python
       uses: actions/setup-python@v5
