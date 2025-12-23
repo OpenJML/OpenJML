@@ -12,8 +12,6 @@ name: Build OpenJML
 ## the failed prepare and upload tasks can be rerun quickly without having to redo the build jobs, so long as the build artifact has not been deleted from
 ## the github artifact cache.
 
-## FIXME: The name of the github artifact is the same no matter the version being produced, so two concurrent workflows for differetn versions may conflict
-
 on:
   workflow_dispatch:
   push:
@@ -123,7 +121,7 @@ jobs:
     - name: Upload github artifact
       uses: pyTooling/upload-artifact@v6
       with:
-        name: openjml-release-${{ matrix.os }}
+        name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
         path: '*.zip'
         overwrite: true
         include-hidden-files: true
@@ -149,7 +147,7 @@ jobs:
     - name: Download github artifact
       uses: pyTooling/download-artifact@v6
       with:
-        name: openjml-release-${{ matrix.os }}
+        name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
     - name: Copy OpenJML build into GitHub release
       run: |
         export ver=${{ needs.prepare.outputs.version }}
