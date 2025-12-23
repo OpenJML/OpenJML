@@ -37,6 +37,8 @@ runs:
       ##  platform: x64
       ##  packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
     - name: WSL additions
+      if: runner.os == 'Windows'
+      shell: wsl-bash
       run: |
         export sep=";"
 
