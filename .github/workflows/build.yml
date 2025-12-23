@@ -26,12 +26,6 @@ env:
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJML21
 
-  export-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-    steps:
-
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
