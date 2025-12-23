@@ -36,12 +36,12 @@ jobs:
   export-matrix:
     runs-on: ubuntu-latest
     outputs:
-      oses: ${{ steps.export.outputs.matrix }}
+      oses: ${{ steps.export.outputs.oslist }}
     steps:
     - id: export
-      shell: bash
       run: |
-        echo 'matrix=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
+        ## Edit the list of OSes here
+        echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
     
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
@@ -50,7 +50,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.matrix.outputs.oses) }}
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
         #os: [ macos-14, ubuntu-22.04, ubuntu-latest ]
       fail-fast: false
 
