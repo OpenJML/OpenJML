@@ -76,19 +76,19 @@ jobs:
 
     - name: Run release tests
       run: |
-        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest release-tests || failures="$failures release tests failed\n"
+        PATH="../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest release-tests || failures="$failures release tests failed\n"
 
     - name: Run json tests
       run: |
-        PATH=../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest json-tests || failures="$failures json tests failed\n"
+        PATH="../../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest json-tests || failures="$failures json tests failed\n"
 
     - name: Run userguide tests
       run: |
-        PATH=../../../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest userguide-tests-released || failures="$failures userguide tests failed"
+        PATH="../../../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-released || failures="$failures userguide tests failed"
 
     - name: Run tutorial tests
       run: |
-        PATH=../../OpenJML/$FOLDER:$PATH make -C OpenJML/OpenJMLTest tutorial-tests-git || failures="$failures tutorial tests failed"
+        PATH="../../OpenJML/$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || failures="$failures tutorial tests failed"
 
     - name: Report
       run: |
@@ -124,6 +124,6 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH=../../$FOLDER:$PATH make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest unittests-par 
 
 
