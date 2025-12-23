@@ -76,22 +76,27 @@ jobs:
 
     - name: Run release tests
       run: |
-        PATH="../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest release-tests || failures="$failures release tests failed\n"
-
-    - name: Run json tests
-      run: |
-        PATH="../../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest json-tests || failures="$failures json tests failed\n"
-
-    - name: Run userguide tests
-      run: |
-        PATH="../../../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-released || failures="$failures userguide tests failed"
+        PATH="../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest release-tests || export failures="$failures release tests failed\n"
+        echo "FAILURE STRING" $failures
 
     - name: Run tutorial tests
       run: |
-        PATH="../../OpenJML/$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || failures="$failures tutorial tests failed"
+        PATH="../../OpenJML/$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || export failures="$failures tutorial tests failed"
+        echo "FAILURE STRING" $failures
+
+    - name: Run json tests
+      run: |
+        PATH="../../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest json-tests || export failures="$failures json tests failed\n"
+        echo "FAILURE STRING" $failures
+
+    - name: Run userguide tests
+      run: |
+        PATH="../../../../$FOLDERsep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-released || export failures="$failures userguide tests failed"
+        echo "FAILURE STRING" $failures
 
     - name: Report
       run: |
+        echo "FAILURE STRING" $failures
         if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
         
 
