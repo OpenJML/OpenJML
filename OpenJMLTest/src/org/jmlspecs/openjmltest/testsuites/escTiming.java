@@ -5,16 +5,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 // FIXME- should these report untaken branches?
+// FIXME - why are these timing tests?
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class escTiming extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullable-by-default"); // Because the tests were written this way
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
+        addOptions("--nullable-by-default"); // Because the tests were written this way
     }
 
     @Test

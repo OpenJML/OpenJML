@@ -3416,5 +3416,24 @@ public class racnew extends RacBase {
                 );
         
     }
-
+    
+    @Test
+    public void testReturn() {
+        helpRacText("RET",
+                """
+                public class RET {
+                  public static void main(String ... args) {
+                    m(null);
+                  }
+                  public static /*@ non_null */ Object m(/*@ nullable */ Object o) {
+                    return o;
+                  }
+                }
+                """
+                ,"/RET.java:5: verify: JML null return value from method m"
+                ,"/RET.java:5: verify: Associated declaration"
+                ,"/RET.java:3: verify: JML null return value from method m(java.lang.@org.jmlspecs.annotation.Nullable Object), checked in caller main(java.lang.String...)"
+                ,"/RET.java:5: verify: Associated declaration"
+                );
+    }
 }

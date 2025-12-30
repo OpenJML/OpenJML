@@ -9,23 +9,10 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
-
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escreadable extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        super.setUp();
-        //main.addOptions("-jmlverbose");
-        //main.addOptions("-method",   "m2bad");
-        //main.addOptions("-jmldebug");
-        //main.addOptions("-trace");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
     
     // FIXME - needs writable checks for assignables in method calls?
     // FIXME - what about assignments to arrays elements
@@ -499,6 +486,4 @@ public class escreadable extends EscBase {
                 ,"/tt/TestJava.java:17: error: An identifier with private visibility may not be used in a readable clause with package visibility",59
                 );
     }
-
-
 }

@@ -14,7 +14,6 @@ public class escvisibility1 extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
@@ -22,12 +21,8 @@ public class escvisibility1 extends EscBase {
         addOptions("-sourcepath",   testspecpath);
         addOptions("-specspath",   testspecpath);
         addOptions("--normal");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
     }
 
-   
     @Test
     public void testInvariant() {
         expectedExit = 1;
@@ -396,8 +391,6 @@ public class escvisibility1 extends EscBase {
         helpEsc("tt.A","package tt; public class A {\n" +
                 "int i; \n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:3: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",8
                 );
     }
 
@@ -407,8 +400,6 @@ public class escvisibility1 extends EscBase {
                 "int i; \n" +
                 "//@ requires true;\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -418,8 +409,6 @@ public class escvisibility1 extends EscBase {
                 "int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -436,8 +425,6 @@ public class escvisibility1 extends EscBase {
         helpEsc("tt.A","package tt; public class A {\n private int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -446,8 +433,6 @@ public class escvisibility1 extends EscBase {
         helpEsc("tt.A","package tt; public class A {\n protected int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -489,8 +474,6 @@ public class escvisibility1 extends EscBase {
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
                 "//@ pure\n" +
                 " A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",10
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
@@ -540,6 +523,4 @@ public class escvisibility1 extends EscBase {
                 ,"/tt/A.java:5: error: p has private access in tt.A.P",30
                 );
     }
-    
-
 }

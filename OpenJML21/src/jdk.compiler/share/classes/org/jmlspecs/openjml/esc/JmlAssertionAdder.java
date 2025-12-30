@@ -5795,9 +5795,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements = ensuresStats;
 			addStat(comment(methodDecl.restype, "Adding null return check by callee " + methodDecl.sym, null));
 			JCIdent ret = treeutils.makeIdent(methodDecl.restype.pos, resultSym);
+			Object[] info = esc ? new Object[] {} : new Name[] { methodDecl.name };
 			addAssert(methodDecl.restype, Label.POSSIBLY_NULL_RETURN,
 					treeutils.makeNotNull(methodDecl.restype.pos, ret), methodDecl.pos(),
-					((JmlMethodDecl) methodDecl).sourcefile, methodDecl.name);
+					((JmlMethodDecl) methodDecl).sourcefile, info);
 		}
 		popArithMode();
 

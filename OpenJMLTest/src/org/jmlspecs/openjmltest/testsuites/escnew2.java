@@ -15,15 +15,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnew2 extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
-
-
     @Test
     public void testMultiple() {
         helpEsc("tt.TestJava","package tt; \n"
@@ -39,7 +30,7 @@ public class escnew2 extends EscBase {
                 +"      }\n"
                 +"  }\n"
                 
-                +"}" // We should get all three messages, but in some arbitrary order. We hack it by making some of them optional
+                +"}"
                 ,anyorder(
                 seq("/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",15)
                 ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",15)
@@ -250,7 +241,7 @@ public class escnew2 extends EscBase {
                 
                 +"public void m2(A z) { \n"
                 +"  A a = new A(1);\n"
-                +"  //@ assert a != x; \n" // FIXME - I don't believe the axioms support proving this
+                +"  //@ assert a != x; \n"
                 +"}\n"
                 
                 +"public void m2bad(A z) { \n"
@@ -265,8 +256,6 @@ public class escnew2 extends EscBase {
                 ,"/tt/A.java:27: verify: The prover cannot establish an assertion (Assert) in method m3bad",7
                 );
     }
-
-
 
     @Test public void testReturn1good() { 
         helpEsc("tt.A","package tt; public class A { \n"
@@ -296,7 +285,6 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testSuper() {
-    	//main.addOptions("-no-checkAccessible");
         helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
@@ -457,10 +445,6 @@ public class escnew2 extends EscBase {
                 );
     }
 
-
-
-
-    
     @Test
     public void testBreak() {
         helpEsc("tt.TestJava","package tt; \n"
@@ -640,8 +624,6 @@ public class escnew2 extends EscBase {
                 +"        case 2: k = 5; \n"
                 +"       } return k;\n"
                 +"  }\n"
-                
-                
                 +"}"
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
                 ,"/tt/TestJava.java:13: verify: Associated declaration",7
@@ -904,6 +886,4 @@ public class escnew2 extends EscBase {
            +"}\n"
            );
     }
-    
-
 }

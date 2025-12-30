@@ -163,9 +163,9 @@ feasibility.floopbreak
 feasibility.floopcondition
 feasibility.floopcontinue
 feasibility.floopexit
-feasibility.fprecondition2
-feasibility.fspecA
-feasibility.fspecB
+feasibility.fspecC
+
+escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants

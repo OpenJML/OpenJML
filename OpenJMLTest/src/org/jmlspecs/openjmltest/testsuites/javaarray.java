@@ -76,7 +76,6 @@ public class javaarray extends EscBase {
                 );
     }
 
-
     @Test
     public void testJavaArray3() {
         helpEsc("tt.TestJava","package tt; \n"
@@ -90,6 +89,4 @@ public class javaarray extends EscBase {
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",19
                 );
     }
-    
-
 }
