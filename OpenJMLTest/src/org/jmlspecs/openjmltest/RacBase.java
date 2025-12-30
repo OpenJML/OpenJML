@@ -128,7 +128,7 @@ public abstract class RacBase extends JmlTestSuite {
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
     //public int expectedNotes = 0;
-    //public void helpTCX(String classname, String compilationUnitText, Object... expectedDiagnostics) { helpRacText(classname, compilationUnitText, expectedDiagnostics); }
+    //public void helpEsc(String classname, String compilationUnitText, Object... expectedDiagnostics) { helpRacText(classname, compilationUnitText, expectedDiagnostics); }
 
     public void helpRacText(String classname, String compilationUnitText, Object... expectedDiagnostics) {
         // Source files are synthetic

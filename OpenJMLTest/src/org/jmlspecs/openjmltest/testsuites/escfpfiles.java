@@ -41,28 +41,28 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore
     public void gitbug732() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void gitbug735() {
         expectedExit = 0;
-        helpTCG("--show","--method=impl"); // For debugging
+        helpTG();
     }
     
     @Test @Ignore
     public void escDouble() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void escDouble1() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore // timesout
     public void escDouble2() {
-        helpTF("escDouble2","--exclude=clone,remainderBy,toString");
+        helpTFM("--exclude=clone,remainderBy,toString");
     }
 
     @Test @Ignore
@@ -72,22 +72,22 @@ public class escfpfiles extends EscBaseFiles {
     
     @Test @Ignore
     public void escDouble3() {
-        helpTF("escDouble3","--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
+        helpTFM("--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
     }
     
     @Test @Ignore
     public void escFloat() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void escfpMath() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void escfpPrimitiveOps() {
-        helpTCG();
+        helpTG();
     }
 
 
@@ -95,28 +95,28 @@ public class escfpfiles extends EscBaseFiles {
     @Ignore // FIXME -  Needs more double specs
     @Test public void gitbug580() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Ignore // FIXME - times out -- double arithmetic?
     @Test
     public void gitbug601() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Ignore // FIXME -  double arithmetic?
     @Test
     public void gitbug633() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Ignore // FIXME 
     @Test
     public void gitbug751() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
 

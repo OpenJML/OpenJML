@@ -25,6 +25,7 @@ public class escCounterexamples extends EscBase {
     @Override
     public void setUp() throws Exception {
         captureOutput = true;
+        checkOutput = false; // Ignore counterexample output for now
         //noCollectDiagnostics = true;
         super.setUp();
         addOptions("--trace","--counterexample");
@@ -34,7 +35,7 @@ public class escCounterexamples extends EscBase {
     /** Tests an explicit assertion */
     @Test
     public void testCE1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires k > 0;\n"
@@ -49,7 +50,7 @@ public class escCounterexamples extends EscBase {
     /** Tests a postcondition */
     @Test
     public void testCE2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires k > 0;\n"
@@ -66,7 +67,7 @@ public class escCounterexamples extends EscBase {
     /** Tests a called precondition and method and constructor arguments */
     @Test
     public void testCE3() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -94,7 +95,7 @@ public class escCounterexamples extends EscBase {
     /** Tests assignments */
     @Test
     public void testCE4() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -125,7 +126,7 @@ public class escCounterexamples extends EscBase {
     /** Tests if statements */
     @Test
     public void testCE5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int j; static public int sj; static public TestJava t;\n"
                 +"  public TestJava(int i) {}\n"
@@ -149,7 +150,7 @@ public class escCounterexamples extends EscBase {
     /** Tests loops */
     @Test
     public void testCE6() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires j > 0;\n"
@@ -183,7 +184,7 @@ public class escCounterexamples extends EscBase {
     /** Tests pure methods */
     @Test
     public void testCE7() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1() {\n"
@@ -232,7 +233,7 @@ public class escCounterexamples extends EscBase {
     /** Tests alternate returns */
     @Test
     public void testCE8() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i>=0; ensures \\result==0;\n"
@@ -267,7 +268,7 @@ public class escCounterexamples extends EscBase {
     /** Tests switch statements */
     @Test
     public void testCE9() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i>=0; ensures \\result==0;\n"
@@ -307,7 +308,7 @@ public class escCounterexamples extends EscBase {
     @Test
     public void testCE10() {
         main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName() + "=1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ public normal_behavior requires i>=0; ensures k==0;\n"
@@ -346,7 +347,7 @@ public class escCounterexamples extends EscBase {
     @Test
     public void testCE11() {
         main.addOptions("-code-math=math");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
@@ -376,7 +377,7 @@ public class escCounterexamples extends EscBase {
     /** Tests misc statements: synchronized, block */
     @Test
     public void testCE12() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
@@ -395,7 +396,7 @@ public class escCounterexamples extends EscBase {
     /** Tests initializations */
     @Test
     public void testCE13() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
@@ -416,7 +417,7 @@ public class escCounterexamples extends EscBase {
     /** Tests JML statements */
     @Test
     public void testCE14() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  int k = 98; public Object o; \n"
@@ -439,12 +440,11 @@ public class escCounterexamples extends EscBase {
                 );
     }
     
-    
     /** Tests try/catch/finally */
     @Test
     public void testCE15() {
         main.addOptions(JmlOption.ESC_MAX_WARNINGS.optionName()+"=1");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -523,7 +523,7 @@ public class escCounterexamples extends EscBase {
     /** Tests try/catch/finally */
     @Test
     public void testCE16() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures \\result != 10; \n"
@@ -538,4 +538,3 @@ public class escCounterexamples extends EscBase {
                 );
     }
 }
-

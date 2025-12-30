@@ -71,7 +71,7 @@ public class escoption extends EscBase {
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption() {
     	addOptions("--normal");
-    	helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+    	helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -98,7 +98,7 @@ public class escoption extends EscBase {
     
     @Test // FIXME bassert3 not printed -- normal does not turn back to progress
     public void testOption2() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -132,7 +132,7 @@ public class escoption extends EscBase {
     
     @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
     public void testOption3() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
@@ -173,7 +173,7 @@ public class escoption extends EscBase {
     @Test
     public void testSkipped() {
     	main.addOptions("--progress","--show-skipped","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -207,7 +207,7 @@ public class escoption extends EscBase {
     @Test
     public void testNoSkipped() {
     	main.addOptions("-progress","--no-show-skipped","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -238,7 +238,7 @@ public class escoption extends EscBase {
     @Test
     public void testSkippedDefault() {
     	main.addOptions("--progress","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -275,7 +275,7 @@ public class escoption extends EscBase {
     public void testBadFeasibility() {
         expectedExit = 2;
         addOptions("--check-feasibility=xyz");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         ,"error: Unexpected value as argument for --check-feasibility: xyz",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
@@ -285,7 +285,7 @@ public class escoption extends EscBase {
     public void testQuotedFeasibility() {
         expectedExit = 2;
         addOptions("--check-feasibility","\"xyz\"");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         ,"error: Unexpected value as argument for --check-feasibility: xyz",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
@@ -295,7 +295,7 @@ public class escoption extends EscBase {
     public void testBadQuoted() {
         expectedExit = 2;
         addOptions("--check-feasibility","\"xyz");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         ,"error: Unexpected value as argument for --check-feasibility: \"xyz",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
@@ -305,7 +305,7 @@ public class escoption extends EscBase {
     public void testBadQuoted2() {
         expectedExit = 2;
         addOptions("--check-feasibility","\"");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         ,"error: Unexpected value as argument for --check-feasibility: \"",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
@@ -315,7 +315,7 @@ public class escoption extends EscBase {
     public void testQuotedKey() {
         expectedExit = 0;
         addOptions("\"--check-feasibility\"","none");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertTrue(output().isEmpty());
     }
@@ -324,7 +324,7 @@ public class escoption extends EscBase {
     public void nullDefault() {
         expectedExit = 0;
         addOptions("--method=","--check");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertTrue(output().isEmpty());
     }
@@ -333,7 +333,7 @@ public class escoption extends EscBase {
     public void testWhitespace() {
         expectedExit = 1;
         addOptions("--check","--require-white-space=false");
-        helpTCX("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
                 ,"/tt/TestJava.java:1: error: Unexpected or misspelled JML token: zzz",16
         );
         org.junit.Assert.assertTrue(output().isEmpty());
@@ -343,7 +343,7 @@ public class escoption extends EscBase {
     public void testWhitespace2() {
         expectedExit = 0;
         addOptions("--check","--require-white-space=true");
-        helpTCX("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
         );
         org.junit.Assert.assertTrue(output().isEmpty());
     }
@@ -352,7 +352,7 @@ public class escoption extends EscBase {
     public void testDebugFeasibility() {
         expectedExit = 0;
         addOptions("--check-feasibility=debug:100");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals(
                 """
@@ -368,7 +368,7 @@ public class escoption extends EscBase {
     public void testAllFeasibility() {
         expectedExit = 0;
         addOptions("--check-feasibility=all");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("", output());
         org.junit.Assert.assertEquals("", errorOutput());
@@ -378,7 +378,7 @@ public class escoption extends EscBase {
     public void oldDirs() {
         expectedExit = 0;
         addOptions("-dirs");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Option -dirs is deprecated in favor of --dirs",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -389,7 +389,7 @@ public class escoption extends EscBase {
     public void oldDir() {
         expectedExit = 0;
         addOptions("-dir=.");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Option -dir is deprecated in favor of --dir",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -400,7 +400,7 @@ public class escoption extends EscBase {
     public void dirs() {
         expectedExit = 0;
         addOptions("--dirs=p,q");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
                 ,"warning: Ignoring q (not a file or folder)",-1
         );
@@ -412,7 +412,7 @@ public class escoption extends EscBase {
     public void dirsDup() {
         expectedExit = 0;
         addOptions("--dirs=p","--dirs=q");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
                 ,"warning: Ignoring q (not a file or folder)",-1
         );
@@ -424,7 +424,7 @@ public class escoption extends EscBase {
     public void dirss() {
         expectedExit = 0;
         addOptions("--dirs","p","--","Test.java");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -435,7 +435,7 @@ public class escoption extends EscBase {
     public void dir() {
         expectedExit = 0;
         addOptions("--dir=p");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -446,7 +446,7 @@ public class escoption extends EscBase {
     public void dirDup() {
         expectedExit = 0;
         addOptions("--dir","p","--dir=q");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
                 ,"warning: Ignoring q (not a file or folder)",-1
         );
@@ -458,7 +458,7 @@ public class escoption extends EscBase {
     public void dirx() {
         expectedExit = 0;
         addOptions("--dir","p");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -469,7 +469,7 @@ public class escoption extends EscBase {
     public void negDirs() {
         expectedExit = 0;
         addOptions("--no-dirs");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: -no is not permitted on --dirs (ignored)",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -480,7 +480,7 @@ public class escoption extends EscBase {
     public void negDir() {
         expectedExit = 0;
         addOptions("--no-dir","p");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: no- is only permitted for boolean options (and --warn)",-1
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
@@ -492,7 +492,7 @@ public class escoption extends EscBase {
     public void badBool() {
         expectedExit = 0;
         addOptions("--show-summary=yyy");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: This command-line option is not supposed to have a parameter: --show-summary",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -502,7 +502,7 @@ public class escoption extends EscBase {
     public void okBool() {
         expectedExit = 0;
         addOptions("--show-summary=false","--check");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
     }
@@ -511,7 +511,7 @@ public class escoption extends EscBase {
     public void negDefault() {
         expectedExit = 0;
         addOptions("--no-show-summary=");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: no- is not permitted with set-to-default (empty string after = character)",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -521,7 +521,7 @@ public class escoption extends EscBase {
     public void negWarn() {
         expectedExit = 0;
         addOptions("--no-warn=implicit-everything");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
     }
@@ -530,7 +530,7 @@ public class escoption extends EscBase {
     public void nullProperties() {
         expectedExit = 0;
         addOptions("--properties",null);
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: --properties requires a non-null, non-empty argument",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -540,7 +540,7 @@ public class escoption extends EscBase {
     public void emptyProperties() {
         expectedExit = 0;
         addOptions("--properties","");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: --properties requires a non-null, non-empty argument",-1
         );
         org.junit.Assert.assertEquals("",output());
@@ -550,7 +550,7 @@ public class escoption extends EscBase {
     public void keysNull() {
         expectedExit = 0;
         addOptions("--keys",null);
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
     }
@@ -559,7 +559,7 @@ public class escoption extends EscBase {
     public void keysEmpty() {
         expectedExit = 0;
         addOptions("--keys","");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
     }
@@ -568,7 +568,7 @@ public class escoption extends EscBase {
     public void stringDefault() {
         expectedExit = 0;
         addOptions("--check","--show");
-        helpTCX("tt.TestJava", "package tt; public "
+        helpEsc("tt.TestJava", "package tt; public "
         );
         org.junit.Assert.assertEquals("",output());
     }
@@ -577,7 +577,7 @@ public class escoption extends EscBase {
     public void helpBadEmpty() {
         expectedExit = 0;
         addOptions("--help=");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: No detailed help available for ''", -1
         );
         org.junit.Assert.assertEquals("",output());
@@ -587,7 +587,7 @@ public class escoption extends EscBase {
     public void helpBad() {
         expectedExit = 0;
         addOptions("--help=zzz");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
                 ,"warning: No detailed help available for 'zzz'", -1
         );
         org.junit.Assert.assertEquals("",output());
@@ -597,7 +597,7 @@ public class escoption extends EscBase {
     public void helpWarn() {
         expectedExit = 0;
         addOptions("--help=warn");
-        helpTCX("tt.TestJava", "package tt; public class TestJava {}"
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]\n",output());
     }

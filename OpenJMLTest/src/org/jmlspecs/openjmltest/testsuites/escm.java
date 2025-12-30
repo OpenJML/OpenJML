@@ -13,13 +13,13 @@ public class escm extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("-code-math=bigint");  // To avoid overflow reports and semantics
+        addOptions("--code-math=bigint");  // To avoid overflow reports and semantics
     }
     
     /** This test checks that nested, local and anonymous classes are handled */
     @Test
     public void testNestedClass() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
         """
         package tt;
         import org.jmlspecs.annotation.*;
@@ -42,17 +42,17 @@ public class escm extends EscBase {
             /*@ pure */ public TestJava() { t = new TestJava(); }
         }
         """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m",34
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m",39
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m1",13
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m2",17
-                );
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m",34
+        ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m",39
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m1",13
+        ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m2",17
+        );
     }
    
     /** This test checks that the specs of methods in nested, local and anonymous classes are used */
     @Test
     public void testNestedMethodSpecs() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 "package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
@@ -96,7 +96,7 @@ public class escm extends EscBase {
     @Test
     public void testNestedClassSpecs() {
         addOptions("--check-feasibility=precondition,exit");
-        helpTCX("TestJava",
+        helpEsc("TestJava",
                 """
                 import org.jmlspecs.annotation.*;
                 @NonNullByDefault public class TestJava {
@@ -141,7 +141,7 @@ public class escm extends EscBase {
     @Test
     public void testModelSpecs() {
     	addOptions("-show:translated","--check-feasibility=basic");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
 
@@ -210,7 +210,7 @@ public class escm extends EscBase {
     @Test
     public void testAnon() {
     	expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                                 +" import org.jmlspecs.annotation.*; \n"
                                 +"@NonNullByDefault public class TestJava { public int x; \n"
 
@@ -227,7 +227,7 @@ public class escm extends EscBase {
     public void testAnonX() {
         addOptions("-checkFeasibility=exit");
     	expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
 
@@ -258,7 +258,7 @@ public class escm extends EscBase {
     @Test
     public void testAnonZ() {
         addOptions("--check-feasibility=basic");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
 
@@ -291,7 +291,7 @@ public class escm extends EscBase {
 
     @Test
     public void testAnonY() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { public static int i; \n"
 
@@ -313,7 +313,7 @@ public class escm extends EscBase {
     @Test
     public void testMethodsInSpecs() {
         addOptions("--check-feasibility=precondition,assert,exit");
-        helpTCX("tt.TestJava","package tt; "
+        helpEsc("tt.TestJava","package tt; "
                 +" import org.jmlspecs.annotation.*; \n"
                 +" //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
@@ -382,7 +382,7 @@ public class escm extends EscBase {
 
     @Test
     public void testFunctionsInSpecs() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
@@ -451,7 +451,7 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
@@ -482,7 +482,7 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs3() {
-        helpTCX("tt.TestJava","package tt;\n"
+        helpEsc("tt.TestJava","package tt;\n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" //@ code_java_math spec_java_math \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
@@ -511,7 +511,7 @@ public class escm extends EscBase {
 
     @Test
     public void testMethodsInSpecs3MQ() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { static public boolean b; \n"
 
@@ -539,7 +539,7 @@ public class escm extends EscBase {
     
     @Test
     public void havocInit() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends P {
@@ -570,6 +570,4 @@ public class escm extends EscBase {
         // Need to check anonymous classes within specs
         // Need to check non-static inner classes 
         // Need to check anonymous classes for non-static classes
-   
-
 }

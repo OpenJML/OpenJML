@@ -311,18 +311,18 @@ public abstract class JmlTestSuite {
         collector = new FilteredDiagnosticCollector<JavaFileObject>(ignoreNotes,printer);    	
     }
     
-    /** Calls compile, converting the List of options to an array of options */
+    /** Calls compile, converting the List of options and files to an array */
     public int compile(com.sun.tools.javac.util.List<String> args) {
     	return compile(args.toArray(new String[args.size()]));
     }
     
-    /** Calls compile, converting the java.util.List of options to an array of options */
+    /** Calls compile, converting the java.util.List of options and files to an array */
     public int compile(java.util.List<String> args) {
     	return compile(args.toArray(new String[args.size()]));
     }
     
-    /** Calls main.compile, i.e. runs openjml on the array of command-line arguments. Note that the called method will also
-     * use anything in main.mockFiles
+    /** Calls main.compile, i.e. runs openjml on the array of command-line arguments (options and files).
+     * Note that the called method will also use anything in main.mockFiles
      */
     public int compile(String ... args) {
 		return main.compile(args, this.context).exitCode;  // FIXME - main already has context -- why do we need to pass it in

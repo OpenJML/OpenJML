@@ -26,7 +26,7 @@ public class escnew2 extends EscBase {
 
     @Test
     public void testMultiple() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m(int i) throws Exception {\n"
@@ -50,7 +50,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testNullReceiver() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {}; \n"
@@ -83,7 +83,7 @@ public class escnew2 extends EscBase {
     }
     
     @Test public void testReceiver1good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -95,7 +95,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver1bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n"
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -110,7 +110,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver2good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -122,7 +122,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver2bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n"
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -137,7 +137,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver3good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -149,7 +149,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver3bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i;\n"
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -164,7 +164,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver4() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -179,7 +179,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver4a() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -194,7 +194,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver4bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -209,7 +209,7 @@ public class escnew2 extends EscBase {
     }
 
      @Test public void testReceiver5() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -225,7 +225,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver6() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -269,7 +269,7 @@ public class escnew2 extends EscBase {
 
 
     @Test public void testReturn1good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -282,7 +282,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReturn1bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -297,7 +297,7 @@ public class escnew2 extends EscBase {
 
     @Test public void testSuper() {
     	//main.addOptions("-no-checkAccessible");
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -309,7 +309,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testSuperbad2() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -323,7 +323,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testSuperbad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -338,7 +338,7 @@ public class escnew2 extends EscBase {
     }
     
     @Test public void testThis() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -349,7 +349,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testThisBad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n"
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -362,7 +362,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testThisBad2() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n"
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; }\n"
@@ -376,7 +376,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@Nullable Integer k = a.i; \n"
@@ -387,7 +387,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField2() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"mm(); \n"
@@ -400,7 +400,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldBad() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@Nullable static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@Nullable Integer k = a.i; \n"
@@ -412,7 +412,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldBad2() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@Nullable static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = a.i; \n"
@@ -423,7 +423,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldAssign() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = 1; \n"
@@ -434,7 +434,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldAssignBad2() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = 1; \n"
@@ -447,7 +447,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldAssignBad() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a, @Nullable Integer k) { \n"
                 +"a.i = k; \n"
@@ -463,7 +463,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testBreak() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 6; \n"
@@ -534,7 +534,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testSwitch2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 2; \n"
@@ -594,7 +594,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testSwitchShort() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 2; \n"
@@ -654,7 +654,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testSwitchByte() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 2; \n"
@@ -714,7 +714,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testSwitchChar() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 'z' ==> \\result == 2; \n"
@@ -774,7 +774,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testTryNested() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 5; \n"
@@ -896,7 +896,7 @@ public class escnew2 extends EscBase {
     
     @Test
     public void testAdd() { // Tests datagroup expansion
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
            +"public class TestJava { \n"
            +" public java.util.LinkedList<Object> list = new java.util.LinkedList<>(); \n"
            +" //@ assigns list.objectState;  \n"

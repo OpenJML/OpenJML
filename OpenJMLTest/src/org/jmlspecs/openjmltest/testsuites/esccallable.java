@@ -16,7 +16,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable \\nothing;\n"
                 +"  public void m() {}\n"
@@ -26,7 +26,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n;\n"
                 +"  void m() { n(); }\n"
@@ -38,7 +38,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable \\nothing;\n"
                 +"  public void m() { n(); }\n"
@@ -54,7 +54,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n;\n"
                 +"  void m() { p(); }\n"
@@ -71,7 +71,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n;\n"
                 +"  void m() { B.n(); }\n"
@@ -89,7 +89,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable6() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable TestJava.n;\n"
                 +"  void m() { B.n(); }\n"
@@ -105,48 +105,9 @@ public class esccallable extends EscBase {
                 );
     }
 
-//    @Test
-//    public void testBasicCallable6a() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                +"  //@ callable TestJava.n;\n"
-//                +"  void m() { B.n(); }  //@ nowarn Callable;\n" // There would be a warning, but it is suppressed
-//                +"  static void n() {}\n"
-//                +"  void p() {}\n"
-//                +"}\n"
-//                +"class B { public static void n() {} };\n"
-//                );
-//    }
-//
-//    @Test
-//    public void testBasicCallable6b() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                +"  //@ callable TestJava.n; //@ nowarn Callable;\n"
-//                +"  void m() { B.n(); } \n"
-//                +"  static void n() {}\n"
-//                +"  void p() {}\n"
-//                +"}\n"
-//                +"class B { public static void n() {} };\n"
-//                );
-//    }
-//
-//    @Test
-//    public void testBasicCallable6c() {
-//        helpTCX("tt.TestJava","package tt; \n"
-//                +"public class TestJava { \n"
-//                +"  //@ callable TestJava.n;\n"
-//                +"  void m() { B.n(); }  //@ nowarn Callable;\n"
-//                +"  static void n() {}\n"
-//                +"  void p() {}\n"
-//                +"}\n"
-//                +"class B { public static void n() {} }; //@ nowarn Callable;\n"
-//                );
-//    }
-
     @Test
     public void testBasicCallable7() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable B.n;\n"
                 +"  void m() { B.n(); }\n"
@@ -161,7 +122,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable8() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(int);\n"
                 +"  void m() { n(1); }\n"
@@ -174,7 +135,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable9() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(Object);\n"
                 +"  void m() { n(1); }\n"
@@ -190,7 +151,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable10() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(int);\n"
                 +"  void m() { n(1); }\n"
@@ -205,7 +166,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(int),n(Object);\n"
                 +"  void m() { n(1); }\n"
@@ -218,7 +179,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(int),n(Object);\n"
                 +"  void m() { n(1); }\n"
@@ -233,7 +194,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11b() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable \\everything;\n"
                 +"  void m() { n(1); }\n"
@@ -246,7 +207,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable \\nothing;\n"
                 +"  void m() { n(1); }\n"
@@ -264,7 +225,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11d() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable \\nothing;\n"
                 +"  void m() { n(1); }\n"
@@ -281,7 +242,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11e() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(int);\n"
                 +"  void m() { n(1); }\n"
@@ -295,7 +256,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable11f() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable \\everything;\n"
                 +"  void m() { n(1); }\n"
@@ -307,7 +268,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable12() {  // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n();\n"
                 +"  void m(Object o) { n(o); }\n"
@@ -319,7 +280,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable12a() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(Object,Object);\n"
                 +"  void m(Object o) { n(o); }\n"
@@ -331,7 +292,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable13() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(Object[]);\n"
                 +"  void m() { n(); }\n"
@@ -343,7 +304,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable14() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(Object[]);\n"
                 +"  void m(Object o) { n(o); }\n"
@@ -355,7 +316,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable15() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(Object[]);\n"
                 +"  void m(Object[] o) { n(o); }\n"
@@ -367,7 +328,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable16() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ callable n(Object[]);\n"
                 +"  void m(Object o) { n(o,o); }\n"
@@ -379,7 +340,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable20() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
                 +"  //@ callable n();\n"
@@ -394,7 +355,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable21() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
                 +"  //@ callable n();\n"
@@ -411,7 +372,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable21a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
                 +"  //@ callable n();\n"
@@ -430,7 +391,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable21c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
                 +"  //@ callable n();\n"
@@ -446,7 +407,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable21b() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
                 +"  //@ callable n();\n"
@@ -460,7 +421,7 @@ public class esccallable extends EscBase {
 
     @Test
     public void testBasicCallable22() { // OK
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires b;\n"
                 +"  //@ callable n(boolean);\n"
@@ -474,5 +435,4 @@ public class esccallable extends EscBase {
                 +"}\n"
                 );
     }
-
 }

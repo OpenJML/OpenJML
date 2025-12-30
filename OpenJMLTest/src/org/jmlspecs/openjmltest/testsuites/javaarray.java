@@ -17,7 +17,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -35,7 +35,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -49,7 +49,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -64,7 +64,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -79,7 +79,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"

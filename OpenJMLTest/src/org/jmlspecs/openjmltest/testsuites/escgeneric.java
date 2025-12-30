@@ -29,7 +29,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testConstructor() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void mx(Integer i) {\n"
@@ -53,7 +53,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeOf() {
     	addOptions("--check-feasibility=all");  // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m(Integer i) {\n"
@@ -76,7 +76,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testGenericType() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> extends B<T> { \n"
                 +"  public void ma(T i) {\n"
                 +"  }\n"
@@ -92,7 +92,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
@@ -116,7 +116,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
@@ -134,7 +134,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType2b() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
@@ -153,7 +153,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(Integer i) {\n"
@@ -189,7 +189,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStatic() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -211,7 +211,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStaticB() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -233,7 +233,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStatic2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -255,7 +255,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testStatic2B() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -277,7 +277,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testTypeParameter() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(/*@ non_null*/ TestG<Integer> i, Integer j) {\n"
@@ -299,7 +299,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ non_null*/TestH i, Integer j) {\n"
@@ -326,7 +326,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2b() {
-        helpTCX("tt.TestJava","package tt;import org.jmlspecs.annotation.*;\n"
+        helpEsc("tt.TestJava","package tt;import org.jmlspecs.annotation.*;\n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>.@NonNull TestH i, Integer j) {\n"
@@ -353,7 +353,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(/*@ non_null*/TestG<Integer>.TestH i, Integer j) {\n"
@@ -380,7 +380,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2d() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(@NonNull TestG<Integer>.TestH i, Integer j) {\n" // FIXME: i is nullable by default, or is the NonNull pushed to the nested class
@@ -410,7 +410,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2e() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ qqq*/TestH i, Integer j) {\n"
@@ -431,7 +431,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2f() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ final */TestH i, Integer j) {\n"
@@ -452,7 +452,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2g() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ pure */TestH i, Integer j) {\n"
@@ -472,7 +472,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2h() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ public */TestH i, Integer j) {\n"
@@ -492,7 +492,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2k1() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(/*@ public */Object i) { }\n"
@@ -504,7 +504,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2k2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void mb(/*@ pure */Object i) { }\n"
@@ -515,7 +515,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2k3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void mc(/*@ final */Object i) { }\n"
@@ -527,7 +527,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2k4() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void me(/*@ qqq */Object i) { }\n"
@@ -540,7 +540,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testUnboxing() {
         addOptions("--method=m");  // Just test method m
-        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
+        helpEsc("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
                 +"int sum = 0; \n"
                 +"{ /*@ assume ooo >= 0; */ sum += ooo; }  \n"
                 +"//@ assert sum >= 0; \n"
@@ -550,7 +550,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3() {
-        helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ assert sum == 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -564,7 +564,7 @@ public class escgeneric extends EscBase {
     public void testForEach3c() {
     	//addOptions("-show","-method=m");
     	// nullable by default so list might be null
-        helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util.List<Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ assert sum == 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -577,7 +577,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3a() {
-        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List</*@ non_null*/ Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List</*@ non_null*/ Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
@@ -588,7 +588,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3bad() {
-        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
@@ -600,7 +600,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType() {
-        helpTCX("tt.TestJava"," class A { void m(char/*@ non_null */ [] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(char/*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(char); \n"
                 +"}}"
                 );
@@ -608,7 +608,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType2() {
-        helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
                 ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
@@ -618,7 +618,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testElemType3() {
         expectedExit = 1;
-        helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
                 ,"/tt/TestJava.java:1: error: the type modifier/annotation is not permitted on a primitive type: char", 23
@@ -627,7 +627,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType4() {
-        helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
                 ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
@@ -637,16 +637,13 @@ public class escgeneric extends EscBase {
     @Test
     public void testGenericThrow() {
         addOptions("--method=rt"); // Just test method rt
-        helpTCX("tt.TestJava",
-        		 "public class TestJava { \n"
-        	    +" //@ public exceptional_behavior \n"
-        	    +" //@   requires true; \n"  // FIXME - should be t instanceof T
-        	    // Can't say signals_only T; because JML only deals with Exception, not Throwable
-        	    +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
+        helpEsc("tt.TestJava",
+                 "public class TestJava { \n"
+                +" //@ public exceptional_behavior \n"
+                +" //@   requires true; \n"  // FIXME - should be t instanceof T
+                // Can't say signals_only T; because JML only deals with Exception, not Throwable
+                +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
                 +"}"
                 );
     }
-
-    
 }
-    

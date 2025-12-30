@@ -14,20 +14,11 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escinline extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        super.setUp();
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
-    
     @Test // basic test of inlining, checking assignable and ensures and return value
     public void testInline1() {
         addOptions("-defaults=constructor:pure");
         //addOptions("--show","--method=minline");
-        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+        helpEsc("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +"public class TestJava { \n"
                 
                 +"  public int j;\n"
@@ -63,7 +54,7 @@ public class escinline extends EscBase {
     
     @Test // basic test of inlining, checking assignable and ensures, with no return
     public void testInline1a() {
-        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+        helpEsc("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +"public class TestJava { \n"
                 
                 +"  public int j;\n"
@@ -93,7 +84,7 @@ public class escinline extends EscBase {
     @Test  // inlining from a different class (with a different 'this')
     public void testInline2() {
         addOptions("-defaults=constructor:pure");
-        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+        helpEsc("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"
                 +"  //+OPENJML@ inline \n"
@@ -134,7 +125,7 @@ public class escinline extends EscBase {
     
     @Test  // inlining from a different class (with a different 'this')
     public void testInline2a() {
-        helpTCX("tt.TestJava","package tt; //@ code_bigint_math spec_bigint_math \n"
+        helpEsc("tt.TestJava","package tt; //@ code_bigint_math spec_bigint_math \n"
                 +" class M { \n"
                 +"  public int j;\n"
                 +"  //+OPENJML@ inline\n"
@@ -176,7 +167,7 @@ public class escinline extends EscBase {
     @Test // inline is an extension and should be final
     public void testInline3() {
     	addOptions("-lang=jml");
-        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+        helpEsc("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"
                 +"  //+OPENJML@ inline\n"
@@ -193,7 +184,7 @@ public class escinline extends EscBase {
     @Test // inline not allowed on constructor
     public void testInline4() {
     	expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
+        helpEsc("tt.TestJava","package tt; //@ code_java_math spec_java_math \n"
                 +" class M { \n"
                 +"  public int j;\n"
                 +"  //+OPENJML@ inline\n"
@@ -204,6 +195,4 @@ public class escinline extends EscBase {
                 ,"/tt/TestJava.java:4: error: This JML modifier is not allowed for a constructor declaration", 15
                 );
     }
-                
-
 }

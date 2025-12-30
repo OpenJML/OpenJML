@@ -23,7 +23,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSimple() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  \n"
@@ -64,7 +64,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSimple2Static() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  static Integer i = 5;\n"
@@ -81,7 +81,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSimple2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  Integer i = 5;\n"
@@ -99,7 +99,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitch() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(int i) {;\n"
@@ -118,7 +118,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchShort() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(short i) {;\n"
@@ -137,7 +137,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchByte() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(byte i) {;\n"
@@ -156,7 +156,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchNull() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(int i) {;\n"
@@ -176,7 +176,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testBinary() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(int i) {\n"

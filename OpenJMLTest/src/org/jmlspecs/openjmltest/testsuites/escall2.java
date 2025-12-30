@@ -30,7 +30,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNParam() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -74,9 +74,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN2Param() {
-//    	addOptions("-show","-method=m2");
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -120,8 +118,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN3Param() {
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -164,8 +161,8 @@ public class escall2 extends EscBase {
     }
     @Test
     public void testNN4Param() {
-        addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--nonnull-by-default");
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -209,8 +206,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN5Param() {
-        addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--nonnull-by-default");
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -254,8 +251,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNN6Param() {
-        addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--nonnull-by-default");
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -301,8 +298,8 @@ public class escall2 extends EscBase {
     public void testNNAssign() {
 //        Assume.assumeTrue(runLongTests);
         // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
-        addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-no-internalSpecs");  // FIXME
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -372,8 +369,8 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign2() {
 //        Assume.assumeTrue(runLongTests);
-        addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-no-internalSpecs"); // F(XME
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -447,8 +444,8 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign3() {
 //        Assume.assumeTrue(runLongTests);
-        addOptions("-internalSpecs=false"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-internalSpecs=false"); // Part of test // FIXME
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
@@ -517,7 +514,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssignB() {
 //        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -562,7 +559,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssignB1() {
 //        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -610,7 +607,7 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssignB2() {
 //        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
@@ -654,7 +651,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testTypeCast() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -668,7 +665,7 @@ public class escall2 extends EscBase {
     @Test
     public void testInvariantForOK() {
     	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -685,8 +682,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForVisibility() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -703,8 +700,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForVisibility2() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -721,8 +718,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantFor() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -740,9 +737,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForSeeStatic() {
-    	Assume.assumeTrue(!solver.startsWith("cvc4"));
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -760,8 +756,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForStatic() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -778,8 +774,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testInvariantForStatic1() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 +"  static public int f; //@ static public invariant f >= 0; \n"
@@ -797,8 +793,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForStatic2() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 +"  static public int f; //@ static public invariant f >= 0; \n"
@@ -816,11 +812,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testDZero() {
-//        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-//        Assume.assumeTrue(false); // SKIPPING because CVC4 does not handle integer division
-
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -876,8 +868,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testDZero2() {
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -899,8 +890,8 @@ public class escall2 extends EscBase {
 
     @Test  // Sometimes times out
     public void testInvariant1() {
-        addOptions("-code-math=java","-spec-math=java","-solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java","--spec-math=java","--solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -956,8 +947,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testConstraint1() {
-        addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java","--spec-math=java"); // Just to avoid overflow warnings
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava {\n"
                 
@@ -1013,7 +1004,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testAxiom1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1034,8 +1025,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testAxiom2() {
-        if ("yices2".equals(solver)) return; // TODO: yices2 does not handle quantifiers
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1054,10 +1044,10 @@ public class escall2 extends EscBase {
     }
     
     @Test
-    public void testAssignable() {
+    public void testAssignable1() { // FIXME - which of these methods here or in testAssignables2 takes so long? and why?
 //        Assume.assumeTrue(runLongTests);
 
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -1106,7 +1096,32 @@ public class escall2 extends EscBase {
                 +"    o.a = 0;\n"  // OK
                 +"  }\n"
                 
-                +"  //@ assignable this.a;\n" // Line 40
+                +"  //@ public normal_behavior ensures t != null;\n"
+                +"  public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
+                ,"/tt/TestJava.java:7: verify: Associated declaration",7
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: o.a",9
+                ,"/tt/TestJava.java:11: verify: Associated declaration",7
+                ,"/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4a: o.a",9
+                ,"/tt/TestJava.java:31: verify: Associated declaration",7
+                );
+    }
+   
+    @Test
+    public void testAssignable2() {
+//        Assume.assumeTrue(runLongTests);
+
+        helpEsc("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                
+                +"  //@ assignable this.a;\n" // Line 7
                 +"  public void m5(TestJava o) {\n"
                 +"    a = 0;\n"  // OK
                 +"  }\n"
@@ -1118,7 +1133,7 @@ public class escall2 extends EscBase {
                 
                 +"  //@ assignable \\nothing;\n"
                 +"  public void m7(TestJava o) {\n"
-                +"    a = 0;\n"  // BAD // Line 50
+                +"    a = 0;\n"  // BAD // Line 17
                 +"  }\n"
                 
                 +"  //@ assignable \\nothing;\n"
@@ -1139,22 +1154,16 @@ public class escall2 extends EscBase {
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
-                ,"/tt/TestJava.java:7: verify: Associated declaration",7
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: o.a",9
-                ,"/tt/TestJava.java:11: verify: Associated declaration",7
-                ,"/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4a: o.a",9
-                ,"/tt/TestJava.java:31: verify: Associated declaration",7
-                ,"/tt/TestJava.java:50: verify: The prover cannot establish an assertion (Assignable) in method m7: a",7
-                ,"/tt/TestJava.java:48: verify: Associated declaration",7
-                ,"/tt/TestJava.java:63: verify: The prover cannot establish an assertion (Assignable) in method m9b: o.a",9
-                ,"/tt/TestJava.java:61: verify: Associated declaration",7
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m7: a",7
+                ,"/tt/TestJava.java:15: verify: Associated declaration",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Assignable) in method m9b: o.a",9
+                ,"/tt/TestJava.java:28: verify: Associated declaration",7
                 );
     }
    
     @Test
     public void testPureMethod() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" public class TestJava { \n"
                 
@@ -1188,7 +1197,7 @@ public class escall2 extends EscBase {
    
     @Test
     public void testPureMethod2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" public class TestJava { \n"
                 
@@ -1231,8 +1240,7 @@ public class escall2 extends EscBase {
    
     @Test
     public void testKeys() {
-        addOptions("--esc");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1268,7 +1276,7 @@ public class escall2 extends EscBase {
     @Test
     public void testKeysBad() {
         expectedExit = 1;
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1280,5 +1288,4 @@ public class escall2 extends EscBase {
                 ,"/tt/TestJava.java:4: error: An argument to \\key must be an identifier or a string literal: 0", 21
                 );
     }
-
 }
