@@ -1940,27 +1940,29 @@ public class escnew extends EscBase {
                 +"  public Object nnf;\n"
                 +"  public /*@ nullable*/ Object f;\n"
 
-                // FIXME - these crash Z3
-//                +"  public Object m1bad() {\n"
-//                +"    return this.f ;\n"
-//                +"  }\n"
-//                
-//                +"  public Object m1ok() {\n"
-//                +"    return this.nnf ;\n"
-//                +"  }\n"
+                +"  public Object m1bad() {\n"
+                +"    return this.f ;\n"
+                +"  }\n"
+                
+                +"  public Object m1ok() {\n"
+                +"    return this.nnf ;\n"
+                +"  }\n"
                 
                 +"  public void m2bad() {\n"
                 +"    nnf = null ;\n"
                 +"  }\n"
                 
-//                +"  public void m2ok() {\n"
-//                +"    f = null ;\n"
-//                +"  }\n"
+                +"  public void m2ok() {\n"
+                +"    f = null ;\n"
+                +"  }\n"
 
                 +"  public TestJava() { nnf = new Object(); }"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",9
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m1bad", 10
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:6: verify: Associated method exit", 5
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",9
                 );
     }
 

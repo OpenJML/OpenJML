@@ -24,23 +24,14 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
-/** These tests check running ESC on files in the file system for tests needing reasoning about floating point values.
- * <P>
- * To add a new test:
- * <UL>
- * <LI> create a directory containing the test files as a subdirectory of 
- * 'test'
- * <LI> add a test to this class - typically named similarly to the folder
- * containing the source data
- * </UL>
+/** These tests run jmldoc
  */
+// FIXME - nothing implemented as yet
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class jmldoctests extends EscBaseFiles {
 
-    // FIXME - will run jmldoc, not esc
-    
     @Test @Ignore
     public void jmldoc1() {
         helpTG();
@@ -75,5 +66,4 @@ public class jmldoctests extends EscBaseFiles {
     public void jmldoc7() {
         helpTG();
     }
-
 }

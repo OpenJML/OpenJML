@@ -292,7 +292,7 @@ public class MethodProverSMT {
 //            if (proofResultAccumulated.isSat()) continue;
 //        }
         if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
-            utils.note(false,"Skipping proof attempt for split " + splitkey);
+            if (JmlOption.SHOW_SKIPPED.isSet(context)) utils.note(false,"Skipping proof attempt for split " + splitkey);
             skips++;
             continue;
         }

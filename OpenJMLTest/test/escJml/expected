@@ -31,7 +31,7 @@ Completed proof of Test.q() with prover !!!! - with warnings
 Starting proof of Test.n() with prover !!!!
 Completed proof of Test.n() with prover !!!! - no warnings
 Starting proof of Test.nn() with prover !!!!
-test/escJml/Test.java:45: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method nn: nn
+test/escJml/Test.java:45: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method nn
     Object nn() { return f; } // Error because f is nullable but nn is not
     ^
 test/escJml/Test.java:45: warning: Associated declaration
@@ -85,7 +85,7 @@ Completed proof of A.mf4() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
 Completed proof of A.m() with prover !!!! - no warnings
 Starting proof of A.mnn() with prover !!!!
-test/escJml/Test.java:126: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method mnn: mnn
+test/escJml/Test.java:126: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method mnn
 	Object mnn() {
 	^
 test/escJml/Test.java:126: warning: Associated declaration

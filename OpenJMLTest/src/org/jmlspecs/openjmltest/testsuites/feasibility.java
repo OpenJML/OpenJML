@@ -10,6 +10,8 @@ import org.openjml.runners.ParameterizedWithNames;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class feasibility extends EscBase {
+    
+    String split = null;
 
     @Before @Override
     public void setUp() throws Exception {
@@ -17,19 +19,17 @@ public class feasibility extends EscBase {
         captureOutput = false;
     }
     
-    final String[] none = new String[] {};
- 
-    protected void helpFeas(String option, String program, Object... expectedResults) {
-        helpFeas(none, option, program, expectedResults);
-    }
-    
-    protected void helpFeas(String[] options, String option, String program, Object... expectedResults) {
-        addOptions(options);
+    protected void helpFeas(String feasoption, String program, Object... expectedResults) {
+        if (split != null) addOptions("--split=" + split);
         addOptions("--check-feasibility=none");
+        addOptions("--no-show-skipped");
+        addOptions("--method=m,q");
         super.helpEsc("tt.TestJava", program);
         reset();
-        addOptions(options);
-        addOptions("--check-feasibility=" + option);
+        if (split != null) addOptions("--split=" + split);
+        addOptions("--no-show-skipped");
+        addOptions("--method=m,q");
+        addOptions("--check-feasibility=" + feasoption);
         super.helpEsc("tt.TestJava", program, expectedResults);
     }
     
@@ -266,7 +266,7 @@ public class feasibility extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                public int i;
+                  public int i;
                   //@ public invariant i != 0;
                   //@ requires i == 0;
                   public void m() {
@@ -274,7 +274,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
+                ,"/tt/TestJava.java:6: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m()", 15
                 );
     }
 
@@ -349,8 +349,9 @@ public class feasibility extends EscBase {
     }
 
     @Test
-    public void fspecA() {  // FIXME
-        helpFeas(new String[]{"--split=A","--no-show-skipped"}, "spec",
+    public void fspecA() {
+        split = "A";
+        helpFeas("spec",
                 """
                 package tt;
                 public class TestJava {
@@ -366,8 +367,32 @@ public class feasibility extends EscBase {
     }
 
     @Test
-    public void fspecB() {  // FIXME
-        helpFeas(new String[]{"--split=B","--no-show-skipped"}, "spec",
+    public void fspecB() {
+        addOptions("--split=B");
+        addOptions("--check-feasibility=all");
+        addOptions("--no-show-skipped","--method=m");
+
+        String program =
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i == 0;
+                  public void m(int i) {
+                    //@ refining ensures false;
+                    {}
+                  }
+                }
+                """
+                ;
+        super.helpEsc("tt.TestJava", program
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition) in method m", 18
+                );
+    }
+
+    @Test
+    public void fspecC() {  // FIXME -- not checking the requires?
+        split = "B";
+        helpFeas("spec",
                 """
                 package tt;
                 public class TestJava {
@@ -399,5 +424,4 @@ public class feasibility extends EscBase {
                 ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at throw statement in method tt.TestJava.m(int)", 7
                 );
     }
-
 }

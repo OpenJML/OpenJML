@@ -16,25 +16,21 @@ public class escvisibility extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-no-purityCheck");
+        addOptions("--no-purityCheck");
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
         Options.instance(context).put("--class-path",   testspecpath);
         Options.instance(context).put("--source-path",   testspecpath);
-        addOptions("-specspath",   testspecpath);
+        addOptions("--specspath",   testspecpath);
         addOptions("--normal");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
     }
 
     // Invariant inherited from same package
     
     @Test
     public void testPrivate() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -55,7 +51,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -77,7 +73,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -99,7 +95,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -122,7 +118,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate2() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -143,7 +139,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic2() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -164,7 +160,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected2() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -185,7 +181,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage2() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -208,7 +204,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate3() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -227,7 +223,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic3() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -248,7 +244,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected3() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -269,7 +265,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage3() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -292,7 +288,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate3a() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -311,7 +307,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic3a() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -332,7 +328,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected3a() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -353,7 +349,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage3a() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -376,7 +372,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate4() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -397,7 +393,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic4() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -418,7 +414,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected4() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -439,7 +435,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage4() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
@@ -462,7 +458,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate5() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -481,7 +477,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic5() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -502,7 +498,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected5() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -523,7 +519,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage5() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -545,7 +541,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate6() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -564,7 +560,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic6() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -585,7 +581,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected6() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -606,7 +602,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage6() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
@@ -622,14 +618,12 @@ public class escvisibility extends EscBase {
                         
                 );
     }
-    
 
     // Not-inherited method spec
     
-    
     @Test
     public void testPublic7() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
@@ -652,7 +646,6 @@ public class escvisibility extends EscBase {
                 ,"/tx/B.java:2: verify: Precondition conjunct is false: false",17
                 );
     }
-    
     
     @Test
     public void testPrivate8() {
@@ -706,7 +699,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testProtected8() {
     	expectedExit = 0;
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@ protected normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -729,7 +722,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPackage8() {
     	expectedExit = 0;
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -749,11 +742,10 @@ public class escvisibility extends EscBase {
                 );
     }
 
-
     @Test
     public void testPrivate9() {
     	expectedExit = 0;
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -775,7 +767,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic9() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -799,7 +791,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testProtected9() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -823,7 +815,7 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPackage9() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
@@ -844,5 +836,4 @@ public class escvisibility extends EscBase {
                 ,"/tt/TestJava.java:4: verify: Precondition conjunct is false: false",17
                 );
     }
-
 }

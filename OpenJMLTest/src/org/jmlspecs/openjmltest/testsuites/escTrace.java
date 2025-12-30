@@ -13,8 +13,9 @@ public class escTrace extends EscBase {
     @Override
     public void setUp() throws Exception {
         captureOutput = true;
+        checkOutput = false;
         super.setUp();
-        addOptions("-subexpressions");
+        addOptions("--subexpressions");
     }
  
     public static final String dir = "test/escTraceTests";
@@ -22,7 +23,7 @@ public class escTrace extends EscBase {
     /** This String declaration and assignment */
     @Test
     public void testSimpleTrace() {
-        main.addOptions("-method=m1");
+        main.addOptions("--method=m1");
         helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 
@@ -64,7 +65,6 @@ public class escTrace extends EscBase {
         String error = errorOutput();
         Assert.assertEquals("Mismatched error output","",error);
         outputCompare.compareTextToMultipleFiles(output, dir, "testFieldTrace-expected", dir + "/testFieldTrace-actual");
-       //Assert.assertEquals(expectedOut,output);
     }
 
     /** This String declaration and assignment */
@@ -91,7 +91,6 @@ public class escTrace extends EscBase {
         String error = errorOutput();
         Assert.assertEquals("Mismatched error output","",error);
         outputCompare.compareTextToMultipleFiles(output, dir, "testEnsuresTrace-expected", dir + "/testEnsuresTrace-actual");
-       //Assert.assertEquals(expectedOut,output);
     }
 
     /** This String declaration and assignment */
@@ -116,8 +115,6 @@ public class escTrace extends EscBase {
         String output = output();
         String error = errorOutput();
         outputCompare.compareTextToMultipleFiles(output, dir, "testEnsuresSafeTrace-expected", dir + "/testEnsuresSafeTrace-actual");
-        //Assert.assertEquals("Mismatched error output","",error);
-       //Assert.assertEquals(expectedOut,output);
+        Assert.assertEquals("Mismatched error output","",error);
     }
-
 }

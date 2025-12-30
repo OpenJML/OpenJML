@@ -17,16 +17,12 @@ public class escoption extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         captureOutput = true;
+        checkOutput = false;
         super.setUp();
         addOptions("--nullable-by-default"); // Because the tests were written this way
         addOptions("--normal");
         addOptions("--check-feasibility=none","--no-require-white-space");
-        //main.addOptions("-trace");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
     }
  
     @Test
@@ -49,6 +45,7 @@ public class escoption extends EscBase {
         Assert.assertEquals("I", "openjml",JmlOption.LANG.value(context));
         String out = output();
         org.junit.Assert.assertEquals("J", "",out);
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
     // FIXME -- adjust JmlOption calls
@@ -66,12 +63,13 @@ public class escoption extends EscBase {
         Assert.assertEquals("", options.value(JmlOption.METHOD));
         String out = output();
         org.junit.Assert.assertEquals("",out);
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
-    @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
+    @Test
     public void testOption() {
-    	addOptions("--normal");
-    	helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--normal");
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires bb;\n"
                 +"  //@ ensures true;\n"
@@ -93,10 +91,10 @@ public class escoption extends EscBase {
               "Starting proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!!" + eol + 
               "Completed proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!! - with warnings" + eol
               ,out) ;
-
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
-    @Test // FIXME bassert3 not printed -- normal does not turn back to progress
+    @Test
     public void testOption2() {
         helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
@@ -119,18 +117,18 @@ public class escoption extends EscBase {
         String out = output();
         org.junit.Assert.assertEquals(
                 "Proving methods in tt.TestJava" + eol +
-        		"Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
-        		"Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
+                "Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
+                "Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
                 "Starting proof of tt.TestJava.bassert(boolean,boolean) with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings" + eol +
                 "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings" + eol +
                 "Completed proving methods in tt.TestJava" + eol 
-        		,out) ;
-
+                ,out) ;
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
-    @Test // FIXME bassert3 not printed -- quiet does not turn back to progress
+    @Test
     public void testOption3() {
         helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
@@ -159,15 +157,15 @@ public class escoption extends EscBase {
         String out = output();
         org.junit.Assert.assertEquals(
                 "Proving methods in tt.TestJava" + eol +
-        		"Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
-        		"Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
+                "Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
+                "Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
                 "Starting proof of tt.TestJava.bassert(boolean,boolean) with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings" + eol + 
                 "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!" + eol + 
                 "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings" + eol +
                 "Completed proving methods in tt.TestJava" + eol 
               ,out) ;
-
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -201,7 +199,7 @@ public class escoption extends EscBase {
                 "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
                 "Completed proving methods in tt.TestJava" + eol 
               ,out) ;
-
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -231,9 +229,8 @@ public class escoption extends EscBase {
                 "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
                 "Completed proving methods in tt.TestJava" + eol 
               ,out) ;
-
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
-    
     
     @Test
     public void testSkippedDefault() {
@@ -268,7 +265,7 @@ public class escoption extends EscBase {
                 Completed proving methods in tt.TestJava
                 """
               ,out) ;
-
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -279,6 +276,7 @@ public class escoption extends EscBase {
         ,"error: Unexpected value as argument for --check-feasibility: xyz",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -289,6 +287,7 @@ public class escoption extends EscBase {
         ,"error: Unexpected value as argument for --check-feasibility: xyz",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -299,6 +298,7 @@ public class escoption extends EscBase {
         ,"error: Unexpected value as argument for --check-feasibility: \"xyz",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -309,6 +309,7 @@ public class escoption extends EscBase {
         ,"error: Unexpected value as argument for --check-feasibility: \"",-1
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -318,6 +319,7 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -327,6 +329,7 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -337,6 +340,7 @@ public class escoption extends EscBase {
                 ,"/tt/TestJava.java:1: error: Unexpected or misspelled JML token: zzz",16
         );
         org.junit.Assert.assertTrue(output().isEmpty());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -346,7 +350,8 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; /*@zzz*/ public class TestJava {}"
         );
         org.junit.Assert.assertTrue(output().isEmpty());
-    }
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+   }
     
     @Test
     public void testDebugFeasibility() {
@@ -362,6 +367,7 @@ public class escoption extends EscBase {
                 Completed proving methods in tt.TestJava
                 """
                 ,output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -382,7 +388,7 @@ public class escoption extends EscBase {
                 ,"warning: Option -dirs is deprecated in favor of --dirs",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -393,7 +399,7 @@ public class escoption extends EscBase {
                 ,"warning: Option -dir is deprecated in favor of --dir",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -405,7 +411,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring q (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -417,7 +423,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring q (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -428,7 +434,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -439,7 +445,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -451,7 +457,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring q (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -462,7 +468,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -473,7 +479,7 @@ public class escoption extends EscBase {
                 ,"warning: -no is not permitted on --dirs (ignored)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -485,7 +491,7 @@ public class escoption extends EscBase {
                 ,"warning: Ignoring p (not a file or folder)",-1
         );
         org.junit.Assert.assertEquals("",output());
-        
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -496,6 +502,7 @@ public class escoption extends EscBase {
                 ,"warning: This command-line option is not supposed to have a parameter: --show-summary",-1
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -505,6 +512,7 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -515,6 +523,7 @@ public class escoption extends EscBase {
                 ,"warning: no- is not permitted with set-to-default (empty string after = character)",-1
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -524,6 +533,7 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -534,6 +544,7 @@ public class escoption extends EscBase {
                 ,"warning: --properties requires a non-null, non-empty argument",-1
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
@@ -544,7 +555,8 @@ public class escoption extends EscBase {
                 ,"warning: --properties requires a non-null, non-empty argument",-1
         );
         org.junit.Assert.assertEquals("",output());
-    }
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+   }
 
     @Test
     public void keysNull() {
@@ -553,7 +565,8 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
-    }
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+   }
 
     @Test
     public void keysEmpty() {
@@ -562,6 +575,7 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
     @Test
@@ -571,6 +585,7 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public "
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
     @Test
@@ -581,6 +596,7 @@ public class escoption extends EscBase {
                 ,"warning: No detailed help available for ''", -1
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
     @Test
@@ -591,6 +607,7 @@ public class escoption extends EscBase {
                 ,"warning: No detailed help available for 'zzz'", -1
         );
         org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
     @Test
@@ -600,21 +617,23 @@ public class escoption extends EscBase {
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
         org.junit.Assert.assertEquals("Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]\n",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
-    // FIXME - these tests abort the unittests -- something is wrong with capturing and testing the stdout/stderr
-//    @Test
-//    public void checkStdout() {
-//        this.out.println("OUT");
-//        org.junit.Assert.assertEquals("OUT\n",output());
-//    }
-//    
-////    @Test
-//    public void checkStdERR() {
-//        System.err.println("ERROR");
-//        org.junit.Assert.assertEquals("",output());
-//    }
+    /** Simple test of output capturing */
+    @Test
+    public void checkStdout() {
+        this.out.println("OUT");
+        org.junit.Assert.assertEquals("OUT\n",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+    }
     
-    
+    /** Simple test of error output capturing */
+    @Test
+    public void checkStderr() {
+        System.err.println("ERROR");
+        org.junit.Assert.assertEquals("",output());
+        org.junit.Assert.assertEquals("ERROR\n",errorOutput());
+    }
 }
 

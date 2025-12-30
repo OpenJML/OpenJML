@@ -366,7 +366,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testCast1() {
-        main.addOptions("--esc-max-warnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        addOptions("--esc-max-warnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -425,8 +425,8 @@ public class escnew3 extends EscBase {
     @Test
     public void testCast1real() {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        main.addOptions("-check"); // -esc times out
-        main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        addOptions("--check"); // -esc times out FIXME
+        addOptions("--esc-max-warnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -446,8 +446,8 @@ public class escnew3 extends EscBase {
     @Test
     public void testCast1realb() {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        main.addOptions("-check"); // -esc times out
-        main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
+        main.addOptions("--check"); // FIXME -esc times out
+        addOptions("--esc-max-warnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -504,8 +504,6 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
 
@@ -519,8 +517,6 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:5: verify: Associated declaration",10
                 );
     }
 
@@ -534,8 +530,6 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
 
@@ -549,8 +543,6 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: verify: Associated declaration",22
                 );
     }
 
@@ -564,8 +556,6 @@ public class escnew3 extends EscBase {
                 +"  //@ assignable \\everything;\n"
                 +"  public static void m() { new TestJava(); }\n"
                 +"}"
-//                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assignable) in method TestJava:  i",25
-//                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
 
@@ -623,7 +613,6 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor5() {
-    	//main.addOptions("-jmldebug");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
@@ -992,13 +981,10 @@ public class escnew3 extends EscBase {
                               + "    }\n"
                               + "}"
                               ,"/tt/TestJava.java:10: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm(int)",15
-                              //,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method mmm",6
-                              //,"/tt/TestJava.java:14: verify: Associated declaration",7
                               );
                       
         
     }
-
 
     @Test
     public void testIfNoBrace() {
@@ -1074,7 +1060,6 @@ public class escnew3 extends EscBase {
                  );
         
     }
-    
 
     // Problem from Michael Coblenz - git issue #504
     @Test
@@ -1108,7 +1093,6 @@ public class escnew3 extends EscBase {
                 + "  }\n"
                 + "}"
                  );
-        
     }
     
     @Test
@@ -1128,7 +1112,6 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:7: error: incompatible types: boolean cannot be converted to int",47
                 ,"/tt/TestJava.java:8: warning: Triggers only recognized in \\forall or \\exists quantified expressions",46
                  );
-        
     }
     
     @Test
@@ -1191,7 +1174,6 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",15
                 ,"/tt/TestJava.java:37: verify: Associated declaration",14
                  );
-        
     }
     
     @Test
@@ -1254,7 +1236,6 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
                 ,"/tt/TestJava.java:37: verify: Associated declaration",14
                  );
-        
     }
     
     @Test
@@ -1317,7 +1298,6 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
                 ,"/tt/TestJava.java:37: verify: Associated declaration",14
                  );
-        
     }
     
     @Test
@@ -1670,7 +1650,6 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionSwitchNull() {
-    	//main.addOptions("-progress"); // FIXME - fails in nondeterministic ways when this statement is not present
         helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
@@ -1902,7 +1881,6 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:16: verify: Associated declaration",14
                  );
-        
     }
     
     @Test
@@ -1946,7 +1924,6 @@ public class escnew3 extends EscBase {
                 + "  }\n"
                 + "}"
                  );
-        
     }
     
     @Test
@@ -2030,6 +2007,4 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 9
                 );
     }
-    
-
 }

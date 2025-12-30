@@ -14,13 +14,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnewBoxing extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        super.setUp();
-        //print = true;
-    }
-    
     @Test
     public void testSimple() {
         helpEsc("tt.TestJava","package tt; \n"
@@ -74,6 +67,8 @@ public class escnewBoxing extends EscBase {
                 +"  static { Integer j = 6; int m = j; //@ assert m == 6; \n}\n"
 
                 +"  static { Integer j = null; int m = j; \n}\n"
+                
+                +"  //@ ensures true; static_initializer\n"
 
                 +"}"
                 );   // FIXME - should generate warnings here
@@ -203,6 +198,4 @@ public class escnewBoxing extends EscBase {
                 ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2bad",11
                 );
     }
-    
-
 }

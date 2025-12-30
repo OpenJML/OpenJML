@@ -10,11 +10,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escstrings extends EscBase {
     
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-    }
-    
     /** This String declaration and assignment */
     @Test
     public void testSimpleString() {
@@ -40,7 +35,6 @@ public class escstrings extends EscBase {
     /** Tests String equality  */
     @Test
     public void testStringEquals() {
-        //addOptions("--show","--method=m");
         addOptions("--esc-max-warnings=1");
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"

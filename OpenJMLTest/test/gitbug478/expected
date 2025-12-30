@@ -25,7 +25,7 @@ test/gitbug478/SBB.jml:26: warning: Associated declaration
           ^
 Completed proof of SBB.SBB(java.nio.ByteBuffer,int) with prover !!!! - with warnings
 Starting proof of SBB.allocateDirect(int) with prover !!!!
-test/gitbug478/SBB.java:21: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method allocateDirect: allocateDirect
+test/gitbug478/SBB.java:21: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method allocateDirect
     public static SBB allocateDirect(int n) {
                   ^
 test/gitbug478/SBB.java:21: warning: Associated declaration
