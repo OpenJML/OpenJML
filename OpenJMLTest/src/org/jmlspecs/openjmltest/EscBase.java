@@ -1,6 +1,6 @@
 package org.jmlspecs.openjmltest;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -27,7 +27,11 @@ import com.sun.tools.javac.util.Log;
 
 
 public abstract class EscBase extends JmlTestSuite {
+    
+    // FIXME - either rewrite to use Parameters, or delete all this stuff
+    // Might well use Parameters for testig more than one solver; not as likely for different option sets
 
+    // FIXME - this only applies when running a standard Runner, not with the custom OpenJMLTestRUnner
     /** This JUnit rule sets a timeout on the whole test */
     @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
 
@@ -79,14 +83,14 @@ public abstract class EscBase extends JmlTestSuite {
     static public Collection<String[]> optionsAndSolvers(String[] options, java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
-        	for (String opts: options) {
-        		data.add(new String[]{opts,s});
-        	}
+            for (String opts: options) {
+                data.add(new String[]{opts,s});
+            }
         }
         return data;
     }
 
-    static public  Collection<String[]> makeParameters(java.util.List<String> options, java.util.List<String> solvers) {
+    static public Collection<String[]> makeParameters(java.util.List<String> options, java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) {
             for (String option: options) {
@@ -96,13 +100,13 @@ public abstract class EscBase extends JmlTestSuite {
         return data;
     }
 
-    static public  Collection<String[]> makeParameters(java.util.List<String> solvers) {
+    static public Collection<String[]> makeParameters(java.util.List<String> solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) data.add(new String[]{null,s});
         return data;
     }
 
-    static public  Collection<String[]> makeParameters(String... solvers) {
+    static public Collection<String[]> makeParameters(String... solvers) {
         Collection<String[]> data = new ArrayList<String[]>(10);
         for (String s: solvers) data.add(new String[]{null,s});
         return data;
@@ -113,33 +117,34 @@ public abstract class EscBase extends JmlTestSuite {
     /** The name of the solver to be used */
     protected String solver;
     
-    /** options is a comma- or space-separated list of options to be added -- used in the parameterized JUnit tests*/
+    // Currently, we are running EscBase tests for a single solver and no options parameter.
+    // Any custom options for a test are added using addOptions after setup and before calling helpEsc
+    
     public EscBase() {
         this.options = null;
         this.solver = "z3_4_3";
     }
     
-    /** options is a comma- or space-separated list of options to be added */
+    /** options is a comma-separated list of options to be added */
     public EscBase(String options, String solver) {
         this.options = options;
         this.solver = solver;
     }
     
-    /** a typical sepcification path used in the tests */
+    /** the default specification path used in the tests */
     protected static String testspecpath1 = "$A"+z+"$B";
-    /** variable that holds the specification path for each test -- may be set per test */
+    /** variable that holds the specification path for each test -- may be set per test (after setUp is called) */
     protected static String testspecpath;
     
     /** Set this field to the expected exit value. 
-    <U><LI> 0: only warnings and static checking errors, not parsing or type errors
+    <UL><LI> 0: only warnings and static checking errors, not parsing or type errors
     <LI> 1: parsing or type errors
     <LI> -1: don't check the exit value
     </UL> **/
     protected int expectedExit = 0;
-    /** Suppresses printing of associated declaration information (to reduce output size) */ // FIXME - perhaps contains user information?
-    protected boolean noAssociatedDeclaration;
-    protected String[] args; // FIXME - where is this actually used
+
     protected boolean captureOutput = false; // FIXME - why isn't true the default -- explain
+    protected boolean checkOutput = true;
 
     @Override
     public void setUp() throws Exception {
@@ -157,10 +162,7 @@ public abstract class EscBase extends JmlTestSuite {
         addOptions(options);
         if (solver != null) addOptions(JmlOption.PROVER.optionName(),solver);
         expectedExit = 0;
-        noAssociatedDeclaration = false;
-        ignoreNotes = false;
         print = false;
-        args = new String[]{};
     }
     
     @Override
@@ -170,52 +172,57 @@ public abstract class EscBase extends JmlTestSuite {
         //MethodProverSMT.benchmarkName = null;
     }
 
-    /** Applies ESC to the case where there are two input .java synthesized files, each consisting of a class name and the input source text;
+    /** Applies ESC to the case where there are two input .java mock files, each consisting of a class name and the input source text;
      * the expectedResults array is a line-by-line list of the expected output.
      */
-    protected void helpTCX2(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
+    protected void helpEsc(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new MockJavaFileObject(filename,inputSource);
             String filename2 = classname2.replace(".","/")+".java";
             JavaFileObject f2 = new MockJavaFileObject(filename2,inputSource2);
-            //Log.instance(context).useSource(f);
-            helpTCXList(new String[] {}, List.<JavaFileObject>of(f,f2),expectedResults);
+            helpEsc(List.<JavaFileObject>of(f,f2),expectedResults);
         } catch (Exception e) {
             e.printStackTrace(out);
             fail("Exception thrown while processing test: " + e);
         }
     }
 
-    /** Applies ESC to a synthesized file, with the given classname and input contents;
+    /** Applies ESC to a mock file, with the given classname and input contents;
      * the expected results array is a line by line list of the expected output.
      */
-    protected void helpTCX(String classname, String inputSource, Object... expectedResults) {
+    protected void helpEsc(String classname, String inputSource, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/") +".java"; 
             JavaFileObject f = new MockJavaFileObject(filename,inputSource);
-            //Log.instance(context).useSource(f);
-            helpTCXB(args,f, expectedResults);
+            helpEsc(List.<JavaFileObject>of(f), expectedResults);
         } catch (Exception e) {
             e.printStackTrace(out);
             fail("Exception thrown while processing test: " + e);
         }
     }
 
-    protected void helpTCXB(String[] allargs, JavaFileObject f, Object... expectedResults) {
-        helpTCXList(allargs, List.<JavaFileObject>of(f), expectedResults);
-    }
-    protected void helpTCXList(String[] allargs, List<JavaFileObject> files, Object... expectedResults) {
+    /** Applies ESC (with any options already added using addOptions) to the list of files (JavaFileObjects),
+     * comparing any diagnostics to the give list of expected results.
+     */
+    protected void helpEsc(List<JavaFileObject> files, Object... expectedResults) {
 
         try {
-            int ex = main.compile(allargs, files).exitCode;
+            int ex = main.compile(new String[]{}, files).exitCode;
             int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
             if (captureOutput) collectSystemOutput(false);
             { 
-                if (print ) printDiagnostics();
+                if (print) printDiagnostics();
                 outputCompare.compareResults(expectedResults,collector,true);
                 if (expectedExit == 0) for (Object er: expectedResults) if (er.toString().contains(": verify:")) expectedExit = verifyExit;
                 if (ex != expectedExit) fail("Compile ended with exit code " + ex + " but expected " + expectedExit);
+            }
+            if (captureOutput) {
+                var o = output();
+                if (print && !o.isEmpty()) out.println("STDOUT:\n" + o);
+                var e = errorOutput();
+                if (print && !e.isEmpty()) out.println("STDERR:\n" + e);
+                if (checkOutput) assertTrue("Did not expect any non-diagnostic output", o.isEmpty() && e.isEmpty());
             }
         } catch (Exception e) {
             { 
@@ -230,5 +237,4 @@ public abstract class EscBase extends JmlTestSuite {
             }
         }
     }
-
 }

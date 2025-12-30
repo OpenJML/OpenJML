@@ -32,7 +32,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,y; \n"
 
@@ -57,7 +57,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x; \n"
 
@@ -79,7 +79,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,y; \n"
 
@@ -110,7 +110,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,y; \n"
 
@@ -133,7 +133,7 @@ public class escnewassignable extends EscBase {
     @Test
     public void testAssignable5() {
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,xx; public static int y,yy; \n"
 
@@ -201,7 +201,7 @@ public class escnewassignable extends EscBase {
     @Test
     public void testAssignable6() {
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int x,xx; static public int y,yy; \n"
 
@@ -273,7 +273,7 @@ public class escnewassignable extends EscBase {
     @Test
     public void testAssignable7() {
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; /*@ spec_public */ int[] z;\n"
 
@@ -363,7 +363,7 @@ public class escnewassignable extends EscBase {
     public void testAssignable8() {
 //    	main.addOptions("-show","method=m1good");
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int /*@ nullable */ [] z;\n"
                 +"  //@ public invariant z != null && z.length > 10;\n"
@@ -445,7 +445,7 @@ public class escnewassignable extends EscBase {
     @Test
     public void testAssignable9() {
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int i; static public int si; @org.jmlspecs.annotation.NonNull public TestJava b;\n"
 
@@ -505,7 +505,7 @@ public class escnewassignable extends EscBase {
     public void testAssignableM1() {
 //    	main.addOptions("-show","-method=m1bad");;
 //        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { public int x,y; public static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
@@ -551,7 +551,7 @@ public class escnewassignable extends EscBase {
     @Test 
     public void testAssignableM2() {
 //        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { public int x,y; public static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
@@ -594,7 +594,7 @@ public class escnewassignable extends EscBase {
     @Test 
     public void testAssignableM3() {
 //        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { public int x,y; public static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
@@ -624,7 +624,7 @@ public class escnewassignable extends EscBase {
     @Test 
     public void testAssignableM4() {
 //        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { public int x,y; public static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
@@ -661,7 +661,7 @@ public class escnewassignable extends EscBase {
     @Test 
     public void testAssignableM5() {
 //        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { public int x,y; public static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"
@@ -702,7 +702,7 @@ public class escnewassignable extends EscBase {
     @Test 
     public void testAssignableM1bug() {
         //Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public class A { int x,y; static int xx,yy; }\n"
                 +"  public int x,y; static public int xx,yy; @org.jmlspecs.annotation.NonNull public A a; \n"

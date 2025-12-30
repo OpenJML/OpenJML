@@ -26,11 +26,11 @@ public class feasibility extends EscBase {
     protected void helpFeas(String[] options, String option, String program, Object... expectedResults) {
         addOptions(options);
         addOptions("--check-feasibility=none");
-        super.helpTCX("tt.TestJava", program);
+        super.helpEsc("tt.TestJava", program);
         reset();
         addOptions(options);
         addOptions("--check-feasibility=" + option);
-        super.helpTCX("tt.TestJava", program, expectedResults);
+        super.helpEsc("tt.TestJava", program, expectedResults);
     }
     
     // FIXME - also break statement not in loop; preconditions of spec; methodaxioms?

@@ -19,7 +19,7 @@ public class escTiming extends EscBase {
 
     @Test
     public void testTimingIf() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
                 
                 +"  //@ requires 0<=i && i <10;\n"
@@ -163,7 +163,7 @@ public class escTiming extends EscBase {
 
     @Test
     public void testTimingSwitch() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
                 
                 +"  //@ requires 0<=i && i <10;\n"

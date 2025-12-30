@@ -26,7 +26,7 @@ public class escJML extends EscBase {
     
     @Test
     public void testLBLObject() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(String i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
@@ -38,7 +38,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBL2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(Integer i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
@@ -50,7 +50,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLint() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(int i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
@@ -62,7 +62,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLshort() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(short i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
@@ -74,7 +74,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLboolean() { 
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(boolean i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i); \n"
@@ -86,7 +86,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLdouble() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(double i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
@@ -98,7 +98,7 @@ public class escJML extends EscBase {
 
     @Test
     public void testLBLfloat() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(float i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
@@ -107,5 +107,4 @@ public class escJML extends EscBase {
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
-
 }

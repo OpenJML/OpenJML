@@ -16,7 +16,7 @@ public class escenums extends EscBase {
 
     @Test
     public void testBasicEnum() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public enum TestJava { AA \n"
                 +"}"
                 );
@@ -24,7 +24,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testBasicEnum2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public enum TestJava { AA, BB, CC \n"
                 +"}"
                 );
@@ -32,7 +32,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -45,7 +45,7 @@ public class escenums extends EscBase {
     @Test
     public void testUseEnum2() {
         addOptions("--warn=missing-measured-by");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 enum Z { AA, BB, CC }
@@ -65,7 +65,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -77,7 +77,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2b() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -89,7 +89,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -101,7 +101,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2d() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -113,7 +113,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2e() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* nullable */ Z ee) {\n"
@@ -125,7 +125,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2f() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* non_null */ Z ee) {\n"
@@ -139,7 +139,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2g() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* non_null */ Z ee) {\n"
@@ -154,7 +154,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2h() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* non_null */ Z ee) {\n"
@@ -169,7 +169,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -182,7 +182,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(Object o) {\n"
@@ -195,7 +195,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum4a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(Object o) {\n"
@@ -208,7 +208,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(Object o) {\n"
@@ -221,7 +221,7 @@ public class escenums extends EscBase {
     
     @Test
     public void enumSwitch() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"    //@ ensures \\result > 0;\n"
                 +"    //@ ensures the_value == MyEnum.ONE ==> \\result == 2;\n"
@@ -256,6 +256,4 @@ public class escenums extends EscBase {
                 +"}    \n"
                 );
         }
-        
-
 }

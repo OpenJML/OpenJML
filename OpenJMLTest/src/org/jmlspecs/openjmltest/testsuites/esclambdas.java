@@ -13,18 +13,10 @@ import java.util.function.Function;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class esclambdas extends EscBase {
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
     
     @Test
     public void testIterable1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -45,8 +37,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable1b() {
-    	addOptions("-code-math=java");
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--code-math=java");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -68,8 +60,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2() {
-    	addOptions("-code-math=java"); // Just to avoid overflow errors
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--code-math=java"); // Just to avoid overflow errors
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -84,7 +76,6 @@ public class esclambdas extends EscBase {
                 +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
-                               
                 +"}"
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
                 );
@@ -92,8 +83,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testIterable2b() {
-    	addOptions("-code-math=java"); // Just to avoid overflow errors
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--code-math=java"); // Just to avoid overflow errors
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -105,15 +96,14 @@ public class esclambdas extends EscBase {
                 +"  public void m1(/*@ non_null*/ Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
-                                
                 +"}"
                 );
     }
     
     @Test
     public void testIterable3() {
-        addOptions("-code-math=java","-spec-math=java");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java","--spec-math=java");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int j;\n"
@@ -140,7 +130,7 @@ public class esclambdas extends EscBase {
     // FIXME - identity and identity2 need dynamic specs (f.ensures...)
     @Test
     public void testIdentity() {
-        helpTCX("tt.TestJava","package tt;import java.util.function.Function;\n"
+        helpEsc("tt.TestJava","package tt;import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
                                 +"  //@ public normal_behavior\n"
@@ -156,7 +146,7 @@ public class esclambdas extends EscBase {
 
     @Test
     public void testIdentity2() {
-        helpTCX("tt.TestJava","package tt; import java.util.function.Function;\n"
+        helpEsc("tt.TestJava","package tt; import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
                                 +"  //@ public normal_behavior\n"
@@ -166,14 +156,13 @@ public class esclambdas extends EscBase {
                                 +"    Function<T,T> f = Function.<T>identity();\n"
                                 +"    return f.apply(i);\n"
                                 +"  }\n"
-                                                
                                 +"}"
                                 );
                     }
 
     @Test
     public void testIdentity3() {
-        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
+        helpEsc("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
                                 +"  public /*@ immutable */ static interface Identity<T> extends Fun<T,T> {\n"
@@ -196,14 +185,13 @@ public class esclambdas extends EscBase {
                                 +"    Identity<Integer> f = Fun.<Integer>identity();\n"
                                 +"    return f.apply(i);\n"
                                 +"  }\n"
-                                                
                                 +"}"
                                 );
                     }
 
     @Test
     public void testIdentity4() {
-        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
+        helpEsc("tt.TestJava","package tt;  import java.util.function.Function;\n"
                                 +"public class TestJava { \n"
                                 
                                 +"  public /*@ immutable */ static interface Identity<T> extends Fun<T,T> {\n"
@@ -225,14 +213,13 @@ public class esclambdas extends EscBase {
                                 +"    Identity<Integer> f = Fun.<Integer>identity();\n"
                                 +"    return f.apply(i);\n"
                                 +"  }\n"
-                                                
                                 +"}"
                                 );
                     }
 
     @Test
     public void testIterable4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -253,7 +240,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testMethodReference() {
-        helpTCX("tt.TestJava","package tt; import java.util.function.*; \n"
+        helpEsc("tt.TestJava","package tt; import java.util.function.*; \n"
                 +"@org.jmlspecs.annotation.CodeBigintMath public class TestJava { \n"
                 
                 +"  public int field;\n"
@@ -298,7 +285,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testEquality() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                                 
                 +"  //@ public normal_behavior requires true;\n"
@@ -322,7 +309,7 @@ public class esclambdas extends EscBase {
     
     @Test 
     public void testReplacementType() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public static class C {};\n"
@@ -338,12 +325,11 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                 +"}"
                 );
-    	
     }
     
     @Test 
     public void testReplacementType2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public static class C {};\n"
@@ -359,12 +345,11 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                 +"}"
                 );
-    	
     }
     
     @Test
     public void testConstructor() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  @FunctionalInterface\n"
@@ -402,20 +387,20 @@ public class esclambdas extends EscBase {
                 +"  public void set() {\n"
                 +"     exx = NullPointerException::new ;\n"
                 +"  }\n"
-                
-				+"  //@ public exceptional_behavior requires true; signals_only NullPointerException;\n"
-				+"  public static void m() {\n"
-				+"    TestJava t = new TestJava(NullPointerException::new);\n"
-				+"    t.set(NullPointerException::new);\n"
-				+"    throw t.exx.create();\n"
-				+"  }\n"
 
-				+"  //@ public exceptional_behavior requires true; signals_only NullPointerException;\n"
-				+"  public static void mm() {\n"
-				+"    TestJava t = new TestJava(NullPointerException::new);\n"
-				+"    t.set();\n"
-				+"    throw t.exx.create();\n"
-				+"  }\n"
+                +"  //@ public exceptional_behavior requires true; signals_only NullPointerException;\n"
+                +"  public static void m() {\n"
+                +"    TestJava t = new TestJava(NullPointerException::new);\n"
+                +"    t.set(NullPointerException::new);\n"
+                +"    throw t.exx.create();\n"
+                +"  }\n"
+
+                +"  //@ public exceptional_behavior requires true; signals_only NullPointerException;\n"
+                +"  public static void mm() {\n"
+                +"    TestJava t = new TestJava(NullPointerException::new);\n"
+                +"    t.set();\n"
+                +"    throw t.exx.create();\n"
+                +"  }\n"
                 
                 +"}"
                 );
@@ -424,7 +409,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testConstructor2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  @FunctionalInterface\n"
@@ -456,7 +441,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testCast() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  @FunctionalInterface\n"
@@ -496,7 +481,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testCast1() {
-        helpTCX("tt.TestJava","package tt; import java.util.function.Supplier; \n"
+        helpEsc("tt.TestJava","package tt; import java.util.function.Supplier; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ public normal_behavior requires true; pure\n"
@@ -516,7 +501,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testCast2() {
-        helpTCX("tt.TestJava","package tt; import static java.util.function.Supplier.*; \n"
+        helpEsc("tt.TestJava","package tt; import static java.util.function.Supplier.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ public normal_behavior requires true; pure\n"
@@ -536,7 +521,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testCast3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  @FunctionalInterface\n"
@@ -563,7 +548,7 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testLambda() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ public model_program { return x -> x; }\n"
@@ -577,7 +562,7 @@ public class esclambdas extends EscBase {
         addOptions("--method=mm"); // Part of test
         addOptions("--code-math=bigint","--spec-math=bigint");  // Part of test
         // is this supposed to be nullableByDefault from the test harness -- FIXME
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 import java.util.function.Function;
@@ -603,7 +588,7 @@ public class esclambdas extends EscBase {
         addOptions("--method=mm");
         addOptions("--code-math=bigint","--spec-math=bigint");
         // is this supposed to be nullableByDefault from the test harness -- FIXME
-        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
+        helpEsc("tt.TestJava","package tt; import java.util.function.Function; \n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -622,10 +607,10 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaB() {
-        addOptions("-method=mm");
-        addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("--method=mm");
+        addOptions("--code-math=bigint","--spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
+        helpEsc("tt.TestJava","package tt; import java.util.function.Function; \n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -643,10 +628,10 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaC() {
-        addOptions("-method=mm");
-        addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("--method=mm");
+        addOptions("--code-math=bigint","--spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt; import java.util.function.Function; \n"
+        helpEsc("tt.TestJava","package tt; import java.util.function.Function; \n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -664,10 +649,10 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaD() {
-        addOptions("-method=mm");
-        addOptions("-code-math=bigint","-spec-math=bigint");
+        addOptions("--method=mm");
+        addOptions("--code-math=bigint","--spec-math=bigint");
         // nullableByDefault
-        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
+        helpEsc("tt.TestJava","package tt;  import java.util.function.Function;\n"
                 +"public class TestJava { \n"
                 +"      public Object ppp; \n"
 
@@ -685,9 +670,9 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda2() {
-        addOptions("-method=mm");
-        addOptions("-code-math=bigint","-spec-math=bigint");
-        helpTCX("tt.TestJava","package tt;  import java.util.function.Function;\n"
+        addOptions("--method=mm");
+        addOptions("--code-math=bigint","--spec-math=bigint");
+        helpEsc("tt.TestJava","package tt;  import java.util.function.Function;\n"
                 +"/*@ non_null_by_default*/ public class TestJava { \n"
                 +"      public int a = 11; \n"
 
@@ -707,9 +692,9 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambda21() {
-        addOptions("-method=m");
-        addOptions("-code-math=bigint","-spec-math=bigint");
-        helpTCX("tt.TestJava",
+        addOptions("--method=m");
+        addOptions("--code-math=bigint","--spec-math=bigint");
+        helpEsc("tt.TestJava",
         		 "package tt; import java.util.function.Function; \n"
                 +"/*@ non_null_by_default*/ public class TestJava { \n"
                 +"      //@ model public static interface NNFunction<T,R> extends Function<T,R> { non_null R apply(non_null T t); } \n"
@@ -731,8 +716,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaByte() {
-        addOptions("-code-math=bigint","-spec-math=bigint");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=bigint","--spec-math=bigint");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private /*@ spec_public nullable */ Byte aaaaaaaaaaa = null; \n"
 
@@ -754,8 +739,8 @@ public class esclambdas extends EscBase {
     
     @Test
     public void testBindLambdaInt() {
-        addOptions("-code-math=bigint","-spec-math=bigint");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=bigint","--spec-math=bigint");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public /*@ nullable */ Integer aaaaaaaaaaa = null; \n"
 
@@ -772,6 +757,4 @@ public class esclambdas extends EscBase {
                 +"}\n"
                 );  // No errors
     }
-    
-
 }

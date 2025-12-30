@@ -13,7 +13,7 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ also public normal_behavior\n"
                 +"  //@    ensures \\result > 0;\n"
@@ -35,7 +35,7 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ also public normal_behavior\n"
                 +"  //@    ensures \\result > 0;\n"
@@ -55,7 +55,7 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ also public normal_behavior\n"
                 +"  //@    ensures \\result > 0;\n"
@@ -77,7 +77,7 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ also public code normal_behavior\n"
                 +"  //@    ensures \\result > 0;\n"
@@ -99,8 +99,8 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode5() {
-        main.addOptions("-method=n"); // This is part of the test, not debugging
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("--method=n"); // This is part of the test, not debugging
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ public code normal_behavior\n"
                 +"  //@    ensures \\result > 10;\n"
@@ -127,8 +127,8 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode6() {
-        main.addOptions("-method=n"); // This is part of the test, not debugging
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("--method=n"); // This is part of the test, not debugging
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ public code normal_behavior\n"
                 +"  //@    ensures \\result > 10;\n"
@@ -152,8 +152,8 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode7() {
-        main.addOptions("-method=n"); // This is part of the test, not debugging
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("--method=n"); // This is part of the test, not debugging
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ public code normal_behavior\n"
                 +"  //@    ensures \\result >= 10;\n"
@@ -178,8 +178,8 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode8() {
-        main.addOptions("-method=n"); // This is part of the test, not debugging
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("--method=n"); // This is part of the test, not debugging
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ public code normal_behavior\n"
                 +"  //@    ensures \\result >= 10;\n"
@@ -205,8 +205,8 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode9() {
-        main.addOptions("-method=n"); // This is part of the test, not debugging
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("--method=n"); // This is part of the test, not debugging
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends A { \n"
                 +"  //@ public code normal_behavior\n"
                 +"  //@    ensures \\result > 10;\n"
@@ -223,5 +223,4 @@ public class esccode extends EscBase {
                 +"}"
                 );
     }
-
 }

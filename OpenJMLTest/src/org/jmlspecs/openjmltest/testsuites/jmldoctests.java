@@ -43,37 +43,37 @@ public class jmldoctests extends EscBaseFiles {
     
     @Test @Ignore
     public void jmldoc1() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void jmldoc2() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void jmldoc3() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void jmldoc4() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void jmldoc5() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void jmldoc6() {
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore
     public void jmldoc7() {
-        helpTCG();
+        helpTG();
     }
 
 }

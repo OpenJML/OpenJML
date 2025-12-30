@@ -30,7 +30,7 @@ public class esclocation extends EscBase {
                 +"  public void mm();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
@@ -52,7 +52,7 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
@@ -70,7 +70,7 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
@@ -89,7 +89,7 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
@@ -109,7 +109,7 @@ public class esclocation extends EscBase {
                 +"  public void m() ;\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"
                 
@@ -132,7 +132,7 @@ public class esclocation extends EscBase {
 
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"
                 
@@ -154,7 +154,7 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"
                 

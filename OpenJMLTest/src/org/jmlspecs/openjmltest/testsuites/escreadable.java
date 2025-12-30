@@ -35,7 +35,7 @@ public class escreadable extends EscBase {
 
     @Test
     public void testReadable() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"
                 +"  int x; //@ readable x if b; \n"
@@ -123,7 +123,7 @@ public class escreadable extends EscBase {
 
     @Test
     public void testWritable() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ writable z if bb; \n"
                 +"  int x; //@ writable x if b; \n"
@@ -211,7 +211,7 @@ public class escreadable extends EscBase {
 
     @Test
     public void testWritable2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ writable z if bb; \n"
                 +"  int x; //@ writable x if b; \n"
@@ -299,7 +299,7 @@ public class escreadable extends EscBase {
 
     @Test
     public void testReadableA() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"
                 +"  int x; //@ readable x if b; \n"
@@ -373,7 +373,7 @@ public class escreadable extends EscBase {
 
     @Test
     public void testReadableB() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"
                 +"  int x; //@ readable x if b; \n"
@@ -462,7 +462,7 @@ public class escreadable extends EscBase {
     @Test
     public void testVisibility() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean bs1;\n"
                 +"  protected static boolean bs2;\n"

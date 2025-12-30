@@ -458,6 +458,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         canceled = false;
  
         // This is the method that spawns all the work
+        // 'args' must contain just Java options and filepaths; JML options have been processed above
         // The exit result will be Result.OK if there are no outright errors
         // If there are just warnings and verification failures, this super call will give Result.OK
         Main.Result exit = super.compile(args,context);

@@ -18,7 +18,7 @@ public class escstrings extends EscBase {
     /** This String declaration and assignment */
     @Test
     public void testSimpleString() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -42,7 +42,7 @@ public class escstrings extends EscBase {
     public void testStringEquals() {
         //addOptions("--show","--method=m");
         addOptions("--esc-max-warnings=1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -69,7 +69,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation - whether the result in Java is non-null. */
     @Test
     public void testStringConcat1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -91,7 +91,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation - whether the result, computed in JML, is non-null*/
     @Test
     public void testStringConcat1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -114,7 +114,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcat2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -132,7 +132,7 @@ public class escstrings extends EscBase {
     /** Tests String concatenation */
     @Test
     public void testStringConcat2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -150,7 +150,7 @@ public class escstrings extends EscBase {
     public void testStringConcat3() {
         addOptions("-escMaxWarnings=1");
         addOptions("-method=m");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -171,7 +171,7 @@ public class escstrings extends EscBase {
     @Test
     public void testStringConcat3a() {
         addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -193,7 +193,7 @@ public class escstrings extends EscBase {
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt1q() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                                 
@@ -209,7 +209,7 @@ public class escstrings extends EscBase {
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -233,7 +233,7 @@ public class escstrings extends EscBase {
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -256,7 +256,7 @@ public class escstrings extends EscBase {
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -280,7 +280,7 @@ public class escstrings extends EscBase {
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt3a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -304,7 +304,7 @@ public class escstrings extends EscBase {
     @Test
     public void testStringLength1() {
     	addOptions("-method=m");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -322,7 +322,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -340,7 +340,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -359,7 +359,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -378,7 +378,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -397,7 +397,7 @@ public class escstrings extends EscBase {
     /** Tests String length operation */
     @Test
     public void testStringLength3a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 

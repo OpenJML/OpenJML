@@ -13,22 +13,9 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escinclause extends EscBase {
 
-   @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        super.setUp();
-        //addOptions("-jmlverbose");
-        //addOptions("-method",   "m2bad");
-        //addOptions("-jmldebug");
-        //addOptions("-trace");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
-
     @Test
     public void testInClause1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ model public int mx;\n"
                 +"  int x; //@ in mx; \n"
@@ -49,5 +36,4 @@ public class escinclause extends EscBase {
                 ,"/tt/TestJava.java:6: verify: Associated declaration",7
                 );
     }
-
 }

@@ -18,7 +18,7 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
@@ -67,7 +67,7 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 
@@ -112,7 +112,7 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test @Ignore // Times out
     public void testNonNullElements2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -158,7 +158,7 @@ public class escnew3 extends EscBase {
  
     @Test
     public void testNotModified() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i == 5;\n"
@@ -228,7 +228,7 @@ public class escnew3 extends EscBase {
     // Test well-definedness within the implicit old
     @Test
     public void testNotModified2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int i;\n"
@@ -270,7 +270,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testCast() {
         main.addOptions("-code-math=safe","-spec-math=safe");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public static long l;\n"
@@ -367,7 +367,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testCast1() {
         main.addOptions("--esc-max-warnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -427,7 +427,7 @@ public class escnew3 extends EscBase {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         main.addOptions("-check"); // -esc times out
         main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -448,7 +448,7 @@ public class escnew3 extends EscBase {
         Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
         main.addOptions("-check"); // -esc times out
         main.addOptions("-logic=AUFLIRA","-escMaxWarnings=1");  // FIXME - issues very many warnings - lots of nearly identical paths?
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ modifies \\everything;\n"
@@ -468,7 +468,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor0() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ assignable \\everything;\n"
@@ -482,7 +482,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor1() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ assignable i;\n"
@@ -496,7 +496,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ assignable \\nothing;\n"
@@ -511,7 +511,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  \n" // default assignable
@@ -526,7 +526,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor3a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ requires true; \n" // default assignable
@@ -541,7 +541,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor3ae() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ requires true; pure \n" // default assignable
@@ -556,7 +556,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor3e() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  private int i;\n"
                 +"  //@ pure \n" // default assignable
@@ -571,7 +571,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  \n" // default assignable
@@ -584,7 +584,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor4e() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ pure \n" // default assignable
@@ -597,7 +597,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor4a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true;\n" // default assignable
@@ -610,7 +610,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor4ae() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ requires true; pure \n" // default assignable
@@ -624,7 +624,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testAssignableConstructor5() {
     	//main.addOptions("-jmldebug");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ pure \n"
@@ -637,7 +637,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor5s() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { //@ public model nullable Object state;\n"
                 +"  private int i; //@ in state;\n"
                 +"  //@ pure \n"
@@ -650,7 +650,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor6() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
                 +"  \n" // default assignable
@@ -663,7 +663,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor6a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
                 +"  //@ requires true; \n" // default assignable
@@ -676,7 +676,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor6e() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
                 +"  //@ pure \n" // default assignable
@@ -689,7 +689,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor6ae() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"  /*@ spec_public */ private int i;\n"
                 +"  //@ requires true; pure \n" // default assignable
@@ -702,7 +702,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor7() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ spec_public */ private int i; \n"
                 +"  //@ pure \n"
@@ -715,7 +715,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testAssignableConstructor7s() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  /*@ spec_public */ private int i; \n"
                 +"  //@ pure \n"
@@ -728,7 +728,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default */ public class TestJava { \n"
                 +"  //@ ensures \\result == ints.length;\n"
                 +"  //@ pure \n"
@@ -761,7 +761,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testVarargs2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : (int)ints.length);\n"
                 +"  //@ pure \n"
@@ -789,7 +789,7 @@ public class escnew3 extends EscBase {
 
     @Test @Ignore // times out
     public void testVarargs3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires ints.length == 0 || ints[0] != null;\n"
                 +"  //@ ensures \\result == (ints.length > 0 ? ints[0] : (int)ints.length);\n"
@@ -819,7 +819,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testBits() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m() {\n"
                 +"     boolean b = true;\n"
@@ -837,7 +837,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testLabels() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  //@ requires iii == 10;\n"
@@ -857,7 +857,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testGhostLabels() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  //@ requires iii == 10;\n"
@@ -877,7 +877,7 @@ public class escnew3 extends EscBase {
 
      @Test
     public void testLabels2() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  public int k;\n"
@@ -901,7 +901,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testOldClause() {
     	main.addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava { \n"
                 + "  static public int k = 5;\n"
@@ -920,7 +920,7 @@ public class escnew3 extends EscBase {
     public void testLabelScopeBad() {
         expectedExit = 1;
         main.addOptions("-show","-method=m");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  public int k;\n"
@@ -945,7 +945,7 @@ public class escnew3 extends EscBase {
 
     @Test // Can reuse labels but not nest them
     public void testLabelScope() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  public int k;\n"
@@ -972,7 +972,7 @@ public class escnew3 extends EscBase {
         addOptions("--check-feasibility=preconditionOnly");
         // preconditionOnly just checks that the preconditions+invariants are feasible; it does not check 
         // the body of a method
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  //@ requires i > -10 && i < 10;\n"
@@ -1002,7 +1002,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testIfNoBrace() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  //@ requires i > -10 && i < 10;\n"
@@ -1020,7 +1020,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testIfNoBrace2() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  //@ requires i > -10 && i < 10;\n"
@@ -1039,7 +1039,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testIfNoBrace3() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                                 "package tt; \n"
                               + "public class TestJava { \n"
                               + "  //@ requires i > -10 && i < 10;\n"
@@ -1058,7 +1058,7 @@ public class escnew3 extends EscBase {
 
     @Test
     public void testOldClause2() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  static public int k = 5;\n"
@@ -1079,7 +1079,7 @@ public class escnew3 extends EscBase {
     // Problem from Michael Coblenz - git issue #504
     @Test
     public void testSimpleClone() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  public String y = \"\";\n"
@@ -1096,7 +1096,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testTriggers() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ ensures \\result == i>=0; \n"
@@ -1114,7 +1114,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testTriggersBad() {
         expectedExit = 1;
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ pure\n"
@@ -1133,7 +1133,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionNegativeIndex() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1196,7 +1196,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionNegativeIndexAssign() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1259,7 +1259,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionNegativeIndexAssignOp() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1322,7 +1322,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionTooLargeIndex() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1355,7 +1355,7 @@ public class escnew3 extends EscBase {
     }
     @Test
     public void testExceptionTooLargeIndexAssign() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1388,7 +1388,7 @@ public class escnew3 extends EscBase {
     }
     @Test
     public void testExceptionTooLargeIndexAssignOp() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1422,7 +1422,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionDivZero() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1452,7 +1452,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionArrayStore() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  Object[] oo = new String[10];  //@ invariant oo.length > 1; \n"
@@ -1484,7 +1484,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionCallNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  /*@ public normal_behavior */ public int m() { return 0; }\n"
@@ -1515,7 +1515,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionNewNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A {}\n"
@@ -1546,7 +1546,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionUnboxNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A {}\n"
@@ -1577,7 +1577,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionUnboxImplicitNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A {}\n"
@@ -1608,7 +1608,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionAssignNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A { int x; }\n"
@@ -1639,7 +1639,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionAssignOpNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A { int x; }\n"
@@ -1671,7 +1671,7 @@ public class escnew3 extends EscBase {
     @Test
     public void testExceptionSwitchNull() {
     	//main.addOptions("-progress"); // FIXME - fails in nondeterministic ways when this statement is not present
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  enum A { X,Y; };\n"
@@ -1706,7 +1706,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionSynchNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A { }\n"
@@ -1737,7 +1737,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionThrowNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  class A extends RuntimeException {}\n"
@@ -1768,7 +1768,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionArrayNull() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1802,7 +1802,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionArrayNullAssign() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1836,7 +1836,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionArrayNullAssignOp() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1870,7 +1870,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionDeref() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  public static class A { public int x; }\n"
@@ -1907,7 +1907,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testExceptionNegArraySize() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ public normal_behavior\n"
@@ -1937,7 +1937,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testInvariants() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                   "package tt; \n"
                 + "public class TestJava {\n"
                 + "  //@ ensures \\result == (\\lbl BYTES Integer.BYTES);\n"
@@ -1951,7 +1951,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testInstanceOfA() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 class A {}
@@ -1972,7 +1972,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testInstanceOfB() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 class A {}
@@ -1993,7 +1993,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testInstanceOfC() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 class A {}
@@ -2015,7 +2015,7 @@ public class escnew3 extends EscBase {
     
     @Test
     public void testInstanceOfD() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 class A {}

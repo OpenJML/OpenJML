@@ -97,10 +97,6 @@ public abstract class EscBaseFiles extends EscBase {
         helpTF(getTestName(), opts);
     }
 
-    public void helpTCG(String ... opts) {
-        helpTG(opts);
-    }
-    
     public void helpTG(String ... opts) {
         String dir = "test/" + getTestName();
         var a = new LinkedList<String>();

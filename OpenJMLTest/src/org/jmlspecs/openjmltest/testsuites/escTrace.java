@@ -23,7 +23,7 @@ public class escTrace extends EscBase {
     @Test
     public void testSimpleTrace() {
         main.addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
@@ -47,7 +47,7 @@ public class escTrace extends EscBase {
     @Test
     public void testFieldTrace() {
         main.addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 +"       int k;\n"
                 
@@ -71,7 +71,7 @@ public class escTrace extends EscBase {
     @Test
     public void testEnsuresTrace() {
         main.addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 +"       int k;\n"
                 
@@ -98,7 +98,7 @@ public class escTrace extends EscBase {
     @Test
     public void testEnsuresSafeTrace() {
         main.addOptions("-method=m1"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_safe_math */ public class TestJava { \n"
                 +"       int k;\n"
                 

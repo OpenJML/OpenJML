@@ -13,18 +13,9 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnew extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        super.setUp();
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
-
     @Test
     public void testPrecondition1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -62,7 +53,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testPrecondition1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -102,7 +93,7 @@ public class escnew extends EscBase {
     @Test
     public void testPrecondition2() {
     	addOptions("--check-feasibility=precondition");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i>0;\n"
@@ -124,7 +115,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testPrecondition3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i >= 0 && a[i]>0;\n"
@@ -148,7 +139,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testPrecondition3a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires a.length > 10 && i < 5 && a[i]>0 ;\n"
@@ -165,10 +156,9 @@ public class escnew extends EscBase {
                 );
     }
 
-
     @Test
     public void testPostcondition1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ signals (Exception) false;\n"
@@ -207,7 +197,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testPostcondition2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i == 0;\n"
@@ -244,7 +234,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testPostcondition3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i == 0;\n"
@@ -282,7 +272,7 @@ public class escnew extends EscBase {
     // Tests use of \exception token
     @Test
     public void testPostcondition4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ signals (Exception e) \\exception == null;\n"
@@ -309,9 +299,8 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5() {
-//    	addOptions("-show","-method=m1");
-    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-    	helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java","--spec-math=java"); // Just to avoid overflow warnings
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int iii;\n"
                 
@@ -339,11 +328,12 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:10: verify: Associated declaration",30
                 );
     }
+    
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5a() {
-    	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--code-math=java","--spec-math=java"); // Just to avoid overflow warnings
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
                 
@@ -375,8 +365,8 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5x() {
-    	addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
-    	helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--code-math=bigint","--spec-math=bigint"); // Just to avoid overflow warnings
+    	helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int iii;\n"
                 
@@ -407,8 +397,8 @@ public class escnew extends EscBase {
     // Tests use of \old token in called methods
     @Test
     public void testPostcondition5ax() {
-    	addOptions("-code-math=bigint","-spec-math=bigint"); // Just to avoid overflow warnings
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--code-math=bigint","--spec-math=bigint"); // Just to avoid overflow warnings
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int i;\n"
                 
@@ -441,7 +431,7 @@ public class escnew extends EscBase {
     // FIXME - need attribute checks on scopes of variables
     @Test
     public void testLabeled() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i == 0; \n"
@@ -465,7 +455,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testBox() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures \\result == 7; \n"
@@ -481,8 +471,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testMethodInvocation() {
-        //Assume.assumeTrue(!"cvc4".equals(solver)); // CVC4 complains about the integer-division operation (FIXME) does not handle integer division
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  /*@ signals_only \\nothing;*/\n" // FIXME - this used to be part of the default if there were no spec cases at all.
@@ -512,26 +501,22 @@ public class escnew extends EscBase {
                 );
     }
 
-    // Almost duplicate of escnew
+    // Almost duplicate of escnew  // FIXME - of what?
     @Test public void testMethodInvocation1() {
-        //if ("cvc4".equals(solver)) return; // CVC4 complains about the integer-division operation (FIXME)
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int z(int i)  {\n"
                 +"      return i;\n"
                 +"  }}\n"
                 
-
                 );
     }
     
-
-
     @Test
     public void testSwitch() {
         addOptions("--code-math=math"); // To avoid warnings because of overflow
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures \\result == i* 2 + 1; \n"
@@ -562,7 +547,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testTry() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures \\result == 1; \n"
@@ -707,7 +692,7 @@ public class escnew extends EscBase {
     
     @Test // FIXME _ needs type relationships
     public void testTry2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int kk;\n"
                 
@@ -730,7 +715,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testUnreachable() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1bad(int i) {\n"
@@ -750,11 +735,10 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Unreachable) in method m1bad",14
                 );
     }
-    
 
     @Test
     public void testGhostSet() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1bad(int i) {\n"
@@ -804,7 +788,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testGhostSet2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m2good(int i) {\n"
@@ -827,7 +811,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavoc() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1good() {\n"
@@ -848,7 +832,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavoc2() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -885,7 +869,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavoc3() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -922,7 +906,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavoc4() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -977,7 +961,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavoc5() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -1001,7 +985,7 @@ public class escnew extends EscBase {
     public void testHavoc6() {
         expectedExit = 1;
         addOptions("--normal");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -1020,7 +1004,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavoc7() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -1057,7 +1041,7 @@ public class escnew extends EscBase {
     @Test
     public void testHavocNN() {
         expectedExit = 6;
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -1088,7 +1072,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavocNN1() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -1115,7 +1099,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavocNN2() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
@@ -1151,7 +1135,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavocIsAssignable() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; //@ nullable_by_default
                 public class TestJava {
@@ -1227,7 +1211,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testHavocIsAssignableOK() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt; //@ nullable_by_default
                 public class TestJava {
@@ -1276,13 +1260,12 @@ public class escnew extends EscBase {
                 );
     }
     
-    
     // FIXME _ check that different return or throw statements are properly pointed to
 
     // FIXME - needs proper expansion of array accesses
     @Test
     public void testPostcondition10() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  //@ ensures a[i]>0;\n"
@@ -1310,7 +1293,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testPostcondition1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ signals (Exception) false;\n"
@@ -1340,7 +1323,7 @@ public class escnew extends EscBase {
     // Just testing binary and unary 
     @Test
     public void testBinaryUnary() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -1379,7 +1362,7 @@ public class escnew extends EscBase {
     @Test
     public void testIncDec() {
     	addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { static public int i; \n"
                 
                 +"  //@ assignable \\everything;\n"
@@ -1436,7 +1419,7 @@ public class escnew extends EscBase {
     // Just testing binary and unary 
     @Test
     public void testJMLBinaryUnary() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires p ==> q;\n"
@@ -1488,7 +1471,7 @@ public class escnew extends EscBase {
     public void testConditional2() {
         addOptions("-escMaxWarnings=1");
         addOptions("-code-math=safe");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i < 100000;\n"
@@ -1513,7 +1496,7 @@ public class escnew extends EscBase {
     public void testConditional() {
         addOptions("-escMaxWarnings=1");
         addOptions("-code-math=java");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -1546,7 +1529,7 @@ public class escnew extends EscBase {
     public void testConditional3() {
         addOptions("-escMaxWarnings=1");
         addOptions("-code-math=math");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -1570,7 +1553,7 @@ public class escnew extends EscBase {
     @Test
     public void testShortCircuit() {
         //Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING cvc4 does not handle integer division
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
                 // The " ? true : true" is inserted so that the solver is not required to handle non-linear arithmetic
@@ -1654,10 +1637,10 @@ public class escnew extends EscBase {
                 );
     }
 
-    // FIXME - almost duplciate with escnew
+    // FIXME - almost duplicate with escnew // FIXME - duplicate of what?
     @Test public void testShortCircuitDup() {
         addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { int f; \n"
                 
                 +"  public boolean m1bad(boolean b, int i) {\n"
@@ -1738,15 +1721,13 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition) in method m4bad",5
                 ,"/tt/TestJava.java:31: verify: Associated declaration",7
 //                ,"/tt/TestJava.java:52: verify: The prover cannot establish an assertion (Postcondition) in method m1bug",5
-//                ,"/tt/TestJava.java:50: verify: Associated declaration",7
+//                ,"/tt/TestJava.java:50: verify: Associated declaration",7  // FIXME - review?
                 );
     }
 
-
     @Test public void testJmlLabelExpression() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-
                 +"  //@ requires true;\n"
                 +"  //@ ensures b ==> (i!=5) ;\n"
                 +"  public int m1ok(boolean b, int i) {\n"
@@ -1756,7 +1737,6 @@ public class escnew extends EscBase {
                 +"    //@ ghost int ii = (\\lbl LBL_BBI i);\n"
                 +"    return 1;\n"
                 +"  }\n"
-                
                 +"}"
                 ,"/tt/TestJava.java:6: verify: Label LBL_BB has value true",34
                 ,"/tt/TestJava.java:8: verify: Label LBL_BB3 has value false",38
@@ -1766,10 +1746,9 @@ public class escnew extends EscBase {
                 );
     }
 
-
     @Test
     public void testBoolOpsParens() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -1820,7 +1799,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testBoxing() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int m1bad(/*@ nullable */ Integer i) {\n"
@@ -1845,7 +1824,7 @@ public class escnew extends EscBase {
 
     @Test  // FIXME - problem is an infinite loop with use of consistentWithEquals - invariants use it, but the invariants are part of the specs for the (model pure) consistentWithEquals method
     public void testSelect() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -1908,9 +1887,10 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:32: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3bad2",13
                 );
     }
+    
     @Test
     public void testChangedParam() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -1934,7 +1914,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testNameReused() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1good() {\n"
@@ -1954,7 +1934,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testNonNullField() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public Object nnf;\n"
@@ -1988,7 +1968,7 @@ public class escnew extends EscBase {
     // The problem is that helper methods do not inherit invariants, even ones that are fixed, such as those that define the values of fields
     @Test
     public void testInvariantInheritance2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
                 +"  public static int CHILD = 3;\n"
@@ -2006,7 +1986,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testAsList() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 import java.util.List; public class TestJava  {
@@ -2021,7 +2001,7 @@ public class escnew extends EscBase {
 
     @Test
     public void testAsList1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 +"  public enum E { A}; \n"
                 
@@ -2034,7 +2014,7 @@ public class escnew extends EscBase {
 
     @Test // Allow final on invariant to mean assume regardless of helper status
     public void testInvariantInheritance() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
                 +"  public final static int CHILD; static { CHILD = 3; }\n"
@@ -2050,7 +2030,7 @@ public class escnew extends EscBase {
         }
     @Test
     public void testInvariantInheritance3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
                 +"  public /*@ final */ static int CHILD = 3;\n"
@@ -2066,7 +2046,7 @@ public class escnew extends EscBase {
     
     @Test
     public void testInvariantInheritanceArray() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava  { \n"
                 
                 +"  public /*@ final */ static int[] FIELD = new int[]{1,2,3,4,5};\n"
@@ -2096,7 +2076,7 @@ public class escnew extends EscBase {
     
     @Test 
     public void testDeterminism() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 
                 +"  //@ ensures true;\n"
@@ -2151,7 +2131,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testDeterminismFresh() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
         		+"  public /*@ nullable */ Object o;\n"
                 
@@ -2198,7 +2178,7 @@ public class escnew extends EscBase {
     @Test
     public void testMethodMatching() {
         addOptions("-method=mm"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
                 +"  //@ ensures true; pure \n"
@@ -2215,9 +2195,6 @@ public class escnew extends EscBase {
                 +"     //@ assert i==3 ==> j != mpure(1); \n" // CAN'T PROVE
                 
                 +"  }\n"
-                
-                
-               
                 +"}"
                 ,anyorder(
                  seq("/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method mm",10)
@@ -2228,8 +2205,8 @@ public class escnew extends EscBase {
 
     @Test
     public void testMethodMatching1() {
-        addOptions("-method=mm"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=mm"); // Part of test
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
                 +"   int k;\n"
                 +"  //@ ensures true; pure \n"
@@ -2240,19 +2217,15 @@ public class escnew extends EscBase {
                 +"     if (i == 1) j = mpure(i); \n"
                 +"     else if (i == 2) { j = mpure(i); k = 0; } \n"
                 +"     else  j = 29; \n"
-                +"     //@ assert i==1 ==> j == mpure(1); \n" // CAN'T PROVE
-                +"     //@ assert i==2 ==> j == mpure(2); \n" // CAN'T PROVE
-                +"     //@ assert i==3 ==> j == mpure(1); \n" // CAN'T PROVE
-                +"     //@ assert i==3 ==> j != mpure(1); \n" // CAN'T PROVE
-                
+                +"     //@ check i==1 ==> j == mpure(1); \n"
+                +"     //@ check i==2 ==> j == mpure(2); \n" // CAN'T PROVE
+                +"     //@ check i==3 ==> j == mpure(1); \n" // CAN'T PROVE
+                +"     //@ check i==3 ==> j != mpure(1); \n" // CAN'T PROVE
                 +"  }\n"
-                
-                
-               
                 +"}"
                 ,anyorder(
-              //   seq("/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method mm",10)
-                 seq("/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method mm",10)
+              //   seq("/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method mm",10)  // FIXME - review
+                 seq("/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method mm",10) // FIXME - review -- why not prove this like the i == 1 case
                 ,seq("/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method mm",10)
                 ,seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method mm",10)
                 )
@@ -2262,7 +2235,7 @@ public class escnew extends EscBase {
     @Test
     public void testExplicitAssert() {
         addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -2310,9 +2283,8 @@ public class escnew extends EscBase {
     
     @Test
     public void testUndefined() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        //if ("cvc4".equals(solver)) return; // SKIPPING cvc4 does not handle integer division
-        helpTCX("tt.TestJava","package tt; \n"
+        Assume.assumeTrue(runLongTests);
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires 10/i < 0;\n"
@@ -2368,8 +2340,8 @@ public class escnew extends EscBase {
 
     @Test
     public void testControl() {
-        addOptions("-code-math=java");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; \n"
                 
@@ -2445,7 +2417,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
 
                 // FIXME - lots more tests needed
@@ -2504,7 +2476,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  //@ requires a.length > 10;\n" 
@@ -2523,7 +2495,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding3() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -2564,7 +2536,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void mm() {\n" 
@@ -2590,7 +2562,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testConstantFolding2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
 
                 // FIXME - lots more tests needed
@@ -2609,7 +2581,7 @@ public class escnew extends EscBase {
     @Test 
     public void testRefactoring() {
         expectedExit = 0;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void mok(int i) {\n" 
@@ -2656,7 +2628,7 @@ public class escnew extends EscBase {
     @Test 
     public void testRefactoring2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mbad2(int i) {\n" 
                 +"      int a = 2;\n" 
@@ -2677,7 +2649,7 @@ public class escnew extends EscBase {
     @Test 
     public void testRefactoringNotAComment() {
         expectedExit = 0;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mbad2(int i) {\n" 
                 +"      int a = 2;\n" 
@@ -2696,7 +2668,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testPreconditionInfo() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> { \n"
 
                 +"  //@ requires i == 4;\n" 
@@ -2726,7 +2698,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testOldInAssign() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +" public int f;\n" 
@@ -2776,7 +2748,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testOldInCall() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +" public int f;\n" 
@@ -2798,16 +2770,13 @@ public class escnew extends EscBase {
                 +"     mmm(i,10);\n"
                 +"     mmm(i,25);\n"
                 +"  }\n"
-                
-
-
                 +"}"
                 );
     }
 
     @Test 
     public void testConcat() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  //@ requires s1.length() + s2.length() <= Integer.MAX_VALUE;\n"
@@ -2837,13 +2806,11 @@ public class escnew extends EscBase {
                 );
     }
 
-
     @Test 
     public void testLongShift() {
         addOptions("--code-math=java");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-
                 +"  public void m1(long x) {\n" 
                 +"     int y = (int)x;\n"
                 +"     long yy = y < 0 ? ((long)y-Integer.MIN_VALUE-Integer.MIN_VALUE) : y;\n"
@@ -2863,7 +2830,7 @@ public class escnew extends EscBase {
 
     @Test 
     public void testSpecPureConstructor() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -2880,6 +2847,4 @@ public class escnew extends EscBase {
                 """
                 );
     }
-
-
 }

@@ -12,7 +12,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testBasic() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = 1;\n"
                 +"  public final static int J = 1 + I;\n"
@@ -28,7 +28,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testGhost() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ ghost public final static int I = 1;\n"
                 +"  //@ ghost public final static int J = 1 + I;\n"
@@ -44,7 +44,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFields() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = 1;\n"
                 +"  //@ ghost public final static int J = 1 + I;\n"
@@ -70,7 +70,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotFinal() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static int I = 1;\n"
                 +"  //@ ghost public static int J = 1 + I;\n"
@@ -98,7 +98,7 @@ public class escConstantFields extends EscBase {
     @Test
     public void testFieldsNotConstant() {
         main.addOptions("-no-staticInitWarning");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"  // FIXME - static initialization check should fail
                 +"  //@ ghost public final static int J = 1 + I;\n"
@@ -126,7 +126,7 @@ public class escConstantFields extends EscBase {
     @Test
     public void testFieldsNotConstantNoInvariant() {
         main.addOptions("-no-staticInitWarning");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"  
                 +"  //@ ghost public final static int J = 1 + z();\n"
@@ -151,8 +151,8 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstantWithHelper() {
-        main.addOptions("-no-staticInitWarning");
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("-no-staticInitWarning"); // FIXME
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final static int I = z();\n"
                 +"  //@ ghost public final static int J = 1 + I;\n"
@@ -179,7 +179,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFields() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = 1;\n"
                 +"  //@ ghost public final int J = 1 + I;\n"
@@ -204,7 +204,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsS() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = 1;\n"
                 +"  //@ ghost public final int J = 1 + I;\n"
@@ -230,7 +230,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsNotFinal() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int I = 1;\n"
                 +"  //@ ghost public int J = 1 + I;\n"
@@ -256,7 +256,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsNotFinalS() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public int I = 1;\n"
                 +"  //@ ghost public int J = 1 + I;\n"
@@ -284,7 +284,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsNotConstant() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = z();\n"
                 +"  //@ ghost public final int J = 1 + I;\n"
@@ -313,7 +313,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsNotConstantS() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = z();\n"
                 +"  //@ ghost public final int J = 1 + I;\n"
@@ -342,7 +342,7 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testIFieldsNotConstantWithHelper() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public final int I = z();\n"
                 +"  //@ ghost public final int J = 1 + I;\n"
@@ -371,7 +371,7 @@ public class escConstantFields extends EscBase {
 
     @Test // initialized static final in another class, no invariants
     public void testConstants() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" class H { \n"
                 +"   final public static int CON1 = 50;\n"
                 +"   final public static int CON2 = 1 + CON1;\n"
@@ -412,5 +412,4 @@ public class escConstantFields extends EscBase {
                 +"}"
                 );
     }
-
-   }
+}

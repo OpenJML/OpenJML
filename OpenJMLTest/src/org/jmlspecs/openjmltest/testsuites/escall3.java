@@ -21,7 +21,7 @@ public class escall3 extends EscBase {
     public void testNoProver() {
         expectedExit=1;
         addOptions("--prover=Z");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 ,"/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJML21/../../Solvers/Solvers-macos/Z.X",-1
                 ,"/tt/TestJava.java: error: The executable for prover Z is not specified - use -exec or define an openjml.prover.... property",-1
@@ -32,7 +32,7 @@ public class escall3 extends EscBase {
     public void testNoExec() {
         expectedExit=1;
         addOptions("--exec= ");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 ,"/tt/TestJava.java: error: The executable for prover z3_4_3 is not specified - use -exec or define an openjml.prover.... property",-1
                 );
@@ -42,7 +42,7 @@ public class escall3 extends EscBase {
     public void testTimeoutBad() {
         expectedExit=0;
         addOptions("--timeout=ZZ");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 ,"/tt/TestJava.java: warning: Timeout value cannot be parsed as a double: ZZ",-1
                 );
@@ -52,16 +52,16 @@ public class escall3 extends EscBase {
     public void testTimeoutOK() {
         expectedExit=0;
         addOptions("--timeout", "");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 );
     }
     
     @Test
-    public void testDebugOK() { // Test is noisy because debug feasibility turns on progress
+    public void testDebugOK() { // Test is noisy because debug feasibility turns on progress // FIXME - capture/redirect the output to stdout
         expectedExit=0;
         addOptions("--check-feasibility", "debug:");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
@@ -69,10 +69,10 @@ public class escall3 extends EscBase {
     }
     
     @Test
-    public void testDebugBad() { // Test is noisy because debug feasibility turns on progress
+    public void testDebugBad() { // Test is noisy because debug feasibility turns on progress // FIXME - capture/redirect the output to stdout
         expectedExit=0;
         addOptions("--check-feasibility", "debug:zzz");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 ,"/tt/TestJava.java: warning: debug feasibility starting number has bad format: zzz", -1
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
@@ -84,15 +84,15 @@ public class escall3 extends EscBase {
     public void testSMTout() {
         expectedExit=0;
         addOptions("--smt=smt/testSMToutZ.smt");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
                 );
-        // FIXME - delete a.smt
+        new java.io.File("smt/testSMToutZ.smt").delete();
     }
     
     @Test
     public void testSimple() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  \n"
@@ -144,8 +144,8 @@ public class escall3 extends EscBase {
     
     @Test
     public void testFieldAccess() {
-        addOptions("-checkFeasibility=none"); // Part of test
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--check-feasibility=none"); // Part of test
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
                 +"  int f; \n"
@@ -174,7 +174,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testArrayAccess() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -221,7 +221,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testArrayAccess1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
@@ -243,7 +243,7 @@ public class escall3 extends EscBase {
    
     @Test
     public void testArrayLength() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -258,7 +258,7 @@ public class escall3 extends EscBase {
    
     @Test
     public void testArrayAssign() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -305,7 +305,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testArrayAssign1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
@@ -361,8 +361,8 @@ public class escall3 extends EscBase {
 
     @Test
     public void testFieldAssign() {
-        addOptions("-checkFeasibility=none"); // Part of test
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--check-feasibility=none"); // Part of test
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                  
                 +"  int f; \n"
@@ -392,7 +392,7 @@ public class escall3 extends EscBase {
     
     @Test 
     public void testFieldAssign1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -438,7 +438,7 @@ public class escall3 extends EscBase {
     
     @Test 
     public void testFieldAssign2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -478,7 +478,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testLet() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures (\\let int k = i; \\result == k);\n"
@@ -499,7 +499,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testAssertionError() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
@@ -528,7 +528,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testLet2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures (\\let int k = i, int j = k; \\result == j);\n"
@@ -552,7 +552,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testNullThrow1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1bad(int i) throws Exception {\n"
@@ -573,7 +573,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testNullThrow2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires i != 0; \n"
@@ -598,7 +598,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testNullSynchronized1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1bad(/*@ nullable */ Object o) throws Exception {\n"
@@ -617,7 +617,7 @@ public class escall3 extends EscBase {
     }
 
     @Test public void testNullSynchronized2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1good(Object o) throws Exception {\n"
@@ -659,8 +659,8 @@ public class escall3 extends EscBase {
 
     // FIXME - almost duplicat ewith escnew
     @Test public void testArrayIndex() {
-        addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--esc-max-warnings=1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -708,7 +708,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testArrayIndex1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -761,7 +761,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testArrayValue() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -789,8 +789,8 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavocB() {
-    	addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 +"  /*@ non_null */ public TestJava ooo;\n"
                 +"  /*@ non_null */ public static TestJava sooo;\n"
@@ -811,8 +811,8 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavoc() {
-    	addOptions("-exclude=TestJava");
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--exclude=TestJava");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 +"  /*@ non_null */ public TestJava ooo;\n"
                 +"  /*@ non_null */ public static TestJava sooo;\n"
@@ -834,7 +834,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testAssignment() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1bad(boolean i) {\n"
@@ -867,8 +867,8 @@ public class escall3 extends EscBase {
 
 
     @Test public void testAssignOp1() {
-        addOptions("-escMaxWarnings=1");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--esc-max-warnings=1");
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -885,10 +885,8 @@ public class escall3 extends EscBase {
 
     @Test public void testAssignOp1Div() {
         Assume.assumeTrue(runLongTests);
-        Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING because CVC4 does not handle integer division
-        addOptions("-escMaxWarnings=1");
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--esc-max-warnings=1");
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -919,9 +917,8 @@ public class escall3 extends EscBase {
 
     @Ignore // takes a long time
     @Test public void testAssignOp2() {
-        addOptions("-escMaxWarnings=1");
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--esc-max-warnings=1");
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -962,9 +959,8 @@ public class escall3 extends EscBase {
 
     @Ignore // takes a long time
     @Test public void testAssignOp3() {
-        addOptions("-escMaxWarnings=1");
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        addOptions("--esc-max-warnings=1");
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int f;\n"
@@ -1023,7 +1019,7 @@ public class escall3 extends EscBase {
 
   
     @Test public void testArrays() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1bad( int /*@ nullable*/[] a, int i) {\n"
@@ -1056,7 +1052,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int[] a) {\n"
@@ -1091,8 +1087,8 @@ public class escall3 extends EscBase {
                 );
     }
 
-    @Test public void testArrayType1Bug() { // TODO: CVC4 takes 147 sec
-        helpTCX("tt.TestJava","package tt; \n"
+    @Test public void testArrayType1Bug() {
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int[] a) {\n"
@@ -1128,8 +1124,8 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testArrayType2() { // TODO: CVC4 takes 186 sec
-        helpTCX("tt.TestJava","package tt; \n"
+    @Test public void testArrayType2() {
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m3a(Integer[] a, Integer i) {\n"
@@ -1160,7 +1156,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType2Bug() { // TODO: CVC4 takes 186 sec
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m3a(String[] a, String i) {\n"
@@ -1178,7 +1174,7 @@ public class escall3 extends EscBase {
     
     
     @Test public void testMethodWithConstructorNameFixed() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public byte[] b;\n"
@@ -1194,7 +1190,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMultiException() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m() {}\n"
                 +"  public void mm() {\n"
@@ -1210,7 +1206,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testExceptionTypeC() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mm(int i) throws ClassNotFoundException, NoSuchMethodException {\n"
                 +"  try {\n"
@@ -1226,7 +1222,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testExceptionType() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"  //@ signals_only NullPointerException, ArithmeticException;\n"
                 +"  public void mm(int i) throws NullPointerException, ArithmeticException {\n"
@@ -1243,7 +1239,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testExceptionTypeB() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"  //@ signals_only NullPointerException;\n"
                 +"  public void mm(int i) throws NullPointerException {\n"
@@ -1263,7 +1259,7 @@ public class escall3 extends EscBase {
     
     @Test public void testExceptionType2() {
     	expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void mm(int i) throws ClassNotFoundException {\n"
                 +"  try {\n"
@@ -1282,7 +1278,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameOK() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public byte[] b;\n"
@@ -1304,7 +1300,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorName() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1327,7 +1323,7 @@ public class escall3 extends EscBase {
     
     // Checks boxing conversion on assignment to a field
     @Test public void testBoxingOnAssignment() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public int b;\n"
@@ -1343,7 +1339,7 @@ public class escall3 extends EscBase {
     
     // A problem from MHuisman, with String initialization and invariants
     @Test public void testStringInitialization() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public String x = new String();\n"
@@ -1357,7 +1353,7 @@ public class escall3 extends EscBase {
     
     // If RR() throws an exception, mmm exits exceptionally
     @Test public void testTryResources() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1384,7 +1380,7 @@ public class escall3 extends EscBase {
     // If RR() throws an exception, mmm exits exceptionally
     // If close throws an exception, then mmm exits exceptionally and flag is not tested
     @Test public void testTryResources1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1412,7 +1408,7 @@ public class escall3 extends EscBase {
     // If close exits normally, flag == 1
     // If close throws an exception, flag == 10
     @Test public void testTryResources1x() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1443,7 +1439,7 @@ public class escall3 extends EscBase {
     
     // If RR() throws an exception, mmm exits exceptionally
     @Test public void testTryResources1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1470,7 +1466,7 @@ public class escall3 extends EscBase {
     
     // Checks that close calls execute in reverse order
     @Test public void testTryResources2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1503,12 +1499,12 @@ public class escall3 extends EscBase {
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
         addOptions("-checkFeasibility=assert","-defaults=constructor:pure"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-        		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
-        		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
-        		+"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
-        		+"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
+                +"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
+                +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
+                +"    public static class EE2 extends EE {/*@ public normal_behavior ensures true; */public EE2() {}}\n"
+                +"    public static class EE3 extends EE {/*@ public normal_behavior ensures true; */public EE3() {}}\n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
                 +"       /*@ public normal_behavior ensures true; */ public RR() { }\n"
@@ -1551,7 +1547,7 @@ public class escall3 extends EscBase {
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
         addOptions("-checkFeasibility=assert","-defaults=constructor:pure"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
         		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
@@ -1598,7 +1594,7 @@ public class escall3 extends EscBase {
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
     	addOptions("-checkFeasibility=assert","-defaults=constructor:pure");  // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
         		+"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
         		+"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
@@ -1645,7 +1641,7 @@ public class escall3 extends EscBase {
     
     // Check that finally block of try encloses declarations and calls to close
     @Test public void testTryResources3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1673,7 +1669,7 @@ public class escall3 extends EscBase {
     
     // If RR() throws an exception, then catch block will execute
     @Test public void testTryResources4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1703,7 +1699,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testTryResources4a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1731,7 +1727,7 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testTryResources4b() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1760,7 +1756,7 @@ public class escall3 extends EscBase {
     
     // No resource - executes the catch block
     @Test public void testTryResources4c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1789,7 +1785,7 @@ public class escall3 extends EscBase {
     
     // Checks that the outer finally block is last to execute
     @Test public void testTryResources5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -1819,7 +1815,7 @@ public class escall3 extends EscBase {
     
     @Ignore // constant folding not implemented
     @Test public void divByZero() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1837,7 +1833,7 @@ public class escall3 extends EscBase {
     @Ignore // constant folding not implemented
     @Test public void divByZeroQ() {
         addOptions("--no-warn=literal-div-by-zero");
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1856,7 +1852,7 @@ public class escall3 extends EscBase {
     
     @Test
     public void testIsArray() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1894,7 +1890,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testIsArrayN() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 //@ nullable_by_default
@@ -1912,7 +1908,7 @@ public class escall3 extends EscBase {
     @Test
     public void testIsArrayIllegal() {
         expectedExit = 1;
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 //@ nullable_by_default
@@ -1932,7 +1928,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testElemType() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 //@ nullable_by_default
@@ -1959,7 +1955,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testElemTypeN() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -2004,7 +2000,7 @@ public class escall3 extends EscBase {
     @Test // Tests for type-checking errors in using \elemtype
     public void testElemTypeIllegal() {
         expectedExit = 1;
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 //@ nullable_by_default
@@ -2027,7 +2023,7 @@ public class escall3 extends EscBase {
 
     @Test // Tests information about formals
     public void testIsArrayFormal() {
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -2054,7 +2050,7 @@ public class escall3 extends EscBase {
     
     @Test // cf. gitbug877 -- was a bug in RAC, but included an ESC test here for good measure - here instead of escfiles because of indeterminate output order
     public void testSwitch() {
-        helpTCX("tt.ZZ",
+        helpEsc("tt.ZZ",
         """
         public class ZZ {
             public static void main(String... args) {
@@ -2083,7 +2079,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testLabel() {
-        helpTCX("tt.ZZ",
+        helpEsc("tt.ZZ",
             """
             package tt;
             public class ZZ {
@@ -2105,7 +2101,7 @@ public class escall3 extends EscBase {
     @Test
     public void testLabelBad() {
         expectedExit = 1;
-        helpTCX("tt.ZZ",
+        helpEsc("tt.ZZ",
             """
             package tt;
             public class ZZ {
@@ -2123,7 +2119,7 @@ public class escall3 extends EscBase {
 
     @Test
     public void testImpliesInstanceof() {
-        helpTCX("tt.ZZ",
+        helpEsc("tt.ZZ",
             """
             package tt;
             public class ZZ {
