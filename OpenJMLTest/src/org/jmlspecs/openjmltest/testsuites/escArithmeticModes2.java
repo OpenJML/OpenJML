@@ -244,9 +244,9 @@ public class escArithmeticModes2 extends EscBase {
                 +"}\n"   // FIXME - not sure why the multiply overflow is sometimes not reported
                 ,anyorder(
                    seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",15)
-                  ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",19)
+                  ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply out of range",19)
                   ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: overflow in int divide",17)
-                  ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply overflow",21)
+                  ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: int multiply out of range",21)
                   ,optional("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method ma",9)
                 )
               );

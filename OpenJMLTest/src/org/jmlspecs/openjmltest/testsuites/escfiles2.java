@@ -259,6 +259,11 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug903() {
+        helpTG();
+    }
+    
+    @Test
     public void gitbug922() {
         expectedExit = 1;
         helpTG();
@@ -270,7 +275,12 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
-    public void gitbug903() {
+    public void gitbug934() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug935() {
         helpTG();
     }
     
