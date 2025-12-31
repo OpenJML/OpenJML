@@ -380,7 +380,7 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, rewriter.copy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.copy(lhs), rewriter.treeutils.makeIntLiteral(p, 0));
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, b, rewriter.copy(rhs));
-                        checkIt(rewriter,that, "int multiply overflow", 
+                        checkIt(rewriter,that, "int multiply out of range", 
                                 condition(rewriter, rewriter.treeutils.makeOr(p, c, d)));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, rewriter.treeutils.longmultiplySymbol, rewriter.copy(lhs), rewriter.copy(rhs));
@@ -392,10 +392,10 @@ abstract public class Arithmetic extends JmlExtension {
                     }
                 } else if (smtPredefined) {
                     if (newtype.getTag() == TypeTag.INT) {
-                        checkIt(rewriter, that, "int multiply overflow", 
+                        checkIt(rewriter, that, "int multiply out of range", 
                             rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32ok#|", syms.booleanType, lhs, rhs));
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        checkIt(rewriter, that, "long multiply overflow", 
+                        checkIt(rewriter, that, "long multiply out of range", 
                                 rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
@@ -406,14 +406,14 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  rewriter.copy(a), maxlit);
-                        checkIt(rewriter, that, "int multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
+                        checkIt(rewriter, that, "int multiply out of range", rewriter.treeutils.makeAnd(p, b, c));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  rewriter.copy(a), maxlit);
-                        checkIt(rewriter, that, "long multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
+                        checkIt(rewriter, that, "long multiply out of range", rewriter.treeutils.makeAnd(p, b, c));
                     }
                 }
             } else if (optag == JCTree.Tag.DIV) {
