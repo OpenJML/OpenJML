@@ -18101,7 +18101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	// FIXME - needs checking that we are getting all of needed variables
 	protected boolean loopHelperHavoc(List<JmlStatementLoop> loopSpecs, DiagnosticPosition pos,
-			JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> list, JCTree... trees) {
+			JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> steps, JCTree... trees) {
 		ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
 		boolean useDefaultModifies = true;
 		if (loopSpecs != null)
@@ -18129,8 +18129,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		if (useDefaultModifies) {
 			ListBuffer<JCExpression> targets = new ListBuffer<JCExpression>();
-			if (list != null)
-				for (JCTree t : list) {
+			if (steps != null)
+				for (JCTree t : steps) {
 					TargetFinder.findVars(t, targets, context);
 				}
 			for (JCTree t : trees) {
