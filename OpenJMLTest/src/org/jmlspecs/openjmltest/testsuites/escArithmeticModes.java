@@ -374,8 +374,8 @@ public class escArithmeticModes extends EscBase {
                 +"    return k; \n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int multiply overflow",15
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mc: int multiply overflow",15
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int multiply out of range",15
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mc: int multiply out of range",15
               );
     }
 

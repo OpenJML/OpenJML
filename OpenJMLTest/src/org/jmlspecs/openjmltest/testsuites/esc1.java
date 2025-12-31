@@ -29,7 +29,7 @@ public class esc1 extends EscBase {
                         + "    Vector<Integer> v = new Vector<Integer>();\n" 
                         + "    return null; \n" // FAILS
                         + "  }\n" + "}\n"
-                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m", 10
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m", 10
                 ,"/tt/TestJava.java:3: verify: Associated declaration", 17
                 ,"/tt/TestJava.java:5: verify: Associated method exit", 5);
     }
@@ -46,7 +46,7 @@ public class esc1 extends EscBase {
                 + "    return null; \n" // FAILS
                 + "  }\n" 
                 + "}\n"
-                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m: m", 22
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m", 22
                 ,"/tt/TestJava.java:3: verify: Associated declaration", 29
                 ,"/tt/TestJava.java:7: verify: Associated method exit", 5);
     }
@@ -1782,10 +1782,10 @@ public class esc1 extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public @NonNull Object inst2(int ii) {  return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",25
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",25
                 ,"/tt/TestJava.java:5: verify: Associated declaration",32
                 , "/tt/TestJava.java:5: verify: Associated method exit", 47
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",19
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",19
                 ,"/tt/TestJava.java:8: verify: Associated declaration",26
                 , "/tt/TestJava.java:8: verify: Associated method exit", 43
                 );
@@ -1803,10 +1803,10 @@ public class esc1 extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public Object inst2(int ii) { return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",10
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
                 ,"/tt/TestJava.java:5: verify: Associated declaration",17
                 , "/tt/TestJava.java:5: verify: Associated method exit", 32
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",10
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
                 ,"/tt/TestJava.java:8: verify: Associated declaration", 17
                 , "/tt/TestJava.java:8: verify: Associated method exit", 33
                 );
@@ -1824,10 +1824,10 @@ public class esc1 extends EscBase {
                         + "  //@ ensures true;\n"
                         + "  public Object inst2(int ii) {  return null; }\n"
                         + "}"
-                        ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",10
+                        ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
                         ,"/tt/TestJava.java:5: verify: Associated declaration", 17
                         ,"/tt/TestJava.java:5: verify: Associated method exit", 32
-                        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",10
+                        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
                         ,"/tt/TestJava.java:8: verify: Associated declaration", 17
                         ,"/tt/TestJava.java:8: verify: Associated method exit", 34
                         );
@@ -1848,10 +1848,10 @@ public class esc1 extends EscBase {
                 + "  //@ ensures true;\n"
                 + "  public Object inst2(int ii) {  return null; }\n"
                 + "}"
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst: inst",10
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst",10
                 ,"/tt/TestJava.java:5: verify: Associated declaration", 17
                 ,"/tt/TestJava.java:5: verify: Associated method exit", 32
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2: inst2",10
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2",10
                 ,"/tt/TestJava.java:8: verify: Associated declaration", 17
                 ,"/tt/TestJava.java:8: verify: Associated method exit", 34
                 );
@@ -1896,10 +1896,10 @@ public class esc1 extends EscBase {
                         + "  \n"
                         + "  public /*@ non_null*/Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }\n"
                         + "}"
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad: instbad",24
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method instbad",24
                 ,"/tt/TestJava.java:6: verify: Associated declaration",31
                 , "/tt/TestJava.java:6: verify: Associated method exit", 88
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad: inst2bad",24
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method inst2bad",24
                 ,"/tt/TestJava.java:10: verify: Associated declaration",31
                 , "/tt/TestJava.java:10: verify: Associated method exit", 83
                 );
