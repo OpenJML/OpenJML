@@ -172,8 +172,10 @@ public class escfiles extends EscBaseFiles {
         expectedExit = 0;
         helpTG();
     }
+    
     @Test
     public void esc2DArray() {
+        //addOptions("--method=m","--progress","--show");
         expectedExit = 0;
         helpTG();
     }
@@ -191,15 +193,15 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test @Ignore // FIXME - Specs need improvement
-    public void testVT20191() {
+    public void verifythis2019_1() {
         expectedExit = 0;
-        helpTF("verifythis-2019-1","--check-feasibility=none"); // FIXME - feasibility check times out
+        helpTF("verifythis2019_1","--check-feasibility=none"); // FIXME - feasibility check times out
     }
 
     @Test
-    public void testVT20192() {
+    public void verifythis2019_2() {
         expectedExit = 0;
-        helpTF("verifythis-2019-2","--solver-seed=42");
+        helpTF("verifythis2019_2","--solver-seed=42");
     }
 
     @Test
