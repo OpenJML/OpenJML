@@ -287,7 +287,7 @@ public class assignable extends TCBase {
                 +"}"
                 );
     }
-
+    
     @Test
     public void testAccessibleIdent() {
         helpTCText(null, " class A { int k; boolean b; \n//@ accessible k;\n void m(){} }");
@@ -309,6 +309,5 @@ public class assignable extends TCBase {
         helpTCText(null, " class A { int k; boolean b; \n//@ captures m;\n void m(){} }",
                 "/TEST.java:2: error: cannot find symbol\n  symbol:   variable m\n  location: class A",14);
     }
-    
 }
 

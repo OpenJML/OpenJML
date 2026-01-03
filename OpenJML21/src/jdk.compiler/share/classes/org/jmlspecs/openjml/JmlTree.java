@@ -1025,7 +1025,7 @@ public class JmlTree {
         
         /** Returns the file object containing the source code for the AST node */
         /*@nullable*/ JavaFileObject source();
-        /*@nullable*/ void setSource(JavaFileObject jfo);
+        /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo);
         DiagnosticPosition pos();
         default public boolean isInJMLCU() {
             return source().getKind() != JavaFileObject.Kind.SOURCE;
@@ -1074,8 +1074,8 @@ public class JmlTree {
         
         public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
         //public boolean forBinary() { return sourceCU == null; }
-        public JavaFileObject source() { return sourcefile; }
-        public void setSource(JavaFileObject s) { sourcefile = s; }
+        public /*@nullable*/ JavaFileObject source() { return sourcefile; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject s) { var ss = sourcefile; sourcefile = s; return ss; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -1330,7 +1330,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
 
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
 
         @Override
         public void accept(Visitor v) {
@@ -1413,7 +1413,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         @Override
         public boolean isJML() {
@@ -1482,7 +1482,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         @Override
         public boolean isJML() {
@@ -1562,7 +1562,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         @Override
         public void accept(Visitor v) {
@@ -2340,7 +2340,7 @@ public class JmlTree {
         public IJmlClauseKind clauseKind;
         public JavaFileObject sourcefile;
         public JavaFileObject source() { return sourcefile; }
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         protected JmlMethodClause(int pos, String keyword, IJmlClauseKind clauseKind) {
             this.pos = pos;
             this.keyword = keyword;
@@ -3029,6 +3029,10 @@ public class JmlTree {
     	    return lo == null && hi == null;
     	}
     	
+    	public boolean isSingleElement() {
+    	    return lo != null && lo == hi;
+    	}
+    	
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
             return hi == null ? pos : hi.getEndPosition(endPosTable);
@@ -3187,7 +3191,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
     
         @Override
         public void accept(Visitor v) {
@@ -3452,7 +3456,7 @@ public class JmlTree {
             this.clauseType = StatementLocationsExtension.havocStatement;
             this.storerefs = storerefs;
         }
-    
+        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -3587,8 +3591,9 @@ public class JmlTree {
     /** This class represents JML statements within the body of a method
      * that apply to a following loop statement (decreases, loop_invariant)
      */
-    public static class JmlStatementLoopModifies extends JmlStatementLoop {
+    public static class JmlStatementLoopModifies extends JmlStatementLoop implements JmlSource {
         public List<JCTree.JCExpression> storerefs;
+        public java.util.List<Symbol.VarSymbol> nestedLocals;
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoopModifies(int pos, IJmlClauseKind token, List<JCTree.JCExpression> storerefs) {
@@ -3596,7 +3601,10 @@ public class JmlTree {
             this.clauseType = token;
             this.storerefs = storerefs;
         }
-    
+
+        public /*@nullable*/ JavaFileObject source() { return null; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { return jfo; }
+
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -3687,11 +3695,14 @@ public class JmlTree {
     		this.originalStoreRef = originalStoreRef;
     	}
     	
+    	public String toStringDetail() { return "JmlStoreRef[" + isEverything +","+local+","+expression+","+receiver+","+range+","+field+":"+originalStoreRef+"]"; }
+    	
 //    	public JavaFileObject sourcefile; // FIXME - not sure we need or use this
     	
     	public boolean isEverything() { return isEverything; }
     	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JmlPrimitiveTypes.nothingKind; }
-    	
+        public boolean isArrayRange() { return receiver != null && (range.isDefaultRange() || range.lo != range.hi); }
+        public boolean isArrayAccess() { return receiver != null && range != null; }
     	// Cases: before type attribution (type == null)
     	// isEverything=true: \everything
         // isEverything=false, receiver=null, id!=null, range==null: simple id
@@ -3821,10 +3832,10 @@ public class JmlTree {
         public JavaFileObject sourcefile;
         
         /** Returns the source file for the clause */
-        public JavaFileObject source() { return sourcefile; }
+        public /*@nullable*/ JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         public boolean isJML() {
             return true;
