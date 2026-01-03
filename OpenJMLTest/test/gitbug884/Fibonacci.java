@@ -31,7 +31,7 @@ public class Fibonacci {
         //@ maintaining 2 <= index <= fib.length;
         //@ maintaining Integer.MIN_VALUE <= fib[index-2] + fib[index-1] <= Integer.MAX_VALUE;
         //@ maintaining \forall int j; 2 <= j < index; fib[j] == fib[j - 2] + fib[j - 1];
-        //@ loop_writes fib[2..n];
+        //@ loop_writes fib[2..n], index;
         //@ decreases fib.length - index;
         while (index < fib.length) {
             fib[index] = fib[index - 2] + fib[index - 1];

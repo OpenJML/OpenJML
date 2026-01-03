@@ -19,14 +19,16 @@ public class esclambdas extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
-                +"  \n"
                 +"  public static class MMM {\n"
                 +"    public int i ;\n"
                 +"    //@ assignable i;\n"
                 +"    public void bump() { if (i>0) i--; i++; }\n"
                 +"  }\n"
                 
+                +"  //@ assigns \\everything;\n"
                 +"  public void m1(Iterable<@org.jmlspecs.annotation.Nullable MMM> a) {\n"
+                +"    //@ loop_modifies \\everything;\n"
+                +"    //@ inlined_loop;\n"
                 +"    a.forEach(MMM::bump);\n"
                 +"  }\n"
                                 
@@ -50,6 +52,7 @@ public class esclambdas extends EscBase {
                 
                 +"  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
                 +"    //@ loop_invariant a.values == \\old(a.values);\n"
+                +"    //@ loop_assigns i;\n"
                 +"    //@ inlined_loop;\n"
                 +"    a.forEach(MMM::bump);\n"
                 +"  }\n"

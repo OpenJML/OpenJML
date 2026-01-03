@@ -1160,7 +1160,176 @@ public class escall2 extends EscBase {
                 ,"/tt/TestJava.java:28: verify: Associated declaration",7
                 );
     }
-   
+
+    @Test
+    public void testHavoc() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\nothing;
+              public void m(int k) {
+                int j;
+                //@ havoc i,j,k;
+              }
+            }
+            """
+                ,"/A.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: i", 15
+                ,"/A.java:3: verify: Associated declaration", 7
+        );
+    }
+
+    @Test
+    public void testLoopWrites1() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\nothing;
+              public void m1(int k) {
+                int j;
+                //@ loop_writes n, i, j;
+                for (int n=0; n<10; n++) {
+                  int m;
+                  m = 9;
+                  i = 1;
+                }
+              }
+            }
+            """
+            ,"/A.java:6: verify: The prover cannot establish an assertion (Assignable) in method m1: `THIS.i", 24
+            ,"/A.java:3: verify: Associated declaration", 7
+        );
+    }
+
+    @Test
+    public void testLoopWrites2() {
+        expectedExit = 1;
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m2(int k) {
+                int j;
+                //@ loop_writes n;
+                for (int n=0; n<10; n++) {
+                  int m;
+                  m = 9;
+                  i = 1; // ERROR - fails but not reported since the error on j is reported before running smt
+                  j = 2; // ERROR - fails before running smt
+                }
+              }
+            }
+            """
+            ,"/A.java:11: error: Local variable is assigned but not present in loop frame clause: j", 7
+        );
+    }
+
+    /** Tests a loop index declared in the loop initialization and an explicit loop_writes clause;
+     * also checking a local variable not within the loop body */
+    @Test
+    public void testLoopWrites3() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m3(int k) {
+                int j;
+                //@ loop_writes j;
+                for (int n=0; n<10; n++) { // OK
+                  int m;
+                  m = 9;
+                  i = 1; // ERROR
+                  j = 2;
+                }
+              }
+            }
+            """
+            ,"/A.java:10: verify: The prover cannot establish an assertion (Assignable) in method m3: i", 9
+            ,"/A.java:6: verify: Associated declaration", 9
+        );
+    }
+
+    /** Tests a loop index not declared in the loop initialization and an explicit loop_writes clause */
+    @Test
+    public void testLoopWrites6() {
+        expectedExit = 1;
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m6(int k) {
+                int n, j;
+                //@ loop_writes j;
+                for (n=0; n<10; n++) { // ERROR
+                  int m;
+                  m = 9;
+                  j = 1;
+                }
+              }
+            }
+            """
+            ,"/A.java:7: error: Local variable is assigned but not present in loop frame clause: n", 21
+        );
+    }
+
+    /** Tests that a loop variable not declared in the loop initialization is in the default loop_writes clause */
+    @Test
+    public void testLoopWrites4() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m4(int k) {
+                int n;
+                for (n=0; n<10; n++) { // OK
+                }
+              }
+            }
+            """
+        );
+    }
+
+    /** Tests that the declared loop variable is automatically in the default loop_writes clause */
+    @Test
+    public void testLoopWrites5() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m5(int k) {
+                for (int n=0; n<10; n++) { // OK
+                }
+              }
+            }
+            """
+        );
+    }
+
+    /** Tests that multiple local to the loop variables are OK */
+    @Test
+    public void testLoopWrites7() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m7() {
+                for (int n=0; n<10; n++) {
+                  int j,k;
+                  j = k = 1;
+                }
+              }
+            }
+            """
+        );
+    }
+
     @Test
     public void testPureMethod() {
         helpEsc("tt.TestJava","package tt; \n"
