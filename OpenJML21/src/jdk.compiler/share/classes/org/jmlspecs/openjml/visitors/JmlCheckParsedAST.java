@@ -9,6 +9,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.tree.EndPosTable;
 import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.Utils;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 /** A purely debugging check. Walks an AST immediately after parsing (at the end of JmlCompiloer.parse, JmlCompiler.parseSpecs) to check that
  * various invariants hold.
@@ -46,11 +47,13 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
     }
     
     private void check(boolean shouldBeTrue) {
+        check(null, shouldBeTrue, "");
+    }
+    
+    private void check(DiagnosticPosition pos, boolean shouldBeTrue, String explain) {
         if (!shouldBeTrue) {
             ok = false;
-            var a = new AssertionError("Invalid invariant in JmlCheckParsedAST: " + sourcefile);
-            a.printStackTrace(System.out);
-            throw a;
+            this.utils.warning(pos, "jml.message", "Invalid AST: " + explain);
         }
     }
     
@@ -230,6 +233,26 @@ public class JmlCheckParsedAST extends JmlTreeScanner {
             check(!block.isInitializerBlock);
         }
         super.visitBlock(node);
+    }
+    
+    @Override
+    public void visitJmlForLoop(JmlForLoop node) {
+        check(node, node.loopSpecs != null, "for loop loopSpecs must not be null");
+    }
+    
+    @Override
+    public void visitJmlEnhancedForLoop(JmlEnhancedForLoop node) {
+        check(node, node.loopSpecs != null, "foreach loop loopSpecs must not be null");
+    }
+    
+    @Override
+    public void visitJmlWhileLoop(JmlWhileLoop node) {
+        check(node, node.loopSpecs != null, "while loop loopSpecs must not be null");
+    }
+    
+    @Override
+    public void visitJmlDoWhileLoop(JmlDoWhileLoop node) {
+        check(node, node.loopSpecs != null, "for do-while loopSpecs must not be null");
     }
 
 }

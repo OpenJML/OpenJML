@@ -3,6 +3,7 @@ public class Loops {
   public void m1() {
     int i = 10;
     //@ loop_invariant i == \old(i,\LoopInit) + \count;
+    //@ loop_assigns i;
     for (i = 1; i < 5; i++) {
       i += 20;
       //@ check \old(i,\LoopInit) == 1;
@@ -40,6 +41,7 @@ public class Loops {
   public void m4() {
     int i = 0;
     //@ loop_invariant i == \count;
+    //@ loop_assigns i;
     do {
       i += 20;
       //@ check \old(i,\LoopInit) == 0;
@@ -51,6 +53,7 @@ public class Loops {
 
   public void m5(int[] a) {
     int j = 123;
+    //@ loop_assigns j,k;
     for (int k: a) {
       //@ check k == a[\count];
       //@ check k == \old(k, \LoopBody);

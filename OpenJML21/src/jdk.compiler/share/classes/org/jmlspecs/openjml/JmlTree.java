@@ -704,7 +704,7 @@ public class JmlTree {
         {
             JCForLoop tree = super.ForLoop(init, cond, step, body);
             tree.pos = pos;
-            return JmlForLoop(tree,null);
+            return JmlForLoop(tree, List.<JmlStatementLoop>nil());
         }
         
         /** Creates a regular foreach-loop with no specifications */
@@ -712,7 +712,7 @@ public class JmlTree {
         public JCEnhancedForLoop ForeachLoop(JCVariableDecl var, JCExpression expr, JCStatement body) {
             JCEnhancedForLoop tree = super.ForeachLoop(var, expr, body);
             tree.pos = pos;
-            return JmlEnhancedForLoop(tree,null);
+            return JmlEnhancedForLoop(tree,List.<JmlStatementLoop>nil());
         }
         
         /** Creates a regular do-loop with no specifications */
@@ -720,7 +720,7 @@ public class JmlTree {
         public JmlDoWhileLoop DoLoop(JCStatement body, JCExpression cond) {
             JCDoWhileLoop tree = super.DoLoop(body, cond);
             tree.pos = pos;
-            return JmlDoWhileLoop(tree,null);
+            return JmlDoWhileLoop(tree,List.<JmlStatementLoop>nil());
         }
 
         /** Creates a regular while-loop with no specifications */
@@ -728,7 +728,7 @@ public class JmlTree {
         public JmlWhileLoop WhileLoop(JCExpression cond, JCStatement body) {
             JCWhileLoop tree = super.WhileLoop(cond, body);
             tree.pos = pos;
-            return JmlWhileLoop(tree,null);
+            return JmlWhileLoop(tree,List.<JmlStatementLoop>nil());
         }
 
         /** Creates a for-loop with specifications */
@@ -2759,11 +2759,14 @@ public class JmlTree {
         }
     }
 
-    /** This class represents an assignable clause in a method specification */
+    /** This class represents an assignable or accessible clause in a method specification */
     public static class JmlMethodClauseStoreRef extends JmlMethodClause {
 
         /** The list of store-ref expressions in the clause */
         public List<JCExpression> list;
+        
+        /** The 'list' converted to a (converted) locset expression */
+        public JCExpression locset;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseStoreRef(int pos, String keyword, IJmlClauseKind clauseType, List<JCExpression> list) {
@@ -3161,6 +3164,8 @@ public class JmlTree {
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
         public Name name;
+        public JCExpression writeFrame = null;
+        public JCExpression readFrame = null;
         
         public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, IJmlClauseKind token, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block) {
             this.pos = pos;
@@ -3593,13 +3598,15 @@ public class JmlTree {
      */
     public static class JmlStatementLoopModifies extends JmlStatementLoop implements JmlSource {
         public List<JCTree.JCExpression> storerefs;
-        public java.util.List<Symbol.VarSymbol> nestedLocals;
+        public java.util.List<Symbol.VarSymbol> nestedLocals; /** Derived value */
+        public JCExpression asLocset; /** Derived value */
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoopModifies(int pos, IJmlClauseKind token, List<JCTree.JCExpression> storerefs) {
             this.pos = pos;
             this.clauseType = token;
             this.storerefs = storerefs;
+            this.asLocset = null;
         }
 
         public /*@nullable*/ JavaFileObject source() { return null; }
@@ -3741,6 +3748,34 @@ public class JmlTree {
                 System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
+		}
+		
+		static public class ArrayRangeSet extends JmlTree.JmlExpression {
+		    public JCArrayAccess recv;
+		    public ArrayRangeSet(JCArrayAccess e) { recv = e; type = null; }
+
+		      @Override
+		        public void accept(Visitor v) {
+//		            if (v instanceof IJmlVisitor) {
+//		                ((IJmlVisitor)v).visitJmlStoreRef(this); 
+//		            } else {
+//		                System.out.println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
+		                recv.accept(v);
+//		            }
+		        }
+		        @Override
+		        public <R, D> R accept(TreeVisitor<R, D> v, D d) {
+		            return recv.accept(v, d);
+//		            if (v instanceof JmlTreeVisitor) {
+//		                return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRef(this, d);
+//		            } else {
+//		                System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
+//		                return null; //return super.accept(v,d);
+//		            }
+		        }
+		        
+            @Override
+		    public String toString() { return "ARS[" + recv.toString() + "]"; }
 		}
     }
 

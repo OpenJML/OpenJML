@@ -1089,7 +1089,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     try {
                         Name labelArg = that.args.size() == 1 ? JmlAttr.instance(context).preLabel : ((JCIdent)that.args.get(1)).name;
                         Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
-                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label);
+                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label + " " + that);
                         currentMap = labelmaps.get(label);
                         //System.out.println("   MAP TO USE " + currentMap);
                         //System.out.println("   CURRENT MAP " + savedMap);
