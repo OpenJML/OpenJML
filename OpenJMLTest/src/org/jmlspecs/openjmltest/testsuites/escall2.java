@@ -1222,7 +1222,7 @@ public class escall2 extends EscBase {
               }
             }
             """
-            ,"/A.java:11: error: Local variable is assigned but not present in loop frame clause: j", 7
+            ,"/A.java:11: error: Local variable is assigned but not present in loop frame clause: j not in //@ loop_writes n, n, \\count;", 7
         );
     }
 
@@ -1272,7 +1272,7 @@ public class escall2 extends EscBase {
               }
             }
             """
-            ,"/A.java:7: error: Local variable is assigned but not present in loop frame clause: n", 21
+            ,"/A.java:7: error: Local variable is assigned but not present in loop frame clause: n not in //@ loop_writes j, \\count;", 21
         );
     }
 

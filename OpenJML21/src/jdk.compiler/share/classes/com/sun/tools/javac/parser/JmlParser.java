@@ -1112,8 +1112,8 @@ public class JmlParser extends JavacParser {
     		while (isEndJml()) nextToken();
     	}
     	JCStatement stat = parseStatement();
-    	if (stat instanceof IJmlLoop) {
-    		((IJmlLoop)stat).setLoopSpecs(loopSpecs.toList());
+    	if (stat instanceof IJmlLoop loop) {
+    		loop.setLoopSpecs(loopSpecs.toList());
         } else {
             utils.error(loopSpecs.isEmpty() ? stat : loopSpecs.first(), "jml.message", "Loop specifications must immediately precede a loop statement");
         }

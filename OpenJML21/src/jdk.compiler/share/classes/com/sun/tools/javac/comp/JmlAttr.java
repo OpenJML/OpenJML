@@ -6193,6 +6193,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitIndexed(JCArrayAccess tree) {
         if (jmlresolve.allowJML()) {
+            if (tree.index == null) {
+                utils.error(tree, "jml.message", "Faulty null range: " + tree);
+                // Recovering
+                tree.index = jmlMaker.at(tree.pos).JmlRange(null,null);
+            }
             Type owntype = types.createErrorType(tree.type);
             Type atype = attribExpr(tree.indexed, env);
             Type indexType = attribExpr(tree.index, env);
@@ -7649,6 +7654,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // MAINTENANCE ISSUE: code duplicated mostly from the superclass
 
     public void visitJmlForLoop(JmlForLoop tree) {
+        if (tree.loopSpecs == null) System.out.println("NULL LOOP SPECS " + tree);
         loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
     	Env<AttrContext> loopEnv =
     			env.dup(env.tree, env.info.dup(env.info.scope.dup()));

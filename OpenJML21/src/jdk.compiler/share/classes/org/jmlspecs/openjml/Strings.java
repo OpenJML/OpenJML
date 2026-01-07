@@ -102,6 +102,7 @@ public class Strings {
     /** The expected name of the OpenJML properties file. */
     static public final String propertiesFileName = "openjml.properties"; //$NON-NLS-1$
     
+    static public final String countVarPrefix = "`index_";
     
     /** This string is the fully-qualified name of the JML compiler messages file 
      * (without the .properties suffix). */

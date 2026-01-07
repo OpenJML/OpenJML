@@ -2323,11 +2323,24 @@ public class JmlTreeUtils {
      }
 
     public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
-    	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+        return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+    }
+    
+    public JCExpression makeLocsetIntersection(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
+        return makeJmlMethodInvocation(pos, LocsetExtensions.intersectionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
     }
     
     public JCExpression makeLocset(JCExpression e) {
     	return makeJmlMethodInvocation(e, JmlPrimitiveTypes.locsetTypeKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), e);
+    }
+    
+    public JmlStoreRef makeLocsetEverything(DiagnosticPosition pos){
+        JCExpression e = factory.at(pos).JmlSingleton(JmlPrimitiveTypes.everythingKind);
+        return factory.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
+    }
+    
+    public JCExpression makeLocsetNothing(DiagnosticPosition pos){
+        return makeLocsetUnion(pos, List.<JCExpression>nil());
     }
     
      

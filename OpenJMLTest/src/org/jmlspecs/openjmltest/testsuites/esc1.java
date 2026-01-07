@@ -298,17 +298,36 @@ public class esc1 extends EscBase {
                 + "  //@ public normal_behavior  ensures true;\n"
                 + "  public void m2() {\n"
                 + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
-                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); \n"
+                + "    //@ loop_assigns it.objectState, it.remove_called_since, it.moreElements;\n"
                 + "    for (; it.hasNext();  ) {\n"
-                + "        it.next(); \n"
+                + "        it.next(); \n" // OK
                 + "    }\n"
                 + "  }\n"
 
                 + "  //@ public normal_behavior  ensures true;\n"
                 + "  public void m2bad() {\n"
                 + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
-                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); \n"
+                + "    //@ loop_assigns it.objectState, it.remove_called_since, it.moreElements;\n"
                 + "    for (; it.hasNext();  ) {\n"
+                + "        it.next(); \n" // OK
+                + "        it.next(); \n" // ERROR - exception
+                + "    }\n"
+                + "  }\n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m3bad() {\n"
+                + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    it.next(); \n" // ERROR - exception
+                + "  }\n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m4bad() {\n"
+                + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    for (; it.hasNext();  ) {\n"  // ERROR - should fail frame checks
                 + "        it.next(); \n"
                 + "        it.next(); \n"
                 + "    }\n"
@@ -317,8 +336,11 @@ public class esc1 extends EscBase {
                 + "  public TestJava() {}"
 
                 + "}"
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad", 16
-                ,"/tt/TestJava.java:11: verify: Associated declaration", 14
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad", 16
+                ,"/tt/TestJava.java:12: verify: Associated declaration", 14
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3bad", 12
+                ,"xxx",1000
+                ,"/tt/TestJava.java:22: verify: Associated declaration", 14
                 );
     }
 

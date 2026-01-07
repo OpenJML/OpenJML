@@ -1282,8 +1282,8 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         String r = t.tsym.toString();
         if (t.tsym.isAnonymous()) {
-        	//System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
-        	r = "ANON_" + t.tsym.flatName();
+            //System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
+            r = "ANON_" + t.tsym.flatName();
         }
         //System.out.println("TYPESTRING " + t + " " + t.tsym + " " + t.tsym.name + " " + r);
         return r.replace('.', '_');

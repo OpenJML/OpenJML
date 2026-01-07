@@ -34,6 +34,25 @@ public class LocsetExtensions extends JmlExtension {
         }
     };
 
+    public static final String intersectionID = "\\set_intersection";
+    public static final IJmlClauseKind intersectionKind = new AnyArgExpression(intersectionID) {
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            var t = (JmlMethodInvocation)tree;
+            super.typecheck(attr, tree, localEnv);
+            //System.out.println("UNION " + t);
+            Type locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
+            for (JCExpression e: ((JmlMethodInvocation)tree).args) {
+                //System.out.println("  UNION ARG " + e + " " + e.type);
+                if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
+                    utils.error(e.pos, "jml.message", "The arguments of \\set_intersection must have type locset, not " + e.type);
+                }
+            }
+            return locsetType;
+        }
+    };
+
     public static final String subsetID = "\\subset";
     public static final IJmlClauseKind subsetKind = new AnyArgBooleanExpression(subsetID) {
         
