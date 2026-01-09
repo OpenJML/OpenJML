@@ -228,7 +228,7 @@ public class escnewassignable extends EscBase {
 
                 +"  //@ requires true; \n"
                 +"  //@ assignable y; \n"
-                +"  //@ also requires true; \n"
+                +"  //@ also requires true; \n" // Line 30
                 +"  //@ assignable this.*; \n"
                 +"  public void m0bad(int i) {\n"
                 +"    x = 0 ;\n"
@@ -263,6 +263,7 @@ public class escnewassignable extends EscBase {
 
     @Test
     public void testAssignable7() {
+        //addOptions("--show","--method=m4bad");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  int x,xx; static int y,yy; /*@ spec_public */ int[] z;\n"

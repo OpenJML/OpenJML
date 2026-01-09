@@ -1043,7 +1043,7 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test
+    @Test // @Ignore // FIXME - long running or a loop?
     public void testAssignable1() { // FIXME - which of these methods here or in testAssignables2 takes so long? and why?
 //        Assume.assumeTrue(runLongTests);
 
@@ -1108,7 +1108,7 @@ public class escall2 extends EscBase {
                 );
     }
    
-    @Test
+    @Test // @Ignore // FIXME - long running or a loop?
     public void testAssignable2() {
 //        Assume.assumeTrue(runLongTests);
 
@@ -1222,7 +1222,7 @@ public class escall2 extends EscBase {
               }
             }
             """
-            ,"/A.java:11: error: Local variable is assigned but not present in loop frame clause: j not in //@ loop_writes n, n, \\count;", 7
+            ,"/A.java:11: error: Local variable is assigned but not present in loop frame clause: j not in //@ loop_writes n, \\count;", 7
         );
     }
 

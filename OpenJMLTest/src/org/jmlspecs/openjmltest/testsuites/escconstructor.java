@@ -50,6 +50,7 @@ public class escconstructor extends EscBase {
 
     @Test
     public void testAssignableDefault() {
+        addOptions("--show");
         main.addOptions("-defaults=constructor:pure");
         helpEsc("tt.TestJava",
                           "package tt; \n"

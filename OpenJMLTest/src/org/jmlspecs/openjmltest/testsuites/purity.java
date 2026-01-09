@@ -119,6 +119,7 @@ public class purity extends TCBase {
     public void testMethodIncDec() {
         expectedExit = 6; // Doing an esc run so the assignable clause is checked
         addOptions("--esc", "--code-math=java");
+        addOptions("--method=m","--show");
         helpTCText(null, " class A {  int b;  \n //@ pure \n boolean m() { return (b++)==(++b) && (b--) == (--b); } \n}"
                 ,anyorder(
                 seq("/TEST.java:3: verify: The prover cannot establish an assertion (Assignable: /TEST.java:2:) in method m: `THIS.b",31

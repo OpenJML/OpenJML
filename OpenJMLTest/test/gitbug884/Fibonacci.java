@@ -1,20 +1,18 @@
 public class Fibonacci {
+    
+    //@ public normal_behavior
+    //@   requires n >= 0;
+    //@   ensures \result == (n == 0 ? 0 : n == 1 ? 1 : fib(n-1) + fib(n-2));
+    //@   measured_by n;
+    //@ model no_state static public int fib(int n);
+    
     //@  requires n < 0;
     //@  assigns \nothing;
     //@  ensures \result == -1;
     //@ also
-    //@  requires n == 0;
+    //@  requires n >= 0;
     //@  assigns \nothing;
-    //@  ensures \result == 0;
-    //@ also
-    //@  requires n == 1;
-    //@  assigns \nothing;
-    //@  ensures \result == 1;
-    //@ also
-    //@  requires 2 <= n <= 47; // precomputed value, fib(47) is the largest one that does not overflow int
-    //@  assigns \nothing;
-    //@  ensures \result == fibCompute(n-2) + fibCompute(n-1);
-    //@  measured_by n;
+    //@  ensures \result == fib(n);
     //@ behaviors disjoint;
     //@ pure
     public static int fibCompute(int n) {
@@ -29,7 +27,7 @@ public class Fibonacci {
         int index = 2;
 
         //@ maintaining 2 <= index <= fib.length;
-        //@ maintaining Integer.MIN_VALUE <= fib[index-2] + fib[index-1] <= Integer.MAX_VALUE;
+        //@ maintaining \forall int k; 0 <= k < index; fib[k] == fib(k);
         //@ maintaining \forall int j; 2 <= j < index; fib[j] == fib[j - 2] + fib[j - 1];
         //@ loop_writes fib[2..n], index;
         //@ decreases fib.length - index;

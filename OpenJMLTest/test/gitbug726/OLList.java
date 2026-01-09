@@ -369,9 +369,12 @@ public class OLList {
         ensures \result[0]==getf(0);
         ensures (\forall int i; 1<=i<items.length+1; \result[i]==items[i-1]);
     */
-   @Pure public @NonNull Node[] append(@NonNull Node[] items) {
-        @NonNull Node[] result = new Node[items.length+1];
+   @Pure public @NonNull Node @NonNull [] append(@NonNull Node @NonNull [] items) {
+       @NonNull Node @NonNull [] result = new Node[items.length+1];
         result[0]=this;
+        //@ assert items.length >= 0;
+        //@ assert result.length == items.length + 1;
+        //@ assert result != null;
         System.arraycopy(items, 0, result, 1, items.length);
         return result;
     }

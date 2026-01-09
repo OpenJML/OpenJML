@@ -133,7 +133,7 @@ public class escfilesdemo extends EscBaseFiles {
     @Test // FIXME - Problem with int / short conversions
     public void escDemoTime() {
         expectedExit = 0;
-        helpDemoFile("demo/Time.java","escDemoTime","--check-feasibility=precondition,exit");
+        helpDemoFile("demo/Time.java","escDemoTime","--check-feasibility=precondition,exit","--show");
     }
 
 

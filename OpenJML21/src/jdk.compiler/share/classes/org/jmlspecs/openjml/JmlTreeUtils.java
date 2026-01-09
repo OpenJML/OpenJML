@@ -1758,6 +1758,20 @@ public class JmlTreeUtils {
         return makeBitAnd(v.pos, e1, e2);
     }
     
+    public JCExpression makeArrayRangeCheck(JCExpression v, JCExpression max) {
+        JCExpression e1 = makeBinary(v.pos, JCTree.Tag.LE, makeIntLiteral(v, 0), v);
+        JCExpression e2 = makeBinary(v.pos, JCTree.Tag.LE, v, max);
+        return makeBitAnd(v.pos, e1, e2);
+    }
+    
+    public JCExpression makeArrayRangeCheckLo(JCExpression v) {
+        return makeBinary(v.pos, JCTree.Tag.LE, makeIntLiteral(v, 0), v);
+    }
+    
+    public JCExpression makeArrayRangeCheckHi(JCExpression v, JCExpression arr) {
+        return makeBinary(v.pos, JCTree.Tag.LT, v, makeLength(arr,arr));
+    }
+    
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, String name, JCExpression ... nargs) {
         return makeMethodInvocation(pos, receiver, names.fromString(name), nargs);
     }
@@ -2336,7 +2350,9 @@ public class JmlTreeUtils {
     
     public JmlStoreRef makeLocsetEverything(DiagnosticPosition pos){
         JCExpression e = factory.at(pos).JmlSingleton(JmlPrimitiveTypes.everythingKind);
-        return factory.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
+        var r = factory.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
+        r.type = JmlPrimitiveTypes.locsetTypeKind.getType(context);
+        return r;
     }
     
     public JCExpression makeLocsetNothing(DiagnosticPosition pos){
