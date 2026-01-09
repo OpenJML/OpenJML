@@ -561,8 +561,10 @@ public class escm extends EscBase {
                 }
                 class P { public int j; }
                 """
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m", 15
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m", 15
+                ,anyorder(
+                        seq("/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m", 15)
+                        ,seq("/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m", 15)
+                        )
                 );
     }
 

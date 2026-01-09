@@ -185,7 +185,9 @@ public abstract class EscBaseFiles extends EscBase {
             }
             if (diffs != null) {
                 this.out.println("TEST DIFFERENCES: " + actCompile);
-                this.out.println(diffs.substring(0, Math.min(150, diffs.length())));
+                // The output can be voluminous, partly because the comparison algorithm is not smart, so we just truncate it
+                // at an arbitrary length
+                this.out.println(diffs.substring(0, Math.min(300, diffs.length())));
                 fail("Files differ"); // Does not return, so appears to be not covered by Jacoco
             }
             

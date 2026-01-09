@@ -2540,12 +2540,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
                 } else {
                     int pos = pure != null ? pure.pos : cs.pos;
-                    var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
+                    var kw = jmlMaker.at(pos).JmlSingleton(nothingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context));
                     defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                             List.<JCExpression>of(kw));
                 }
             } else {
-                var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
+                var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context));
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
             }
@@ -2562,7 +2562,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = null;
             } else {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
-                        List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
+                        List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
             }
             if (defaultClause != null) {
                 defaultClause.sourcefile = log.currentSourceFile();

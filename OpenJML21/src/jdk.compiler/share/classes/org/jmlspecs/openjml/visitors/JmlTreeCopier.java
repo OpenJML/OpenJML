@@ -448,6 +448,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.clauseKind,
                 copy(that.list,p));
         r.sourcefile = that.sourcefile;
+        r.locset = that.locset;
         r.setType(that.type);
         copyEndPos(r,that,r.sourcefile);
         return r;
@@ -660,6 +661,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.clauseType,
                 copy(that.storerefs,p));
         copy.type = that.type;
+        copy.asLocset = that.asLocset;
         copyEndPos(copy,that);
         //log.useSource(prev);
         return copy;
