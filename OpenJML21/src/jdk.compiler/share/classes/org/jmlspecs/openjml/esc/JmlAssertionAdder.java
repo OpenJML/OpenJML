@@ -378,7 +378,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected JmlMethodDecl methodDecl = null;
 
 	/** Location of calls within the method or its specifications */
-	protected /* @ nullable */ JCTree nestedCallLocation = null;
+    protected /* @ nullable */ JCTree nestedCallLocation = null;
+    protected /* @ nullable */ JavaFileObject nestedCallSource = null;
 
 	/**
 	 * The receiver expression, such as when performing a method call within the
@@ -889,8 +890,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCBlock savedDiscoveredFields = discoveredFields;
 		Set<Symbol> savedAlreadyDiscoveredFields = alreadyDiscoveredFields;
 		int savedAllocCounter = allocCounter;
-		JCTree savedNestedCallLocation = nestedCallLocation;
-		nestedCallLocation = null;
+        var savedNestedCallLocation = nestedCallLocation;
+        nestedCallLocation = null;
+        var savedNestedCallSource = nestedCallSource;
+        nestedCallSource = null;
 		
 		Set<Type> savedActiveExceptions = activeExceptions;
 		activeExceptions = new HashSet<>();
@@ -1387,7 +1390,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			this.alreadyDiscoveredFields = savedAlreadyDiscoveredFields;
 			this.discoveredFields = savedDiscoveredFields;
 			this.allocCounter = savedAllocCounter;
-			this.nestedCallLocation = savedNestedCallLocation;
+            this.nestedCallLocation = savedNestedCallLocation;
+            this.nestedCallSource = savedNestedCallSource;
 			this.activeExceptions = savedActiveExceptions;
 			this.divergesExpressions = savedDivergesExpressions;
 			this.currentEnv = this.currentEnv.popEnv();
@@ -2278,7 +2282,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements.add(st);
 			if (associatedPos == null && nestedCallLocation != null) {
 				st.associatedPos = nestedCallLocation.pos;
-				st.associatedSource = st.sourcefile; // FIXME _ this is wrong - noty necessarily the same file
+				st.associatedSource = nestedCallSource; // FIXME _ this is wrong - noty necessarily the same file
 			}
 			return st;
 		}
@@ -5245,7 +5249,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addStat(comment(methodDecl, "Check that assignable, accessible, captures clauses are well-defined", null));
         SpecCaseIterable specCases = new SpecCaseIterable(methodDecl.sym, true, true);
         //System.out.println("FRAME CONDITIONS " + currentEnv.currentReceiver + " " + currentEnv.stateLabel);
-        currentEnv.stateLabel = attr.preLabel;
+        if (!rac) currentEnv.stateLabel = attr.preLabel;
         for (Info info: specCases) { // The iterator skips spec cases that should not be considered
             var parentMethodSym = info.parentMethodSymbol;
             var scase = info.specCase();
@@ -5288,7 +5292,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         condition = null;
-        currentEnv.stateLabel = null;
+        if (!rac) currentEnv.stateLabel = null;
         // FIXME - for RAC we need to wrap in a try block
         popBlock();
     }
@@ -8050,8 +8054,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 	
+	/** Returns a JCExpression that is true when the 'obj' argument is fresher than the reference count.
+	    Returns null (equivalent to false) if the argument is a type tree.
+	    */
 	public JCExpression freshTest(DiagnosticPosition pos, JCExpression obj, int freshnessReferenceCount) {
 		if (rac) return null; // freshness not supported by rac
+		if (treeutils.isATypeTree(obj)) {
+		    //System.out.println("Invalid call to freshtest: " + obj + " " + freshnessReferenceCount);
+		    //Utils.dumpStack();
+		    return null;
+		}
 		//System.out.println("FRESH " + obj + " " + obj.type + " " + utils.isJavaOrJmlPrimitiveType(obj.type));
 		if (utils.isJavaOrJmlPrimitiveType(obj.type)) return null; // no test for primitive types
 		//if (freshnessReferenceCount >= 0 && obj instanceof JCIdent id && (id.name == names._this || id.name == names._super || id.name.toString().equals(Strings.THIS))) return treeutils.makeBooleanLiteral(pos, false);
@@ -8385,7 +8397,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // Wild-card field access store-ref
                 JCExpression s = fa.selected;
                 Symbol sym = treeutils.getSym(s);
-                boolean isStatic = sym instanceof TypeSymbol || utils.isJMLStatic(sym);
+                boolean isStatic = treeutils.isATypeTree(s);
                 var sel = convertJML(s);
                 if (!isStatic) {
                     if (!utils.isJavaOrJmlPrimitiveType(sel.type)) {
@@ -8405,6 +8417,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     sr = M.at(e.pos).JmlStoreRef(false, null, null, nt, null, null, e);
                 }
                 sr.setType(LOCSET);
+                //System.out.println("MJSRN-A " + e + " " + isStatic + " " + s + " " + sym + " : " + sr);
                 if (expand) list.addAll(collectModelFieldContents(fa,(ClassSymbol)(isStatic ? sym : fa.selected.type.tsym), sr.receiver, null));
                 else list.add(sr);
                 //System.out.println("MJSRN-B " + e + " : " + list);
@@ -9415,7 +9428,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		/* @ nullable */ JCExpression savedThisExpr = this.currentEnv.currentReceiver;
 		// The JCIdent holding what 'this' means in the current context (already
 		// translated)
-		/* @ nullable */ JCTree savedNestedCallLocation = this.nestedCallLocation;
+        /* @ nullable */ var savedNestedCallLocation = this.nestedCallLocation;
+        /* @ nullable */ var savedNestedCallSource = this.nestedCallSource;
 		int savedFreshnessReferenceCount = this.freshnessReferenceCount;
 		Map<Object, JCExpression> savedParamActuals = this.paramActuals_; // Mapping from formal parameter symbols to the
 																			// actual arguments
@@ -9428,7 +9442,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		var savedCurrentOldLabel = currentOldLabel;
 		var applySource = log.currentSourceFile();
 
-		nestedCallLocation = null;
+        nestedCallLocation = null;
+        nestedCallSource = null;
 
 		applyNesting++;
 
@@ -9686,7 +9701,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				System.out.println("APPLYHELPER-D " + calleeMethodSym.owner + " " + calleeMethodSym);
 
 			nestedCallLocation = that;
-
+			nestedCallSource = log.currentSourceFile();
+			
 			var mspecs = specs.getAttrSpecs(calleeMethodSym);
 			if (print) System.out.println("MSPECS " + calleeMethodSym.owner + " " + calleeMethodSym + " " + mspecs);
 			boolean inliningCall = mspecs != null && mspecs.specDecl != null && mspecs.specDecl.mods != null
@@ -10944,11 +10960,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												List<JCExpression> storerefs = cst.list ; // expandStoreRefList(cst.list, calleeMethodSym, false);
 												//System.out.println("STOREREFS TO CHECK " + cst);
 												for (JCExpression item : storerefs) {
-												    String msg = "Is " + item + " " + clause.clauseKind + "? " + utils.locationString(item.pos, clause.source());
+												    String msg = "Is " + item + " in callee specs " + clause.clauseKind + "? alloc=" + currentEnv.heap.heapID + " " + currentEnv.currentReceiver + " " + utils.locationString(item.pos, clause.source());
 												    //System.out.println("CHECKING " + msg);
-													addStat(comment(item, msg, clause.source()));
-													//System.out.println("Is " + newThisId + "." + item + " " + clause.clauseKind + "? "
-													//		+ utils.locationString(item.pos, clause.source()));
+													addStat(comment(msg));
 													JCExpression allowed = treeutils.trueLit;
 
 													if (pre == null) {
@@ -10958,10 +10972,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 													try {
 														//System.out.println("CURRENTTHIS " + currentEnv.currentReceiver + " " + newThisId);
 														//System.out.println("PARAMACTUALS " + paramActuals_);
+													    //System.out.println("CHECKING-ALLOWED " + clause + " " + that + " " + item);
+													    addStat(comment("   Checking " + item + " from callee with receiver " + calleeEnv.currentReceiver));
 														allowed = checkAccess2(clause.clauseKind, that, item, item, false, 
 																treeutils.makeBooleanLiteral(item, true), false, calleeEnv, true);
-														//System.out.println("ALLOWED " + allowed);
-														//System.out.println("CHECKING " + clause + " " + that + " " + item);
+                                                        addStat(comment("   Allowed expression for " + item + ": " + allowed));
+														//System.out.println("  ALLOWED " + allowed);
                                                         //System.out.println("CLAUSE FILE " + clause.sourcefile);
                                                         //System.out.println("CURRENT FILE " + log.currentSourceFile());
                                                         //System.out.println("PREV FILE " + prevSource);
@@ -10969,6 +10985,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                         currentEnv = currentEnv.pushEnvCopy();
                                                         currentEnv.currentReceiver = convertedReceiver;
                                                         try {
+                                                            addStat(comment("   Checking " + item + " within caller"));
                                                             checkAccess2(clause.clauseKind, that, item, item, false, allowed, true, null, false);
                                                         } finally {
                                                             log.useSource(prevv);
@@ -11283,6 +11300,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												boolean containsEverything = false;
 
 												ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
+												//System.out.println("HAVOCING " + item);
 												var prex = checkAccess2(clause.clauseKind, that, item, item, false, 
 															treeutils.makeBooleanLiteral(item, true), false, calleeEnv, true);
 												//prex = convertJML(prex, calleeEnv);
@@ -12025,7 +12043,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			enclosingMethod = savedEnclosingMethod;
 			enclosingClass = savedEnclosingClass;
 			typevarMapping = savedTypeVarMapping;
-			nestedCallLocation = savedNestedCallLocation;
+            nestedCallLocation = savedNestedCallLocation;
+            nestedCallSource = savedNestedCallSource;
 			applyNesting--;
 			this.calleePreconditions = savedPreexpressions;
 			currentOldLabel = savedCurrentOldLabel;
@@ -13647,7 +13666,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public JCExpression checkAccess2(IJmlClauseKind kind, DiagnosticPosition pos, JCExpression lhsUnconverted, JCExpression lhs,
 			boolean isConverted, JCExpression guard, boolean emitAsserts, TranslationEnv targetEnv, boolean comparingToCallee) {
-		//System.out.println("CHECKACCESS2 " + kind + " " + emitAsserts + " " + isConverted + " " + lhsUnconverted + " " + lhs);
+		//System.out.println("CHECKACCESS2 " + kind + " " + emitAsserts + " " + isConverted + " " + lhsUnconverted + " " + lhs); Utils.dumpStack();
 	    
 		JCExpression okCondition = emitAsserts ? null : treeutils.makeBooleanLiteral(pos, true);
 		if (rac) return okCondition;
@@ -13707,6 +13726,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 //System.out.println("END SR " + sr);
             }
+            //System.out.println("  CHECK RESULT-LM " + okCondition);
             return okCondition;
           } catch (Exception e) {
               System.out.println("FATAL CRASH");
@@ -13765,7 +13785,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 							if (!doSpecificationCase(methodDecl, methodSym, parentMethodSym, specCase, true)) continue; // FIXME - something different for targetENv
 							//System.out.println("SPECCASE " + specCase + "\n  FRAME: " + specCase.writeFrame + " " + specCase.readFrame + " " + kind);
-							
+							//if (targetEnv != null) System.out.println("TARGET ENV " + targetEnv.allocCount + " " + targetEnv.stateLabel); else System.out.println("TARGET ENV NULL");
 							var prevc = log.useSource(specCase.source()); // FIXME - do we need this?
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("SPECCASE PRE " + precondition);
@@ -13777,10 +13797,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								// FIXME - this can happen during assignable and accessible checking for a method called in a precondition
 							}
 							precondition = treeutils.makeAndSimp(precondition,  guard, precondition);
-							var lsexpr = kind == assignableClauseKind ? specCase.writeFrame : specCase.readFrame;
+                            if (emitAsserts) pushBlock();
+							// Cannot use specCase.writeFrame here because it will not have the correct receiver and parameters substituted
+							// FIXME - but should not do this repeatedly for each storeref being tested
+							JCExpression lsexpr = null;
+							if (targetEnv == callerEnv) lsexpr = kind == assignableClauseKind ? specCase.writeFrame : specCase.readFrame;
 							if (lsexpr == null) {
-							    //System.out.println("WARNING:FRAME NOT PRECOMPUTED FOR " + methodSym + " " + methodDecl.sym);
 							    for (var clause : specCase.clauses) {
+							        // FIXME - account for other than just one clause
 							        if (clause.clauseKind == kind) {
 							            lsexpr = convertAssignableToLocsetExpression(clause,
 							                    ((JmlMethodClauseStoreRef) clause).list, (ClassSymbol) methodSym.owner,
@@ -13789,7 +13813,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							        }
 							    }
 							}
-                            if (emitAsserts) pushBlock();
 							try {
                                 //System.out.println("CHECKING " + sr + " WITH " + currentEnv.currentReceiver + " VS " + lsexpr + " IN " + parentMethodSym.owner + ":" + parentMethodSym + " " + kind + " "  + emitAsserts);
 									JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
@@ -13812,8 +13835,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											//System.out.println("SS RES " + sst);
 											var bl = popBlock(specCase);
 											addStat(M.at(specCase).If(precondition, bl, null));
+											//System.out.println("TEST " + precondition + " " + bl);
                                         } else {
                                             var bl = popBlock(specCase);
+                                            //System.out.println("BLOCK-D " + precondition + " " + bl);
+                                            // There might be some well-definedness checks, so we still include the block
+                                            addStat(M.at(specCase).If(precondition, bl, null));
                                             addStat(comment(pos, "Assertion checking [D] if " + lhsUnconverted + " is in " + lsexpr + " <<< always true", specCase.sourcefile));                                            
                                         }
 									}
@@ -13829,6 +13856,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 				}
 			}
+            //System.out.println("  CHECK RESULT " + okCondition);
 			return okCondition;
 		} finally {
 			callerEnv.popEnv();
@@ -14214,7 +14242,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			
 		} else if (lhs instanceof JCFieldAccess fa) {
 			JCFieldAccess newfa;
-			if (utils.isJMLStatic(fa.sym)) {
+			var istypetree = treeutils.isATypeTree(fa.selected);
+			var isStatic = istypetree || utils.isJMLStatic(fa.sym);
+			if (istypetree) {
 				if (!lhsscanned && !treeutils.isATypeTree(fa.selected))
 					convertExpr(fa.selected);
 				JCExpression typetree = treeutils.makeType(fa.selected.pos, fa.sym.owner.type);
@@ -14252,7 +14282,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			}
 			addBinaryChecks(that, op, newfa, rhs, maxJmlType);
-            var z = freshTest(newfa.selected, newfa.selected, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter);
+            var z = isStatic ? null :
+                    freshTest(newfa.selected, newfa.selected, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter);
             //System.out.println("FRESH " + that.lhs + " " + newfa + " " + z);
 			checkAccess2(assignableClauseKind, that, lhs, newfa, false, z, true, null, false);
 //			checkAccess(assignableClauseKind, that, that.lhs, newfa, methodDecl.sym.owner.type, currentEnv.currentReceiver,
@@ -21863,6 +21894,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         } else if (e instanceof JmlSingleton) {
             return e;
+        } else if (e instanceof JmlStoreRefKeyword) {
+            return e;
         } else if (e instanceof JmlStoreRef) {
             // FIXME - why are we reconverting a JMLStoreRef
             return e;
@@ -24368,9 +24401,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (modelField == null) {
 				// wild-card field -- include all fields
 				for (Symbol s : t.tsym.getEnclosedElements()) {
-					if (s instanceof VarSymbol vs && !vs.isFinal() && utils.isJMLStatic(vs) == (receiver == null)) {
-						JmlStoreRef sr = M.at(pos).JmlStoreRef(false,null,null,receiver,null,vs,null);
-						maps.add(sr);
+					if (s instanceof VarSymbol vs && !vs.isFinal()) {
+					    if (utils.isJMLStatic(vs) == (receiver == null)) {
+					        // FIXME - comment on visibility
+					        JmlStoreRef sr = M.at(pos).JmlStoreRef(false,null,null,receiver,null,vs,null);
+					        sr.setType(LOCSET);
+					        maps.add(sr);
+					    }
 					}
 				}
 			} else {

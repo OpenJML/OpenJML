@@ -83,5 +83,6 @@ else
     echo Completed retrys with remaining failures
     if [ -n "$OPT" ]; then cat logretry ; fi
     grep -E 'FAILED' logretry
+    echo "LIST:" `grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
 fi
 exit $ERR
