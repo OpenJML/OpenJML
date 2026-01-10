@@ -394,26 +394,6 @@ public abstract class JmlTestSuite {
      * To be thread-safe and to work with this output collection, tests must all use this.out and this.err,
      * not System.out and System.err.
      */
-//    public void collectOutput(boolean collect) {
-//        if (collect) {
-//            if (bout != null) return; // Already collecting
-//            recordedOut = null;
-//            recordedErr = null;
-//            savederr = System.err;
-//            savedout = System.out;
-//            this.err = new PrintStream(berr=new ByteArrayOutputStream(10000));
-//            this.out = new PrintStream(bout=new ByteArrayOutputStream(10000));
-//        } else {
-//            if (bout == null) return; // Already not collecting
-//            this.err.flush();
-//            this.out.flush();
-//            recordedErr = berr.toString();
-//            recordedOut = bout.toString();
-//            this.err = savederr;
-//            this.out = savedout;
-//        }
-//    }
-    
     public void collectSystemOutput(boolean collect) {
         if (collect) {
             if (bout != null) return; // Already collecting
