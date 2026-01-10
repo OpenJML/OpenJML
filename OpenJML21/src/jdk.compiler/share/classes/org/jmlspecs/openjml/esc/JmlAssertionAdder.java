@@ -10983,9 +10983,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                                                         //System.out.println("PREV FILE " + prevSource);
                                                         var prevv = log.useSource(sourceloc);
                                                         currentEnv = currentEnv.pushEnvCopy();
-                                                        currentEnv.currentReceiver = convertedReceiver;
+                                                        //System.out.println("REDEIVERS " + currentEnv.currentReceiver + " " + convertedReceiver);
+                                                        if (convertedReceiver != null || !calleeMethodSym.isConstructor()) currentEnv.currentReceiver = convertedReceiver;
                                                         try {
-                                                            addStat(comment("   Checking " + item + " within caller"));
+                                                            String msg2 = "   Checking " + item + " within caller: callee " + calleeMethodSym + " caller: " + methodDecl.sym + " " + enclosingMethod + " " + convertedReceiver;
+                                                            //System.out.println("CA2B " + msg2);
+                                                            addStat(comment(msg2));
                                                             checkAccess2(clause.clauseKind, that, item, item, false, allowed, true, null, false);
                                                         } finally {
                                                             log.useSource(prevv);
@@ -13741,12 +13744,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			//if (kind == accessibleClauseKind) System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + methodSym.owner);
 			if (lhs instanceof JCIdent id && id.sym.owner instanceof ClassSymbol && methodSym.isConstructor()) return okCondition;// OK to set a field of 'this' inside a constructor
-			//System.out.println("CONVERTING? " + lhsUnconverted + " " + lhs + " " + isConverted + " " + currentEnv.currentReceiver);
+			// System.out.println("CONVERTING? " + lhsUnconverted + " " + lhs + " " + isConverted + " " + currentEnv.currentReceiver);
 			if (!isConverted) {
 			    // This conversion replaces formal ids with their actual expressions and does any other standard conversion
 			    lhs = convertLHS2(lhsUnconverted);
 			    isConverted = true;
-			    //System.out.println("   CONVERTED: " + lhs);
+			    // System.out.println("   CONVERTED: " + lhs);
 			}
 			// IF we are comparing lhs to 
 			
@@ -14021,9 +14024,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// FIXME - test this
 				if (!infer) {
-                    //var z = freshTest(aa.indexed, array, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter);
+                    var z = treeutils.makeNotSimp(freshTest(aa.indexed, array, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter));
                     //System.out.println("FRESH " + that.lhs + " " + array + " " + z);
-					checkAccess2(assignableClauseKind, that, that.lhs, newfaa, true, null, true, null, false);
+					checkAccess2(assignableClauseKind, that, that.lhs, newfaa, true, z, true, null, false);
 					// checkAccess(assignableClauseKind, that, aa, newfaa,
 					// methodDecl.sym.owner.type, currentEnv.currentReceiver, currentEnv.currentReceiver);
 				}
@@ -14283,7 +14286,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			addBinaryChecks(that, op, newfa, rhs, maxJmlType);
             var z = isStatic ? null :
-                    freshTest(newfa.selected, newfa.selected, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter);
+                    treeutils.makeNotSimp(freshTest(newfa.selected, newfa.selected, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter));
             //System.out.println("FRESH " + that.lhs + " " + newfa + " " + z);
 			checkAccess2(assignableClauseKind, that, lhs, newfa, false, z, true, null, false);
 //			checkAccess(assignableClauseKind, that, that.lhs, newfa, methodDecl.sym.owner.type, currentEnv.currentReceiver,
@@ -14347,7 +14350,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCArrayAccess newfaa = M.at(that.pos).Indexed(array, index);
             newfaa.setType(that.type);
 
-            var z = freshTest(aa.indexed, array, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter);
+            var z = treeutils.makeNotSimp(freshTest(aa.indexed, array, labelPropertiesStore.get(currentEnv.stateLabel).allocCounter));
             //System.out.println("FRESH " + that.lhs + " " + array + " " + z);
             checkAccess2(assignableClauseKind, that, lhs, newfaa, false, z, true, null, false); // FIXME - check - 5th argument is 'true' for regular assignment
 
@@ -16832,7 +16835,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// OK
 	@Override
 	public void visitIdent(JCIdent that) {
-		if (that.sym == null) {
+
+        if (that.sym == null) {
 			utils.error(that, "jml.message", "NULL SYMBOL " + that);
 		}
 		if (that.sym.owner == null) {
@@ -16850,8 +16854,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		
-		boolean print = false;
-        if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + condition);  }
+        boolean print = false;
+        if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + condition + " " + translatingJML);  }
+
         //if (print) { System.out.println("VISIT IDENT-Y " + ((Type.ArrayType)that.type).getComponentType() + " " + ((Type.TypeVar)((Type.ArrayType)that.type).getComponentType()).tsym.hashCode());  }
 
 		//if (localVariables.containsKey(that.sym)) System.out.println("VISIT-IDENT " + that + " " + rac + " " + currentEnv.stateLabel + " " + localVariables.containsKey(that.sym) + " " + localVariables); 
@@ -16975,6 +16980,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				//if (print) System.out.println("VISITIDENT-F " + that + " " + isPostcondition + " " + condition);
 				if (esc && (that.name == names._this || that.name == names._super)) {
+				    if (currentEnv.currentReceiver == null) utils.error(that, "jml.internal", "No receiver available on translating 'this' or 'super'");
 					result = eresult = currentEnv.currentReceiver != null ? copy(currentEnv.currentReceiver) : copy(that);
 					return;
 				}
@@ -21795,22 +21801,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return null;
     }
     
-    public boolean isClassName(JCTree e) {
-        if (e instanceof JCIdent id && id.sym instanceof ClassSymbol) return true;
-        if (e instanceof JCFieldAccess id && id.sym instanceof ClassSymbol) return true;;
-        return false;
-    }
-    
     /** This is for converting memory location expressions within JML expressions or statements (e.g. havoc statements);
      * that is, all the expressions within the tree are converted except that the form as a l-value is retained;
      * checks for null receivers and out of range indices are inserted, and incorporate 'condition'. */
     public JCExpression convertLHS2(JCExpression e) {
         //if (e.type == null) System.out.println("LHS2 NO TYPE " + e); // Not necessarily a failure, but indicates a bug somewhere -- except for x.*
+        //System.out.println("CONVERTLHS2 " + e + " " + e.getClass() + " " + condition);
         if (e instanceof JCFieldAccess fa) {
-            if (isClassName(fa.selected)) {
+            //System.out.println("CONVERTLHS2-A " + fa + " " + fa.selected + " " + treeutils.isATypeTree(fa.selected));
+            if (treeutils.isATypeTree(fa.selected)) {
                 return e;
             } else {
                 var obj = convertJML(fa.selected);
+                //System.out.println("CONVERTLHS2-B " + e + " " + obj + " " + condition); Utils.dumpStack();
                 obj = newTempIfNeeded(obj);
                 JCExpression nn = treeutils.makeNotNull(obj, obj);
                 if (condition != null) nn = treeutils.makeImplies(nn, condition, nn);

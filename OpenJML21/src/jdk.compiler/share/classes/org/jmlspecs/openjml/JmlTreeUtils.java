@@ -933,11 +933,19 @@ public class JmlTreeUtils {
      *  @param pos    The position at which to put the new AST.
      *  @param arg    The operator's argument.
      */
+    public JCExpression makeNot(JCExpression arg) {
+        return makeUnary(arg,JCTree.Tag.NOT,arg);
+    }
     public JCExpression makeNot(DiagnosticPosition pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
+    public JCExpression makeNotSimp(JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(arg,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(arg,true);
+        else return makeUnary(arg,JCTree.Tag.NOT,arg);
     }
     public JCExpression makeNotSimp(DiagnosticPosition pos, JCExpression arg) {
         if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
