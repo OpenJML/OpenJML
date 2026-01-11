@@ -41,8 +41,8 @@ if [ "$1" == "-retrylog" ]; then OPT=$1 ; shift; fi
 make -C .. prep
 
 alias lsc="jobs | wc -l"
-alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 20; done; echo proceeding \$(lsc)"
-alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 20; done"
+alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 10; done; echo proceeding \$(lsc)"
+alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 10; done"
 
 if [ -z "$*" ]; then
     testlist=`(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/.java//')`
@@ -65,7 +65,7 @@ else
     sync
     for d in $testlist; do
         nm=${d%.java}
-        #echo Starting $nm
+        echo Starting $nm
         ./run-summary log-$nm $nm & 
         sleep 1
         wt

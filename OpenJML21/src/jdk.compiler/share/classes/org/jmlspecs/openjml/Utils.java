@@ -1274,6 +1274,7 @@ public class Utils {
     public List<Symbol.VarSymbol> listAllFields(TypeSymbol base, boolean forStatic) {
         List<Symbol.VarSymbol> list = new LinkedList<Symbol.VarSymbol>();
         for (TypeSymbol csym: parents(base, true)) {
+            // FIX - I think we need to expand recursively
             for (Symbol s: csym.members().getSymbols()) {
                 if (s.kind != Kinds.Kind.VAR) continue;
                 if (!isJMLStatic(s) && forStatic) continue;

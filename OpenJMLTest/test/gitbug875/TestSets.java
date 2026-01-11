@@ -7,6 +7,7 @@ public class TestSets {
 
         if (!seen.isEmpty()) {
             java.util.Iterator<Integer> iter = seen.iterator();
+            //@ loop_modifies iter.*;
             while (iter.hasNext()) {
                 int y = iter.next();
                 java.util.Set<Integer> sMinusY = new java.util.HashSet<>(seen);

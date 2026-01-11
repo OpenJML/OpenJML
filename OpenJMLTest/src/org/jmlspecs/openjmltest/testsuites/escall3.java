@@ -1593,7 +1593,6 @@ public class escall3 extends EscBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-        addOptions("--method=mmm");
         addOptions("--check-feasibility=assert","--defaults=constructor:pure");  // Part of test
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
