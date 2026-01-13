@@ -9375,7 +9375,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return M.at(pos).Block(0L, stats);
 	}
 
-	Map<JmlSpecificationCase, JCExpression> calleePreconditions;
+    Map<JmlSpecificationCase, JCExpression> calleePreconditions;
+    Map<JmlSpecificationCase, JCExpression> calleeWriteFrames;
 
 	int cpreindex3 = 0;
 
@@ -9460,9 +9461,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// A map to hold the preconditions for the callee, indexed by specification case
 		// Since we might have a recursive call, we need to distinguish these from the
 		// caller preconditions
-		Map<JmlSpecificationCase, JCExpression> calleePreconditions = new HashMap<>();
-		Map<JmlSpecificationCase, JCExpression> savedPreexpressions = this.calleePreconditions;
-		this.calleePreconditions = calleePreconditions;
+        Map<JmlSpecificationCase, JCExpression> calleePreconditions = new HashMap<>();
+        Map<JmlSpecificationCase, JCExpression> calleeWriteFrame = new HashMap<>();
+        Map<JmlSpecificationCase, JCExpression> savedPreexpressions = this.calleePreconditions;
+        Map<JmlSpecificationCase, JCExpression> savedCalleeWriteFrames = this.calleeWriteFrames;
+        this.calleePreconditions = calleePreconditions;
+        this.calleeWriteFrames = calleeWriteFrames;
 
 		JCExpression convertedReceiver = null;
 		MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
@@ -10243,25 +10247,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
 //										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
 					} else {
-						var calleeSpecs = specs.getAttrSpecs(calleeMethodSym);
+						var calleeSpecs = specs.getDenestedSpecs(calleeMethodSym);
 						for (int i = 0; i < calleeMethodSym.params.size(); i++) {
 							VarSymbol v = calleeMethodSym.params.get(i);
 							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
 							if (nn) {
 							    // FIXME - why this if?
-								if (calleeSpecs.specDecl == null) {
+								if (calleeSpecs.decl == null) {
 									// There are no specs to point to
 									addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
 											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
 											v.name + " in " + calleeMethodSym);
 								} else {
-								    var formal = calleeSpecs.specDecl.params.get(i);
+								    var formal = calleeSpecs.decl.params.get(i);
 								    var p = utils.locNonNullAnnotation(formal);
 								    if (p == Position.NOPOS) p = formal.getStartPosition();
 								    addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
 											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
 											new JCDiagnostic.SimpleDiagnosticPosition(p), 
-											calleeSpecs.specDecl.sourcefile,
+											calleeSpecs.decl.sourcefile,
 											v.name + " in " + calleeMethodSym);
 								}
 							}
@@ -10936,6 +10940,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							if (pre == null) continue; // anonymous class without specs
 							//System.out.println("CS-Q " + mpsym.owner + " " + mpsym + " " + pre);
 							if (treeutils.isFalseLit(pre)) continue;
+							//System.out.println("PUSHING BLOCK FOR " + pre);
 							var check8 = pushBlock();
 							try {
 								if (cs.block == null) { // FIXME - not quite sure of this guard // FIXME - what
@@ -10945,6 +10950,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 																					// accessible tests
 									boolean anyCallableClauses = false;
 									for (JmlMethodClause clause : cs.clauses) {
+									    //System.out.println("CHECKING CLAUSE " + clause);
 										JavaFileObject prevSource = log.useSource(clause.source());
 										// We iterate over each storeref item in each assignable clause
 										// of each specification case of the callee - for each item we check
@@ -10953,6 +10959,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										try {
 											if (clause instanceof JmlMethodClauseStoreRef cst) {
                                                 if (calleeIsPure && clause.clauseKind == assignableClauseKind) continue;
+                                                if (clause.clauseKind == accessibleClauseKind && !JmlOption.CHECK_ACCESSIBLE.isSet(context)) continue;
                                                 if ((translatingJML || isHeapIndependent(calleeMethodSym)) && clause.clauseKind == accessibleClauseKind) continue;
 												
 												List<JCExpression> storerefs = cst.list ; // expandStoreRefList(cst.list, calleeMethodSym, false);
@@ -11056,6 +11063,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								        // do nothing
 								    } else {
                                         addStat(M.at(cs.pos).If(pre, bl, null));
+                                        //System.out.println("POPPED BLOCK FOR " + pre);
 								    }
 								}
 								log.useSource(prev);
@@ -13697,7 +13705,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         utils.error(lhs, "jml.message", "Local variable is assigned but not present in loop frame clause: " + lhsUnconverted + " not in " + loopwrites);
                     }
                 }
-                if (emitAsserts) pushBlock();
+                pushBlock();
                 var srex = sr; // isConverted ? sr :  convertJML(sr);
                 if (loopwrites.asLocset == null) System.out.println("NULL LOCSET " + loopwrites);
                 JCExpression ss = treeutils.makeSubset(sr, srex, loopwrites.asLocset);
@@ -13710,16 +13718,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     System.out.println("SS CRASH");
                     e.printStackTrace(System.out);
                 }
-                if (!emitAsserts) {
-                    okCondition = treeutils.makeAndSimp(pos,  okCondition,  convertedCondition);
-                } else {
+                okCondition = treeutils.makeAndSimp(pos,  okCondition,  convertedCondition);
+                {
                     //convertedCondition = conditionedAssertion(convertedCondition, convertedCondition); // FIXME - check whether we need this
                     if (!treeutils.isTrueLit(convertedCondition)) {
                         //System.out.println("OK " + okCondition);
                         convertedCondition = makeAssertionOptional(convertedCondition);
                         //System.out.println("Assertion checking if [A] " + lhsUnconverted + " is in " + loopwrites + " :: " + kind + " " + convertedCondition);
-                        addStat(comment(pos, "Assertion checking [A] if " + lhsUnconverted + " is in " + loopwrites, log.currentSourceFile()));
-                        var sst = addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, loopwrites, log.currentSourceFile(), null, lhsUnconverted);
+                        if (emitAsserts) addStat(comment(pos, "Assertion checking [A] if " + lhsUnconverted + " is in " + loopwrites, log.currentSourceFile()));
+                        if (emitAsserts) addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, loopwrites, log.currentSourceFile(), null, lhsUnconverted);
                         var bl = popBlock(sr);
                         addStat(bl);
                     } else {
@@ -13791,7 +13798,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							//if (targetEnv != null) System.out.println("TARGET ENV " + targetEnv.allocCount + " " + targetEnv.stateLabel); else System.out.println("TARGET ENV NULL");
 							var prevc = log.useSource(specCase.source()); // FIXME - do we need this?
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
-							//System.out.println("SPECCASE PRE " + precondition);
+							//System.out.println("CALLER SPECCASE PRE " + comparingToCallee + " " + emitAsserts + " " + precondition + " " + specCase);
 							if (precondition == null) {
 								if (!parentMethodSym.owner.isAnonymous()) {
 								    System.out.println("NULL PRECONDITION FOR " + methodDecl.sym.owner + "." + methodDecl.sym + " " + methodSym.owner + "." + methodSym + " " + (methodDecl.sym == methodSym) + " " + parentMethodSym.owner + "." + parentMethodSym + " " + (methodSym==parentMethodSym) + " " + specCase);
@@ -13800,7 +13807,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								// FIXME - this can happen during assignable and accessible checking for a method called in a precondition
 							}
 							precondition = treeutils.makeAndSimp(precondition,  guard, precondition);
-                            if (emitAsserts) pushBlock();
+                            pushBlock();
 							// Cannot use specCase.writeFrame here because it will not have the correct receiver and parameters substituted
 							// FIXME - but should not do this repeatedly for each storeref being tested
 							JCExpression lsexpr = null;
@@ -13824,17 +13831,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									//System.out.println("  CC " + ss + " :: " + convertedCondition + " " + emitAsserts);
 									if (!emitAsserts) {
 										convertedCondition = treeutils.makeImplies(pos, precondition, convertedCondition);
-										okCondition = treeutils.makeAndSimp(pos,  okCondition,  convertedCondition);
+										okCondition = treeutils.makeAndSimp(pos,  convertedCondition, okCondition);
+										popBlock(specCase);
+										//System.out.println("CONVERTED " + convertedCondition);
+										//System.out.println("OKCONDITION " + okCondition);
 									} else {
 										//convertedCondition = conditionedAssertion(convertedCondition, convertedCondition); // FIXME - verify that we need this
 										if (!treeutils.isTrueLit(convertedCondition)) {
 											convertedCondition = makeAssertionOptional(convertedCondition);
 											//System.out.println("Assertion checking [C] if " + lhsUnconverted + " is in " + lsexpr + " : " + kind + " " + convertedCondition);
-											addStat(comment(pos, "Assertion checking [" + kind + " - C] if " + lhsUnconverted + " is in " + lsexpr, specCase.sourcefile));
+											if (emitAsserts) addStat(comment(pos, "Assertion checking [" + kind + " - C] if " + lhsUnconverted + " is in " + lsexpr, specCase.sourcefile));
                                             //System.out.println("PRIMARY SOURCE " + primarySource);
                                             //System.out.println("PREVC " + prevc);
                                             //System.out.println("CURRENT " + log.currentSourceFile());
-											var sst = addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, lsexpr, specCase.sourcefile, null, lhsUnconverted);
+											if (emitAsserts) addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, lsexpr, specCase.sourcefile, null, lhsUnconverted);
 											//System.out.println("SS RES " + sst);
 											var bl = popBlock(specCase);
 											addStat(M.at(specCase).If(precondition, bl, null));
@@ -18203,6 +18213,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     
     public List<JmlStatementLoop> handleInlinedLoopSpecs(IJmlLoop that, List<JmlStatementLoop>loopSpecs, JCVariableDecl indexDecl) {
         if (mostRecentInlinedLoop != null) {
+//            System.out.println("HILS\n" + currentEnv.currentReceiver + "\n" + mostRecentInlinedLoop.loopSpecs + "\n" + mostRecentInlinedLoop.translatedSpecs );
             for (JmlStatementLoop stat : mostRecentInlinedLoop.translatedSpecs) {
                 if (stat instanceof JmlStatementLoopExpr) {
 //                    if (mostRecentInlinedLoop.countIds.isEmpty()) {
