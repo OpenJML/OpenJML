@@ -33,31 +33,57 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"$SPECS/java/lang/Iterable.jml:44: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
+                ,"$SPECS/java/lang/Iterable.jml:45: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
                 );
     }
     
     @Test
+    public void testIterable1a() {
+        addOptions("--code-math=java");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                
+                  public static class MMM {
+                    public int i;
+                    //@ writes i;
+                    public void bump() { i++; }
+                  }
+                
+                  // @ assignable a.values[*].i;
+                  public void m1(Iterable<MMM> a) {
+                    // @ loop_invariant a.values == \\old(a.values);
+                    //@ loop_assigns \\everything;
+                    for (MMM t: a) t.bump();
+                  }
+                }
+                """
+                ); // FIXME - no way to write the frame condition for m1
+    }
+    
+    @Test
     public void testIterable1b() {
-    	addOptions("--code-math=java");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
+        addOptions("--code-math=java");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
                 
-                +"  \n"
-                +"  public static class MMM {\n"
-                +"    public int i ;\n"
-                +"    //@ writes i;\n"
-                +"    public void bump() { i++; }\n"
-                +"  }\n"
+                  public static class MMM {
+                    public int i;
+                    //@ writes i;
+                    public void bump() { i++; }
+                  }
                 
-                +"  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
-                +"    //@ loop_invariant a.values == \\old(a.values);\n"
-                +"    //@ loop_assigns i;\n"
-                +"    //@ inlined_loop;\n"
-                +"    a.forEach(MMM::bump);\n"
-                +"  }\n"
-                                
-                +"}"
+                  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {
+                    //@ loop_invariant a.values == \\old(a.values);
+                    //@ loop_assigns \\everything;
+                    //@ inlined_loop;
+                    a.forEach(MMM::bump);
+                  }
+                }
+                """
                 ); // FIXME - no way to write the frame condition for m1
     }
     
@@ -76,11 +102,12 @@ public class esclambdas extends EscBase {
                 
                 +"  public void m1(/*@ non_null*/ Iterable<@org.jmlspecs.annotation.Nullable MMM> a) {\n"  // We do not know that each element returned by the iterable is non-null
                 +"    //@ loop_invariant a.values == \\old(a.values);\n"
+                +"    //@ loop_assigns \\everything;\n"
                 +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",19
                 );
     }
     
@@ -97,6 +124,8 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                 
                 +"  public void m1(/*@ non_null*/ Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"
+                +"    //@ loop_assigns \\everything;\n"
+                +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->m.bump());\n"
                 +"  }\n"
                 +"}"
@@ -123,6 +152,8 @@ public class esclambdas extends EscBase {
                 +"  //@ requires a.containsNull == false;\n"
                 +"  public void m1(/*@ non_null*/ Iterable</*@ non_null*/ MMM> a) {\n"
                 +"    //java.util.function.Consumer<MMM> action = (m->bump(m,m)); for (@org.jmlspecs.annotations.NonNull MMM t: a) action.accept(t); \n"
+                +"    //@ loop_assigns \\everything;\n"
+                +"    //@ inlined_loop;\n"
                 +"    a.forEach(m->bump(m,m));\n"
                 +"  }\n"
                                 
@@ -234,6 +265,8 @@ public class esclambdas extends EscBase {
                 
                 +"  //@ requires a != null;\n"
                 +"  public void m1(Iterable<@org.jmlspecs.annotation.NonNull MMM> a) {\n"  // NonNull should shut off the error message
+                +"    //@ loop_assigns \\everything;\n"
+                +"    //@ inlined_loop;\n"
                 +"    a.forEach(MMM::bump);\n"
                 +"  }\n"
                                 
