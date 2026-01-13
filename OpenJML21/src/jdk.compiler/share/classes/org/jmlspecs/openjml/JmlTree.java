@@ -1959,7 +1959,7 @@ public class JmlTree {
         public boolean consumed;
         public List<JmlStatementLoop> loopSpecs;
         public List<JmlStatementLoop> translatedSpecs;
-        public java.util.List<JCIdent> countIds = new java.util.LinkedList<>();
+        //public java.util.List<JCIdent> countIds = new java.util.LinkedList<>();
         
         public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
         public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }

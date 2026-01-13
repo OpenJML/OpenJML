@@ -21,7 +21,7 @@ public class buggyRandomNumber{
       //@ maintaining randomNumbers.size() <= repeat;   
       //@ maintaining 0 <= selected && selected < range; 
       //@ maintaining (\forall int i; 0 <= i && i < randomNumbers.size(); 0 <= randomNumbers.get(i) && randomNumbers.get(i) <range);
-      //@ loop_assigns randomNumbers.*, selected, counter;
+      //@ loop_assigns randomNumbers.*, selected, counter, rnum.content;
       for (counter = 1; counter <= repeat; counter++) {
      selected = rnum.nextInt(range);
      randomNumbers.add(selected);
