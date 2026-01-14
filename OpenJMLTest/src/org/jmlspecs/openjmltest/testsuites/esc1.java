@@ -298,27 +298,66 @@ public class esc1 extends EscBase {
                 + "  //@ public normal_behavior  ensures true;\n"
                 + "  public void m2() {\n"
                 + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
-                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); \n"
+                + "    //@ loop_assigns it.objectState, it.remove_called_since, it.moreElements;\n"
                 + "    for (; it.hasNext();  ) {\n"
-                + "        it.next(); \n"
+                + "        it.next(); \n" // OK
                 + "    }\n"
                 + "  }\n"
 
                 + "  //@ public normal_behavior  ensures true;\n"
                 + "  public void m2bad() {\n"
                 + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
-                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); \n"
+                + "    //@ loop_assigns it.objectState, it.remove_called_since, it.moreElements;\n"
                 + "    for (; it.hasNext();  ) {\n"
-                + "        it.next(); \n"
+                + "        it.next(); \n" // OK
+                + "        it.next(); \n" // ERROR - exception
+                + "    }\n"
+                + "  }\n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m3bad() {\n"
+                + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    it.next(); \n" // ERROR - exception
+                + "  }\n"
+
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m4bad() {\n"
+                + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    for (; it.hasNext();  ) {\n"  // ERROR - should fail frame checks -- problem is with allocation check
                 + "        it.next(); \n"
                 + "    }\n"
                 + "  }\n"
+                
+                + "  //@ public normal_behavior  ensures true;\n"
+                + "  public void m5() {\n"
+                + "    Set<Integer> a = new HashSet<Integer>(); //@ assume a != null; \n"
+                + "    Iterator<Integer> it = a.iterator(); //@ assume it != null; \n"
+                + "    //@ loop_assigns it.*; \n"
+                + "    for (; it.hasNext();  ) {\n"  // ERROR - should fail frame checks -- problem is with allocation check
+                + "        it.next(); \n"
+                + "    }\n"
+                + "  }\n"
+                
 
                 + "  public TestJava() {}"
 
                 + "}"
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad", 16
-                ,"/tt/TestJava.java:11: verify: Associated declaration", 14
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad", 16
+                ,"/tt/TestJava.java:12: verify: Associated declaration", 14
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3bad", 12
+                ,"/tt/TestJava.java:22: verify: Associated declaration", 14
+                ,anyorder(
+                seq("/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4bad: objectState", 16
+                ,"/tt/TestJava.java:32: verify: Associated declaration", 29)
+                ,seq("/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4bad: moreElements", 16
+                ,"/tt/TestJava.java:32: verify: Associated declaration", 29)
+                ,seq("/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4bad: remove_called_since", 16
+                ,"/tt/TestJava.java:32: verify: Associated declaration", 29)
+                )
                 );
     }
 
@@ -331,6 +370,7 @@ public class esc1 extends EscBase {
                 + "  public void m2() {\n"
                 + "    Set<@NonNull Integer> a = new HashSet<@NonNull Integer>(); \n"
                 + "    Iterator<@NonNull Integer> it = a.iterator(); \n"
+                + "    //@ loop_assigns it.*;\n"
                 + "    for (; it.hasNext();  ) {\n"
                 + "        @NonNull Integer k = it.next(); \n"
                 + "    }\n"
@@ -340,6 +380,7 @@ public class esc1 extends EscBase {
                 + "  public void m2bad() {\n"
                 + "    Set<@Nullable Integer> a = new HashSet<@Nullable Integer>(); \n"
                 + "    Iterator<@Nullable Integer> it = a.iterator(); \n"
+                + "    //@ loop_assigns it.*;\n"
                 + "    for (; it.hasNext();  ) {\n"
                 + "        @NonNull Integer k = it.next(); \n" // ERROR
                 + "    }\n"
@@ -348,7 +389,7 @@ public class esc1 extends EscBase {
                 + "  public TestJava() {}"
 
                 + "}"
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2bad: k",26
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2bad: k",26
                 );
     }
 
@@ -388,6 +429,7 @@ public class esc1 extends EscBase {
                     Entry<String,String> k;
                     //@ ghost List<Entry<String,String>> v = values; // Line 10
                     //@ loop_invariant values == v;
+                    //@ loop_assigns it.*, k, values.*;
                     for (; it.hasNext(); values.add(k) ) {
                         k = it.next();  // k might be null -- default is nullable
                         //@ assert k != null ==> \\typeof(k) <:= \\type(Entry<String,String>);
@@ -416,6 +458,7 @@ public class esc1 extends EscBase {
                     @NonNull Entry<String,String> k;
                     //@ ghost List<Entry<String,String>> v = values;
                     //@ loop_invariant values == v;
+                    //@ loop_assigns k,it.*, values.*;
                     while (it.hasNext()) {
                         k = it.next();
                         //@ assert k != null;
@@ -672,7 +715,8 @@ public class esc1 extends EscBase {
 
     @Test
     public void testAssignables4a() {
-        helpEsc("tt.TestJava", "package tt; \n" + "public class TestJava { \n"
+        helpEsc("tt.TestJava", "package tt; \n"
+                + "public class TestJava { \n"
                 + "  public int k; public static int sk;\n" 
                 + "  public static TestJava p;\n"
 
@@ -693,13 +737,22 @@ public class esc1 extends EscBase {
                 + "  }\n"
 
                 + "  //@ requires o != null;\n" 
-                + "  //@ assigns  o.*;\n" 
+                + "  //@ assigns  o.*;\n"   // Line 20
                 + "  public void c1(TestJava o) { } \n"
 
                 + "  //@ requires o != null;\n" 
                 + "  //@ assigns  TestJava.*;\n" 
                 + "  public void c2(TestJava o) { } \n"
-                + "}");
+
+                + "  //@ assigns  o.sk;\n" // ERROR - receiver is checked even if the field is static
+                + "  public void c3(TestJava o) { } \n"
+
+                + "  //@ requires o != null;\n" 
+                + "  //@ assigns  o.sk;\n" 
+                + "  public void c4(TestJava o) { } \n"
+                + "}"
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method c3",17
+                );
     }
 
     @Test
@@ -1142,7 +1195,7 @@ public class esc1 extends EscBase {
                         + "  public void m4a() {\n"
                         + "    //@ assume a[0] == 0 && a[1] == 1;\n"
                         + "    c3(0);\n"
-                        + "    //@ assert a[0] == 0;\n" // FAILS
+                        + "    //@ assert a[0] == 0;\n" // FAILS // Line 30
                         + "  }\n"
 
                         + "  //@ requires i == 0;\n"
@@ -2200,6 +2253,23 @@ public class esc1 extends EscBase {
         // ,"/tt/TestJava.java:6: verify: Associated declaration",40
         // FIXME - fix references
         );
+    }
+    
+    @Test
+    public void testForInits() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    //@ loop_assigns i;
+                    for (int i=0, j=0; i<5; i++) {
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: warning: Loop variable j is not modified in the loop",19
+                );
     }
 
     @Test

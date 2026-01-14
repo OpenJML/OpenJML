@@ -1031,7 +1031,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 if (that.isEverything) {
                     print(JmlPrimitiveTypes.everythingKind.keyword);
                 } else if (that.local != null) {
-                    print(that.local.toString());
+                    String s = that.local.toString();
+                    if (s.startsWith(Strings.countVarPrefix)) s = "\\count";
+                    print(s);
                 } else if (that.expression != null) {
                     printExpr(that.expression);
                 } else if (that.range != null) {
@@ -1039,9 +1041,6 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     print('[');
                     printExpr(that.range);
                     print(']');
-                } else if (that.originalStoreRef != null) {
-                    printExpr(that.originalStoreRef);
-
                 } else if (that.field != null) {
                     if (that.receiver == null) {
                         Type t = that.field.owner.type;
@@ -1051,6 +1050,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                     }
                     print(".");
                     print(that.field.toString());
+                } else if (that.receiver != null) {
+                    print(that.receiver);
+                    print(".*");
+                } else if (that.originalStoreRef != null) {
+                    printExpr(that.originalStoreRef);
                 }
             }
         } catch (IOException e) { perr(that,e); }
@@ -1449,7 +1453,17 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             perr(that,e);
         }
     }
-    
+
+//    @Override
+//    public void visitIdent(JCIdent tree) {
+//        try {
+//            print(tree.name);
+//        } catch (IOException e) {
+//            throw new UncheckedIOException(e);
+//        }
+//    }
+//
+
     @Override
     public void visitIndexed(JCArrayAccess tree) {
         try {

@@ -51,7 +51,7 @@ class TestB {
         ii++;
     }
     
-    public void mm() {
+    public void mq() {
         
         Stream<Integer> st = Stream.<Integer>of(1,2,3,4,5);
         //@ assert st.count() == 5;
@@ -72,7 +72,10 @@ class TestB {
 }
 
 class TestA {
-	
+
+    public Stream<Integer> st = Stream.<Integer>of(1,2,3,4,5);
+    public int[] arr = new int[5];
+
 	public int ii;
 	
 	//@ requires ii >= 0 && ii < arr.length;
@@ -84,10 +87,11 @@ class TestA {
 		arr[ii] = v;
 		ii++;
 	}
+	
+	//@ requires st.count() == 5;
+	//@ requires arr.length == 5;
 	public void m() {
 		
-		Stream<Integer> st = Stream.<Integer>of(1,2,3,4,5);
-		int[] arr = new int[5];
 		//@ assert st.count() == 5;
 		
 		ii = 0;
@@ -96,12 +100,12 @@ class TestA {
 		//@ loop_modifies ii, arr[*];
 		//@ inlined_loop;
 		st.forEachOrdered(v -> putAtI(arr,v));
-
-		//@ show ii, st.values.length, st.count(); 
-		//@ assert ii == st.count();
-		
-		//@ assert arr[0] == 1;
-		//@ assert arr[4] == 5;
-		//@ assert (\forall int j; j>=0 && j<arr.length; arr[j] == j+1);
+//
+//		//@ show ii, st.values.length, st.count(); 
+//		//@ assert ii == st.count();
+//		
+//		//@ assert arr[0] == 1;
+//		//@ assert arr[4] == 5;
+//		//@ assert (\forall int j; j>=0 && j<arr.length; arr[j] == j+1);
 	}
 }

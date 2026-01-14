@@ -292,7 +292,7 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(/*@non_null*/ JmlMethodDecl methodDecl) {
-        boolean printPrograms = this.verbose || JmlOption.SHOW.includes(context, "translated", "all") || JmlOption.SHOW.includes(context, "program", "all");
+        boolean printPrograms = this.verbose || JmlOption.SHOW.includes(context, "translated", "all", "program");
                 
         String proverToUse = pickProver();
 

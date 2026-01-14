@@ -594,7 +594,8 @@ public class JmlCompiler extends JavaCompiler {
         }
         if (utils.check) {
             if (JmlOption.SHOW.includes(context,"program","all")) { 
-                envs.stream().forEach(e->System.out.println(e.toplevel.toString()));
+                //envs.stream().forEach(e->System.out.println(e.toplevel.sourcefile));
+                envs.stream().filter(e->e.toplevel.sourcefile.getKind() == JavaFileObject.Kind.SOURCE).forEach(e->System.out.println(e.toplevel.toString()));
             }
             return noresults; // Empty list - do nothing more
         } else if (utils.doc) {

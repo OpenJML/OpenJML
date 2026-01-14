@@ -1,0 +1,5 @@
+test/gitbug933a/MyArray.java:13: error: Local variable is assigned but not present in loop frame clause: i not in //@ loop_writes arr[*], \count;
+        for(i = 0; i < 5; i++) {
+                          ^
+Operation not performed because of parse or type errors
+1 error

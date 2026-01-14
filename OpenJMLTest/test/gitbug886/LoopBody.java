@@ -27,6 +27,7 @@ class LoopInit {
     for (int i = 0; i<10; i++) {
       k = 11;
       //@ assert \old(k,\LoopInit) == 10;
+      //@ loop_writes j, k;
       for (int j = 0; j < 10; j++) {
         k = 12;
         //@ assert \old(k,\LoopInit) == 11;

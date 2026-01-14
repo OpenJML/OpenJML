@@ -31,6 +31,7 @@ import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
@@ -728,7 +729,7 @@ public class JmlSpecs {
             if (specSym.params == null) System.out.println("NULL PARAMS " + specSym);
             var iter = specSym.params.iterator();
             for (JCVariableDecl d: decl.params) {
-                boolean nn = isNonNullFormal(d.type, i++, spec, specSym);
+                boolean nn = isNonNullFormal(d.type, i++, spec.cases, specSym);
                 var f = new LocalSpecs((JmlVariableDecl)d, nn, specSym);
                 var jsym = iter.next();
                 if (print) System.out.println("   PARAM " + d + " " + nn + " " + jsym + " " + f);
@@ -1208,9 +1209,9 @@ public class JmlSpecs {
         boolean isPureL = libraryMethod && !JmlOption.PURITYCHECK.isSet(context);
         //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind)));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind)));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
 
         list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
         JmlMethodClauseSignalsOnly cl = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, list.toList());
@@ -1569,11 +1570,18 @@ public class JmlSpecs {
         // Extension type values are always non-null, but we do not check for that
         if (jmltypes.isJmlType(type)) return false;
         if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
+        return isNonNullFormal(type, i, calleeSpecs.cases, msym);
+    }
+
+    public boolean isCheckNonNullFormal(Type type, int i,  JmlMethodSpecs calleeSpecs, MethodSymbol msym) {
+        // Extension type values are always non-null, but we do not check for that
+        if (jmltypes.isJmlType(type)) return false;
+        if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
         return isNonNullFormal(type, i, calleeSpecs, msym);
     }
 
     @SuppressWarnings("unchecked")
-    public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
+    public boolean isNonNullFormal(Type type, int i, JmlMethodSpecs calleeSpecs, MethodSymbol msym) {
         boolean pr = false; // msym.name.toString().contains("? extends U");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
@@ -1582,9 +1590,9 @@ public class JmlSpecs {
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
         //if (type instanceof Type.TypeVar) return false; 
-        if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
-        if (!(type instanceof Type.TypeVar) && calleeSpecs.specDecl != null) {
-            var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
+        if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.decl);
+        if (!(type instanceof Type.TypeVar) && calleeSpecs.decl != null) {
+            var decl = (JmlVariableDecl)calleeSpecs.decl.params.get(i);
             JmlModifiers mods = (JmlModifiers)decl.mods;
             if (pr) System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
             if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;

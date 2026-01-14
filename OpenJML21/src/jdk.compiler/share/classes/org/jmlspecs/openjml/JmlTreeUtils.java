@@ -933,11 +933,19 @@ public class JmlTreeUtils {
      *  @param pos    The position at which to put the new AST.
      *  @param arg    The operator's argument.
      */
+    public JCExpression makeNot(JCExpression arg) {
+        return makeUnary(arg,JCTree.Tag.NOT,arg);
+    }
     public JCExpression makeNot(DiagnosticPosition pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
     }
     public JCExpression makeNot(int pos, JCExpression arg) {
         return makeUnary(pos,JCTree.Tag.NOT,arg);
+    }
+    public JCExpression makeNotSimp(JCExpression arg) {
+        if (isTrueLit(arg)) return makeBooleanLiteral(arg,false);
+        else if (isFalseLit(arg)) return makeBooleanLiteral(arg,true);
+        else return makeUnary(arg,JCTree.Tag.NOT,arg);
     }
     public JCExpression makeNotSimp(DiagnosticPosition pos, JCExpression arg) {
         if (isTrueLit(arg)) return makeBooleanLiteral(pos,false);
@@ -1758,6 +1766,20 @@ public class JmlTreeUtils {
         return makeBitAnd(v.pos, e1, e2);
     }
     
+    public JCExpression makeArrayRangeCheck(JCExpression v, JCExpression max) {
+        JCExpression e1 = makeBinary(v.pos, JCTree.Tag.LE, makeIntLiteral(v, 0), v);
+        JCExpression e2 = makeBinary(v.pos, JCTree.Tag.LE, v, max);
+        return makeBitAnd(v.pos, e1, e2);
+    }
+    
+    public JCExpression makeArrayRangeCheckLo(JCExpression v) {
+        return makeBinary(v.pos, JCTree.Tag.LE, makeIntLiteral(v, 0), v);
+    }
+    
+    public JCExpression makeArrayRangeCheckHi(JCExpression v, JCExpression arr) {
+        return makeBinary(v.pos, JCTree.Tag.LT, v, makeLength(arr,arr));
+    }
+    
     public JCMethodInvocation makeMethodInvocation(DiagnosticPosition pos, JCExpression receiver, String name, JCExpression ... nargs) {
         return makeMethodInvocation(pos, receiver, names.fromString(name), nargs);
     }
@@ -2323,11 +2345,26 @@ public class JmlTreeUtils {
      }
 
     public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
-    	return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+        return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
+    }
+    
+    public JCExpression makeLocsetIntersection(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
+        return makeJmlMethodInvocation(pos, LocsetExtensions.intersectionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
     }
     
     public JCExpression makeLocset(JCExpression e) {
     	return makeJmlMethodInvocation(e, JmlPrimitiveTypes.locsetTypeKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), e);
+    }
+    
+    public JmlStoreRef makeLocsetEverything(DiagnosticPosition pos){
+        JCExpression e = factory.at(pos).JmlSingleton(JmlPrimitiveTypes.everythingKind);
+        var r = factory.at(e.pos).JmlStoreRef(true, null, null, null, null, null, e);
+        r.type = JmlPrimitiveTypes.locsetTypeKind.getType(context);
+        return r;
+    }
+    
+    public JCExpression makeLocsetNothing(DiagnosticPosition pos){
+        return makeLocsetUnion(pos, List.<JCExpression>nil());
     }
     
      
