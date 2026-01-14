@@ -43,6 +43,7 @@ public class esclambdas extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
+                //@ non_null_by_default
                 public class TestJava {
                 
                   public static class MMM {
