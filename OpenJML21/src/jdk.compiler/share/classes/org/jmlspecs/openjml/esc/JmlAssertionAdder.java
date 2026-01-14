@@ -12653,6 +12653,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression cpre = copy(pre);
 	                    pushArithMode(calleeMethodSym, true);
 						try {
+				            System.out.println("INLINING " + calleeMethodSym + " " + calleeMethodSym.type + " " + cs.block);
 						    inlineConvertBlock(that, cpre, copy(cs.block), "model program");
 	                    } finally {
 	                        popArithMode();
@@ -18277,6 +18278,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    
 		// Outer block to restrict scopes of temporaries
 		pushBlock();
+		
+		System.out.println("FOREACH MAP " + typevarMapping);
 
 //        JCExpression originalIterable = null;
 //        Type iterableSuperType = null;
@@ -18347,12 +18350,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addAssert(that.expr, Label.NULL_ELEMENT, e4);
 				}
 			} else {
+			    System.out.println("LOOP " + that.expr.type + " " + that);
 				JCExpression e = convertExpr(that.expr);
 				Name niter = names.fromString("values");
 				JCFieldAccess fa = M.at(that.expr).Select(e, niter);
 				fa.sym = syms.iterableType.tsym.members().findFirst(niter, sf -> sf instanceof VarSymbol);
 				fa.type = typevarValue(fa.sym.type, typevarMapping);
-				//System.out.println("CALLED TYPEVARVALUE-A " + e.type + " " + fa.sym.type + " " + fa.type + " " + typevarMapping);
+				System.out.println("CALLED TYPEVARVALUE-A " + e.type + " " + fa.sym.type + " " + fa.type + " " + typevarMapping);
 				var lensym = fa.type.tsym.members().findFirst(names.length, sf -> sf instanceof VarSymbol);
 				fa = M.at(that.expr).Select(fa, names.length);
 				fa.sym = lensym;
@@ -18445,14 +18449,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCFieldAccess fa = M.at(that.expr).Select(e, niter);
 				fa.sym = syms.iterableType.tsym.members().findFirst(niter);
 				fa.type = typevarValue(fa.sym.type, typevarMapping);
-				// System.out.println("CALLED TYPEVARVALUE-B " + fa.sym.type + " " + fa.type + "
-				// " + typevarMapping);
 
 				var typeargs = that.expr.type.getTypeArguments();
 				var typearg = syms.objectType;
 				if (typeargs.size() > 0)
 					typearg = typeargs.head;
 
+		        System.out.println("FOREACH MAP-B " + typevarMapping);
+                System.out.println("CALLED TYPEVARVALUE-B " + fa.sym.type + " " + fa.type + " " + typevarMapping + " " + typearg); Utils.dumpStack();
 				JmlSingleton index = M.at(that.var).JmlSingleton(countKind);
 				index.kind = countKind;
 				index.type = BIGINT;
@@ -18468,12 +18472,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - should also check the nullity of the declared variable and see if an
 				// assert is needed
 
+                System.out.println("FOREACH MAP-C " + typevarMapping);
 				Type vtype = typevarValue(that.var.type, typevarMapping);
+				System.out.println("    " + that.var.type + " ==> " + vtype);
 				JCVariableDecl loopVarDecl = treeutils.makeVarDef(vtype, that.var.name, methodDecl.sym,
 						addImplicitConversion(that.expr, vtype, e));
 				loopVarDecl.sym = that.var.sym;
 				// assign the foreach loop variable
 				addStat(loopVarDecl);
+				System.out.println("    DECL " + loopVarDecl);
 				if (specs.isNonNull(vtype)) { // Only checks for explicit NonNull -- FIXME - is that correct
 					addAssume(that, Label.NULL_CHECK,
 							treeutils.makeNotNull(that, treeutils.makeIdent(that, loopVarDecl.sym)));
@@ -23088,7 +23095,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public Map<TypeSymbol, Type> typemapping(JCMethodInvocation apply, Map<TypeSymbol, Type> map) {
 		if (map == null) map = new HashMap<TypeSymbol, Type>();
 		MethodSymbol msym = (MethodSymbol)treeutils.getSym(apply);
-		boolean print = false;//msym.toString().contains("of") || msym.toString().contains("forEachOrdered");
+		boolean print = msym.toString().contains("forEach") || msym.toString().contains("forEachOrdered");
 		if (print) System.out.println("MAPPING " + apply + " " + apply.type + " " + apply.meth.type + " " + msym.type + " " + msym + " " + msym.params);
         if (!msym.getReturnType().isPrimitiveOrVoid()) {
             if (print) System.out.println("UNIFYING RETURN");
@@ -23098,7 +23105,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (msym.params != null) {
             if (!msym.isVarArgs()) {
                 for (int i = 0; i < msym.params.length(); ++i) {
-                    if (print) System.out.println("UNIFYING ARG " + i);
+                    if (print) System.out.println("UNIFYING ARG " + i + " " + apply.args.get(i).type + " " + msym.params.get(i).type);
                     map = unifyTypes(apply.args.get(i).type, msym.params.get(i).type, map);
                 }
             } else {
@@ -23150,21 +23157,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (types.isSameType(actual, formal)) return map;
 		if (actual.isPrimitive() || actual.hasTag(TypeTag.BOT)) return map; // Might be nulltype and might be int to \bigint -- FIXME why does this latter happen
 		
-        //System.out.println("UNIFYING " + actual + " TO " + formal + " ( " + actual.getClass() + " " + formal.getClass() + ")");
+        System.out.println("UNIFYING " + actual + " TO " + formal + " ( " + actual.getClass() + " " + formal.getClass() + ")");
+        if (formal.isPrimitive()) return map;
 		if (formal instanceof Type.TypeVar tf) {
 			map.put(tf.tsym, actual);
-			//System.out.println("  MAPPING " + tf.tsym + " " + tf.tsym.hashCode() + " TO " + actual + " " + map);
+			System.out.println("  MAPPING " + tf.tsym + " " + tf.tsym.hashCode() + " TO " + actual + " " + actual.hashCode() + " " + map);
 			return map;
 		}
 		if (formal instanceof Type.ArrayType eformal && actual instanceof Type.ArrayType eactual) {
 			return unifyTypes(eactual.elemtype, eformal.elemtype, map);
 		}
 		if (formal instanceof Type.WildcardType wt && actual instanceof Type.ClassType) {
-		    //System.out.println("UNIFYIN WILDCARD " + wt + " " + wt.type + " " + wt.tsym + " " + wt.bound + " " + wt.kind);
+		    System.out.println("UNIFYIN WILDCARD " + wt + " : " + wt.type + " : " + wt.tsym + " : " + wt.bound + " : " + wt.kind);
             map.put(wt.tsym, actual);
-            //System.out.println("  MAPPING " + wt.tsym + " " + wt.tsym.hashCode() + " TO " + actual + " " + map);
+            System.out.println("  MAPPING " + wt.tsym + " " + wt.tsym.hashCode() + " TO " + actual + " " + map);
             map.put(wt.type.tsym, actual);
-            //System.out.println("  MAPPING " + wt.type.tsym + " " + wt.type.tsym.hashCode() + " TO " + actual + " " + map);
+            System.out.println("  MAPPING " + wt.type.tsym + " " + wt.type.tsym.hashCode() + " TO " + actual + " " + map); Utils.dumpStack();
             return map;
 		}
 		if (formal instanceof Type.ClassType cformal && actual instanceof Type.ClassType cactual) {
@@ -23180,9 +23188,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		    return map;
 		}
+		if (formal.isParameterized()) {
+		    System.out.println("ACTUALS " + actual.allparams());
+		    System.out.println("FORMALS " + formal.allparams());
+		}
 		// FIXME - I note some attemoted conversions that seem illegal, e.g. annotated boxed type to boolean
 		// Also: ? super T TO ? super java.lang.@org.jmlspecs.annotation.NonNull Boolean -- cf test implicitIterationA
-        if (formal.isPrimitive()) return map;
 		//System.out.println("CANNOT MAP " + actual + " TO " + formal + " ( " + actual.getClass() + " " + formal.getClass() + ")");
 		return map;
 	}
@@ -23194,6 +23205,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public Map<TypeSymbol, Type> typemapping(Type ct, Symbol sym, List<JCExpression> typeargs,
 			Type.MethodType methodType, Map<TypeSymbol, Type> vars) {
+	    
+	    if (sym != null && sym.toString().contains("forEach"))
+	    System.out.println("TYPEMAPPING " + ct + " " + sym + " " + typeargs + " " + methodType);
 		//if (vars == null) 
 		    vars = new HashMap<TypeSymbol, Type>();
 		
