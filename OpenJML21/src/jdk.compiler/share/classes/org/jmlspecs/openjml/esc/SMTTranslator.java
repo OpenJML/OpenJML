@@ -1282,8 +1282,8 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         String r = t.tsym.toString();
         if (t.tsym.isAnonymous()) {
-        	//System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
-        	r = "ANON_" + t.tsym.flatName();
+            //System.out.println("ANON " + r + t.tsym.isAnonymous() + t.tsym.flatName());
+            r = "ANON_" + t.tsym.flatName();
         }
         //System.out.println("TYPESTRING " + t + " " + t.tsym + " " + t.tsym.name + " " + r);
         return r.replace('.', '_');
@@ -1397,7 +1397,7 @@ public class SMTTranslator extends JmlTreeScanner {
     
     /** Records a new sort */
     public void addSort(Type t) {
-        if (t.toString().equals("\\range")) return; // FIXME - why do e have to avoid a duplicate here
+        if (t.toString().equals("\\range")) return; // FIXME - why do we have to avoid a duplicate here
         t = t.stripMetadata();
         Integer oldValue = newSorts.get(t);
         if (oldValue != null) return; // already defined
@@ -3010,7 +3010,7 @@ public class SMTTranslator extends JmlTreeScanner {
                                 object == null ? thisSym: convertExpr(object)
                                 );
                 }
-            } else if (object.type.tsym.toString().equals("org.jmlspecs.lang.internal.string")) {
+           } else if (object.type.tsym.toString().equals("org.jmlspecs.lang.internal.string")) {
             	// String length
             	IExpr sel = convertExpr(object);
             	result = F.fcn(stringLengthSym,sel);

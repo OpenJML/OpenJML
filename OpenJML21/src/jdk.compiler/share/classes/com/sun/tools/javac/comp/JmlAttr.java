@@ -2540,12 +2540,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                             List.<JCExpression>of(jmlMaker.at(cs.pos).Select(t,(Name)null)));
                 } else {
                     int pos = pure != null ? pure.pos : cs.pos;
-                    var kw = jmlMaker.at(pos).JmlSingleton(nothingKind);
+                    var kw = jmlMaker.at(pos).JmlSingleton(nothingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context));
                     defaultClause = jmlMaker.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                             List.<JCExpression>of(kw));
                 }
             } else {
-                var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind);
+                var kw = jmlMaker.at(cs.pos).JmlSingleton(everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context));
                 defaultClause = jmlMaker.at(cs.pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                         List.<JCExpression>of(kw));
             }
@@ -2562,7 +2562,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 defaultClause = null;
             } else {
                 defaultClause = jmlMaker.JmlMethodClauseStoreRef(accessibleID, accessibleClauseKind,
-                        List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind)));
+                        List.<JCExpression>of(jmlMaker.JmlSingleton(everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
             }
             if (defaultClause != null) {
                 defaultClause.sourcefile = log.currentSourceFile();
@@ -6193,6 +6193,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitIndexed(JCArrayAccess tree) {
         if (jmlresolve.allowJML()) {
+            if (tree.index == null) {
+                utils.error(tree, "jml.message", "Faulty null range: " + tree);
+                // Recovering
+                tree.index = jmlMaker.at(tree.pos).JmlRange(null,null);
+            }
             Type owntype = types.createErrorType(tree.type);
             Type atype = attribExpr(tree.indexed, env);
             Type indexType = attribExpr(tree.index, env);
@@ -7649,6 +7654,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // MAINTENANCE ISSUE: code duplicated mostly from the superclass
 
     public void visitJmlForLoop(JmlForLoop tree) {
+        if (tree.loopSpecs == null) System.out.println("NULL LOOP SPECS " + tree);
         loopStack.add(0,treeutils.makeIdent(tree.pos, "loopIndex_" + (++loopIndexCount), syms.intType));
     	Env<AttrContext> loopEnv =
     			env.dup(env.tree, env.info.dup(env.info.scope.dup()));
