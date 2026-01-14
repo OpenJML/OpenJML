@@ -139,6 +139,7 @@ escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
+escfileslist2.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 escfileslist2.test[gitbug784]   #   apache commons library
 escfileslist2.test[gitbug785]   #   Google guava library
 escfileslist2.test[gitbug878]   #   problem with type inference
