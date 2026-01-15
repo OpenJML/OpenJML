@@ -19,6 +19,15 @@ public class HeapInfo {
         if (previousHeap != null) this.previousHeaps.add(previousHeap);
     }
     
+    public HeapInfo copy() {
+        var h = new HeapInfo(heapID, null, label);
+        h.condition = condition;
+        h.havocs = havocs;
+        h.methodAxiomsBlock = methodAxiomsBlock;
+        h.previousHeaps = previousHeaps;
+        return h;
+    }
+    
     public int heapID;
     
     /** The label just before the state change (in which the havocs are to be evaluated) */
@@ -34,11 +43,11 @@ public class HeapInfo {
     public Set<HeapInfo> previousHeaps = new HashSet<>();
     
     
-    public Map<Symbol.MethodSymbol, MethodInfo> methodInfo = new HashMap<>();
-    
-    static public class MethodInfo {
-        
-    }
+//    public Map<Symbol.MethodSymbol, MethodInfo> methodInfo = new HashMap<>();
+//    
+//    static public class MethodInfo {
+//        
+//    }
     
     public String toString() {
         return ("HeapInfo[id=" + heapID + " [" + Utils.join(",",previousHeaps) +"]");

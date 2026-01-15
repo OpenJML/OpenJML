@@ -580,12 +580,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public Map<String, java.util.List<JmlStatementExpr>> feasibilityChecks = new HashMap<>();
 
-	public int heapCount = 0;
 	public int topHeapCount = 0;
 
 	public int nextHeapCount() {
-		heapCount = ++topHeapCount;
-		return heapCount;
+		return ++topHeapCount;
 	}
 
 	public VarSymbol heapSym = null;
@@ -678,7 +676,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.treeMap.clear();
 //		this.evalStateLabel = null;
 		this.currentOldLabel = attr.preLabel;
-		this.heapCount = this.topHeapCount = 0;
+		this.topHeapCount = 0;
 		this.heapVarName = names.fromString(Strings.heap); // FIXME - cf. BasicBlocker2
 		this.applyNesting = 0;
 		racMessages.clear();
@@ -1128,7 +1126,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			LabelProperties lp = new LabelProperties();
 			// FIXME - use recordLabel?
 			lp.allocCounter = 0;
-			lp.heapCount = heapCount;
+			lp.heap = saveState();
 			lp.name = attr.preLabel;
 			lp.labelEnv = currentEnv.newEnvCopy();
 			lp.labelEnv.stateLabel = lp.name;
@@ -3672,7 +3670,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements = stats;
 			currentEnv.currentReceiver = receiver;
 			for (ClassSymbol csym : parents) {
-				if (!addAxioms(heapCount, csym))
+			    checkState();
+				if (!addAxioms(currentHeap.heapID, csym))
 					continue;
 				JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 				if (tspecs == null)
@@ -4235,7 +4234,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Add all axioms from this specific class */
 	protected void addClassAxioms(ClassSymbol csym) {
-		if (!addAxioms(heapCount, csym))
+	    checkState();
+		if (!addAxioms(currentHeap.heapID, csym))
 			return;
 		boolean prevAddingAxioms = addingAxioms;
 		addingAxioms = true;
@@ -4777,8 +4777,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		pushBlock(initialStats);
 		changeState(methodDecl,null); // bumps heapCount // adds to currentStats
 		popBlock();
-		int preheapcount = heapCount;
-		int savedheapcount = heapCount;
 		try {
 
 			{
@@ -4927,7 +4925,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// will have been attributed with different symbols.
 				//System.out.println("ADDD PRE FOR " + parentMethodSym);
 				paramActuals_.putAll(specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym));
-				heapCount = preheapcount;
 				Map<JmlMethodClause, JCExpression> clauseIds = new HashMap<>();
 				elseExpression = treeutils.falseLit;
 				for (JmlSpecificationCase scase : denestedSpecs.cases) {
@@ -5238,7 +5235,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//paramActuals_ = null;
 			clearInvariants();
 
-			heapCount = savedheapcount;
 			popBlock(null, check);
 		}
 	}
@@ -6579,7 +6575,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public static class LabelProperties {
 		int allocCounter;
-		int heapCount;
+		HeapInfo heap;
 		JmlLabeledStatement labeledStatement;
 		TranslationEnv labelEnv;
 		public Name name;
@@ -6629,11 +6625,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected LabelPropertyStore labelPropertiesStore = new LabelPropertyStore();
 
 	protected LabelProperties recordLabel(Name labelName, JmlLabeledStatement stat) {
+	    checkState();
 		LabelProperties lp = new LabelProperties();
 		labelPropertiesStore.put(labelName, lp);
 		lp.labeledStatement = stat;
 		lp.name = labelName;
-		lp.heapCount = heapCount;
+		lp.heap = saveState();
 		lp.allocCounter = allocCounter;
 		lp.labelEnv = currentEnv.newEnvCopy();
 		lp.labelEnv.stateLabel = labelName;
@@ -6758,7 +6755,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        resultExpr = localResult;
 //        resultSym = localResult == null ? null : (VarSymbol)localResult.sym;
 		boolean savedTL = translatingLambda;
-		int saveHC = heapCount;
+		var saveHC = saveState();
 		try {
 			translatingLambda = true;
 			body = copy(body);
@@ -6779,7 +6776,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            newlambda.type = that.type;
 //            result = eresult = localResult;
 		} finally {
-			heapCount = saveHC;
+		    // FIXME - does state actually change?
+			resetState(saveHC);
 			translatingLambda = savedTL;
 			addStat(M.Block(0L, collectedAxioms.toList()));
 			resultExpr = savedExpr;
@@ -7486,53 +7484,57 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// The scanned result of the then and else parts must always be a block
 		// because multiple statements might be produced, even from a single
 		// statement in the branch.
-		int savedHeapCount = heapCount;
-        if (heapCount != currentEnv.heap.heapID) System.out.println("MISMATCHED HEAP ID-A " + heapCount + " " +  currentEnv.heap.heapID);
+		var savedHeapState = saveState();
+        checkState();
 
 		if (!split || currentSplit == null || rac || infer) {
 	        currentEnv = currentEnv.pushEnvCopy();
 			continuation = Continuation.CONTINUE;
-            //System.out.println("IF " + heapCount + " " + currentEnv.heap.heapID + " " + that);
+            var initialHeapState = saveState();
+            //System.out.println("IF " + heapCount + " " + currentHeap.heapID + " " + initialHeapState.heapID + " " + that);
 			JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
             addFeasibilityCheck(that, thenpart, Strings.feas_if, "at then branch");
 			Continuation thenContinuation = continuation;
 			continuation = Continuation.CONTINUE;
-            //System.out.println("IF END OF THEN " + heapCount + " " + currentEnv.heap.heapID);
-			int thenBranchHeapCount = heapCount;
+            var thenBranchHeap = saveState();
+            //System.out.println("IF END OF THEN " + heapCount + " " + currentHeap.heapID + " " + thenBranchHeap.heapID + " " + thenBranchHeap.hashCode());
 			currentEnv = currentEnv.popEnv();
-            heapCount = savedHeapCount;
-            //System.out.println("STARTING ELSE BRANCH " + heapCount + " " + currentEnv.heap.heapID);
-            if (heapCount != currentEnv.heap.heapID) System.out.println("MISMATCHED HEAP ID " + heapCount + " " +  currentEnv.heap.heapID + " " + thenBranchHeapCount);
+            resetState(initialHeapState);
+            //System.out.println("STARTING ELSE BRANCH " + heapCount + " " + currentHeap.heapID);
             currentEnv = currentEnv.pushEnvCopy();
 			JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
 			if (elsepart != null) addFeasibilityCheck(that, elsepart, Strings.feas_if, "at else branch");
 
 			Continuation elseContinuation = continuation;
-            //System.out.println("IF END OF ELSE " + heapCount + " " + currentEnv.heap.heapID);
+            //System.out.println("IF END OF ELSE " + heapCount + " " + currentHeap.heapID);
 
 			JCStatement st = M.at(that).If(newTempIfNeeded(cond), thenpart, elsepart).setType(that.type);
 			var r = addStat(st);
             continuation = thenContinuation.combine(elseContinuation);
-            int elseBranchHeapCount = heapCount;
+            var elseBranchHeap = saveState();
             currentEnv = currentEnv.popEnv();
-            if (thenBranchHeapCount != elseBranchHeapCount) {
+            if (thenBranchHeap.heapID != elseBranchHeap.heapID) {
                 pushBlock();
                 addStat(comment(that, "If heap change", null));
                 JmlLabeledStatement sttt = markUniqueLocation();
                 addStat(sttt);
                 changeState(that, null, sttt.label);
-                currentEnv.heap.previousHeaps.clear();
-                //System.out.println("ENDED IF " + heapCount + " " + thenBranchHeapCount + " " + elseBranchHeapCount);
+                currentHeap.previousHeaps.clear();
+                //System.out.println("ENDED IF " + heapCount + " " + initialHeapState.heapID + " " + thenBranchHeap.heapID + " " + elseBranchHeap.heapID);
                 addStat(popBlock(that));
-                HeapInfo thenHeapInfo = methodEnv.allHeaps.get(thenBranchHeapCount);
+                HeapInfo thenHeapInfo = methodEnv.allHeaps.get(thenBranchHeap.heapID); // FIXME - why do we need to look these up?
+                if (thenHeapInfo != thenBranchHeap) System.out.println("MISMATCHED THEN BRANCH HEAP " + thenHeapInfo.heapID + " " + thenBranchHeap.heapID + " " + thenHeapInfo.hashCode() + " " + thenBranchHeap.hashCode());
                 thenHeapInfo.condition = cond;
-                currentEnv.heap.previousHeaps.add(thenHeapInfo);
-                HeapInfo elseHeapInfo = methodEnv.allHeaps.get(elseBranchHeapCount);
+                currentHeap.previousHeaps.add(thenHeapInfo);
+                HeapInfo elseHeapInfo = methodEnv.allHeaps.get(elseBranchHeap.heapID);
+                if (elseHeapInfo != elseBranchHeap) System.out.println("MISMATCHED ELSE BRANCH HEAP " + elseHeapInfo.heapID + " " + elseBranchHeap.heapID);
                 elseHeapInfo.condition = treeutils.makeNot(cond, cond);
-                currentEnv.heap.previousHeaps.add(elseHeapInfo);
+                currentHeap.previousHeaps.add(elseHeapInfo);
             }
+            checkState();
             result = r;
 		} else {
+		    // Here we do just either the then or the else branch, for a split analysis
 			boolean doThen = true;
 			if (currentSplit.isEmpty()) {
 				adjustSplit(2);
@@ -9219,30 +9221,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		completedInvariants.clear();
 		inProcessInvariants.clear();
 	}
+	
+    HeapInfo currentHeap = new HeapInfo(0, null, null);
 
 	// havocs might be: JCIdent, JCFieldAccess, JCArrayAccess, List of such, Loop specs, method call
 	protected void changeState(DiagnosticPosition pos, Object havocs) {
 	    changeState(pos, havocs, null);
 	}
     protected void changeState(DiagnosticPosition pos, Object havocs, Name label) {
+        checkState();
         int p = pos.getPreferredPosition();
-        heapCount = nextHeapCount();
-        currentEnv.heap = new HeapInfo(heapCount, currentEnv.heap, label);
-        //System.out.println("CHANGE STATE " + heapCount + " NEW HI " + currentEnv.heap.heapID);
-        methodEnv.allHeaps.put(heapCount, currentEnv.heap);
+        var heapCount = nextHeapCount();
+        currentHeap = new HeapInfo(heapCount, currentHeap, label);
+        //System.out.println("CHANGE STATE - PUTTING " + heapCount + " " + currentHeap.heapID + " " + currentHeap.hashCode());
+        methodEnv.allHeaps.put(heapCount, currentHeap);
 		if (infer || esc) {
 			JCStatement assign = treeutils.makeAssignStat(p, treeutils.makeIdent(pos, heapSym),
 					treeutils.makeIntLiteral(pos, heapCount));
 			currentStatements.add(assign);
 			JCBlock bl = M.at(p).Block(0L, List.<JCStatement>nil());
-			currentEnv.heap.methodAxiomsBlock = bl;
+			currentHeap.methodAxiomsBlock = bl;
 	        currentStatements.add(bl);
 		}
-        currentEnv.heap.havocs = havocs;
+        currentHeap.havocs = havocs;
         wellDefinedCheck.clear();
 //        addAxioms(heapCount, null);
 //        determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
 		clearInvariants(); // FIXME - is this needed for rac?
+		checkState();
 	}
     
     protected void changeStateForLoop(DiagnosticPosition pos, List<JmlStatementLoop> loopSpecs) {
@@ -9251,6 +9257,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 ? new StoreRefGroup(treeutils.trueLit, StoreRefGroup.Kind.EVERYTHING)
                 : convertFrameConditionList(pos, treeutils.trueLit, clause.storerefs)),
             null);
+    }
+    
+    private void checkState() {
+    }
+    
+    private void resetState(HeapInfo info) {
+        checkState();
+        currentHeap = info;
+    }
+    
+    private HeapInfo saveState() {
+        checkState();
+        return currentHeap;
     }
 
 	protected JCIdent currentFresh = null;
@@ -10870,6 +10889,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			var assignsLists = assignsListsBuffer.toList();
             //System.out.println("ASSIGNSLIST " + calleeMethodSym + " " + overridden.size() + " " + assignsLists);
 			currentEnv = currentEnv.popEnv();
+			checkState();
 			currentEnv = currentEnv.pushEnvCopy();
             //System.out.println(" PURE? " + calleeMethodSym.owner + " " + calleeMethodSym + " " + calleeIsPure);
 			{
@@ -10965,7 +10985,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												List<JCExpression> storerefs = cst.list ; // expandStoreRefList(cst.list, calleeMethodSym, false);
 												//System.out.println("STOREREFS TO CHECK " + cst);
 												for (JCExpression item : storerefs) {
-												    String msg = "Is " + item + " in callee specs " + clause.clauseKind + "? alloc=" + currentEnv.heap.heapID + " " + currentEnv.currentReceiver + " " + utils.locationString(item.pos, clause.source());
+												    String msg = "Is " + item + " in callee specs " + clause.clauseKind + "? alloc=" + currentHeap.heapID + " " + currentEnv.currentReceiver + " " + utils.locationString(item.pos, clause.source());
 												    //System.out.println("CHECKING " + msg);
 													addStat(comment(msg));
 													JCExpression allowed = treeutils.trueLit;
@@ -12089,10 +12109,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	public void makeMethodHavocAxiom(DiagnosticPosition pos, Type receiverType, MethodSymbol calleeMethodSym, Type returnType, Object havocs,
 	                        java.util.List<StoreRefGroup> readItems, List<JCExpression> args) {
-	    int hc = heapCount;
+	    checkState();
+	    int hc = currentHeap.heapID;
         //System.out.println("HAVOCAXIOM " + calleeMethodSym + " " + hc + " " + args);
 	    try {
-	        var heapInfo = currentEnv.heap;
+	        var heapInfo = currentHeap;
 	        if (heapInfo == null) return; // FIXME - can happen for a constructor checking static invariants that contain method calls
 	        //System.out.println(" CALLING FOR " + calleeMethodSym + " " + hc + " " + heapInfo.heapID + " " + heapInfo.previousHeaps);
 	        if (heapInfo.previousHeaps.isEmpty()) return;
@@ -12229,7 +12250,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
  //           System.out.println("  AXIOM " + ee);
 	    } catch (Throwable e) {
             //System.out.println("CRASH IN makeMethodHavocAxiom for " + methodDecl.sym + " " + calleeMethodSym.owner + "." + calleeMethodSym );
-            //System.out.println(" " + currentEnv.heap.previousHeaps.iterator().next().heapID);
+            //System.out.println(" " + currentHeap.previousHeaps.iterator().next().heapID);
 	        //System.out.println("  ITEMS " + readItems + " :: " + havocs);
 	        e.printStackTrace(System.out);
 	    }
@@ -18110,7 +18131,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - need label for loop if any and the target mapping
 
 		// Outer block to restrict scopes of temporaries
-		pushBlock();
+		var loopBlockCheck = pushBlock();
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 		addLoopInitLabel(that);
@@ -18156,9 +18177,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
     
 
-		pushBlock();
-		JCBlock bl = popBlock(that);
-		addStat(bl);
+//		pushBlock();
+//		JCBlock bl = popBlock(that);
+//		addStat(bl);
 
 		// Now in the loop, so check that the variants are non-negative
 		loopHelperCheckNegative(decreasesIDs, that);
@@ -18168,18 +18189,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		addLoopBodyLabel(that);
 		loopHelperMakeBody(that.body);
 
+        HeapInfo savedInitialHeap = saveState();
+        HeapInfo savedExitHeap = savedInitialHeap;
+
 		// Now compute any side-effects of the loop condition
 		addTraceableComment(that.cond, that.cond, "Loop test");
 		JCExpression cond = convertExpr(that.cond);
 		
 
 		// increment the index
-		loopHelperIncrementIndex(indexDecl);
+        loopHelperIncrementIndex(indexDecl);
 
-		// In a do-while loop we test the condition before the invariants
+        // In a do-while loop we test the condition before the invariants
 
-		// Construct the loop test and the exit block.
-		Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+        // Construct the loop test and the exit block.
+        Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+
+        savedExitHeap = saveState();
+        currentEnv = currentEnv.pushEnvCopy();
+        resetState(savedInitialHeap);
 
 		// After the loop, check the invariants and check that the variants have
 		// decreased
@@ -18187,16 +18215,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-		loopHelperFinish(loop, that);
-		addStat(popBlock(that));
-//        labelPropertiesStore.pop(loopbodyLabelName);
-//        labelPropertiesStore.pop(loopinitLabelName);
-        if (esc) frameStack.pop();
-        var x = loopStack.removeFirst();
+        checkState();
         currentEnv = currentEnv.popEnv();
-        if (x != that) {
-            utils.error(that, "jml.internal", "Mismatched loop");
-        }
+        checkState();
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
+
+        loopHelperFinish(loop, that);
+		addStat(popBlock(that, loopBlockCheck));
+
+        currentEnv = currentEnv.popEnv();
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 	}
 	
     public boolean isNonNullExplicit(Type t) {
@@ -18276,7 +18304,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - need label for loop if any and the target mapping
 	    
 		// Outer block to restrict scopes of temporaries
-		pushBlock();
+		var loopBlockCheck = pushBlock();
 
 //        JCExpression originalIterable = null;
 //        Type iterableSuperType = null;
@@ -18328,7 +18356,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JmlWhileLoop loop = M.at(that).WhileLoop(treeutils.trueLit, null);
 		treeMap.put(that, loop);
 
-		int savedHeapCount = -1;
+        HeapInfo savedInitialHeap = saveState();
+        HeapInfo savedExitHeap = savedInitialHeap;
 		Boolean splitInfo = null;
 		boolean doRemainderOfLoop = true;
 		boolean isArray = that.expr.type.getTag() == TypeTag.ARRAY;
@@ -18387,7 +18416,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// The exit block tests the condition; if exiting, it tests the
 				// invariant and breaks.
-				savedHeapCount = heapCount;
 				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
 			} else {
 				JmlSingleton index = M.at(that.pos).JmlSingleton(countKind);
@@ -18399,10 +18427,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// The exit block tests the condition; if exiting, it tests the
 				// invariant and breaks.
-				savedHeapCount = heapCount;
 				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
 			}
-	        currentEnv = currentEnv.pushEnvCopy();
+            savedExitHeap = saveState();
+            currentEnv = currentEnv.pushEnvCopy();
+            resetState(savedInitialHeap);
 
 			doRemainderOfLoop = splitInfo == null || splitInfo;
 
@@ -18518,7 +18547,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// The exit block tests the condition; if exiting, it tests the
 				// invariant and breaks.
-				savedHeapCount = heapCount;
 	            currentEnv = currentEnv.pushEnvCopy();
 				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
 				doRemainderOfLoop = splitInfo == null || splitInfo;
@@ -18569,21 +18597,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-		heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
+        checkState();
         currentEnv = currentEnv.popEnv();
-		loopHelperFinish(loop, that); // Does two popBlock operations
-		JCBlock bl = popBlock(that);
+        checkState();
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
+
+        loopHelperFinish(loop, that); // Does a popBlock operation
+		JCBlock bl = popBlock(that, loopBlockCheck);
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
 //        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
 //        labelPropertiesStore.pop(loopinitLabelName);
-        if (esc) frameStack.pop();
-        var x = loopStack.removeFirst();
         currentEnv = currentEnv.popEnv();
-        if (x != that) {
-            utils.error(that, "jml.internal", "Mismatched loop"); // SHOULD NEVER BE EXECUTED
-        }
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 	}
 
 	/**
@@ -19043,13 +19070,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	/** Completes the loop */
-	protected void loopHelperFinish(JmlWhileLoop loop, JCTree that) {
-		JCBlock bl = popBlock(that);
-		loop.body = bl;
-		loop.setType(that.type);
-		addStat(loop);
-		treeMap.remove(that);
-		indexStack.remove(0);
+    protected void loopHelperFinish(JmlWhileLoop loop, JCTree that) {
+        JCBlock bl = popBlock(that);
+        loop.body = bl;
+        loop.setType(that.type);
+        addStat(loop);
+        treeMap.remove(that);
+        indexStack.remove(0);
+
+        if (esc) frameStack.pop();
+        var x = loopStack.removeFirst();
+        if (x != that) {
+            utils.error(that, "jml.internal", "Mismatched loop");
+        }
+
 	}
 	
     private Name addLoopInitLabel(IJmlLoop loop) {
@@ -19123,7 +19157,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - need label for loop if any and the target mapping
 
 		// Outer block to restrict scopes of temporaries
-		pushBlock();
+		var loopBlockCheck = pushBlock();
 
 		if (that.init != null)
 			scan(that.init);
@@ -19169,7 +19203,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		loopHelperAssumeInvariants(that.loopSpecs, decreasesIDs, that, null);
 
 		// Compute the condition, recording any side-effects
-		int savedHeapCount = -1;
+        HeapInfo savedInitialHeap = saveState();
+        HeapInfo savedExitHeap = savedInitialHeap;
 		Boolean splitInfo = null;
 		if (that.cond != null) {
 
@@ -19178,9 +19213,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			// The exit block tests the condition; if exiting, it breaks out of the loop
 			splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
-			savedHeapCount = heapCount;
-	        currentEnv = currentEnv.pushEnvCopy();
 		}
+        savedExitHeap = saveState();
+        currentEnv = currentEnv.pushEnvCopy();
+		resetState(savedInitialHeap);
 		boolean doRemainderOfLoop = splitInfo == null || splitInfo;
 
 		// Now in the loop, so check that the variants are non-negative
@@ -19211,22 +19247,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-		heapCount = savedHeapCount; // FIXME - only if no break statements targeted the end of the loop
-        if (savedHeapCount != -1) currentEnv = currentEnv.popEnv();
+        checkState();
+        currentEnv = currentEnv.popEnv();
+        checkState();
+		resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 
-		loopHelperFinish(loop, that);
-		JCBlock bl = popBlock(that);
+		loopHelperFinish(loop, that); // pops the loop body block
+		JCBlock bl = popBlock(that, loopBlockCheck);
 		addStat(bl);
 		if (splitInfo != null && splitInfo)
 			continuation = Continuation.HALT;
 //		if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
 //		labelPropertiesStore.pop(loopinitLabelName);
-		var x = loopStack.removeFirst();
-		if (esc) frameStack.pop();
 		currentEnv = currentEnv.popEnv();
-		if (x != that) {
-		    utils.error(that, "jml.internal", "Mismatched loop"); // SHOULD NEVER BE EXECUTED
-		}
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 	}
 
 	@Override
@@ -19734,7 +19768,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME _ this implementation is not adequate for checking postconditions with
 				// \old from callers
 				// FIXME - also it does not work for rac at labelled locations
-				int savedHeap = heapCount;
+				var savedHeap = saveState();
 				try {
 					var labelArg = that.args.size()>1?that.args.get(1):null;
 					Name evalStateLabel = normalizeLabel(labelArg, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
@@ -19751,7 +19785,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						//var saved = evalStateLabel;
 						try {
 							currentEnv.stateLabel = evalStateLabel = null;
-							heapCount = lp.heapCount;
+							resetState(lp.heap);
 							if (!convertingAssignable && arg instanceof JCArrayAccess aa
 									&& (aa.indexed instanceof JCIdent
 											|| aa.indexed instanceof JCFieldAccess)) {
@@ -19805,7 +19839,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					if (currentEnv.stateLabel == null) {
 						labelPropertiesStore.pop(hereLabelName);
 					}
-					heapCount = savedHeap;
+					resetState(savedHeap);
 				}
 				break;
 			}
@@ -22798,7 +22832,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - need label for loop if any and the target mapping
 
 		// Outer block to restrict scopes of temporaries
-		pushBlock();
+		var loopBlockCheck = pushBlock();
 
 		JCVariableDecl indexDecl = loopHelperDeclareIndex(that);
 		addLoopInitLabel(that);
@@ -22836,14 +22870,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Compute the condition, recording any side-effects
 
-		addTraceableComment(that.cond, that.cond, "Loop test");
+        HeapInfo savedInitialHeap = saveState();
+        HeapInfo savedExitHeap = savedInitialHeap;
+
+        addTraceableComment(that.cond, that.cond, "Loop test");
 		JCExpression cond = convertExpr(that.cond);
 
 		// The exit block tests the condition; if exiting, it tests the
 		// invariant and breaks.
-		int savedHeapCount = heapCount;
-		currentEnv = currentEnv.pushEnvCopy();
+
 		Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+
+		savedExitHeap = saveState();
+		currentEnv = currentEnv.pushEnvCopy();
+        resetState(savedInitialHeap);
+
 		boolean doRemainderOfLoop = splitInfo == null || splitInfo;
 
 		// Now in the loop, so check that the variants are non-negative
@@ -22870,24 +22911,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-		loopHelperFinish(loop, that);
-		JCBlock bl = popBlock(that);
-		addStat(bl);
-		if (splitInfo != null && splitInfo)
-			continuation = Continuation.HALT;
-//        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
-//        labelPropertiesStore.pop(loopinitLabelName);
-		if (esc) frameStack.pop();
-        var x = loopStack.removeFirst();
+        checkState();
         currentEnv = currentEnv.popEnv();
-        if (x != that) {
-            utils.error(that, "jml.internal", "Mismatched loop");
-        }
+        checkState();
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
+
+        loopHelperFinish(loop, that);
+        JCBlock bl = popBlock(that, loopBlockCheck);
+        addStat(bl);
+        if (splitInfo != null && splitInfo)
+            continuation = Continuation.HALT;
 
         currentEnv = currentEnv.popEnv();
-		heapCount = savedHeapCount;
-	}
-	
+        resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
+    }
+
     public JmlLabeledStatement markUniqueLocation(JCStatement statToMark) {
         Name label = names.fromString("`_label`" + nextUnique());
         JmlLabeledStatement mark = M.JmlLabeledStatement(label, null, statToMark  == null ? M.Skip() : statToMark);
@@ -22901,11 +22939,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 	protected void markLocation(Name label, ListBuffer<JCStatement> list, JmlLabeledStatement marker) {
+	    checkState();
 		Location loc = new Location(list, marker);
 		locations.put(label, loc);
 		LabelProperties lp = labelPropertiesStore.get(label);
 		lp.labeledStatement = marker;
-		lp.heapCount = this.heapCount;
+		lp.heap = this.saveState();
 
 		// FIXME - this requires all labels to be unique
 	}
@@ -23427,7 +23466,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
-		int heap = currentEnv.stateLabel != null ? labelPropertiesStore.get(currentEnv.stateLabel).heapCount : heapCount;
+	    checkState();
+		int heap = currentEnv.stateLabel != null ? labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID : currentHeap.heapID;
 //		if (msym.getTypeParameters().size() != 0) {
 //		    System.out.println("NEWNAME " + utils.qualifiedName(msym).replace('.', '_') + " " + msym.asType());
 //            System.out.println("TYPEPARAMS " + msym.getTypeParameters());
@@ -23452,7 +23492,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void makeAndSaveMethodSymbol(DiagnosticPosition callLocation, MethodSymbol msym,
 	                        Type receiverType, Type returnType) {
 	    try {
-	        int hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
+	        checkState();
+	        int hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
 	        boolean isFunction = isHeapIndependent(msym);
 	        boolean isStatic = utils.isJMLStatic(msym);
 	        boolean isPrimitiveType = utils.isJavaOrJmlPrimitiveType(msym.owner.type);
@@ -23536,9 +23577,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// ListBuffer<JCStatement> savedForAxioms = null;
 	protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym,
 			java.util.List<Pair<MethodSymbol, Type>> overridden, Type receiverType, Type returnType) {
-		int hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
+	    checkState();
+		int hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
 //		 if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
-//		 " " + hc + " " + + heapCount + " " + heapCountForAxioms + " " + msym + " " +
+//		 " " + hc + " " + + currentHeap.heapID + " " + heapCountForAxioms + " " + msym + " " +
 //		 axiomsAdded);
 		if (!addAxioms(hc, msym)) {
 			return null;
@@ -23930,7 +23972,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //			collectedAxioms.add(bl);
 //			bl = null;
 //		}
-		currentEnv.heap.methodAxiomsBlock.stats = currentEnv.heap.methodAxiomsBlock.stats.append(bl);
+		currentHeap.methodAxiomsBlock.stats = currentHeap.methodAxiomsBlock.stats.append(bl);
 		return null;
 	}
 
@@ -23945,7 +23987,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	Map<Integer, Map<Symbol, MethodSymbol>> heapMethods = new HashMap<>();
 
     public MethodSymbol getNewMethodSymbol(MethodSymbol msym) {
-        Integer hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
+        checkState();
+        Integer hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
         return getNewMethodSymbol(msym, hc);
     }
 
@@ -23964,7 +24007,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public MethodSymbol makeAndSaveNewMethodName(MethodSymbol msym, Type returnType, boolean isFunction,
 			JmlMethodSpecs calleeSpecs, int calleeDeclPos, List<Type> newParamTypes) {
 
-		Integer hc = currentEnv.stateLabel == null ? heapCount : labelPropertiesStore.get(currentEnv.stateLabel).heapCount;
+	    checkState();
+		Integer hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
 		Map<Symbol, MethodSymbol> mm = heapMethods.get(hc);
 		if (mm == null) {
 			heapMethods.put(hc, mm = new HashMap<Symbol, MethodSymbol>());
@@ -25203,15 +25247,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 
-        public MethodEnv newEnvCopy() {
-            try {
-                var t = (MethodEnv)this.clone();
-                t.previousEnv = null;
-                return t;
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+//        public MethodEnv newEnvCopy() {
+//            try {
+//                var t = (MethodEnv)this.clone();
+//                t.previousEnv = null;
+//                return t;
+//            } catch (CloneNotSupportedException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
         
         public MethodEnv pushEnvInit(Context context, boolean esc, boolean rac) {
             var t = new MethodEnv(context,esc,rac);
@@ -25269,7 +25313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         public IArithmeticMode arithmeticMode = null;
 
         /** Info about the current heap */
-        public HeapInfo heap;
+        public HeapInfo heap = new HeapInfo(0, null, null);
         
 		public TranslationEnv popEnv() {
 			// System.out.println("POPENV " + this.hashCode() + " TO " + previousEnv.hashCode());
@@ -25313,5 +25357,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
     TranslationEnv currentEnv = new TranslationEnv();
+    
 
 }
