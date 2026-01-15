@@ -32,8 +32,8 @@ Starting proof of OLList.Node.lemma_getf_size(int) with prover !!!!
 Completed proof of OLList.Node.lemma_getf_size(int) with prover !!!! - no warnings
 Starting proof of OLList.Node.lemma_size_ind() with prover !!!!
 Completed proof of OLList.Node.lemma_size_ind() with prover !!!! - no warnings
-Starting proof of OLList.Node.append(OLList.@NonNull Node[]) with prover !!!!
-Completed proof of OLList.Node.append(OLList.@NonNull Node[]) with prover !!!! - no warnings
+Starting proof of OLList.Node.append(OLList.@NonNull Node @NonNull []) with prover !!!!
+Completed proof of OLList.Node.append(OLList.@NonNull Node @NonNull []) with prover !!!! - no warnings
 Starting proof of OLList.Node.concat(OLList.@NonNull Node[],OLList.@NonNull Node[]) with prover !!!!
 Completed proof of OLList.Node.concat(OLList.@NonNull Node[],OLList.@NonNull Node[]) with prover !!!! - no warnings
 Starting proof of OLList.Node.prefixToSeq(int) with prover !!!!
