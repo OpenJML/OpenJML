@@ -13588,6 +13588,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addJavaCheck(pos, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
                 "java.lang.NullPointerException");
     }
+    
+    protected void checkNARG(JCExpression arg) {
+        var a = treeutils.makeNotNull(arg.pos,arg);
+        addJavaCheck(arg, a, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+    }
 
 	protected boolean translatingLHS = false;
 
@@ -19653,8 +19658,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		case ARRAY:
 		case CLASS:
             arg = convertExpr(arg);
-            var a = treeutils.makeNotNull(arg.pos,arg);
-            addJavaCheck(arg, a, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+            checkNARG(arg);
 			eresult = methodCallgetClass(arg);
 			break;
 		case BOOLEAN:
@@ -19853,17 +19857,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				if (esc || infer) {
 				    JCExpression arg = that.args.get(0);
-				    if (arg.type.isPrimitive()) {
-				        // Convert expressions like \\typeof(i) where i is avalue of a Java primitive type to \\type(int), for the corresponding type
+                    if (!arg.type.isPrimitive()) {
+                        arg = convertExpr(arg);
+                        checkNARG(arg);
+                    }
+                    Type t = arg.type;
+                    while (t instanceof Type.ArrayType tt) t = tt.getComponentType();
+				    if (t.isPrimitive()) {
+				        // Convert expressions like \\typeof(i) where i is a value of a Java primitive type to \\type(int), for the corresponding type
 				        var ty = M.at(arg).TypeIdent(arg.type.getTag());
 				        ty.setType(arg.type);
                         JmlMethodInvocation meth = M.at(that).JmlMethodInvocation(typelcKind, ty);
                         meth.setType(TYPE);
 				        result = eresult = meth;
 				    } else {
-				        arg = convertExpr(arg);
-				        var a = treeutils.makeNotNull(arg.pos,arg);
-				        addJavaCheck(arg, a, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
 				        JmlMethodInvocation meth = M.at(that).JmlMethodInvocation(that.kind, arg);
 				        meth.startpos = that.startpos;
 				        meth.varargsElement = that.varargsElement;
@@ -19922,8 +19929,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         // Type is expected to be some reference type (including array tyoes)
                         // Check whether the argument is null
-                        var na = treeutils.makeNotNull(arg.pos,arg);
-                        addJavaCheck(arg, na, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        checkNARG(arg);
                         // Check (in Java land) whether the argument has an array type (dynamically)
                         arg = methodCallgetClass(arg);
                         JCExpression isarray = makeMethodInvocation(that, arg, "isArray");
@@ -19944,8 +19950,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         // Type is expected to be some reference type (including array tyoes)
                         // Check whether the argument is null
-                        var na = treeutils.makeNotNull(arg.pos,arg);
-                        addJavaCheck(arg, na, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        checkNARG(arg);
                         // Check (in Java-SMT land) whether the argument has an array type (dynamically)
                         arg = treeutils.makeJmlMethodInvocation(that, typeofKind, that.type, arg);
                         JCExpression isarray = treeutils.makeJmlMethodInvocation(that, isarrayKind, syms.booleanType, arg);
@@ -19965,8 +19970,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var a = convertJML(arg);
                 if (rac) {
                     if (arg.type.tsym == syms.classType.tsym) {
-                        var aa = treeutils.makeNotNull(a.pos,a);
-                        addJavaCheck(arg, aa, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        checkNARG(a);
                     }
                     JCExpression c = makeMethodInvocation(that, a, "isArray");
                     result = eresult = c;
@@ -19975,8 +19979,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (arg.type.tsym == TYPE.tsym) {
                         result = eresult = treeutils.makeJmlMethodInvocation(that, isarrayKind, that.type, a);
                     } else if (arg.type.tsym == syms.classType.tsym) {
-                        var na = treeutils.makeNotNull(a.pos,a);
-                        addJavaCheck(arg, na, Label.NULL_ARGUMENT, Label.NULL_ARGUMENT, "java.lang.NullPointerException");
+                        checkNARG(a);
                         var ty = treeutils.makeType(a, JmlPrimitiveTypes.TYPETypeKind.getType(context));
                         a = makeMethodInvocation(a, ty, names.of, a);
                         result = eresult = treeutils.makeJmlMethodInvocation(that, isarrayKind, that.type, a);
