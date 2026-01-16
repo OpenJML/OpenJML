@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+rm -rf Run.class actual
+openjml-compile -cp . Run.java > actual || exit 2
+openjml-run -cp . Run >> actual || exit 3
+diff actual expected && rm -rf actual
+exit $?

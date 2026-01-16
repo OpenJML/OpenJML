@@ -223,7 +223,7 @@ public class MiscExpressions extends JmlExtension {
                 Name n = parser.ident();
                 JCExpression e = parser.parseExpression();
                 e = toP(parser.maker().at(pos).JmlLblExpression(labelPos,this, n, e));
-                if (this == lblanyKind ) strictCheck(parser, e);
+                if (this == lblanyKind ) strictCheck(e);
                 return e;
             }
         }

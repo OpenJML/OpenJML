@@ -1,5 +1,5 @@
 public class Test {
-    
+    static public int q, t;    
     //@ requires m >= 0 && n >= 0;
     //@ ensures \fresh(\result);
     //@ ensures \result.length == m;
@@ -20,7 +20,7 @@ public class Test {
         //@ loop_invariant \forall int k; 0<=k<m; a[k] != null && a[k].length == n;
         //@ loop_invariant \forall int e; 0<=e<m; \forall int k; 0 <= k < m; (e != k ==> a[e] != a[k]);
         //@ loop_invariant \forall int e; 0<=e<i; \forall int k; 0 <= k < n; a[e][k] == e+k;
-        //@ loop_modifies a[*][*];
+        //@ loop_modifies a[*][*], q, t;
         //@ loop_decreases m-i;
         for (int i=0; i<m; i++) {
             //@ loop_invariant 0 <= j <= n;
@@ -28,7 +28,7 @@ public class Test {
             //@ loop_invariant \forall int e; 0<=e<m; \forall int k; 0 <= k < m; (e != k ==> a[e] != a[k]);
             //@ loop_invariant \forall int e; 0<=e<i; \forall int k; 0 <= k < n; a[e][k] == e+k;
             //@ loop_invariant \forall int k; 0 <= k < j; a[i][k] == i+k;
-            //@ loop_modifies a[*][*];
+            //@ loop_modifies a[*][*], q;
             //@ loop_decreases n-j;
             for (int j=0; j<n; j++) {
                 a[i][j] = i+j;
@@ -77,7 +77,7 @@ public class Test {
     	int[] a1 = a[1];
         //@ havoc a[*][*];
     	//@ assert b == a;
-    	//@ assert a[1] == a1; // FIXME - SHOULD NOT FAIL
+    	//@ assert a[1] == a1; // SHOULD NOT FAIL
     	
     }
     

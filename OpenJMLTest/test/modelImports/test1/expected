@@ -2,7 +2,7 @@ test/modelImports/Test1.java:7: error: reference to X is ambiguous
   //@ ghost X y; // ERROR - ambiguous
             ^
   both class p.X in p and class q.X in q match
-test/modelImports/Test1.java:2: error: a type with the same simple name is already defined by the single-type-import of p.X
+test/modelImports/Test1.java:2: error: a type with the same simple name is already defined by the single-type-import of X
 //@ model import q.X;
           ^
 2 errors

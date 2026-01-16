@@ -244,6 +244,7 @@ public class Main {
 
         if (log.nerrors > 0)
             return Result.CMDERR;
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("END ARGUMENTS"); // OPENJML
 
         Options options = Options.instance(context);
 
@@ -304,7 +305,9 @@ public class Main {
             List<String> list = List.of(target.multiReleaseValue());
             fileManager.handleOption(Option.MULTIRELEASE.primaryName, list.iterator());
         }
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("CALLING POSTOPTIONP"); // OPENJML
         postOptionProcessing(); // OPENJML
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("DONE POSTOPTIONP"); // OPENJML
 
         // init JavaCompiler
         JavaCompiler comp = JavaCompiler.instance(context);
@@ -333,6 +336,7 @@ public class Main {
                     return Result.ERROR;
                 }
             }
+
             return (comp.errorCount() == 0) ? Result.OK : Result.ERROR;
 
         } catch (OutOfMemoryError | StackOverflowError ex) {
@@ -356,18 +360,18 @@ public class Main {
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.IllegalAccessError",iae); // OPENJML
             return Result.ABNORMAL;
         } catch (Throwable ex) {
-        	ex.printStackTrace(System.out);
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
-            printArgsToFile = true;
+            printArgsToFile = false; // OPENJML - changed to false
+            log.error("jml.internal", "Unexpected Throwable error caught. Use STACK= to see the stack trace"); // OPENJML
             org.jmlspecs.openjml.Utils.conditionalPrintStack("Main.Throwable",ex); // OPENJML
             return Result.ABNORMAL;
         } finally {
             if (printArgsToFile) {
-//                printArgumentsToFile(argv); // OPENJML - turned off
+                printArgumentsToFile(argv);
             }
             if (comp != null) {
                 try {

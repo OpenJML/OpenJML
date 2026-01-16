@@ -1,16 +1,18 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-cd $(dirname $BASH_SOURCE[0] )  
-BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml; fi
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
 rm -rf actual
-$OJA --warn=list >> actual 2>&1
-$OJA --warn=missing-specs --warn=list  >> actual 2>&1
-$OJA --warn=missing-specs --warn= --warn=list  >> actual 2>&1
-$OJA --warn=missing-specs --warn=reset --warn=list >> actual 2>&1
-$OJA --warn=all --warn=list    >> actual 2>&1
-$OJA --warn=none --warn=list   >> actual 2>&1
-$OJA --no-warn=all --warn=list >> actual 2>&1
+openjml --warn=list >> actual 2>&1
+openjml --warn=missing-specs --warn=list  >> actual 2>&1
+openjml --warn=missing-specs --warn= --warn=list  >> actual 2>&1
+openjml --warn=missing-specs --warn=reset --warn=list >> actual 2>&1
+openjml --warn=all --warn=list    >> actual 2>&1
+openjml --warn=none --warn=list   >> actual 2>&1
+openjml --no-warn=all --warn=list >> actual 2>&1
+openjml --warn=zzz >> actual 2>&1
+openjml "--warn= " >> actual 2>&1
+openjml --warn= >> actual 2>&1
 
 diff actual expected && rm -rf actual

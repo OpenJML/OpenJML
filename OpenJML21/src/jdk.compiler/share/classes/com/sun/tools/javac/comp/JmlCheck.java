@@ -65,7 +65,7 @@ public class JmlCheck extends Check {
     protected boolean isInJml = false;
     
     /** public method to control the isInJml flag; returns the previous value */
-    public boolean setInJml(Boolean inJml) {
+    public boolean setInJml(boolean inJml) {
         boolean b = isInJml;
         isInJml = inJml;
         return b;

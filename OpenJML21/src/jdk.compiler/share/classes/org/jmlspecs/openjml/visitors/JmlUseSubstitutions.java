@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.esc.Label;
 import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SetStatement;
+import org.jmlspecs.openjml.ext.StatementExprExtensions;
 
 import static org.jmlspecs.openjml.ext.RecommendsClause.*;
 import static org.jmlspecs.openjml.ext.MethodExprClauseExtensions.*;
@@ -102,7 +103,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
     
     @Override
     public void visitJmlStatement(JmlStatement that) {
-        if (that.clauseType == SetStatement.setClause) {
+        if (that.clauseType == StatementExprExtensions.useClause) {
             if (utils.esc && that.statement instanceof JCTree.JCExpressionStatement exec) {
                 JCExpression expr = exec.expr;
                 if (expr.type.getTag() == TypeTag.VOID

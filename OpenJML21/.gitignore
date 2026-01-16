@@ -3,5 +3,7 @@ build
 release-temp
 temp-release
 temp
+tempDocs
 jmlruntime.jar
 !*.pdf
+*.class

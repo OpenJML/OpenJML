@@ -63,7 +63,7 @@ public class SetStatement extends JmlExtension {
                 	//jmlstat.mods.add(jt);
                 	JmlTreeUtils.instance(parser.context).addAnnotation(jmlstat.mods, jt, parser);
                 }
-                wrapup(st, clauseType, false);
+                wrapup(st, clauseType, false, true);
                 return st;
             } finally {
                 parser.setInJmlDeclaration(saved);

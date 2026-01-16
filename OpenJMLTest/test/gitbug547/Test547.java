@@ -1,4 +1,4 @@
- interface  I {
+interface  I {
 
 }
 public class Test547 implements I {

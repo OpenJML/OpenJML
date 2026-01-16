@@ -1,0 +1,36 @@
+name: 'OpenJML Build'
+description: 'A composite action that builds OpenJML in an existing check out'
+
+## Presumes the current working folder is the one containsing OpenJML, Specs, Solvers, JMLAnnotations etc.
+
+inputs:
+  test:
+    description: 'Whether to run the release test'
+    type: boolean
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    ## The expected working directory is OpenJML, that is, the folder that holds OpenJML21
+    - name: Build OpenJML release on Windows
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        cd OpenJML/OpenJML21
+        bash ./configure
+        make release
+        cd ..
+    - name: Build OpenJML release on non-Windows
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        cd OpenJML/OpenJML21
+        bash ./configure
+        make release
+        cd ..
+    - name: Test the build
+      if: ${{ inputs.test == true }}
+      shell: bash
+      run: |
+        make -C OpenJML/OpenJML21 release-test

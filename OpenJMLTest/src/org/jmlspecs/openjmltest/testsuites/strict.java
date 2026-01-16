@@ -16,17 +16,15 @@ public class strict extends TCBase {
     
     @Override
     public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
-//        jmldebug = true;
         super.setUp();
-    	setDeprecation();
-        main.addOptions(optjml);
+        setDeprecation();
+        addOptions(optjml);
         expectedExit = 0;
     }
 
     @Test
     public void testLbl() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " //@ ghost int i = (\\lbl A 0);\n }"
                 ,"/A.java:2: warning: The \\lbl construct is an OpenJML extension to JML and not allowed under " + optjml,21
                 );
@@ -34,8 +32,8 @@ public class strict extends TCBase {
 
     @Test
     public void testLblB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n" +
                 " //@ ghost int i = (\\lbl A 0);\n }"
                 );
     }
@@ -43,7 +41,7 @@ public class strict extends TCBase {
     // \count is now standard JML
     @Test
     public void testIndex() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\count == i; \n" +
                 " }}}"
@@ -53,7 +51,7 @@ public class strict extends TCBase {
 
     @Test
     public void testValues() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\values.size() >= 0; \n" +
                 " }}}"
@@ -63,8 +61,8 @@ public class strict extends TCBase {
 
     @Test
     public void testValuesB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\values.size() >= 0; \n" +
                 " }}}"
@@ -73,8 +71,8 @@ public class strict extends TCBase {
 
     @Test
     public void testExceptionB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n" +
                 " //@ signals (Exception) \\exception != null;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
@@ -83,7 +81,7 @@ public class strict extends TCBase {
 
     @Test
     public void testException() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " //@ signals (Exception) \\exception != null;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
@@ -93,7 +91,7 @@ public class strict extends TCBase {
 
     @Test
     public void testSecret() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " /*@ secret */ private int i;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
@@ -103,8 +101,8 @@ public class strict extends TCBase {
 
     @Test
     public void testSecretB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n" +
                 " /*@ secret */ private int i;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
@@ -113,7 +111,7 @@ public class strict extends TCBase {
 
     @Test
     public void testQuery() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " //@ query\n" +
                 " int m() { return 0; \n" +
                 " }}"
@@ -123,8 +121,8 @@ public class strict extends TCBase {
 
     @Test
     public void testQueryB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n" +
                 " //@ query\n" +
                 " int m() { return 0; \n" +
                 " }}"
@@ -133,7 +131,7 @@ public class strict extends TCBase {
 
     @Test
     public void testStoreRef() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +
                 " }}"
@@ -143,8 +141,8 @@ public class strict extends TCBase {
 
     @Test
     public void testStoreRefB() {
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n" +
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n" +
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +
                 " }}"
@@ -153,19 +151,54 @@ public class strict extends TCBase {
     
     @Test
     public void testRepresents() {
-        helpTCF("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
+        helpTCText("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
                 );
     }
     
     @Test
     public void testRepresentsB() {
         expectedExit = 0;
-        main.addOptions(optjmlp);
-        helpTCF("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
+        addOptions(optjmlp);
+        helpTCText("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
                 ,"/A.java:3: warning: The left arrow is deprecated in represents clauses, use = instead",46
                 );
     }
     
-
-
+    @Test
+    public void testClauseGroup() {
+        helpTCText("A.java",
+            """
+            public class A {
+                //@ requires true;
+                //@ {|
+                //@    ensures true;
+                //@ also
+                //@    ensures true;
+                //@ |}
+                //@ signals (Exception) true;
+                public void m() {}
+            }
+            """
+            ,"/A.java:8: warning: The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
+        );
+    }
+    
+    @Test
+    public void testClauseGroupA() {
+        helpTCText("A.java",
+            """
+            public class A {
+                //@ requires true;
+                //@ {|
+                //@    ensures true;
+                //@ also
+                //@    ensures true;
+                //@ |}
+                //@ signals_only \\nothing;
+                public void m() {}
+            }
+            """
+            ,"/A.java:8: warning: The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
+        );
+    }
 }

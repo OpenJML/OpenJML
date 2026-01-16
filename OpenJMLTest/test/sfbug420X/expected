@@ -1,4 +1,22 @@
 Proving methods in stack.Stack
+Starting proof of stack.Stack.count() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.count() with prover !!!! - no warnings
+Starting proof of stack.Stack.itemAt(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.itemAt(int) with prover !!!! - no warnings
+Starting proof of stack.Stack.isEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.isEmpty() with prover !!!! - no warnings
+Starting proof of stack.Stack.push(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.push(int) with prover !!!! - no warnings
+Starting proof of stack.Stack.top() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.top() with prover !!!! - no warnings
+Starting proof of stack.Stack.remove() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.remove() with prover !!!! - no warnings
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Starting proof of stack.StackImpl.StackImpl() with prover !!!!

@@ -3,7 +3,7 @@ Skipping proof of trace.trace() (excluded by -method)
 Skipping proof of trace.mgood() (excluded by -method)
 Skipping proof of trace.m1() (excluded by -method)
 Starting proof of trace.m2() with prover !!!!
-test\escTraceLoops\trace.java:30: warning: The prover cannot establish an assertion (Assert) in method m2
+test\escTraceLoops\trace.java:30: verify: The prover cannot establish an assertion (Assert) in method m2
                 //@ assert false;
                     ^
 
@@ -122,7 +122,7 @@ test\escTraceLoops\trace.java:30:  	assert Assert false;
 			VALUE: false	 === false
 test\escTraceLoops\trace.java:30:  Invalid assertion (Assert)
 
-Completed proof of trace.m2() with prover !!!! - with warnings
+Completed proof of trace.m2() with prover !!!! - with verification failures
 Skipping proof of trace.m3() (excluded by -method)
 Skipping proof of trace.m4() (excluded by -method)
 Skipping proof of trace.m5() (excluded by -method)

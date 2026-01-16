@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+rm -rf actual
+touch actual
+( openjml --quiet --check Q0.java ; echo $? ) 2>&1 >> actual
+( openjml --quiet --check Q1.java ; echo $? ) 2>&1 >> actual
+( openjml --quiet --esc   Q2.java ; echo $? ) 2>&1 >> actual
+( openjml --quiet --command=3     ; echo $? ) 2>&1 >> actual
+( openjml --zzz --quiet           ; echo $? ) 2>&1 >> actual
+( openjml --command=3 --quiet     ; echo $? ) 2>&1 >> actual # --quiet is not yet operative for JML options before --quiet
+diff actual expected && rm -rf actual

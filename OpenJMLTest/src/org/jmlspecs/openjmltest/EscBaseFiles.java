@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
@@ -30,22 +29,6 @@ import com.sun.tools.javac.util.Log;
  */
 public abstract class EscBaseFiles extends EscBase {
 
-    protected String[] rac = null;
-    
-    /** The command-line to use to run ESC on a program */
-    protected String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime",null};
-
-    @Override
-    public void setUp() throws Exception {
-        rac = sysrac;
-        super.setUp();
-    }
-    
-    /** Put here any test-specific additions to the class path */
-    protected String cpathAddition = "";
-
-
-    
     /** options is a comma- or space-separated list of options to be added */
     public EscBaseFiles() {
         super();
@@ -55,8 +38,39 @@ public abstract class EscBaseFiles extends EscBase {
     public EscBaseFiles(String options, String solver) {
         super(options, solver);
     }
-    
     // FIXME - the options set in the above constructor are not used
+    
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+    }
+    
+    /** Sets a common initial set of options for these file-based tests */
+    public java.util.List<String> collectArgs(String sourceDirOrFilename, String outDir, String ... opts) {
+        new File(outDir).mkdirs();
+        java.util.List<String> args = new LinkedList<String>();
+        args.add("-g");
+        args.add("--esc");
+        args.add("--no-purity-check");
+        args.add("-jmltesting");
+        args.add("--progress");
+        args.add("--timeout=300");
+        args.add("--code-math=java");
+        args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
+        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
+        args.add(sourceDirOrFilename);
+        if (solver != null) args.add("--prover="+solver);
+        args.addAll(Arrays.asList(opts));
+        return args;
+    }
+
+    
+    /** Put here any test-specific additions to the class path */
+    protected String cpathAddition = "";
+
+
+    
     
     /** runs a test in the folder with the given name, with the classpath set to that folder,
      * placing the output in an 'actual' file in that same folder
@@ -83,21 +97,32 @@ public abstract class EscBaseFiles extends EscBase {
         helpTF(getTestName(), opts);
     }
 
-    public void helpTCG(String ... opts) {
-        helpTG(opts);
-    }
-    
     public void helpTG(String ... opts) {
         String dir = "test/" + getTestName();
         var a = new LinkedList<String>();
-        a.add(0,"-cp"); 
-        a.add(1,dir + cpathAddition);
+        a.add("-cp"); 
+        a.add(dir);
         a.add("--code-math=safe");
         a.add("--spec-math=bigint");
         a.add("--check-feasibility=precondition,reachable,exit,spec");
         a.add("--progress");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    }
+
+    // FIXME - get rid of this eventually
+    public String[] addVE(String ... opts) {
+        var newopts = new String[opts.length+1];
+        System.arraycopy(opts, 0, newopts, 0, opts.length);
+        newopts[opts.length] = "--verify-exit=-1";
+        return newopts;
+    }
+
+    public String[] addVEF(String ... opts) {
+        var newopts = new String[opts.length+1];
+        System.arraycopy(opts, 0, newopts, 1, opts.length);
+        newopts[0] = "--verify-exit=-1";
+        return newopts;
     }
 
     /** runs a test whose source material is in the JMLDemo repo */ 
@@ -142,9 +167,9 @@ public abstract class EscBaseFiles extends EscBase {
         String actCompile = outDir + "/actual";
         new File(actCompile).delete();
         try (PrintWriter pw = new PrintWriter(actCompile)) {
-            java.util.List<String> args = setupForFiles(sourceDirname, outDir, opts);
+            java.util.List<String> args = collectArgs(sourceDirname, outDir, opts);
 
-            // System.out.println("ARGS " + args);
+            // this.out.println("ARGS " + args);
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
 
             String diffs = null;
@@ -153,15 +178,17 @@ public abstract class EscBaseFiles extends EscBase {
             for (String name: files) {
                 diffs = outputCompare.compareFiles(outDir + "/" + name, actCompile);
                 if (diffs == null) {
-                    if (files.length != 1) System.out.println("Matched: " + name);
+                    if (files.length != 1) this.out.println("Matched: " + name);
                     new File(actCompile).delete();
                     break;
                 }
             }
             if (diffs != null) {
-                out.println("TEST DIFFERENCES: " + getTestName());
-                out.println(diffs);
-                fail("Files differ: " + diffs); // Does not return, so appears to be not covered by Jacoco
+                this.out.println("TEST DIFFERENCES: " + actCompile);
+                // The output can be voluminous, partly because the comparison algorithm is not smart, so we just truncate it
+                // at an arbitrary length
+                this.out.println(diffs.substring(0, Math.min(300, diffs.length())));
+                fail("Files differ"); // Does not return, so appears to be not covered by Jacoco
             }
             
             if (expectedExit != -1) {
@@ -169,32 +196,11 @@ public abstract class EscBaseFiles extends EscBase {
             }
 
         } catch (Exception e) {
-            e.printStackTrace(out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             throw e; // These exceptions come from test failures and signal the JUnit infrastructure of the failure
-        } finally {
-            // Closes the Printwriter
         }
     }
 
-    // FIXME - why not just use the regular setup
-    /** Sets a common initial set of options for these file-based tests */
-    public java.util.List<String> setupForFiles(String sourceDirOrFilename, String outDir, String ... opts) {
-        new File(outDir).mkdirs();
-        java.util.List<String> args = new LinkedList<String>();
-        args.add("-g");
-        args.add("--esc");
-        args.add("--no-purity-check");
-        args.add("-jmltesting");
-        args.add("--progress");
-        args.add("--timeout=300");
-        args.add("--code-math=java");
-        args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
-        if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
-        args.add(sourceDirOrFilename);
-        if (solver != null) args.add("--prover="+solver);
-        args.addAll(Arrays.asList(opts));
-        return args;
-    }
 }

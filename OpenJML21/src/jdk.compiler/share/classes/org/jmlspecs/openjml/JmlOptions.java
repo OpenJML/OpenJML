@@ -48,11 +48,14 @@ import com.sun.tools.javac.util.Log.PrefixKind;
 import com.sun.tools.javac.util.Log.WriterKind;
 
 /** Handles JML options. Note that all option settings are contained in a simple map of
- * option name (with the initial -) to string value, in the Options superclass.
+ * option name (with the initial hyphen(s)) to string value, in the Options superclass.
+ * Also note that boolean options are encoded as null for flase, non-null String for true.
  */
 public class JmlOptions extends Options {
     
     protected Context context;
+    
+    public boolean optionsAllSet = false;
 
     /** A stack of sets of options */
     protected Stack<LinkedHashMap<String,String>> stack = new Stack<>();
@@ -77,14 +80,15 @@ public class JmlOptions extends Options {
         // NOCOVERAGE
         // This branch should never execute. If it does, then there is an internal
         // bug in that an Options instance is requested before JmlOptions is a registered tool.
-        Utils.instance(context).error("jml.internal","Options.instance returns an Options instead of a JmlOptions");
+        // DON'T USE Utils.instance(context) -- Stack overflow will result
+        System.out.println("Options.instance returns an Options instead of a JmlOptions");
         Utils.dumpStack();
         throw new JmlInternalException();
     }
 
-    public boolean isSet(JmlOption option) {
-        return (values.get(option.optionName()) != null);
-    }
+//    public boolean isSet(JmlOption option) {
+//        return (values.get(option.optionName()) != null);
+//    }
 
     /** Loads the options map with all defaults for Jml options */
     public void loadDefaults() {
@@ -92,7 +96,11 @@ public class JmlOptions extends Options {
         for (JmlOption opt : JmlOption.map.values()) {
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
-            put(opt.optionName(),s);
+            if (opt.defaultValue() instanceof Boolean b) {
+                put(opt.optionName(),b?"true":null); // FIXME - use set, unset
+            } else {
+                put(opt.optionName(),s);
+            }
             opt.check(context,false);
         }
     }
@@ -124,19 +132,18 @@ public class JmlOptions extends Options {
         newargs.addAll(files);
         // Separate out .jml files from the list of files, because Java will object to them
         File f;
+        var utils = Utils.instance(context);
         iter = newargs.iterator();
         while (iter.hasNext()) {
             String s = iter.next();
-            if (s.endsWith(Strings.specsSuffix)) {
+            if (utils.hasSpecSuffix(s)) {
                 if (jmlfiles != null) jmlfiles.add(new File(s));
-                else Utils.instance(context).warning("jml.message", ".jml files on the command-line are ignored: " + s);
+                else utils.warning("jml.message", ".jml files on the command-line are ignored: " + s);
                 iter.remove();
             }
         }
-        setupOptions(); // check consistency of options so far, even though Java options are not processed yet
-        options.put("compilePolicy", "simple");
-        JmlCompiler.instance(context).compilePolicy = com.sun.tools.javac.main.JavaCompiler.CompilePolicy.SIMPLE;
-        // setupOptions is called to verify consistency after Java options are processed, in JmlArguments.validate
+        // NOTE: cannot call setupOptions until after Java options are processed - because otherwise Lint is
+        // instantiated too early
         return newargs.toArray(new String[newargs.size()]);
     }
     
@@ -146,6 +153,14 @@ public class JmlOptions extends Options {
             values.put(key,  value);
             o.check(context,  false);
         }
+    }
+    
+    public void set(JmlOption opt, boolean value) {
+        values.put(opt.optionName(), value?"true":null);
+    }
+    
+    public void put(JmlOption opt, String value) {
+        values.put(opt.optionName(), value);
     }
     
     public void addFilesRecursively(String s,  /*@ non_null */ java.util.List<String> files) {
@@ -249,6 +264,7 @@ public class JmlOptions extends Options {
                         Utils.instance(context).warning("jml.message","no- is not permitted with set-to-default (empty string after = character)");
                         negate = false;
                     }
+                    if (def instanceof Boolean bdef) negate = !bdef;
                 } else  {
                     if (o.hasArg()) { }
                     else if ("false".equals(res)) negate = true;
@@ -347,10 +363,9 @@ public class JmlOptions extends Options {
         } else {
             // Common case: set the value and check it
             if (o.defaultValue() instanceof Boolean) {
-                JmlOption.setOption(context, o, !negate);
+                set(o, !negate);
             } else {
-                options.put(o.optionName(),res);
-                // Use negate with call of check later on
+                put(o, res);
             }
             o.check(context, negate);
         }
@@ -392,11 +407,60 @@ public class JmlOptions extends Options {
             }
         }
     }
+    
+    public static void setPropertiesFromOptionsDefaults(Properties properties) {
+        // FIXME: THis only sets JML options
+        for (JmlOption opt: JmlOption.map.values()) {
+            String key = Strings.optionPropertyPrefix + opt.optionName().substring(1);
+            Object defaultValue = opt.defaultValue();
+            // Options that are synonyms are not true options (they are translated to their synonym)
+            if (opt.synonym() == null) properties.put(key, defaultValue == null ? "" : defaultValue.toString());
+        }
+    }
+
+    
+    public static void setOptionsFromProperties(Properties properties, Context context) {
+        // FIXME: This does not set any Java options, just JML ones
+        var jmloptions = JmlOptions.instance(context);
+        for (var p: properties.entrySet()) {
+            String k = p.getKey().toString();
+            if (k.startsWith(Strings.optionPropertyPrefix)) {
+                String kk = "--" + k.substring(Strings.optionPropertyPrefix.length());
+                jmloptions.processOption(kk, p.getValue().toString());
+            }
+        }
+    }
+        
+
+    
+    // NOTE: OpenJDK encodes boolean options as null for false, non-null for true */
+    /** Returns whether a Boolean-valued option is set or not */
+    public boolean isSet(JmlOption option) {
+        if (!(option.defaultValue() instanceof Boolean)) Utils.instance(context).error("jml.internal", "Calling JmlOption.isSet on a non-boolean option");
+        return isSet(option.optionName());
+    }
+    
+    /** Returns a String value; the option must be a String-valued option */
+    public String value(JmlOption option) {
+        if (option.defaultValue() instanceof Boolean) Utils.instance(context).error("jml.internal", "Calling JmlOption.value on a boolean option");
+        return get(option.optionName());
+    }
+    
+    public void resetOption(JmlOption option) {
+        boolean b = option.check(context,false);
+        if (!b) {
+            Utils.instance(context).warning("jml.message", "Erroneous option value when resetting option: " + 
+                    option.optionName() + " " + option.value(context));
+        }
+    }
 
     /** This method is called after options are read, but before compilation actually begins;
      * requires tools to be registered, at least Log and Options
      * here any additional option checking or
      * processing can be performed, particularly checks that depend on multiple options.
+     * 
+     * Note that there is an option stack, so the current options can be popped off the stack
+     * leaving a previous set of options -- which won't have gone through processJmlArg
      */
     // This should be able to be called without difficulty whenever any option
     // is changed
@@ -409,57 +473,36 @@ public class JmlOptions extends Options {
         Options options = Options.instance(context);
         Utils utils = Utils.instance(context);
 
-        JmlCompiler.instance(context).disableJML(!isSet(JmlOption.JML));
-
+        // Not supporting this option
         options.remove("printArgsToFile");
         
-        try {
-            utils.jmlverbose = Integer.parseInt(options.get(JmlOption.VERBOSENESS.optionName()));
-        } catch (Exception e) {
-            // continue
-        }
-        if (options.get("-verbose") != null) {
-            // If the Java -verbose option is set, we set -jmlverbose as well
-            utils.jmlverbose = Utils.JMLVERBOSE;
-        }
+        utils.init(); // Sets cached fields in Utils
 
-        // TODO - needs review
-        if (utils.jmlverbose >= Utils.PROGRESS) {
-            try {
-                Main.instance(context).progressDelegator.setDelegate(Main.progressListener != null ? Main.progressListener.get() : new PrintProgressReporter(context,Main.instance(context).stdOut));
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-                // FIXME - report problem
-                // continue without installing a listener
-            }
-        } else {
-            Main.instance(context).progressDelegator.setDelegate(null);
-        }
-
-
-        String keysString = options.get(JmlOption.KEYS.optionName());
-        commentKeys = new HashSet<String>();
-        if (keysString != null && !keysString.isEmpty()) {
-            String[] keys = keysString.split(",");
-            for (String k: keys) commentKeys.add(k);
-        }
-
+        // In case we have just popped options, reset any option that caches values
+        resetOption(JmlOption.KEYS); // Caches in options.commentKeys
+        // Set implicit comment keys
         if (utils.esc) commentKeys.add("ESC");
         if (utils.rac) commentKeys.add("RAC");
-        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) commentKeys.add("STRICT");
+        if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 
+        // FIXME - WARN keys not handled correctly I think
+        
+        Main.instance(context).progressListener.setVerbose(utils.jmlverbose);
+        
+
+        // register any user extensions
         Extensions.register(context);
-// FIXME - turn off for now        JmlSpecs.instance(context).initializeSpecsPath();
+        
+        optionsAllSet = true;
         return true;
     }
-
-
 
     /** Adds additional options to those already present (which may change
      * previous settings); returns remaining Java args. */
     public String[] addOptions(String... args) {
         args = processJmlArgs(args, Options.instance(context), null);
+        // FIXME - process Java options? 
         setupOptions();
         return args;
     }
@@ -516,7 +559,7 @@ public class JmlOptions extends Options {
      */
     public void popOptions() {
         values = stack.pop();
-        setupOptions();
+        setupOptions(); // FIXME - should call postOptionProcessing(context)
     }
 
     /** Output all the options -- purely for debugging */
@@ -546,10 +589,19 @@ public class JmlOptions extends Options {
             this.context = context;
         }
 
+        // FIXME - is this needed? what is its effect on tool component instantiation
         @Override
         public boolean validate() {
             boolean b = super.validate();
             return JmlOptions.instance(context).setupOptions() && b;
         }
+        
+        @Override // overridden just to suppress message
+        public void printUsage(String ownName) {
+            if (JmlOption.VERBOSENESS.getInt(context) != Utils.QUIET || JmlOptions.instance(context).isSet("-verbose")) {
+                super.printUsage(ownName);
+            }
+        }
+
     }
 }

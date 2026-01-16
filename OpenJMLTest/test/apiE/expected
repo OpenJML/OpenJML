@@ -25,4 +25,5 @@ DIAGNOSTIC REPORTED
     Message:        Associated declaration
 Completed proof of A.n() with prover !!!! - with warnings
 Completed proving methods in A
-RUN-Z 0
+
+RUN-Z 6

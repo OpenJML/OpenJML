@@ -69,10 +69,10 @@ TRACE of openjml.demo.ChangeCase.changeCase(char)
 			VALUE: 'Z'	 === 'Z' (90)
 			VALUE: \result <= 'Z'	 === false
 			VALUE: \result >= 'A' && \result <= 'Z'	 === false
-..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: warning: The prover cannot establish an assertion (Postcondition) in method changeCase
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: verify: The prover cannot establish an assertion (Postcondition) in method changeCase
 		return result;
 		^
-..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9: warning: Associated declaration: ..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: 
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:9: verify: Associated declaration: ..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: 
 	//@   ensures \result >= 'A' && \result <= 'Z';
 	      ^
 Completed proof of openjml.demo.ChangeCase.changeCase(char) with prover !!!! - with warnings

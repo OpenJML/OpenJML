@@ -1,8 +1,14 @@
 Proving methods in Bottom
 Completed proving methods in Bottom
 Proving methods in Middle
+Starting proof of Middle.other() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Middle.other() with prover !!!! - no warnings
 Completed proving methods in Middle
 Proving methods in Top
+Starting proof of Top.identifier() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Top.identifier() with prover !!!! - no warnings
 Completed proving methods in Top
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!

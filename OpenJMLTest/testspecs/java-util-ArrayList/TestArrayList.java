@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-
+@SuppressWarnings("unchecked")
 public class TestArrayList {
 	
 	@org.jmlspecs.annotation.SkipEsc

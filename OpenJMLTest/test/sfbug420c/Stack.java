@@ -9,16 +9,16 @@ public interface Stack{
 	//-RAC@ public instance model int count;
 	
 	//-RAC@ ensures \result == count;
-	//@ pure
+	//@ spec_pure
 	//@ helper
 	int count();
 
 	//@ requires i>=1 && i<=count();
-	//@ pure
+	//@ spec_pure
 	int itemAt (int i);
 
 	//@ ensures \result==(count()==0);
-	//@ pure
+	//@ spec_pure
 	boolean isEmpty ( );
 
 	//-RAC@ assignable count;
@@ -28,7 +28,7 @@ public interface Stack{
 	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
 	boolean push(int item);
 
-        //@ ensures \result == itemAt(count());
+    //@ ensures \result == itemAt(count());
 	//@ pure
 	int top();
 

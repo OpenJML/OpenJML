@@ -19,6 +19,9 @@ Feasibility check - at program exit : OK
 Completed proof of TestB.m(@NonNull Integer,int,@NonNull Integer) with prover !!!! - no warnings
 Completed proving methods in TestB
 Proving methods in TestC
+Starting proof of TestC.m(@NonNull Integer,int,@NonNull Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of TestC.m(@NonNull Integer,int,@NonNull Integer) with prover !!!! - no warnings
 Completed proving methods in TestC
 Proving methods in TestA
 Starting proof of TestA.TestA() with prover !!!!

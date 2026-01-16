@@ -36,4 +36,10 @@ Completed proof of Test541.kkk(int[],int,int,int) with prover !!!! - no warnings
 Skipping proof of Test541.kkkbad(int[],int,int,int) (excluded by skipesc)
 Completed proving methods in Test541
 Proving methods in I541
+Starting proof of I541.set(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of I541.set(int[]) with prover !!!! - no warnings
+Starting proof of I541.set(int[],int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of I541.set(int[],int,int,int) with prover !!!! - no warnings
 Completed proving methods in I541

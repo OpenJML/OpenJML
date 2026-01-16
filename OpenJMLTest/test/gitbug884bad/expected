@@ -1,0 +1,12 @@
+test/gitbug884bad/Fibonacci.java:20: warning: Inserting missing semicolon at the end of a behaviors statement
+    //@ behaviors disjoint
+                          ^
+test/gitbug884bad/Fibonacci.java:18: error: A non-pure method is being called where it is not permitted: Fibonacci.fibCompute(int)
+    //@  ensures \result == fibCompute(n-2) + fibCompute(n-1);
+                                      ^
+test/gitbug884bad/Fibonacci.java:18: error: A non-pure method is being called where it is not permitted: Fibonacci.fibCompute(int)
+    //@  ensures \result == fibCompute(n-2) + fibCompute(n-1);
+                                                        ^
+Operation not performed because of parse or type errors
+2 errors
+1 warning

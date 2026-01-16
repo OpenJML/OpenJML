@@ -25,7 +25,7 @@ test/bag/Bag.java:53: warning: The prover cannot establish an assertion (LoopInv
         ^
 Completed proof of sv_esc.Bag.getCount(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.add(int) with prover !!!!
-test/bag/Bag.java:61: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method add: int multiply overflow
+test/bag/Bag.java:61: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method add: int multiply out of range
        int[] new_contents = new int[2*n+1]; // error in code corrected
                                      ^
 Completed proof of sv_esc.Bag.add(int) with prover !!!! - with warnings

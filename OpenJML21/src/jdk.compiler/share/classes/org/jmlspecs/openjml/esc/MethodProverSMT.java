@@ -24,8 +24,8 @@ import org.jmlspecs.openjml.ext.Operators;
 import org.jmlspecs.openjml.ext.SignalsClauseExtension;
 import org.jmlspecs.openjml.ext.SignalsOnlyClauseExtension;
 import static org.jmlspecs.openjml.ext.StatementExprExtensions.*;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.IProverResult.Span;
+import org.openjml.IProverResult;
+import org.openjml.IProverResult.Span;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.smtlib.IAttributeValue;
@@ -185,13 +185,13 @@ public class MethodProverSMT {
     public /*@ nullable */ String pickProverExec(String proverToUse) {
         org.smtlib.SolverProcess.useMultiThreading = false;
         org.smtlib.SolverProcess.useNotifyWait = false;
-        String exec = JmlOption.value(context, JmlOption.PROVEREXEC);
+        String exec = JmlOption.PROVEREXEC.value(context);
         String os = Utils.identifyOS(context);
-        if (exec == null || exec.isEmpty()) exec = JmlOption.value(context, Strings.proverPropertyPrefix + proverToUse);
+        if (exec == null || exec.isEmpty()) exec = Options.instance(context).get(Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             // The default is that the prover executables are located in folders named 
             // ./Solvers-$OS for $OS either Mac or Win or Linux. relative to the path returned by findInstallLocation
-            String loc = utils.findInstallLocation();
+            String loc = Main.solvers;
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
             
@@ -243,20 +243,20 @@ public class MethodProverSMT {
      */
     public IProverResult prove(JmlMethodDecl methodDecl, String proverToUse) {
         escdebug = escdebug || utils.jmlverbose >= Utils.JMLDEBUG;
-        boolean verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+        boolean verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
-        this.showSubexpressions = verbose || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS);
+        this.showSubexpressions = verbose || JmlOption.SUBEXPRESSIONS.isSet(context);
         boolean methodIsStatic = utils.isJMLStatic(methodDecl.sym);
-        boolean showTrace = this.showSubexpressions || JmlOption.isOption(context,JmlOption.TRACE);
-        boolean showCounterexample = JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE);
+        boolean showTrace = this.showSubexpressions || JmlOption.TRACE.isSet(context);
+        boolean showCounterexample = JmlOption.COUNTEREXAMPLE.isSet(context);
         this.showBBTrace = escdebug;
         log.useSource(methodDecl.sourcefile);
         int prevErrors = log.nerrors;
 
         boolean print = jmlesc.verbose;
-        boolean printPrograms = JmlOption.includes(context, JmlOption.SHOW, "translated");
-        boolean printBB = JmlOption.includes(context, JmlOption.SHOW, "bb");
-        boolean printSMT = JmlOption.includes(context, JmlOption.SHOW, "smt");
+        boolean printPrograms = JmlOption.SHOW.includes(context, "translated", "all");
+        boolean printBB = JmlOption.SHOW.includes(context, "bb", "all");
+        boolean printSMT = JmlOption.SHOW.includes(context, "smt", "all");
         
         JmlClassDecl currentClassDecl = utils.getOwner(methodDecl);
         
@@ -278,7 +278,7 @@ public class MethodProverSMT {
         IProverResult proofResult = null;
         int numberAccumulated = 0;
 
-        String splitlist = JmlOption.value(context,JmlOption.SPLIT);
+        String splitlist = JmlOption.SPLIT.value(context);
         if (splitlist == null) splitlist = "";
         String[] splits = splitlist.split(",");
         int skips = 0;
@@ -292,7 +292,7 @@ public class MethodProverSMT {
 //            if (proofResultAccumulated.isSat()) continue;
 //        }
         if (!splitlist.isEmpty() && !java.util.Arrays.stream(splits).anyMatch(s -> splitkey.equals(s))) {
-            utils.note(false,"Skipping proof attempt for split " + splitkey);
+            if (JmlOption.SHOW_SKIPPED.isSet(context)) utils.note(false,"Skipping proof attempt for split " + splitkey);
             skips++;
             continue;
         }
@@ -339,12 +339,12 @@ public class MethodProverSMT {
 //            log.warning("jml.message","Expected an integer for a seed: " + strseed);
 //        }
         smt.processCommandLine(new String[]{}, smt.smtConfig);
-        Object o = JmlOption.value(context,  JmlOption.TIMEOUT);
+        Object o = JmlOption.TIMEOUT.value(context);
         if (o != null && !o.toString().isEmpty()) {
             try {
                 smt.smtConfig.timeout = Double.parseDouble(o.toString());
             } catch (NumberFormatException e) {
-                // FIXME  - issue a warning
+                utils.warning("jml.message","Timeout value cannot be parsed as a double: " + o);
             }
         }
 
@@ -376,16 +376,17 @@ public class MethodProverSMT {
 
             // convert the basic block form to SMT
             try {
+                var escbv = JmlOption.ESC_BV.value(context);
                 try {
-                    if (utils.progress() && methodDecl.usedBitVectors && !JmlOption.value(context, JmlOption.ESC_BV).equals("true")) {
+                    if (utils.progress() && methodDecl.usedBitVectors && !"true".equals(escbv)) {
                     	utils.note("Using bit-vector arithmetic");
                     }
                     script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
                 } catch (SMTTranslator.JmlBVException e) {
-                    if (JmlOption.value(context, JmlOption.ESC_BV).equals("false")) {
+                    if ("false".equals(escbv)) {
                         return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date());
                     }
-                    if (!Utils.testingMode && utils.progress()) {
+                    if (!utils.testingMode && utils.progress()) {
                     	utils.note(false, "Switching to bit-vector arithmetic");
                     }
                     script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
@@ -424,7 +425,7 @@ public class MethodProverSMT {
             } else {
             	// Try the prover
             	if (verbose) log.getWriter(WriterKind.NOTICE).println("EXECUTION"); //$NON-NLS-1$
-            	String filename = JmlOption.value(context, JmlOption.SMT);
+            	String filename = JmlOption.SMT.value(context);
             	if (filename != null && filename.isEmpty()) filename = "out.smt2";
             	try {
                 	String name = utils.methodName(methodDecl.sym);
@@ -495,12 +496,12 @@ public class MethodProverSMT {
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             }
             String loc = utils.qualifiedNameNoInit(methodDecl.sym);
-            if (Utils.testingMode) loc = "";
+            if (utils.testingMode) loc = "";
             if (solverResponse.equals(unsatResponse)) {
                 String msg = "Method assertions are validated";
-                if (!Utils.testingMode && JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) msg = msg + String.format(" [%4.2f secs]", duration);
+                if (!utils.testingMode && JmlOption.SHOW_SUMMARY.isSet(context)) msg = msg + String.format(" [%4.2f secs]", duration);
                 // FIXME - get rid of the check on testingMode below some time when we can change the test results
-                if (!Utils.testingMode) utils.progress(0,1,msg);
+                if (!utils.testingMode) utils.progress(0,Utils.PROGRESS,msg);
 
                 if (verbose) log.getWriter(WriterKind.NOTICE).println("Method checked OK");
                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNSAT,start);
@@ -510,7 +511,6 @@ public class MethodProverSMT {
 //                    doit = true;
 //                }
                 if (doit || !Strings.feasibilityContains(Strings.feas_none,context)) {
-                    boolean allFeasibilities = Strings.feasibilityContains(Strings.feas_all,context) || Strings.feasibilityContains(Strings.feas_debug,context);
                     if (usePushPop) {
                         solver.pop(1); // Pop off previous check_sat
                     } else {
@@ -520,13 +520,13 @@ public class MethodProverSMT {
                     java.util.List<JmlStatementExpr> checks = jmlesc.assertionAdder.getFeasibilityChecks(methodDecl, splitkey);
                     startFeasibilityCheck = 0;
                     if (Strings.feasibilityContains(Strings.feas_debug,context)) {
-                        String values = JmlOption.value(context,JmlOption.FEASIBILITY);
-                        if (values != null && values.length() > "debug:".length()) {
+                        String values = JmlOption.FEASIBILITY.value(context); // non-null because feasibility is already known to be debug
+                        if (values.length() > "debug:".length()) {
                             String sn = values.substring("debug:".length());
                             try {
                                 startFeasibilityCheck = Integer.valueOf(sn);
                             } catch (NumberFormatException e) {
-                                utils.warning("jml.message","debug feaqsibility startu=ing number has ba format: " + sn);
+                                utils.warning("jml.message","debug feasibility starting number has bad format: " + sn);
                             }
                         }
                     }
@@ -549,10 +549,6 @@ public class MethodProverSMT {
                             continue;
                         }
                        
-                        // Only do the feasibility check if called for by the feasibility option
-//                        if (!allFeasibilities && !Strings.feasibilityContains(stat.description,context)
-//                                && !(doit && stat.description.contains(Strings.feas_pre))) continue;
-                            
                         if (!usePushPop) {
                             solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
                             if (JmlAssertionAdder.useAssertCount) {
@@ -600,17 +596,17 @@ public class MethodProverSMT {
                         }
                         String description = stat.description; // + " " + stat;
                         String fileLocation = utils.locationString(stat.pos, log.currentSourceFile());
-                        String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && (!Utils.testingMode || Strings.feasibilityContains(Strings.feas_debug,context)) )) ? 
+                        String msg2 =  (utils.jmlverbose > Utils.PROGRESS || (utils.jmlverbose == Utils.PROGRESS && (!utils.testingMode || Strings.feasibilityContains(Strings.feas_debug,context)) )) ? 
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         //System.out.println("   SOLVER " + solverResponse);
                         boolean infeasible = solverResponse.equals(unsatResponse);
-                        if (Utils.testingMode) fileLocation = loc;
-                        String msgOK = fileLocation + msg2 + "OK" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration));
+                        if (utils.testingMode) fileLocation = loc;
+                        String msgOK = fileLocation + msg2 + "OK" + (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", duration));
                         if (infeasible) {
-                            utils.progress(0,1,fileLocation + msg2 + "infeasible" + (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)? "" : String.format(" [%4.2f secs]", duration)));
+                            utils.progress(0,Utils.PROGRESS,fileLocation + msg2 + "infeasible" + (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", duration)));
                             if (Strings.preconditionFeasCheckDescription.equals(description)) {
-                            	utils.warning(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
+                            	utils.verify(stat, "esc.infeasible.preconditions", utils.qualifiedMethodSig(methodDecl.sym));
                                 proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.INFEASIBLE,start);
                                 // If the preconditions are inconsistent, all paths will be infeasible
                                 break;
@@ -628,16 +624,16 @@ public class MethodProverSMT {
                             IResponse unknownReason = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
                             if (unknownReason.equals(smt.smtConfig.responseFactory.unsupported())) {
                                 // continue
-                                utils.progress(0,1,fileLocation + msg2 + "unknown reason: unsupported");
+                                utils.progress(0,Utils.PROGRESS,fileLocation + msg2 + "unknown reason: unsupported");
                             } else if (unknownReason instanceof IResponse.IAttributeList) {
                                 IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
                                 IAttributeValue value = attrList.attributes().get(0).attrValue();
                                 if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
                                     // continue on - counting this as a SAT response
-                                    utils.progress(0,1,msgOK);
+                                    utils.progress(0,Utils.PROGRESS,msgOK);
                                 } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
                                     // continue on - counting this as a SAT response
-                                    utils.progress(0,1,msgOK);
+                                    utils.progress(0,Utils.PROGRESS,msgOK);
                                 } else {
                                     String msg3 = "Aborted feasibility check: " + smt.smtConfig.defaultPrinter.toString(value);
                                     unknownReason = smt.smtConfig.responseFactory.error(msg2);
@@ -645,9 +641,9 @@ public class MethodProverSMT {
                                     if (timeout) {
                                         utils.verify(methodDecl,"esc.resourceout.feasibility",": " + msg3);
                                         proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.TIMEOUT,start);
-                                        utils.progress(0,1,fileLocation + msg + "timeout");
+                                        utils.progress(0,Utils.PROGRESS,fileLocation + msg + "timeout");
                                     } else {
-                                        utils.progress(0,1,fileLocation + msg + "unknown reason: " + value);
+                                        utils.progress(0,Utils.PROGRESS,fileLocation + msg + "unknown reason: " + value);
                                     }
                                 }
                             } else {
@@ -656,14 +652,14 @@ public class MethodProverSMT {
                                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,start);
                             }
                         } else { // SAT response
-                            utils.progress(0,1,msgOK);
+                            utils.progress(0,Utils.PROGRESS,msgOK);
                         }
                     }
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
-                if (!Utils.testingMode) utils.progress(0,1,loc + " Method assertions are INVALID");
+                if (!utils.testingMode) utils.progress(0,Utils.PROGRESS,loc + " Method assertions are INVALID");
                 int count = Utils.instance(context).maxWarnings;
-                boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
+                boolean byPath = JmlOption.ESC_WARNINGS_PATH.isSet(context);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);
                 proofResult = pr;
@@ -711,7 +707,7 @@ public class MethodProverSMT {
                         IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
                         if (r.isError()) {
                             String msg = ": ";
-                            if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
+                            if (JmlOption.TIMEOUT.value(context) != null) msg = " (possible timeout): ";
                             utils.verify(methodDecl,"esc.nomodel","method " + utils.qualifiedName(methodDecl.sym) + " - " + msg + r);
                             if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
                             break b;
@@ -723,7 +719,7 @@ public class MethodProverSMT {
                     IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
                     if (r.isError()) {
                         String msg = ": ";
-                        if (JmlOption.value(context,JmlOption.TIMEOUT) != null) msg = " (possible timeout): ";
+                        if (JmlOption.TIMEOUT.value(context) != null) msg = " (possible timeout): ";
                         utils.verify(methodDecl,"esc.nomodel",msg + r);
                         if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.UNKNOWN,start);
                         break b;
@@ -775,14 +771,9 @@ public class MethodProverSMT {
                     }
                     
 
-                    if (pathCondition != null) {
-                        Counterexample ce = new Counterexample(tracer.text(),cemap,path);
-                        pr.add(ce); // TODO - make more abstract
-                    }
-                    
-                    if (pathCondition == null) {
-                        break;
-                    }
+                    if (pathCondition == null) break;
+                    Counterexample ce = new Counterexample(tracer.text(),cemap,path);
+                    pr.add(ce); // TODO - make more abstract
 
                     if (--count <= 0) break;
                     
@@ -949,7 +940,7 @@ public class MethodProverSMT {
                 // FIXME - error and what to do ?
                 continue;
             }
-            if (info.verbose && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
+            if (info.verbose && (JmlOption.COUNTEREXAMPLE.isSet(context) || JmlOption.SUBEXPRESSIONS.isSet(context))) {
                 tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
             }
             if (value) {
@@ -1136,7 +1127,7 @@ public class MethodProverSMT {
                     }
                     if (!value) { 
 //                        if (e instanceof JCIdent) pathCondition = treeutils.makeNot(e, e);
-                        boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
+                        boolean byPath = JmlOption.ESC_WARNINGS_PATH.isSet(context);
                         if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                         else pathCondition = e;
                         if (terminationPos == 0) terminationPos = info.decl.pos;
@@ -1151,7 +1142,7 @@ public class MethodProverSMT {
                         }
                         JavaFileObject mainSource = log.currentSourceFile();
                         String associatedLocation = Strings.empty;
-                        if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
+                        if (assertStat.associatedPos != Position.NOPOS && !utils.testingMode) {
                             associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                             // FIXME - can this adjustment be pushed into locationString()?
                             associatedLocation = associatedLocation.trim();
@@ -1165,7 +1156,7 @@ public class MethodProverSMT {
                             extra = ": " + assertStat.description;
                         }
                         
-                        if (JmlOption.includes(context, JmlOption.SHOW,"translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+                        if (JmlOption.SHOW.includes(context, "translated", "all")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                         int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                         String loc;
 //                        if (epos == Position.NOPOS || pos != assertStat.pos) {
@@ -1177,7 +1168,7 @@ public class MethodProverSMT {
                         	utils.verify(assertStat.sourcefile,pos,"esc.assertion.invalid",label,associatedLocation,utils.methodName(info.decl.sym),extra); //$NON-NLS-1$
                             loc = utils.locationString(pos,assertStat.sourcefile);
                             tracer.appendln(loc + " Invalid assertion (" + label + ")");
-                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_FORMAL) {
+                            if (label == Label.UNDEFINED_PRECONDITION || label == Label.UNDEFINED_NULL_PRECONDITION || label == Label.NULL_ARGUMENT_LOC || label == Label.NULL_ARGUMENT) {
                                 try {
                                     Name nm = ((JCIdent)assertStat.expression).sym.name;                                    // FIXME - need to fix why assertion names are getting invocation suffixes
                                     String s = jmlesc.assertionAdder.callStacks.get(nm);
@@ -1192,7 +1183,7 @@ public class MethodProverSMT {
                         
                         if (assertStat.associatedPos != Position.NOPOS) {
                             utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                    Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                    utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
                         }
@@ -1325,7 +1316,7 @@ public class MethodProverSMT {
             // FIXME - error and what to do ?
             return null;
         }
-        if (info.verbose && (JmlOption.isOption(context,JmlOption.COUNTEREXAMPLE) || JmlOption.isOption(context,JmlOption.SUBEXPRESSIONS))) {
+        if (info.verbose && (JmlOption.COUNTEREXAMPLE.isSet(context) || JmlOption.SUBEXPRESSIONS.isSet(context) )) {
             tracer.appendln("Block " + id + " is " + value);  //$NON-NLS-1$//$NON-NLS-2$
         }
         if (value) {
@@ -1503,7 +1494,7 @@ public class MethodProverSMT {
                     return pathCondition; // For when assert statements are not identifiers
                 }
                 if (!value) { 
-                    boolean byPath = JmlOption.isOption(context, JmlOption.ESC_WARNINGS_PATH);
+                    boolean byPath = JmlOption.ESC_WARNINGS_PATH.isSet(context);
                     if (byPath) pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS, pathCondition, e);
                     else pathCondition = e;
                     if (terminationPos == 0) terminationPos = info.decl.pos;
@@ -1518,7 +1509,7 @@ public class MethodProverSMT {
                     }
                     JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
-                    if (assertStat.associatedPos != Position.NOPOS && !Utils.testingMode) {
+                    if (assertStat.associatedPos != Position.NOPOS && !utils.testingMode) {
                         associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                     }
                     String extra = Strings.empty;
@@ -1530,7 +1521,7 @@ public class MethodProverSMT {
                         extra = ": " + assertStat.description;
                     }
                     
-                    if (JmlOption.includes(context, JmlOption.SHOW, "translated")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
+                    if (JmlOption.SHOW.includes(context, "translated", "all")) log.getWriter(WriterKind.NOTICE).println("Failed assert: " + e.toString());
                     int epos = assertStat.getEndPosition(log.currentSource().getEndPosTable());
                     String loc;
                     if (epos == Position.NOPOS || pos != assertStat.pos) {
@@ -1551,7 +1542,7 @@ public class MethodProverSMT {
                     if (assertStat.associatedPos != Position.NOPOS) {
                         //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
                         utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                Utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
                                 loc);
                         tracer.appendln(associatedLocation + " Associated location");
                         //if (assertStat.associatedSource != null) log.useSource(prev);

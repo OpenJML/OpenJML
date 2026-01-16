@@ -30,7 +30,7 @@ public class esclocation extends EscBase {
                 +"  public void mm();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
@@ -38,10 +38,10 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"  public void mm() {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m",7
-                ,"/$A/tt/TestJava.jml:3: warning: Associated declaration",15
-                ,"/$A/tt/TestJava.jml:2: warning: Precondition conjunct is false: false",18
-                ,"/tt/TestJava.java:6: warning: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm()",15
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method m",7
+                ,"/$A/tt/TestJava.jml:3: verify: Associated declaration",15
+                ,"/$A/tt/TestJava.jml:2: verify: Precondition conjunct is false: false",18
+                ,"/tt/TestJava.java:6: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm()",15
                 );
     }
     
@@ -52,14 +52,14 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m",15
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition) in method m",15
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",9
                 );
     }
     
@@ -70,15 +70,15 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
                 +"    return;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m",5
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",9
                 );
     }
     
@@ -89,15 +89,15 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {\n"
                 +"    throw new RuntimeException();\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m",5
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",9
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m",5
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",9
                 );
     }
     
@@ -109,7 +109,7 @@ public class esclocation extends EscBase {
                 +"  public void m() ;\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"
                 
@@ -117,8 +117,8 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (InvariantExit) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",21
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (InvariantExit) in method m",13
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",21
                 );
     }
     
@@ -132,7 +132,7 @@ public class esclocation extends EscBase {
 
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"
                 
@@ -140,8 +140,8 @@ public class esclocation extends EscBase {
                 +"    i = -1; return; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Initially) in method TestJava",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Initially) in method TestJava",13
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",14
                 );
     }
     
@@ -154,7 +154,7 @@ public class esclocation extends EscBase {
                 +"  public void m();\n"
                 +"}"
                 );
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  static public int i;\n"
                 
@@ -163,8 +163,8 @@ public class esclocation extends EscBase {
                 +"  }\n"
                 +"}"
                 // FIXME - normalize column
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.jml:2: warning: Associated declaration",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Constraint) in method m",13
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",14
                 );
     }
     

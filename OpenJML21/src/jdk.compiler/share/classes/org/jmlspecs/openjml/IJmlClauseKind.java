@@ -60,7 +60,7 @@ import javax.tools.JavaFileObject;
  *  not instances of clauses. These objects also contain behavior of the clause kinds,
  *  namely how to parse and typecheck instances of these clauses. There should be just
  *  a singleton object for each kind of clause. Clause kinds include standalone
- *  keywords, such as normal-behavior. 
+ *  keywords, such as normal_behavior. 
  *  Instances of clauses are usually instances of derived types of JmlTree.
  * @author davidcok
  *
@@ -74,10 +74,13 @@ public abstract class IJmlClauseKind {
     
     // These fields and methods give behavior of JML clauses of the given kind.
 
+    /** The primary keyword for this kind of clause, set by the constructor */
     public String keyword = null;
 
+    /** Returns the primary keyword */
     public String keyword() { return keyword; }
     
+    /** Returns the primary keyword */
     public String toString() { return keyword(); }
     
     /** If true, is a method or type spec clause kind within which \old without a label can be used (e.g. ensures)
@@ -88,11 +91,13 @@ public abstract class IJmlClauseKind {
      */
     public boolean preOrOldWithLabelAllowed() { return false; }
     
+    /** If true, is a kind of clause in which \pre may be used
+     */
     public boolean preAllowed() { return false; }
 
     /** If true, is a method clause kind within which these tokens may appear:
      *  \not_assigned \only_assigned \only_captured \only_accessible \not_modified */
-    public boolean postClauseAllowed() { return false; }
+    public boolean postClauseAllowed() { return false; }  // FIXME - when is this different from resultExpressionAllowed
     
     /** If true, is a method clause kind in which the \result token may appear 
      * (and \not_assigned \only_assigned \only_captured \only_accessible \not_modified) */
@@ -115,12 +120,6 @@ public abstract class IJmlClauseKind {
     /** The parser in use, set when parsing is requested; note that there is a new parser created for each file parsed */
     protected /*@ non_null */ JmlParser parser;
     
-//    /** The scanner in use, set when parsing is requested; note that there is a new parser created for each file parsed */
-//    protected /*@ non_null */ JmlScanner scanner;
-    
-//    /** The symbol table, set when the context is set */
-//    protected Symtab syms;
-    
     /** Set when the context is set */
     protected Log log;
     
@@ -130,10 +129,12 @@ public abstract class IJmlClauseKind {
     /** Set when the context is set */
     protected Utils utils;
     
+    // FIXME - not sure this is used
     public com.sun.tools.javac.util.JCDiagnostic.Error errorKey(String key, Object ... args) {
     	return diagFactory.errorKey(key,args);
     }
     
+    // FIXME - not sure this is used
     public com.sun.tools.javac.util.JCDiagnostic.Warning warningKey(String key, Object ... args) {
     	return diagFactory.warningKey(key,args);
     }
@@ -141,15 +142,18 @@ public abstract class IJmlClauseKind {
     /** Writes an error message to the log, using the given DiagnosticPosition
      * (typically gotten from tree.pos()), 
      * a key (as in the file org.jmlspecs.openjml.messages.properties)
-     * and arguments for that key
-     * @param pos the DiagnosticPosition used to identify the relevant location in the source file
-     * @param key the resource key holding the error message
-     * @param args (non-null) arguments for the key - there must be at least as many arguments as there are place-holders in the key string
+     * and arguments for that key.
+     * THe diagnostic presumes the source file in log.currentSourceFile(), set by log.useSource(...)
      */
     public void error(DiagnosticPosition pos, String key, Object ... args) {
         utils.error(pos, key, args);
     }
     
+    /** Writes an error message to the log, using the given DiagnosticPosition and sourcefile,
+     * (typically gotten from tree.pos()), 
+     * a key (as in the file org.jmlspecs.openjml.messages.properties)
+     * and arguments for that key.
+     */
     public void error(JavaFileObject sourcefile, DiagnosticPosition pos, String key, Object ... args) {
         utils.error(sourcefile, pos, key, args);
     }
@@ -157,7 +161,8 @@ public abstract class IJmlClauseKind {
     /**
      * Creates an error message for which the source is a range of characters,
      * from begin up to and not including end; the identified line is that of
-     * the begin position.
+     * the begin position.  With reference to the sourcefile at log.currentSourceFile();
+     * begin and end define the DiagnosticPosition.
      */
     public void error(int begin, int end, String key, Object... args) {
         utils.error(begin, end, key, args);
@@ -165,10 +170,7 @@ public abstract class IJmlClauseKind {
 
     /** Writes a warning message to the log, using the given DiagnosticPosition
      * (typically gotten from tree.pos()), a key (as in the file org.jmlspecs.openjml.messages.resources)
-     * and arguments for that key
-     * @param pos the DiagnosticPosition used to identify the relevant location in the source file
-     * @param key the resource key holding the error message
-     * @param args (non-null) arguments for the key - there must be at least as many arguments as there are place-holders in the key string
+     * and arguments for that key, all with respect to log.currentOSurceFile()
      */
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
         utils.warning(pos, key, args);
@@ -177,7 +179,8 @@ public abstract class IJmlClauseKind {
     /**
      * Creates a warning message for which the source is a range of characters,
      * from begin up to and not including end; the identified line is that of
-     * the begin position.
+     * the begin position. With reference to the sourcefile at log.currentSourceFile();
+     * begin and end define the DiagnosticPosition.
      */
     public void warning(int begin, int end, String key, Object... args) {
         utils.warning(begin, end, key, args);
@@ -192,7 +195,7 @@ public abstract class IJmlClauseKind {
     }
     
     /** Sets the end position of the given tree node to be the end position of
-     * the previously scanned token.
+     * the previously scanned token (presumes parsing in progress)
      * @param <T> the type of the node being set
      * @param tree the node whose end position is being set
      * @return returns the same node
@@ -214,6 +217,7 @@ public abstract class IJmlClauseKind {
 
     public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) { return null; }
 
+    /** Initializes for parsing a clause of the given kind */
     protected void init(JmlParser parser) {
         Context c = context = parser.context ;
         //this.syms = Symtab.instance(c);
@@ -224,36 +228,41 @@ public abstract class IJmlClauseKind {
         this.diagFactory = JCDiagnostic.Factory.instance(c);
     }
 
-    protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon) {
-        wrapup(statement,clauseType,parseSemicolon, true);
-    }
-    
-    protected void wrapup(JCTree statement, IJmlClauseKind clauseType, boolean parseSemicolon, boolean requireSemicolon) {
+    /** Called to complete the parsing of a JML statement or clause that optionally ends in a semicolon.
+     * @param statement - the statement or clause parsed
+     * @param clauseKind - the kind of the statement or clause
+     * @param parseSemicolon - true if a semicolon has not yet been parsed
+     * @param requireSemicolon - true if a semicolon is required
+     */
+    protected void wrapup(JCTree statement, IJmlClauseKind clauseKind, boolean parseSemicolon, boolean requireSemicolon) {
         if (statement instanceof JmlSource) {
             ((JmlSource)statement).setSource(log.currentSourceFile());
         }
-        //ste.line = log.currentSource().getLineNumber(pos);
         if (!parseSemicolon) {
-            // If we do not need a semicolon yet (e.g. because we already
-            // parsed it or because the statement does not end with one,
-            // then the scanner has already scanned the next symbol --
-        	// either the end-of-jml or the start of the next JML clause/statement
+            // Don't need a semicolon because one is already parsed
         } else if (parser.isEndJml()) {
-            // FIXME - was -2 here, why?
-            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseType.keyword());
+            // If a semicolon is required, but we have end of JML comment instead, issue a warning about missing semicolon
+            // (the parser effectively auto-inserts one)
+            if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseKind.keyword());
         } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
-        	int p = parser.pos();
-        	var t = parser.getScanner().prevToken();
-        	p = t.endPos;
-            error(p, p, "jml.bad.construct.missing.semi", clauseType.keyword() + " statement");
+            // No semicolon or end of JML - so we have started a new clause or statement without a separating semicolon.
+            // This is an error
+            var t = parser.getScanner().prevToken();
+            int p = t.endPos;
+            error(p, p, "jml.bad.construct.missing.semi", clauseKind.keyword() + " statement");
         } else if (parser.token().kind != SEMI) {
-            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseType.keyword() + " statement");
+            // Not a semicolon and not the start of a new clause either,; the parser thought it was done parsing the construct. So something is badly askew.
+            error(parser.pos(), parser.endPos(), "jml.bad.construct", clauseKind.keyword() + " statement");
+            // Try to recover by finding a semicolon (or end of JML or EOF)
             parser.skipThroughSemi();
         } else {
+            // Is a semicolon, so just advance over it
             parser.nextToken(); // advance to the token after the semi
         }
-        parser.toP(statement);
-        parser.acceptEndJML(); // accepts any end-jml-comment tokens, if present
+        parser.toP(statement); // stores the end position of the parsed statement, which will be the end of position of the 
+            // the just parsed semicolon or the token before the current token (which might be the end-of-JML). FIXME - check this
+            // If there is an error, there is no need and no guarantee this is 'right', whatever right might be. 
+        parser.acceptEndJML(); // skips over any end-jml-comment tokens
     }
     
     /** Derived classes implement this method to do any typechecking of the tree, which should have
@@ -261,13 +270,13 @@ public abstract class IJmlClauseKind {
      */
     abstract public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env);
     
-    /** returns true if strict adherence to JML is required (language option is jml) */
-    public boolean requireStrictJML() {
-        return JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG));
+    /** returns true if strict adherence to JML is required (language option is 'jml', instead of the default 'openjml') */
+    public boolean requireStrictJML() { // duplicates method in JmlAttr
+        return JmlOption.langJML.equals(JmlOption.LANG.value(context));
     }
     
     /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
-    public void strictCheck(JmlParser parser, JCTree e) {
+    public void strictCheck(JCTree e) {
         if (requireStrictJML()) {
             utils.warning(e,"jml.not.strict",keyword());
         }
@@ -312,8 +321,7 @@ public abstract class IJmlClauseKind {
         public LineAnnotationKind(String keyword) { super(keyword); }
 
         @Override
-        public JCTree parse(JCModifiers mods, String keyword,
-                IJmlClauseKind clauseType, JmlParser parser) {
+        public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
             throw new UnsupportedOperationException();
         }
 
@@ -350,13 +358,13 @@ public abstract class IJmlClauseKind {
     /** A base class for JML extensions that do not fit into other categories */
     public static abstract class Misc extends IJmlClauseKind {
         public Misc(String keyword) { super(keyword); }
-        abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+        abstract public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser);
     }
     
     /** A base class for JML extensions that are kinds of expressions */
     public static abstract class ExpressionKind extends IJmlClauseKind {
         public ExpressionKind(String keyword) { super(keyword); }
-        abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser);
+        abstract public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser);
         public JCExpression assertionConversion(JmlAssertionAdder aa, JCExpression expr) { return null; }
     }
     
@@ -409,6 +417,9 @@ public abstract class IJmlClauseKind {
             checkNumberArgs(parser, e, (n)->(n==1), "jml.one.arg", e.kind.keyword());
         }
         
+        /** A helper method that does type attribution on each element of 'args', returning false if any of the elements
+         * does not typecheck successfully.
+         */
         public boolean typecheckHelper(JmlAttr attr, List<JCExpression> args, Env<AttrContext> localEnv) {
             boolean ok = true;
             for (JCExpression e: args) {
@@ -420,13 +431,6 @@ public abstract class IJmlClauseKind {
                 if (e.type == null) Utils.dumpStack("Type not set for " + e + " " + args);
             }
             return ok;
-//            ListBuffer<Type> argTypes = new ListBuffer<>();
-//            for (JCExpression e: args) {
-//                Attr.ResultInfo resultInfo = attr.new ResultInfo(KindSelector.VAL, Type.noType );
-//                Type t = attr.attribExpr(e, localEnv);
-//                t = attr.check(e, t, KindSelector.VAL, resultInfo );
-//                argTypes.add(t);
-//            }
         }
        
     }
@@ -462,7 +466,7 @@ public abstract class IJmlClauseKind {
 
     }
     /** This class is used for kinds of JML expressions that are just a keyword with
-     * no parenthesized argument list
+     * no parenthesized argument list (e.g. \result)
      */
     public static abstract class SingletonExpressionKind extends ExpressionKind {
         
@@ -492,6 +496,7 @@ public abstract class IJmlClauseKind {
 
     }
     
+    /** The base class for tokens that are modifiers */
     @SuppressWarnings("unchecked")
     public static class ModifierKind extends IJmlClauseKind {
         public String fullAnnotation;
@@ -507,6 +512,11 @@ public abstract class IJmlClauseKind {
             return !isTypeAnnotation();
         }
         
+        /** Defines a new JML modifier with the given keyword (e.g. "pure") and
+         * whether the modifier is part of strict JML; the corresponding Java annotation is the keyword
+         * with the first character in uppercase, andy underscore characters removed, and the first character after
+         * an underscore also in uppercase (e.g. spec_public becomes SpecPublic)
+         */
         public ModifierKind(String keyword, boolean strict) {
             super(keyword);
             this.strict = strict;
@@ -521,13 +531,21 @@ public abstract class IJmlClauseKind {
             char c = annotation.charAt(0);
             this.fullAnnotation = "org.jmlspecs.annotation." + Character.toUpperCase(c) + annotation.substring(1);
             try {
-            	this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
+                this.clazz = (Class<? extends java.lang.annotation.Annotation>)Class.forName(this.fullAnnotation);
             } catch (Exception e) {
-            	Main.uninitializedLog().error("jml.message","Failed to find annotation class for " + this.fullAnnotation);
-            	this.clazz = null;
+                Main.uninitializedLog().error("jml.message","Failed to find annotation class for " + this.fullAnnotation);
+                this.clazz = null;
             }
         }
         
+        /** The type of the annotation for this modifier */
+        public Type annotationType(Context context) {
+            return Symtab.instance(context).enterClass(fullAnnotation);
+        }
+        
+        /** Defines a new JML modifier with the given keyword (e.g. "pure") and Java annotation (e.g. "Pure") and
+         * whether the modifier is part of strict JML.
+         */
         public ModifierKind(String keyword, boolean strict, String annotation) { 
             super(keyword); 
             this.strict = strict;
@@ -552,22 +570,23 @@ public abstract class IJmlClauseKind {
         }
     }
 
+    /** The base class for modifiers that are type annotations */
     public static class TypeAnnotationKind extends ModifierKind {
-    	public TypeAnnotationKind(String keyword, boolean strict) {
-    		super(keyword,strict);
-    	}
+        public TypeAnnotationKind(String keyword, boolean strict) {
+            super(keyword,strict);
+        }
         public boolean isTypeAnnotation() {
             return true;
         }
     }
 
-    
+    /** A base class for keywords that are like classes */
     public static abstract class ClassLikeKind extends IJmlClauseKind {
         public ClassLikeKind(String keyword) { super(keyword); }
     }
     
     /**
-     * Parses a list of method-name; returns a possibly empty list; does not
+     * Parses a list of method names/signatures; returns a possibly empty list; does not
      * parse the terminating semicolon
      */
     public List<JmlMethodSig> parseMethodNameList() {
@@ -586,7 +605,7 @@ public abstract class IJmlClauseKind {
         return sigs.toList();
     }
 
-    /** Parses a method-name */
+    /** Parses a method name or signature */
     public JmlMethodSig parseMethodName() {
         int initpos = parser.pos();
         int p = initpos;

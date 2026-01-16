@@ -485,7 +485,7 @@ public class FunctionLikeExpressions extends JmlExtension {
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             Type err = attr.syms.errType;
-            if (super.typecheck(attr, expr, localEnv) == err) {
+            if (super.typecheck(attr, expr, localEnv).isErroneous()) {
                 return err;
             }
             JmlMethodInvocation meth = (JmlMethodInvocation)expr;
@@ -506,6 +506,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                     utils.error(rest.head, "jml.message", "the argument must have type \\TYPE[], not " + at);
                     return err;
                 }
+                //System.out.println("TYPEOF TYPECHECK WITH ARRAY " + expr );
             } else {
                 for (var arg: rest) {
                     if (!Types.instance(attr.context).isSameType(arg.type, TYPE)) {
@@ -513,6 +514,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                         return err;
                     }
                 }
+                //System.out.println("TYPEOF TYPECHECK WITH LIST " + expr );
             }
             // FIXME - check that the number of arguments matches the expected number for the head
             meth.type = TYPE;
@@ -520,9 +522,8 @@ public class FunctionLikeExpressions extends JmlExtension {
         }
     };
     
-    public static final String typearg0ID = "\\typearg0";
-    public static final IJmlClauseKind typearg0Kind = new OneArgExpression(typearg0ID) {
-        
+    public static class TypeArg extends OneArgExpression {
+        public TypeArg(String id) { super(id); }
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> localEnv) {
             Type err = attr.syms.errType;
@@ -540,8 +541,15 @@ public class FunctionLikeExpressions extends JmlExtension {
             }
             meth.type = TYPE;
             return TYPE;
-        }
-    };
+        }        
+    }
+    
+    public static final String typearg1ID = "\\typearg1";
+    public static final IJmlClauseKind typearg1Kind = new TypeArg(typearg1ID);
+    public static final String typearg2ID = "\\typearg2";
+    public static final IJmlClauseKind typearg2Kind = new TypeArg(typearg2ID);
+    public static final String typearg3ID = "\\typearg3";
+    public static final IJmlClauseKind typearg3Kind = new TypeArg(typearg3ID);
     
     public static final String invariantForID = "\\invariant_for";
     public static final IJmlClauseKind invariantForKind = new AnyArgBooleanExpression(invariantForID) {

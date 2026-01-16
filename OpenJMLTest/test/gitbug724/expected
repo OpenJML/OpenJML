@@ -1,0 +1,17 @@
+test/gitbug724/Anomaly.java:7: warning: [missing-measured-by] Method a41() is called recursively, but a specification case has no measured_by clause
+        return a41();
+                  ^
+test/gitbug724/Anomaly.java:3: warning: Associated declaration: test/gitbug724/Anomaly.java:7:
+    /*@ public behavior
+               ^
+Proving methods in Anomaly
+Starting proof of Anomaly.Anomaly() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Anomaly.Anomaly() with prover !!!! - no warnings
+Starting proof of Anomaly.a41() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Anomaly.a41() with prover !!!! - no warnings
+Completed proving methods in Anomaly
+2 warnings

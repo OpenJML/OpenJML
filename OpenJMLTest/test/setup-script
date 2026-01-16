@@ -1,0 +1,7 @@
+
+## This file should be sourced, not executed
+## as a helper to run files in the OpenJML tests
+
+cd "$LOCAL"
+BIN=../../../OpenJML21
+PATH=$BIN:$PATH

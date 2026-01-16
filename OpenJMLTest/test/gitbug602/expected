@@ -1,4 +1,19 @@
 Proving methods in IntSet
+Starting proof of IntSet.contains(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntSet.contains(int) with prover !!!! - no warnings
+Starting proof of IntSet.choose() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntSet.choose() with prover !!!! - no warnings
+Starting proof of IntSet.add(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntSet.add(int) with prover !!!! - no warnings
+Starting proof of IntSet.remove(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntSet.remove(int) with prover !!!! - no warnings
+Starting proof of IntSet.size() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntSet.size() with prover !!!! - no warnings
 Completed proving methods in IntSet
 Proving methods in IntSetClient
 Starting proof of IntSetClient.IntSetClient() with prover !!!!

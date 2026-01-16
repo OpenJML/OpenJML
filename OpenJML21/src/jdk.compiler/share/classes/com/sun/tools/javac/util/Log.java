@@ -181,7 +181,7 @@ public class Log extends AbstractLog {
 
     /** The maximum number of errors/warnings that are reported.
      */
-    protected int MaxErrors;
+    public int MaxErrors; // OPENJML -- protected to public
     protected int MaxWarnings;
 
     /** Switch: prompt user on each error.
@@ -322,6 +322,7 @@ public class Log extends AbstractLog {
      */
     private Log(Context context, Map<WriterKind, PrintWriter> writers) {
         super(JCDiagnostic.Factory.instance(context));
+        if (org.jmlspecs.openjml.Utils.debugInst) { System.out.println("LOG " + context.hashCode()); } // OPENJML
         context.put(logKey, this);
         this.writers = writers;
 
@@ -338,8 +339,10 @@ public class Log extends AbstractLog {
         final Options options = Options.instance(context);
         initOptions(options);
         options.addListener(() -> initOptions(options));
+        this.context = context; // OPENJML
     }
     // where
+        private Context context; // OPENJML
         private void initOptions(Options options) {
             this.dumpOnError = options.isSet(DOE);
             this.promptOnError = options.isSet(PROMPT);
@@ -417,7 +420,7 @@ public class Log extends AbstractLog {
         Assert.checkNonNull(name);
         getSource(name).setEndPosTable(endPosTable);
     }
-    
+
     /** Return current sourcefile.
      */
     public JavaFileObject currentSourceFile() {
@@ -664,7 +667,7 @@ public class Log extends AbstractLog {
      */
     @Override
     public void report(JCDiagnostic diagnostic) {
-        if (org.jmlspecs.openjml.Utils.isJML() && ((System.getenv("ERROR") != null && diagnostic.getKind() == Diagnostic.Kind.ERROR) || (System.getenv("WARNING") != null && diagnostic.getKind() == Diagnostic.Kind.WARNING))) {
+        if (org.jmlspecs.openjml.Utils.isJML() && ((System.getenv("ERROR") != null && diagnostic.getKind() == Diagnostic.Kind.ERROR) || (System.getenv("WARNING") != null && diagnostic.getKind() == Diagnostic.Kind.WARNING))) { // OPENJML
             System.out.println(diagnostic.toString());
             org.jmlspecs.openjml.Utils.dumpStack(); // OPENJML - for debugging
         }
@@ -733,6 +736,8 @@ public class Log extends AbstractLog {
      * Write out a diagnostic.
      */
     protected void writeDiagnostic(JCDiagnostic diag) {
+        // Don't use JmlOption methods here or errors result when using uninitializedLog() // OPENJML
+        if ("0".equals(Options.instance(context).get("--verboseness"))) return; // OPENJML
         if (diagListener != null) {
             diagListener.report(diag);
             return;

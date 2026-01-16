@@ -35,6 +35,10 @@ public class primesc extends EscBaseFiles {
         super.setUp();
         ignoreNotes = true;
     }
+    
+    public void helpTG(String ... opts) {
+        super.helpTG(addVE(opts));
+    }
 
     @Test
     public void jmlbigint() {
@@ -48,6 +52,11 @@ public class primesc extends EscBaseFiles {
     
     @Test
     public void jmlTYPE() {
+        helpTG();
+    }
+    
+    @Test
+    public void jmldatagroup() {
         helpTG();
     }
     

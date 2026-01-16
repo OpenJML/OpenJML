@@ -5,6 +5,8 @@
 package org.jmlspecs.openjml.proverinterface;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import org.openjml.*;
+import org.openjml.IProverResult.*;
 
 import java.util.Date;
 import java.util.LinkedList;

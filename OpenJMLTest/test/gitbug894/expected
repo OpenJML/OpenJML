@@ -1,0 +1,22 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.uniqueCharS1(String) with prover !!!!
+Completed proof of Test.uniqueCharS1(String) with prover !!!! - no warnings
+Completed proving methods in Test
+Proving methods in Test2
+Starting proof of Test2.Test2() with prover !!!!
+Completed proof of Test2.Test2() with prover !!!! - no warnings
+Starting proof of Test2.uniqueCharS1(String) with prover !!!!
+Completed proof of Test2.uniqueCharS1(String) with prover !!!! - no warnings
+Starting proof of Test2.uniqueCharS2(String) with prover !!!!
+Completed proof of Test2.uniqueCharS2(String) with prover !!!! - no warnings
+Completed proving methods in Test2
+Proving methods in Test3
+Starting proof of Test3.Test3() with prover !!!!
+Completed proof of Test3.Test3() with prover !!!! - no warnings
+Starting proof of Test3.uniqueCharS1(String) with prover !!!!
+Completed proof of Test3.uniqueCharS1(String) with prover !!!! - no warnings
+Starting proof of Test3.uniqueCharS2(String) with prover !!!!
+Completed proof of Test3.uniqueCharS2(String) with prover !!!! - no warnings
+Completed proving methods in Test3

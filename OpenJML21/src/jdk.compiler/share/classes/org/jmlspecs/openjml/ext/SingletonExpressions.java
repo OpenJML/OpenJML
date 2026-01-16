@@ -55,6 +55,9 @@ public class SingletonExpressions extends JmlExtension {
                 // allowing other error reports about the same token
                 Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result", attr.jmlenv.currentClauseKind.keyword());
                 t = attr.syms.errType;
+            } else if (attr.jmlenv.inRefinementSpec) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.result.refining", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             }
             that.type = t;
             return t;
@@ -72,7 +75,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            if (this == elseKind) strictCheck(parser, e);
+            if (this == elseKind) strictCheck(e);
         }
     };
     
@@ -119,7 +122,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            strictCheck(parser, e);
+            strictCheck(e);
         }
     };
     
@@ -148,6 +151,9 @@ public class SingletonExpressions extends JmlExtension {
                 // allowing other error reports about the same token
                 Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception", attr.jmlenv.currentClauseKind.keyword());
                 t = attr.syms.errType;
+            } else if (attr.jmlenv.inRefinementSpec) {
+                Utils.instance(attr.context).error(that.pos+1, "jml.misplaced.exception.refining", attr.jmlenv.currentClauseKind.keyword());
+                t = attr.syms.errType;
             } else {
                 t = attr.jmlenv.currentExceptionType;
             }
@@ -156,7 +162,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            strictCheck(parser, e);
+            strictCheck(e);
         }
     };
     
@@ -201,5 +207,9 @@ public class SingletonExpressions extends JmlExtension {
     public static final LabelKind oldLabelKind = new LabelKind(oldLabelID);
     public static final String hereLabelID = "\\Here";
     public static final LabelKind hereLabelKind = new LabelKind(hereLabelID);
+    public static final String loopinitLabelID = org.jmlspecs.openjml.Strings.loopinitLabelBuiltin;
+    public static final LabelKind loopinitLabelKind = new LabelKind(loopinitLabelID);
+    public static final String loopbodyLabelID = org.jmlspecs.openjml.Strings.loopbodyLabelBuiltin;
+    public static final LabelKind loopbodyLabelKind = new LabelKind(loopbodyLabelID);
 }
 

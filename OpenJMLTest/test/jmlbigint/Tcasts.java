@@ -1,6 +1,6 @@
 public class Tcasts {
   public static void main(String... args) { //-ESC@ set System.out.println("CASTS");
-      m1(); m2(); m3(); m4(); m5(); m6(); m7(); m8(); m9(); p1((short)0); p2((short)0); p3((short)0); p4((short)0);
+      m1(); m2(); m3(); m4(); m5(); m6(); m7(); m8(); m9(); m10(); p1((short)0); p2((short)0); p3((short)0); p4((short)0);
   }
   
   public static void m0() {
@@ -42,6 +42,20 @@ public class Tcasts {
   public static void m9() {
       //@ ghost \bigint z = \bigint.one*50;
       /*@ show (z+Long.MAX_VALUE).longValue(); */
+  }
+  public static void m10() {
+      //@ ghost \bigint z1 = (Integer)8;
+      /*@ assert z1 == 8; */
+      //@ ghost \bigint z2 = Short.valueOf((short)8);
+      //@ show z2;
+      /*@ assert z2 == 8; */
+      //@ ghost \bigint z3 = Byte.valueOf((byte)8);
+      //@ show z3;
+      /*@ assert z3 == 8; */
+      //@ ghost \bigint z4 = Character.valueOf((char)8);
+      /*@ assert z4 == 8; */
+      //@ ghost \bigint z5 = Long.valueOf(8L);
+      /*@ assert z5 == 8; */
   }
   
   // Just testing these combinations (to make sure that the relevant range assumptions are implicitly applied)

@@ -1,16 +1,16 @@
-test/valuestringsBad/JMLStringTestBad.java:5: error: incompatible types: java.lang.Object cannot be converted to \string
+test/valuestringsBad/JMLStringTestBad.java:5: error: incompatible types: Object cannot be converted to \string
     //@   ghost \string s4 = o; // error
                              ^
 test/valuestringsBad/JMLStringTestBad.java:9: error: A java.lang.Object may not be cast to a \string
     //@   ghost \string s4 = (\string)o; // error
                                       ^
-test/valuestringsBad/JMLStringTestBad.java:13: error: incompatible types: <nulltype> cannot be converted to \string
+test/valuestringsBad/JMLStringTestBad.java:13: error: incompatible types: <null> cannot be converted to \string
     //@   ghost \string s5 = null; // error
                              ^
 test/valuestringsBad/JMLStringTestBad.java:17: error: A <nulltype> may not be cast to a \string
     //@   ghost \string s6 = (\string)null; // error
                                       ^
-test/valuestringsBad/JMLStringTestBad.java:21: error: incompatible types: \string cannot be converted to java.lang.Object
+test/valuestringsBad/JMLStringTestBad.java:21: error: incompatible types: \string cannot be converted to Object
     //@   ghost Object o1 = s1; // error
                             ^
 test/valuestringsBad/JMLStringTestBad.java:25: error: A \string may not be cast to a java.lang.Object

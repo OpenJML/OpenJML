@@ -1,14 +1,12 @@
 OUT:
-LABEL TY = class java.util.LinkedList
+LABEL TY = java.util.LinkedList
+Warning: runtime type information has no type arguments: java.util.LinkedList
 LABEL TY2 = int
-LABEL TY3 = null
-test/rac1/Bug1.java:14: JML assignment of null to a non_null variable
+test/rac1/Bug1.java:14: verify: JML actual argument has an illegal value
         //@ set  t = (\lbl TY3 \elemtype(\typeof(k)));
-                   ^
-LABEL TY4 = null
-test/rac1/Bug1.java:15: JML assignment of null to a non_null variable
-        //@ set  t = (\lbl TY4 \elemtype(\typeof(o)));
-                   ^
-END
+                                        ^
 
 ERR:
+Exception in thread "main" java.lang.IllegalArgumentException: Calling \elemtype on a value that is not an (or does not have) array type: int
+	at java.base/org.jmlspecs.lang.internal.TYPE.getComponentType(TYPE.java:179)
+	at Bug1.main(Bug1.java:14)

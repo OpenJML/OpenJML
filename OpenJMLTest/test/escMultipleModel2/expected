@@ -7,6 +7,12 @@ Starting proof of MultipleModel.from(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of MultipleModel.from(int) with prover !!!! - no warnings
+Starting proof of MultipleModel.add(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of MultipleModel.add(int) with prover !!!! - no warnings
+Starting proof of MultipleModel.toInt() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of MultipleModel.toInt() with prover !!!! - no warnings
 Completed proving methods in MultipleModel
 Proving methods in Child1
 Starting proof of Child1.Child1(int) with prover !!!!

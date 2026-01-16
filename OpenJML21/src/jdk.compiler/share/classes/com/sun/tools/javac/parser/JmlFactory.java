@@ -58,9 +58,24 @@ public class JmlFactory extends ParserFactory {
     // @ ensures this.S != null && this.context != null;
     // @ ensures this.names != null && this.jmlF != null;
     @Override
-    public JavacParser newParser(CharSequence input, boolean keepDocComments, boolean genEndPos, boolean keepLineMap) {
-        return newParser(input, keepDocComments, genEndPos, keepLineMap,
+    public JmlParser newParser(CharSequence input, boolean keepDocComments, boolean genEndPos, boolean keepLineMap) {
+        return newParser(input, keepDocComments, genEndPos, keepLineMap, false,
                 false); // The last argument says that the parser begins outside a JML comment
+    }
+
+    @Override
+    public JmlParser newParser(CharSequence input, boolean keepDocComments,
+            boolean genEndPos, boolean keepLineMap, boolean parseModuleInfo) {
+        return newParser(input, keepDocComments, genEndPos, keepLineMap, parseModuleInfo,
+                false); // The last argument says that the parser begins outside a JML comment
+    }
+
+    public JmlParser newParser(CharSequence input, boolean enableJml) {
+        return newParser(input, false, true, true, false, enableJml);
+    }
+
+    public JmlParser newParser(CharSequence input, boolean keepDocComments, boolean enableJml) {
+        return newParser(input, keepDocComments, true, true, false, enableJml);
     }
 
     /** Generates a new parser set to parse the given input, with parameters
@@ -73,7 +88,7 @@ public class JmlFactory extends ParserFactory {
      * @return the new parser, ready to go
      */
     public JmlParser newParser(CharSequence input, boolean keepDocComments,
-            boolean genEndPos, boolean keepLineMap, boolean enableJml) {
+            boolean genEndPos, boolean keepLineMap, boolean parseModuleInfo, boolean enableJml) {
         JmlScanner lexer = (JmlScanner) scannerFactory.newScanner(input, keepDocComments);
         lexer.setJml(enableJml);
         JmlParser p = new JmlParser(this, lexer, keepDocComments);

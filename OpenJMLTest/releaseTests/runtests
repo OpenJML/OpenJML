@@ -1,4 +1,4 @@
-#! /bin/bash 
+#! /usr/bin/env bash
 
 ## Folder containing this script -- which is OpenJMLTest/releaseTests
 LOCAL=`cd $(dirname $BASH_SOURCE[0]) && pwd`
@@ -14,7 +14,7 @@ if [[ "$COMSPEC" != "" ]] ; then
 Z=';'
 fi
 
-## Source the file that sets AGENT and OJA, if requested because COV is set
+## Source the file that sets OPENJML_JVM, if requested because COV is set
 . $LOCAL/../setup-coverage releasetests
 
 
@@ -45,7 +45,7 @@ else
   OJ="$OJBIN"/openjml
   JV="$OJBIN"/openjml-java
   RT="$OJBIN"/jmlruntime.jar
-  echo Testing release build unzipped from $ZIP
+  echo Testing release build unzipped from $ZIP into `pwd`
   popd > /dev/null
 fi
 
@@ -82,7 +82,7 @@ ${RTH} testJmlHelp "$OJ --help" || RES=$(($RES+1))
 ${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBad "$OJ --verboseness=" || RES=$(($RES+1))
+${RTH} testJmlBadNoSource "$OJ --verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
 ${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
@@ -91,7 +91,7 @@ ${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
 ##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBad "$OJ --verboseness= " || RES=$(($RES+1))
+${RTH} testJmlBadNoSource "$OJ --verboseness= " || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
 #${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
