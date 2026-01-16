@@ -87,6 +87,7 @@ RELFILES=release-files
 
 ## Builds a full release. Modify (and commit) ../version.txt to set the version number that will be builtin to the release
 ## Note that the openjml.zip file produced by a release is specific to a particular machine architecture
+## The created release zip is in $TEMP (./release-temp)
 release: .FORCE
 	make version-info
 	make annotation
@@ -100,12 +101,21 @@ clean-release:
 	-make clean dist-clean
 	rm -rf $(makefile_path)/html
 	rm -rf $(TEMP)
+	rm -rf src/java.base/share/classes/org/jmlspecs/annotation
+	rm -rf $(RELFILES)/tutorial
 	bash ./configure
 	make release
 
+## Creates/updates the version.properties source file from ../version.txt
+version: .FORCE
+	@ ./version.sh
+
+
 ## Creates the version-info.txt file, containing the public version number (from ../version.txt) and the commit shas
 ## of the commit points compiled into the release.
-version-info: --version
+version-info: .FORCE
+	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
+	@ make version > version-info.txt ## Just to be silent
 	@ rm -f version-info.txt
 	@ cat ../version.txt > version-info.txt
 	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt
@@ -115,11 +125,6 @@ version-info: --version
 	@ (cd ../../openjml.github.io; echo openjml.github.io `git rev-parse HEAD` ) >> version-info.txt
 	@ cat version-info.txt
 	@ mv version-info.txt $(RELFILES)
-
-## Internal target
---version: .FORCE
-	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
-	@ ./version.sh
 
 ## Updates the tutorial files into the repo
 tutorial: .FORCE
@@ -143,36 +148,48 @@ post: .FORCE
 	cp -pR ../../Solvers/Solvers-$$S $(TEMP)
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
-	cp setup-exports openjml openjml-* $(TEMP)
+	cp setup-exports setup-vars openjml openjml-* $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); zip -qr ./openjml.zip * )
 
+#RunOpenJML.class: RunOpenJML.java
+#	./openjml-compile -cp . RunOpenJML.java
 
 USERGUIDE=tempUserGuide
-OVERLEAFID=620c2512d552cc226f5f4c94
+REFMANID=5ceee26404c2854a1590029f
+USERGUIDEID=620c2512d552cc226f5f4c94
 ZIPNAME=userguide-examples.zip
+## Creates a zip file of the user guide examples
 userguide-examples:
-	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
-	@ if [ -e ${USERGUIDE}/${OVERLEAFID}/examples ] ; then \
-	        (cd ${USERGUIDE}/${OVERLEAFID}; zip -rq $(ZIPNAME) installLocation test-userguide-examples examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
+	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; )
+	@ if [ -e ${USERGUIDE}/${USERGUIDEID}/examples ] ; then \
+	        (cd ${USERGUIDE}/${USERGUIDEID}; zip -rq $(ZIPNAME) installLocation test-userguide-examples examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
 	        rm -rf ${USERGUIDE}; ls -la ../../openjml.github.io/examples/${ZIPNAME}; \
 	else echo Userguide examples are not available; fi
 
+TEMPDOCS=tempDocs
 DOWNLOADS=~/Desktop
+## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
+## Requires a local installation of pdflatex
 update-docs:
+	rm -rf ${DOWNLOADS}/OpenJMLUserGuide.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf 
 	make userguide-examples
+	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${REFMANID} ; cd ${REFMANID}; pdflatex JMLReferenceManual.tex --interaction batchmode ; bibtex JMLReferenceManual ; pdflatex JMLReferenceManual.tex --interaction batchmode; pdflatex JMLReferenceManual.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf; )
+	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; cd ${USERGUIDEID} ; pdflatex OpenJMLUserGuide.tex --interaction batchmode; bibtex OpenJMLUserGuide; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}; )
 	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf ../../openjml.github.io/documentation
 	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf $(RELFILES)
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf ../../openjml.github.io/documentation
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
 
+## Commits and pushes the builds produced by `update-docs` to openjml.github.io
+## (Does not commit them to the current branch of OpenJML21)
 push-docs:
 	( cd ../../openjml.github.io; git add documentation/OpenJMLUserGuide.pdf documentation/JML_Reference_Manual.pdf examples/${ZIPNAME} ; git commit -m "Updating docs"; git push )
 
 ## Smoke test of a newly constructed release
 trial: .FORCE
-	$(TEMP)/openjml -version
-	$(TEMP)/openjml -esc -progress $(TEMP)/demos/Max.java
+	$(TEMP)/openjml --version
+	$(TEMP)/openjml --esc --progress $(TEMP)/demos/Max.java
 
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE

@@ -23,9 +23,8 @@ test/gitbug869/Test.java:6: error: cannot find symbol
             ^
   symbol:   class real
   location: class Test
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: Error in parsed declaration, or misspelled keyword: //@ @org.jmlspecs.annotation.Ghost
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: Error in parsed declaration, or misspelled keyword: //@ @org.jmlspecs.annotation.Ghost equires <error>
     //@ equires false; // Use == and not .equals for comparing \\real values
-                ^
-  equires <error>
+         ^
 Operation not performed because of parse or type errors
 8 errors

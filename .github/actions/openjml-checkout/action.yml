@@ -1,0 +1,25 @@
+name: 'OpenJML Checkout'
+description: 'A composite action that checks out the OpenJML repos for build and testing'
+
+
+## Clones the repos into the current directory
+## The clone operations will likely fail if the target folders already exist or are not empty
+
+inputs:
+  branch:
+    description: 'The branch of OpenJML and Specs to checkout'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout OpenJML repos
+      shell: bash
+      run: |
+        git config --global core.autocrlf input
+        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
+        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
+        git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
+        git clone -b master --depth 1 https://github.com/OpenJML/Solvers
+        git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
+        git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io

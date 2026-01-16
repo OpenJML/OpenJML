@@ -25,6 +25,14 @@ public class SFBugs extends EscBaseFiles {
         ignoreNotes = true;
         super.setUp();
     }
+    
+    // FIXME: Eventually, remove all --verify-exit=-1 options -- they have the effect of turning verification failures 
+    // into pure warnings, both the in the diagnostic messages and the returned error code.
+    // To fix this means editing all the expected output files.
+    
+    public void helpTG(String... opts) {
+        super.helpTG(addVEF(opts));
+    }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
@@ -33,15 +41,17 @@ public class SFBugs extends EscBaseFiles {
         list.add("-spec-math=bigint");
         list.add("--check-feasibility=precondition,reachable,exit,spec");
         list.add("--progress");
+        list.add("--verify-exit=-1");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
 
-    public void helpTCGNoOptions(String ... opts) {
+    public void helpTGNoOptions(String ... opts) {
         String dir = "test/" + getTestName();
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
-        a.add(1,dir + cpathAddition);
+        a.add(1,dir);
+        a.add("--verify-exit=-1");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
@@ -76,12 +86,12 @@ public class SFBugs extends EscBaseFiles {
     
     @Test public void gitbug457() {
         expectedExit = 0;
-        helpTCG("-nullableByDefault");
+        helpTG("-nullableByDefault");
     }
     
     @Test public void gitbug457a() {
         expectedExit = 0;
-        helpTCG("-nonnullByDefault");
+        helpTG("-nonnullByDefault");
     }
     
     @Test public void gitbug458() {
@@ -148,12 +158,12 @@ public class SFBugs extends EscBaseFiles {
     @Ignore // FIXME - syntax for model programs not settled
     @Test public void gitbug445() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Ignore // FIXME - syntax for model programs not settled
     @Test public void gitbug445a() {
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug463() {
@@ -183,7 +193,7 @@ public class SFBugs extends EscBaseFiles {
 
     @Test public void gitbug467() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug470() {
@@ -193,120 +203,120 @@ public class SFBugs extends EscBaseFiles {
 
     @Test public void gitbug471() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug469() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug474() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug476() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug477() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug478() {
         expectedExit = 0;
-        helpTCG();  // NOTE: Uses a custom instance of ByteBuffer.jml, which made the original bug
+        helpTG();  // NOTE: Uses a custom instance of ByteBuffer.jml, which made the original bug
     }
 
     @Test public void gitbug480() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug497() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug499() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug502() {
-        helpTCG();
+        helpTG();
     }
 
     // FIXME - problem in 503 is that various subtests non-deterministically timeout
     // This seems particularly the case with A1 and A4, which have an extraneous template argument
     @Ignore // times out
     @Test public void gitbug503() {
-        helpTCG("--code-math=java","--timeout=600","--solver-seed=142"); // java math just to avoid overflow error messages
+        helpTG("--code-math=java","--timeout=600","--solver-seed=142"); // java math just to avoid overflow error messages
     }
 
     @Ignore // times out
     @Test public void gitbug503a() {
-        helpTCG("--code-math=java","--timeout=600","--solver-seed=42"); // java math just to avoid overflow error messages
+        helpTG("--code-math=java","--timeout=600","--solver-seed=42"); // java math just to avoid overflow error messages
     }
 
     @Test public void gitbug535() {
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug538() {
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug539() {
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug540() {
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug543() {
-        helpTCG();  // FIXME - demonstrates problems with quantification over arrays
+        helpTG();  // FIXME - demonstrates problems with quantification over arrays
     }
 
     @Test public void gitbug545() {
-        helpTCG();
+        helpTG();
     }
 
     @Test public void gitbug548() {
-        helpTCG("--nullable-by-default");
+        helpTG("--nullable-by-default");
     }
     
     @Test public void gitbug550() {
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug554() {
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug555() {
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug555a() {
-        helpTCG("--check-feasibility=none");
+        helpTG("--check-feasibility=none");
     }
     
     @Test public void gitbug555b() {
-        helpTCG("--method=Test.1.show");
+        helpTG("--method=Test.1.show");
     }
 
     @Test public void gitbug518() {
         expectedExit = 1;
-        helpTCG("--check");  // Just checking
+        helpTG("--check");  // Just checking
     }
 
     @Test public void gitbug528() {
-        helpTCG("--lang=jml","--check");  // Just checking
+        helpTG("--lang=jml","--check");  // Just checking
     }
 
     // Check everything in apache commons library!
@@ -402,67 +412,67 @@ public class SFBugs extends EscBaseFiles {
 
     @Test public void gitbug556() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug557() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug558() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug558a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug558b() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug559() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug559a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug560() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=none");
+        helpTG("--check-feasibility=none");
     }
     
     @Test public void gitbug567() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug567a() {
         expectedExit = 0;
-        helpTCG("--code-math=java");
+        helpTG("--code-math=java");
     }
     
     @Test public void gitbug567b() {
         expectedExit = 0;
-        helpTCG("--code-math=safe");
+        helpTG("--code-math=safe");
     }
     
     @Test public void gitbug567c() {
         expectedExit = 0;
-        helpTCG("--code-math=bigint");
+        helpTG("--code-math=bigint");
     }
     
     @Test public void gitbug572() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     // The .jml file is on the command-line, which caused a crash, now fixed
@@ -473,7 +483,7 @@ public class SFBugs extends EscBaseFiles {
     
     @Test public void gitbug573a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     // Here .jml is on the command-line, but the .java does not exist
@@ -489,369 +499,375 @@ public class SFBugs extends EscBaseFiles {
     
     @Test public void gitbug574() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug575() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test public void gitbug578() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug589() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug591() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug593() {
         expectedExit = 0;
-        helpTCG("-check");
+        helpTG("-check");
     }
     
     @Test
     public void gitbug594() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug596a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug596b() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug596c() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug596d() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug597() {
         expectedExit = 0;
-        helpTCG("--esc-max-warnings=1");
+        helpTG("--esc-max-warnings=1");
     }
     
     @Test
     public void gitbug598() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug598a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug602() {
         expectedExit = 0;
-        helpTCG("-Xlint:unchecked");
+        helpTG("-Xlint:unchecked");
     }
     
     @Test
     public void gitbug603() {
         expectedExit = Main.Result.CMDERR.exitCode;
-        helpTCG("-Xmaxwarns=100","--quiet"); // Arguments are part of the test
+        helpTG("-Xmaxwarns=100"); // Arguments are part of the test
     }
     
     @Ignore   // FIXME requires implementation of \not_assigned
     @Test
     public void gitbug604() {
         expectedExit = 0;
-        helpTCG("--code-math=safe","--method=AbsInterval.add");
+        helpTG("--code-math=safe","--method=AbsInterval.add");
     }
     
     @Test
     public void gitbug605() {
         expectedExit = 0;
-        helpTCG("--code-math=safe");
+        helpTG("--code-math=safe");
     }
     
     @Test
     public void gitbug606() {
         expectedExit = 0;
-        helpTCG("--code-math=safe");
+        helpTG("--code-math=safe");
     }
     
     @Test
     public void gitbug607() {
         expectedExit = 0;
-        helpTCG("--show","--method=x"); // Arguments are part of the test
+        helpTG("--show","--method=x"); // Arguments are part of the test
     }
     
     @Test
     public void gitbug608() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug610() {
         expectedExit = 0;
-        helpTCG("--code-math=safe");
+        helpTG("--code-math=safe");
     }
     
     @Test
     public void gitbug611() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug613() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug615() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug618() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+        helpTG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
     }
     
     @Test
     public void gitbug621() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug621a() { // Original bug
         expectedExit = 0;
-        helpTCG("--method=testMethod"); // Limited to this one method
+        helpTG("--method=testMethod"); // Limited to this one method
     }
     
     @Test
     public void gitbug622() { // Problem with implicit assertion about string literal
         expectedExit = 0;
-        helpTCG("-staticInitWarning");
+        helpTG("-staticInitWarning");
     }
     
     @Test
     public void gitbug623() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+        helpTG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
     }
     
     @Ignore // Varying test output in trace
     @Test
     public void gitbug626() {
         expectedExit = 0;
-        helpTCG("--subexpressions");
+        helpTG("--subexpressions");
     }
     
     @Ignore // FIXME - Problem with fresh in loop bodies
     @Test
     public void gitbug627() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug629() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug629a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug630() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug630a() { // FIXME - SMT encpoding problem
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug631() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+        helpTG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
     }
     
     @Test  // Z3 non-deterministically crashes; trying to fix that by specifying the seed
     public void gitbug633a() {
         expectedExit = 0;
-        helpTCG("--solver-seed=42");
+        helpTG("--solver-seed=42");
     }
     
     @Test
     public void gitbug634() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug635() {
-        expectedExit = 0;
-        helpTCG();
+        expectedExit = 6;
+        helpTG("--verify-exit=6"); // FIXME - remove this option when all the others are adjusted to non-legacy behavior
     }
     
     @Test
     public void gitbug636() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug637() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test
     public void gitbug638() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
    public void gitbug639() {
        expectedExit = 0;
-       helpTCG();
+       helpTG();
    }
    
     @Test
    public void gitbug639a() {
        expectedExit = 0;
-       helpTCG();
+       helpTG();
    }
    
     @Test
     public void gitbug640() {
     	expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug643() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug644() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
         
     @Test
     public void gitbug647() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug648() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug648a() {
         expectedExit = 6;
-        helpTCG("-cp","test/gitbug648","--verify-exit=6");
+        helpTG("-cp","test/gitbug648","--verify-exit=6");
     }
     
     @Test
     public void gitbug650() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug650a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug650b() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug650c() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test
     public void gitbug651() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test
     public void gitbug651a() {
         expectedExit = 1;
-        helpTCG();
+        helpTG(); 
+    }   
+        
+    @Test
+    public void gitbug651b() {
+        expectedExit = 0;
+        helpTG();
     }
 
     @Test
     public void gitbug653() {
         expectedExit = 0;
-        helpTCG("--specs-path=test/gitbug653");
+        helpTG("--specs-path=test/gitbug653");
     }
     
     @Test
     public void gitbug654() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug659() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     
     @Test
     public void gitbug667() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
@@ -867,7 +883,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug670() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test // FIXME -- Crash in speculative attribution
@@ -885,103 +901,103 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug676() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test @Ignore // FIXME - this seems to be an incompleteness or bug in Z3 non-linear computations
     public void gitbug677() {
         expectedExit = 0;
-        helpTCG("--code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
+        helpTG("--code-math=safe");//,"-show","-method=calculateArea","-subexpressions","-ce"); // The problem manifests with safe math
     }
     
     @Test
     public void gitbug678() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug681() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug682() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug683() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug684() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug685() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug686() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug687() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug688() {
         expectedExit = 0;
-        helpTCG("--subexpressions");
+        helpTG("--subexpressions");
     }
     
     @Test
     public void gitbug688err() {
         expectedExit = 1;
-        helpTCG("--subexpressions");
+        helpTG("--subexpressions");
     }
     
     @Test
     public void gitbug695() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+        helpTG("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
     }
     
     @Test
     public void gitbug696() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug698() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug698A() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test @Ignore // Will erroneously succeed until measured_by is implemented
     public void gitbug705() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
 
     @Test @Ignore // FIXME: Bug fixed, but the specs are not complete
@@ -993,150 +1009,157 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug711() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug712() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug716() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test @Ignore // FIXME: EXAMPLE SPECS NOT YET COMPLETE
     public void gitbug717() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test @Ignore // FIXME: Specs not yet finished
     public void gitbug718() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug718a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug718x1() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug718x2() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug718x4() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug719() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug719a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug722() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug733() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug733a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug734() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug736() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug737() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug738() {
         expectedExit = 0;
-        helpTCG("--warn=missing-measured-by");
+        helpTG("--warn=missing-measured-by");
     }
     
     @Test
     public void gitbug738a() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug740() {
         expectedExit = 0;
-        helpTCG("--check-feasibility=none");
+        helpTG("--check-feasibility=none");
     }
     
     @Test
     public void gitbug741() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
-        
+    
+    @Test
     public void gitbug888() {
         expectedExit = 0;
-        helpTCG();
+        helpTG("--check-feasibility=all");
+    }
+    
+    @Test
+    public void gitbug888a() {
+        expectedExit = 0;
+        helpTG("--check-feasibility=basic");
     }
     
     @Test
     public void gitbug998() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug999() {
         expectedExit = 0;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void rise4fun() {
         expectedExit = 0;
-        helpTCGNoOptions("--check-feasibility=precondition,exit");
+        helpTGNoOptions("--check-feasibility=precondition,exit");
     }
 
 }

@@ -93,7 +93,7 @@ public class Symtab {
         return instance;
     }
     
-    Context context;
+    Context context; // OPENJML
 
     /** Builtin types.
      */
@@ -326,7 +326,7 @@ public class Symtab {
     /** Enter a class into symbol table.
      *  @param s The name of the class.
      */
-    private Type enterClass(String s) {
+    public Type enterClass(String s) { // OPENJML - private to public
         return enterClass(java_base, names.fromString(s)).type;
     }
 
@@ -407,7 +407,7 @@ public class Symtab {
      */
     @SuppressWarnings("this-escape")
     protected Symtab(Context context) throws CompletionFailure {
-        this.context = context;
+        this.context = context; // OPENJML
         context.put(symtabKey, this);
 
         names = Names.instance(context);
@@ -804,11 +804,9 @@ public class Symtab {
         Assert.checkNonNull(ps);
         Assert.checkNonNull(ps.modle);
         ClassSymbol c = getClass(ps.modle, flatname);
-        //if (flatname.toString().contains("bigint")) { System.out.println("ECLASS " + context.hashCode() + " " + flatname + " " + msym + " " + (c==null ? 0 : c.hashCode())); org.jmlspecs.openjml.Utils.dumpStack(); }
         if (c == null) {
             c = defineClass(Convert.shortName(flatname), ps);
             doEnterClass(ps.modle, c);
-            //if (flatname.toString().contains("bigint")) { System.out.println("ECLASS-DEF " + flatname + " " + msym + " " + (c==null ? 0 : c.hashCode())); org.jmlspecs.openjml.Utils.dumpStack(); }
             return c;
         } else
             return c;

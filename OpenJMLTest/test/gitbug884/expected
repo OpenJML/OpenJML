@@ -1,0 +1,13 @@
+Proving methods in Fibonacci
+Starting proof of Fibonacci.Fibonacci() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Fibonacci.Fibonacci() with prover !!!! - no warnings
+Starting proof of Fibonacci.fib(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Fibonacci.fib(int) with prover !!!! - no warnings
+Starting proof of Fibonacci.fibCompute(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Fibonacci.fibCompute(int) with prover !!!! - no warnings
+Completed proving methods in Fibonacci

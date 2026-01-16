@@ -4,73 +4,17 @@
  */
 package org.openjml;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
 
 import javax.tools.DiagnosticListener;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
 
-import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.esc.BasicBlocker2;
-import org.jmlspecs.openjml.esc.BasicProgram;
-import org.jmlspecs.openjml.esc.JmlEsc;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.visitors.JmlTreeScanner;
-import org.jmlspecs.openjml.JmlOptions;
-import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.Main;
 
-import com.sun.tools.javac.code.*;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.code.Symbol.TypeSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.comp.Attr;
-import com.sun.tools.javac.comp.AttrContext;
-import com.sun.tools.javac.comp.Enter;
-import com.sun.tools.javac.comp.Env;
-import com.sun.tools.javac.comp.JmlAttr;
-import com.sun.tools.javac.comp.JmlEnter;
-import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.main.JavaCompiler;
-import com.sun.tools.javac.main.JmlCompiler;
-import com.sun.tools.javac.comp.CompileStates;
-import com.sun.tools.javac.comp.CompileStates.CompileState;
-import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
-import com.sun.tools.javac.parser.Tokens.Token;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.Pretty;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.ListBuffer;
-import com.sun.tools.javac.util.Log;
-import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
-import com.sun.tools.javac.util.Position;
-
-import org.jmlspecs.openjml.Main;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -113,8 +57,8 @@ public class API implements IAPI {
             main = new org.jmlspecs.openjml.Main(org.jmlspecs.openjml.Strings.applicationName,
                     out != null ? out : new PrintWriter(System.out),
                     err != null ? err : new PrintWriter(System.err));
-            main.context = main.initialize(diagListener);
-        } catch (Throwable e) { // NOT EXPECED TO BE EXECUTED
+            main.initialize(diagListener);
+        } catch (Throwable e) { // NOT EXPECTED TO BE EXECUTED
             // At least IOException may be thrown
             // This catch block is not ever expected to be executed, but is here just in case some internal bug
             // happens, so that there is an orderly exit; one cannot count on a log being available
@@ -128,14 +72,14 @@ public class API implements IAPI {
     }
     
     public boolean isOptionSet(String key) {
-        return JmlOption.isOption(main.context, key);
+        return com.sun.tools.javac.util.Options.instance(main.context()).isSet(key);
    }
     public String getOption(String key) {
-        return JmlOption.value(main.context, key);
+        return com.sun.tools.javac.util.Options.instance(main.context()).get(key);
     }
 
     
-//    @Override
+//    @Override @SuppressWarnings("exports")
 //    public Context context() {
 //        return main.context;
 //    } 
@@ -249,7 +193,7 @@ public class API implements IAPI {
      */
     @Override
     public int execute(/*@ non_null*/ String ... args) {
-        int x = main.compile(args, main.context).exitCode;
+        int x = main.compile(args, main.context()).exitCode;
         return x;
     }
     
@@ -1118,7 +1062,9 @@ public class API implements IAPI {
 //        }
 //    }
     
-    public TokenIterator makeTokenIterator(String text) { return new TokenIterator(text); } 
+    public TokenIterator makeTokenIterator(String text) { 
+        return new TokenIterator(text);
+    } 
 
     
     @SuppressWarnings("exports")
@@ -1127,7 +1073,8 @@ public class API implements IAPI {
         protected JmlTokenizer tokenizer;
         
         public TokenIterator(String text) {
-            ScannerFactory factory = main.context.get(ScannerFactory.scannerFactoryKey);
+            main.postOptionProcessing();
+            ScannerFactory factory = main.context().get(ScannerFactory.scannerFactoryKey);
             tokenizer = ((JmlScanner)factory.newScanner(text, true)).jmltokenizer;
         }
         

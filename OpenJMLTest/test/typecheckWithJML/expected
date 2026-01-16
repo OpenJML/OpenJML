@@ -88,7 +88,7 @@ test/typecheckWithJML/TCWithJml.jml:34: error: The parameter j has different mod
 test/typecheckWithJML/TCWithJml.java:27: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:34:
     public static Object m(final int i, int j, int k, final int l) {
                                             ^
-test/typecheckWithJML/TCWithJml.java:44: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @org.jmlspecs.annotation.Pure on class AA
+test/typecheckWithJML/TCWithJml.java:44: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @Pure on class AA
 @Pure
 ^
 test/typecheckWithJML/TCWithJml.jml:48: error: The type BB in the specification matches a Java type with different modifiers: final

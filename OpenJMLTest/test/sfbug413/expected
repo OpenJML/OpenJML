@@ -1,4 +1,7 @@
 Proving methods in X
+Starting proof of X.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of X.m() with prover !!!! - no warnings
 Completed proving methods in X
 Proving methods in Main
 Starting proof of Main.Main() with prover !!!!

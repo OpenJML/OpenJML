@@ -11,11 +11,11 @@ import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjmltest.JmlTestSuite;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.parser.JmlParser;
@@ -46,8 +46,14 @@ public class positions extends JmlTestSuite {
     @Override
     public void setUp() throws Exception {
         super.setUp(); // Sets up a main program, diagnostic collector
-		org.jmlspecs.openjml.Extensions.register(context);
-        parserFactory = ParserFactory.instance(context);
+        main.postOptionProcessing();
+        try {
+            // Makes sure that components are instantiated without circularity
+            com.sun.tools.javac.main.JmlCompiler.instance(context);
+            parserFactory = ParserFactory.instance(context);
+        } catch (Exception e) {
+            e.printStackTrace(this.out);
+        }
     }
 
     @Parameters
@@ -60,20 +66,21 @@ public class positions extends JmlTestSuite {
     }
     
     public static class Print extends JmlTreeScanner {
+        java.io.PrintStream out;
         
-        
-        public Print() {
+        public Print(java.io.PrintStream out) {
+            this.out = out;
         }
         
         public void scan(JCTree tree) {
             if(tree!=null) {
-                System.out.println(tree.getClass());
+                out.println(tree.getClass());
                 tree.accept(this);
             }
         }
         
-        static void print(JCTree tree) {
-            tree.accept(new Print());
+        static void print(JCTree tree, java.io.PrintStream out) {
+            tree.accept(new Print(out));
         }
 
     }
@@ -91,7 +98,7 @@ public class positions extends JmlTestSuite {
             if (done != null) return;
             if (tree == null) return;
             if (tree.getClass() == clazz) { done = tree; return; }
-            if(tree!=null) tree.accept(this);
+            if(tree != null) tree.accept(this);
         }
         
         static JCTree find(Class<?> clazz, JCTree tree) {
@@ -99,7 +106,6 @@ public class positions extends JmlTestSuite {
             tree.accept(f);
             return f.done;
         }
-
     }
 
     public void helpParser(boolean compunit, String markedString, Class<?> clazz, int numErrors) {
@@ -109,7 +115,7 @@ public class positions extends JmlTestSuite {
             int endpos = markedString.indexOf('#',prefpos+2)-2;
             String testString = markedString.replaceAll("#","");
             Log log = Log.instance(context);
-            log.useSource(new TestJavaFileObject(testString) );
+            log.useSource(new MockJavaFileObject(testString));
             JmlParser parser = (JmlParser)parserFactory.newParser(testString, false, true, true);
             JCTree result;
             JCTree ztree = null;
@@ -147,13 +153,13 @@ public class positions extends JmlTestSuite {
                 assertEquals("end position", endpos, parser.getEndPos(result));
             }
             } catch (AssertionError e) {
-                System.out.println(clazz + " " + startpos + " " + prefpos + " " + endpos);
-                System.out.println(testString);
-                if (e.getMessage().contains("failed to find")) Print.print(ztree);
+                this.out.println(clazz + " " + startpos + " " + prefpos + " " + endpos);
+                this.out.println(testString);
+                if (e.getMessage().contains("failed to find")) Print.print(ztree, this.out);
                 throw e;
             }
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         }
     }
@@ -200,10 +206,12 @@ public class positions extends JmlTestSuite {
         { new Test(true,"public class A { //@ assignable #a#[ *]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. 4]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. ]#;\n void m(){}}", JCArrayAccess.class, 0)},
+
+//        FIXME
 //        { new Test(true,"public class A { //@ assignable ##abc# ;\n void m(){}}", JCIdent.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##ab . c# ;\n void m(){}}", JCFieldAccess.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##ab . *# ;\n void m(){}}", JCFieldAccess.class, 0)},
-//        { new Test(true,"public class A { //@ assignable ##\\nothing#;\n", JmlStoreRefKeyword.class, 0)},
+////        { new Test(true,"public class A { //@ assignable ##\\nothing#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##\\everything#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##a, ab . *# ;\n void m(){}}", JmlStoreRefListExpression.class, 0)},
     };

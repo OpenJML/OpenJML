@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+ 
+openjml --check A.java >& actual
+
+diff expected actual && rm -rf actual

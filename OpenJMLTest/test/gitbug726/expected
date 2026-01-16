@@ -1,0 +1,56 @@
+Proving methods in OLList
+Starting proof of OLList.OLList() with prover !!!!
+Completed proof of OLList.OLList() with prover !!!! - no warnings
+Proving methods in OLList.Node
+Starting proof of OLList.Node.Node(@NonNull Object,@NonNull Object,OLList.Node) with prover !!!!
+Completed proof of OLList.Node.Node(@NonNull Object,@NonNull Object,OLList.Node) with prover !!!! - no warnings
+Starting proof of OLList.Node.Node(@NonNull Object,@NonNull Object) with prover !!!!
+Completed proof of OLList.Node.Node(@NonNull Object,@NonNull Object) with prover !!!! - no warnings
+Starting proof of OLList.Node.getf(int) with prover !!!!
+Completed proof of OLList.Node.getf(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_getf_aux(int,int) with prover !!!!
+Completed proof of OLList.Node.lemma_getf_aux(int,int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_getf_basics() with prover !!!!
+Completed proof of OLList.Node.lemma_getf_basics() with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_getf_sum(int,int) with prover !!!!
+Completed proof of OLList.Node.lemma_getf_sum(int,int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_getf_ind() with prover !!!!
+Completed proof of OLList.Node.lemma_getf_ind() with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_getf_nonnull(int) with prover !!!!
+Completed proof of OLList.Node.lemma_getf_nonnull(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.alt_getf(int) with prover !!!!
+Completed proof of OLList.Node.alt_getf(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.size() with prover !!!!
+Completed proof of OLList.Node.size() with prover !!!! - no warnings
+Starting proof of OLList.Node.alt_size() with prover !!!!
+Completed proof of OLList.Node.alt_size() with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_size_iff(int) with prover !!!!
+Completed proof of OLList.Node.lemma_size_iff(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_suffix_size(int) with prover !!!!
+Completed proof of OLList.Node.lemma_suffix_size(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_getf_size(int) with prover !!!!
+Completed proof of OLList.Node.lemma_getf_size(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_size_ind() with prover !!!!
+Completed proof of OLList.Node.lemma_size_ind() with prover !!!! - no warnings
+Starting proof of OLList.Node.append(OLList.@NonNull Node @NonNull []) with prover !!!!
+Completed proof of OLList.Node.append(OLList.@NonNull Node @NonNull []) with prover !!!! - no warnings
+Starting proof of OLList.Node.concat(OLList.@NonNull Node[],OLList.@NonNull Node[]) with prover !!!!
+Completed proof of OLList.Node.concat(OLList.@NonNull Node[],OLList.@NonNull Node[]) with prover !!!! - no warnings
+Starting proof of OLList.Node.prefixToSeq(int) with prover !!!!
+Completed proof of OLList.Node.prefixToSeq(int) with prover !!!! - no warnings
+Starting proof of OLList.Node.toSeq() with prover !!!!
+Completed proof of OLList.Node.toSeq() with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_seq_nonnull(OLList.Node[],int) with prover !!!!
+Completed proof of OLList.Node.lemma_seq_nonnull(OLList.Node[],int) with prover !!!! - no warnings
+Starting proof of OLList.Node.set_tail(OLList.@NonNull Node,OLList.@NonNull Node[],int) with prover !!!!
+Completed proof of OLList.Node.set_tail(OLList.@NonNull Node,OLList.@NonNull Node[],int) with prover !!!! - no warnings
+Starting proof of OLList.Node.make(@NonNull Object,@NonNull Object,OLList.Node,OLList.@NonNull Node[]) with prover !!!!
+Completed proof of OLList.Node.make(@NonNull Object,@NonNull Object,OLList.Node,OLList.@NonNull Node[]) with prover !!!! - no warnings
+Starting proof of OLList.Node.insert_(@NonNull Object,@NonNull Object,OLList.@NonNull Node[],int) with prover !!!!
+Completed proof of OLList.Node.insert_(@NonNull Object,@NonNull Object,OLList.@NonNull Node[],int) with prover !!!! - no warnings
+Starting proof of OLList.Node.agetf(int,int,OLList.@NonNull Node[],int) with prover !!!!
+Completed proof of OLList.Node.agetf(int,int,OLList.@NonNull Node[],int) with prover !!!! - no warnings
+Starting proof of OLList.Node.lemma_seq_size(int,OLList.@NonNull Node[],int) with prover !!!!
+Completed proof of OLList.Node.lemma_seq_size(int,OLList.@NonNull Node[],int) with prover !!!! - no warnings
+Completed proving methods in OLList.Node
+Completed proving methods in OLList

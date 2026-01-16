@@ -20,7 +20,7 @@ Completed proof of Test.whok(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.wh(int) with prover !!!!
 Proof attempt for split A
 test/splits2/Test.java:19: warning: The prover cannot establish an assertion (Assert) in method wh
-            //@ assert i < -1; // Split A
+            //@ assert i < -1; // Split A // FAILS
                 ^
 Result of split A is Not verified
 Proof attempt for split BAA

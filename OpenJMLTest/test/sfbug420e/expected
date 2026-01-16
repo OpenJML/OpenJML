@@ -1,4 +1,12 @@
 Proving methods in stack.Stack
+Skipping proof of stack.Stack.count() (Skipping stack.Stack.count because it does not match push)
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it does not match push)
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it does not match push)
+Starting proof of stack.Stack.push(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.push(int) with prover !!!! - no warnings
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it does not match push)
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match push)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match push)
@@ -10,10 +18,16 @@ test/sfbug420e/StackImpl.java:34: warning: The prover cannot establish an assert
 		internalStack[stackCounter] = item; // ERROR - index might be too large
 		             ^
 test/sfbug420e/StackImpl.java:33: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method push: overflow in int sum
-		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not way what happens when \result is false
+		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not say what happens when \result is false
 		                ^
+test/sfbug420e/StackImpl.java:34: warning: The prover cannot establish an assertion (Assignable) in method push: internalStack[stackCounter]
+		internalStack[stackCounter] = item; // ERROR - index might be too large
+		                            ^
+test/sfbug420e/Stack.java:24: warning: Associated declaration
+	//-RAC@ assignable count;
+	        ^
 test/sfbug420e/StackImpl.java:33: warning: The prover cannot establish an assertion (Postcondition) in method push
-		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not way what happens when \result is false
+		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not say what happens when \result is false
 		                               ^
 test/sfbug420e/Stack.java:27: warning: Associated declaration
 	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));

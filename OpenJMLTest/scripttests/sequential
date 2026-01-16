@@ -1,8 +1,0 @@
-#! /bin/bash
-
-for arg in "$@" ; do
-
-   timeout 600s ./one-dir $arg 
-   if [ $? -eq 124 ]; then echo test/$(basename "$arg") Killed ; fi
-
-done

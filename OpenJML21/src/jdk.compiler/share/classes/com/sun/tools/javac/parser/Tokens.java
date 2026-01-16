@@ -471,7 +471,7 @@ public class Tokens {
         public String toStringDetail() {
             return toStringPrefix() + ":" + stringVal() + "]";
         }
-}
+    }
 
     static final class NumericToken extends StringToken {
         /** The 'radix' value of this token */

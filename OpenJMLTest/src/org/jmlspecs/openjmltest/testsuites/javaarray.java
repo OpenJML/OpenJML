@@ -15,10 +15,9 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class javaarray extends EscBase {
 
-    
     @Test
     public void testJavaArray() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -36,7 +35,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -50,7 +49,7 @@ public class javaarray extends EscBase {
 
     @Test
     public void testJavaArray1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -59,13 +58,13 @@ public class javaarray extends EscBase {
                 +"    //@ ghost boolean b = a[ii];\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",28
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1",28
                 );
     }
 
     @Test
     public void testJavaArray2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -73,14 +72,13 @@ public class javaarray extends EscBase {
                 +"    boolean bb = a[i];\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1",19
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1",19
                 );
     }
 
-
     @Test
     public void testJavaArray3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m1(int i, boolean[] a) {\n"
@@ -88,9 +86,7 @@ public class javaarray extends EscBase {
                 +"    boolean bb = a[i];\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",19
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",19
                 );
     }
-    
-
 }

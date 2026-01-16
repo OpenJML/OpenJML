@@ -1,1 +1,1 @@
-/AJDK.java:1: warning: java.util.Observable in java.util has been deprecated line=1 col=30 pos=29 start=20 end=40
+/AJDK.java:1: warning: java.util.Observable in java.util has been deprecated line=1 col=30 start=20 pos=29 end=40

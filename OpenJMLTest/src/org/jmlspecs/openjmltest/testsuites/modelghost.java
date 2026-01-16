@@ -16,48 +16,38 @@ import org.openjml.runners.ParameterizedWithNames;
  *
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-@RunWith(ParameterizedWithNames.class)
 public class modelghost extends TCBase {
 
-    
-    @Parameters
-    static public Collection<Boolean[]> parameters() {
-        Collection<Boolean[]> data = new ArrayList<>(2);
-        data.add(new Boolean[]{false});
-        data.add(new Boolean[]{true});
-        return data;
-    }
-    
     @Test
     public void testClassSimple() {
-    	helpTCF("A.java",
-    			"public class A { /*@ model int m() { return B.n; } */ C mm() { return C.nn; }}\n" +
-    	        "/*@ model class B { public static int n; } */\n" +
-    		    "class C { public static C nn; }"
-    		    );
+        helpTCText("A.java",
+                "public class A { /*@ model int m() { return B.n; } */ C mm() { return C.nn; }}\n" +
+                        "/*@ model class B { public static int n; } */\n" +
+                        "class C { public static C nn; }"
+                );
     }
-    
+
     @Test
     public void testClassSimple2() {
-    	helpTCF("A.java",
-    			"public class A { /*@ model int m() { return B.n; } */ B mm() { return B.nn; }}\n" +
-    	        "/*@ model class B { public static int n; } */\n"
-    		    ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class A",55
-    		    ,"/A.java:1: error: cannot find symbol\n  symbol:   variable B\n  location: class A",71
-    		    );
+        helpTCText("A.java",
+                "public class A { /*@ model int m() { return B.n; } */ B mm() { return B.nn; }}\n" +
+                        "/*@ model class B { public static int n; } */\n"
+                        ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class A",55
+                        ,"/A.java:1: error: cannot find symbol\n  symbol:   variable B\n  location: class A",71
+                );
     }
-    
+
     @Test
     public void testClassSimple3() {
-    	helpTCF("A.java",
-    			"public class A { /*@ model B m() { return B.n; }  */ }\n" +
-    	        "/*@ model class B { public static B n; } */\n"
-    		    );
+        helpTCText("A.java",
+                "public class A { /*@ model B m() { return B.n; }  */ }\n" +
+                        "/*@ model class B { public static B n; } */\n"
+                );
     }
-    
+
     @Test
     public void testMethod() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 "  void m() {}\n" +  // OK
                 "  //@ model int m1() { return 0; }\n" + // OK
@@ -120,7 +110,7 @@ public class modelghost extends TCBase {
     
     @Test
     public void testMethodBody() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 "  void m() {}\n" +  // OK
                 "  //@ model int m1() { return 0; }\n" + // OK
@@ -134,7 +124,7 @@ public class modelghost extends TCBase {
     @Test
     public void testMethodBody2() {
         addMockFile("$A/A.jml","public class A { void m();\n void mm(){} /*@ model void mmm(); */ }");
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 "  void m() {}\n" +  // OK
                 "  void mm() {}\n" +  // OK
@@ -145,7 +135,7 @@ public class modelghost extends TCBase {
     
     @Test
     public void testUseMethod() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 "  /*@ pure */ boolean m() {}\n" +  // OK
                 "  //@ model pure boolean m1() { return true; }\n" + // OK
@@ -167,7 +157,7 @@ public class modelghost extends TCBase {
 
     @Test
     public void testUseMethod2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 
                 "  //@ requires B.m() && B.m1();\n" +
@@ -192,7 +182,7 @@ public class modelghost extends TCBase {
 
     @Test
     public void testUseJML() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.lang.JML; public class A { \n" +
                 
                 "  //@ requires JML.erasure(\\typeof(this)) == JML.erasure(\\type(A));\n" +
@@ -205,7 +195,7 @@ public class modelghost extends TCBase {
 
     @Test
     public void testClass() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 "  //@ model static public class B{}\n" +
                 "  /*@ model */ static public class C{}\n" +  // NOT MODEL
@@ -250,7 +240,7 @@ public class modelghost extends TCBase {
     
     @Test
     public void testField() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A { \n" +
                 "  int m;\n" +  // OK
                 "  //@ model int m1;\n" + // OK
@@ -310,7 +300,7 @@ public class modelghost extends TCBase {
     @Test
     public void testInitializer() {
         addMockFile("$A/A.jml","public class A { { i = 2; } }");
-        helpTCF("A.java","public class A { int i; { i = 1; } } "
+        helpTCText("A.java","public class A { int i; { i = 1; } } "
                 ,"/$A/A.jml:1: error: Initializer blocks are not allowed in specifications",18
         );
     }
@@ -318,14 +308,14 @@ public class modelghost extends TCBase {
     @Test
     public void testInitializer2() {
         addMockFile("$A/A.jml","public class A { } /*@ model  class B { int i;   } */ ");
-        helpTCF("A.java","public class A { int i; { i = 1; } } "
+        helpTCText("A.java","public class A { int i; { i = 1; } } "
         );
     }
 
     @Test
     public void testInitializer2a() {
         addMockFile("$A/A.jml","public class A { } /*@ model public class B { int i;   } */ ");
-        helpTCF("A.java","public class A { int i; { i = 1; } } "
+        helpTCText("A.java","public class A { int i; { i = 1; } } "
         		,"/$A/A.jml:1: error: class B is public, should be declared in a file named B.java",37
         );
     }
@@ -333,34 +323,31 @@ public class modelghost extends TCBase {
     @Test
     public void testInitializer3() {
         addMockFile("$A/A.jml","public class A { } \n/*@ model class B { int ijk;  \n{ ijk = 2; } } */ ");
-        helpTCF("A.java","public class A { int i; { i = 1; } } "
+        helpTCText("A.java","public class A { int i; { i = 1; } } "
         );
     }
 
     @Test
     public void testPackage() {
         addMockFile("$A/A.jml","package p; public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
-        helpTCF("A.java","package p; public class A { int i; { i = 1; } } "
+        helpTCText("A.java","package p; public class A { int i; { i = 1; } } "
         );
     }
 
     @Test
     public void testPackage2() {
         addMockFile("$A/A.jml","package pp; public class A { /*@ model public class B { int i;  { i = 2; } } */ }");
-        helpTCF("A.java","package p; public class A { int i; { i = 1; } } "
+        helpTCText("A.java","package p; public class A { int i; { i = 1; } } "
         );
     }
 
     @Test public void testInterface() {
-        helpTCF("TestJava.java","package tt; \n"
+        helpTCText("TestJava.java","package tt; \n"
                 +"public interface TestJava { \n"
-
                 +"  //@ public model instance int z;\n"
                 +"  //@ static model int z2;\n"
                 +"  public static int zz = 0;\n"
                 +"}"
                 );
     }
-        
-     
 }

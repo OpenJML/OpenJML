@@ -27,9 +27,11 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 //import org.eclipse.core.runtime.Platform;
+import org.jmlspecs.openjml.Dir;
 import org.jmlspecs.openjml.IJmlClauseKind.ModifierKind;
 import org.jmlspecs.openjml.JmlSpecs.MethodSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.ext.JmlPrimitiveTypes;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.SingletonExpressions;
@@ -47,10 +49,7 @@ import static org.jmlspecs.openjml.ext.Modifiers.SPEC_PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.STRICTLY_PURE;
 import static org.jmlspecs.openjml.ext.Modifiers.NO_STATE;
 import static org.jmlspecs.openjml.ext.JmlPrimitiveTypes.*;
-//import org.osgi.framework.Bundle;
-//import org.w3c.dom.Element;
 
-//import com.sun.tools.classfile.Annotation;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.JmlTypes;
@@ -270,7 +269,7 @@ public class JmlSpecs {
      */
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
-        String s = JmlOption.value(context,JmlOption.SPECS);
+        String s = JmlOption.SPECS.value(context);
         if (debugSpecs) System.out.println("specs: specspath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
         if (debugSpecs) System.out.println("specs: system property: " + s);
@@ -292,46 +291,43 @@ public class JmlSpecs {
         // If present, use it.
         // Otherwise look use the default installation.
         
-        String sp = System.getProperty("java.class.path");
-        String[] ss = sp.split(java.io.File.pathSeparator);
-        Dir d;
-        
-        
-        // See if there is any jar file on the classpath that contains
-        // specs files at the top-level
-        
-        for (String s: ss) {
-            if (s.endsWith(".jar")) {
-                d = new JarDir(s,"");
-                if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
-                    if (print) noticeWriter.println("Using specs on classpath [Jar: " + s + "]: " + d);
-                    dirs.add(d);
-                    return true;
-                }
-            }
-            File f = new File(s + "/java/lang/Object.jml");
-            if (f.exists()) {
-                if (print) noticeWriter.println("Using specs on classpath [Dir: " + s + "]: " + f.getAbsolutePath());
-                dirs.add(new FileSystemDir(f.getAbsolutePath()));
-                return true;
-            }
-        }
+//        String sp = System.getProperty("java.class.path");
+//        String[] ss = sp.split(java.io.File.pathSeparator);
+//        Dir d;
+//        
+//        
+//        // See if there is any jar file on the classpath that contains
+//        // specs files at the top-level
+//        
+//        for (String s: ss) {
+//            if (s.endsWith(".jar")) {
+//                d = new JarDir(s,"");
+//                if (d.exists() && d.findFile("java/lang/Object.jml") != null) {
+//                    if (print) noticeWriter.println("Using specs on classpath [Jar: " + s + "]: " + d);
+//                    dirs.add(d);
+//                    return true;
+//                }
+//            }
+//            File f = new File(s + "/java/lang/Object.jml");
+//            if (f.exists()) {
+//                if (print) noticeWriter.println("Using specs on classpath [Dir: " + s + "]: " + f.getAbsolutePath());
+//                dirs.add(new FileSystemDir(f.getAbsolutePath()));
+//                return true;
+//            }
+//        }
                 
         // Default for test or install environment
-        if (Main.root != null) {
-            String sy = Main.root + "/specs"; // expected for installation
-            if (!new File(sy).exists()) {
-            	sy = Main.root + "/../Specs/specs"; // expected for development
-            }
+        if (Main.specs != null) {
+            String sy = Main.specs;
             try { sy = new File(sy).getCanonicalPath(); } catch (IOException e) {}
             
             File f = new File(sy);
             if (f.exists() && f.isDirectory()) {
-                if (print) noticeWriter.println("Using internal specs [Root: " + Main.root + "]:" + sy);
-                dirs.add(new FileSystemDir(f.getAbsolutePath()));
+                if (print) noticeWriter.println("Using internal specs: " + sy);
+                dirs.add(new Dir.FileSystemDir(f.getAbsolutePath()));
                 return true;
             } else {
-            	log.error("jml.internal.specs.dir.not.exist",sy);
+                log.error("jml.internal.specs.dir.not.exist",sy);
             }
         }
         return false;
@@ -410,7 +406,7 @@ public class JmlSpecs {
             todo.add(s);
         }
         String dir;
-        boolean checkDirectories = JmlOption.isOption(context,JmlOption.CHECKSPECSPATH);
+        boolean checkDirectories = JmlOption.CHECKSPECSPATH.isSet(context);
         //if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
             todo.add("$SY");
         //}
@@ -506,23 +502,6 @@ public class JmlSpecs {
         }
     }
     
-    /** A map of names to JavaFileObjects representing files.  The JavaFileObjects
-     * can function as files containing source or specifications but do not need
-     * to be actually present in the file system.  Thus they are handy in testing.
-     */
-    final protected Map<String,JavaFileObject> mockFiles = new HashMap<String,JavaFileObject>();
-    
-    /** Adds a name and associated mock file to the database of files (for this
-     * context).
-     * @param name the "absolute" filename, that is, the directory as it is on
-     * the specs path followed by the package and filename and suffix, all 
-     * forward-slash separated
-     * @param jfo the JavaFileObject associated with the name
-     */
-    public void addMockFile(String name, JavaFileObject jfo) {
-        mockFiles.put(name,jfo);
-    }
-    
     /** Creates an appropriate kind of Dir object given the String format of
      * the argument
      * @param dirName the directory as specified in the String format of the
@@ -532,206 +511,15 @@ public class JmlSpecs {
     public Dir make(String dirName) {
         int n;
         if (dirName.charAt(0) == Strings.mockDirChar) {
-            return new MockDir(dirName);
+            return new Dir.MockDir(dirName);
         } else if ((n=dirName.indexOf("!")) != -1) {
-            return new JarDir(dirName.substring(0,n),dirName.substring(n+1));
+            return new Dir.JarDir(dirName.substring(0,n),dirName.substring(n+1));
         } else if (dirName.endsWith(".jar") || dirName.endsWith(".zip")) {
-            return new JarDir(dirName,"");
+            return new Dir.JarDir(dirName,"");
         } else {
-            return new FileSystemDir(dirName);
+            return new Dir.FileSystemDir(dirName);
         }
     }
-    
-    /** An abstract class representing a directory element of the specs path. */
-    abstract static public class Dir {
-        
-        /** The human-readable name of the directory */
-        protected String name;
-        
-        /** Returns the human-readable name of the directory
-         * @return Returns the human-readable name of the directory
-         */
-        public String name() { return name; }
-
-        
-        /** Returns the human-readable name of the directory
-         * @return Returns the human-readable name of the directory
-         */
-        public String toString() { return name; }
-        
-        /** Returns whether the directory actually exists
-         * @return Returns whether the directory actually exists
-         */
-        abstract boolean exists();
-        
-        
-        /** Finds a file with the given path (relative directory, name and
-         * suffix) is present in this directory
-         * @return a JavaFileObject for that file
-         */
-        abstract public /*@Nullable*/JavaFileObject findFile(String filePath);
-        
-        /** Finds a file with the given path (relative directory, name but
-         * no suffix) is present in this directory with any active JML suffix
-         * (in the order of priority for suffixes).
-         * @return a JavaFileObject for that file
-         */
-        abstract public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath);
-    }
-    
-    /** This class handles mock directories - data that appear to be files
-     * within directories but do not actually exist in the file system.
-     */
-    public class MockDir extends Dir {
-        
-        /** Constructs a mock directory object
-         * @param dirName the path to use for the directory object 
-         */
-        public MockDir(String dirName) {
-            this.name = dirName;
-        }
-        
-        /** Mock directory objects always exist */
-        @Override
-        public boolean exists() {
-            return true;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findFile(String filePath) { 
-            String ss = name + "/" + filePath;
-            JavaFileObject j = mockFiles.get(ss);
-            return j;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) { 
-            String ss = name + "/" + filePath;
-            for (String suffix : Strings.suffixes) {
-                    JavaFileObject j = mockFiles.get(ss + suffix);
-                    if (j != null) return j;
-            }
-            return null; 
-        }
-        
-    }
-    
-    /** This class represents conventional file system directories */
-    public class FileSystemDir extends Dir {
-        /** The java.io.File object for the directory */
-        protected File dir;
-        
-        /** Creates a Dir object for the given directory; the existence of a
-         * Dir object does not mean that the underlying directory actually
-         * exists
-         * @param dirName the relative or absolute path to the directory
-         */
-        public FileSystemDir(String dirName) {
-            this.name = dirName;
-            this.dir = new File(dirName);
-        }
-        
-        public FileSystemDir(File dir) {
-            this.name = dir.getName();
-            this.dir = dir;
-        }
-        
-        @Override
-        public boolean exists() {
-            return dir.exists() && dir.isDirectory();
-        }
-
-        @Override
-        public /*@Nullable*/JavaFileObject findFile(String filePath) {
-            File f = new File(dir,filePath);
-            if (f.exists()) {
-                return ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObject(f.toPath());
-            }
-            return null;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) {
-            for (String suffix : Strings.suffixes) {
-                File f = new File(dir,filePath + suffix);
-                if (f.exists()) {
-                    return ((JavacFileManager)context.get(JavaFileManager.class)).getJavaFileObject(f.toPath());
-                }
-            }
-            return null;
-        }
-    }
-    
-    /** This class represents .jar (and .zip) files and subdirectories within them */
-    public class JarDir extends Dir {
-        /** An object holding the path to the archive file (which may not actually
-         * exist)
-         */
-        protected ZipFile zipArchive;
-        
-        /** The subdirectory within the archive, with a trailing slash added to
-         * the name, or an empty string if the directory desired is the top-level
-         * of the archive.
-         */
-        protected String internalDirSlash;
-        
-        /** The directory path within the jar file */
-        protected RelativePath.RelativeDirectory internalDir;
-        
-        /** Creates a Dir object representing the content or a subdirectory of
-         * a Jar file.
-         * @param zip the absolute or relative path to the jar file itself
-         * @param name the subdirectory within the jar file (or an empty string
-         * if the top-level is desired, not null)
-         */
-        public JarDir(String zip, String name) {
-             try {
-                this.zipArchive = new ZipFile(zip);
-            } catch (IOException e) {
-                this.zipArchive = null;
-            }
-            this.internalDir = new RelativePath.RelativeDirectory(name);
-            this.internalDirSlash = name.length() == 0 ? name : (name + "/");
-            this.name = zip + (name.length() == 0 ? name : ("!" + name));
-        }
-        
-        @Override
-        public boolean exists() {
-            if (zipArchive == null) return false;
-            var iter = zipArchive.entries();
-            while (iter.hasMoreElements()) {
-                if (name.length() == 0) return true;
-                // TODO - check that this works correctly // use contains?
-                if (iter.nextElement().getName().startsWith(internalDir.getPath())) return true;
-            }
-            return false;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findFile(String filePath) { 
-            RelativePath file = new RelativePath.RelativeFile(internalDir,filePath);
-            if (zipArchive == null) return null;
-            ZipEntry entry = zipArchive.getEntry(file.toString());
-            if (entry == null) return null;
-            // FIXME return zipArchive.getFileObject(internalDir,filePath);
-            return null;
-        }
-        
-        @Override
-        public /*@Nullable*/JavaFileObject findAnySuffixFile(String filePath) { 
-            if (zipArchive == null) return null;
-            for (String suffix : Strings.suffixes) {
-                String ss = filePath + suffix;
-                RelativePath file = new RelativePath.RelativeFile(internalDir,ss);
-                if (zipArchive.getEntry(file.toString()) == null) continue;
-                // FIXME JavaFileObject j = zipArchive.getFileObject(internalDir,ss);
-                // if (j != null) return j;
-            }
-            return null; 
-        }
-    }
-    
-    
     
     /** Finds the first specification file (if any) for the given class.  It
      * searches each directory on the specPath, in order, for a file with a
@@ -746,9 +534,9 @@ public class JmlSpecs {
         String suffix = Strings.specsSuffix; 
         String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
-        	JavaFileObject j = dir.findFile(s);
+            JavaFileObject j = dir.findFile(s, context);
             if (print) System.out.println("parser+: TRYING " + dir + " " + s + " FOUND " + j);
-        	if (j != null) return j;
+            if (j != null) return j;
         }
         return null;
     }
@@ -774,7 +562,7 @@ public class JmlSpecs {
         String s = className.replace('.','/');
         for (String suffix : Strings.suffixes){ 
             for (Dir dir: getSpecsPath()) {
-                JavaFileObject j = dir.findFile(s + suffix);
+                JavaFileObject j = dir.findFile(s + suffix, context);
                 if (j != null) return j;
             }
         }
@@ -790,7 +578,7 @@ public class JmlSpecs {
     //@ nullable
     public JavaFileObject findSpecificSpecFile(String filename) {
         for (Dir dir: getSpecsPath()) {
-            JavaFileObject j = dir.findFile(filename);
+            JavaFileObject j = dir.findFile(filename, context);
             if (j != null) return j;
         }
         return null;
@@ -806,7 +594,7 @@ public class JmlSpecs {
     public JavaFileObject findSpecificSourceFile(String filename) {
         for (String dir: getSourcePath()) {
             if (dir.isEmpty()) continue;
-            JavaFileObject j = make(dir).findFile(filename);
+            JavaFileObject j = make(dir).findFile(filename, context);
             if (j != null) return j;
         }
         return null;
@@ -865,17 +653,17 @@ public class JmlSpecs {
     }
     
     public TypeSpecs getLoadedSpecs(ClassSymbol classSym) {
-    	if (status(classSym).less(SpecsStatus.SPECS_LOADED)) {
-    	    boolean ok = JmlEnter.instance(context).requestSpecs(classSym);
+        if (status(classSym).less(SpecsStatus.SPECS_LOADED)) {
+            boolean ok = JmlEnter.instance(context).requestSpecs(classSym);
             //if (!ok) System.out.println("REQUEST TO GET SPECS ONLY QUEUED: " + classSym);
-    	}
-    	var ts = get(classSym);
-    	if (ts == null) {
-    		ts = new TypeSpecs(classSym, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(classSym.flags()), null);
+        }
+        var ts = get(classSym);
+        if (ts == null) {
+            ts = new TypeSpecs(classSym, null, (JmlModifiers)JmlTree.Maker.instance(context).Modifiers(classSym.flags()), null);
             utils.note(true,"      inserting default class specs for " + classSym.flatname);
-    		specsTypes.put(classSym,  ts);
-    	}
-    	return ts;
+            specsTypes.put(classSym,  ts);
+        }
+        return ts;
     }
     
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
@@ -883,34 +671,21 @@ public class JmlSpecs {
      */
     //@ non_null
     public JmlTree.JmlModifiers getSpecsModifiers(ClassSymbol m) {
-    	return getLoadedSpecs(m).modifiers;
+        return getLoadedSpecs(m).modifiers;
     }
-    
+
     public TypeSpecs getAttrSpecs(ClassSymbol csym) {
-    	if (status(csym).less(SpecsStatus.SPECS_ATTR)) {
-    		attr.attrSpecs(csym);
-    	}
+        if (status(csym).less(SpecsStatus.SPECS_ATTR)) {
+            attr.attrSpecs(csym);
+        }
         return getLoadedSpecs(csym);
     }
-    
+
     public void getAttrSpecs(Symbol s) {
-    	if (s instanceof ClassSymbol cs) getAttrSpecs(cs);
-    	if (s instanceof MethodSymbol ms) getAttrSpecs(ms);
-    	if (s instanceof VarSymbol vs) getAttrSpecs(vs);
+        if (s instanceof ClassSymbol cs) getAttrSpecs(cs);
+        if (s instanceof MethodSymbol ms) getAttrSpecs(ms);
+        if (s instanceof VarSymbol vs) getAttrSpecs(vs);
     }
-    
-//    /** Retrieves the specifications for a given type, providing and registering
-//     * a default if one is not there
-//     * @param type the ClassSymbol of the type whose specs are wanted
-//     * @return the specifications
-//     */
-//    public TypeSpecs initializeAndGetSpecs(ClassSymbol type) {
-//        TypeSpecs t = specsmap.get(type);
-//        if (t == null) {
-//            specsmap.put(type, t=new TypeSpecs(type));
-//        }
-//        return t;
-//    }
     
     /** Deletes the specs for a given type, including all method and field
      * specs for that type.
@@ -931,7 +706,7 @@ public class JmlSpecs {
         spec.csymbol = type;
         specsTypes.put(type,spec);        
         setStatus(type, SpecsStatus.SPECS_LOADED);
-    	if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -944,7 +719,8 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
-        //if (specSym.owner.toString().contains("Object") && specSym.toString().contains("toString")) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
+        boolean print = false;//specSym.toString().contains("? extends U") && specSym.toString().contains("mapToObj");
+        if (print) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
         spec.specSym = specSym;
         specsMethods.put(specSym,spec);
         int i = 0;
@@ -953,9 +729,10 @@ public class JmlSpecs {
             if (specSym.params == null) System.out.println("NULL PARAMS " + specSym);
             var iter = specSym.params.iterator();
             for (JCVariableDecl d: decl.params) {
-                boolean nn = isNonNullFormal(d.type, i++, spec, specSym);
+                boolean nn = isNonNullFormal(d.type, i++, spec.cases, specSym);
                 var f = new LocalSpecs((JmlVariableDecl)d, nn, specSym);
                 var jsym = iter.next();
+                if (print) System.out.println("   PARAM " + d + " " + nn + " " + jsym + " " + f);
                 specsFormals.put(jsym, f);
                 // System.out.println("    Formal specs " + d.sym + " " + jsym.hashCode() + " " +  specSym + " " + f.isNonNull + " " + f.mods);
             }
@@ -967,15 +744,6 @@ public class JmlSpecs {
     
     public boolean findNonNullReturn(MethodSymbol sym, JCMethodDecl specDecl) {
         if (specDecl != null) {
-//            if (specDecl.name.toString().equals("n")) {
-//                System.out.println("FNNR " + specDecl.mods + " : " + specDecl.restype);
-//                System.out.println("    " + hasTypeAnnotation(specDecl.restype, Modifiers.NON_NULL) + " " +
-//                        hasTypeAnnotation(specDecl.restype, Modifiers.NULLABLE) + " " + 
-//                        findModifier(specDecl, Modifiers.NON_NULL) + " " + findModifier(specDecl, Modifiers.NON_NULL) + " " +
-//                        findAnnotation(specDecl.mods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(specDecl.mods.annotations, Modifiers.NULLABLE) + " " 
-//                        + defaultNullity((ClassSymbol)sym.owner)
-//                );
-//            }
             if (hasTypeAnnotation(specDecl.restype, Modifiers.NON_NULL)) return true;
             if (hasTypeAnnotation(specDecl.restype, Modifiers.NULLABLE)) return false;
             if (findModifier(specDecl, Modifiers.NON_NULL)) return true;
@@ -999,15 +767,14 @@ public class JmlSpecs {
     }
     
     public void putAttrSpecs(MethodSymbol specSym, MethodSpecs spec) {
-    	putSpecs(specSym, spec);
-    	setStatus(specSym, SpecsStatus.SPECS_ATTR);
+        putSpecs(specSym, spec);
+        setStatus(specSym, SpecsStatus.SPECS_ATTR);
     }
 
-    
     public void dupSpecs(MethodSymbol m, MethodSymbol old) {
-    	var spec = getLoadedSpecs(old);
-    	specsMethods.put(m, spec);
-    	setStatus(m, status(old));
+        var spec = getLoadedSpecs(old);
+        specsMethods.put(m, spec);
+        setStatus(m, status(old));
     }
 
     
@@ -1019,7 +786,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the block
      */
     public void putSpecs(ClassSymbol csym, JCTree.JCBlock m, MethodSpecs spec) {
-    	if (utils.verbose()) utils.note("            Saving initializer block specs " );
+        if (utils.verbose()) utils.note("            Saving initializer block specs " );
         specsTypes.get(csym).blocks.put(m,spec);
     }
     
@@ -1030,18 +797,13 @@ public class JmlSpecs {
      * @param spec the specs to associate with the method
      */
     public void putSpecs(VarSymbol m, JmlVariableDecl decl, VarSpecs spec) {
-//        if (m.toString().equals("configurationSizes")) { System.out.println("PUTSPECS-D " + m + " " + decl + " " + spec.isNonNull); Utils.dumpStack(); }
-//        if (spec != null) {
-//            spec.isNonNull = computeVarNullness(decl, m.owner);
-//            if (m.toString().equals("oq")) System.out.println("COMPUTED " + spec.isNonNull);
-//        }
         specsFormals.put(m, spec);
         setStatus(m, SpecsStatus.SPECS_LOADED);
         if (utils.verbose()) utils.note("            Saving local/formal specs for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
     }
     
     public void putSpecs(VarSymbol m, FieldSpecs spec) {
-        //if (m.toString().equals("configurationSizes")) { System.out.println("PUTSPECS " + m + " " + spec); Utils.dumpStack(); }
+        //if (m.toString().equals("s")) { System.out.println("PUTSPECS " + m + " " + spec); }
         if (spec != null) {
             spec.isNonNull = computeVarNullness(spec.decl, m.owner);
         }
@@ -1053,20 +815,37 @@ public class JmlSpecs {
     
     public boolean computeVarNullness(JmlVariableDecl decl, Symbol owner) {
         if (decl != null) {
-            //if (decl.name.toString().equals("oq")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
-            JmlModifiers jmods = (JmlModifiers)decl.mods;
-//            if (decl.name.toString().equals("oq")) {
-//                System.out.println("CVN-C " + findModifier(decl, Modifiers.NON_NULL) + " " + findModifier(decl, Modifiers.NULLABLE) + " " + 
-//                        findAnnotation(jmods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(jmods.annotations, Modifiers.NULLABLE)
-//                        + " " + hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL) + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE));
-//            }
-            if (findModifier(decl, Modifiers.NON_NULL)) return true;
-            if (findModifier(decl, Modifiers.NULLABLE)) return false;
-            if (findAnnotation(jmods.annotations, Modifiers.NON_NULL)!=null) return true;
-            if (findAnnotation(jmods.annotations, Modifiers.NULLABLE)!=null) return false;
-            if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
-            if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
-            if (utils.isOnlyDatagroup(decl.type)) return false;
+            //if (decl.name.toString().equals("b")) System.out.println("CVN " + decl + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE) + " " + decl.mods.annotations + " " + findAnnotation(decl.mods.annotations, Modifiers.NULLABLE));
+            var vt = decl.vartype;
+            if (vt instanceof JCAnnotatedType avt && avt.underlyingType instanceof JCAnnotatedType) {
+                // FIXME - doubled annotation type
+                vt = avt.underlyingType;
+            }
+//            if (vt instanceof JCAnnotatedType avt) vt = avt.underlyingType;
+//            if (decl.name.toString().equals("b")) System.out.println("AVT " + vt + " : " + vt.getClass());
+            if (vt instanceof JCAnnotatedType avt2 && avt2.underlyingType instanceof JCArrayTypeTree) {
+                if (hasTypeAnnotation(avt2, Modifiers.NULLABLE)) return false;
+                if (hasTypeAnnotation(avt2, Modifiers.NON_NULL)) return true;
+                // skip down to default
+            } else if (vt instanceof JCArrayTypeTree) {
+                // skip down to default
+            } else {
+
+                //if (decl.name.toString().equals("b")) System.out.println("VTY " + decl.vartype + " : " + decl.vartype.getClass());
+                JmlModifiers jmods = (JmlModifiers)decl.mods;
+                //if (decl.name.toString().equals("b")) {
+                //    System.out.println("CVN-C " + findModifier(decl, Modifiers.NON_NULL) + " " + findModifier(decl, Modifiers.NULLABLE) + " " + 
+                //            findAnnotation(jmods.annotations, Modifiers.NON_NULL) + " " + findAnnotation(jmods.annotations, Modifiers.NULLABLE)
+                //            + " " + hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL) + " " + hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE));
+                //}
+                if (findModifier(decl, Modifiers.NON_NULL)) return true;
+                if (findModifier(decl, Modifiers.NULLABLE)) return false;
+                if (findAnnotation(jmods.annotations, Modifiers.NON_NULL)!=null) return true;
+                if (findAnnotation(jmods.annotations, Modifiers.NULLABLE)!=null) return false;
+                if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
+                if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
+            }
+            if (JmlTypes.instance(context).isOnlyDatagroup(decl.type)) return false;
             //if (decl.vartype.toString().contains("JMLDataGroup")) return false; // A primitive type
         }
         if (owner instanceof MethodSymbol m) owner = m.owner;
@@ -1080,21 +859,21 @@ public class JmlSpecs {
      */
     //@ non_null
     public MethodSpecs getAttrSpecs(MethodSymbol m) {
-    	if (status(m).less(SpecsStatus.SPECS_ATTR)) {
-    		attr.attrSpecs(m, null);
-    	}
+        if (status(m).less(SpecsStatus.SPECS_ATTR)) {
+            attr.attrSpecs(m, null);
+        }
         return get(m);
     }
-    
+
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
      * but are not necessarily attributed.
      */
     //@ non_null
     public JmlTree.JmlModifiers getSpecsModifiers(MethodSymbol m) {
-    	MethodSpecs ms = getLoadedSpecs(m);
-    	return ms == null ? null : (JmlTree.JmlModifiers)ms.mods; // FIXME - can this ever be null?
+        MethodSpecs ms = getLoadedSpecs(m);
+        return ms == null ? null : (JmlTree.JmlModifiers)ms.mods; // FIXME - can this ever be null?
     }
-    
+
     /** Returns loaded specs: modifiers are present; specification cases may be present, 
      * but are not necessarily attributed; does not fill in default specs, so may return null
      * if no specification file is found.
@@ -1103,24 +882,15 @@ public class JmlSpecs {
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
         boolean print = false; // m.owner.toString().equals("java.lang.Object") && m.toString().contains("toString");
         if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
-    	if (print) System.out.println(" STATUS " + m.owner + " " + m + " " + status(m.owner));
+        if (print) System.out.println(" STATUS " + m.owner + " " + m + " " + status(m.owner));
         if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) {
-    		var ms = getLoadedSpecs((ClassSymbol)m.owner);
+            var ms = getLoadedSpecs((ClassSymbol)m.owner);
             if (print) System.out.println(" GOT CLASS SPECS " + m.owner );
-    		if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED); // FIXME - why this?
-//        	if (ms == null) {
-//        		setStatus(m, SpecsStatus.SPECS_LOADED);// So defaultSpecs does not go into an infinite loop
-//                if (utils.verbose()||true) {
-//                	System.out.println("Null specs returned from getLoadedSpecs (inserting defaults) for " + m.owner + " " + m + " " + m.hashCode());
-//                	if (m.toString().equals("append(java.lang.CharSequence)")) Utils.dumpStack();
-//                }
-//        		ms = defaultSpecs(null,m,Position.NOPOS); 
-//        		specsMethods.put(m,ms);
-//        	}
-    	}
-    	var ms = get(m);
+            if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED); // FIXME - why this?
+        }
+        var ms = get(m);
         if (print) System.out.println(" GLS " + m.owner + " " + m + " " + ms);
-//        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
+        //        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
         return ms;
     }
     
@@ -1137,15 +907,15 @@ public class JmlSpecs {
     /** Returns precisely what is in the current specs data base -- may be null */
     //@ nullable
     public MethodSpecs get(MethodSymbol m) {
-    	return specsMethods.get(m);
+        return specsMethods.get(m);
     }
-    
+
     /** Retrieves attributed, desugared specs */
     public JmlMethodSpecs getDenestedSpecs(MethodSymbol m) {
         MethodSpecs s = getAttrSpecs(m);
         //System.out.println("DENEST " + m + " " + s);
         if (s == null) {
-        	// FIXME - recheck the conditions undere which this branch can be taken
+            // FIXME - recheck the conditions under which this branch can be taken
             // This can happen when -no-internalSpecs is used, probably for a binary class, but it probably shouldn't - specs should be created when the class is laoded - FIXME
             // This can also happen for a method that has no JML declaration or specification in its static class,
             // but does inherit a method (and spec) from a parent class.
@@ -1366,9 +1136,9 @@ public class JmlSpecs {
                 if (arg.type.isReference()) {
                     Type npeType = ClassReader.instance(context).enterClass(names.fromString("java.lang.NullPointerException")).type;
                     JCVariableDecl vd = treeutils.makeVarDef(npeType, null, sym, pos);
-                	JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
-                	JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
-                	sig.expression = argnull;
+                    JCExpression argnn = treeutils.makeNotNull(pos,treeutils.makeIdent(pos, arg));
+                    JCExpression argnull = treeutils.makeEqNull(pos,treeutils.makeIdent(pos, arg));
+                    sig.expression = argnull;
                     sig = M.at(pos).JmlMethodClauseSignals(signalsID, signalsClauseKind, vd, argnull);
                     sigo = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, com.sun.tools.javac.util.List.<JCExpression>of(M.Type(npeType),M.Type(syms.illegalArgumentExceptionType)));
                     en = M.at(pos).JmlMethodClauseExpr("ensures", ensuresClauseKind, treeutils.makeAnd(pos, argnn, resnn));
@@ -1407,7 +1177,7 @@ public class JmlSpecs {
             //System.out.println("ADDING SPEC_PURE " + sym.owner + " " + sym + " " + (decl!=null));
             addModifier(pos, Modifiers.SPEC_PURE, mspecs.mods);
 //            if (sym.name.equals(names.valueOf)) {
-//            	System.out.println("VALUEOF MSPECS " + mspecs);
+//                System.out.println("VALUEOF MSPECS " + mspecs);
 //                System.out.println("VALUEOF DECL " + mspecs.specDecl);
 //            }
             JmlSpecs.instance(context).putSpecs(sym, mspecs); // FIXME - are the specs attributed or not?
@@ -1431,17 +1201,17 @@ public class JmlSpecs {
             list.add(e);
         }
         
-        boolean print = sym.owner.toString().contains("java.util.Collection") && sym.toString().contains("size");
+        boolean print = false; // sym.toString().contains("? extends U");
         
         boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
                // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.NO_STATE); // use isPure?
-        boolean isPureL = (libraryMethod && !JmlOption.isOption(context,JmlOption.PURITYCHECK));
+        boolean isPureL = libraryMethod && !JmlOption.PURITYCHECK.isSet(context);
         //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind)));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind)));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
 
         list.add(JmlTreeUtils.instance(context).makeType(pos, Symtab.instance(context).runtimeExceptionType));
         JmlMethodClauseSignalsOnly cl = M.at(pos).JmlMethodClauseSignalsOnly(signalsOnlyID, signalsOnlyClauseKind, list.toList());
@@ -1470,86 +1240,22 @@ public class JmlSpecs {
         ((JmlModifiers)mods).jmlmods.add(tok);
     }
     
-//    protected/* @ nullable */JCAnnotation tokenToAnnotationAST(JmlTokenKind jt,
-//            int position, int endpos) {
-//        JmlTree.Maker M = JmlTree.Maker.instance(context);
-//        Symtab syms = Symtab.instance(context);
-//        JmlTreeUtils treeutils = JmlTreeUtils.instance(context);
-//        Class<?> c = jt.annotationType;
-//        if (c == null) return null;
-//        JCExpression t = (M.at(position).Ident(names.fromString("org")));
-//        t = (M.at(position).Select(t, names.fromString("jmlspecs")));
-//        t = (M.at(position).Select(t, names.fromString("annotation")));
-//        t = (M.at(position).Select(t, names.fromString(c.getSimpleName())));
-//        JCAnnotation ann = (M.at(position).Annotation(t,
-//                com.sun.tools.javac.util.List.<JCExpression> nil()));
-//        ((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
-//        //storeEnd(ann, endpos);
-//        return ann;
-//    }
-
-//    public com.sun.tools.javac.util.List<JCAnnotation> addPureAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
-//        JmlTree.Maker F = JmlTree.Maker.instance(context);
-//        JmlAnnotation pure = makePureAnnotation(pos, true, F);
-//        return annots.append(pure);
-//    }
-//    
-//    public com.sun.tools.javac.util.List<JCAnnotation> addAnnotation(int pos, ModifierKind mk, com.sun.tools.javac.util.List<JCAnnotation> annots) {
-//        JmlTree.Maker F = JmlTree.Maker.instance(context);
-//        JmlAnnotation a = makeAnnotation(pos, F, mk);
-//        return annots.append(a);
-//    }
-//    
-//    public JmlAnnotation makePureAnnotation(int pos, boolean withType, JmlTree.Maker F) {
-//        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.PURE);
-//        if (withType) annot.type = annot.annotationType.type = pureAnnotationSymbol().type;
-//        return annot;
-//    }
-
-//    public com.sun.tools.javac.util.List<JCAnnotation> addModelAnnotation(int pos, com.sun.tools.javac.util.List<JCAnnotation> annots) {
-//        JmlTree.Maker F = JmlTree.Maker.instance(context);
-//        JmlAnnotation annot = makeAnnotation(pos, F, Modifiers.MODEL);
-//        annot.type = annot.annotationType.type = modelAnnotationSymbol().type;
-//        return annots.append(annot);
-//    }
-//
-//    public JmlAnnotation makeAnnotation(int pos, JmlTree.Maker F, ModifierKind jt) {
-//        String s = jt.fullAnnotation;
-//        int k = s.lastIndexOf(".");
-//        JCExpression t = (F.Ident(names.fromString("org")));
-//        t = (F.Select(t, names.fromString("jmlspecs")));
-//        t = (F.Select(t, names.fromString("annotation")));
-//        t = (F.Select(t, names.fromString(s.substring(k+1))));
-//        JmlAnnotation ann = (F.Annotation(t, com.sun.tools.javac.util.List.<JCExpression> nil()));
-//        ann.kind = jt;
-////        annot.type = annot.annotationType.type = modelAnnotationSymbol().type; // FIXME - needs type
-//        //((JmlTree.JmlAnnotation)ann).sourcefile = log.currentSourceFile();
-//        //storeEnd(ann, endpos);
-//        return ann;
-//    }
-
     /** Retrieves the specs for a given field
      * @param m the VarSymbol of the field whose specs are wanted
      * @return the specs of the field, or null if none are present
      */
     //@ nullable
     public FieldSpecs getAttrSpecs(VarSymbol v) {
-    	if (!(v.owner instanceof ClassSymbol c)) return null;
-    	getLoadedSpecs(c);
-//    	if (c == null) System.out.println("Unexpected difference - field " + m + " " + m.owner + " " + m.enclClass());
-//    	if (c == null) Utils.dumpStack();
-    	if (status(v).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(v);
-//        TypeSpecs t = specsmap.get(c);
-//        return t == null ? null : t.fields.get(m);
-    	return get(v);
+        if (!(v.owner instanceof ClassSymbol c)) return null;
+        getLoadedSpecs(c);
+        if (status(v).less(SpecsStatus.SPECS_ATTR)) attr.attrSpecs(v);
+        return get(v);
     }
     
     /** Returns precisely what is in the current specs data base -- may be null */
     //@ nullable
     public FieldSpecs get(VarSymbol v) {
-//        TypeSpecs t = specsmap.get(m.owner);
-//        return t == null ? null : t.fields.get(m);
-    	return specsFields.get(v);
+        return specsFields.get(v);
     }
     
     public VarSpecs getFormal(VarSymbol v) {
@@ -1563,22 +1269,22 @@ public class JmlSpecs {
      */
     //@ nullable
     public FieldSpecs getLoadedSpecs(VarSymbol m) {
-    	if (m.owner instanceof ClassSymbol && status(m).less(SpecsStatus.SPECS_LOADED)) {
-    		getLoadedSpecs((ClassSymbol)m.owner);
-    	}
-    	return specsFields.get(m);
+        if (m.owner instanceof ClassSymbol && status(m).less(SpecsStatus.SPECS_LOADED)) {
+            getLoadedSpecs((ClassSymbol)m.owner);
+        }
+        return specsFields.get(m);
     }
     
     public JmlModifiers getSpecsModifiers(VarSymbol vsym) {
-    	try {
-    		var sp = getLoadedSpecs(vsym);
-    		return sp == null ? null : sp.mods;
-    	} catch (Exception e) {
-    		utils.note(false,"Exception when calling getSpecsModifiers for " + vsym + " " + vsym.owner);
-    		throw e;
-    	}
+        try {
+            var sp = getLoadedSpecs(vsym);
+            return sp == null ? null : sp.mods;
+        } catch (Exception e) {
+            utils.note(false,"Exception when calling getSpecsModifiers for " + vsym + " " + vsym.owner);
+            throw e;
+        }
     }
-    
+
     /** Retrieves the specs for a given initializer block
      * @param sym the class in which the block resides
      * @param m the JCBlock of the block whose specs are wantedTATUS
@@ -1661,45 +1367,45 @@ public class JmlSpecs {
         }
         
         public TypeSpecs(JmlClassDecl specdecl, JmlClassDecl javadecl, Env<AttrContext> specenv) {
-        	if (specdecl == null) throw new AssertionError("Unexpected null specdecl");
-        	if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
-        	if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
-        	this.specDecl = specdecl;
-        	this.javaDecl = javadecl;
-        	this.csymbol = specdecl.sym;
-        	this.file = specdecl.source(); // FIXME - do we need this caching?
-        	this.modifiers = (JmlModifiers)specdecl.mods; // FIXME - need to set mods from java or csymbol
-        	this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
-        	x: for (JCTree t: specdecl.defs) {
-        		if (t instanceof JmlTypeClauseInitializer init) {
-        			if (init.keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
-        				staticInitializerSpec = init;
-        			} else {
-        				initializerSpec = init;
-        			}
-        		} else if (t instanceof JmlTypeClauseConditional tc) {
-//        		    Name nm = tc.identifier.name;
-//        			for (var def: specdecl.defs) {
-//        			    if (def instanceof JmlVariableDecl vd && vd.name == nm) {
-//        			        System.out.println("ADDING " + tc);
-//        			        vd.fieldSpecs().list.add(tc);
-//        			        System.out.println("  NOW " + vd.fieldSpecs().list);
-//        			        Utils.dumpStack();
-//        			        continue x;
-//        			    }
-//        			}
-//        			//Utils.instance(context).error(tc.sourcefile, tc.identifier, "jml.message", "There is no field declaration matching hits name: " + nm);
-        		} else if (t instanceof JmlTypeClause) {
-        			this.clauses.add((JmlTypeClause)t);
-        		}
-        	}
-        	specdecl.typeSpecs = this; // FIXME - should we really reset this?or even cache it?
+            if (specdecl == null) throw new AssertionError("Unexpected null specdecl");
+            if (javadecl != null && javadecl.specsDecl != specdecl) throw new AssertionError("Mismatched decls");
+            if (javadecl != null && javadecl.sym != specdecl.sym) throw new AssertionError("Mismatched class symbols");
+            this.specDecl = specdecl;
+            this.javaDecl = javadecl;
+            this.csymbol = specdecl.sym;
+            this.file = specdecl.source(); // FIXME - do we need this caching?
+            this.modifiers = (JmlModifiers)specdecl.mods; // FIXME - need to set mods from java or csymbol
+            this.clauses = new ListBuffer<JmlTree.JmlTypeClause>();
+            x: for (JCTree t: specdecl.defs) {
+                if (t instanceof JmlTypeClauseInitializer init) {
+                    if (init.keyword.equals(TypeInitializerClauseExtension.staticinitializerID)) {
+                        staticInitializerSpec = init;
+                    } else {
+                        initializerSpec = init;
+                    }
+                } else if (t instanceof JmlTypeClauseConditional tc) {
+                    //        		    Name nm = tc.identifier.name;
+                    //        			for (var def: specdecl.defs) {
+                    //        			    if (def instanceof JmlVariableDecl vd && vd.name == nm) {
+                    //        			        System.out.println("ADDING " + tc);
+                    //        			        vd.fieldSpecs().list.add(tc);
+                    //        			        System.out.println("  NOW " + vd.fieldSpecs().list);
+                    //        			        Utils.dumpStack();
+                    //        			        continue x;
+                    //        			    }
+                    //        			}
+                    //        			//Utils.instance(context).error(tc.sourcefile, tc.identifier, "jml.message", "There is no field declaration matching hits name: " + nm);
+                } else if (t instanceof JmlTypeClause) {
+                    this.clauses.add((JmlTypeClause)t);
+                }
+            }
+            specdecl.typeSpecs = this; // FIXME - should we really reset this?or even cache it?
             this.specsEnv = specenv;
             // FIXME ??? - blocks
         }
         
         public void setEnv(Env<AttrContext> env) {
-        	specsEnv = env;
+            specsEnv = env;
         }
         
         // FIXME - what about modifiers, initializer clauses, blocks
@@ -1725,14 +1431,15 @@ public class JmlSpecs {
      */
     //@ ensures \result != null;
     public /*@non_null*/ ModifierKind defaultNullity(/*@ nullable*/ ClassSymbol csymbol) {
-    	ModifierKind t = null;
+        ModifierKind t = null;
         if (csymbol == null) {
             // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
             // If neither one is present, then the logic here will give the
             // default as NONNULL.
-            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
+            
+            if (JmlOption.NULLABLEBYDEFAULT.isSet(context)) {
                 return Modifiers.NULLABLE;
-            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
+            } else if (JmlOption.NONNULLBYDEFAULT.isSet(context)) {
                 return Modifiers.NON_NULL;
             } else {
                 return Modifiers.NON_NULL;  // The default when nothing is specified
@@ -1742,11 +1449,11 @@ public class JmlSpecs {
         TypeSpecs spec = getLoadedSpecs(csymbol);
         t = spec.defaultNullity;
         if (t == null) {
-        	if (utils.hasMod(spec.modifiers, Modifiers.NULLABLE_BY_DEFAULT)) { 
-        		t = Modifiers.NULLABLE; 
-        	} else if (utils.hasMod(spec.modifiers, Modifiers.NON_NULL_BY_DEFAULT)) {
-        		t =  Modifiers.NON_NULL;
-        	} else {
+            if (utils.hasMod(spec.modifiers, Modifiers.NULLABLE_BY_DEFAULT)) { 
+                t = Modifiers.NULLABLE; 
+            } else if (utils.hasMod(spec.modifiers, Modifiers.NON_NULL_BY_DEFAULT)) {
+                t =  Modifiers.NON_NULL;
+            } else {
                 Symbol sym = csymbol.owner; // The owner might be a package - currently no annotations for packages
                 if (sym instanceof ClassSymbol) {
                     t = defaultNullity((ClassSymbol)sym);
@@ -1759,44 +1466,6 @@ public class JmlSpecs {
         return t;
     }
 
-//    // Not complete
-//    public /*@non_null*/ JCAnnotation defaultNullityAnnotation(/*@ nullable*/ ClassSymbol csymbol) {
-//        if (csymbol == null) {
-//            // FIXME - this is no longer true
-//            // Note: NULLABLEBYDEFAULT turns off NONNULLBYDEFAULT and vice versa.
-//            // If neither one is present, then the logic here will give the
-//            // default as NONNULL.
-////            JmlAnnotation a;
-////            if (JmlOption.isOption(context,JmlOption.NULLABLEBYDEFAULT)) {
-////                a = new JmlAnnotation(nullablebydefaultAnnotationSymbol.type, com.sun.tools.javac.util.List.<JCExpression>nil());
-////            } else if (JmlOption.isOption(context,JmlOption.NONNULLBYDEFAULT)) {
-////                return JmlToken.NONNULL;
-////            } else {
-////                return JmlToken.NONNULL;  // The default when nothing is specified
-////            }
-//            return null;
-//        }
-//        
-//        TypeSpecs tspecs = JmlSpecs.instance(context).getLoadedSpecs(csymbol);
-//        if (tspecs != null) {
-//        	JCModifiers mods = tspecs.decl.mods;
-//        	JCAnnotation a = utils.findMod(mods,attr.nullablebydefaultAnnotationSymbol);
-//        	if (a != null) return a;
-//            a = utils.findMod(mods,attr.nonnullbydefaultAnnotationSymbol);
-//            if (a != null) return a;
-//        }
-//        Symbol owner = csymbol.owner;
-//        if (owner instanceof Symbol.PackageSymbol) owner = null;
-//        return defaultNullityAnnotation((Symbol.ClassSymbol)owner);
-//    }
-
-//    /** Caches the symbol for the org.jmlspecs.annotation.NonNull */
-//    ClassSymbol nonnullAnnotationSymbol = null;
-//    /** Caches the symbol for the org.jmlspecs.annotation.Nullable */
-//    ClassSymbol nullableAnnotationSymbol = null;
-//    ClassSymbol nullablebydefaultAnnotationSymbol = null;
-//    ClassSymbol nonnullbydefaultAnnotationSymbol = null;
-    
     /** Returns whether the given symbol is non-null (either explicitly or by
      * default); the second parameter is the enclosing class.
      * @param symbol the symbol whose nullity is being checked - either a VarDef (a 
@@ -1813,25 +1482,25 @@ public class JmlSpecs {
     }
 
     public boolean isNonNullNoDefault(VarSymbol sym) {
-    	if (!sym.type.isReference()) return false;
-    	var fspecs = getLoadedSpecs(sym);
-    	if (fspecs != null) {
-    		if (utils.hasMod(fspecs.mods, Modifiers.NON_NULL)) return true;
-    	}
-		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
-    	if (findAnnotation(sym.type, Modifiers.NON_NULL)) return true;
-    	return false;
+        if (!sym.type.isReference()) return false;
+        var fspecs = getLoadedSpecs(sym);
+        if (fspecs != null) {
+            if (utils.hasMod(fspecs.mods, Modifiers.NON_NULL)) return true;
+        }
+        if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
+        if (findAnnotation(sym.type, Modifiers.NON_NULL)) return true;
+        return false;
     }
 
     public boolean isNullableNoDefault(VarSymbol sym) {
-    	if (!sym.type.isReference()) return false;
-    	var fspecs = getLoadedSpecs(sym);
-    	if (fspecs != null) {
-        	if (utils.hasMod(fspecs.mods, Modifiers.NULLABLE)) return true;
-    	}
-    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return true;
-    	if (findAnnotation(sym.type, Modifiers.NULLABLE)) return true;
-    	return false;
+        if (!sym.type.isReference()) return false;
+        var fspecs = getLoadedSpecs(sym);
+        if (fspecs != null) {
+            if (utils.hasMod(fspecs.mods, Modifiers.NULLABLE)) return true;
+        }
+        if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return true;
+        if (findAnnotation(sym.type, Modifiers.NULLABLE)) return true;
+        return false;
     }
 
     public boolean isNonNull(VarSymbol sym) {
@@ -1869,18 +1538,18 @@ public class JmlSpecs {
 
     
     public boolean findAnnotation(Type type, ModifierKind kind) {
-    	for (var a: type.getAnnotationMirrors()) {
-    		if (a.type.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
-    	}
-    	return false;
+        for (var a: type.getAnnotationMirrors()) {
+            if (a.type.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
+        }
+        return false;
     }
-    
+
     public boolean findAnnotation(JCExpression type, ModifierKind kind) {
-    	if (!(type instanceof JCTree.JCAnnotatedType)) return false;
-    	for (var a: ((JCTree.JCAnnotatedType)type).annotations) {
-    		if (a.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
-    	}
-    	return false;
+        if (!(type instanceof JCTree.JCAnnotatedType)) return false;
+        for (var a: ((JCTree.JCAnnotatedType)type).annotations) {
+            if (a.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
+        }
+        return false;
     }
 
     public JCAnnotation findAnnotation(List<JCAnnotation> annotations, ModifierKind kind) {
@@ -1898,15 +1567,22 @@ public class JmlSpecs {
     }
 
     public boolean isCheckNonNullFormal(Type type, int i,  MethodSpecs calleeSpecs, MethodSymbol msym) {
-    	// Extension type values are always non-null, but we do not check for that
-    	if (jmltypes.isJmlType(type)) return false;
-    	if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
-    	return isNonNullFormal(type, i, calleeSpecs, msym);
+        // Extension type values are always non-null, but we do not check for that
+        if (jmltypes.isJmlType(type)) return false;
+        if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
+        return isNonNullFormal(type, i, calleeSpecs.cases, msym);
+    }
+
+    public boolean isCheckNonNullFormal(Type type, int i,  JmlMethodSpecs calleeSpecs, MethodSymbol msym) {
+        // Extension type values are always non-null, but we do not check for that
+        if (jmltypes.isJmlType(type)) return false;
+        if ((msym.owner.flags() & Flags.ENUM) !=  0 && msym.name.equals(names.valueOf)) return false;
+        return isNonNullFormal(type, i, calleeSpecs, msym);
     }
 
     @SuppressWarnings("unchecked")
-    public boolean isNonNullFormal(Type type, int i, MethodSpecs calleeSpecs, MethodSymbol msym) {
-        boolean pr = false;// msym.name.toString().startsWith("StorageParameters");
+    public boolean isNonNullFormal(Type type, int i, JmlMethodSpecs calleeSpecs, MethodSymbol msym) {
+        boolean pr = false; // msym.name.toString().contains("? extends U");
         if (pr) System.out.println("NNF " + type + " " + type.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (jmltypes.isJmlType(type)) return true;
@@ -1914,9 +1590,9 @@ public class JmlSpecs {
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
         //if (type instanceof Type.TypeVar) return false; 
-        if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.specDecl);
-        if (!(type instanceof Type.TypeVar) && calleeSpecs.specDecl != null) {
-            var decl = (JmlVariableDecl)calleeSpecs.specDecl.params.get(i);
+        if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.decl);
+        if (!(type instanceof Type.TypeVar) && calleeSpecs.decl != null) {
+            var decl = (JmlVariableDecl)calleeSpecs.decl.params.get(i);
             JmlModifiers mods = (JmlModifiers)decl.mods;
             if (pr) System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
             if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
@@ -1944,152 +1620,89 @@ public class JmlSpecs {
         }
     }
     
-	public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
-    	// Extension type values are always non-null, but we do not check for that
-    	if (jmltypes.isJmlType(type)) return false;
-    	{
-    	    var s = type.toString();
-    	    // FIXME - there must be a better way
+    public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
+        // Extension type values are always non-null, but we do not check for that
+        if (jmltypes.isJmlType(type)) return false;
+        {
+            var s = type.toString();
+            // FIXME - there must be a better way
             if (s.contains("org.jmlspecs.annotation.NonNull")) return true;
             if (s.contains("org.jmlspecs.annotation.Nullable")) return false;
-    	}
+        }
         if (isNonNull(type)) return true; // FIXME - does this duplicate the above
-    	if (isNonNullReturn(msym)) return true;
-    	return false;
+        if (isNonNullReturn(msym)) return true;
+        return false;
     }
-		
-    
+
     @SuppressWarnings("unchecked")
-	public boolean isNonNullReturn(MethodSymbol msym) {
+    public boolean isNonNullReturn(MethodSymbol msym) {
         var ms = get(msym);
         return ms.returnNonNull;
     }
     
     @SuppressWarnings("unchecked")
-	public boolean isNonNull(Type type) {
-    	if (!type.isReference()) return false;
-    	if (Types.instance(context).isSubtype(type, 
-    			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-    	return false;
-    }
-    
-    @SuppressWarnings("unchecked")
-	public boolean isNonNull(Type type, ClassSymbol classOwner) {
-    	if (!type.isReference()) return false;
-    	if (Types.instance(context).isSubtype(type, 
-    			Symtab.instance(context).jmlPrimitiveType)) return true;
-    	if (findAnnotation(type, Modifiers.NULLABLE)) return false;
-    	if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-    	if (type instanceof Type.TypeVar) return false; 
-    	return defaultNullity(classOwner) == Modifiers.NON_NULL;
-    }
-    
-    @SuppressWarnings("unchecked")
-	public boolean isNonNull(Type type, MethodSymbol msym) {
-    	if (!type.isReference()) return false;
-    	if (Types.instance(context).isSubtype(type, 
-    			Symtab.instance(context).jmlPrimitiveType)) return true;
+    public boolean isNonNull(Type type) {
+        if (!type.isReference()) return false;
+        if (Types.instance(context).isSubtype(type, 
+                Symtab.instance(context).jmlPrimitiveType)) return true;
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
-    	if (type instanceof Type.TypeVar) return false; 
-    	return isNonNull(msym);
+        return false;
     }
     
+    @SuppressWarnings("unchecked")
+    public boolean isNonNull(Type type, ClassSymbol classOwner) {
+        if (!type.isReference()) return false;
+        if (Types.instance(context).isSubtype(type, 
+                Symtab.instance(context).jmlPrimitiveType)) return true;
+        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+        if (type instanceof Type.TypeVar) return false; 
+        return defaultNullity(classOwner) == Modifiers.NON_NULL;
+    }
+
+    @SuppressWarnings("unchecked")
+    public boolean isNonNull(Type type, MethodSymbol msym) {
+        if (!type.isReference()) return false;
+        if (Types.instance(context).isSubtype(type, 
+                Symtab.instance(context).jmlPrimitiveType)) return true;
+        if (findAnnotation(type, Modifiers.NULLABLE)) return false;
+        if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+        if (type instanceof Type.TypeVar) return false; 
+        return isNonNull(msym);
+    }
+
     public boolean isNonNull(MethodSymbol sym) {
-    	// For some reason, type annotations are not part of the method return type,
-    	// but are in the MethodSymbol's annotations
-    	if (!sym.getReturnType().isReference()) return false;
-    	if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
-		if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
-		var sp = specsMethods.get(sym);
-		if (sp.cases.decl != null) {
-			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
-			if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
-		}
-    	return isNonNull(sym.enclClass());
+        // For some reason, type annotations are not part of the method return type,
+        // but are in the MethodSymbol's annotations
+        if (!sym.getReturnType().isReference()) return false;
+        if (attr.hasAnnotation2(sym, Modifiers.NULLABLE)) return false;
+        if (attr.hasAnnotation2(sym, Modifiers.NON_NULL)) return true;
+        var sp = specsMethods.get(sym);
+        if (sp.cases.decl != null) {
+            if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NON_NULL)) return true;
+            if (attr.hasAnnotation(sp.cases.decl.mods.annotations, Modifiers.NULLABLE)) return false;
+        }
+        return isNonNull(sym.enclClass());
     }
-    
+
     public boolean isNonNull(JmlVariableDecl decl) {
-    	if (!decl.type.isReference()) return false;
-    	if (decl.sym.owner instanceof ClassSymbol) {
-    		return isNonNull(decl.sym);
-    	} else {
-    		// Local variable or parameter -- owned by method
-    		JmlModifiers mods = (JmlModifiers)decl.mods;
-        	if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
-        	if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
-        	return defaultNullity(decl.sym.enclClass()) == Modifiers.NON_NULL;
-    	}
+        if (!decl.type.isReference()) return false;
+        if (decl.sym.owner instanceof ClassSymbol) {
+            return isNonNull(decl.sym);
+        } else {
+            // Local variable or parameter -- owned by method
+            JmlModifiers mods = (JmlModifiers)decl.mods;
+            if (utils.hasMod(mods, Modifiers.NULLABLE)) return false;
+            if (utils.hasMod(mods, Modifiers.NON_NULL)) return true;
+            return defaultNullity(decl.sym.enclClass()) == Modifiers.NON_NULL;
+        }
     }
-    
+
     public boolean isNonNull(JmlClassDecl decl) {
-    	return defaultNullity(decl.sym) == Modifiers.NON_NULL; 
+        return defaultNullity(decl.sym) == Modifiers.NON_NULL; 
     }
-    
-//    public void makeAnnotationSymbols() {
-//        if (nonnullAnnotationSymbol == null) {
-//            nonnullAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullAnnotation));
-//        }
-//        if (nullableAnnotationSymbol == null) {
-//            nullableAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullableAnnotation));
-//        }
-//        if (nullablebydefaultAnnotationSymbol == null) {
-//            nullablebydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nullablebydefaultAnnotation));
-//        }
-//        if (nonnullbydefaultAnnotationSymbol == null) {
-//            nonnullbydefaultAnnotationSymbol = ClassReader.instance(context).enterClass(Names.instance(context).fromString(Strings.nonnullbydefaultAnnotation));
-//        }
-//    }
-//    
-//    public boolean isNonNull(Symbol symbol, ClassSymbol csymbol) {
-//        if (!(symbol instanceof MethodSymbol) && utils.isPrimitiveType(symbol.type)) return false;
-//        if (JmlTypes.instance(context).isOnlyDataGroup(symbol.type)) return false;
-//        
-//        // TODO - perhaps cache these when the JmlSpecs class is created? (watch for circular tool creation)
-//        makeAnnotationSymbols();
-//        Attribute.Compound attr;
-//        if (symbol instanceof Symbol.VarSymbol && symbol.owner instanceof Symbol.ClassSymbol) {
-//            // Field
-//            FieldSpecs fspecs = getLoadedSpecs((Symbol.VarSymbol)symbol);
-//            if (fspecs == null) return false; // FIXME - we need private fields of binary classes that have no specs declared to be nullable
-//            if (fspecs != null && utils.findMod(fspecs.mods,nullableAnnotationSymbol) != null) return false;
-//            else if (fspecs != null && utils.findMod(fspecs.mods,nonnullAnnotationSymbol) != null) return true;
-//            else if (symbol.name == names._this) return true;
-//            else return defaultNullity((Symbol.ClassSymbol)symbol.owner) == Modifiers.NON_NULL;
-//        } else if (symbol instanceof Symbol.VarSymbol && (symbol.owner == null || symbol.owner instanceof Symbol.MethodSymbol)) {
-//            attr = symbol.attribute(nullableAnnotationSymbol);
-//            if (attr != null) return false;
-//            attr = symbol.attribute(nonnullAnnotationSymbol);
-//            if (attr != null) return true;
-//
-//            // Method parameter or variable in body
-////            MethodSpecs mspecs = getSpecs((Symbol.MethodSymbol)symbol.owner);
-//            // FIXME - not clear we are able to look up a particular parameter - which case do we use? don't want inherited specs?
-////            specs.cases.decl
-////            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
-////            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
-//            // else return defaultNullity(csymbol) == JmlToken.NONNULL;
-//            
-//            // Need to distinguish the two cases. The following is correct for variables in the body
-//            return defaultNullity(csymbol) == Modifiers.NON_NULL;
-//            
-//        } else if (symbol instanceof Symbol.MethodSymbol) {
-//            // Method return value
-//            MethodSpecs mspecs = getLoadedSpecs((Symbol.MethodSymbol)symbol);
-//            if (mspecs != null && utils.findMod(mspecs.mods,nullableAnnotationSymbol) != null) return false;
-//            else if (mspecs != null && utils.findMod(mspecs.mods,nonnullAnnotationSymbol) != null) return true;
-//            else return defaultNullity(csymbol) == Modifiers.NON_NULL;
-//        } else {
-//            // What else?
-//            attr = symbol.attribute(nullableAnnotationSymbol);  // FIXME - the symbol might be 'THIS' which should always be non_null
-//            if (attr != null) return false;
-//            attr = symbol.attribute(nonnullAnnotationSymbol);
-//            if (attr != null) return true;
-//            return defaultNullity(csymbol) == Modifiers.NON_NULL;
-//        }
-//    }
+
     
     /** Caches the symbol for a Pure annotation, which is computed on demand. */
     private ClassSymbol pureAnnotationSymbol = null;
@@ -2099,20 +1712,20 @@ public class JmlSpecs {
 
     // FIXME - these are also computed in JmlAttr
     protected ClassSymbol pureAnnotationSymbol() {
-    	return annotationSymbol(Modifiers.PURE);
+        return annotationSymbol(Modifiers.PURE);
     }
 
     protected ClassSymbol modelAnnotationSymbol() {
-    	return annotationSymbol(Modifiers.MODEL);
+        return annotationSymbol(Modifiers.MODEL);
     }
 
     protected ClassSymbol annotationSymbol(ModifierKind mk) {
-    	if (mk.annotationSym == null) {
-    		mk.annotationSym = utils.createClassSymbol(Symtab.instance(context).java_base, mk.fullAnnotation);
-    	}
-    	return mk.annotationSym;
+        if (mk.annotationSym == null) {
+            mk.annotationSym = utils.createClassSymbol(Symtab.instance(context).java_base, mk.fullAnnotation);
+        }
+        return mk.annotationSym;
     }
-    
+
     public boolean isPureMethod(MethodSymbol symbol) {
         boolean print = false;//symbol.toString().contains("ok(");
         if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
@@ -2138,7 +1751,7 @@ public class JmlSpecs {
         if (print) System.out.println("  NOTPURE " + symbol.owner + " " + symbol);
         return false;
     }
-    
+
     public boolean isAnyPurityMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         if (t == null) return false;
@@ -2164,12 +1777,12 @@ public class JmlSpecs {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE);
     }
-    
+
     public boolean isAtLeastStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
     }
-    
+
     public boolean isSpecOKMethod(MethodSymbol msym) {
         var t = determinePurity(msym);
         if (t == null) return false;
@@ -2178,47 +1791,60 @@ public class JmlSpecs {
         if (k == PURE) {
             Type ty = msym.getReturnType();
             if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
+            if (ty.isPrimitiveOrVoid()) return true; // Lemmas are pure methods that may return void
         }
         return false;  
     }
-    
+
     public boolean isHeapIndependent(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == NO_STATE);
     }
-    
+
 
 
     public JmlToken findPurityModifier(JmlModifiers mods) {
         return utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
     }
-    
+
     public JmlToken determinePurity(MethodSymbol msym) {
-        boolean print = false; // msym.toString().contains("add");// && msym.owner.toString().equals("java.util.Collection");
+        boolean print = false && msym.owner.toString().equals("java.util.Collection");
         JmlModifiers mods = getSpecsModifiers(msym);
         if (print) System.out.println("DP_REQUEST " + msym.owner + " " + msym + " " + mods);
         if (mods != null) {
             var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
             if (print) System.out.println("DIRECT  " + msym.owner + " " + msym + " " + a);
             if (a != null) return a;
+            var an = utils.findMod(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
+            if (an != null) {
+                // FIXME - should really turn annotations into modifier tokens
+                a = new JmlToken(an.kind, an.sourcefile, an.pos, an.pos, null);
+                return a;
+            }
         }
         JmlToken best = null;
         for (var mp: utils.parents(msym, false)) {
             var p = determinePurity(mp);
             if (print) System.out.println("DET  " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + p);
             if (p == null) continue;
-            if (p.jmlclausekind == Modifiers.NO_STATE) return p;
-            else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) best = p;
-            else if (p.jmlclausekind == Modifiers.SPEC_PURE && (best == null || best.jmlclausekind != Modifiers.STRICTLY_PURE)) best = p;
-            else if (p.jmlclausekind == Modifiers.PURE && (best == null || best.jmlclausekind == Modifiers.PURE)) best = p;
+            if (best == null) best = p;
+            else if (p.jmlclausekind == Modifiers.NO_STATE) best = p;
+            else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) { if (best.jmlclausekind != Modifiers.NO_STATE) best = p; }
+            else if (p.jmlclausekind == Modifiers.SPEC_PURE && best.jmlclausekind == Modifiers.PURE) best = p;
             if (print) System.out.println("OVER " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + best);
         }
-        if (best != null) return best;
+        JmlToken enclosingPurity = null;
         if (msym.owner instanceof ClassSymbol owner) {
-            var m = determinePurity(owner);
-            if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + m);
-            if (m != null) return m;
+            enclosingPurity = determinePurity(owner);
+            if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + enclosingPurity);
         }
+        if (best != null && enclosingPurity != null && best.jmlclausekind != enclosingPurity.jmlclausekind) {
+            utils.warning("jml.message",
+                    "Method " + msym.owner +"."+msym + " inherits purity " + best + " but has default purity " + enclosingPurity + " from enclosing class; specify purity explicitly to avoid confusion");
+            mods.jmlmods.add(best);
+        }
+        if (best != null) return best;
+        if (enclosingPurity != null) return enclosingPurity;
         return null;
     }
 
@@ -2251,51 +1877,40 @@ public class JmlSpecs {
         //if (print) System.out.println("MODS " + symbol.owner + " " + symbol + "  NULL MODS");
         return isPureClass((ClassSymbol)symbol.owner);
     }
-    
+
     public boolean isPureClass(ClassSymbol symbol) {
         // Classes do not garner purity from enclosing or superclasses
         if (utils.hasModifier(getSpecsModifiers(symbol), Modifiers.PURE)) return true;
         return false;
     }
     
-//    public boolean isPureClass(ClassSymbol symbol) {
-//        if (isPureLocal(symbol)) return true;
-//        if (symbol.owner instanceof ClassSymbol c) return isPureClass(c);
-//        return false;
-//    }
-    
     /** Returns true if the given method symbol is annotated as Query */
     public boolean isQuery(MethodSymbol symbol) {
-    	JmlModifiers mods = getSpecsModifiers(symbol);
-    	if (utils.hasModifier(mods,  Modifiers.QUERY)) return true; 
+        JmlModifiers mods = getSpecsModifiers(symbol);
+        if (utils.hasModifier(mods,  Modifiers.QUERY)) return true; 
         return false;
     }
     
     public boolean fieldSpecHasModifier(VarSymbol sym, ModifierKind token) {
-    	JmlModifiers mods = getSpecsModifiers(sym);
-    	return utils.hasModifier(mods, token); 
+        JmlModifiers mods = getSpecsModifiers(sym);
+        return utils.hasModifier(mods, token); 
     }
 
-//    public boolean methodSpecHasAnnotation(MethodSymbol sym, ModifierKind token) {
-//    	JmlModifiers mods = getSpecsModifiers(sym);
-//    	return utils.hasMod(mods, token); 
-//    }
-    
     public static class VarSpecs {
         public boolean isNonNull;
     }
     
     public static class BlockSpecs {
-    	public JmlModifiers mods;
-    	public JmlMethodSpecs specCases;
-    	public Env<AttrContext> specsEnv;
+        public JmlModifiers mods;
+        public JmlMethodSpecs specCases;
+        public Env<AttrContext> specsEnv;
         public SpecsStatus status;
-    	public BlockSpecs(JmlModifiers mods, JmlMethodSpecs specCases, Env<AttrContext>  env) {
-    		this.mods = mods;
-    		this.specCases = specCases;
-    		this.specsEnv = env;
-    		this.status = SpecsStatus.SPECS_LOADED;
-    	}
+        public BlockSpecs(JmlModifiers mods, JmlMethodSpecs specCases, Env<AttrContext>  env) {
+            this.mods = mods;
+            this.specCases = specCases;
+            this.specsEnv = env;
+            this.status = SpecsStatus.SPECS_LOADED;
+        }
     }
 
     
@@ -2314,9 +1929,9 @@ public class JmlSpecs {
     public static class MethodSpecs {
         
         public MethodSymbol javaSym;
-    	public MethodSymbol specSym;
-    	public JmlMethodDecl javaDecl;
-    	public JmlMethodDecl specDecl;
+        public MethodSymbol specSym;
+        public JmlMethodDecl javaDecl;
+        public JmlMethodDecl specDecl;
         public JCTree.JCModifiers mods;
         public VarSymbol queryDatagroup;
         public VarSymbol secretDatagroup;
@@ -2352,7 +1967,7 @@ public class JmlSpecs {
         }
 
         public void setEnv(Env<AttrContext> env) {
-        	//JmlAttr.printEnv(env, "SETENV " + this.msym);
+            //JmlAttr.printEnv(env, "SETENV " + this.msym);
             specsEnv = env;
         }
 
@@ -2470,32 +2085,32 @@ public class JmlSpecs {
         return f;
     }
  
-	Map<Symbol, SpecsStatus> specsStatus = new java.util.HashMap<>();
-	
-	public SpecsStatus status(Symbol sym) {
-		var s = specsStatus.get(sym);
-		return (s == null) ? SpecsStatus.NOT_LOADED : s;
-	}
-	
-	public boolean statusOK(Symbol sym) {
-		var s = specsStatus.get(sym);
-		return s != SpecsStatus.ERROR;
-	}
-	
-	public void setStatus(Symbol sym, SpecsStatus status) {
-		specsStatus.put(sym, status);
-	}
+    Map<Symbol, SpecsStatus> specsStatus = new java.util.HashMap<>();
+
+    public SpecsStatus status(Symbol sym) {
+        var s = specsStatus.get(sym);
+        return (s == null) ? SpecsStatus.NOT_LOADED : s;
+    }
+
+    public boolean statusOK(Symbol sym) {
+        var s = specsStatus.get(sym);
+        return s != SpecsStatus.ERROR;
+    }
+
+    public void setStatus(Symbol sym, SpecsStatus status) {
+        specsStatus.put(sym, status);
+    }
 
     public static enum SpecsStatus {
-    	NOT_LOADED,
-    	QUEUED,
-    	SPECS_LOADED,
-    	SPECS_ATTR,
-    	ERROR;
-    	
-    	public boolean less(SpecsStatus s) { return this.ordinal() < s.ordinal(); }
-    	
+        NOT_LOADED,
+        QUEUED,
+        SPECS_LOADED,
+        SPECS_ATTR,
+        ERROR;
+
+        public boolean less(SpecsStatus s) { return this.ordinal() < s.ordinal(); }
+
     }
-    	
+
 }
 

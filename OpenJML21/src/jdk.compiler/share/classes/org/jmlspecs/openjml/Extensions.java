@@ -200,8 +200,8 @@ public class Extensions {
         } catch (java.io.IOException e) {
             throw new RuntimeException(e);
         }
-        if (JmlOption.langJML.equals(JmlOption.value(context, JmlOption.LANG))) return;
-        String exts = JmlOption.value(context, JmlOption.EXTENSIONS);
+        if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) return;
+        String exts = JmlOption.EXTENSIONS.value(context);
         if (exts == null || exts.isEmpty()) return;
         for (String extname : exts.split(",")) {
             try {

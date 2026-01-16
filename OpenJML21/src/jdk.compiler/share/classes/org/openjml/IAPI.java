@@ -1,40 +1,17 @@
 package org.openjml;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.PrintStream;
-import java.util.Collection;
-import java.util.Map;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlSpecs.FieldSpecs;
-import org.jmlspecs.openjml.JmlSpecs.TypeSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
-import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
-import org.jmlspecs.openjml.Main.IProgressListener;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
-import org.jmlspecs.openjml.proverinterface.ProverResult;
-import org.jmlspecs.openjml.*;
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.Main;
 
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
-import com.sun.tools.javac.code.Symbol.PackageSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.parser.*;
-import static com.sun.tools.javac.parser.Tokens.*;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
 
 public interface IAPI {
     
@@ -47,6 +24,15 @@ public interface IAPI {
     public boolean isOptionSet(String key);
     public String getOption(String key);
     
+    public static final int OK = Main.Result.OK.exitCode;
+    public static final int ERROR = Main.Result.ERROR.exitCode;
+    public static final int CMDERR = Main.Result.CMDERR.exitCode;
+    public static final int SYSERR = Main.Result.SYSERR.exitCode;
+    public static final int ABNORMAL = Main.Result.ABNORMAL.exitCode;
+    public static final int CANCELLED = Main.Result.CANCELLED.exitCode;
+    public static final int VERIFY = Main.Result.VERIFY.exitCode;
+    
+//    @SuppressWarnings("exports")
 //    public Context context();
 //     
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
@@ -68,30 +54,47 @@ public interface IAPI {
 //    /*@pure*/
 //    public Main main();
 //
-//    /** A partial (abstract) implementation of a progress listener to hear
-//     * progress on this API's operations.
-//     */
-//    public static abstract class AbstractProgressListener implements IProgressListener {
-//        protected Context context;
-//        
-//        public AbstractProgressListener() {
-//        }
-//        
-//        /** Called by the subscribed object when a diagnostic report is made */
-//        @Override
-//        public abstract boolean report(int level, String message);
-//
+    /** An interface for progress information; the implementation reports progress
+     * by calling report(...); clients will receive notification of progress
+     * events by implementing this interface and registering the listener with
+     * progressDelegator.setDelegate(IProgressReporter).
+     *
+     */
+    public static interface IProgressListener {
+        /** Sets a verbosity level */
+        void setVerbose(int verbosity);
+        /** Issues output if level is not less than the set verbosity; 
+         * returns true if there has been a cancellation request
+         */
+        boolean report(int level, String message);
+        /** Tells the listener how many ticks of work have been done */
+        void worked(int ticks);
+    }
+
+    /** A partial (abstract) implementation of a progress listener to hear
+     * progress on this API's operations.
+     */
+    public static abstract class AbstractProgressListener implements IProgressListener {
+        
+        public AbstractProgressListener() {
+        }
+        
+        /** Called by the subscribed object when a diagnostic report is made */
+        @Override
+        public abstract boolean report(int level, String message);
+
 //        // FIXME - can we get rid of this? in the meantime, it must be called to set the context to match that of the compilation context being listened to
 //        @Override
 //        public void setContext(Context context) { this.context = context; }
-//    }
-//    
-//    public static interface IProofResultListener {
-//        
-//        void reportProofResult(MethodSymbol msym, IProverResult result);
-//        default IProofResultListener setListener(IProofResultListener listener) { return null; }
-//    }
-//
+    }
+    
+    public static interface IProofResultListener {
+        
+        @SuppressWarnings("exports")
+        void reportProofResult(MethodSymbol msym, IProverResult result);
+        default IProofResultListener setListener(IProofResultListener listener) { return null; }
+    }
+
 //    /** Sets a progress listener that hears any progress reports (e.g. names of
 //     * files as they are parsed).  Any previous listener is forgotten (there is
 //     * just one listener at a time).
@@ -167,6 +170,10 @@ public interface IAPI {
      */
     static public int openjml(String ... args) {
         return org.jmlspecs.openjml.Main.execute(args);
+    }
+            
+    static public void main(String ... args) {
+        org.jmlspecs.openjml.Main.main(args);  // Does a System.exit
     }
             
 //    /** Executes the jmldoc tool on the given command-line arguments. This is 

@@ -16,7 +16,7 @@ public class Test {
     public void wh(int i) {
         //@ split
         if (i < 0) {
-            //@ assert i < -1; // Split A
+            //@ assert i < -1; // Split A // FAILS
             return;
         }
         int j = i;

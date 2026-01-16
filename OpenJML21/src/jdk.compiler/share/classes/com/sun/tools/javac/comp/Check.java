@@ -138,6 +138,7 @@ public class Check {
 
     @SuppressWarnings("this-escape")
     protected Check(Context context) {
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("CHECK"); // OPENJML
         context.put(checkKey, this);
 
         names = Names.instance(context);
@@ -187,13 +188,13 @@ public class Check {
         allowSealed = Feature.SEALED_CLASSES.allowedInSource(source);
     }
 
-    public void resetHandlers() { // OPENJML - added, for the situation where Check is constructed before options are read
+    public void resetHandlers() { // OPENJML - added, for the situation where Check is constructed before options are read or reset
         String n = com.sun.tools.javac.main.Option.XLINT_CUSTOM.primaryName;
         // Assignment intended below
         if (uncheckedHandler.verbose = options.isSet(n+LintCategory.UNCHECKED.option)) lint.enable(LintCategory.UNCHECKED);
         if (deprecationHandler.verbose = options.isSet(n+LintCategory.DEPRECATION.option)) lint.enable(LintCategory.DEPRECATION);
         if (removalHandler.verbose = options.isSet(n+LintCategory.REMOVAL.option)) lint.enable(LintCategory.REMOVAL);
-        //warnOnAnyAccessToMembers = options.isSet("warnOnAccessToMembers");
+        // warnOnAnyAccessToMembers = options.isSet("warnOnAccessToMembers"); // field is final -- cannot be reset
     }
 
     /** Character for synthetic names
@@ -1578,11 +1579,6 @@ public class Check {
     }
 
     void checkRaw(JCTree tree, Env<AttrContext> env) {
-        if (lint.isEnabled(LintCategory.RAW) && tree.type == null) { // OPENJML FIXME - added to avoid a crash, but need fixing
-            System.out.println("Annotated type has a null type field -- crash would happen: " + 
-                    (tree instanceof JCAnnotatedType at ? Objects.toString(at.underlyingType) : ""));
-            return;
-        }
         if (lint.isEnabled(LintCategory.RAW) &&
             tree.type.hasTag(CLASS) &&
             !TreeInfo.isDiamond(tree) &&
@@ -4491,7 +4487,10 @@ public class Check {
 
             @Override
             public void visitAnnotation(JCAnnotation tree) {
-                if (tree.attribute == null) { System.out.println("Crash because an annotation is unattributed"); return; } // OPENJML FIXME - added to avoid crash
+                if (tree.attribute == null) { // OPENJML FIXME - added to avoid crash
+                    //System.out.println("Crash because an annotation is unattributed: " + tree); org.jmlspecs.openjml.Utils.dumpStack(); 
+                    return;
+                } 
                 if (tree.attribute.type.tsym.getAnnotation(java.lang.annotation.Documented.class) != null)
                     super.visitAnnotation(tree);
             }

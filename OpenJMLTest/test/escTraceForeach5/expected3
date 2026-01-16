@@ -19,7 +19,7 @@ Skipping proof of trace.mforeach2(int[]) (excluded by -method)
 Skipping proof of trace.mforeach3(int[]) (excluded by -method)
 Skipping proof of trace.mforeach4(int[]) (excluded by -method)
 Starting proof of trace.mforeach5(int[]) with prover !!!!
-test\escTraceLoops\trace.java:208: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
+test\escTraceLoops\trace.java:208: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
         //@ decreases -j;
             ^
 
@@ -181,6 +181,6 @@ test\escTraceLoops\trace.java:1:  	LoopDecreasesNonNegative assertion: 0 <= _JML
 			VALUE: 0 <= _JML__tmp121	 === false
 test\escTraceLoops\trace.java:208:  Invalid assertion (LoopDecreasesNonNegative)
 
-Completed proof of trace.mforeach5(int[]) with prover !!!! - with warnings
+Completed proof of trace.mforeach5(int[]) with prover !!!! - with verification failures
 Completed proving methods in trace
 1 warning

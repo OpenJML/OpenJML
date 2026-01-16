@@ -372,7 +372,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
-        log.getWriter(WriterKind.NOTICE).println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass());
+        log.getWriter(WriterKind.NOTICE).println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass() + " " + that); Utils.dumpStack();
         result = trueLiteral;
     }
     
@@ -510,7 +510,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     /** Creates a new incarnation of a variable */
     protected JCIdent newIdentIncarnation(VarSymbol vsym, int incarnationPosition) {
-        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition));
+        JCIdent n = factory.at(incarnationPosition).Ident(encodedName(vsym,incarnationPosition)); // bumps and uses 'unique'
         n.type = vsym.type;
         n.sym = vsym;
         currentMap.putSAVersion(vsym,n.name,unique); // unique is used as the new version number
@@ -1089,7 +1089,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     try {
                         Name labelArg = that.args.size() == 1 ? JmlAttr.instance(context).preLabel : ((JCIdent)that.args.get(1)).name;
                         Name label = ((JmlAssertionAdder.LabelProperties)that.labelProperties).name;
-                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label);
+                        if (label != labelArg) utils.warning(that, "jml.message", "Unexpected mismatched state label names: " + labelArg + " " + label + " " + that);
                         currentMap = labelmaps.get(label);
                         //System.out.println("   MAP TO USE " + currentMap);
                         //System.out.println("   CURRENT MAP " + savedMap);
@@ -1147,7 +1147,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     break;
                 } 
                 case erasureID:
-                case typearg0ID:
+                case typearg1ID:
+                case typearg2ID:
+                case typearg3ID:
                 case typeargsID:
                 case typeargID:
                 case TYPEofID:
@@ -1217,9 +1219,13 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     
     
     // FIXME - review and document
-    protected void havoc(JCExpression storeref) {
+    protected void havoc(JCExpression storeref, VarMap rootmap) {
         //System.out.println("HAVOC " + storeref + " " + storeref.getClass());
+        VarMap savedMap = currentMap;
+        currentMap = rootmap;
+
         if (storeref instanceof JCIdent) {
+            currentMap = savedMap;
             newIdentIncarnation((JCIdent)storeref,storeref.pos);
 
         } else if (storeref instanceof JCFieldAccess) {
@@ -1231,10 +1237,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                     log.error(fa.pos,"jml.internal","Unexpected wildcard store-ref in havoc call");
             } else {
                 if (utils.isJMLStatic(fa.sym)) {
+                    currentMap = savedMap;
                     newIdentIncarnation((VarSymbol)fa.sym, storeref.pos);
                 } else {
                     int sp = fa.pos;
                     scan(fa.selected);
+                    currentMap = savedMap;
                     JCIdent oldfield = newIdentUse((VarSymbol)fa.sym,sp);
                     if (isDefined.add(oldfield.name)) {
                         if (utils.verbose()) utils.note("AddedFF " + oldfield.sym + " " + oldfield.name);
@@ -1257,6 +1265,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                 }
             }
         } else if (storeref instanceof JmlStoreRefKeyword) { // FIXME - no longer used?
+            currentMap = savedMap;
             IJmlClauseKind t = ((JmlStoreRefKeyword)storeref).kind;
             if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
@@ -1274,6 +1283,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             }
         } else if (storeref instanceof JmlSingleton sing) {
             IJmlClauseKind t = sing.kind;
+            currentMap = savedMap;
             if (t == everythingKind) {
                 for (VarSymbol vsym: currentMap.keySet()) {
                     // Local variables are not affected by havoc \everything
@@ -1299,10 +1309,11 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             Type indexType = aa.indexed.type instanceof Type.ArrayType ? syms.intType : BIGINT;
             if (!(index instanceof JmlRange range) || (range.lo == range.hi && range.lo != null)) {
             	// Single index -- FIXME - don't know about * in  indexed
-            	JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
             	if (index instanceof JmlRange r) index = r.lo;
             	scan(ex); ex = result;
             	scan(index); index = result;
+                currentMap = savedMap;
+                JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
 
             	JmlBBArrayAccess rhs = new JmlBBArrayAccess(nid,ex,index); // this is an arbitrary value
             	rhs.pos = sp;
@@ -1324,13 +1335,24 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             } else if (!(ex instanceof JCArrayAccess ax && ax.index instanceof JmlRange ar)) {
             	// Range index -- indexed is not an array[*]
 
+                scan(ex); ex = result;
             	JmlRange r = range;
+            	JCExpression lo = r.lo;
+            	if (range.lo != null) {
+            	    scan(range.lo);
+            	    lo = result;
+            	}
+            	JCExpression hi = r.hi;
+                if (range.hi != null) {
+                    scan(range.hi);
+                    hi = result;
+                }
+                currentMap = savedMap;
         		JCIdent nid = newArrayIncarnation(indexType,aa.type,sp);
         		
         		if (r.lo == null && r.hi == null) {
             		// Entire array
 
-            		scan(ex); ex = result;
             		JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
             		expr.pos = sp;
             		expr.type = aa.type;
@@ -1343,7 +1365,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		// Range of array
             	    //System.out.println("HAVOC RANGE " + ex);
 
-            		scan(ex); ex = result;
 
             		JCExpression expr = new JmlBBArrayAssignment(nid,arr,ex,null,null);
             		expr.pos = sp;
@@ -1354,8 +1375,6 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
 
             		int p = aa.pos;
-            		scan(range.lo);
-            		JCExpression lo = result;
             		JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
             		JCIdent ind = treeutils.makeIdent(p, decl.sym);
             		JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,ind,lo);
@@ -1367,9 +1386,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             		oldelem.type = aa.type;
             		JCExpression eq = treeutils.makeEquality(p,newelem,oldelem);
 
-            		if (range.hi != null) {
-            			scan(range.hi);
-            			JCExpression hi = result;
+            		if (hi != null) {
             			comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
             		}
 
@@ -1394,44 +1411,52 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             	// So for havoc a[*][*] we want A' = (store A e' *) that is a modified version of A that is different just at all the instances of 
             	// (select (select B a) i) for all indices i 
         		int p = aa.pos;
-                JCIdent arr2 = getArrayIdent(indexType,ax.type,aa.pos);
-        		JCIdent nid = newArrayIncarnation(indexType,ax.type,sp);
         		
         		// Havoc entire 2D array
         		scan(ax.indexed); 
         		JCExpression axi = result;
-        		
-        		JCExpression expr = new JmlBBArrayAssignment(nid,arr2,axi,null,null);
+                currentMap = savedMap;
+
+                Type ctype = aa.type;
+                JCIdent arr2 = getArrayIdent(indexType,ax.type,aa.pos);
+                JCIdent arr1 = getArrayIdent(indexType,ctype,aa.pos);
+                JCIdent nid = newArrayIncarnation(indexType,ctype,sp);
+                var range2 = ax.index;
+                var range1 = aa.index;
+
+        		JCExpression expr = new JmlBBArray2DHavoc(arr2,nid,arr1,axi,range2,range1);
         		expr.pos = sp;
         		expr.type = aa.type;
         		treeutils.copyEndPosition(expr, aa);
         		result = expr;
+//        		System.out.println("2DARR ASSUMING " + expr);
                 addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
         		
-                JCExpression lo = treeutils.makeZeroEquivalentLit(aa,BIGINT);
-                JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
-                JCIdent ind = treeutils.makeIdent(p, decl.sym);
-                JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
-                JCExpression newelem = new JmlBBArrayAccess(nid,axi,ind);
-                newelem.pos = p;
-                newelem.type = aa.type;
-                JCExpression oldelem = new JmlBBArrayAccess(arr2,axi,ind);
-                oldelem.pos = p;
-                oldelem.type = aa.type;
-                JCExpression eq = treeutils.makeNeqObject(p,newelem,treeutils.nullLit);
-                JCExpression len = treeutils.makeEquality(p,treeutils.makeLength(aa, newelem),treeutils.makeLength(aa, oldelem));
-
-//                if (aa.hi != null) {
-//                    scan(aa.hi);
-//                    JCExpression hi = result;
-//                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
-//                }
-
-                // FIXME - set line and source
-                expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,
-                				treeutils.makeAnd(p, eq, len));
-                expr.setType(syms.booleanType);
-                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
+//                JCExpression lo = treeutils.makeZeroEquivalentLit(aa,BIGINT);
+//                JCVariableDecl decl = treeutils.makeVarDef(syms.intType, names.fromString("_JMLARANGE_" + (++unique)), null, p);
+//                JCIdent ind = treeutils.makeIdent(p, decl.sym);
+//                JCExpression comp = treeutils.makeBinary(p,JCTree.Tag.LE,treeutils.intleSymbol,lo,ind);
+//                JCExpression newelem = new JmlBBArrayAccess(nid,axi,ind);
+//                newelem.pos = p;
+//                newelem.type = aa.type;
+//                JCExpression oldelem = new JmlBBArrayAccess(arr2,axi,ind);
+//                oldelem.pos = p;
+//                oldelem.type = aa.type;
+//                JCExpression eq = treeutils.makeNeqObject(p,newelem,treeutils.nullLit);
+//                JCExpression len = treeutils.makeEquality(p,treeutils.makeLength(aa, newelem),treeutils.makeLength(aa, oldelem));
+//
+////                if (aa.hi != null) {
+////                    scan(aa.hi);
+////                    JCExpression hi = result;
+////                    comp = treeutils.makeOr(p, comp, treeutils.makeBinary(p,JCTree.Tag.LT,treeutils.intltSymbol,hi,ind));
+////                }
+//
+//                // FIXME - set line and source
+//                expr = factory.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,com.sun.tools.javac.util.List.<JCVariableDecl>of(decl),comp,
+//                				treeutils.makeAnd(p, eq, len));
+//                expr.setType(syms.booleanType);
+//                System.out.println("2DARR ASSUMING-B " + expr);
+//                addAssume(sp,Label.HAVOC,expr,currentBlock.statements);
                 
         		
         		// old array axi[*][*] ; new array nid[*][*]
@@ -1716,7 +1741,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     }
     
     protected void addMethodEqualities(JCMethodInvocation call, BasicBlock bl) {
-        if (true || !JmlOption.isOption(context, JmlOption.DETERMINISM)) return;
+        if (true || !JmlOption.DETERMINISM.isSet(context)) return;
         MethodSymbol msym = (MethodSymbol)((JCIdent)call.meth).sym;
         if (JmlAttr.instance(context).isHeapIndependent(msym)) return;
         summarizeBlock( currentBlock);
@@ -1829,8 +1854,9 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
     // OK
     @Override
     public void visitJmlStatementHavoc(JmlStatementHavoc that) { 
+        VarMap rootmap = currentMap.copy();
         for (JCExpression item : that.storerefs) {
-            havoc(item);
+            havoc(item, rootmap);
         }
     }
     
@@ -2444,7 +2470,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
          * storing) one if it is not present. */
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
-            boolean print = false; // vsym.name.toString().equals("length");
+            boolean print = false; //vsym.name.toString().equals("i");
             if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
             + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
             if (vsym == lengthSym) {

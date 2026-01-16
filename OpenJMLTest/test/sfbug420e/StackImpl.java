@@ -6,7 +6,7 @@ public class StackImpl implements Stack {
 	private int[] internalStack; //-RAC@ maps internalStack[*] \into count;
 	/*@ spec_public */ private int stackCounter; //-RAC@ in count;
 
-	@SuppressWarnings("unchecked")
+    //@ ensures count() == 0; pure
 	public StackImpl() {
 		internalStack = new int[maxSize];
 		stackCounter = 0;
@@ -30,7 +30,7 @@ public class StackImpl implements Stack {
 	}
 
 	public boolean push(int item) {
-		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not way what happens when \result is false
+		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not say what happens when \result is false
 		internalStack[stackCounter] = item; // ERROR - index might be too large
 		stackCounter++;
 		return true; // ERROR - no spec for top()

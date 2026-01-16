@@ -1,4 +1,0 @@
-#! /bin/bash
-
-LOC=$(dirname "${BASH_SOURCE[0]}")
-$LOC/runtests-filt "$@" 2>&1 | tee $LOC/log-scripttests-sort | sort 

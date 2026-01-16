@@ -1,0 +1,4 @@
+test/gitbug547b/Test547.java:3: error: Ghost fields are not permitted in interfaces
+    //@ public instance ghost int state;
+                                  ^
+1 error

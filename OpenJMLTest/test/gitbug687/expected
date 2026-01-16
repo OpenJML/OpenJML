@@ -25,4 +25,16 @@ Feasibility check - at program exit : OK
 Completed proof of AgeBug.today_later(AgeBug) with prover !!!! - no warnings
 Completed proving methods in AgeBug
 Proving methods in Date
+Starting proof of Date.month() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Date.month() with prover !!!! - no warnings
+Starting proof of Date.day() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Date.day() with prover !!!! - no warnings
+Starting proof of Date.year() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Date.year() with prover !!!! - no warnings
+Starting proof of Date.equals(Date) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Date.equals(Date) with prover !!!! - no warnings
 Completed proving methods in Date

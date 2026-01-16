@@ -191,6 +191,10 @@ $SPECS/org/jmlspecs/lang/internal/bigint.jml:178: warning: Precondition conjunct
     //@   requires Long.MIN_VALUE <= this <= Long.MAX_VALUE;
                                           ^
 Completed proof of Tcasts.m9() with prover !!!! - with warnings
+Starting proof of Tcasts.m10() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m10() with prover !!!! - no warnings
 Starting proof of Tcasts.p1(short) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

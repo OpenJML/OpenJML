@@ -37,35 +37,29 @@ public class racfilesmodels extends RacBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        setUpForFiles();
         super.setUp();
-        ignoreNotes = true;
     }
 
     @Test @Ignore // model files
     public void gitbug524() {
-        expectedRACExit = 0;
-        helpTCF("test/gitbug524","test/gitbug524","Test"); 
+        helpCompileRun("Test"); 
     }
 
     @Test @Ignore // model files
     public void gitbug584() {
-        helpTCF("test/gitbug584","test/gitbug584","AClass");
+        helpCompileRun("AClass");
     }
 
     @Test @Ignore // model files
     public void gitbug590() {
         runrac = false; // Expected compile error
         expectedExit = 1;
-        helpTCF("test/gitbug590","test/gitbug590","Sequence");
+        helpCompileRun("Sequence");
     }
 
     @Test @Ignore // model files
     public void gitbug590a() {
-        runrac = true;
-        expectedRACExit = 0;
-        expectedExit = 0;
-        helpTCF("test/gitbug590a","test/gitbug590a","Sequence");
+        helpCompileRun("Sequence");
     }
 
 }

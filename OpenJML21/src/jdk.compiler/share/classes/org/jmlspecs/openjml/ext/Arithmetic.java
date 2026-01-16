@@ -79,7 +79,7 @@ abstract public class Arithmetic extends JmlExtension {
             if (utils.hasModifier(sym, Modifiers.CODE_JAVA_MATH)) return Java.instance(context);
             sym = sym.owner;
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
-            String v = JmlOption.value(context,JmlOption.CODE_MATH);
+            String v = JmlOption.CODE_MATH.value(context);
             if ("java".equals(v)) return Java.instance(context);
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
@@ -90,7 +90,7 @@ abstract public class Arithmetic extends JmlExtension {
             sym = sym.owner;
             Arithmetic.Math.instance(context).rac = rac; // FIXME - HACK FOR NOW
             if (!(sym instanceof Symbol.PackageSymbol)) return defaultArithmeticMode(sym,jml);
-            String v = JmlOption.value(context,JmlOption.SPEC_MATH);
+            String v = JmlOption.SPEC_MATH.value(context);
             if ("java".equals(v)) return Java.instance(context);
             if ("safe".equals(v)) return Safe.instance(context);
             return Math.instance(context);
@@ -244,7 +244,7 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression eq = rewriter.treeutils.makeEquality(that.pos, rewriter.copy(arg), lit);
                     JCExpression conditional = rewriter.treeutils.makeConditional(that.pos, eq, lit, eresult);
                     eresult = conditional;
-                } else if (rewriter.jmltypes.isIntegral(that.type)) {
+                } else if (rewriter.jmltypes.isJavaIntegral(that.type)) {
                 	Utils.instance(context).error(that,"jml.internal","Unimplemented integral type in Arithmetic.Java: " + that.type);
                 }
             }
@@ -260,7 +260,7 @@ abstract public class Arithmetic extends JmlExtension {
         var syms = Symtab.instance(context);
         var utils = Utils.instance(context);
     	int p = that.pos;
-        this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.isOption(context,JmlOption.RAC_JAVA_CHECKS)));
+        this.javaChecks = (rewriter.esc || (rewriter.rac && JmlOption.RAC_JAVA_CHECKS.isSet(context)));
 
         JCTree.Tag optag = that.getTag();
         if (newtype == null) newtype = that.type;
@@ -380,7 +380,7 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.DIV, rewriter.treeutils.intdivideSymbol, a, rewriter.copy(lhs));
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, rewriter.copy(lhs), rewriter.treeutils.makeIntLiteral(p, 0));
                         JCExpression d = rewriter.treeutils.makeBinary(p, JCTree.Tag.EQ, rewriter.treeutils.inteqSymbol, b, rewriter.copy(rhs));
-                        checkIt(rewriter,that, "int multiply overflow", 
+                        checkIt(rewriter,that, "int multiply out of range", 
                                 condition(rewriter, rewriter.treeutils.makeOr(p, c, d)));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, rewriter.treeutils.longmultiplySymbol, rewriter.copy(lhs), rewriter.copy(rhs));
@@ -392,10 +392,10 @@ abstract public class Arithmetic extends JmlExtension {
                     }
                 } else if (smtPredefined) {
                     if (newtype.getTag() == TypeTag.INT) {
-                        checkIt(rewriter, that, "int multiply overflow", 
+                        checkIt(rewriter, that, "int multiply out of range", 
                             rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul32ok#|", syms.booleanType, lhs, rhs));
                     } else if (newtype.getTag() == TypeTag.LONG) {
-                        checkIt(rewriter, that, "long multiply overflow", 
+                        checkIt(rewriter, that, "long multiply out of range", 
                                 rewriter.treeutils.makeJmlMethodInvocation(that,"|#mul64ok#|", syms.booleanType, lhs, rhs));
                     }
                 } else {
@@ -406,14 +406,14 @@ abstract public class Arithmetic extends JmlExtension {
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  rewriter.copy(a), maxlit);
-                        checkIt(rewriter, that, "int multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
+                        checkIt(rewriter, that, "int multiply out of range", rewriter.treeutils.makeAnd(p, b, c));
                     } else if (newtype.getTag() == TypeTag.LONG) {
                         JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                         JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
                         JCExpression a = rewriter.treeutils.makeBinary(p, JCTree.Tag.MUL, that.getOperator(), rewriter.copy(lhs), rewriter.copy(rhs));
                         JCExpression b = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  minlit, a);
                         JCExpression c = rewriter.treeutils.makeBinary(p, JCTree.Tag.LE,  rewriter.copy(a), maxlit);
-                        checkIt(rewriter, that, "long multiply overflow", rewriter.treeutils.makeAnd(p, b, c));
+                        checkIt(rewriter, that, "long multiply out of range", rewriter.treeutils.makeAnd(p, b, c));
                     }
                 }
             } else if (optag == JCTree.Tag.DIV) {
@@ -589,7 +589,7 @@ abstract public class Arithmetic extends JmlExtension {
             JCTree.JCIdent id = rewriter.newTemp(x);
             rewriter.saveMapping(x,id);
         }
-        String mode = JmlOption.value(context,JmlOption.ARITHMETIC);
+        String mode = JmlOption.ARITHMETIC.value(context);
         if (mode == null) { 
             rewriter.utils.warning(pos, "jml.internal", "Null arithmetic failure mode should have been corrected before reaching this point"); 
         } else switch (mode) {
@@ -614,7 +614,7 @@ abstract public class Arithmetic extends JmlExtension {
         Type mathType(JmlAssertionAdder rewriter, Type t) {
             TypeTag tag = t.getTag();
             if (rewriter.jmltypes.isJmlType(t)) return t;
-            if (rewriter.jmltypes.isIntegral(t)) return rewriter.BIGINT;
+            if (rewriter.jmltypes.isJavaIntegral(t)) return rewriter.BIGINT;
             if (tag == TypeTag.DOUBLE || tag == TypeTag.FLOAT) return rewriter.REAL;
             return t;
         }

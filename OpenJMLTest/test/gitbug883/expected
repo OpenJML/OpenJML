@@ -1,0 +1,10 @@
+Proving methods in MatrixAdd
+Starting proof of MatrixAdd.MatrixAdd() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MatrixAdd.MatrixAdd() with prover !!!! - no warnings
+Starting proof of MatrixAdd.add(int[][],int[][]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MatrixAdd.add(int[][],int[][]) with prover !!!! - no warnings
+Completed proving methods in MatrixAdd

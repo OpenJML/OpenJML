@@ -14,19 +14,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A.comm(HasComm) with prover !!!! - no warnings
 Completed proving methods in A
-test/gitbug738/HasComm.java:2: warning: [missing-measured-by] Method comm(HasComm) is called recursively, but a specification case has no measured_by clause
-  //@ ensures (this.comm(other)==other.comm(this));
-                        ^
-test/gitbug738/HasComm.java:2: warning: Associated declaration: test/gitbug738/HasComm.java:2:
-  //@ ensures (this.comm(other)==other.comm(this));
-      ^
-test/gitbug738/HasComm.java:2: warning: [missing-measured-by] Method comm(HasComm) is called recursively, but a specification case has no measured_by clause
-  //@ ensures (this.comm(other)==other.comm(this));
-                                           ^
-test/gitbug738/HasComm.java:2: warning: Associated declaration: test/gitbug738/HasComm.java:2:
-  //@ ensures (this.comm(other)==other.comm(this));
-      ^
 Proving methods in HasComm
+Starting proof of HasComm.comm(HasComm) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of HasComm.comm(HasComm) with prover !!!! - no warnings
 Completed proving methods in HasComm
 test/gitbug738/B.java:4: warning: [missing-measured-by] Method comm(HasComm) is called recursively, but a specification case has no measured_by clause
 	//@ ensures (this.comm(other)==other.comm(this));
@@ -55,4 +46,4 @@ test/gitbug738/Main.java:6: warning: The prover cannot establish an assertion (A
             ^
 Completed proof of Main.main(String[]) with prover !!!! - with warnings
 Completed proving methods in Main
-9 warnings
+5 warnings

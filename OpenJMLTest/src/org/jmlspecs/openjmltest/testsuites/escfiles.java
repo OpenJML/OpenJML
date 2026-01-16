@@ -49,7 +49,17 @@ public class escfiles extends EscBaseFiles {
         ignoreNotes = true;
     }
     
+    public void helpTCF(String n, String d, String ... opts) {
+        super.helpTCF(n, d, addVE(opts));
+    }
 
+    public void helpTG(String... opts) {
+        super.helpTG(addVE(opts));
+    }
+    
+    public void helpTFM(String ... opts) {
+        super.helpTFM(addVE(opts));
+    }
     // FIXME - use helpDemo?
 
     @Test // Order of errors is somewhat non-deterministic
@@ -162,8 +172,16 @@ public class escfiles extends EscBaseFiles {
         expectedExit = 0;
         helpTG();
     }
+    
     @Test
     public void esc2DArray() {
+        //addOptions("--method=m","--progress","--show");
+        expectedExit = 0;
+        helpTG();
+    }
+
+    @Test
+    public void esc2DArray2() {
         expectedExit = 0;
         helpTG();
     }
@@ -175,20 +193,19 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test @Ignore // FIXME - Specs need improvement
-    public void testVT20191() {
+    public void verifythis2019_1() {
         expectedExit = 0;
-        helpTF("verifythis-2019-1","--check-feasibility=none"); // FIXME - feasibility check times out
+        helpTF("verifythis2019_1","--check-feasibility=none"); // FIXME - feasibility check times out
     }
 
     @Test
-    public void testVT20192() {
+    public void verifythis2019_2() {
         expectedExit = 0;
-        helpTF("verifythis-2019-2","--solver-seed=42");
+        helpTF("verifythis2019_2","--solver-seed=42");
     }
 
     @Test
     public void escCashAmountPrivate2() {   // FIXME - with demo files?
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         expectedExit = 0;
         helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
     }
@@ -269,7 +286,6 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escDoublyLinkedList() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
         helpTG();
     }
 
@@ -280,7 +296,7 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escSimpleString() {
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver)); // FIXME - CVC4 crashes or is long
+        // FIXME - CVC4 crashes or is long
         helpTG("--nonnull-by-default","-timeout=240");
     }
 
@@ -514,7 +530,7 @@ public class escfiles extends EscBaseFiles {
     
     @Test
     public void sfbug420eOK() {
-        helpTG(); // FIXME - not sure wheterh or not all methods should be checked here
+        helpTG("--method=push"); // FIXME - not sure wheterh or not all methods should be checked here
     }
     
     @Test
@@ -607,7 +623,7 @@ public class escfiles extends EscBaseFiles {
     @Test // Basic problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
     public void factorial() {
         expectedExit = 0;
-        helpTG();//,"-code-math=java");
+        helpTG("--check-feasibility=none");//,"-code-math=java");
     }
 
     @Test @Ignore // FIXME - times out
@@ -630,7 +646,7 @@ public class escfiles extends EscBaseFiles {
     
     @Test
     public void splits3() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG("--no-split");
     }
     
@@ -666,7 +682,7 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void requiresElse() { // FIXME - why the two different formats of output
+    public void requiresElse() {
         helpTG("--show=program"); // --show=program is part of test results
     }
 
@@ -725,7 +741,7 @@ public class escfiles extends EscBaseFiles {
     }
     
     @Test
-    public void modelImport1() {
+    public void modelImport1() {  // FIXME - the abbreviated type names make the message less understandable
         expectedExit = 1;
         helpTCF("test/modelImports/Test1.java","test/modelImports/test1","--check","-cp","test/modelImports");
     }

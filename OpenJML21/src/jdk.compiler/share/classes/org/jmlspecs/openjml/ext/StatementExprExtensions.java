@@ -63,6 +63,7 @@ public class StatementExprExtensions extends JmlExtension {
         synonym("decreases",loopdecreasesClause);
         synonym("decreasing",loopdecreasesClause);
         synonym("maintaining",loopinvariantClause);
+        synonym("maintains",loopinvariantClause);
     }
     
     public static class StatementExprType extends IJmlClauseKind.Statement {
@@ -121,7 +122,7 @@ public class StatementExprExtensions extends JmlExtension {
             if (clauseType == splitClause && st.expression == null) {
                 while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
                 JCStatement stt = parser.blockStatement().head;
-                boolean splitenabled = JmlOption.value(parser.context,JmlOption.SPLIT) != null;
+                boolean splitenabled = JmlOption.SPLIT.value(parser.context) != null;
                 if (stt instanceof JmlIfStatement stif) {
                     stif.split = splitenabled;
                     while (stif.elsepart instanceof JmlIfStatement stiff) {

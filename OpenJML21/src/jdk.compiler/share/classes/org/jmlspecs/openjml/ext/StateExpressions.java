@@ -95,7 +95,10 @@ public class StateExpressions extends JmlExtension {
                 }
             } else {
                 // old with label
-                if (!clauseKind.preOrOldWithLabelAllowed() && clauseKind != MethodSimpleClauseExtensions.declClause) {
+                if (clauseKind == null) { // ghost statement
+                    label = attr.checkLabel(tree.args.get(1));
+                    if (label != null) t = null;
+                } else if (!clauseKind.preOrOldWithLabelAllowed() && clauseKind != MethodSimpleClauseExtensions.declClause) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.keyword());
                 } else if (clauseKind == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
                     log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.keyword());
@@ -104,8 +107,11 @@ public class StateExpressions extends JmlExtension {
                 	if (label != null) t = null;
                 }
             }
-            if (label == attr.hereLabel) label = null;
-            if (label == attr.oldLabel) label = attr.jmlenv.currentOldLabel;
+            if (label == attr.oldLabel) {
+                label = attr.jmlenv.currentOldLabel;
+            } else if (label == attr.hereLabel) {
+                label = null;
+            }
 
             //System.out.println("OLD " + label + " " + attr.jmlenv.currentOldLabel + " " + that);
             

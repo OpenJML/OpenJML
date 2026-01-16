@@ -648,6 +648,8 @@ public class JCDiagnostic implements Diagnostic<JavaFileObject> {
                            DiagnosticPosition pos,
                            UnaryOperator<JCDiagnostic> rewriter) {
         if (source == null && pos != null && pos.getPreferredPosition() != Position.NOPOS)
+            System.out.println("JCD " + source + " " + pos.getPreferredPosition());
+        if (source == null && pos != null && pos.getPreferredPosition() != Position.NOPOS)
             throw new IllegalArgumentException();
 
         this.defaultFormatter = formatter;

@@ -103,7 +103,7 @@ public class JmlTree {
         JmlBinary JmlBinary(Operators.Operator t, JCTree.JCExpression left, JCTree.JCExpression right);
         JmlBlock Block(long flags, List<JCStatement> stats);
         JmlChained JmlChained(List<JCBinary> conjuncts);
-        JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock);
+        JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JmlChoose.Item> orBlocks, /*@Nullable*/JCStatement elseBlock);
         JmlMethodSig JmlMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
@@ -704,7 +704,7 @@ public class JmlTree {
         {
             JCForLoop tree = super.ForLoop(init, cond, step, body);
             tree.pos = pos;
-            return JmlForLoop(tree,null);
+            return JmlForLoop(tree, List.<JmlStatementLoop>nil());
         }
         
         /** Creates a regular foreach-loop with no specifications */
@@ -712,7 +712,7 @@ public class JmlTree {
         public JCEnhancedForLoop ForeachLoop(JCVariableDecl var, JCExpression expr, JCStatement body) {
             JCEnhancedForLoop tree = super.ForeachLoop(var, expr, body);
             tree.pos = pos;
-            return JmlEnhancedForLoop(tree,null);
+            return JmlEnhancedForLoop(tree,List.<JmlStatementLoop>nil());
         }
         
         /** Creates a regular do-loop with no specifications */
@@ -720,7 +720,7 @@ public class JmlTree {
         public JmlDoWhileLoop DoLoop(JCStatement body, JCExpression cond) {
             JCDoWhileLoop tree = super.DoLoop(body, cond);
             tree.pos = pos;
-            return JmlDoWhileLoop(tree,null);
+            return JmlDoWhileLoop(tree,List.<JmlStatementLoop>nil());
         }
 
         /** Creates a regular while-loop with no specifications */
@@ -728,7 +728,7 @@ public class JmlTree {
         public JmlWhileLoop WhileLoop(JCExpression cond, JCStatement body) {
             JCWhileLoop tree = super.WhileLoop(cond, body);
             tree.pos = pos;
-            return JmlWhileLoop(tree,null);
+            return JmlWhileLoop(tree,List.<JmlStatementLoop>nil());
         }
 
         /** Creates a for-loop with specifications */
@@ -828,7 +828,7 @@ public class JmlTree {
 //        }
         
         @Override
-        public JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/JCBlock elseBlock) {
+        public JmlChoose JmlChoose(String keyword, IJmlClauseKind clauseType, List<JmlChoose.Item> orBlocks, /*@Nullable*/JCStatement elseBlock) {
             return new JmlChoose(pos,keyword,clauseType,orBlocks,elseBlock);
         }
         
@@ -1025,7 +1025,7 @@ public class JmlTree {
         
         /** Returns the file object containing the source code for the AST node */
         /*@nullable*/ JavaFileObject source();
-        /*@nullable*/ void setSource(JavaFileObject jfo);
+        /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo);
         DiagnosticPosition pos();
         default public boolean isInJMLCU() {
             return source().getKind() != JavaFileObject.Kind.SOURCE;
@@ -1074,8 +1074,8 @@ public class JmlTree {
         
         public boolean isSpecs() { return sourcefile.getKind() != JavaFileObject.Kind.SOURCE; }
         //public boolean forBinary() { return sourceCU == null; }
-        public JavaFileObject source() { return sourcefile; }
-        public void setSource(JavaFileObject s) { sourcefile = s; }
+        public /*@nullable*/ JavaFileObject source() { return sourcefile; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject s) { var ss = sourcefile; sourcefile = s; return ss; }
         public JmlCompilationUnit sourceCU = null; // Set to self if a source file
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
@@ -1211,14 +1211,23 @@ public class JmlTree {
     
     /** This class represents model program choose and choose_if statements. */
     public static class JmlChoose extends JmlAbstractStatement {
+        
+        public static class Item {
+            final public JCExpression guard;
+            final public JCStatement action;
+            public Item(JCExpression guard, JCStatement action) {
+                this.guard = guard;
+                this.action = action;
+            }
+        }
 
         public String keyword;
         public IJmlClauseKind clauseType;
-        public List<JCBlock> orBlocks;
-        /*@Nullable*/ public JCBlock elseBlock;
+        public List<Item> orBlocks;
+        /*@Nullable*/ public JCStatement elseBlock;
 
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlChoose(int pos, String keyword, IJmlClauseKind clauseType, List<JCBlock> orBlocks, /*@Nullable*/ JCBlock elseBlock) {
+        protected JmlChoose(int pos, String keyword, IJmlClauseKind clauseType, List<Item> orBlocks, /*@Nullable*/ JCStatement elseBlock) {
             this.pos = pos;
             this.keyword = keyword;
             this.clauseType = clauseType;
@@ -1321,7 +1330,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
 
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
 
         @Override
         public void accept(Visitor v) {
@@ -1404,7 +1413,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         @Override
         public boolean isJML() {
@@ -1473,7 +1482,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         @Override
         public boolean isJML() {
@@ -1553,7 +1562,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         @Override
         public void accept(Visitor v) {
@@ -1937,6 +1946,7 @@ public class JmlTree {
         void setLoopSpecs(List<JmlStatementLoop> loopSpecs);
         boolean isSplit();
         void setSplit(boolean s);
+        default public DiagnosticPosition pos() { return (DiagnosticPosition)this; }
         JCStatement body();
     }
     
@@ -1949,7 +1959,7 @@ public class JmlTree {
         public boolean consumed;
         public List<JmlStatementLoop> loopSpecs;
         public List<JmlStatementLoop> translatedSpecs;
-        public java.util.List<JCIdent> countIds = new java.util.LinkedList<>();
+        //public java.util.List<JCIdent> countIds = new java.util.LinkedList<>();
         
         public List<JmlStatementLoop> loopSpecs() { return loopSpecs; }
         public void setLoopSpecs(List<JmlStatementLoop> loopSpecs) { this.loopSpecs = loopSpecs; }
@@ -2330,7 +2340,7 @@ public class JmlTree {
         public IJmlClauseKind clauseKind;
         public JavaFileObject sourcefile;
         public JavaFileObject source() { return sourcefile; }
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         protected JmlMethodClause(int pos, String keyword, IJmlClauseKind clauseKind) {
             this.pos = pos;
             this.keyword = keyword;
@@ -2749,11 +2759,14 @@ public class JmlTree {
         }
     }
 
-    /** This class represents an assignable clause in a method specification */
+    /** This class represents an assignable or accessible clause in a method specification */
     public static class JmlMethodClauseStoreRef extends JmlMethodClause {
 
         /** The list of store-ref expressions in the clause */
         public List<JCExpression> list;
+        
+        /** The 'list' converted to a (converted) locset expression */
+        public JCExpression locset;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlMethodClauseStoreRef(int pos, String keyword, IJmlClauseKind clauseType, List<JCExpression> list) {
@@ -2792,6 +2805,8 @@ public class JmlTree {
          * is owned by a block.
          */
         public JmlMethodDecl decl = null;
+        
+        public JmlMethodClauseInvariants invariants = null;
         
         /** The standard specification cases */
         public List<JmlSpecificationCase> cases;
@@ -3017,6 +3032,10 @@ public class JmlTree {
     	    return lo == null && hi == null;
     	}
     	
+    	public boolean isSingleElement() {
+    	    return lo != null && lo == hi;
+    	}
+    	
         @Override
         public int getEndPosition(EndPosTable endPosTable) {
             return hi == null ? pos : hi.getEndPosition(endPosTable);
@@ -3145,6 +3164,8 @@ public class JmlTree {
         public JCBlock block;  // A model program has a block (of statements) but no clauses
         public JavaFileObject sourcefile;
         public Name name;
+        public JCExpression writeFrame = null;
+        public JCExpression readFrame = null;
         
         public JmlSpecificationCase(int pos, JCModifiers mods, boolean code, IJmlClauseKind token, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block) {
             this.pos = pos;
@@ -3175,7 +3196,7 @@ public class JmlTree {
         public JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
     
         @Override
         public void accept(Visitor v) {
@@ -3440,7 +3461,7 @@ public class JmlTree {
             this.clauseType = StatementLocationsExtension.havocStatement;
             this.storerefs = storerefs;
         }
-    
+        
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -3575,16 +3596,22 @@ public class JmlTree {
     /** This class represents JML statements within the body of a method
      * that apply to a following loop statement (decreases, loop_invariant)
      */
-    public static class JmlStatementLoopModifies extends JmlStatementLoop {
+    public static class JmlStatementLoopModifies extends JmlStatementLoop implements JmlSource {
         public List<JCTree.JCExpression> storerefs;
+        public java.util.List<Symbol.VarSymbol> nestedLocals; /** Derived value */
+        public JCExpression asLocset; /** Derived value */
     
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlStatementLoopModifies(int pos, IJmlClauseKind token, List<JCTree.JCExpression> storerefs) {
             this.pos = pos;
             this.clauseType = token;
             this.storerefs = storerefs;
+            this.asLocset = null;
         }
-    
+
+        public /*@nullable*/ JavaFileObject source() { return null; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { return jfo; }
+
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
@@ -3675,11 +3702,14 @@ public class JmlTree {
     		this.originalStoreRef = originalStoreRef;
     	}
     	
+    	public String toStringDetail() { return "JmlStoreRef[" + isEverything +","+local+","+expression+","+receiver+","+range+","+field+":"+originalStoreRef+"]"; }
+    	
 //    	public JavaFileObject sourcefile; // FIXME - not sure we need or use this
     	
     	public boolean isEverything() { return isEverything; }
     	public boolean isNothing() { return originalStoreRef instanceof JmlSingleton sing && sing.kind == JmlPrimitiveTypes.nothingKind; }
-    	
+        public boolean isArrayRange() { return receiver != null && (range.isDefaultRange() || range.lo != range.hi); }
+        public boolean isArrayAccess() { return receiver != null && range != null; }
     	// Cases: before type attribution (type == null)
     	// isEverything=true: \everything
         // isEverything=false, receiver=null, id!=null, range==null: simple id
@@ -3691,7 +3721,7 @@ public class JmlTree {
     	// isEverything=true, other fields null: \everything
     	// isEverything=false, local nonnull; others null: a local variable
     	// isEverything=false, expression nonull; others null: a locset expression (expression.type is \locset
-    	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or isngle index
+    	// isEverything=false, range nonnull, receiver nonnull, expression null, fields null: an array range or single index
     	public boolean isEverything;
     	/*@ nullable */ public Symbol local;
     	/*@ nullable */ public JCExpression expression;
@@ -3718,6 +3748,34 @@ public class JmlTree {
                 System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
+		}
+		
+		static public class ArrayRangeSet extends JmlTree.JmlExpression {
+		    public JCArrayAccess recv;
+		    public ArrayRangeSet(JCArrayAccess e) { recv = e; type = null; }
+
+		      @Override
+		        public void accept(Visitor v) {
+//		            if (v instanceof IJmlVisitor) {
+//		                ((IJmlVisitor)v).visitJmlStoreRef(this); 
+//		            } else {
+//		                System.out.println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
+		                recv.accept(v);
+//		            }
+		        }
+		        @Override
+		        public <R, D> R accept(TreeVisitor<R, D> v, D d) {
+		            return recv.accept(v, d);
+//		            if (v instanceof JmlTreeVisitor) {
+//		                return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRef(this, d);
+//		            } else {
+//		                System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
+//		                return null; //return super.accept(v,d);
+//		            }
+		        }
+		        
+            @Override
+		    public String toString() { return "ARS[" + recv.toString() + "]"; }
 		}
     }
 
@@ -3809,10 +3867,10 @@ public class JmlTree {
         public JavaFileObject sourcefile;
         
         /** Returns the source file for the clause */
-        public JavaFileObject source() { return sourcefile; }
+        public /*@nullable*/ JavaFileObject source() { return sourcefile; }
         
         @Override
-        public void setSource(JavaFileObject jfo) { sourcefile = jfo; }
+        public /*@nullable*/ JavaFileObject setSource(JavaFileObject jfo) { var ss = sourcefile; sourcefile = jfo; return ss; }
         
         public boolean isJML() {
             return true;
@@ -4316,21 +4374,18 @@ public class JmlTree {
         }        
     }
     
-    // TODO: Not used?
-    public static class JmlBBArrayHavoc extends JCMethodInvocation {
-        public JmlBBArrayHavoc(JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression indexlo, JCExpression indexhi, JCExpression precondition, boolean above) {
+    public static class JmlBBArray2DHavoc extends JCMethodInvocation {
+        public JmlBBArray2DHavoc(JCIdent toparr, JCIdent newarrs, JCIdent oldarrs, JCExpression arr, JCExpression range2, JCExpression range1) {
             super(null,null,null);
             ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
+            list.append(toparr);
             list.append(newarrs);
             list.append(oldarrs);
             list.append(arr);
-            list.append(indexlo);
-            list.append(indexhi);
-            list.append(precondition);
-            this.above = above;
+            list.append(range2);
+            list.append(range1);
             args = list.toList();
         }
-        public boolean above;
     }
     
     public static class JmlBBFieldAssignment extends JCMethodInvocation {

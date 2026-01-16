@@ -48,144 +48,311 @@ public class escfiles2 extends EscBaseFiles {
         ignoreNotes = true;
     }
     
+    public void helpTG(String... opts) {
+        super.helpTG(addVE(opts));
+    }
+
+    
     @Test
     public void gitbug362() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug450a() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug450b() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug455a() {
-        helpTCG();
+        helpTG();
+    }
+
+    @Test
+    public void gitbug582() {
+        expectedExit = 0;
+        helpTG("--purity-check");
+    }
+
+
+    @Test
+    public void gitbug600() {
+        helpTG();
     }
     
     @Test
-    public void gitbug600() {
-        helpTCG();
+    public void gitbug724() {
+        helpTG("--warn=missing-measured-by");
+    }
+    
+    @Test
+    public void gitbug725() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug726() {
+        helpTG("--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug726a() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug761() {
+        helpTG("--check");
+    }
+    
+    @Test
+    public void gitbug762() {
+        helpTG("--check");
+    }
+    
+    @Test
+    public void gitbug763() {
+        helpTG("--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug766() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug777() {
+        helpTG();
     }
     
     @Test
     public void gitbug780a() {
-        helpTCG("--method=marray");
+        helpTG("--method=marray");
     }
     
     @Test @Ignore // FIXME - times out in attempting to prove
     public void gitbug802() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug812() {
-        helpTCG("--code-math=safe");
+        helpTG("--code-math=safe");
     }
     
-    @Test @Ignore // FIXME - times out in attempting to prove and --code-math=math not supported
+    @Test 
     public void gitbug812a() {
-        helpTCG("--code-math=math");
+        helpTG("--code-math=safe");
+    }
+    
+    @Test
+    public void gitbug816() {
+        helpTG();
     }
     
     @Test
     public void gitbug861() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void gitbug869() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug812crash() {
+        expectedExit = 1;
+        helpTG();
+    }
+
+    @Test
+    public void gitbug872() {
+        helpTG();
+    }
+
+    @Test
+    public void gitbug873() {
+        helpTG("--check");
+    }
+    
+    @Test
+    public void gitbug875() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug876() {
+        helpTG("--normal","--method=isNonPrime","--check-feasibility=none");
     }
     
     // gitbug877 is in escall3 as testSwitch
     
     @Test
     public void gitbug879() {
-        helpTCG();
-    }
-
-    @Test
-    public void gitbug872() {
-        helpTCG();
-    }
-
-    @Test
-    public void gitbug873() {
-        helpTCG("--check");
+        helpTG();
     }
     
     @Test
-    public void gitbug875() {
-        helpTCG();
+    public void gitbug883() {
+        helpTG("--esc-max-warnings=1","--check-feasibility=precondition,exit","--nullable-by-default","--timeout=60");
+    }
+    
+    @Test
+    public void gitbug883bad() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug889() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug890() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug894() {
+        helpTG("--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug895() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug898() {
+        expectedExit = 1;
+        helpTG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898a() {
+        expectedExit = 1;
+        helpTG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898b() {
+        helpTG("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug899() {
+        expectedExit = 1;
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug901() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug901a() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug902() {
+        helpTG("--check");
+    }
+    
+    @Test
+    public void gitbug903() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug922() {
+        expectedExit = 1;
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug932() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug934() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug935() {
+        helpTG();
     }
     
     @Test
     public void importProblem() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void importProblem2() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void imports() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void recommends() {
-        helpTCG("--show=program","--code-math=bigint");
+        helpTG("--show=program","--code-math=bigint");
     }
     
     @Test
     public void recommendsA() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void recommendsB() {
         expectedExit = 1;
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void recommendsC() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void escRawding2() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void escRawdingA() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void escRawdingB() {
-        helpTCG();
+        helpTG();
     }
     
     @Test
     public void escharness1() {
         try {
-            helpTCG("--check");
+            helpTG("--check");
         } catch (AssertionError a) {
             assertEquals("Incorrect harness failure:", "There are no expected output files in test/escharness1", a.getMessage());
         }
@@ -195,17 +362,17 @@ public class escfiles2 extends EscBaseFiles {
     public void escharness2() {
         // When a comparison difference is found, the behavior is to print out the differences to 'out'
         // For the purpose of this test, we redirect that output.
-        out = tempout;
+        var savedout = this.out;
+        this.out = tempout;
         try {
-            helpTCG("--check");
+            helpTG("--check");
         } catch (AssertionError a) {
             String expected =
                     """
-                    Files differ: Less actual output than expected: -- intentionally incorrect content --
-                    """;
+                    Files differ""";
             assertEquals("Incorrect harness failure:", expected, a.getMessage());
         } finally {
-            out = System.out;
+            this.out = savedout;
         }
     }
 
@@ -213,7 +380,7 @@ public class escfiles2 extends EscBaseFiles {
     @Test
     public void escharness3() {
         solver = "z3_4_3";
-        helpTCG("--normal");
+        helpTG("--normal");
     }
 
     public void helpTCF(String sourceDirname, String outDir, String ... opts) {
@@ -222,7 +389,7 @@ public class escfiles2 extends EscBaseFiles {
         list.add("-code-math=safe");
         list.add("-spec-math=bigint");
         list.add("--check-feasibility=precondition,reachable,exit,spec");
-        list.add("--progress");
+        list.add("--verify-exit=-1");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
@@ -238,7 +405,7 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test public void sfpatch25() {
-        helpTCN("--esc","--quiet");
+        helpTCN("--esc","--normal");
     }
     
     @Ignore // FIXME very long
@@ -306,6 +473,8 @@ public class escfiles2 extends EscBaseFiles {
         helpTCN("--esc", "--progress", "--warn=missing-measured-by");
     }
     
-
+    @Test public void legacyVerify() {
+        helpTCN("--esc", "--verify-exit=-1");
+    }
 
 }

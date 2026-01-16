@@ -12,8 +12,8 @@
 # org.openjml.option.esc-bv=auto
 # org.openjml.option.esc-max-warnings=1000000
 # org.openjml.option.esc-warnings-path=false:
-# org.openjml.option.exec=
 # org.openjml.option.exclude=
+# org.openjml.option.exec=
 # org.openjml.option.extensions=
 # org.openjml.option.jmltesting=false
 # org.openjml.option.keys=
@@ -40,7 +40,6 @@
 # org.openjml.option.spec-math=bigint
 # org.openjml.option.specs-path=
 # org.openjml.option.split=
-# org.openjml.option.stop-if-parse-errors=false
 # org.openjml.option.subexpressions=false
 # org.openjml.option.timeout=0
 # org.openjml.option.trace=false
@@ -49,8 +48,7 @@
 # org.openjml.option.verify-exit=6
 # org.openjml.option.warn=
 
-# org.openjml.option.code-math=safe:
-
+### TODO: THe following are not final or completely implemented and may go away
 # org.openjml.option.defaults=
 # org.openjml.option.determinism=
 # org.openjml.option.inline-function-literal=
@@ -58,4 +56,3 @@
 # org.openjml.option.typeQuants=auto
 # org.openjml.option.properties= ## This option may only be used on the command-line
 
-## TODO: staticInitWarning

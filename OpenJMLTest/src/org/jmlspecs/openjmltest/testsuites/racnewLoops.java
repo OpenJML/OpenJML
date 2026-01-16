@@ -18,15 +18,14 @@ public class racnewLoops extends RacBase {
         //noCollectDiagnostics = true; print = true;
         super.setUp();
         addOptions("--rac-show-source=line");
-        addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint sermsantics
-        expectedNotes = 0;
+        addOptions("-code-math=java","-spec-math=java");  // FIXME - errors if we use bigint semantics
     }
     
     // FIXME - needs more tests with break and continue, including nested loops
     // Also tests with \count and \values
 
     @Test public void testForLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
                 "    //@ loop_invariant i <9 ; \n" +
@@ -35,16 +34,16 @@ public class racnewLoops extends RacBase {
                 "} " +
                 "}"
                 ,"/tt/TestJava.java:4: verify: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:4: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:4: verify: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:4: verify: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:4: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:4: verify: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:4: verify: JML loop invariant is false after exiting loop"
                 ,"END"
                 );
     }
 
     @Test public void testForLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
                 "    //@ loop_invariant i <= 10 ; \n" +
@@ -59,7 +58,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testForLoopIndex() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
                 "    //@ loop_invariant i == \\count ; \n" +
@@ -72,7 +71,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testForNested() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
                 "    //@ loop_invariant i <= 10 ; \n" +
@@ -91,7 +90,7 @@ public class racnewLoops extends RacBase {
 
 
     @Test public void testForEachLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
                 "    int[] a = new int[10];\n" +
@@ -107,7 +106,7 @@ public class racnewLoops extends RacBase {
                 );
     }
     @Test public void testForEachLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " m(); System.out.println(\"END\"); } \n" +
                 " static void m() { \n" +
                 "    int[] a = new int[10];\n" +
@@ -121,7 +120,7 @@ public class racnewLoops extends RacBase {
                 "}"
                 ,"/tt/TestJava.java:7: JML loop variant is negative"
                 ,"/tt/TestJava.java:6: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:6: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:6: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:6: verify: JML loop invariant is false after exiting loop"
                 ,"END"
                 );
@@ -129,7 +128,7 @@ public class racnewLoops extends RacBase {
 
     
     @Test public void testLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
@@ -142,7 +141,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testLoopIndex() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i + \\count == \\old(i); \n" +
@@ -156,7 +155,7 @@ public class racnewLoops extends RacBase {
 
     
     @Test public void testLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); m(-1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    System.out.println(\"VALUE \" + i); \n" +
@@ -167,22 +166,22 @@ public class racnewLoops extends RacBase {
                 "}"
                 ,"VALUE 5"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"VALUE 0"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false at end of loop body"
-                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"VALUE -1"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false before entering loop"
-                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                ,"END"
                 );
     }
 
     @Test public void testLoop3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
@@ -196,7 +195,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testLoop4() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
@@ -210,7 +209,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testLoop5() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(7); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
@@ -231,7 +230,7 @@ public class racnewLoops extends RacBase {
 
     
     @Test public void testDoLoop() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
@@ -244,7 +243,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testDoLoopIndex() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ loop_invariant i>= 0; \n" +
@@ -258,7 +257,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testDoLoopIndexBad() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(1); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    //@ decreases i; \n" +
@@ -274,7 +273,7 @@ public class racnewLoops extends RacBase {
 
     
     @Test public void testDoLoop2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(5); m(0); m(-2); System.out.println(\"END\"); } \n" +
                 " static void m(int i) { \n" +
                 "    System.out.println(\"VALUE \" + i); \n" +
@@ -287,7 +286,7 @@ public class racnewLoops extends RacBase {
                 ,"VALUE 0"
                 ,"VALUE -2"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false before entering loop"
-                ,"/tt/TestJava.java:5: verify: JML loop invariant is false at beginning of loop body"
+                ,"/tt/TestJava.java:5: verify: JML assumed loop invariant is false at beginning of loop body"
                 ,"/tt/TestJava.java:6: verify: JML loop variant is negative"
                 ,"/tt/TestJava.java:5: verify: JML loop invariant is false after exiting loop"
                 ,"END"
@@ -297,7 +296,7 @@ public class racnewLoops extends RacBase {
     
 
     @Test public void testForIter1() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list); }"
+        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list); }"
                 +"static void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -308,7 +307,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testForIter1bad() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
+        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { java.util.List<Integer> list = new java.util.LinkedList<Integer>(); list.add(0); m(list);}"
                 +"static void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -320,7 +319,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testForEach4() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{1,2,3}; m(aa); }"
+        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{1,2,3}; m(aa); }"
                 +"static void m(Integer[] list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -331,7 +330,7 @@ public class racnewLoops extends RacBase {
     }
 
     @Test public void testForEach4bad() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{0,0,0}; m(aa); }"
+        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { Integer[] aa = new Integer[]{0,0,0}; m(aa); }"
                 +"static void m(Integer[] list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"

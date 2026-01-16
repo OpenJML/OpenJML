@@ -19,15 +19,16 @@ openjml-test: prep
 	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	make userguide-tests
 	make json-tests
-	-make unittests-par
 	-make tutorial-tests
+	-make unittests-par
 
+## This target is used when running tests as part of a github action
 openjml-test-git: prep
 	make -C ${TEST} release-tests
 	-make -C ${TEST} userguide-tests-released
 	make -C ${TEST} json-tests
-	#-make tutorial-tests #At last check, these tests hung
-	JOBS=4 time ${TEST}/unittests/runpar -retrylog
+	-make tutorial-tests
+	JOBS=4 time ${TEST}/unittests/runpar
 
 openjml-test-temp:
 	JOBS=4 time ${TEST}/unittests/runpar
@@ -44,6 +45,17 @@ openjml-clean: .FORCE
 openjml: .FORCE
 	(cd ${SRC}; make version && make openjml && make jmlruntime.jar )
 
+## Deletes all temporary files
+## Many more to delete
+clean: cov-clean
+	find . -name '*.class' -delete
+	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
+	find . -name 'actual*' -delete
+	rm -f unittests/log* unittests/test/*/log*
+	rm -f smt/*.smt*
+	rm -f tempUserGuide
+
+
 release: .FORCE
 	make -C ${SRC} release
 
@@ -58,15 +70,20 @@ temp-release temp-release/D.java:
 	echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > $T/C.java
 	echo "import org.jmlspecs.annotation.*; public class D { @Pure int m() { return 0; } }" > $T/D.java
 
-tutorial-tests: Run.class .FORCE
+tutorial-tests: 
 	@ ( echo Testing tutorial files ;\
 	    . $(TEST)/setup-coverage tutorialtests ; \
-            alias openjml="$OJA" ; \
 	    cd ${TEST}/../../openjml.github.io/tutorial; \
 	    ./test \
 	)
 
-USERGUIDE=${TEST}/tempUserGuide
+tutorial-tests-git: 
+	@ ( echo Testing tutorial files ;\
+	    cd ${TEST}/../../openjml.github.io/tutorial; \
+	    ./test \
+	)
+
+USERGUIDE=./tempUserGuide
 OVERLEAFID=620c2512d552cc226f5f4c94
 TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
 # Downloads the userguide (from Overleaf) and tests all the example files
@@ -79,6 +96,7 @@ userguide-tests:
 	    rm -rf ${USERGUIDE}; \
 	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
 
+# This target is used to run the userguide tests in a github action; it uses openjml and the examples that are in the release
 # Obtains the zip of released example files from openjml.org, and tests the contained examples
 # (MacOS has curl and does not have wget without manual install)
 userguide-tests-released:
@@ -87,22 +105,26 @@ userguide-tests-released:
 	chmod +x ${USERGUIDE}/test-userguide-examples
 	${USERGUIDE}/test-userguide-examples
 
-release-tests: prep Run.class .FORCE
+# The 'release tests' are a small set of tests that are used to verify that a openjml build is basically OK.
+# It is run as part of the github action that builds a release
+# but can also be run directly with this target, before an attempt to construct a release
+release-tests: prep .FORCE
 	@ echo Running release tests with current development build
-	@ $(TEST)/releaseTests/runtests
+	@ ./releaseTests/runtests
 
-unittests-seq: prep Run.class .FORCE
+# Runs the unit tests, sequentially, which is time-consuming
+unittests-seq: prep .FORCE
 	@ $(TEST)/unittests/runseq
 			
-unittests-par: prep Run.class .FORCE
-	( ${TEST}/unittests/runpar | tee log-unittests | sort  )
+# Runs the unit tests with some parallelism (default 5 parallel jobs).
+# Set the number of jobs like this: JOBS=n make unittests-par
+unittests-par: prep .FORCE
+	@ ${TEST}/unittests/runpar
 
-json-tests: .FORCE Run.class
-	@ ${TEST}/scripttests/json/run
-	@ ${TEST}/scripttests/json-loc/run
-
-Run.class:
-	$(TEST)/../OpenJML21/openjml-compile Run.java
+# Executes the tests of JSON output and input
+json-tests: .FORCE 
+	@ ${TEST}/jsontests/json/run
+	@ ${TEST}/jsontests/json-loc/run
 
 .FORCE:
 
@@ -122,26 +144,34 @@ test:
 
 ### The following are for coverage measurement
 
+# Deletes all coverage data and html files
 cov-clean:
-	rm -rf ${TEST}/cov
-	mkdir ${TEST}/cov
+	rm -rf ./cov
+	mkdir ./cov
+	find . -name '*.class' -delete
+	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 
+# Runs all tests to produce coverage data
+# One can also run individual tests and individual unit tests, e.g. COV= runtests escfiles
 cov-test:
-	cd ${TEST}
-	COV= time make json-tests
-	COV= time ./unittests/runpar | tee log-unittests | sort
-	##COV= time make tutorial-tests ## FIXME: Not yet working and one does not complete
-	## COV= make release-tests ## FIXME: Not yet working
+	- COV= time make json-tests
+	- COV= time make release-tests
+	- COV= time make tutorial-tests
+	- COV= time make userguide-tests
+	- COV= time ./unittests/runpar 
 
+# Creates or updates html files based on coverage data
 cov-report:
-	@rm -rf ${TEST}/cov/html
-	@( cd ${TEST}; rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
-	@( cd ${TEST}; java -jar ./jacoco/lib/jacococli.jar report --quiet cov/combined.exec --html cov/html \
-            --sourcefiles ../OpenJML21/src/jdk.compiler/share/classes \
-            --sourcefiles ../OpenJMLTest/src/ \
-            --classfiles ../OpenJMLTest/src/ \
-            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
-            --classfiles ../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
+	@rm -rf "./cov/html"
+	@( rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
+	@( java -jar ./jacoco/lib/jacococli.jar report --quiet ./cov/combined.exec --html ./cov/html \
+	    --sourcefiles "./unittests" --classfiles "./unittests" \
+	    --sourcefiles ./../OpenJML21/src/jdk.compiler/share/classes \
+            --sourcefiles ./../OpenJMLTest/src/ \
+            --classfiles ./../OpenJMLTest/src/ \
+            --classfiles ./../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
+            --classfiles ./../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
 
+# Launches a browser on the current coverage data
 cov-show:
-	@open ${TEST}cov/html/index.html
+	@open ${TEST}/cov/html/index.html

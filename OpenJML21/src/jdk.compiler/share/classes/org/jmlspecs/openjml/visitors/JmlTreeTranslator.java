@@ -98,7 +98,11 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     @Override
     public void visitJmlChoose(JmlChoose that) {
         JmlChoose r = that;
-        r.orBlocks = translate(that.orBlocks);
+        var newitems = new ListBuffer<JmlChoose.Item>();
+        for (JmlChoose.Item item: that.orBlocks) {
+            newitems.add(new JmlChoose.Item(translate(item.guard), translate(item.action)));
+        }
+        r.orBlocks = newitems.toList();
         r.elseBlock = translate(that.elseBlock);
         result = r;
     }
@@ -323,6 +327,7 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     public void visitJmlMethodSpecs(JmlMethodSpecs that) {
         // FIXME - decl, desugared
         JmlMethodSpecs r = that;
+        r.invariants = translate(that.invariants);
         r.cases = translate(that.cases);
         r.impliesThatCases = translate(that.impliesThatCases);
         r.forExampleCases = translate(that.forExampleCases);

@@ -1,12 +1,14 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import java.util.List;
+
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.junit.Test;
+import org.junit.*;
 
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.*;
-
 
 /** Tests that the parser creates the correct tokens for some simple
  * compilation unit tests, in particular for refines and import statements.
@@ -17,13 +19,41 @@ import com.sun.tools.javac.tree.JCTree.*;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class compilationUnit extends ParseBase {
 
-    @Override
+    @Override @Before
     public void setUp() throws Exception {
 //        jmldebug = true;
         super.setUp();
+        postOptions();
+    }
+    
+    /** Compiles the given string as the content of a compilation unit,
+     * comparing the parse tree found to the expected node types and character
+     * positions found in the second argument.
+     * as a compilation unit, each node is represented by a node type (instance 
+     * of Class) and character position (an int).
+     * 
+     * In this case the parse should be successful,
+     */
+    public void checkCompilationUnit(String text, Object ... expected) {
+        List<JCTree> out = parseCompilationUnit(text);
+        checkParseTree(out,expected);
+        checkDiagnostics(); // Checks that there are no diagnostics
     }
 
-  
+    /** Test harness test */
+    public void checkParseFailure(String failureMessage, String text, Object ... expected) {
+        boolean failed = false;
+        try {
+            if (skip) return;
+            checkCompilationUnit(text,expected);
+        } catch (AssertionError a) {
+            failed = true;
+            Assert.assertEquals("Failure message was incorrect in checkCompilationUnitFailure", failureMessage, a.getMessage());
+        }
+        Assert.assertTrue("Test Harness failed to report an error", failed);
+    }
+    
+    ////////////////////////////////////////////////////////////////
     /** Quickie test of some pure Java code */
     @Test
     public void testSomeJava() {
@@ -33,7 +63,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 8,
                 JmlClassDecl.class, 12,
                 JmlModifiers.class, -1);
-        checkMessages();
     }
     
     /** Tests a star import */
@@ -47,7 +76,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 7,7,11,
                 JmlClassDecl.class, 19,19,28,
                 JmlModifiers.class, -1,-1,-1);
-        checkMessages();
     }
     
     /** Tests a static star import */
@@ -61,7 +89,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 14,14,18,
                 JmlClassDecl.class, 26,26,35,
                 JmlModifiers.class, -1,-1,-1);
-        checkMessages();
     }
     
     /** Tests a static non-star import */
@@ -75,7 +102,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 14,14,18,
                 JmlClassDecl.class, 29,29,38,
                 JmlModifiers.class, -1,-1,-1);
-        checkMessages();
     }
     
     /** Tests a non-star import with modifier */
@@ -89,7 +115,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 7,7,11,
                 JmlClassDecl.class, 22,29,38,
                 JmlModifiers.class, 22,22,28);
-        checkMessages();
     }
     
     /** Tests a non-star import with 2 modifiers */
@@ -103,7 +128,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 7,7,11,
                 JmlClassDecl.class, 22,39,48,
                 JmlModifiers.class, 22,22,38);
-        checkMessages();
     }
     
     /** Tests a non-star import with 2 modifiers */
@@ -117,7 +141,6 @@ public class compilationUnit extends ParseBase {
                 JCIdent.class, 7,7,11,
                 JmlClassDecl.class, 39,
                 JmlModifiers.class, 22,22,38);
-        checkMessages();
     }
     
     /** Tests parsing an annotation */
@@ -132,8 +155,7 @@ public class compilationUnit extends ParseBase {
                 JCFieldAccess.class, 1,13,24,
                 JCFieldAccess.class, 1,4,13,
                 JCIdent.class, 1,1,4
-                              );
-        checkMessages();
+                );
     }
 
     /** Tests parsing an annotation and modifier */
@@ -148,8 +170,7 @@ public class compilationUnit extends ParseBase {
                 JCFieldAccess.class, 1,13,24,
                 JCFieldAccess.class, 1,4,13,
                 JCIdent.class, 1,1,4
-                              );
-        checkMessages();
+                );
     }
 
     /** Tests parsing an annotation and modifier and annotation */
@@ -169,8 +190,7 @@ public class compilationUnit extends ParseBase {
                 JCFieldAccess.class, 38,50,61,
                 JCFieldAccess.class, 38,41,50,
                 JCIdent.class, 38,38,41
-                              );
-        checkMessages();
+                );
     }
 
     /** Tests parsing a modifier */
@@ -181,7 +201,6 @@ public class compilationUnit extends ParseBase {
         ,JmlClassDecl.class, 4,12,22
         ,JmlModifiers.class, 4,4,11 // FIXME - would like this to be 8
         );
-        checkMessages();
     }
     
     @Test
@@ -206,7 +225,6 @@ public class compilationUnit extends ParseBase {
               JCMethodInvocation.class, 66,67,69,
               JCIdent.class, 66,66,67
         );
-        checkMessages();
     }
     
     @Test
@@ -235,7 +253,6 @@ public class compilationUnit extends ParseBase {
               JCMethodInvocation.class, 94,95,97,
               JCIdent.class, 94,94,95
         );
-        checkMessages();
     }
     
     @Test
@@ -261,8 +278,6 @@ public class compilationUnit extends ParseBase {
                 // The parameter name is a Name, not an AST
                 JmlBlock.class, 46,46,48
                 );
-        
-        checkMessages();
     }
     
     @Test
@@ -285,7 +300,6 @@ public class compilationUnit extends ParseBase {
                 JmlBlock.class, 40,40,42
                 );
         
-        checkMessages();
     }
     
     @Test
@@ -306,7 +320,6 @@ public class compilationUnit extends ParseBase {
                 JCPrimitiveTypeTree.class, 39,39,43,
                 JmlBlock.class, 48,48,50
                 );        
-        checkMessages();
     }
     
     @Test
@@ -327,13 +340,12 @@ public class compilationUnit extends ParseBase {
                 JCPrimitiveTypeTree.class, 39,39,43,
                 JmlBlock.class, 48,48,50
                 );
-        
-        checkMessages();
     }
     
     // The harness tests test that the test routines report errors as expected (and, for example, do not crash)
     // Some variations are present to fill out test coverage
     
+    // FIXME - compare to harness tests in parseErrors
     @Test
     public void harness1() {
         noExtraPrinting = true;
@@ -398,6 +410,7 @@ public class compilationUnit extends ParseBase {
     
     @Test
     public void harness4c() {
+        var savedout = out;
         out = tempout;
         try {
             print = true;
@@ -408,12 +421,13 @@ public class compilationUnit extends ParseBase {
                     JmlModifiers.class, -1,-1,-1
                     );
         } finally {
-            out = System.out;
+            out = savedout;
         }
     }
     
     @Test
     public void harness4d() {
+        var savedout = out;
         try {
             out = tempout;
             checkParseFailure("Insufficient number of nodes listed: expected 2, was 3",
@@ -422,12 +436,13 @@ public class compilationUnit extends ParseBase {
                     JmlClassDecl.class, 0,0,10
                     );
         } finally {
-            out = System.out;
+            out = savedout;
         }
     }
 
     @Test
     public void harness4e() {
+        var savedout = out;
         try {
             out = tempout;
             print = true; noExtraPrinting = true;
@@ -437,7 +452,7 @@ public class compilationUnit extends ParseBase {
                     JmlClassDecl.class, 0,0,10
                     );
         } finally {
-            out = System.out;
+            out = savedout;
         }
     }
 

@@ -1,10 +1,12 @@
 OUT:
+test/racHansStorage/StorageParameters.jml:7: verify: JML precondition is false
+      public behavior
+             ^
+test/racHansStorage/StorageParameters.java:10: verify: JML assignment of null to a non_null variable
+        this.configurationSizes = sizes;
+                                ^
+test/racHansStorage/StorageParameters.java:5: verify: JML non-null field is null
+    private long[] configurationSizes;
+                   ^
 
 ERR:
-Exception in thread "main" org.jmlspecs.runtime.JmlAssertionError$Precondition: test/racHansStorage/StorageParameters.jml:7: verify: JML precondition is false
-	  public behavior	    
-	         ^
-	at java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:127)
-	at java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:94)
-	at StorageParameters.<init>(StorageParameters.java:1)
-	at StorageParameters.main(StorageParameters.java:27)

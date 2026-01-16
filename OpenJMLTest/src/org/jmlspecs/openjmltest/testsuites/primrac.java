@@ -38,14 +38,12 @@ public class primrac extends RacBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        setUpForFiles();
         super.setUp();
-        ignoreNotes = true;
     }
     
     @Test
     public void jmlTYPE() {
-        helpCompileRun("Test");
+        helpCompileRun("Test","--rac-java-checks");
     }
 
     @Test
@@ -58,6 +56,12 @@ public class primrac extends RacBase {
         helpCompileRun("Tbigint");
     }
 
+    @Test
+    public void jmldatagroup() {
+        expectedExit = 0;
+        helpCompileRun("Tdatagroup");
+    }
+    
     @Test
     public void jmlrange() {
         expectedExit = 0;
@@ -105,22 +109,19 @@ public class primrac extends RacBase {
     @Test
     public void racbigint() { // FIXME - do these duplicate
         expectedExit = 0;
-        helpTCF("test/racbigint","test/racbigint","bigint");
+        helpCompileRun("bigint");
     }
 
     @Test
     public void racreal() {  // FIXME - do these duplicate
         expectedExit = 0;
-        helpTCF("test/racreal","test/racreal","real");
+        helpCompileRun("real");
     }
     
     
     @Test 
     public void valuestrings() {
         expectedRACExit = 0;
-        helpTCF("test/valuestrings","test/valuestrings","JMLStringTest");
+        helpCompileRun("JMLStringTest");
     }
-
-
-
 }

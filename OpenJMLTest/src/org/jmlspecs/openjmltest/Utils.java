@@ -5,7 +5,7 @@ import java.util.function.BiPredicate;
 
 public interface Utils {
     
-    /** Utility method that returns true iff the argument is a directory containing a .java files --
+    /** Utility method that returns true iff the argument is a directory containing a .java file --
      * meaning that it can be the source for a unit test that runs openjml on the file */
     static boolean hasJavaFile(File d) {
         for (var f: d.listFiles()) {
@@ -19,7 +19,7 @@ public interface Utils {
     }
     
     /** A routine that computes a List of one-element String arrays, where each of those elements is a 
-     * test directory that is not already used in a test by any of the testsuites in the 'testsuites' array above.
+     * test directory that is not already used in a test by any of the given names of test suites.
      */
     public static java.util.List<String[]> findTests(BiPredicate<File,String> pred, String[] suitesToExclude) { 
         var tests = new java.util.LinkedList<String>();
@@ -35,7 +35,7 @@ public interface Utils {
                         .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
                 tests.removeAll(methods);
             } catch (Exception e) {
-                System.out.println("FAILED TO FIND TESTS IN " + suite);
+                System.out.println("FAILED TO FIND TESTS IN " + suite + " " + e);
             }
         }
         tests.sort((e1,e2)->e1.compareTo(e2));
@@ -48,10 +48,4 @@ public interface Utils {
         var params = tests.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
         return params;
     }
-
-    
-    
-    
-    
-    
 }

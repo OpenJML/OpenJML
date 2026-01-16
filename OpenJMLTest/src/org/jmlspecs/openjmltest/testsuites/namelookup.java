@@ -7,16 +7,9 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class namelookup extends TCBase {
 
-    @Override
-    public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
-//        jmldebug = true;
-        super.setUp();
-    }
-    
     @Test
     public void testLookup() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { int k;  \n" +
                 "   //@ invariant k;\n" +
                 "   //@ requires k;\n" +
@@ -29,7 +22,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testLookup2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " public class A { int k; float d; \n" +
                 "   //@ constraint \\old(k); constraint \\old(d);\n" + // ERRORS int, float to boolean
                 "   void m(double d) {\n" +
@@ -51,7 +44,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testLookup3() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " public class A { int k; Object o; \n" +
                 "   void m() {\n" +
                 "      //@ ghost Object k;\n" +
@@ -72,7 +65,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testDupField() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { //@ ghost int k;  \n" +
                         "   //@ ghost double k;\n" +
                         "   int m;\n" +
@@ -90,7 +83,7 @@ public class namelookup extends TCBase {
                 "   double k;\n" +
                 "   void m(double k) {}\n" +
                 "}");
-        helpTCF("A.java",
+        helpTCText("A.java",
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
@@ -106,7 +99,7 @@ public class namelookup extends TCBase {
                 " class A { int k;  \n" +
                 "   int k;\n" +
                 "}");
-        helpTCF("A.java",
+        helpTCText("A.java",
                         " class A { int k;  \n" +
                         "}"
         ,"/$A/A.jml:2: error: This specification declaration of field A.k has the same name as a previous field declaration",8
@@ -121,7 +114,7 @@ public class namelookup extends TCBase {
                 "   //@ ghost double k;\n" +
                 "   void m(double k);\n" +
                 "}");
-        helpTCF("A.java",
+        helpTCText("A.java",
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
@@ -136,7 +129,7 @@ public class namelookup extends TCBase {
                 " class A { int k;  \n" +
                 "   int k;\n" +
                 "}");
-        helpTCF("A.java",
+        helpTCText("A.java",
                         " class A { int k;  \n" +
                         "   void m(double k) {}\n" +
                         "}"
@@ -147,7 +140,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testDupField2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { int k;  \n" +
                 "   //@ ghost double k;\n" +
                 "   void m(double k) {}\n" +
@@ -158,7 +151,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testDupVar() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { int k;  \n" +
                 "   void m(double d) {\n" +
                 "      int d;\n" +
@@ -169,7 +162,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testDupVar2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { int k;  \n" +
                 "   void m(double d) {\n" +
                 "      //@ ghost int d;\n" +
@@ -180,7 +173,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testGhostField() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A {   \n" +
                 "   //@ ghost double k;\n" +
                 "   void m() {\n" +
@@ -197,7 +190,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testModelField() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A {   \n" +
                 "   //@ model double k;\n" +
                 "   void m() {\n" +
@@ -211,7 +204,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testModelMethod() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A {   \n" +
                 "   //@ model pure double k() { return 0; }\n" +
                 "   void m() {\n" +
@@ -225,21 +218,21 @@ public class namelookup extends TCBase {
 
     @Test
     public void testModelMethod2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A {   int k() { return 0; }\n" +
                 "   //@ model double k() { return 1; }\n" + // ERROR - duplicate
                 "   void m() {\n" +
                 "      boolean kk = k();\n" +
                 "   }\n" +
                 "}"
-		        ,"/A.java:2: error: method k() is already defined in class A",21
-		        ,"/A.java:4: error: incompatible types: int cannot be converted to boolean", 21
+                ,"/A.java:2: error: method k() is already defined in class A",21
+                ,"/A.java:4: error: incompatible types: int cannot be converted to boolean", 21
         );
     }
 
     @Test
     public void testModelMethod3() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { /*@ pure*/  int k(int i) { return 0; }\n" +
                 "   //@ model pure double k(boolean d) { return 0; }\n" +
                 "   //@ requires k(true); \n" + // ERROR - double to boolean
@@ -253,7 +246,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testModelMethod4() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A {   static /*@pure*/int k(int i) { return 0; }\n" +
                 "   static class B {\n" +
                 "      //@ model pure static double k(int i) { return 0; }\n" +
@@ -274,7 +267,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testModelMethod5() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A {   \n" +
                 "      //@ model pure static double k(int i);\n" +
                 "      //@ requires k(0); \n" + // TYPE ERROR
@@ -289,7 +282,7 @@ public class namelookup extends TCBase {
 
     @Test
     public void testModelClass() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " public class A {   \n" +
                 "   static class AA {\n" +
                 "      //@ model static class B { static double i; }  \n" +
@@ -310,7 +303,7 @@ public class namelookup extends TCBase {
  
     @Test
     public void testModelClass2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class AXYZ {   \n" +
                 "   static class AAXYZ {\n" +
                 "      //@ model static class B { static double i; }  \n" +
@@ -340,9 +333,6 @@ public class namelookup extends TCBase {
                       C b;            // Sees C
                       //@ ghost C bb; // Sees A.AA.C
                       void m();
-
-
-
                    }
                    static class AA { // ERROR - duplicate - LINE 12
                    }
@@ -353,7 +343,7 @@ public class namelookup extends TCBase {
                 class B {}  // ERROR - no match
                 """
         );
-        helpTCF("A.java",
+        helpTCText("A.java",
                 """
                 public class A {
                    static class AA {
@@ -367,12 +357,12 @@ public class namelookup extends TCBase {
                 class C {}
                 """
 
-                ,"/$A/A.jml:17: error: duplicate class: A", 1
-                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:17:", 8
-                ,"/$A/A.jml:18: error: There is no class to match this Java declaration in the specification file: B",1
-                ,"/$A/A.jml:12: error: duplicate class: A.AA",11
-                ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:12:", 11
-                ,"/$A/A.jml:14: error: There is no class to match this Java declaration in the specification file: A.BB",11 // FIXME - only prints one level of parent
+                ,"/$A/A.jml:14: error: duplicate class: A", 1
+                ,"/$A/A.jml:1: error: Associated declaration: /$A/A.jml:14:", 8
+                ,"/$A/A.jml:15: error: There is no class to match this Java declaration in the specification file: B",1
+                ,"/$A/A.jml:9: error: duplicate class: A.AA",11
+                ,"/$A/A.jml:2: error: Associated declaration: /$A/A.jml:9:", 11
+                ,"/$A/A.jml:11: error: There is no class to match this Java declaration in the specification file: A.BB",11 // FIXME - only prints one level of parent
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   class B\n  location: class A.AA",7
                 ,"/A.java:5: error: cannot find symbol\n  symbol:   variable B\n  location: class A.AA",23
                 ,"/A.java:6: error: incompatible types: double cannot be converted to boolean",22
@@ -390,7 +380,7 @@ public class namelookup extends TCBase {
                 "/*@ model class C {}*/\n" +
                 " class D {}"              // ERROR - does not match
         );
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "public class A {   \n" +
                 "}\n" +
                 ""

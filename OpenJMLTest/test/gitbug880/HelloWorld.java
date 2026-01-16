@@ -13,6 +13,7 @@ public class HelloWorld {
     public static boolean test1() {
         Date date = new Date("5", "21", "31", "14:00:00");
         String result = getFormat(date);
+        //-ESC@ set System.out.println("TEST1 " + result + " " + date.year.length());
         if (!result.startsWith("y-")) {
             return false;
         }
@@ -24,6 +25,8 @@ public class HelloWorld {
     //@ assignable \everything;
     public static boolean test2() {
         Date date = new Date("25", "21", "31", "14:00:00");
+        //@ assert date.year == "25";
+        //@ assert date.year.length() == 2;
         String result = getFormat(date);
         if (!result.startsWith("yy-")) {
             return false;
@@ -32,12 +35,17 @@ public class HelloWorld {
     }
 
     //@ requires true;
-    //@ ensures \result == false;
-    //@ assignable \everything;
+    //@ ensures \result == false; // FAILS
+    //@ pure
     public static boolean test3() {
         Date date = new Date("025", "21", "31", "14:00:00");
+        //@ assert date.year == "025";
+        //@ assert date.year.length() == 3;
         String result = getFormat(date);
-        if (!result.startsWith("yyyy-")) {
+        //@ check result.startsWith("yy-");
+        //@ assert date.year == "025";
+        //@ assert date.year.length() == 3;
+        if (!result.startsWith("yy-")) {
             return false;
         }
         return true;
@@ -45,7 +53,7 @@ public class HelloWorld {
 
     //@ requires true;
     //@ ensures \result == true;
-    //@ assignable \everything;
+    //@ pure
     public static boolean test4() {
         Date date = new Date();
         date.year = "2025";
@@ -64,6 +72,7 @@ public class HelloWorld {
     //@ ensures date.year.length() >= 4 ==> \result.startsWith("yyyy-");
     //@ ensures date.year.length() < 4 ==> \result.startsWith("yy-");
     //@ assignable \nothing;
+    //@ pure
     public static String getFormat(Date date) {
         String year, result;
         if (date.year.length() >= 4) {
@@ -77,6 +86,7 @@ public class HelloWorld {
         result = result + getDayFormat(tokenLen); 
         tokenLen = date.time.length();
         result = result + getTimeFormat(tokenLen); 
+        //@ show date.year, date.year.length();
         return result;
     }
 
@@ -86,6 +96,7 @@ public class HelloWorld {
     //@ ensures length != 1 && length != 2 ==> \result.equals("-MMM");
     //@ ensures \result != null;
     //@ assignable \nothing;
+    //@ pure
     private static String getMonthFormat(int length) {
         switch (length) {
             case 1:
@@ -103,6 +114,7 @@ public class HelloWorld {
     //@ ensures length != 1 && length != 2 ==> \result.equals("-ddd");
     //@ ensures \result != null;
     //@ assignable \nothing;
+    //@ pure
     private static String getDayFormat(int length) {
         switch (length) {
             case 1:
@@ -120,6 +132,7 @@ public class HelloWorld {
     //@ ensures length != 5 && length != 8 ==> \result.equals(" HH:mm:ss.SSS");
     //@ ensures \result != null;
     //@ assignable \nothing;
+    //@ pure
     private static String getTimeFormat(int length) {
         switch (length) {
             case 5: // HH:mm
@@ -140,6 +153,11 @@ class Date {
     public String time;
 
     // Default constructor
+    //@ ensures this.year == year;
+    //@ ensures this.month == month;
+    //@ ensures this.day == day;
+    //@ ensures this.time == time;
+    //@ pure
     public Date() {
         year = "";
         month = "";
@@ -148,6 +166,11 @@ class Date {
     }
 
     // Constructor with parameters
+    //@ ensures this.year == year;
+    //@ ensures this.month == month;
+    //@ ensures this.day == day;
+    //@ ensures this.time == time;
+    //@ pure
     public Date(String year, String month, String day, String time) {
         this.year = year;
         this.month = month;

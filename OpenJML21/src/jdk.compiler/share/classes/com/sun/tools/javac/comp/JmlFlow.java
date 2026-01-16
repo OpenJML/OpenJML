@@ -134,7 +134,10 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlChoose(JmlChoose that) {
-            scan(that.orBlocks);
+            for (var item: that.orBlocks) {
+                scan(item.guard);
+                scan(item.action);
+            }
             scan(that.elseBlock);
         }
 
@@ -539,7 +542,10 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitJmlChoose(JmlChoose that) {
-            scan(that.orBlocks);
+            for (var item: that.orBlocks) {
+                scan(item.guard);
+                scan(item.action);
+            }
             scan(that.elseBlock);
         }
 
@@ -965,7 +971,10 @@ public class JmlFlow extends Flow  {
         
        @Override
         public void visitJmlChoose(JmlChoose that) {
-            scan(that.orBlocks);
+            for (var item: that.orBlocks) {
+                scan(item.guard);
+                scan(item.action);
+            }
             scan(that.elseBlock);
         }
 

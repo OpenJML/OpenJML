@@ -37,6 +37,11 @@ public class Strings {
     static public final String javaSuffix = ".java"; //$NON-NLS-1$
     static public final String specsSuffix = ".jml"; //$NON-NLS-1$
 
+    /** The option string for running jmldoc */
+    /*@non_null*/
+    final public static String jmldocOption = "-doc";
+
+
     /** The default application name, used in user messages */
     static public final String applicationName = "openjml"; //$NON-NLS-1$
     
@@ -97,6 +102,7 @@ public class Strings {
     /** The expected name of the OpenJML properties file. */
     static public final String propertiesFileName = "openjml.properties"; //$NON-NLS-1$
     
+    static public final String countVarPrefix = "`index_";
     
     /** This string is the fully-qualified name of the JML compiler messages file 
      * (without the .properties suffix). */
@@ -260,7 +266,7 @@ public class Strings {
     public final static String oldLabelBuiltin = "\\Old";
     public final static String hereLabelBuiltin = "\\Here";
     public final static String loopinitLabelBuiltin = "\\LoopInit";
-    public final static String loopbodyLabelBuiltin = "LoopBodyBegin";
+    public final static String loopbodyLabelBuiltin = "\\LoopBody";
     
     
     /** Text used to describe the program position at the end of the preconditions */
@@ -310,7 +316,7 @@ public class Strings {
     
     static final public String[] feasibilities_alone = new String[]{ feas_none, feas_preOnly, feas_debug, feas_all};
     static final public String[] feasibilities = new String[]{feas_pre, feas_if, feas_halt, feas_switch, feas_catch, feas_finally, feas_return, feas_throw, feas_call, feas_summary, feas_exit, feas_reachable, feas_assume, feas_assert, 
-                                                              feas_loopcondition, feas_loopcontinue, feas_loopexit, feas_loopbreak, feas_methodaxioms, feas_basic};
+                                                              feas_loopcondition, feas_loopcontinue, feas_loopexit, feas_loopbreak, feas_methodaxioms};
     static final public String feas_alls = Utils.join(",", feasibilities);
 
     // Returns null if OK, returns the bad string if one is not allowed
@@ -330,7 +336,7 @@ public class Strings {
     }
     
     static final public boolean feasibilityContains(String i, com.sun.tools.javac.util.Context context) {
-        String values = JmlOption.value(context,JmlOption.FEASIBILITY);
+        String values = JmlOption.FEASIBILITY.value(context);
         if (i.equals(values)) return true;
         if (i.equals("none")) return false;
         if (values.startsWith("debug") || values.equals("all")) return true;

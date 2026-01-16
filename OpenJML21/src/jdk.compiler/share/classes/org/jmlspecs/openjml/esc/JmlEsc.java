@@ -3,6 +3,9 @@
  * Author: David R. Cok
  */
 package org.jmlspecs.openjml.esc;
+
+import org.openjml.IAPI;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,7 +13,6 @@ import java.util.Map;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.IAPI;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.JmlPretty;
@@ -20,7 +22,7 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
-import org.jmlspecs.openjml.proverinterface.IProverResult;
+import org.openjml.IProverResult;
 import org.jmlspecs.openjml.proverinterface.ProverResult;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
@@ -54,6 +56,8 @@ import com.sun.tools.javac.util.PropagatedException;
  * @author David R. Cok
  */
 public class JmlEsc extends JmlTreeScanner {
+    
+    final static boolean debugEsc = org.jmlspecs.openjml.Utils.debug("esc");
 
     /** The key used to register an instance of JmlEsc in the compilation context */
     protected static final Context.Key<JmlEsc> escKey =
@@ -90,6 +94,7 @@ public class JmlEsc extends JmlTreeScanner {
     /** The JmlEsc constructor, which initializes all the tools and other fields. */
     public JmlEsc(Context context) {
         super(context);
+        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("JMLESC");
         this.syms = Symtab.instance(context);
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
@@ -98,7 +103,7 @@ public class JmlEsc extends JmlTreeScanner {
 
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
-        this.verbose = escdebug || JmlOption.isOption(context,"-verbose") // The Java verbose option
+        this.verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
@@ -116,7 +121,7 @@ public class JmlEsc extends JmlTreeScanner {
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);
         } catch (PropagatedException e) {
-        	utils.progress(1,1,"Operation not performed because of parse or type errors");
+        	utils.progress(1,Utils.PROGRESS,"Operation not performed because of parse or type errors");
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
         } catch (Main.JmlCanceledException e) {
@@ -136,6 +141,7 @@ public class JmlEsc extends JmlTreeScanner {
     
     @Override
     public void visitTopLevel(JCCompilationUnit node) {
+        if (debugEsc) System.out.println("[esc] toplevel: " + node.sourcefile);
         JavaFileObject p = log.useSource(node.sourcefile);
         super.visitTopLevel(node);
         log.useSource(p);
@@ -144,15 +150,17 @@ public class JmlEsc extends JmlTreeScanner {
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
+        if (debugEsc) System.out.println("[esc] Class: " + node.sym.owner + " " + node.name);
         boolean savedMethodsOK = allMethodsOK;
         allMethodsOK = true;
         JmlOptions.instance(context).pushOptions(node.mods);
 
         // The super class takes care of visiting all the methods
-        utils.progress(0,1,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
+        //System.out.println("ABOUT TO P{RINT " + JmlOption.VERBOSENESS.getInt(context) + " " + utils.jmlverbose);
+        utils.progress(0,Utils.PROGRESS,"Proving methods in " + utils.classQualifiedName(node.sym) ); //$NON-NLS-1$
         long classStart = System.currentTimeMillis();
         boolean doDefsInSortedOrder = true;
-        if (doDefsInSortedOrder && !Utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
+        if (doDefsInSortedOrder && !utils.testingMode) { // Don't sort in tests because too many golden outputs were created before sorting
             scan(node.mods);
             scan(node.typarams);
             scan(node.extending);
@@ -172,8 +180,8 @@ public class JmlEsc extends JmlTreeScanner {
             super.visitClassDef(node);
         }
         long classDuration = System.currentTimeMillis() - classStart;
-        utils.progress(0,1,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
-                (Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
+        utils.progress(0,Utils.PROGRESS,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
+                (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
         if (utils.isModel(node.sym)) classesModel++; 
         else {
             classes++;
@@ -189,14 +197,13 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(/*@non_null*/ JCMethodDecl decl) {
-        // System.out.println("JMLESC VISITING METHOD " + decl.sym.owner + " " + decl.sym);
+        if (debugEsc) System.out.println("[esc] Method: " + decl.sym.owner + " " + decl.sym);
         if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
             // Constructors for anonymous classes are not explicit. They are checked
             // in the course of instantiating the anonymous object.
             return;
         }
 
-        if (decl.body == null) return; // FIXME What could we do with model methods or interfaces, if they have specs - could check that the preconditions are consistent
         // We do prove generated constructors in general, because they include all the initialization
         if ((decl.sym.flags() & Flags.GENERATEDCONSTR) != 0 && (decl.sym.flags() & Flags.RECORD) != 0) return; // Don't do generated code (particularly record constructors)
         if ((decl.sym.flags() & Flags.GENERATED_MEMBER) != 0) return; // Don't do generated code (particularly record constructors)
@@ -243,7 +250,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     public IProverResult markMethodSkipped(JmlMethodDecl methodDecl, String reason) {
-        if (JmlOption.isOption(context, JmlOption.SHOW_SKIPPED)) utils.progress(1,1,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
+        if (JmlOption.SHOW_SKIPPED.isSet(context)) utils.progress(1,Utils.PROGRESS,"Skipping proof of " + utils.abbrevMethodSig(methodDecl.sym) + reason); //$NON-NLS-1$
         
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
@@ -268,7 +275,7 @@ public class JmlEsc extends JmlTreeScanner {
     /** Returns the prover specified by the options. */
     public String pickProver() {
         // Pick a prover to use
-        String proverToUse = JmlOption.value(context,JmlOption.PROVER);
+        String proverToUse = JmlOption.PROVER.value(context);
         if (proverToUse == null || proverToUse.isEmpty()) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
         if (proverToUse == null || proverToUse.isEmpty() || proverToUse.equals("z3")) {
             proverToUse = "z3_4_3";
@@ -285,17 +292,31 @@ public class JmlEsc extends JmlTreeScanner {
     
     /** Do the actual work of proving the method */
     protected IProverResult doMethod(/*@non_null*/ JmlMethodDecl methodDecl) {
-        boolean printPrograms = this.verbose || JmlOption.includes(context, JmlOption.SHOW, "translated") || JmlOption.includes(context, JmlOption.SHOW, "program");
-        
+        boolean printPrograms = this.verbose || JmlOption.SHOW.includes(context, "translated", "all", "program");
+                
+        String proverToUse = pickProver();
+
+        boolean isConstructor = methodDecl.sym.isConstructor();
+        //boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
+        boolean doEsc = methodDecl.body != null || !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none);
+            // TODO: Could check that abstract or native methods have consistent specs
+
+        // Don't do ESC on the constructor of Object
+        // FIXME - why?  (we don't have the source anyway, so how would we get here?)
+        if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
+
         if (skip(methodDecl)) {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
-        
-        String proverToUse = pickProver();
-        
+        if (!doEsc) {
+            return null;
+            //return markMethodSkipped(methodDecl," (because the method has no body)");
+        }
+        boolean testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName());
+
         //System.out.println("DOING " + utils.abbrevMethodSig(methodDecl.sym));
         String sig = utils.abbrevMethodSig(methodDecl.sym);
-        utils.progress(0,1,"Starting proof of " + sig + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
+        utils.progress(0,Utils.PROGRESS,"Starting proof of " + sig + " with prover " + (testingMode ? "!!!!" : proverToUse)); //$NON-NLS-1$ //$NON-NLS-2$
         long methodStart = System.currentTimeMillis();
         log.resetRecord();
 
@@ -305,14 +326,6 @@ public class JmlEsc extends JmlTreeScanner {
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
         
-        boolean isConstructor = methodDecl.sym.isConstructor();
-        boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);
-            // TODO: Could check that abstract or native methods have consistent specs
-
-        // Don't do ESC on the constructor of Object
-        // FIXME - why?  (we don't have the source anyway, so how would we get here?)
-        if (methodDecl.sym.owner == syms.objectType.tsym && isConstructor) doEsc = false;
-        if (!doEsc) return null; // FIXME - SKIPPED?
 
         // print the body of the method to be proved
         if (printPrograms) {
@@ -333,21 +346,21 @@ public class JmlEsc extends JmlTreeScanner {
                 currentMethodProver = null;
             }
             long duration = System.currentTimeMillis() - methodStart;
-            utils.progress(1,1,"Completed proof of " + sig  //$NON-NLS-1$ 
-                    + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+            utils.progress(1,Utils.PROGRESS,"Completed proof of " + sig  //$NON-NLS-1$ 
+                    + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - "
                     + (  res.isSat() ? "with warnings" 
                        : res.result() == IProverResult.UNSAT ? "no warnings"
                                : res.result().toString())
-                    + ((Utils.testingMode || !JmlOption.isOption(context, JmlOption.SHOW_SUMMARY)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
+                    + ((testingMode || !JmlOption.SHOW_SUMMARY.isSet(context)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
                     );
             count(res.result(), methodDecl.sym);
             
         } catch (Main.JmlCanceledException | PropagatedException e) {
             res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
-            utils.progress(1,1,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
-            + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+            utils.progress(1,Utils.PROGRESS,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+            + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
             + " - exception"
             );
             throw (e instanceof Main.JmlCanceledException) ? new PropagatedException(e) : e;
@@ -366,8 +379,8 @@ public class JmlEsc extends JmlTreeScanner {
 
             res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
             //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
-            utils.progress(1,1,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
-                    + " with prover " + (Utils.testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+            utils.progress(1,Utils.PROGRESS,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
+                    + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
                     + " - exception"
                     );
             // FIXME - add a message? use a factory?

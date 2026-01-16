@@ -1,0 +1,32 @@
+TEST1
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at B.main(B.java:5)
+TEST2
+Exception in thread "main" java.lang.AssertionError: B.java:5: verify: JML Division by zero
+    int j = 1/i;
+             ^
+	at B.main(B.java:5)
+TEST3
+B.java:5: verify: JML Division by zero
+    int j = 1/i;
+             ^
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at B.main(B.java:5)
+TEST-A
+org.jmlspecs.runtime.JmlAssertionError$Precondition: A.java:4: verify: JML precondition is false
+    m(0);
+     ^
+A.java:8: verify: Associated declaration: A.java:4:
+  public static void m(int i) {}
+                     ^
+	at java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:127)
+	at java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:96)
+	at A.main(A.java:4)
+org.jmlspecs.runtime.JmlAssertionError$Precondition: A.java:7: verify: JML precondition is false
+  //@ requires i != 0;
+      ^
+	at java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:127)
+	at java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:96)
+	at A.m(A.java:7)
+	at A.main(A.java:4)
+TEST-END

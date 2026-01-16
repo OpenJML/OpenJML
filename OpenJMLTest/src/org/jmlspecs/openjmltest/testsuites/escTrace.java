@@ -13,8 +13,9 @@ public class escTrace extends EscBase {
     @Override
     public void setUp() throws Exception {
         captureOutput = true;
+        checkOutput = false;
         super.setUp();
-        main.addOptions("-subexpressions");
+        addOptions("--subexpressions");
     }
  
     public static final String dir = "test/escTraceTests";
@@ -22,8 +23,8 @@ public class escTrace extends EscBase {
     /** This String declaration and assignment */
     @Test
     public void testSimpleTrace() {
-        main.addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        main.addOptions("--method=m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 
                 +"  public void m1(int i) {\n"
@@ -32,7 +33,7 @@ public class escTrace extends EscBase {
                 +"       //@ assert j != 7;\n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",12
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1",12
                 );
         String output = output();
         String error = errorOutput();
@@ -47,7 +48,7 @@ public class escTrace extends EscBase {
     @Test
     public void testFieldTrace() {
         main.addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 +"       int k;\n"
                 
@@ -58,20 +59,19 @@ public class escTrace extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m1",12
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1",12
                 );
         String output = output();
         String error = errorOutput();
         Assert.assertEquals("Mismatched error output","",error);
         outputCompare.compareTextToMultipleFiles(output, dir, "testFieldTrace-expected", dir + "/testFieldTrace-actual");
-       //Assert.assertEquals(expectedOut,output);
     }
 
     /** This String declaration and assignment */
     @Test
     public void testEnsuresTrace() {
         main.addOptions("-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math */ public class TestJava { \n"
                 +"       int k;\n"
                 
@@ -84,21 +84,20 @@ public class escTrace extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",8
-                ,"/tt/TestJava.java:5: warning: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",8
+                ,"/tt/TestJava.java:5: verify: Associated declaration",7
                 );
         String output = output();
         String error = errorOutput();
         Assert.assertEquals("Mismatched error output","",error);
         outputCompare.compareTextToMultipleFiles(output, dir, "testEnsuresTrace-expected", dir + "/testEnsuresTrace-actual");
-       //Assert.assertEquals(expectedOut,output);
     }
 
     /** This String declaration and assignment */
     @Test
     public void testEnsuresSafeTrace() {
         main.addOptions("-method=m1"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ code_safe_math */ public class TestJava { \n"
                 +"       int k;\n"
                 
@@ -111,13 +110,11 @@ public class escTrace extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m1: overflow in int sum",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m1: overflow in int sum",14
                 );
         String output = output();
         String error = errorOutput();
         outputCompare.compareTextToMultipleFiles(output, dir, "testEnsuresSafeTrace-expected", dir + "/testEnsuresSafeTrace-actual");
-        //Assert.assertEquals("Mismatched error output","",error);
-       //Assert.assertEquals(expectedOut,output);
+        Assert.assertEquals("Mismatched error output","",error);
     }
-
 }

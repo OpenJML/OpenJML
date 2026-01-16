@@ -7,6 +7,7 @@
 *.bpl
 **/*actual*
 **/*.class
+**/*.html
 /strongarm-error.log
 /misc/
 log*
