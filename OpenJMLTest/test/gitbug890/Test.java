@@ -35,8 +35,8 @@ public class Test {
     //@     check c1 != c2; // OK
     //@     setZero(c1);
     //@     setOne(c2);
-    //@     check Arrays.equals(c1, c2);  // ERROR
     //@     check arr.length == 0 <==> Arrays.equals(c1, c2); // OK
+    //@     check Arrays.equals(c1, c2);  // ERROR
     //@     reachable;
     //@ }
     
