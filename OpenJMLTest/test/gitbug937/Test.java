@@ -21,7 +21,6 @@ public class Test {
         //@ loop_writes i, copy[*];
         //@ decreases n - i;
         for (int i = 0; i < n; i++) {
-            // @ assume a[i] != null ==> \typeof(a[i]) == \type(int[]); 
             copy[i] = a[i] != null ? a[i].clone() : null;
         }
         return copy;
