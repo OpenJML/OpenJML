@@ -1,0 +1,8 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.lengthBalancerAddingZeroes(String,int) with prover !!!!
+Completed proof of Test.lengthBalancerAddingZeroes(String,int) with prover !!!! - no warnings
+Starting proof of Test.lengthBalancerAddingZeroesB(String,int) with prover !!!!
+Completed proof of Test.lengthBalancerAddingZeroesB(String,int) with prover !!!! - no warnings
+Completed proving methods in Test
