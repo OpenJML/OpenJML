@@ -72,7 +72,7 @@ public class JmlOptions extends Options {
     }
 
     public static void preRegister(Context context) {
-        context.put(Options.optionsKey, new JmlOptions(context));
+        context.put(Options.optionsKey, new JmlOptions(context)); // The put here is unnecessary because 'this' is registered in Options().
     }
 
     public static JmlOptions instance(Context context) {
