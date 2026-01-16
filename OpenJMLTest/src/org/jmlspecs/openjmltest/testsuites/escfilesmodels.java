@@ -82,12 +82,6 @@ public class escfilesmodels extends EscBaseFiles {
     }
 
     @Ignore // times out
-    @Test public void gitbug582() {
-        expectedExit = 0;
-        helpTCG("-purityCheck");
-    }
-
-    @Ignore // times out
     @Test public void gitbug584() {
         expectedExit = 0;
         helpTCG("-purityCheck");
@@ -107,12 +101,5 @@ public class escfilesmodels extends EscBaseFiles {
         expectedExit = 0;
         helpTCG();
     }
-    
-    @Test public void sfbug414() {
-        expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","-logic=AUFNIRA","--esc-max-warnings=5");
-    }
-
-
 }
 

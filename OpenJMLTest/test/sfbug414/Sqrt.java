@@ -4,10 +4,11 @@ public class Sqrt {
 
 	//@ ghost public static double eps = 0.00001;
 
-    /*@
+    /* @
       requires x >= 0.0 && precision > 0;
       //ensures org.jmlspecs.models.JMLDouble.approximatelyEqualTo(x, \result * \result, eps);
     */
+        //@ requires x >= 0;
 	public double sqrt(double x) {
 		double a = 0, b = x+1, m = 0;
 		//@ loop_invariant b >= m && m >= a && a >= 0;

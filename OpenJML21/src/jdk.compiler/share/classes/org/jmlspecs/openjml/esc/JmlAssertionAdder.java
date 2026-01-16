@@ -6932,7 +6932,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         try {
             currentEnv.yieldIdent = treeutils.makeIdent(that.pos,  "`switchResult_"+nextUnique(), that.type);
             if (splitExpressions) {
-                addStat(switchHelper(that, that.selector, that.cases).setType(that.type));
+                addStat(switchHelper(that, true, that.selector, that.cases).setType(that.type));
                 result = eresult = currentEnv.yieldIdent;
             } else {
                 notImplemented(that,  "Switch expression in a quantified expression");
@@ -6959,7 +6959,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         return selector;
 	}
 	
-	public JCSwitch switchHelper(DiagnosticPosition pos, JCExpression switchExpr, List<JCCase> cases) {
+	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, JCExpression switchExpr, List<JCCase> cases) {
 	    JCExpression selector = switchCheck(switchExpr);
 	    JCSwitch newswitch = M.at(pos).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	    // treeMap is used to map break statements to their target statements
@@ -6967,11 +6967,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    try {
 	        ListBuffer<JCCase> newcases = new ListBuffer<>();
 	        // The value of Continuation says whether it is possible for control flow to continue after the switch
-	        // HALT if all branches HALT; otherwise CONTINUE
+	        // CONTINUE if any branch is CONTINUE (not HALT or EXIT) -- does not consider whether the branch is feasible
 	        Continuation combined = Continuation.HALT;
-	        boolean hasDefault = false;
+	        //boolean hasDefault = false;
+	        var initialHeapState = saveState();
+	        java.util.List<HeapInfo> collectedStates = new LinkedList<>();
 	        for (JCCase _case: cases) {
-	            if (_case.labels.get(0) instanceof JCDefaultCaseLabel) hasDefault = true;
+	            resetState(initialHeapState);
+	            //if (_case.labels.get(0) instanceof JCDefaultCaseLabel) hasDefault = true;
 	            continuation = Continuation.CONTINUE;
 	            boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
 
@@ -6991,18 +6994,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            var newcase = M.at(_case).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, _case.labels, _case.guard, bl.stats, bl);
 	            newcases.add(newcase);
 	            combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
+	            if (continuation == Continuation.CONTINUE) collectedStates.add(saveState()); // FIXME - don't collect if we cannot continue
 	        }
-	        if (!hasDefault) {
-	            // Adding an implicit default
-	            //  FIXME - what if cases cover all possibilities?
+	        if (!isExhaustive) {
+	            resetState(initialHeapState);
+	            // Adding an implicit default branch
 	            var label = M.at(pos).DefaultCaseLabel();
 	            JCBlock bl = M.at(pos).Block(0L,List.<JCStatement>nil());
                 var newcase = M.at(pos).Case(com.sun.source.tree.CaseTree.CaseKind.STATEMENT, List.<JCCaseLabel>of(label), null, bl.stats, bl);
 	            newcases.add(newcase);
 	            combined = Continuation.CONTINUE;
+	            collectedStates.add(saveState());
 	        }
 	        continuation = combined;
 	        newswitch.cases = newcases.toList();
+	        if (continuation == Continuation.CONTINUE) {
+	            var hc = collectedStates.get(0).heapID;
+	            // Skip if no branch had a change in heap state
+	            if (collectedStates.stream().anyMatch(h->h.heapID!=hc)) {
+	                changeState(pos, null, null);
+	                currentHeap.previousHeaps.addAll(collectedStates);
+	                // FIXME - do we need to add a condition into the currentHeap?
+	            }
+	        }
 	    } finally {
 	        treeMap.remove(pos);
 	    }
@@ -7015,7 +7029,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
 		boolean split = that instanceof JmlSwitchStatement && ((JmlSwitchStatement) that).split;
 		if (!split || currentSplit == null || rac || infer) {
-		    JCSwitch newSwitch = switchHelper(that, that.selector, that.cases);
+		    JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.selector, that.cases);
 		    ((JmlSwitchStatement) newSwitch).split = ((JmlSwitchStatement) that).split;
 		    // record the translation from old to new AST  // FIXME - this used to be before trabnslating the body. Does it matter?
 		    result = addStat(newSwitch.setType(that.type)); // But actually, statements do not have a type
@@ -7028,7 +7042,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.labels.isEmpty()|| cs.labels.head instanceof JCDefaultCaseLabel);
 		    
 		    
-		    // Since we are doing a split, then we check just one switch case
 		    int doCase = 0;
 		    if (currentSplit.isEmpty()) {
 		        adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
@@ -7271,6 +7284,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 		try {
+		    // FIXME - need to track heap states. There are oodles of execution paths.
 
 			if (that.resources != null && !that.resources.isEmpty())
 				transformTryWithResources(that);
@@ -7471,45 +7485,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	}
 
-	// OK
+    // OK
 	@Override
 	public void visitIf(JCIf that) {
 	    var ifthat = (JmlIfStatement)that;
-		boolean split = ifthat.split;
-		addStat(traceableComment(that.getCondition(), that.getCondition() , "if " + that.getCondition() + " ...", "Condition"));
-		JCExpression cond = convertExpr(that.cond);
-		cond = addImplicitConversion(that.cond, syms.booleanType, cond);
-		cond = newTempIfNeeded(cond);
+	    boolean split = ifthat.split;
+	    addStat(traceableComment(that.getCondition(), that.getCondition() , "if " + that.getCondition() + " ...", "Condition"));
+	    JCExpression cond = convertExpr(that.cond);
+	    cond = addImplicitConversion(that.cond, syms.booleanType, cond);
+	    cond = newTempIfNeeded(cond);
 
-		// The scanned result of the then and else parts must always be a block
-		// because multiple statements might be produced, even from a single
-		// statement in the branch.
-		var savedHeapState = saveState();
-        checkState();
+	    // The scanned result of the then and else parts must always be a block
+	    // because multiple statements might be produced, even from a single
+	    // statement in the branch.
+	    var savedHeapState = saveState();
 
-		if (!split || currentSplit == null || rac || infer) {
+	    if (!split || currentSplit == null || rac || infer) {
 	        currentEnv = currentEnv.pushEnvCopy();
-			continuation = Continuation.CONTINUE;
-            var initialHeapState = saveState();
+	        continuation = Continuation.CONTINUE;
+	        var initialHeapState = saveState();
             //System.out.println("IF " + heapCount + " " + currentHeap.heapID + " " + initialHeapState.heapID + " " + that);
-			JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
+            JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
             addFeasibilityCheck(that, thenpart, Strings.feas_if, "at then branch");
-			Continuation thenContinuation = continuation;
-			continuation = Continuation.CONTINUE;
+            Continuation thenContinuation = continuation;
+            continuation = Continuation.CONTINUE;
             var thenBranchHeap = saveState();
             //System.out.println("IF END OF THEN " + heapCount + " " + currentHeap.heapID + " " + thenBranchHeap.heapID + " " + thenBranchHeap.hashCode());
-			currentEnv = currentEnv.popEnv();
+            currentEnv = currentEnv.popEnv();
             resetState(initialHeapState);
             //System.out.println("STARTING ELSE BRANCH " + heapCount + " " + currentHeap.heapID);
             currentEnv = currentEnv.pushEnvCopy();
-			JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
-			if (elsepart != null) addFeasibilityCheck(that, elsepart, Strings.feas_if, "at else branch");
+            JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
+            if (elsepart != null) addFeasibilityCheck(that, elsepart, Strings.feas_if, "at else branch");
 
-			Continuation elseContinuation = continuation;
+            Continuation elseContinuation = continuation;
             //System.out.println("IF END OF ELSE " + heapCount + " " + currentHeap.heapID);
 
-			JCStatement st = M.at(that).If(newTempIfNeeded(cond), thenpart, elsepart).setType(that.type);
-			var r = addStat(st);
+            JCStatement st = M.at(that).If(newTempIfNeeded(cond), thenpart, elsepart).setType(that.type);
+            var r = addStat(st);
             continuation = thenContinuation.combine(elseContinuation);
             var elseBranchHeap = saveState();
             currentEnv = currentEnv.popEnv();
@@ -7531,35 +7544,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 elseHeapInfo.condition = treeutils.makeNot(cond, cond);
                 currentHeap.previousHeaps.add(elseHeapInfo);
             }
-            checkState();
             result = r;
-		} else {
-		    // Here we do just either the then or the else branch, for a split analysis
-			boolean doThen = true;
-			if (currentSplit.isEmpty()) {
-				adjustSplit(2);
-			} else {
-				doThen = currentSplit.charAt(0) == 'A';
-				currentSplit = currentSplit.substring(1);
-			}
-			if (doThen) {
-				addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, cond);
-				JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
+        } else {
+            // Here we do just either the then or the else branch, for a split analysis
+            boolean doThen = true;
+            if (currentSplit.isEmpty()) {
+                adjustSplit(2);
+            } else {
+                doThen = currentSplit.charAt(0) == 'A';
+                currentSplit = currentSplit.substring(1);
+            }
+            if (doThen) {
+                addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, cond);
+                JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
 
-				JCStatement st = thenpart.setType(that.thenpart.type);
-				result = addStat(st);
-				// Keep the same value of continuation
-			} else {
-				addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, treeutils.makeNot(that.cond, cond));
-				if (that.elsepart != null) {
-					JCBlock elsepart = convertIntoBlock(that.elsepart, that.elsepart);
-					JCStatement st = elsepart.setType(that.elsepart.type);
-					result = addStat(st);
-				}
-				// Keep the same value of continuation
-			}
-		}
-	}
+                JCStatement st = thenpart.setType(that.thenpart.type);
+                result = addStat(st);
+                // Keep the same value of continuation
+            } else {
+                addAssume(that.cond.pos(), Label.IMPLICIT_ASSUME, treeutils.makeNot(that.cond, cond));
+                if (that.elsepart != null) {
+                    JCBlock elsepart = convertIntoBlock(that.elsepart, that.elsepart);
+                    JCStatement st = elsepart.setType(that.elsepart.type);
+                    result = addStat(st);
+                }
+                // The value of continuation will have been updated along the way
+            }
+        }
+    }
 
 	// FIXME - document these
 	protected void addTraceableComment(JCTree t) {
@@ -8348,12 +8360,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 
             } else {
                 //System.out.println("MJSR " + aa + " " + paramActuals_ );
-                {
-                    JCExpression nonnull = treeutils.makeNotNull(arr.pos, arr);
-                    if (condition != null) nonnull = treeutils.makeImpliesSimp(nonnull, condition, nonnull);
-                    addJavaCheck(aa, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-                            "java.lang.NullPointerException");
-                }
+                checkNDR(aa, condition, arr);
                 if (aa.index == null) {
                     r = M.at(aa.index).JmlRange(null, null);
                 } else if (!(aa.index instanceof JmlRange rr)) {
@@ -8402,11 +8409,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var sel = convertJML(s);
                 if (!isStatic) {
                     if (!utils.isJavaOrJmlPrimitiveType(sel.type)) {
-                        JCExpression nonnull = treeutils.makeNotNull(sel.pos, sel);
-                        // FIXME - check for non-null object type
-                        nonnull = treeutils.makeImpliesSimp(nonnull, condition, nonnull);
-                        addJavaCheck(fa, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-                                "java.lang.NullPointerException");
+                        checkNDR(fa, condition, sel);
                     }
                 }
                 //System.out.println("STAT" + fa + " " + sym + " " + sym.getClass() + " " + isStatic);
@@ -8434,11 +8437,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     boolean isStatic = isTypeTree || utils.isJMLStatic(v);
                     var cc = !isTypeTree ? convertJML(sel) : sel;
                     if (!isTypeTree && !utils.isJavaOrJmlPrimitiveType(sel.type)) {
-                        JCExpression nonnull = treeutils.makeNotNull(sel.pos, cc);
-                        // FIXME - check for non-null object type?
-                        nonnull = treeutils.makeImpliesSimp(nonnull, condition, nonnull);
-                        addJavaCheck(fa, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-                                "java.lang.NullPointerException");
+                        checkNDR(fa, condition, cc);
                     }
                     //var eold = makeOld(sel.pos, convertJML(sel), currentEnv.stateLabel);
                     var eold = isStatic ? null : newTempIfNeeded(cc);
@@ -9228,7 +9227,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void changeState(DiagnosticPosition pos, Object havocs) {
 	    changeState(pos, havocs, null);
 	}
-    protected void changeState(DiagnosticPosition pos, Object havocs, Name label) {
+    protected void changeState(DiagnosticPosition pos, Object havocs, /*@ nullable */ Name label) {
         checkState();
         int p = pos.getPreferredPosition();
         var heapCount = nextHeapCount();
@@ -9244,7 +9243,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        currentStatements.add(bl);
 		}
         currentHeap.havocs = havocs;
-        wellDefinedCheck.clear();
+        wellDefinedCheck.clear(); // FIXME - why this?
 //        addAxioms(heapCount, null);
 //        determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
 		clearInvariants(); // FIXME - is this needed for rac?
@@ -9644,9 +9643,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// JML primitive types are not null
 					} else {
 						// Check that receiver is not null
-						JCExpression e = treeutils.makeNotNull(fa.selected.pos, newThisExpr);
-						addJavaCheck(fa, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-								"java.lang.NullPointerException");
+					    checkNDR(fa, null, newThisExpr);
 					}
 				}
 				if (print) System.out.println("APPLY " + calleeMethodSym.owner + "#" + calleeMethodSym + " " + System.identityHashCode(calleeMethodSym));
@@ -9676,9 +9673,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				if (convertedReceiver != null && !treeutils.isATypeTree(convertedReceiver)) {
 					// Check that receiver is not null
-					JCExpression e = treeutils.makeNotNull(newclass.encl.pos, convertedReceiver);
-					addJavaCheck(newclass.encl, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-							"java.lang.NullPointerException");
+				    checkNDR(newclass.encl, null, convertedReceiver);
 				}
 
                 if (!typeargs.isEmpty()) addStat(comment("Converting type arguments"));
@@ -13583,6 +13578,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 	}
+	
+	/** Inserts a check that the argument is non-null; the check is conditioned on 'condition',
+	 * and also uses translatingJML to determine the assertion label to use.
+	 */
+    protected void checkNDR(DiagnosticPosition pos, JCExpression condition, JCExpression expr) {
+        JCExpression nonnull = treeutils.makeNotNull(expr.pos, expr);
+        if (condition != null) nonnull = treeutils.makeImpliesSimp(nonnull, condition, nonnull);
+        addJavaCheck(pos, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
+                "java.lang.NullPointerException");
+    }
 
 	protected boolean translatingLHS = false;
 
@@ -13674,8 +13679,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // formal parameter
 		Symbol owner = id.sym.owner;
 		if (owner == null || owner instanceof Symbol.MethodSymbol) { // FIXME - clarify when the owner is null
+		    // A local variable -- no heap change
 		    ;
 		} else {
+		    // A field in the heap
 		    changeState(pos, List.<StoreRefGroup>of(convertFrameConditionList(pos, treeutils.trueLit, List.<JCExpression>of(id))), stt.label);
 		}
 		result = eresult = r;
@@ -13958,9 +13965,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				//System.out.println("VISIT-ASSIGN_FA " + that + " " + oldenv);
 				JCExpression obj = convertExpr(fa.selected);
 				if (!types.isJmlType(fa.selected.type)) {
-					JCExpression e = treeutils.makeNeqObject(obj.pos, obj, treeutils.nullLit);
-					addJavaCheck(that.lhs, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-							"java.lang.NullPointerException");
+				    checkNDR(that.lhs, null, obj);
 					if (!infer) {
 						checkRW(writableClause, fa.sym, obj, fa);
 					}
@@ -14034,9 +14039,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression array = convertExpr(aa.indexed);
 			JCExpression e;
 			if (!utils.isJavaOrJmlPrimitiveType(aa.indexed.type)) {
-				e = treeutils.makeNeqObject(array.pos, array, treeutils.nullLit);
-				addJavaCheck(aa, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-						"java.lang.NullPointerException");
+			    checkNDR(aa, null, array);
 			}
 			JCExpression index = convertExpr(aa.index);
 			if (array.type instanceof Type.ArrayType) {
@@ -14121,7 +14124,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			        lhs.type = aa.type;
 			        var saved = newTemp(lhs);
 			        saveMapping(that.lhs, eresult);
-			        if (!rac) changeState(that, List.<StoreRefGroup>of(convertFrameConditionList(that, treeutils.trueLit, List.<JCExpression>of(lhs))), stt.label);
 			        result = eresult = saved;
 			    }
 //			    var newrhs = makeMethodInvocation(that, array, "put", index, rhs);
@@ -14296,13 +14298,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				newfa.sym = fa.sym;
 				newfa.type = fa.type;
 
-				{
-					JCExpression e = treeutils.makeNeqObject(lhs.pos, sel, treeutils.nullLit);
-					addJavaCheck(that.lhs, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-							"java.lang.NullPointerException");
-				}
-				//if (!(that.lhs instanceof JCIdent))
-					checkRW(readableClause, fa.sym, sel, fa);
+				checkNDR(that.lhs, null, sel);
+				checkRW(readableClause, fa.sym, sel, fa);
 				checkRW(writableClause, fa.sym, sel, fa);
 
 				rhs = convertExpr(rhs);
@@ -14358,10 +14355,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCArrayAccess aa = (JCArrayAccess) lhs;
 			JCExpression array = convertExpr(aa.indexed);
 			if (!utils.isJavaOrJmlPrimitiveType(array.type)) {
-				JCExpression e = treeutils.makeNeqObject(array.pos, array, treeutils.nullLit);
-				// FIXME - location of nnonnull declaration?
-				addJavaCheck(that.lhs, e, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-						"java.lang.NullPointerException");
+			    checkNDR(that.lhs, null, array);
 			}
 
 			JCExpression index = convertExpr(aa.index);
@@ -16360,10 +16354,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (ind instanceof JCArrayAccess aind && aind.index instanceof JmlRange) {
 					// FIXME - should ensure that all elements in range are non-null
 				} else {
-					JCExpression nonnull = treeutils.makeNeqObject(that.indexed.pos, indexed, treeutils
-							.makeNullLiteral(that.indexed.getEndPosition(log.currentSource().getEndPosTable())));
-					addJavaCheck(that, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-							"java.lang.NullPointerException");
+				    checkNDR(that, null, indexed);
 				}
 			}
 
@@ -16757,13 +16748,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// that.selected.toString(), log.currentSourceFile()));
 				} else {
 					JCExpression nonnull = treeutils.trueLit;
-					if (!utils.isJavaOrJmlPrimitiveType(selected.type))
-						nonnull = treeutils.makeNotNull(that.pos, selected);
-					if (selected.toString().contains(Strings.newObjectVarString))
-						nonnull = treeutils.trueLit;
-
-					addJavaCheck(that, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
-							"java.lang.NullPointerException");
+					if (!utils.isJavaOrJmlPrimitiveType(selected.type) && !selected.toString().contains(Strings.newObjectVarString)) {
+						checkNDR(that, null, selected);
+					}
 //                    if (translatingJML) nonnull = conditionedAssertion(that, nonnull);
 //                    if (methodEnv.javaChecks && localVariables.isEmpty()) {
 //                        if (splitExpressions) { // FIXME- what should we do if !split, in particular what if this comes from convertAssignable
@@ -21881,9 +21868,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var obj = convertJML(fa.selected);
                 //System.out.println("CONVERTLHS2-B " + e + " " + obj + " " + condition); Utils.dumpStack();
                 obj = newTempIfNeeded(obj);
-                JCExpression nn = treeutils.makeNotNull(obj, obj);
-                if (condition != null) nn = treeutils.makeImplies(nn, condition, nn);
-                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, nn);
+                checkNDR(e, condition, obj);
                 if (fa.sym == null) {
                     return M.at(fa.pos).Select(obj, (Name)null).setType(e.type);
                 } else if (utils.isJMLStatic(fa.sym)) {
@@ -21916,7 +21901,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
                 }
                 var arr = newTempIfNeeded(convertJML(aa.indexed));
-                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
+                checkNDR(aa, null, arr);
                 var index = newTempIfNeeded(convertJML(aa.index));
                 addArrayIndexChecks(aa, index, arr);
                 return new JmlBBArrayAccess(null, arr, index, aa.pos, aa.type);
@@ -21927,7 +21912,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
                 }
                 var arr = newTempIfNeeded(convertJML(aa.indexed));
-                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
+                checkNDR(aa, null, arr);
                 var r = (JmlRange)aa.index;
                 var lo = r.lo == null ? null : newTempIfNeeded(convertJML(r.lo));
                 var hi = r.hi == null ? null : newTempIfNeeded(convertJML(r.hi));
@@ -21945,7 +21930,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     throw new JmlNotImplementedException(aa, "havoc pattern " + aa);
                 }
                 var arr = newTempIfNeeded(convertJML(aaa.indexed));
-                addAssert(e, Label.UNDEFINED_NULL_DEREFERENCE, treeutils.makeNotNull(arr, arr));
+                checkNDR(e, null, arr);
                 var r = (JmlRange)aa.index;
                 var lo = r.lo == null ? null : newTempIfNeeded(convertJML(r.lo));
                 var hi = r.hi == null ? null : newTempIfNeeded(convertJML(r.hi));
@@ -22279,9 +22264,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//System.out.println("JSR " + that + " " + that.receiver + " " + that.field );
 			if (that.receiver != null) {
 			    var rcv = convertExpr(that.receiver);
-				JCExpression exx = treeutils.makeNotNull(that.receiver, rcv);
-//				var prevv = log.useSource(that.sourcefile);
-				addAssert(that, Label.UNDEFINED_NULL_DEREFERENCE, exx);
+			    checkNDR(that, null, rcv);
 //				log.useSource(prevv);
 				that.receiver = rcv;
 			}
@@ -24780,8 +24763,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression e;
 			JmlStatementExpr a;
 			if (!utils.isJavaOrJmlPrimitiveType(array.type)) {
-				e = treeutils.makeNotNull(array.pos, sub.copy(array));
-				a = treeutils.makeAssert(aa, Label.UNDEFINED_NULL_DEREFERENCE, e);
+                e = treeutils.makeNotNull(array.pos, sub.copy(array));
+                a = treeutils.makeAssert(aa, Label.UNDEFINED_NULL_DEREFERENCE, e);
 				wellDefined = combine(wellDefined, a);
 			}
 
@@ -24824,8 +24807,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCFieldAccess fa = (JCFieldAccess) node;
 			JCExpression lhs = fa.getExpression();
 			/* @ nullable */ java.util.List<JmlStatementExpr> wellDefinedLhs = fa.accept(this, p);
-			JCExpression e = treeutils.makeNotNull(lhs.pos, sub.copy(lhs));
-			JmlStatementExpr a = treeutils.makeAssert(fa, Label.UNDEFINED_NULL_DEREFERENCE, e);
+            JCExpression e = treeutils.makeNotNull(lhs.pos, sub.copy(lhs));
+            JmlStatementExpr a = treeutils.makeAssert(fa, Label.UNDEFINED_NULL_DEREFERENCE, e);
 			return combine(wellDefinedLhs, a);
 		}
 

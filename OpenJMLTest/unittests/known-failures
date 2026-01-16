@@ -136,14 +136,14 @@ escfiles2.gitbug450b		#	feasibility problems
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[dynamicFrames]
-escfileslist1.test[escConstructor5]	# Feasibility problem
+escfileslist1.test[escConstructor5]	# Feasibility problem or invariant problem
 escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
 escfileslist2.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 escfileslist2.test[gitbug784]   #   apache commons library
 escfileslist2.test[gitbug785]   #   Google guava library
 escfileslist2.test[gitbug878]   #   problem with type inference
-escfileslist2.test[gitbug880]   #   Needs better reasoning about String length
+escfileslist2.test[gitbug880]   #   Needs better reasoning about String length -- result OK standalone but not in runtests
 escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
@@ -172,7 +172,7 @@ primesc.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
-escfiles2.gitbug883    # Matrix add 
+#escfiles2.gitbug883    # Matrix add 
 escfiles2.gitbug883bad #    Needs better handling of 2D array
 escfiles2.gitbug894    # unsuccessful specs for uniqueCharString
 escfileslist1.test[choose-repeat]
