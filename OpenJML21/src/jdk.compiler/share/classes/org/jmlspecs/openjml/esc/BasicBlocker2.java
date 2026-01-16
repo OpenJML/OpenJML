@@ -1277,6 +1277,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                             !vsym.name.toString().equals(Strings.isAllocName) &&
                             !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
+                        //System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
+                    } else if (vsym.toString().startsWith("arrays_")) {
+                        newArrayIdentIncarnation(vsym, storeref.pos);
+                        //System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
+                    } else {
+                        //System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
                     }
                 }
                 // FIXME - symbols added after this havoc \everything will not have new incarnations???
@@ -1294,9 +1300,12 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         !vsym.name.toString().equals(Strings.isAllocName) &&
                         !vsym.name.toString().equals(Strings.allocName)) {
                         newIdentIncarnation(vsym, storeref.pos);
-//                      System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
-//                  } else {
-//                      System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
+                        //System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
+                    } else if (vsym.toString().startsWith("arrays_")) {
+                        newArrayIdentIncarnation(vsym, storeref.pos);
+                        //System.out.println("    HAVOCING " + vsym.owner + " " + vsym);
+                    } else {
+                        //System.out.println("NOT HAVOCING " + vsym.owner + " " + vsym);
                     }
                 }
                 // FIXME - symbols added after this havoc \everything will not have new incarnations???

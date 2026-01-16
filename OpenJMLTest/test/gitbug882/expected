@@ -1,0 +1,4 @@
+test/gitbug882/LinearSearch.java:28: error: variable location might not have been initialized
+        return location;
+               ^
+1 error
