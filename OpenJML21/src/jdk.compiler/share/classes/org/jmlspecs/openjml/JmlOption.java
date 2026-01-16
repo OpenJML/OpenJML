@@ -226,7 +226,10 @@ public class JmlOption {
             WarningCategory warnings = WarningCategory.instance(context);
             String val = options.get(JmlOption.WARN.optionName());
             // CAUTION: check is called with an empty-string argument as part of initialization, when error messages are not yet read in.
-            if (Utils.instance(context).ojcheck(val != null, "null option value in JmlOption.WARN.check")) {
+            if (val == null) {
+                // In a bug-free program, this branch will never happen
+                Log.instance(context).error("jml.internal", "null option value in JmlOption.WARN.check");
+            } else {
                 if ("list".equals(val)) {
                     System.out.println(warnings.list()); // FIXME - use Log.out() or something like that?
                 } else if ("reset".equals(val) || val.isEmpty()) {

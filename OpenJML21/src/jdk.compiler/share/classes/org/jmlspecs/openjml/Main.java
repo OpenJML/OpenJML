@@ -577,7 +577,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         // We register the output writer for the Log first because in registering JmlArguments,
         // Arguments is registered, which instantiates a Log. Accordingly, we cannot set a 
         // log (or stdOut/stdErr) based on command-line arguments.
-        context.put(Log.outKey,stdOut);
+        context.put(Log.outKey,stdOut); // This is reregistered later in super.Main
 
         // Instantiating JavacMessages reads in the messages defined for jdk.compiler
         // Here we add the JML messages.
