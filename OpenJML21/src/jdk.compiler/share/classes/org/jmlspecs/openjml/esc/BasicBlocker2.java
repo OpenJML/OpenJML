@@ -372,7 +372,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
     /** Should not need this when everything is implemented */
     protected void notImpl(JCTree that) {
-        log.getWriter(WriterKind.NOTICE).println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass());
+        log.getWriter(WriterKind.NOTICE).println("NOT IMPLEMENTED: BasicBlocker2 - " + that.getClass() + " " + that); Utils.dumpStack();
         result = trueLiteral;
     }
     
