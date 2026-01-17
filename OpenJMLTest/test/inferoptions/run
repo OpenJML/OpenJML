@@ -13,6 +13,7 @@ openjml --infer=none --infer=list   >> actual 2>&1
 openjml --no-infer=all --infer=list >> actual 2>&1
 openjml --infer=zzz >> actual 2>&1
 openjml "--infer= " >> actual 2>&1
-openjml --infer= >> actual 2>&1
+openjml --infer=none --infer= --infer=list >> actual 2>&1
+openjml --help=infer >> actual 2>&1
 
 diff actual expected && rm -rf actual
