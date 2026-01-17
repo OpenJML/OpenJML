@@ -1,7 +1,15 @@
 public class Test {
 
-  public void m(String s) {
+  //@ requires s.length() == 10;
+  public static void m(String s) {
     s = "a";
-    //@ assert \old(s).length() == \old(s.length());
+    //@ check \old(s.length()) == 10;
+    //@ check \old(s).length() == 10;
+    //@ check s.length() == 1;
+  }
+  
+  public static void main(String ... args) {
+      m("abcdefghij");
+      //+RAC@ set System.out.println("DONE");
   }
 }

@@ -8768,11 +8768,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
-	    boolean print = false; // that.toString().contains("TYPE.of");
-	    if (print) {
-	        var sym = (MethodSymbol)treeutils.getSym(that.meth);
-	        System.out.println("APPLY-OF " + that + " " + that.meth.type + " " + sym + " " + sym.isVarArgs() + " " + that.varargsElement);
-	    }
+	    boolean print = false; // that.toString().startsWith("s.");
+
 	    if (that.meth.type == null) {
 	        if (print) System.out.println("APPLY " + that);
 	    } else if (that.meth.type.isErroneous()) {
@@ -8906,7 +8903,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		    Map<Symbol, Symbol> saved = pushMapSymbols();
 		    try {
-		        if (print) System.out.println("CALLING APPLYHELPER " + that);
+		        if (print) System.out.println("CALLING APPLYHELPER " + that + " " + currentEnv.stateLabel);
 		        //System.out.println("CALLING APPLYHELPER TPS " + methsym.getTypeParameters() + " :: " + that.meth.type + " :: " + methsym.type);
 		        applyHelper(that);
 		        //System.out.println("END APPLYHELPER " + that);
@@ -9613,7 +9610,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				typeargs = convert(typeargs); // FIXME - should this be translated before or after the receiver, here
 												// and elsewhere
 				if (print) System.out.println("APPLYHELPER " + that + " " + meth + " " + meth.type + " " + meth.type.asMethodType().argtypes);
-				addStat(comment("Converting arguments for " + that));
+				addStat(comment("Converting arguments for " + that + " " + currentEnv.stateLabel + " " + currentHeap.heapID));
 				trArgs = convertArgs(that, untrArgs, meth.type.asMethodType().argtypes);
 				newTypeVarMapping = typevarMapping = typemapping(apply, null);
 				// newTypeVarMapping = typevarMapping = typemapping(receiverType, fa.sym, null,
@@ -16880,8 +16877,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		
-        boolean print = false;
-        if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + condition + " " + translatingJML);  }
+        boolean print = false; // that.toString().equals("s");
+        if (print) { System.out.println("VISIT IDENT " + that + " " + that.type + " " + that.sym + " " + that.sym.type + " " + condition + " " + translatingJML + " " + currentEnv.stateLabel);  }
 
         //if (print) { System.out.println("VISIT IDENT-Y " + ((Type.ArrayType)that.type).getComponentType() + " " + ((Type.TypeVar)((Type.ArrayType)that.type).getComponentType()).tsym.hashCode());  }
 
@@ -16952,8 +16949,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
-		if (print) System.out.println("VISITIDENT-NEWFA " + newfa);
+		if (print) System.out.println("VISITIDENT-NEWFA " + newfa); // FIXME - it seems all vars, not just field get put here
 		if (!rac && sym != null && alreadyDiscoveredFields.add(sym)) { // true if s was NOT in the set already
+		    if (print) System.out.println("VISITIDENT - DISCOVEREDFIELDS " + alreadyDiscoveredFields);
 			if (utils.isJMLStatic(sym) && isFinal(sym)) {
 				if (newfa != null) {
 					addFinalStaticField(newfa);
@@ -16992,13 +16990,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// Replicate the AST so we are not sharing ASTs across multiple
 						// instances of the original ID.
 						// System.out.println("MAPPED " + sym + " " + sym.hashCode() + " TO " + actual);
-						result = eresult = copy(actual);
-						if (translatingFrame) result = eresult = newTempIfNeeded(eresult);
+						eresult = copy(actual);
+						if (currentEnv.stateLabel != null && esc) eresult = treeutils.makeOld(eresult, eresult, labelPropertiesStore.get(currentEnv.stateLabel));
+						if (translatingFrame) eresult = newTempIfNeeded(eresult);
 						eresult.pos = that.pos; // FIXME - this might be better if the actual were converted to a
 												// temporary Ident
 						if (!rac) eresult.type = convertType(eresult.type);
 
 						treeutils.copyEndPosition(eresult, that);
+						result = eresult;
 						return;
 					} else if (translatingFrame) {
 					    
@@ -17056,7 +17056,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    }
 			}
 
-//            System.out.println("VISITIDENT-G " + that + " " + oldenv);
+            if (print) System.out.println("VISITIDENT-G " + that + " " + currentEnv.stateLabel + " " + sym.owner + " " + utils.isJMLStatic(sym));
 			// FIXME - are we expecting fully-qualified arguments?
 			if (checkAccessEnabled) {
 			    // FIXME - this needs review, especially regarding currentReceiver
@@ -17079,7 +17079,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// Replicate the AST so we are not sharing ASTs across multiple
 				// instances of the original ID.
 				result = eresult = copy(actual);
-                //System.out.println("VISITIDENT-K " + that + " " + eresult);
+                if (print) System.out.println("VISITIDENT-J " + that + " " + eresult);
 				eresult.pos = that.pos;
 				treeutils.copyEndPosition(eresult, that);
 
@@ -17175,7 +17175,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (!utils.isJMLStatic(sym)) {
 				// It is a non-static class field, so we prepend the receiver
 
-//                System.out.println("VISITIDENT-P " + that + " " + oldenv);
+                if (print) System.out.println("VISITIDENT-P " + that + " " + currentEnv.stateLabel);
 				// FIXME - if currentEnv.currentReceiver is null, when not static, it should be the object
 				// being constructed
 				if (esc && currentEnv.currentReceiver != null && sym.owner != currentEnv.currentReceiver.type.tsym
@@ -17244,13 +17244,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = fa;
                 if (print) System.out.println("VISITIDENT-QQ " + that + " " + eresult + " " + eresult.type);
 			}
-            if (print)System.out.println("VISITIDENT-T " + that + " " + eresult + " " + eresult.type);
+            if (print) System.out.println("VISITIDENT-T " + that + " " + eresult + " " + eresult.type + " " + currentEnv.stateLabel);
 			treeutils.copyEndPosition(eresult, that);
 			if (currentEnv.stateLabel != null && !rac) {
 //            	System.out.println("IDENT_OLDENV-A " + that + " " + eresult);
 				// FIXME - the old may imappropriately encapsulate the receiver
 				result = eresult = makeOld(that.pos, eresult, currentEnv.stateLabel);
-//            	System.out.println("IDENT_OLDENV-Z " + that + " " + eresult);
+            	//System.out.println("IDENT-OLDENV-Z " + that + " " + eresult);
 				treeutils.copyEndPosition(eresult, that);
 			}
 			// Need to capture the result in a temporary, because the value of the JCIdent might change, e.g. even within the same expression,
@@ -19763,12 +19763,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				try {
 					var labelArg = that.args.size()>1?that.args.get(1):null;
 					Name evalStateLabel = normalizeLabel(labelArg, k == StateExpressions.preKind ? attr.preLabel : attr.oldLabel, that );
-					currentEnv.stateLabel = evalStateLabel;
+                    JCExpression arg = that.args.get(0);
+                    //System.out.println("OLDEXPR " + evalStateLabel + " " + currentEnv.stateLabel + " " + arg + " " + "HEAP: " + currentHeap.heapID);
+
+                    currentEnv.stateLabel = evalStateLabel;
 					LabelProperties lp = labelPropertiesStore.get(evalStateLabel);
 					that.labelProperties = lp;
 
-					JCExpression arg = that.args.get(0);
-                    //System.out.println("OLDEXPR " + evalStateLabel + " " + currentEnv.stateLabel + " " + arg);
 					if (evalStateLabel == null) {
 						eresult = convertExpr(arg);
 					} else if (rac) {
@@ -19823,7 +19824,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// in order to get arrays properly resolved  // TODO: Is this still true?
 						JmlMethodInvocation a = makeOld(that.pos, arg, evalStateLabel);
 						a.labelProperties = that.labelProperties;
-						eresult = a;
+						result = eresult = a;
 					}
 				} finally {
 					currentEnv = currentEnv.popEnv();
@@ -19831,6 +19832,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						labelPropertiesStore.pop(hereLabelName);
 					}
 					resetState(savedHeap);
+                    //System.out.println("END OLDEXPR: BACK TO " + currentEnv.stateLabel + " " + currentHeap.heapID);
 				}
 				break;
 			}
@@ -22112,130 +22114,133 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Keeps track of the innermost statement spec */
 	JmlStatementSpec innerStatementSpec = null;
 
-	// OK
-	@Override
-	public void visitJmlStatementSpec(JmlStatementSpec that) {
-		JmlStatementSpec savedInner = innerStatementSpec;
-		innerStatementSpec = that;
-		var savedCurrentOldLabel = currentOldLabel;
-		currentOldLabel = that.label;
-		JCStatement lst = M.at(that.pos).Labelled(that.label, M.at(that.pos).Skip());
-		convert(lst);
+    // OK
+    @Override
+    public void visitJmlStatementSpec(JmlStatementSpec that) {
+        JmlStatementSpec savedInner = innerStatementSpec;
+        innerStatementSpec = that;
+        var savedCurrentOldLabel = currentOldLabel;
+        currentOldLabel = that.label;
+        try {
+            JCStatement lst = M.at(that.pos).Labelled(that.label, M.at(that.pos).Skip());
+            convert(lst);
 
-		if (rac || infer || currentSplit == null) {
-			// Ignore
-			convert(that.statements);
-			result = null;
-			innerStatementSpec = savedInner;
-			return;
-		}
-
-		boolean doSummary = true;
-		if (currentSplit.isEmpty()) {
-			adjustSplit(2);
-		} else {
-			doSummary = currentSplit.charAt(0) == 'A';
-			currentSplit = currentSplit.substring(1);
-		}
-
-		if (that.newStatements == null) {
-			ListBuffer<JCVariableDecl> newdecls = new ListBuffer<>();
-			ListBuffer<JCStatement> newstats = new ListBuffer<>();
-			for (JCStatement st : that.statements) {
-				if (st instanceof JmlVariableDecl) {
-					JmlVariableDecl decl = (JmlVariableDecl) st;
-					for (JCIdent id : that.exports) {
-						if (decl.name == id.name) {
-							JmlVariableDecl ndecl = M.at(st.pos).VarDef(decl.sym, null);
-							ndecl.fieldSpecs = decl.fieldSpecs;
-							ndecl.ident = decl.ident;
-							ndecl.jmltype = decl.jmltype;
-							ndecl.mods = decl.mods;
-							ndecl.originalType = decl.originalType;
-							ndecl.originalVartype = decl.originalVartype;
-							ndecl.specsDecl = decl.specsDecl;
-							newdecls.add(ndecl);
-							if (decl.init != null) {
-								JCAssign assign = M.at(st.pos).Assign(M.at(st.pos).Ident(decl.sym), decl.init);
-								st = M.at(st.pos).Exec(assign);
-							} else {
-								st = null;
-							}
-						}
-						break;
-					}
-				}
-				if (st != null)
-					newstats.add(st);
-			}
-			that.decls = newdecls.toList();
-			that.newStatements = newstats.toList();
-		}
-		for (JCVariableDecl decl : that.decls)
-			addStat(decl);
-		JmlMethodSpecs sspecs = that.statementSpecs;
-		if (doSummary) {
-			// Make summary branch -- use the spec instead of the code
-			addStat(comment(that, "Summary branch", log.currentSourceFile()));
-			allocCounter++;
-			{
-				ListBuffer<JCExpression> newlist = new ListBuffer<>();
-				for (JCIdent id : that.exports) {
-					newlist.add(convertAssignable(id, currentEnv.currentReceiver, true));
-				}
-				JmlStatementHavoc hv = M.at(that).JmlHavocStatement(newlist.toList());
-				addStat(hv);
-			}
-			for (var cs: sspecs.cases) {
-			    for (JmlMethodClause clause : cs.clauses) {
-			        if (clause.clauseKind != assignableClauseKind)
-			            continue;
-			        JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef) clause;
-			        ListBuffer<JCExpression> newlist = new ListBuffer<>();
-			        for (JCExpression sf : a.list) {
-			            newlist.add(convertAssignable(sf, currentEnv.currentReceiver, true));
-			        }
-			        JmlStatementHavoc hv = M.at(a).JmlHavocStatement(newlist.toList());
-			        addStat(hv);
-			    }
-			    for (JmlMethodClause clause : cs.clauses) {
-			        if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
-			            continue;
-			        JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
-			        addAssume(clause, Label.IMPLICIT_ASSUME, convertJML(a.expression));
-			    }
-			    if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");
-			    break;
-			}
-            addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atSummaryFeasCheckDescription);
-
-		} else {
-
-			// Make non-summary branch
-			addStat(comment(that, "Non-summary branch", log.currentSourceFile()));
-			convert(that.newStatements);
-			// FIXME - change the name on this and the defaults
-			// FIXME _ fix position
-            for (var cs: sspecs.cases) {
-                for (JmlMethodClause clause : cs.clauses) {
-                    if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
-                        continue;
-                    JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
-                    addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
-                }
-                isRefiningBranch = true;
-                addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
-                addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
-                        null));
-                continuation = Continuation.HALT;
-                if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");
-                break;
+            if (rac || infer || currentSplit == null) {
+                // Ignore
+                convert(that.statements);
+                result = null;
+                innerStatementSpec = savedInner;
+                return;
             }
-		}
-		innerStatementSpec = savedInner;
-		currentOldLabel = savedCurrentOldLabel;
-		result = null;
-	}
+
+            boolean doSummary = true;
+            if (currentSplit.isEmpty()) {
+                adjustSplit(2);
+            } else {
+                doSummary = currentSplit.charAt(0) == 'A';
+                currentSplit = currentSplit.substring(1);
+            }
+
+            if (that.newStatements == null) {
+                ListBuffer<JCVariableDecl> newdecls = new ListBuffer<>();
+                ListBuffer<JCStatement> newstats = new ListBuffer<>();
+                for (JCStatement st : that.statements) {
+                    if (st instanceof JmlVariableDecl) {
+                        JmlVariableDecl decl = (JmlVariableDecl) st;
+                        for (JCIdent id : that.exports) {
+                            if (decl.name == id.name) {
+                                JmlVariableDecl ndecl = M.at(st.pos).VarDef(decl.sym, null);
+                                ndecl.fieldSpecs = decl.fieldSpecs;
+                                ndecl.ident = decl.ident;
+                                ndecl.jmltype = decl.jmltype;
+                                ndecl.mods = decl.mods;
+                                ndecl.originalType = decl.originalType;
+                                ndecl.originalVartype = decl.originalVartype;
+                                ndecl.specsDecl = decl.specsDecl;
+                                newdecls.add(ndecl);
+                                if (decl.init != null) {
+                                    JCAssign assign = M.at(st.pos).Assign(M.at(st.pos).Ident(decl.sym), decl.init);
+                                    st = M.at(st.pos).Exec(assign);
+                                } else {
+                                    st = null;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if (st != null)
+                        newstats.add(st);
+                }
+                that.decls = newdecls.toList();
+                that.newStatements = newstats.toList();
+            }
+            for (JCVariableDecl decl : that.decls)
+                addStat(decl);
+            JmlMethodSpecs sspecs = that.statementSpecs;
+            if (doSummary) {
+                // Make summary branch -- use the spec instead of the code
+                addStat(comment(that, "Summary branch", log.currentSourceFile()));
+                allocCounter++;
+                {
+                    ListBuffer<JCExpression> newlist = new ListBuffer<>();
+                    for (JCIdent id : that.exports) {
+                        newlist.add(convertAssignable(id, currentEnv.currentReceiver, true));
+                    }
+                    JmlStatementHavoc hv = M.at(that).JmlHavocStatement(newlist.toList());
+                    addStat(hv);
+                }
+                for (var cs: sspecs.cases) {
+                    for (JmlMethodClause clause : cs.clauses) {
+                        if (clause.clauseKind != assignableClauseKind)
+                            continue;
+                        JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef) clause;
+                        ListBuffer<JCExpression> newlist = new ListBuffer<>();
+                        for (JCExpression sf : a.list) {
+                            newlist.add(convertAssignable(sf, currentEnv.currentReceiver, true));
+                        }
+                        JmlStatementHavoc hv = M.at(a).JmlHavocStatement(newlist.toList());
+                        addStat(hv);
+                    }
+                    for (JmlMethodClause clause : cs.clauses) {
+                        if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
+                            continue;
+                        JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
+                        addAssume(clause, Label.IMPLICIT_ASSUME, convertJML(a.expression));
+                    }
+                    if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");
+                    break;
+                }
+                addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atSummaryFeasCheckDescription);
+
+            } else {
+
+                // Make non-summary branch
+                addStat(comment(that, "Non-summary branch", log.currentSourceFile()));
+                convert(that.newStatements);
+                // FIXME - change the name on this and the defaults
+                // FIXME _ fix position
+                for (var cs: sspecs.cases) {
+                    for (JmlMethodClause clause : cs.clauses) {
+                        if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
+                            continue;
+                        JmlMethodClauseExpr a = (JmlMethodClauseExpr) clause;
+                        addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
+                    }
+                    isRefiningBranch = true;
+                    addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
+                    addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
+                            null));
+                    continuation = Continuation.HALT;
+                    if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");
+                    break;
+                }
+            }
+            innerStatementSpec = savedInner;
+            result = null;
+        } finally {
+            currentOldLabel = savedCurrentOldLabel;
+        }
+    }
 
 	// OK
 	@Override

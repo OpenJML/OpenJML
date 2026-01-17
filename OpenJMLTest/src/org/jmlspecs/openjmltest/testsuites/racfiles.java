@@ -596,4 +596,9 @@ public class racfiles extends RacBase {
     public void gitbug875() {
         helpCompileRun("TestSets");
     }
+    
+    @Test
+    public void gitbug940() {
+        helpCompileRun("Test");
+    }
 }
