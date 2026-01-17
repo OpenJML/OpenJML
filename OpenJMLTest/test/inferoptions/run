@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+rm -rf actual
+openjml --infer=list >> actual 2>&1
+openjml --infer=loop-assigns --infer=list  >> actual 2>&1
+openjml --infer=loop-assigns --infer= --infer=list  >> actual 2>&1
+openjml --infer=none --infer=reset --infer=list >> actual 2>&1
+openjml --infer=none --infer=all --infer=list    >> actual 2>&1
+openjml --infer=none --infer=list   >> actual 2>&1
+openjml --no-infer=all --infer=list >> actual 2>&1
+openjml --infer=zzz >> actual 2>&1
+openjml "--infer= " >> actual 2>&1
+openjml --infer=none --infer= --infer=list >> actual 2>&1
+openjml --help=infer >> actual 2>&1
+
+diff actual expected && rm -rf actual

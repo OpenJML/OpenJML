@@ -243,6 +243,9 @@ public class JmlOptions extends Options {
                     case "warn":
                         System.out.println("Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet());
                         break;
+                    case "infer":
+                        System.out.println("Implemented specification inference keys: " + InferCategory.instance(context).inferKeys.keySet());
+                        break;
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
                     }
@@ -305,7 +308,7 @@ public class JmlOptions extends Options {
         
 
         if (o != null && o.hasArg()) {
-            if (negate && !s.equals("--warn") && !s.equals("--split")) {
+            if (negate && !s.equals("--warn") && !s.equals("--infer") && !s.equals("--split")) {
                 Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)"); // FIXME - add --split to message
                 negate = false;
             }
