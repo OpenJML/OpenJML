@@ -3670,7 +3670,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentStatements = stats;
 			currentEnv.currentReceiver = receiver;
 			for (ClassSymbol csym : parents) {
-			    checkState();
 				if (!addAxioms(currentHeap.heapID, csym))
 					continue;
 				JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
@@ -4234,7 +4233,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Add all axioms from this specific class */
 	protected void addClassAxioms(ClassSymbol csym) {
-	    checkState();
 		if (!addAxioms(currentHeap.heapID, csym))
 			return;
 		boolean prevAddingAxioms = addingAxioms;
@@ -6625,7 +6623,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected LabelPropertyStore labelPropertiesStore = new LabelPropertyStore();
 
 	protected LabelProperties recordLabel(Name labelName, JmlLabeledStatement stat) {
-	    checkState();
 		LabelProperties lp = new LabelProperties();
 		labelPropertiesStore.put(labelName, lp);
 		lp.labeledStatement = stat;
@@ -9225,7 +9222,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    changeState(pos, havocs, null);
 	}
     protected void changeState(DiagnosticPosition pos, Object havocs, /*@ nullable */ Name label) {
-        checkState();
         int p = pos.getPreferredPosition();
         var heapCount = nextHeapCount();
         currentHeap = new HeapInfo(heapCount, currentHeap, label);
@@ -9244,7 +9240,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        addAxioms(heapCount, null);
 //        determinismSymbols.clear(); // FIXME - might need them again in  \old expressions
 		clearInvariants(); // FIXME - is this needed for rac?
-		checkState();
 	}
     
     protected void changeStateForLoop(DiagnosticPosition pos, List<JmlStatementLoop> loopSpecs) {
@@ -9254,17 +9249,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 : convertFrameConditionList(pos, treeutils.trueLit, clause.storerefs)),
             null);
     }
-    
-    private void checkState() {
-    }
-    
+
     private void resetState(HeapInfo info) {
-        checkState();
         currentHeap = info;
     }
     
     private HeapInfo saveState() {
-        checkState();
         return currentHeap;
     }
 
@@ -10881,7 +10871,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			var assignsLists = assignsListsBuffer.toList();
             //System.out.println("ASSIGNSLIST " + calleeMethodSym + " " + overridden.size() + " " + assignsLists);
 			currentEnv = currentEnv.popEnv();
-			checkState();
 			currentEnv = currentEnv.pushEnvCopy();
             //System.out.println(" PURE? " + calleeMethodSym.owner + " " + calleeMethodSym + " " + calleeIsPure);
 			{
@@ -12101,7 +12090,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	public void makeMethodHavocAxiom(DiagnosticPosition pos, Type receiverType, MethodSymbol calleeMethodSym, Type returnType, Object havocs,
 	                        java.util.List<StoreRefGroup> readItems, List<JCExpression> args) {
-	    checkState();
 	    int hc = currentHeap.heapID;
         //System.out.println("HAVOCAXIOM " + calleeMethodSym + " " + hc + " " + args);
 	    try {
@@ -18207,9 +18195,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-        checkState();
         currentEnv = currentEnv.popEnv();
-        checkState();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 
         loopHelperFinish(loop, that);
@@ -18589,9 +18575,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-        checkState();
         currentEnv = currentEnv.popEnv();
-        checkState();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 
         loopHelperFinish(loop, that); // Does a popBlock operation
@@ -19246,9 +19230,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-        checkState();
         currentEnv = currentEnv.popEnv();
-        checkState();
 		resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 
 		loopHelperFinish(loop, that); // pops the loop body block
@@ -22909,9 +22891,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		// Finish up the new loop body
 		// Finish up the output block
-        checkState();
         currentEnv = currentEnv.popEnv();
-        checkState();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
 
         loopHelperFinish(loop, that);
@@ -22937,7 +22917,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     }
 
 	protected void markLocation(Name label, ListBuffer<JCStatement> list, JmlLabeledStatement marker) {
-	    checkState();
 		Location loc = new Location(list, marker);
 		locations.put(label, loc);
 		LabelProperties lp = labelPropertiesStore.get(label);
@@ -23464,7 +23443,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
-	    checkState();
 		int heap = currentEnv.stateLabel != null ? labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID : currentHeap.heapID;
 //		if (msym.getTypeParameters().size() != 0) {
 //		    System.out.println("NEWNAME " + utils.qualifiedName(msym).replace('.', '_') + " " + msym.asType());
@@ -23490,7 +23468,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected void makeAndSaveMethodSymbol(DiagnosticPosition callLocation, MethodSymbol msym,
 	                        Type receiverType, Type returnType) {
 	    try {
-	        checkState();
 	        int hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
 	        boolean isFunction = isHeapIndependent(msym);
 	        boolean isStatic = utils.isJMLStatic(msym);
@@ -23575,7 +23552,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	// ListBuffer<JCStatement> savedForAxioms = null;
 	protected JCBlock addMethodAxioms(DiagnosticPosition callLocation, MethodSymbol msym,
 			java.util.List<Pair<MethodSymbol, Type>> overridden, Type receiverType, Type returnType) {
-	    checkState();
 		int hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
 //		 if (utils.debug() || true) System.out.println("ADDMETHODAXIOMS "+
 //		 " " + hc + " " + + currentHeap.heapID + " " + heapCountForAxioms + " " + msym + " " +
@@ -23985,7 +23961,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	Map<Integer, Map<Symbol, MethodSymbol>> heapMethods = new HashMap<>();
 
     public MethodSymbol getNewMethodSymbol(MethodSymbol msym) {
-        checkState();
         Integer hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
         return getNewMethodSymbol(msym, hc);
     }
@@ -24005,7 +23980,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public MethodSymbol makeAndSaveNewMethodName(MethodSymbol msym, Type returnType, boolean isFunction,
 			JmlMethodSpecs calleeSpecs, int calleeDeclPos, List<Type> newParamTypes) {
 
-	    checkState();
 		Integer hc = currentEnv.stateLabel == null ? currentHeap.heapID : labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID;
 		Map<Symbol, MethodSymbol> mm = heapMethods.get(hc);
 		if (mm == null) {
