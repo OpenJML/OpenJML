@@ -135,6 +135,10 @@ public class runscripts extends RunBase {
         doTest();
     }
     
+    @Test public void inferoptions() {
+        doTest();
+    }
+    
     @Test public void warningoptions() {
         doTest();
     }
