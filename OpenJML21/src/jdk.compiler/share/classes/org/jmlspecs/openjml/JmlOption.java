@@ -292,6 +292,7 @@ public class JmlOption {
     // Internal use only
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Controls output information during testing",null) {
         public boolean check(Context context, boolean negate) {
+            InferCategory.instance(context).showInferred = false;
             return true;
         }
     };
