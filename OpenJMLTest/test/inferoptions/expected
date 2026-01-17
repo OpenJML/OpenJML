@@ -23,4 +23,8 @@ warning: In --(no-)infer, 'zzz' is not a valid infer key; see --help=infer
 error: no source files
 warning: In --(no-)infer, ' ' is not a valid infer key; see --help=infer
 error: no source files
+Value	Default	Key
+YES	YES	loop-assigns
+error: no source files
+Implemented specification inference keys: [loop-assigns]
 error: no source files

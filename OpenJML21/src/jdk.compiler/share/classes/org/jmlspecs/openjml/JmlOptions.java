@@ -244,7 +244,7 @@ public class JmlOptions extends Options {
                         System.out.println("Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet());
                         break;
                     case "infer":
-                        System.out.println("Implemented specification infererence keys: " + InferCategory.instance(context).inferKeys.keySet());
+                        System.out.println("Implemented specification inference keys: " + InferCategory.instance(context).inferKeys.keySet());
                         break;
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
