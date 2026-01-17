@@ -18131,7 +18131,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Merge the loop specs for inlined_loops
         that.loopSpecs = handleInlinedLoopSpecs(that, that.loopSpecs, indexDecl);
         
-        var havocList = loopHelperModifies(that.loopSpecs, that.body, indexDecl, null, null, that.body,
+        var havocList = loopHelperModifies(that.loopSpecs, that, indexDecl, null, null, that.body,
                 that.cond);
 
         currentEnv = currentEnv.pushEnvCopy();
@@ -18332,7 +18332,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         that.loopSpecs = handleInlinedLoopSpecs(that, that.loopSpecs, indexDecl);
         
         // In a foreach loop, the variable declared in the for initialization is local to the loop body
-        var havocList = loopHelperModifies(that.loopSpecs, that.body, indexDecl, null, null, that.body, null); // FIXME - what about the implicit iterator
+        var havocList = loopHelperModifies(that.loopSpecs, that, indexDecl, null, null, that.body, null); // FIXME - what about the implicit iterator
 
         currentEnv = currentEnv.pushEnvCopy();
         currentEnv.stateLabel = null;
@@ -18665,7 +18665,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         for (JCTree t : trees) {
             TargetFinder.findVars(t, targets, locals, context);
         }
-        if (useDefaultModifies) {
+        boolean anyAdded = false;
+        if (InferCategory.instance(context).action(InferCategory.LOOP_ASSIGNS) == InferCategory.InferAction.NO) {
+            if (useDefaultModifies) utils.error(pos, "jml.message", "Inference of loop_assigns clauses is disabled, so this loop requires an explicit loop_assigns clause");
+        } else if (useDefaultModifies) {
             //targets.add(treeutils.makeIdent(pos.getPreferredPosition(), indexStack.get(0).name, indexStack.get(0).sym));
             ListBuffer<JCExpression> newtargets = new ListBuffer<>();
             for (JCExpression target : targets.toList()) {
@@ -18688,6 +18691,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             foundLoopMod.storerefs = foundLoopMod.storerefs.appendList(newtargets.toList());
             loopSpecs = loopSpecs == null ? List.<JmlStatementLoop>of(foundLoopMod) : loopSpecs.append(foundLoopMod);
+            anyAdded = true;
         } else {
             // Even if we have an explicit loop_assigns clause, we still add in any loop variables 
             // (those declared in the loop initializations) that are assigned in the body. (It is possible
@@ -18705,9 +18709,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         }
                         for (var target: targets) {
                             if (target instanceof JCIdent idt && idt.sym == idd.sym) {
-                                // The initialization variable is indeed an aassignment target in the loop baody
+                                // The initialization variable is indeed an assignment target in the loop baody
                                 newlist.add(convertNoSplit(idd));
                                 foundLoopMod.storerefs = foundLoopMod.storerefs.append(idd);
+                                anyAdded = true;
                                 break x;
                             }
                         }
@@ -18717,7 +18722,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     }
                 }
             }
-
+        }
+        if (anyAdded && InferCategory.instance(context).showInferred) {
+            utils.note(foundLoopMod, "jml.message", "Inferred clause: " + foundLoopMod);
         }
         foundLoopMod.nestedLocals = locals;
         
@@ -19161,7 +19168,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Merge the loop specs for inlined_loops
         that.loopSpecs = handleInlinedLoopSpecs(that, that.loopSpecs, indexDecl);
         
-        var havocList = loopHelperModifies(that.loopSpecs, that.body, indexDecl, that.init, that.step, that.body,
+        var havocList = loopHelperModifies(that.loopSpecs, that, indexDecl, that.init, that.step, that.body,
                 that.cond);
 
         currentEnv = currentEnv.pushEnvCopy();
@@ -22831,7 +22838,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // Merge the loop specs for inlined_loops
         that.loopSpecs = handleInlinedLoopSpecs(that, that.loopSpecs, indexDecl);
         
-        var havocList = loopHelperModifies(that.loopSpecs, that.body, indexDecl, null, null, that.body,
+        var havocList = loopHelperModifies(that.loopSpecs, that, indexDecl, null, null, that.body,
                 that.cond);
 
         currentEnv = currentEnv.pushEnvCopy();

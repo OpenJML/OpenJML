@@ -1930,7 +1930,7 @@ public class Utils {
             log().nwarnings--;
         }
     }
-
+    
     public void verify(int pos, String key, Object ... args) {
         verify(pos==Position.NOPOS?null:new SimpleDiagnosticPosition(pos), key, args);
     }
@@ -1953,9 +1953,12 @@ public class Utils {
         log().note(pos, JCDiagnostic.Factory.instance(context).noteKey(key, args));
     }
 
+    public void note(int pos, String key, Object... args) {
+        log.note(pos==Position.NOPOS?null:new SimpleDiagnosticPosition(pos), new JCDiagnostic.Note("compiler", key, args));
+    }
+
     public void note(JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
-        JavaFileObject prev = null;
-        if (source != null) prev = log().useSource(source);
+        JavaFileObject prev = source == null ? null : log().useSource(source);
         try {
             note(pos, key, args);
         } finally {
