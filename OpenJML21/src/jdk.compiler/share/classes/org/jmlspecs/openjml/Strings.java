@@ -273,7 +273,7 @@ public class Strings {
     static final public String preconditionFeasCheckDescription = "end of preconditions";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
     static final public String atSummaryFeasCheckDescription = "at statement spec (after using summary)";
-    static final public String atNonSummaryFeasCheckDescription = "at statement spec (after specified block)";
+    static final public String atNonSummaryFeasCheckDescription = "at end of refining statement block";
     /** Text used to describe the program position at the end of the program, before the postcondition checks */ // FIXME - check this
     static final public String atExitFeasCheckDescription = "at program exit";
     /** Text used to describe the program position just prior to an explicit JML assert */
@@ -302,10 +302,11 @@ public class Strings {
     static final public String feas_halt = "halt";
     static final public String feas_call = "call";
     static final public String feas_loopcondition = "loopcondition";
+    static final public String feas_loopbody = "loopbody";
     static final public String feas_loopexit = "loopexit";
     static final public String feas_loopcontinue = "loopcontinue";
-    static final public String feas_loopbreak = "loopbreak";
-    static final public String feas_methodaxioms = "methodaxioms";
+    static final public String feas_methodaxioms = "methodaxioms"; // Only used for debugging -- will fail only if there is an internal bug
+    static final public String feas_break = "break"; // block break and loop break
     
     static final public String feas_all = "all";
     static final public String feas_debug = "debug";
@@ -316,7 +317,7 @@ public class Strings {
     
     static final public String[] feasibilities_alone = new String[]{ feas_none, feas_preOnly, feas_debug, feas_all};
     static final public String[] feasibilities = new String[]{feas_pre, feas_if, feas_halt, feas_switch, feas_catch, feas_finally, feas_return, feas_throw, feas_call, feas_summary, feas_exit, feas_reachable, feas_assume, feas_assert, 
-                                                              feas_loopcondition, feas_loopcontinue, feas_loopexit, feas_loopbreak, feas_methodaxioms};
+                                                              feas_loopcondition, feas_loopbody, feas_loopcontinue, feas_loopexit, feas_methodaxioms, feas_break};
     static final public String feas_alls = Utils.join(",", feasibilities);
 
     // Returns null if OK, returns the bad string if one is not allowed
