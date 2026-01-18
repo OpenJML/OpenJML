@@ -1056,11 +1056,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				initialStatements.add(d);
 			} else {
 				addStat(comment(methodDecl, "No result declaration - method is void", null));
-				if (methodDecl.body != null) {
-				    var emptyStat = M.at(methodDecl.body.getEndPosition(log.currentSource().getEndPosTable())).Skip();
-	                addStat(emptyStat);
-	                addFeasibilityCheck(emptyStat, currentStatements, Strings.feas_return, "at implicit return");
-				}
 				resultSym = null;
 			}
 			resultExpr = resultSym == null ? null : treeutils.makeIdent(methodDecl.pos, resultSym);
@@ -1160,7 +1155,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 				} finally {
 				    // FIXME - don't know whether execution is still alive here
-	                // addFeasibilityCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 					newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, checkZ);
 				}
 
@@ -1283,13 +1277,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 				if ((pmethodDecl.mods.flags & Flags.AUXILIARY) == 0) continuation = Continuation.CONTINUE;
+				if (continuation == Continuation.CONTINUE) {
+                    addFeasibilityCheck(endpos(methodDecl.body), currentStatements, Strings.feas_return, "at implicit return");
+				}
 			}
 			JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
 			if (esc && feasibilityContains(Strings.feas_exit)) {
 				String vv = JmlOption.SPLIT.value(context);
 				if (vv == null || vv.isEmpty() || vv.endsWith("->")) {
-					addFeasibilityCheck(methodDecl, outerFinalizeStats, Strings.atExitFeasCheckDescription);
+					addFeasibilityCheck(endpos(methodDecl), outerFinalizeStats, Strings.atExitFeasCheckDescription);
 				}
 			}
 
@@ -2418,7 +2415,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         }
     }
 
-    protected void addFeasibilityCheck(JCTree item, JCBlock block, String key, String description) {
+    protected void addFeasibilityCheck(DiagnosticPosition item, JCBlock block, String key, String description) {
         if (feasibilityContains(key)) {
             ListBuffer<JCStatement> lst = new ListBuffer<>();
             addFeasibilityCheck(item, lst, description);
@@ -2455,7 +2452,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			descs.add(a);
 			currentStatements = prev;
 		} else {
-			JmlStatementExpr c = comment(item, "ACHECK " + feasibilityCheckCount, log.currentSourceFile());
+			JmlStatementExpr c = comment(item, "ACHECK " + feasibilityCheckCount, log.currentSourceFile()); // FIXME - make ACHECK more descriptive - is it arbitrary?
 			c.description = description;
 			c.id = "ACHECK " + feasibilityCheckCount;
 			addStat(c);
@@ -7503,7 +7500,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        var initialHeapState = saveState();
             //System.out.println("IF " + heapCount + " " + currentHeap.heapID + " " + initialHeapState.heapID + " " + that);
             JCBlock thenpart = convertIntoBlock(that.thenpart, that.thenpart);
-            addFeasibilityCheck(that, thenpart, Strings.feas_if, "at then branch");
+            addFeasibilityCheck(thenpart, thenpart, Strings.feas_if, "at then branch");
             Continuation thenContinuation = continuation;
             continuation = Continuation.CONTINUE;
             var thenBranchHeap = saveState();
@@ -7513,7 +7510,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             //System.out.println("STARTING ELSE BRANCH " + heapCount + " " + currentHeap.heapID);
             currentEnv = currentEnv.pushEnvCopy();
             JCBlock elsepart = that.elsepart == null ? null : convertIntoBlock(that.elsepart, that.elsepart);
-            if (elsepart != null) addFeasibilityCheck(that, elsepart, Strings.feas_if, "at else branch");
+            if (elsepart != null) addFeasibilityCheck(elsepart, elsepart, Strings.feas_if, "at else branch"); 
+                // FIXME - could add a feasibility check when there is no else part by adding a block, if needed
 
             Continuation elseContinuation = continuation;
             //System.out.println("IF END OF ELSE " + heapCount + " " + currentHeap.heapID);
@@ -7679,7 +7677,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCStatement stat = treeutils.makeAssignStat(that.pos, id, treeutils.nullLit);
 			addStat(stat);
 		}
-
+		addFeasibilityCheck(that, currentStatements, Strings.feas_break, "at break statement");
 		JCBreak st = M.at(that).Break(that.label);
 		st.target = treeMap.get(that.target);
 		if (st.target == null) {
@@ -7699,6 +7697,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// (The only way these can get executed is if they are in a catch or finally
 		// block:wq
 
+		addFeasibilityCheck(that, currentStatements, Strings.feas_loopcontinue, "at loop continue statement");
 		JCIdent id = treeutils.makeIdent(that, exceptionSym);
 		JCStatement stat = treeutils.makeAssignStat(that.pos, id, treeutils.nullLit);
 		addStat(stat);
@@ -8900,6 +8899,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		    Map<Symbol, Symbol> saved = pushMapSymbols();
 		    try {
+                addFeasibilityCheck(that, currentStatements, Strings.feas_call, "before call");
 		        if (print) System.out.println("CALLING APPLYHELPER " + that + " " + currentEnv.stateLabel);
 		        //System.out.println("CALLING APPLYHELPER TPS " + methsym.getTypeParameters() + " :: " + that.meth.type + " :: " + methsym.type);
 		        applyHelper(that);
@@ -18183,7 +18183,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         // In a do-while loop we test the condition before the invariants
 
         // Construct the loop test and the exit block.
-        Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+        Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that.body, that);
 
         savedExitHeap = saveState();
         currentEnv = currentEnv.pushEnvCopy();
@@ -18394,7 +18394,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// The exit block tests the condition; if exiting, it tests the
 				// invariant and breaks.
-				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that.body, that);
 			} else {
 				JmlSingleton index = M.at(that.pos).JmlSingleton(countKind);
 				index.kind = countKind;
@@ -18405,7 +18405,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				// The exit block tests the condition; if exiting, it tests the
 				// invariant and breaks.
-				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that.body, that);
 			}
             savedExitHeap = saveState();
             currentEnv = currentEnv.pushEnvCopy();
@@ -18526,7 +18526,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// The exit block tests the condition; if exiting, it tests the
 				// invariant and breaks.
 	            currentEnv = currentEnv.pushEnvCopy();
-				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+				splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that.body, that);
 				doRemainderOfLoop = splitInfo == null || splitInfo;
 			}
 
@@ -18842,12 +18842,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	/** Create the if statement that is the loop exit */
-	protected Boolean loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop,
+	protected Boolean loopHelperMakeBreak(List<JmlStatementLoop> loopSpecs, JCExpression cond, JCTree loop, JCStatement loopbody,
 			DiagnosticPosition pos) {
 		Boolean res = null;
 		boolean split = ((IJmlLoop) pos).isSplit();
 		ListBuffer<JCStatement> check = pushBlock();
-        addFeasibilityCheck(loop, currentStatements, Strings.feas_loopexit, "at loop exit");
+        addFeasibilityCheck(endpos(loopbody), currentStatements, Strings.feas_loopexit, "at loop exit branch (false condition)");
 		JCBreak br = M.at(pos).Break(null);
 		br.target = loop;
         if (loopSpecs != null) {
@@ -18896,7 +18896,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		//System.out.println("LOOP " + loop.getClass() + " " + ((IJmlLoop)loop).body() + " " + loop);
 		// FIXME - use ((IJmlLoop)loop).body() but it is unexpectedly null
-        addFeasibilityCheck(loop, currentStatements, Strings.feas_loopcondition, "at beginning of loop body");
+        addFeasibilityCheck(loopbody, currentStatements, Strings.feas_loopcondition, "at beginning of loop body");
 		return res;
 	}
 
@@ -18911,6 +18911,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		try {
 			JCBlock bl = convertIntoBlock(body, body);
+			addFeasibilityCheck(endpos(body), bl, Strings.feas_loopbody, "at end of loop body");
 			bodyBlock.stats = bl.stats;
 		} catch (Exception e) {
 		    System.out.println("Exception in loopHelperMakeBody " + body);
@@ -19160,7 +19161,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         currentEnv.allocCount = allocCounter;
 
         try {
-        convertLoopModifies(that.loopSpecs);
+            convertLoopModifies(that.loopSpecs);
         } catch (Throwable t) {
             t.printStackTrace(System.out);
         }
@@ -19195,7 +19196,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression cond = convertExpr(that.cond);
 
 			// The exit block tests the condition; if exiting, it breaks out of the loop
-			splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+			splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that.body, that);
 		}
         savedExitHeap = saveState();
         currentEnv = currentEnv.pushEnvCopy();
@@ -22216,7 +22217,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         addAssert(clause, Label.POSTCONDITION, convertJML(a.expression));
                     }
                     isRefiningBranch = true;
-                    addFeasibilityCheck(that, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
+                    var p = that.statements.isEmpty() ? endpos(that) : endpos(that.statements.last());
+                    addFeasibilityCheck(p, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
                     addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
                             null));
                     continuation = Continuation.HALT;
@@ -22229,6 +22231,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } finally {
             currentOldLabel = savedCurrentOldLabel;
         }
+    }
+    
+    public DiagnosticPosition endpos(JCTree p) {
+        return new JCDiagnostic.SimpleDiagnosticPosition(p.getEndPosition(log.currentSource().getEndPosTable())-1);
     }
 
 	// OK
@@ -22859,7 +22865,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// The exit block tests the condition; if exiting, it tests the
 		// invariant and breaks.
 
-		Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that);
+		Boolean splitInfo = loopHelperMakeBreak(that.loopSpecs, cond, loop, that.body, that);
 
 		savedExitHeap = saveState();
 		currentEnv = currentEnv.pushEnvCopy();
@@ -23882,7 +23888,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 				}
 				//paramActuals = null;
-				addFeasibilityCheck(callLocation, currentStatements, "methodaxioms", "end of axioms for " + msym);
 				elseExpression = savedElseExpression;
 			}
 			if (falses != null) {
@@ -23932,6 +23937,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} catch (Exception e) { // FIXME - intentional aborts should be passed alont
 			utils.unexpectedException(e, "ADD METHOD AXIOMS");
 		} finally {
+            addFeasibilityCheck(callLocation, currentStatements, Strings.feas_methodaxioms, "end of axioms for " + msym);
 			resultExpr = savedResultExpr;
 			currentEnv.currentReceiver = savedCurrentThisExpr;
 			paramActuals_ = savedParamActuals;

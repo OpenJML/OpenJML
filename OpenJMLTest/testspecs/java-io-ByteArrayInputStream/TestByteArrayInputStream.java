@@ -104,7 +104,6 @@ public class TestByteArrayInputStream {
         //@ check k == 'd'; 
     }
     
-    
     /*@ pure */ public static void t6() {
         // Read with skip(n) and large n
         var ba = new byte[] {(byte)'a', (byte)'b', (byte)'c', (byte)'d' };
@@ -142,7 +141,7 @@ public class TestByteArrayInputStream {
         //@ check k == 'c';
         st.reset();
         k = st.read();
-        //@ check k == 'c';        
+        //@ check k == 'c';
     }
     
     /*@ pure */ public static void t9() {
@@ -150,12 +149,12 @@ public class TestByteArrayInputStream {
         var ba = new byte[] {(byte)'a', (byte)'b', (byte)'c', (byte)'d' };
         var st = new ByteArrayInputStream(ba);
         var k = st.readAllBytes();
-        //@ check k .length == 4;
+        //@ check k.length == 4;
         //@ check k[0] == 'a';
         //@ check k[3] == 'd';
         st = new ByteArrayInputStream(ba, 1, 2);
         k = st.readAllBytes();
-        //@ check k .length == 2;
+        //@ check k.length == 2;
         //@ check k[0] == 'b';
         //@ check k[1] == 'c';
     }
