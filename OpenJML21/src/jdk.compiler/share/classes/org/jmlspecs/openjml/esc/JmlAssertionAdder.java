@@ -1276,10 +1276,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-				if ((pmethodDecl.mods.flags & Flags.AUXILIARY) == 0) continuation = Continuation.CONTINUE;
 				if (continuation == Continuation.CONTINUE) {
                     addFeasibilityCheck(endpos(methodDecl.body), currentStatements, Strings.feas_return, "at implicit return");
 				}
+				// FIXME - why this continue -- and why only for methods in secondary classes?
+                if ((pmethodDecl.mods.flags & Flags.AUXILIARY) == 0) continuation = Continuation.CONTINUE;
 			}
 			JCBlock newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, check);
 
