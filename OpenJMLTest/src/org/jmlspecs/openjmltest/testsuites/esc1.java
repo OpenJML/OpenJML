@@ -1643,13 +1643,13 @@ public class esc1 extends EscBase {
                 + "}"
                 ,"/tt/TestJava.java:5: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP(boolean)",56
                 ,"/tt/TestJava.java:5: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP(boolean)",77
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP(boolean)",22
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP(boolean)",94
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method bifOK",113
                 ,"/tt/TestJava.java:9: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bifBAD(boolean,boolean)",84
                 ,"/tt/TestJava.java:9: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bifBAD(boolean,boolean)",101
                 ,"/tt/TestJava.java:12: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",68
                 ,"/tt/TestJava.java:12: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.bassumeBADASSUMP2(boolean)",89
-                ,"/tt/TestJava.java:12: verify: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP2(boolean)",22
+                ,"/tt/TestJava.java:12: verify: There is no feasible path to program point at program exit in method tt.TestJava.bassumeBADASSUMP2(boolean)",105
                 // The following error is required, but can occur before or
                 // after the error on the same line
 //                ,anyorder(
@@ -1664,7 +1664,7 @@ public class esc1 extends EscBase {
                 ,seq("/tt/TestJava.java:15: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",142)
                 )
                 ,"/tt/TestJava.java:15: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.bassumeMULT(boolean,boolean)",153
-                ,"/tt/TestJava.java:15: verify: There is no feasible path to program point at program exit in method tt.TestJava.bassumeMULT(boolean,boolean)",22
+                ,"/tt/TestJava.java:15: verify: There is no feasible path to program point at program exit in method tt.TestJava.bassumeMULT(boolean,boolean)",201
                 );
     }
 
