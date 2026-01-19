@@ -105,9 +105,9 @@ Result of split AA is Verified
 Proof attempt for split AB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits/Test.java:61: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
-    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
-                   ^
+test/splits/Test.java:74: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
+    }
+    ^
 Result of split AB is INFEASIBLE
 Proof attempt for split BA
 Feasibility check - end of preconditions : OK
@@ -116,9 +116,9 @@ Result of split BA is Verified
 Proof attempt for split BB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits/Test.java:61: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
-    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
-                   ^
+test/splits/Test.java:74: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
+    }
+    ^
 Result of split BB is INFEASIBLE
 Proof attempt for split BC
 test/splits/Test.java:71: warning: The prover cannot establish an assertion (Postcondition) in method mcombined
@@ -176,9 +176,9 @@ Starting proof of Test.dowhile() with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits/Test.java:161: warning: There is no feasible path to program point at program exit in method Test.dowhile()
-    public void dowhile() {
-                ^
+test/splits/Test.java:166: warning: There is no feasible path to program point at program exit in method Test.dowhile()
+    }
+    ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK

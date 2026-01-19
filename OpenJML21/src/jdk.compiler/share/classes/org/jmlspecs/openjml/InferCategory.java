@@ -58,6 +58,11 @@ public class InferCategory {
         }
         return sb.toString();
     }
+    
+    public String help() {
+        return  "Help: --help=infer   Subcommands: none all list reset show\n" + 
+                "Implemented specification inference keys: " + InferCategory.instance(context).inferKeys.keySet();
+    }
 
     public InferAction action(String key) {
         InferAction b = inferKeys.get(key);

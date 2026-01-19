@@ -88,26 +88,26 @@ ${RTH} testJmlBadNoSource "$OJ --verboseness=" || RES=$(($RES+1))
 ${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
-##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))
+##${RTH} testJmlBadEmpty "$OJ --verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBadNoSource "$OJ --verboseness= " || RES=$(($RES+1))
+${RTH} testJmlBadNoSourceWS "$OJ --verboseness= " || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
-#${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
+#${RTH} testJmlBadNoSourceWS2 "$OJ '-verboseness= '" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness property
 export OPENJML_verboseness=x
-${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+${RTH} testJmlBadProperty "$OJ -check" || RES=$(($RES+1))
 unset OPENJML_verboseness
 
 ## Checks when there is a bad verboseness property
 echo "org.openjml.option.verboseness=x" > ./openjml.properties
-${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+${RTH} testJmlBadProperty2 "$OJ -check" || RES=$(($RES+1))
 rm openjml.properties
 
 ## Checks when there is a bad use of -java
-${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
+${RTH} testJmlBadJava "$OJ -check -java" || RES=$(($RES+1))
 
 
 #echo "public class A { /*@ invariant 0; */ }" > A.java
@@ -199,7 +199,7 @@ ${RTH} testEsc2 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./s
 
 ## FIXME - is not platform-independent
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=../../../Solvers/Solvers-macos/z3-4.3.1 || RES=$(($RES+1))
+${RTH} testEsc3 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=../../../Solvers/Solvers-macos/z3-4.3.1 || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
