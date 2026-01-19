@@ -62,6 +62,11 @@ public class WarningCategory {
         }
         return sb.toString();
     }
+    
+    public Strng help() {
+        return  "Help: --help=warn   Subcommands: none all list reset\n" + 
+                "Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet();
+    }
 
     public WarnAction action(String key) {
         WarnAction b = warningKeys.get(key);

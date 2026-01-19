@@ -269,7 +269,8 @@ public abstract class JmlTestSuite {
     public boolean noExtraPrinting = false;
 
     /** Set this to true in a test to print out more detailed information about
-     * what the test is doing (as a debugging aid).
+     * what the test is doing (as a debugging aid); should be false in normal
+     * test execution.
      */
     public boolean print = false;
     

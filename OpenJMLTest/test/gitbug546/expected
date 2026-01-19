@@ -100,9 +100,9 @@ Starting proof of T.rr() with prover !!!!
 Completed proof of T.rr() with prover !!!! - no warnings
 Starting proof of T.rrr() with prover !!!!
 Feasibility check - at program exit : infeasible
-Test.java:25: verify: There is no feasible path to program point at program exit in method T.rrr()
-  //@ model void rrr() {
-                 ^
+Test.java:27: verify: There is no feasible path to program point at program exit in method T.rrr()
+  //@ }
+      ^
 Completed proof of T.rrr() with prover !!!! - INFEASIBLE
 Completed proving methods in T
 1 verification failure

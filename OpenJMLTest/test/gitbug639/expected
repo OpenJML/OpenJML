@@ -11,9 +11,9 @@ test/gitbug639/A.java:4: warning: There is no feasible path to program point at 
         //@ refining ensures false;  // statement spec, but no warning about false assertion
             ^
 Feasibility check - at program exit : infeasible
-test/gitbug639/A.java:2: warning: There is no feasible path to program point at program exit in method A.main(java.lang.String[])
-    public static void main(String[] args) {
-                       ^
+test/gitbug639/A.java:6: warning: There is no feasible path to program point at program exit in method A.main(java.lang.String[])
+    }
+    ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
 test/gitbug639/A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method main
