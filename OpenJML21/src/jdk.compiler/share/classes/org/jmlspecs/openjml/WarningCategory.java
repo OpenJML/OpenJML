@@ -63,7 +63,7 @@ public class WarningCategory {
         return sb.toString();
     }
     
-    public Strng help() {
+    public String help() {
         return  "Help: --help=warn   Subcommands: none all list reset\n" + 
                 "Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet();
     }
