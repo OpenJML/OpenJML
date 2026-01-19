@@ -37,6 +37,7 @@ diff xx/yy/Test.java.json Test.java.json.expected || ERR=1
 diff xx/yy/p/TestP.java.json TestP.java.json.expected || ERR=1
 diff xx/yy/q/r/TestPP.java.json TestPP.java.json.expected || ERR=1
 
+rm -rf xx
 if [ $ERR == 1 ]; then echo "JSON LOCATION TESTS FAILED "; fi
 exit $ERR
 
