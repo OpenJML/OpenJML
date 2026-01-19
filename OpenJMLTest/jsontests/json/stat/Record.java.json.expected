@@ -515,6 +515,7 @@
                   {
                     "@class": "org.jmlspecs.openjml.JmlTree$JmlStatementLoopModifies",
                     "@id": "71",
+                    "sourcefile": null,
                     "name": null,
                     "clauseType": {
                       "@class": "org.jmlspecs.openjml.IJmlClauseKind",
@@ -687,7 +688,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlWhileLoop",
                 "@id": "93",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"
@@ -720,7 +721,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlDoWhileLoop",
                 "@id": "98",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"
@@ -817,7 +818,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlEnhancedForLoop",
                 "@id": "110",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"

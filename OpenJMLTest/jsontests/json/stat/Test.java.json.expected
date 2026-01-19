@@ -408,7 +408,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlWhileLoop",
                 "@id": "61",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"
@@ -923,7 +923,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlEnhancedForLoop",
                 "@id": "133",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"
@@ -977,7 +977,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlWhileLoop",
                 "@id": "138",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"
@@ -1051,7 +1051,7 @@
               {
                 "@class": "org.jmlspecs.openjml.JmlTree$JmlDoWhileLoop",
                 "@id": "147",
-                "loopSpecs": null,
+                "loopSpecs": [],
                 "split": {
                   "@class": "boolean",
                   "primitive": "false"
