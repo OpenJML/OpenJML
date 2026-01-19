@@ -50,11 +50,12 @@ openjml: .FORCE
 clean: cov-clean
 	find . -name '*.class' -delete
 	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
-	find . -name 'actual*' -delete
-	rm -f unittests/log* test/*/log* testspecs/*/log*
+	find . -name '*actual*' -delete
+	rm -f ./log* unittests/log* test/*/log* testspecs/*/log*
 	rm -f smt/*.smt*
 	rm -f tempUserGuide
-	rm -rf testcompiles; mkdir testcompiles
+	rm -rf testcompiles
+	rm -rf jsontests/json-loc/xx
 
 
 release: .FORCE
