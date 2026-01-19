@@ -2135,6 +2135,7 @@ public class escall3 extends EscBase {
     @Test
     public void testLoopAssignsInference() {
         expectedExit = 1;
+        addOptions("--infer=show");
         allowNotes(true);
         helpEsc("LOOP",
             """

@@ -773,7 +773,7 @@ public class esc2 extends EscBase {
                 + "}"
                 ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m",25
                 ,"/tt/TestJava.java:4: verify: Associated declaration", 7
-                ,"/tt/TestJava.java:20: verify: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)",14
+                ,"/tt/TestJava.java:20: verify: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)",41
                 );
     }
 

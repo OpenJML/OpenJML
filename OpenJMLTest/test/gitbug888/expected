@@ -132,4 +132,4 @@ Feasibility check - after call : OK
 Feasibility check - after call : OK
 Completed proof of Test2.sumArray(int[]) with prover !!!! - INFEASIBLE
 Completed proving methods in Test2
-8 warnings
+4 warnings
