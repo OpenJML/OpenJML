@@ -23,17 +23,17 @@ public class feasibility extends EscBase {
         if (split != null) addOptions("--split=" + split);
         addOptions("--check-feasibility=none");
         addOptions("--no-show-skipped");
-        addOptions("--method=m,q");
+        addOptions("--method=m,q,r");
         super.helpEsc("tt.TestJava", program);
         reset();
         if (split != null) addOptions("--split=" + split);
         addOptions("--no-show-skipped");
-        addOptions("--method=m,q");
+        addOptions("--method=m,q,r");
         addOptions("--check-feasibility=" + feasoption);
         super.helpEsc("tt.TestJava", program, expectedResults);
     }
     
-    // FIXME - also break statement not in loop; preconditions of spec; methodaxioms?
+    // FIXME - preconditions of spec; methodaxioms?
 
     @Test
     public void fassert() {
@@ -79,7 +79,27 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point before call in method tt.TestJava.m()", 6
                 ,"/tt/TestJava.java:5: verify: There is no feasible path to program point after call in method tt.TestJava.m()", 6
+                );
+    }
+
+    @Test
+    public void fcall2() {
+        helpFeas("call",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    t();
+                  }
+                  //@ public behavior
+                  //@ ensures false;
+                  //@ signals (Exception e) false;
+                  public void t() { }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: There is no feasible path to program point after call in method tt.TestJava.m()", 6
                 );
     }
 
@@ -105,12 +125,22 @@ public class feasibility extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                  public void m() {
+                  //@ requires i == 0;
+                  public void m(int i) {
+                    if (i == 0) return;
+                  }
+                  //@ requires i != 0;
+                  public void q(int i) {
+                    if (i == 0) throw new RuntimeException();
+                  }
+                  //@ requires i != 0;
+                  public void r(int i) {
+                    if (i == 0) return;
                     //@ assume false;
                   }
                 }
                 """
-                ,"/tt/TestJava.java:3: verify: There is no feasible path to program point at program exit in method tt.TestJava.m()", 15
+                ,"/tt/TestJava.java:15: verify: There is no feasible path to program point at program exit in method tt.TestJava.r(int)", 3
                 );
     }
 
@@ -122,12 +152,13 @@ public class feasibility extends EscBase {
                 public class TestJava {
                   //@ diverges true;
                   public void m() {
-                    try { System.exit(0); }
+                    try { //@ assume false;
+                    }
                     finally {}
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at beginning of finally block in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point at beginning of finally block in method tt.TestJava.m()", 13
                 );
     }
 
@@ -168,14 +199,33 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m(int)", 5
-                ,"/tt/TestJava.java:11: verify: There is no feasible path to program point at else branch in method tt.TestJava.q(int)", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m(int)", 17
+                ,"/tt/TestJava.java:12: verify: There is no feasible path to program point at else branch in method tt.TestJava.q(int)", 12
+                );
+    }
+
+    @Test
+    public void fblockbreak() {
+        helpFeas("break",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i > 0;
+                  public void m(int i) {
+                    x: {
+                      if (i == 0) break x;
+                      i = 1;
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at break statement in method tt.TestJava.m(int)", 19
                 );
     }
 
     @Test
     public void floopbreak() {
-        helpFeas("loopbreak",
+        helpFeas("break",
                 """
                 package tt;
                 public class TestJava {
@@ -187,7 +237,7 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at break statement in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at break statement in method tt.TestJava.m()", 20
                 );
     }
 
@@ -205,11 +255,11 @@ public class feasibility extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at continue statement in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at loop continue statement in method tt.TestJava.m()", 20
                 );
     }
 
-    @Test @Ignore // FIXME - not implemented
+    @Test
     public void floopcondition() {
         helpFeas("loopcondition",
                 """
@@ -217,31 +267,49 @@ public class feasibility extends EscBase {
                 public class TestJava {
                   public void m() {
                     //@ loop_invariant 0 <= i <= 10;
-                    for (int i = 0; i < 10; i++) {
-                      if (i == -1) continue;
+                    for (int i = 0; i > 10; i++) {
                     }
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at beginning of loop body in method tt.TestJava.m()", 34
                 );
     }
 
-    @Test @Ignore // FIXME - not implemented
+    @Test
+    public void floopbody() {
+        helpFeas("loopbody",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    //@ loop_invariant 0 <= i <= 10;
+                    for (int i = 0; i > 10; i++) {
+                      int k = 0;
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point at end of loop body in method tt.TestJava.m()", 5
+                );
+    }
+
+    @Test
     public void floopexit() {
         helpFeas("loopexit",
                 """
                 package tt;
                 public class TestJava {
                   public void m() {
+                    int i = 0;
                     //@ loop_invariant 0 <= i <= 10;
-                    for (int i = 0; i < 10; i++) {
-                      if (i == -1) continue;
+                    while (true) {
+                      i = 1;
                     }
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: There is no feasible path to program point at then branch in method tt.TestJava.m()", 5
+                ,"/tt/TestJava.java:8: verify: There is no feasible path to program point at loop exit branch (false condition) in method tt.TestJava.m()", 5
                 );
     }
 
@@ -261,7 +329,7 @@ public class feasibility extends EscBase {
     }
 
     @Test
-    public void fprecondition2() { // FIXME
+    public void fprecondition2() {
         helpFeas("precondition",
                 """
                 package tt;
@@ -318,14 +386,21 @@ public class feasibility extends EscBase {
                 package tt;
                 public class TestJava {
                   //@ requires i == 0;
-                  public void m(int i) {
+                  public void q(int i) {
                     if (i != 0) {
+                      return;
+                    }
+                  }
+                  //@ requires i == 0;
+                  public void m(int i) {
+                    if (i == 0) {
                       return;
                     }
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at return statement in method tt.TestJava.m(int)", 7
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at return statement in method tt.TestJava.q(int)", 7
+                ,"/tt/TestJava.java:14: verify: There is no feasible path to program point at implicit return in method tt.TestJava.m(int)",3
                 );
     }
 
@@ -349,6 +424,25 @@ public class feasibility extends EscBase {
     }
 
     @Test
+    public void fswitch2() {
+        helpFeas("switch",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i == 1;
+                  public void m(int i) {
+                    switch (i) {
+                      case 0: break;
+                      default: break;
+                    }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point after case condition in method tt.TestJava.m(int)", 7
+                );
+    }
+
+    @Test
     public void fspecA() {
         split = "A";
         helpFeas("spec",
@@ -368,29 +462,6 @@ public class feasibility extends EscBase {
 
     @Test
     public void fspecB() {
-        addOptions("--split=B");
-        addOptions("--check-feasibility=all");
-        addOptions("--no-show-skipped","--method=m");
-
-        String program =
-                """
-                package tt;
-                public class TestJava {
-                  //@ requires i == 0;
-                  public void m(int i) {
-                    //@ refining ensures false;
-                    {}
-                  }
-                }
-                """
-                ;
-        super.helpEsc("tt.TestJava", program
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition) in method m", 18
-                );
-    }
-
-    @Test
-    public void fspecC() {  // FIXME -- not checking the requires?
         split = "B";
         helpFeas("spec",
                 """
@@ -398,12 +469,14 @@ public class feasibility extends EscBase {
                 public class TestJava {
                   //@ requires i == 0;
                   public void m(int i) {
-                    //@ refining requires false;
-                    {}
+                    //@ refining ensures true;
+                    {
+                    //@ assume false;
+                    }
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point after case condition in method tt.TestJava.m(int)", 7
+                ,"/tt/TestJava.java:8: verify: There is no feasible path to program point at end of refining statement block in method tt.TestJava.m(int)", 5
                 );
     }
 

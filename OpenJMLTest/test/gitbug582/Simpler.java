@@ -20,6 +20,7 @@ public class Simpler {
 	
 	//@ ensures !h.has(o);
 	public void loop(H h, Object o) {
+	    //@ loop_assigns h.content;
 		while (h.has(o)) {
 			h.take(o);
 		}
@@ -28,6 +29,7 @@ public class Simpler {
 	
 	//@ ensures !h.has(o);
 	public void loop2(H h, Object o) {
+        //@ loop_assigns h.content;
 		for (; h.has(o); ) {
 			h.take(o);
 		}
@@ -36,6 +38,7 @@ public class Simpler {
 
 	//@ ensures !h.has(o);
 	public void loop3(H h, Object o) {
+        //@ loop_assigns h.content;
 		do {
 			h.take(o);
 		} while (h.has(o));
@@ -46,6 +49,7 @@ public class Simpler {
 	//@ ensures !h.has(o);
 	public void loop4(int[] a, H h, Object o) {
 		//@ loop_invariant !h.has(o);
+        //@ loop_assigns h.content;
 		for (int k: a) {
 			h.take(o);
 			//@ assume !h.has(o);
@@ -57,6 +61,7 @@ public class Simpler {
 	//@ ensures !h.has(o);
 	public void loop4(java.util.List<Object> a, H h, Object o) {
 		//@ loop_invariant !h.has(o);
+        //@ loop_assigns h.content;
 		for (Object k: a) {
 			h.take(o);
 			//@ assume !h.has(o);

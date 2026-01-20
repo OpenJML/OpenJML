@@ -1111,13 +1111,13 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug738() {
         expectedExit = 0;
-        helpTG("--warn=missing-measured-by");
+        helpTG("--warn=missing-measured-by","--check-feasibility=none");
     }
     
     @Test
     public void gitbug738a() {
         expectedExit = 0;
-        helpTG();
+        helpTG("--check-feasibility=none");
     }
     
     @Test

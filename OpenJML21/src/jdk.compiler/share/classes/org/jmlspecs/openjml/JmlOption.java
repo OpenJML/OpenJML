@@ -226,9 +226,12 @@ public class JmlOption {
             WarningCategory warnings = WarningCategory.instance(context);
             String val = options.get(JmlOption.WARN.optionName());
             // CAUTION: check is called with an empty-string argument as part of initialization, when error messages are not yet read in.
-            if (Utils.instance(context).ojcheck(val != null, "null option value in JmlOption.WARN.check")) {
+            if (val == null) {
+                // In a bug-free program, this branch will never happen
+                Log.instance(context).error("jml.internal", "null option value in JmlOption.WARN.check");
+            } else {
                 if ("list".equals(val)) {
-                    System.out.println(warnings.list()); // FIXME - use Log.out() or something like that?
+                    System.out.print(warnings.list()); System.out.flush(); // FIXME - use Log.out() or something like that?
                 } else if ("reset".equals(val) || val.isEmpty()) {
                     warnings.reset();
                 } else if ("all".equals(val)) {
@@ -244,7 +247,38 @@ public class JmlOption {
                 }
             }
             return true;
-    	}
+        }
+    };
+    public static final JmlOption INFER = new JmlOption("--infer",true,"","Comma-separated list of inference keys to enable or disable",null) {
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            InferCategory infermap = InferCategory.instance(context);
+            String val = options.get(JmlOption.INFER.optionName());
+            // CAUTION: check is called with an empty-string argument as part of initialization, when error messages are not yet read in.
+            if (val == null) {
+                // In a bug-free program, this branch will never happen
+                Log.instance(context).error("jml.internal", "null option value in JmlOption.INFER.check");
+            } else {
+                if ("list".equals(val)) {
+                    System.out.print(infermap.list()); System.out.flush(); // FIXME - use Log.out() or something like that?
+                } else if ("reset".equals(val) || val.isEmpty()) {
+                    infermap.reset();
+                } else if ("all".equals(val)) {
+                    infermap.setAll(negate ? InferCategory.InferAction.NO : InferCategory.InferAction.YES);
+                } else if ("none".equals(val)) {
+                    infermap.setAll(negate ? InferCategory.InferAction.YES : InferCategory.InferAction.NO);
+                } else if ("show".equals(val)) {
+                    infermap.showInferred = !negate;
+                } else {
+                    String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
+                    for (var k: keys) {
+                        if (infermap.inferKeys.containsKey(k)) infermap.inferKeys.put(k, negate ? InferCategory.InferAction.NO : InferCategory.InferAction.YES );
+                        else Utils.instance(context).warning("jml.message", "In --(no-)infer, '" + k + "' is not a valid infer key; see --help=infer");
+                    }
+                }
+            }
+            return true;
+        }
     };
     public static final JmlOption QUIET = new JmlOption("--quiet",false,null,"Only output the exit code","--verboseness="+Utils.QUIET);
     public static final JmlOption NORMAL = new JmlOption("--normal",false,null,"Error and warning messages (default)","--verboseness="+Utils.NORMAL);
@@ -258,6 +292,7 @@ public class JmlOption {
     // Internal use only
     public static final JmlOption JMLTESTING = new JmlOption("-jmltesting",false,false,"Controls output information during testing",null) {
         public boolean check(Context context, boolean negate) {
+            InferCategory.instance(context).showInferred = false;
             return true;
         }
     };

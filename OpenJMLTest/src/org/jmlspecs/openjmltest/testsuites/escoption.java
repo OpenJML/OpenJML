@@ -616,7 +616,17 @@ public class escoption extends EscBase {
         addOptions("--help=warn");
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
-        org.junit.Assert.assertEquals("Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]\n",output());
+        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]\n",output());
+        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+    }
+
+    @Test
+    public void helpInfer() {
+        expectedExit = 0;
+        addOptions("--help=infer");
+        helpEsc("tt.TestJava", "package tt; public class TestJava {}"
+        );
+        org.junit.Assert.assertEquals("Help: --help=infer   Subcommands: none all list reset show\nImplemented specification inference keys: [loop-assigns]\n",output());
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 

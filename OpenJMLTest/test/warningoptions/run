@@ -14,5 +14,6 @@ openjml --no-warn=all --warn=list >> actual 2>&1
 openjml --warn=zzz >> actual 2>&1
 openjml "--warn= " >> actual 2>&1
 openjml --warn= >> actual 2>&1
+openjml --help=warn >> actual 2>&1
 
 diff actual expected && rm -rf actual

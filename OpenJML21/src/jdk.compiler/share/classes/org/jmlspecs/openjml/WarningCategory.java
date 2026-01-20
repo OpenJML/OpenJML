@@ -3,6 +3,9 @@ package org.jmlspecs.openjml;
 import com.sun.tools.javac.util.Context;
 import java.util.*;
 
+// CAUTION: This class is instantiated before options are read, so its construction must not depend on options.
+// During the reading of options, the settings in here may be adjusted 
+
 public class WarningCategory {
 
     protected Context context;
@@ -58,6 +61,11 @@ public class WarningCategory {
             sb.append(warningKeys.get(k)).append("\t").append(defaultKeys.get(k)).append("\t").append(k).append("\n");
         }
         return sb.toString();
+    }
+    
+    public String help() {
+        return  "Help: --help=warn   Subcommands: none all list reset\n" + 
+                "Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet();
     }
 
     public WarnAction action(String key) {

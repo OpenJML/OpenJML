@@ -83,7 +83,7 @@ Starting proof of Test.misc2() with prover !!!!
 test/jmlTYPE/Test.java:168: warning: The prover cannot establish an assertion (NullFormal) in method misc2: arg0 in of(Class<?>)
             //@ ghost \TYPE tt = \TYPE.of(c); // ERROR -- c is null
                                           ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/TYPE.jml:21: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:21: warning: Associated declaration
     public static TYPE of(Class<?> h);
                           ^
 Completed proof of Test.misc2() with prover !!!! - with warnings

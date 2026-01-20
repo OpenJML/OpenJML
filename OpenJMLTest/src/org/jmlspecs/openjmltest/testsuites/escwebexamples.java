@@ -25,7 +25,7 @@ public class escwebexamples extends EscBaseFiles {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-    	ignoreNotes = true;
+        addOptions("--no-infer=show");
     }
     
     public void helpTG() {

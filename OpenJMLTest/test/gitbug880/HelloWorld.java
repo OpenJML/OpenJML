@@ -35,7 +35,7 @@ public class HelloWorld {
     }
 
     //@ requires true;
-    // @ ensures \result == false;
+    //@ ensures \result == false; // FAILS
     //@ pure
     public static boolean test3() {
         Date date = new Date("025", "21", "31", "14:00:00");
