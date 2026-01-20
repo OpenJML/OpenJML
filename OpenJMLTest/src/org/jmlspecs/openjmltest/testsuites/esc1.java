@@ -352,11 +352,11 @@ public class esc1 extends EscBase {
                 ,"/tt/TestJava.java:22: verify: Associated declaration", 14
                 ,anyorder(
                 seq("/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4bad: objectState", 16
-                ,"/tt/TestJava.java:32: verify: Associated declaration", 29)
+                ,"/tt/TestJava.java:32: verify: Associated declaration", 5)
                 ,seq("/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4bad: moreElements", 16
-                ,"/tt/TestJava.java:32: verify: Associated declaration", 29)
+                ,"/tt/TestJava.java:32: verify: Associated declaration", 5)
                 ,seq("/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4bad: remove_called_since", 16
-                ,"/tt/TestJava.java:32: verify: Associated declaration", 29)
+                ,"/tt/TestJava.java:32: verify: Associated declaration", 5)
                 )
                 );
     }

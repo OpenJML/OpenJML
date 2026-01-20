@@ -38,6 +38,8 @@ import org.junit.Assert;
  * (successively within a single thread.
  */
 public class OutputCompare {
+    
+    public boolean print = false; // Set to true for some debugging
 
     /** This is the base class of special collections of expected diagnostics */
     protected static class Special {
@@ -126,7 +128,7 @@ public class OutputCompare {
         collector = collectorp;
         nDiags = collector.getDiagnostics().size();
         diagListPos = 0;
-        //System.out.println("START " + expectedErrors.length + " " + nDiags);
+        if (print) System.out.println("START " + expectedErrors.length + " " + nDiags);
         if (!compareResultsX(expectedErrors)) {
             if (diagListPos < nDiags) {
                 Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
@@ -156,7 +158,7 @@ public class OutputCompare {
         int i = 0;
         int initPos = diagListPos;
         while (i < expectedDiags.length) {
-            //System.out.println("TEST " + i + " " + expectedErrors.length + " " + diagListPos + " " + nDiags);
+            if (print) System.out.println("TEST " + i + " " + expectedDiags.length + " " + diagListPos + " " + nDiags);
             if (!(expectedDiags[i] instanceof Special)) {
                 int n = compareDiagnostic(expectedDiags,i);
                 if (n > 0) {
@@ -184,6 +186,7 @@ public class OutputCompare {
                 int initPos2 = diagListPos;
                 if (!compareResultsX(op.expected)) {
                     diagListPos = initPos2;
+                    System.out.println("COMPARING OPTIONAL NOMATCH");
                 }
                 ++i;
                 // It is OK if the optional did not match
@@ -213,6 +216,8 @@ public class OutputCompare {
         if (list[i] != null) { // FIXME - is this ever null?
             exp = JmlTestSuite.doReplacements(list[i].toString()).replace('\\','/'); // FIXME - get rid of replace
         }
+        if (print) { System.out.println("COMPARING"); System.out.println(act);; System.out.println(exp); }
+        
         x: {
             itemThatDiffers = 0;
             if (!act.equals(exp)) {
@@ -274,7 +279,7 @@ public class OutputCompare {
                 } break x;
             }
         }
-        //System.out.println("MATCHED AT " + k + " " + i + " " + diagListPos);
+        if (print) System.out.println("MATCHED AT " + k + " " + i + " " + diagListPos);
         diagListPos++;
         return i-k;
     }
@@ -291,10 +296,12 @@ public class OutputCompare {
         while (i < expected.length) {
             if (compareResultsX(expected[i])) {
                 // Matched
+                if (print) System.out.println("COMPARING ONEOF MATCHED " + i);
                 return true;
             }
             i++;
         }
+        if (print) System.out.println("COMPARING ONEOF FAILED");
         return false;
     }
 
@@ -303,6 +310,7 @@ public class OutputCompare {
      * reporting a successful match (true output and diagListPos advancing by expected.length) if all of the expected objects match in some order;
      * returns false if there is no order that matches. */
     protected boolean compareAnyOrder(Object[] expected) {
+        if (print) System.out.println("STARTING ANYORDER " + diagListPos + " " + expected.length);
         // None of expected[i] may be null or empty; all of them must be Special objects
         boolean[] used = new boolean[expected.length];
         for (int i=0; i<used.length; ++i) used[i] = false;
@@ -313,16 +321,19 @@ public class OutputCompare {
                 if (used[i]) continue;
                 if (compareResultsX(expected[i])) {
                     // Matched
+                    if (print) System.out.println("COMPARING ANYORDER MATCHED " + i);
                     used[i] = true;
                     toMatch--;
                     continue more;
                 }
             }
             // No remaining entries match
+            if (print) System.out.println("COMPARING ANYORDER NOMATCH ");
             diagListPos = initPos;
             return false;
         }
         // everything matched
+        if (print) System.out.println("COMPARING ANYORDER ALL MATCHED");
         return true;
     }
     
@@ -351,7 +362,6 @@ public class OutputCompare {
                     if (sact != null) {
                         sact = sact.replace("\r\n", "\n");
                         sact = sact.replace('\\','/');
-                        //if (!hasVerify) sact = sact.replace("verify:", "");
                     }
                     if (sexp == null && sact == null) return diff.isEmpty() ? null : diff;
                     if (sexp != null && sact == null) {
