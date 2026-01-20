@@ -32,12 +32,11 @@ public class Test {
     //@ model public static void model_test(int[] arr) {
     //@     int[] c1 = arr.clone();
     //@     int[] c2 = arr.clone();
-    //@     check c1 != c2;
+    //@     check c1 != c2; // OK
     //@     setZero(c1);
     //@     setOne(c2);
-    //@     ghost boolean b = Arrays.equals(c1, c2);
-    //@     check b; // Arrays.equals(c1, c2);
-    //@     check arr.length == 0 <==> Arrays.equals(c1, c2);
+    //@     check arr.length == 0 <==> Arrays.equals(c1, c2); // OK
+    //@     check Arrays.equals(c1, c2);  // ERROR
     //@     reachable;
     //@ }
     
@@ -52,8 +51,8 @@ public class Test {
     //@     assume c1.length == c2.length;
     //@     setZero(c1);
     //@     setOne(c2);
-    //@     check \forall int i; 0 <= i < c1.length; c1[i] == 0;
-    //@     check \forall int i; 0 <= i < c2.length; c2[i] == 1;
+    //@     check \forall int i; 0 <= i < c1.length; c1[i] == 0; // OK
+    //@     check \forall int i; 0 <= i < c2.length; c2[i] == 1; // OK
     //@     reachable;
     //@     check Arrays.equals(c1,c2);  // ERROR
     //@     reachable;
@@ -62,7 +61,6 @@ public class Test {
     //@ requires arr != null; //requires arr.length == 1;
     //@ ensures \result == (arr.length == 0);
     public static boolean test(int[] arr) {
-        //@     assume arr instanceof Cloneable;
         int[] c1 = arr.clone();
         int[] c2 = arr.clone();
         setZero(c1);

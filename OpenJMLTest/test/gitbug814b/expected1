@@ -6,13 +6,13 @@ Starting proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!!
 test/gitbug814b/BinaryTree.java:23: warning: The prover cannot establish an assertion (Precondition) in method ks
             r.addAll(ks(n.right));
                     ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/TreeSet.jml:49: warning: Associated declaration
+$SPECS/java/util/TreeSet.jml:49: warning: Associated declaration
   public boolean addAll(java.util.Collection<? extends E> c);
                  ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
+$SPECS/java/util/Collection.jml:211: warning: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
       @   requires !\key("RAC") ==> !containsNull ==> !c.containsNull;
                                 ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
+$SPECS/java/util/Collection.jml:220: warning: Precondition conjunct is false: c == null
       @  requires c == null;
                     ^
 Completed proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!! - with warnings

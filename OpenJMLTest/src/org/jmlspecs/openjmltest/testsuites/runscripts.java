@@ -82,6 +82,10 @@ public class runscripts extends RunBase {
         doTest();
     }
 
+    @Test public void gitbug784() {
+        doTest();
+    }
+
     @Test public void gitbug786() {
         doTest();
     }
@@ -132,6 +136,10 @@ public class runscripts extends RunBase {
     }
 
     @Test public void nowarn() {
+        doTest();
+    }
+    
+    @Test public void inferoptions() {
         doTest();
     }
     

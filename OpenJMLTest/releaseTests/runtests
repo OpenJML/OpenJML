@@ -75,7 +75,7 @@ ${RTH} testJmlHelpSimp "$OJ" || RES=$(($RES+1))
 ## Checks the help message (when there is a -? option)
 ${RTH} testJmlHelp "$OJ -?" || RES=$(($RES+1))
 
-## Checks the help message (when there is a -help option)
+## Checks the help message (when there is a --help option)
 ${RTH} testJmlHelp "$OJ --help" || RES=$(($RES+1))
 
 ## Checks the help message (when there is a -help option)
@@ -85,29 +85,29 @@ ${RTH} testJmlHelp "$OJ -help" || RES=$(($RES+1))
 ${RTH} testJmlBadNoSource "$OJ --verboseness=" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
-${RTH} testJmlBadWarn "$OJ --verboseness" || RES=$(($RES+1))
+${RTH} testJmlBadNoValue "$OJ --verboseness" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
-##${RTH} testJmlBad "$OJ --verboseness \"\"" || RES=$(($RES+1))
+##${RTH} testJmlBadArg "$OJ --verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
 ${RTH} testJmlBadNoSource "$OJ --verboseness= " || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
-#${RTH} testJmlBad "$OJ '-verboseness= '" || RES=$(($RES+1))
+#${RTH} testJmlBadArg "$OJ '-verboseness= '" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness property
 export OPENJML_verboseness=x
-${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+${RTH} testJmlBadProperty "$OJ -check" || RES=$(($RES+1))
 unset OPENJML_verboseness
 
 ## Checks when there is a bad verboseness property
 echo "org.openjml.option.verboseness=x" > ./openjml.properties
-${RTH} testJmlBad2 "$OJ -check" || RES=$(($RES+1))
+${RTH} testJmlBadProperty "$OJ -check" || RES=$(($RES+1))
 rm openjml.properties
 
 ## Checks when there is a bad use of -java
-${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
+${RTH} testJmlBadJava "$OJ -check -java" || RES=$(($RES+1))
 
 
 #echo "public class A { /*@ invariant 0; */ }" > A.java
@@ -115,7 +115,7 @@ ${RTH} testJmlBad3 "$OJ -check -java" || RES=$(($RES+1))
 #echo "import org.jmlspecs.annotation.Pure; public class C { @Pure int m() { return 0; } }" > C.java
 #echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
 
-## Checks a valid file using java -jar
+## Checks a valid file
 ${RTH} testOK1 "$OJ --no-purity-check --specs-path src src/B.java" || RES=$(($RES+1))
 
 ## This checks verbose output - which changes too often to put in the 

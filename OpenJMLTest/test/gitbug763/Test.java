@@ -17,18 +17,20 @@ static String lengthBalancerAddingZeroes(String binary_str, int lengthDiff)
 	//@ loop_invariant 0 <= i <= \old(lengthDiff);
 	//@ loop_invariant binary_str != null;
 	//------step1
-	//@ loop_invariant binary_str.length() == \old(binary_str.length() )+ i;
+	//@ loop_invariant binary_str.length() == \old(binary_str, \Pre ).length()+ i;
 	//------step2
 	//@ loop_invariant binary_str.substring(i).equals(\old(binary_str));
 	//------step3
-	//@ loop_invariant (i>0)==> (binary_str.charAt(i-1) == '0');
-	//@ loop_invariant (i>0)==> (binary_str.charAt(0) == '0');
-	//@ loop_invariant (i>0)==> (\forall int k; 0 <= k < i; binary_str.charAt(k) == '0');
-
+	//@ loop_invariant (i>0) ==> (binary_str.charAt(i-1) == '0');
+	//@ loop_invariant (i>0) ==> (binary_str.charAt(0) == '0');
+	//@ loop_invariant (\forall int k; 0 <= k < i; binary_str.charAt(k) == '0');
 	//@ loop_decreases lengthDiff - i;
     for (int i = 0; i < lengthDiff; i++)  
     {  
+        //@ ghost int len = binary_str.length();
         binary_str = "0" + binary_str;  
+        //@ assert binary_str.charAt(0) == '0' && binary_str.charAt(i) == '0';
+        //@ assert \forall int k; 1 <= k <= i; binary_str.charAt(k) == \old(binary_str, \LoopBody).charAt(k-1);
     }  
     return binary_str; 
 }
@@ -57,14 +59,15 @@ static String lengthBalancerAddingZeroesB(String binary_str, int lengthDiff)
   //------step2
   //@ loop_invariant binary_str.substring(i).equals(initialStr);
   //------step3
-  //@ loop_invariant (i>0)==> (binary_str.charAt(i-1) == '0');
-  //@ loop_invariant (i>0)==> (binary_str.charAt(0) == '0');
-  //@ loop_invariant (i>0)==> (\forall int k; 0 <= k < i; binary_str.charAt(k) == '0');
-
+  //@ loop_invariant (i>0) ==> (binary_str.charAt(i-1) == '0');
+  //@ loop_invariant (i>0) ==> (binary_str.charAt(0) == '0');
+  //@ loop_invariant (\forall int k; 0 <= k < i; binary_str.charAt(k) == '0');
   //@ loop_decreases lengthDiff - i;
   for (int i = 0; i < lengthDiff; i++)  
   {  
       binary_str = "0" + binary_str;  
+      //@ assert binary_str.charAt(0) == '0' && binary_str.charAt(i) == '0';
+      //@ assert \forall int k; 1 <= k <= i; binary_str.charAt(k) == \old(binary_str, \LoopBody).charAt(k-1);
   }  
   return binary_str; 
 }

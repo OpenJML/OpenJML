@@ -72,7 +72,7 @@ public class JmlOptions extends Options {
     }
 
     public static void preRegister(Context context) {
-        context.put(Options.optionsKey, new JmlOptions(context));
+        context.put(Options.optionsKey, new JmlOptions(context)); // The put here is unnecessary because 'this' is registered in Options().
     }
 
     public static JmlOptions instance(Context context) {
@@ -241,7 +241,10 @@ public class JmlOptions extends Options {
                 if ("--help".equals(s)) {
                     switch (res) {
                     case "warn":
-                        System.out.println("Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet());
+                        System.out.println(WarningCategory.instance(context).help());
+                        break;
+                    case "infer":
+                        System.out.println(InferCategory.instance(context).help());
                         break;
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
@@ -305,7 +308,7 @@ public class JmlOptions extends Options {
         
 
         if (o != null && o.hasArg()) {
-            if (negate && !s.equals("--warn") && !s.equals("--split")) {
+            if (negate && !s.equals("--warn") && !s.equals("--infer") && !s.equals("--split")) {
                 Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)"); // FIXME - add --split to message
                 negate = false;
             }

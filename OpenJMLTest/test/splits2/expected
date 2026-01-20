@@ -7,9 +7,9 @@ Starting proof of Test.whok(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits2/Test.java:4: warning: There is no feasible path to program point at program exit in method Test.whok(int)
-    public void whok(int k) {
-                ^
+test/splits2/Test.java:13: warning: There is no feasible path to program point at program exit in method Test.whok(int)
+    }
+    ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
@@ -54,9 +54,9 @@ Starting proof of Test.whfor(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits2/Test.java:52: warning: There is no feasible path to program point at program exit in method Test.whfor(int)
-    public void whfor(int k) {
-                ^
+test/splits2/Test.java:62: warning: There is no feasible path to program point at program exit in method Test.whfor(int)
+    }
+    ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
@@ -68,9 +68,9 @@ Starting proof of Test.enfor(int[]) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits2/Test.java:64: warning: There is no feasible path to program point at program exit in method Test.enfor(int[])
-    public void enfor(int[] k) {
-                ^
+test/splits2/Test.java:75: warning: There is no feasible path to program point at program exit in method Test.enfor(int[])
+    }
+    ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK

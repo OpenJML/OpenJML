@@ -75,7 +75,14 @@ public class escfiles2 extends EscBaseFiles {
     public void gitbug455a() {
         helpTG();
     }
-    
+
+    @Test
+    public void gitbug582() {
+        expectedExit = 0;
+        helpTG("--purity-check");
+    }
+
+
     @Test
     public void gitbug600() {
         helpTG();
@@ -109,6 +116,11 @@ public class escfiles2 extends EscBaseFiles {
     @Test
     public void gitbug762() {
         helpTG("--check");
+    }
+    
+    @Test
+    public void gitbug763() {
+        helpTG("--check-feasibility=none");
     }
     
     @Test
@@ -281,6 +293,11 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug935() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug938() {
         helpTG();
     }
     

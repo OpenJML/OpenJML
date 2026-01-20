@@ -2131,4 +2131,97 @@ public class escall3 extends EscBase {
             """
         );
     }
+
+    @Test
+    public void testLoopAssignsInference() {
+        expectedExit = 1;
+        addOptions("--infer=show");
+        allowNotes(true);
+        helpEsc("LOOP",
+            """
+            public class LOOP {
+              public void m() {
+                int k = 0;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_assigns i,k;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_assigns k;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_assigns i;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_decreases 10 - i;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+              }
+            }
+            """
+           ,"/LOOP.java:4: Note: Inferred clause: //@ loop_writes \\count, i, k;", 5
+           ,"/LOOP.java:15: Note: Inferred clause: //@ loop_writes k, \\count, i;", 9
+           ,"/LOOP.java:25: error: Local variable is assigned but not present in loop frame clause: k not in //@ loop_writes i, \\count;", 7
+           ,"/LOOP.java:28: Note: Inferred clause: //@ loop_writes \\count, i, k;", 5
+        );
+    }
+
+    @Test
+    public void testLoopAssignsInferenceB() {
+        expectedExit = 1;
+        allowNotes(true);
+        addOptions("--infer=none");
+        helpEsc("LOOP",
+            """
+            public class LOOP {
+              public void m() {
+                int k = 0;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_assigns i,k;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_assigns k;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+                //@ loop_assigns i;
+                for (int i = 0; i < 10; i++) {
+                  int j = 0;
+                  j = 1;
+                  k = 1;
+                }
+              }
+            }
+            """
+            ,"/LOOP.java:4: error: Inference of loop_assigns clauses is disabled, so this loop requires an explicit loop_assigns clause", 5
+            ,"/LOOP.java:7: error: Local variable is assigned but not present in loop frame clause: k not in //@ loop_writes \\count;", 7
+            ,"/LOOP.java:4: error: Local variable is assigned but not present in loop frame clause: i not in //@ loop_writes \\count;", 29
+            ,"/LOOP.java:16: error: Local variable is assigned but not present in loop frame clause: i not in //@ loop_writes k, \\count;", 29
+            ,"/LOOP.java:25: error: Local variable is assigned but not present in loop frame clause: k not in //@ loop_writes i, \\count;", 7
+        );
+    }
 }

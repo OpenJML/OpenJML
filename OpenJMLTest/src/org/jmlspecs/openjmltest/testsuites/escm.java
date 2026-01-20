@@ -107,7 +107,7 @@ public class escm extends EscBase {
                        class C {
                            //@ public invariant false;
                            void m() {  }};  // Line 10
-                       C x;
+                       C x;  // Line 10
                        class D { void m() {  }}
                        D y = new D() { /*@ public invariant false;*/ void m() {}};
                        // After execution of D(), D's invariants are assumed, which includes assuming false -- hence the feasibility failure
@@ -130,7 +130,7 @@ public class escm extends EscBase {
                 ,"/TestJava.java:14: verify: Associated declaration",29
                 ,"/TestJava.java:14: verify: Invariants+Preconditions appear to be contradictory in method E.mm()",52 
                 ,"/TestJava.java:15: verify: Invariants+Preconditions appear to be contradictory in method TestJava.2.mm()",30
-                ,"/TestJava.java:6: verify: There is no feasible path to program point at program exit in method TestJava.m1(TestJava)",15
+                ,"/TestJava.java:16: verify: There is no feasible path to program point at program exit in method TestJava.m1(TestJava)",3
                 ,"/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
                 ,"/TestJava.java:18: verify: Associated declaration",17
                 ,"/TestJava.java:19: verify: Invariants+Preconditions appear to be contradictory in method TestJava.A.m2()",18
@@ -282,7 +282,7 @@ public class escm extends EscBase {
 
                 +"}\n"
                 ,"/tt/TestJava.java:6: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.m1(tt.TestJava)",12
-                ,"/tt/TestJava.java:4: verify: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",14
+                ,"/tt/TestJava.java:8: verify: There is no feasible path to program point at program exit in method tt.TestJava.m1(tt.TestJava)",3
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m2",12
                 ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m3",12
         );

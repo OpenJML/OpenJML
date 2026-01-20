@@ -142,6 +142,10 @@ public abstract class JmlTestSuite {
         public List<Diagnostic<? extends S>> getDiagnostics();
     }
     
+    public void allowNotes(boolean allow) {
+        if (collector instanceof FilteredDiagnosticCollector c) c.noNotes = !allow;
+    }
+    
     /** A Diagnostic Listener that collects the diagnostics, so that they can be compared against expected results */
     final public static class FilteredDiagnosticCollector<S> implements DiagnosticListenerX<S> {
         /** Constructs a diagnostic listener that collects all of the diagnostics,
@@ -265,7 +269,8 @@ public abstract class JmlTestSuite {
     public boolean noExtraPrinting = false;
 
     /** Set this to true in a test to print out more detailed information about
-     * what the test is doing (as a debugging aid).
+     * what the test is doing (as a debugging aid); should be false in normal
+     * test execution.
      */
     public boolean print = false;
     

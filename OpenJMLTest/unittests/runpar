@@ -65,7 +65,7 @@ else
     sync
     for d in $testlist; do
         nm=${d%.java}
-        echo Starting $nm
+        #echo Starting $nm
         ./run-summary log-$nm $nm & 
         sleep 1
         wt

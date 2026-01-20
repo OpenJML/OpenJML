@@ -933,6 +933,44 @@ public class compiler extends JmlTestSuite{
     }
 
     @Test
+    public void testOptionInfer() {
+        helper(new String[] {"--infer=zzz","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: In --(no-)infer, 'zzz' is not a valid infer key; see --help=infer
+                1 warning
+                """);
+    }
+
+    @Test
+    public void testOptionInferNone() {
+        helper(new String[] {"--infer=","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionInferEmpty() {
+        helper(new String[] {"--infer=,","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                """);
+    }
+
+    @Test
+    public void testOptionInferWS() {
+        helper(new String[] {"--infer= ,,\t","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
+                "",
+                """
+                warning: In --(no-)infer, ' ' is not a valid infer key; see --help=infer
+                warning: In --(no-)infer, '' is not a valid infer key; see --help=infer
+                warning: In --(no-)infer, '\t' is not a valid infer key; see --help=infer
+                3 warnings
+                """);
+    }
+
+    @Test
     public void testOptionWarn() {
         helper(new String[] {"--warn=zzz","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
                 "",
@@ -1201,297 +1239,6 @@ public class compiler extends JmlTestSuite{
                         "--extensions=ext",
                         src + "testExtension/A.java"
                 },0,0
-                ,""
-                );
-    }
-
-
-    // The remaining tests are replicates of those executed by 'make release-test'
-    // FIXME - check the version
-    // FIXME - testOK2, testOK3, testJmlBad2
-    // FIXME - test RAC-OK, SIMPLE, etc.
-
-    @Test
-    public void release_testJmlHelpSimp() throws Exception {
-        helper(new String[]
-                { 
-                },2,0
-                ,"Usage: openjml <options> <source files>\nUse option '-?' to list options\n"
-                );
-    }
-
-    @Test
-    public void release_testJmlHelpH() throws Exception {
-        expectedFile = "releaseTests/testJmlHelp/expected";
-        helper(new String[]
-                { "-help"
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testJmlHelpHH() throws Exception {
-        expectedFile = "releaseTests/testJmlHelp/expected";
-        helper(new String[]
-                { "--help"
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testJmlHelpQ() throws Exception {
-        expectedFile = "releaseTests/testJmlHelp/expected";
-        helper(new String[]
-                { "-?"
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testJmlHelpDup() throws Exception {
-        expectedFile = "releaseTests/testJmlHelp/expected";
-        helper(new String[]
-                { "-?","--help"
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testJmlBada() throws Exception {
-        expectedFile = "releaseTests/testJmlBadNoSource/expected";
-        helper(new String[]
-                { "--verboseness="
-                },2,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testJmlBadb() throws Exception {
-        expectedFile = "releaseTests/testJmlBadWarn/expected";
-        helper(new String[]
-                { "--verboseness"
-                },2,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testJmlBadc2() throws Exception {
-        expectedFile = "releaseTests/testJmlBad/expected";
-        helper(new String[]
-                { "--verboseness", ""
-                },2,0
-                );
-    }
-
-    @Test
-    public void release_testJmlBadd() throws Exception {
-        expectedFile = "releaseTests/testJmlBad/expected";
-        helper(new String[]
-                { "-verboseness= "
-                },2,0
-                );
-    }
-
-    // FIXME - check bad verboseness property -- testJmlBad2 (2 tests)
-
-    @Test
-    public void release_testJmlBad3() throws Exception {  // FIXME - shouldn't this have error mesages
-        expectedFile = "releaseTests/testJmlBad3/expected";
-        helper(new String[]
-                { "-check","-java"
-                },2,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testOK1() throws Exception {
-        helper(new String[]
-                { "--no-purity-check","--specs-path","releaseTests/testOK1","temp-release/B.java"
-                },0,0
-                ,""
-                );
-    }
-
-    // FIXME - missing the verbose test - testOK3
-    // FIXME - missing all the rac tests
-
-    // Testing typechecking without org.jmlspecs.annotation.*
-    @Test @Ignore // FIXME: Cannot currently turn off internal runtime library
-    public void release_testRuntime1() throws Exception {
-        expectedFile = "releaseTests/testRuntime1/expected";
-        helper(new String[]
-                { "temp-release/C.java", "-jmltesting", "-classpath", ".", "--no-purity-check"
-                },3,0
-                ,""
-                );
-    }
-
-    // Testing typechecking with normal internal libraries
-    @Test
-    public void release_testRuntime4() throws Exception {
-        expectedFile = "releaseTests/testRuntime4/expected";
-        helper(new String[]
-                { "temp-release/C.java", "--no-purity-check",
-                },0,0
-                ,""
-                );
-    }
-
-    // Testing typechecking with normal internal libaries
-    @Test
-    public void release_testRuntime5() throws Exception {
-        expectedFile = "releaseTests/testRuntime5/expected";
-        helper(new String[]
-                { "temp-release/D.java", "--no-purity-check",
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testEsc1() throws Exception {
-        expectedFile = "releaseTests/testEsc1/expected";
-        helper(new String[]
-                { "--no-purity-check", "--esc", relsrc + "/testEsc/A.java", "-classpath", relsrc + "/testEsc"
-                },6,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testEsc2() throws Exception {
-        expectedFile = "releaseTests/testEsc2/expected";
-        helper(new String[]
-                { "--no-purity-check", "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc"
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testEsc3() throws Exception {
-        expectedFile = "releaseTests/testEsc2/expected";
-        helper(new String[]
-                { "--no-purity-check", "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc",
-                        "--exec=" + JmlTestSuite.root + "/Solvers/Solvers-macos/z3-4.3.1"
-                },0,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath1() throws Exception {
-        expectedFile = "releaseTests/testPath1/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", 
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath2() throws Exception {
-        expectedFile = "releaseTests/testPath2/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data"
-                },1,1
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath3() throws Exception {
-        expectedFile = "releaseTests/testPath3/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "--specs-path", relsrc + "/testPath/data-specs"
-                },1,1
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath4() throws Exception {
-        expectedFile = "releaseTests/testPath4/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" 
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath5() throws Exception {
-        expectedFile = "releaseTests/testPath5/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" + z + relsrc + "/testPath/data" 
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath6() throws Exception {
-        expectedFile = "releaseTests/testPath6/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data" + z + relsrc + "/testPath/data-specs" 
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath7() throws Exception {
-        expectedFile = "releaseTests/testPath7/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data", "--specs-path", relsrc + "/testPath/data-specs" 
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath8() throws Exception {
-        expectedFile = "releaseTests/testPath8/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data-specs" + z + relsrc + "/testPath/data"
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath9() throws Exception {
-        expectedFile = "releaseTests/testPath9/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data:" + relsrc + "/testPath/data-specs"
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testPath10() throws Exception {
-        expectedFile = "releaseTests/testPath10/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data", "--specs-path", relsrc + "/testPath/data-specs"
-                },1,0
-                ,""
-                );
-    }
-
-    @Test
-    public void release_testCheck1() throws Exception {
-        expectedFile = "releaseTests/testCheck1/expected";
-        helper(new String[]
-                { "-jmltesting", "--no-purity-check", "--specs-path", relsrc, relsrc + "/A.java"
-                },1,0
                 ,""
                 );
     }
