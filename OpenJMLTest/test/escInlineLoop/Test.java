@@ -15,7 +15,7 @@ public class Test {
         ii++;
     }
     
-    public void mm() {
+    public void m() {
         
         Stream<Integer> st = Stream.<Integer>of(1,2,3,4,5);
         //@ assert st.count() == 5;
@@ -73,7 +73,7 @@ class TestB {
 
 class TestA {
 
-    public Stream<Integer> st = Stream.<Integer>of(1,2,3,4,5);
+    public Stream<Integer> st = Stream.</*@ non_null*/ Integer>of(1,2,3,4,5);
     public int[] arr = new int[5];
 
 	public int ii;
@@ -81,10 +81,10 @@ class TestA {
 	//@ requires ii >= 0 && ii < arr.length;
 	//@ old int oldI = ii;
 	//@ assignable ii, arr[ii];
-	//@ ensures arr[oldI] == v;
+	//@ ensures arr[oldI] == (int)v;
 	//@ ensures ii == oldI + 1;
-	public void putAtI(int[] arr, Integer v) {
-		arr[ii] = v;
+	public void putAtI(int[] arr, /*@ non_null*/ Integer v) {
+		arr[ii] = (int)v;
 		ii++;
 	}
 	
