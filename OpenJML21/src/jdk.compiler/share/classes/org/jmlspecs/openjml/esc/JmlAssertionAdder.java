@@ -8075,6 +8075,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    //Utils.dumpStack();
 		    return null;
 		}
+		addStat(comment("Checking freshness " + obj));
 		//System.out.println("FRESH " + obj + " " + obj.type + " " + utils.isJavaOrJmlPrimitiveType(obj.type));
 		if (utils.isJavaOrJmlPrimitiveType(obj.type)) return null; // no test for primitive types
 		//if (freshnessReferenceCount >= 0 && obj instanceof JCIdent id && (id.name == names._this || id.name == names._super || id.name.toString().equals(Strings.THIS))) return treeutils.makeBooleanLiteral(pos, false);
@@ -8082,6 +8083,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression isfresh = treeutils.makeBinary(pos, JCTree.Tag.GT, allocCountExpr,
 				treeutils.makeIntLiteral(pos, freshnessReferenceCount));
 		//System.out.println("FRESH RESULT " + isfresh); Utils.dumpStack();
+        addStat(comment("     Checking freshness result " + isfresh));
 		return isfresh;
 
 	}
@@ -13844,10 +13846,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							}
 							try {
                                 //System.out.println("CHECKING " + sr + " WITH " + currentEnv.currentReceiver + " VS " + lsexpr + " IN " + parentMethodSym.owner + ":" + parentMethodSym + " " + kind + " "  + emitAsserts);
+                                addStat(comment("CHECKING " + sr + " WITH " + currentEnv.currentReceiver + " VS " + lsexpr + " IN " + parentMethodSym.owner + ":" + parentMethodSym + " " + kind + " "  + emitAsserts));
 									JCExpression ss = treeutils.makeSubset(sr, sr, lsexpr);
-                                    //System.out.println("SS " + ss + " " + isConverted);
+                                    //System.out.println("SS " + ss + " " + isConverted+ " " + comparingToCallee);
 									JCExpression convertedCondition = simplifySubset(ss, targetEnv, isConverted, !comparingToCallee);
-									//System.out.println("  CC " + ss + " :: " + convertedCondition + " " + emitAsserts);
+                                    //System.out.println("  CC " + ss + " :: " + convertedCondition + " " + emitAsserts);
+                                    addStat(comment("  CC " + ss + " :: " + convertedCondition + " " + emitAsserts));
 									if (!emitAsserts) {
 										convertedCondition = treeutils.makeImplies(pos, precondition, convertedCondition);
 										okCondition = treeutils.makeAndSimp(pos,  convertedCondition, okCondition);
@@ -16457,6 +16461,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		treeutils.copyEndPosition(result, that);
+	}
+	
+	/** Makes a translated array index expression from already converted indexed and index expressions;
+	 * presumes any null and index range checks are already performed */
+	public JCExpression makeBBIndexed(JCArrayAccess that, JCExpression indexed, JCExpression index) {
+	    JmlBBArrayAccess aa = new JmlBBArrayAccess(null, indexed, index);
+	    // null correct?
+	    aa.pos = that.pos;
+	    aa.setType(rac ? that.type : convertType(that.type));
+	    aa.arraysId = that instanceof JmlBBArrayAccess bb ? bb.arraysId : null;
+	    return aa;
 	}
 	
 	public void addArrayIndexChecks(DiagnosticPosition pos, JCExpression index, JCExpression indexed) {
@@ -24028,6 +24043,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCExpression bigger = mi.args.tail.head;
 		return simplifySubset(smaller, bigger, targetEnv, isSmallerConverted, includeFreshTest);
 	}
+	
+	public JmlQuantifiedExpr makeRangeLimit(DiagnosticPosition p, JCExpression array, JmlRange range) {
+        var decl = newTempDecl(p, syms.intType); // 
+        var idx = treeutils.makeIdent(p, decl.sym);
+        //System.out.println("RANGELIMIT EXPRESSION RANGE " + array + " " + range);
+        var lo = range.lo != null ? range.lo : treeutils.zero;
+        var hi = range.hi != null ? range.hi : treeutils.makeArrayLength(p.getPreferredPosition(), copy(array));
+        var ee1 = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, lo, copy(idx));
+        var ee2 = treeutils.makeBinary(p, range.hi == null ? JCTree.Tag.LT : JCTree.Tag.LE, treeutils.intltSymbol, copy(idx), hi);
+        var ee8 = treeutils.makeAnd(p, ee1, ee2);
+        var ss = M.at(p).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(decl), ee8, null);
+        ss.type = syms.booleanType;
+        return ss;
+	}
 
 	public JCExpression simplifySubset(JCExpression smaller, JCExpression bigger, TranslationEnv targetEnv,
 			boolean isSmallerConverted, boolean includeFreshTest) {
@@ -24074,7 +24103,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    JCExpression head = sr.receiver;
 			    if (head instanceof JmlStoreRef.ArrayRangeSet aset) {
 			        //System.out.println("SMALLER IS ARRAY RANGE " + smaller + " subsetof " + bigger);
+			        JCExpression ftr = null;
+                    if (includeFreshTest) {
+                        // FIXME - this is only valid for checking freshness over one dimension of iteration
+                        try {
+                        var array = aset.recv.indexed;
+                        var index = aset.recv.index;
+                        //System.out.println("NEEDS FRESH TEST FOR " + aset + " " + targetEnv.allocCount + " " + array + " " + index);
+                        var componentType = ((Type.ArrayType) array.type).getComponentType();
+                        var fr = makeRangeLimit(array, array, (JmlRange)index);
+                        var idx = treeutils.makeIdent(array, fr.decls.get(0).sym);
+                        //var ee3 = convertJML(M.Indexed(copy(array), idx).setType(componentType));
+                        var ee3 = makeBBIndexed(aset.recv, copy(array), idx);
+                        ee3.pos = array.getPreferredPosition();
+                        fr.value = freshTest(head, ee3, targetEnv.allocCount);
+                        //System.out.println("FT " + fr);
+                        ftr = fr;
+                        } catch (Exception e) {
+                            e.printStackTrace(System.out);
+                            ftr = null;
+                        }
+                    }
 	                JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
+	                if (ftr != null) ok = treeutils.makeOrSimp(ok, ftr, ok);
 			        result = ok;
 			        
 			    } else if (sr.receiver instanceof JCArrayAccess aa && aa.index instanceof JmlRange) {
@@ -24089,9 +24140,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			        // FIXME - for now, presume nothing is fresh
 			        if (includeFreshTest) {
 			            ft = freshTest(smaller, head, targetEnv.allocCount);
-			            //				System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
+			            //System.out.println("ARRAYELE " + sr + " " + sr.receiver + " " + sr.receiver.type + " " + allocCounter + " " + targetEnv.allocCount + " " + ft);
 			            ft = convertJML(ft); // Convert in current (smaller) environment
-			            //				System.out.println("CONVERTED FT " + ft);
+			            //System.out.println("CONVERTED FT " + ft);
 			        }
 	                JCExpression ok = containsArray(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.range, bigger);
 	                result = ft == null ? ok : treeutils.makeOrSimp(smaller,  ft,  ok);
