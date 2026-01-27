@@ -1,0 +1,7 @@
+OUT:
+test/racJMLfunctionality/racJMLfunctionality.java:6: verify: JML assertion is false
+     //@ assert JML.equivalence(true, false);
+         ^
+DONE
+
+ERR:

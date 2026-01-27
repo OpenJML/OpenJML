@@ -26,6 +26,7 @@ public class WarningCategory {
     public static final String IMPLICIT_EVERYTHING = "implicit-everything";
     public static final String MISSING_MEASURED_BY = "missing-measured-by";
     public static final String MISSING_SPECS = "missing-specs";
+    public static final String MISSING_SPECS_PATH = "missing-specs-path";
     public static final String MISSING_SEMICOLON = "missing-semicolon";
     public static final String LITERAL_DIV_BY_ZERO = "literal-divide-by-zero";
 
@@ -33,6 +34,7 @@ public class WarningCategory {
     public static Map<String, WarnAction> init(Map<String, WarnAction> map) {
         if (map == null) map = new java.util.TreeMap<>();
         map.put(MISSING_SPECS, WarnAction.QUIET);
+        map.put(MISSING_SPECS_PATH, WarnAction.WARN);
         map.put(IMPLICIT_EVERYTHING, WarnAction.WARN);
         map.put(MISSING_MEASURED_BY, WarnAction.QUIET);
         map.put(LITERAL_DIV_BY_ZERO, WarnAction.WARN);
@@ -77,4 +79,7 @@ public class WarningCategory {
         return WarnAction.WARN;
     }
 
+    public static boolean isNotQuiet(Context context, String key) {
+        return instance(context).action(key) != WarnAction.QUIET;
+    }
 }

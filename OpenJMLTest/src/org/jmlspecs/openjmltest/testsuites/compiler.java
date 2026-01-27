@@ -115,7 +115,7 @@ public class compiler extends JmlTestSuite{
             assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
             if (!print) {
-                this.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + berr.toString());
+                this.out.println("TEST: " + getTestName() + " exit=" + exitCode);
                 this.out.println("ACTUAL OUT: " + actualOutput);
                 this.out.println("ACTUAL ERR: " + errOutput);
             }
@@ -188,12 +188,12 @@ public class compiler extends JmlTestSuite{
                 //                  "openjml: file not found: A.java" + eol +
                 //                  "Usage: openjml <options> <source files>" + eol +
                 //                  "use -help for a list of possible options" + eol +
-                "warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
-                );
+                "warning: [missing-specs-path] warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
+                );  // FIXME
     }
 
     /** Tests a recursive definition for the specspath */
@@ -494,11 +494,11 @@ public class compiler extends JmlTestSuite{
                         src + "testWarnings/A.java"
                 },1,0
                 ,""
-                ,"warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                ,"warning: [missing-specs-path] warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
                 +"error: warnings found and -Werror specified"+eol
                 +"1 error"+eol
                 +"1 warning"+eol
-                );
+                );   // FIXME - duplicate 'warning' above
     }
 
     /** Tests using source path but including java spec files - may encounter
