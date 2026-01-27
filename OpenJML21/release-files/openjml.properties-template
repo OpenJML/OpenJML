@@ -3,7 +3,6 @@
 # org.openjml.option.arithmetic-failure=soft
 # org.openjml.option.check-accessible=true
 # org.openjml.option.check-feasibility=none
-# org.openjml.option.check-specs-path=true
 # org.openjml.option.code-math=safe
 # org.openjml.option.command=check
 # org.openjml.option.counterexample=false
@@ -20,7 +19,7 @@
 # org.openjml.option.lang=openjml
 # org.openjml.option.method=
 # org.openjml.option.nullable-by-default=false    
-# org.openjml.option.os-name=
+# org.openjml.option.os-name=auto
 # org.openjml.option.prover=
 # org.openjml.option.purity-check=true
 # org.openjml.option.rac-check-assumptions=true

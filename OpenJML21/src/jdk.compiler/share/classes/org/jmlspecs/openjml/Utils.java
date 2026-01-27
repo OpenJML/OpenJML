@@ -441,13 +441,13 @@ public class Utils {
         if (symbol instanceof ClassSymbol) return isModel((ClassSymbol)symbol);
         if (symbol instanceof MethodSymbol) return isModel((MethodSymbol)symbol);
         if (symbol instanceof VarSymbol) return isModel((VarSymbol)symbol);
-        return false;// This shoudl really be an error FIXME
+        return false;// This should really be an error FIXME
     }
 
     /** Determines which OS we are in and returns an identifying string */
     public static String identifyOS(Context context) {
         String sp = context == null ? null : JmlOption.OSNAME.value(context);
-        if (sp == null || sp.isEmpty()) sp = System.getProperty("os.name");
+        if (sp == null || sp.isEmpty() || "auto".equals(sp)) sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
         if (sp.contains("lin") || sp.contains("Lin")) return "linux";
         if (sp.contains("win") || sp.contains("Win")) return "windows";

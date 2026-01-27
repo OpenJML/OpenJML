@@ -71,4 +71,18 @@ public class JML {
 	public static boolean informal(String s) {
 		return true;
 	}
+	
+	public static boolean implies(boolean p, boolean q) { return !p || q; }
+	
+    public static boolean equivalence(boolean p, boolean q) { return p == q; }
+    
+    public static boolean inequivalence(boolean p, boolean q) { return p != q; }
+    
+//    public static boolean subtypeLT(TYPE p, TYPE q) { return p == q; }
+//    public static boolean subtypeLEQ(TYPE p, TYPE q) { return p == q; }
+//    public static boolean lockLT(Object p, Object q) { return p == q; }
+//    public static boolean lockLEQ(Object p, Object q) { return p == q; }
+    
+//    public static void assume(boolean b);
+
 }

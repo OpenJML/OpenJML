@@ -406,10 +406,8 @@ public class JmlSpecs {
             todo.add(s);
         }
         String dir;
-        boolean checkDirectories = JmlOption.CHECKSPECSPATH.isSet(context);
-        //if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
-            todo.add("$SY");
-        //}
+        boolean checkDirectories = WarningCategory.isNotQuiet(context, WarningCategory.MISSING_SPECS_PATH);
+        todo.add("$SY");
 
         String cwd = System.getProperty("user.dir");
         
@@ -462,8 +460,11 @@ public class JmlSpecs {
             } else if (dir.length()>0){
                 Dir d = make(dir);
                 if (d != null) {
-                    if (checkDirectories && !d.exists()) { 
-                        utils.warning("jml.specs.dir.not.exist",d + " (" + cwd + ")");
+                    if (!d.exists()) { 
+                        // FIXME - allow an error
+                        var dg = com.sun.tools.javac.util.JCDiagnostic.Factory.instance(context).warning(null, null, null, "jml.specs.dir.not.exist", d + " (" + cwd + ")");
+                        //var k = utils.warningKey("jml.specs.dir.not.exist",d + " (" + cwd + ")");
+                        utils.warningCategory(WarningCategory.MISSING_SPECS_PATH, dg.toString());
                     }
                     specsDirs.add(d);
                 } else {

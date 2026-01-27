@@ -44,6 +44,11 @@ public class racfiles extends RacBase {
     public void racchoose() {
         helpCompileRun("T");
     }
+    
+    @Test
+    public void racJMLfunctionality() {
+        helpCompileRun("racJMLfunctionality");
+    }
 
     @Test
     public void rac1() {
