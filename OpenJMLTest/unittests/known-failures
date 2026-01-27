@@ -143,11 +143,10 @@ escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
 escfileslist2.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 runscripts.gitbug784            #   apache commons library
 escfileslist2.test[gitbug785]   #   Google guava library
-escfiles3.gitbug878             #   problem with type inference
-escfileslist2.test[gitbug763]   # specs for string handling problem
 escfileslist2.test[gitbug768]   # problem with invariants
+escfileslist2.test[gitbug878]             #   problem with type inference
 escfileslist2.test[gitbug880]   #   Needs better reasoning about String length -- result OK standalone but not in runtests
-escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
+#escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist2.test[gitbug897]   # substring and loop
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
@@ -171,9 +170,7 @@ primesc.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
-#escfiles2.gitbug883    # Matrix add 
 escfiles2.gitbug883bad #    Needs better handling of 2D array
-escfiles2.gitbug890 # Array.equals problem
 escfiles2.gitbug894    # unsuccessful specs for uniqueCharString
 
 escfileslist1.test[choose-repeat]

@@ -963,6 +963,11 @@ public class Utils {
     public boolean isClassType(Type ct) {
         return ct.tsym == Symtab.instance(context).classType.tsym;
     }
+    
+    public Type headType(Type t) {
+        while (t instanceof Type.ArrayType at) { t = at.getComponentType(); }
+        return t;
+    }
 
     // Includes self
     public java.util.List<ClassSymbol> parents(TypeSymbol ct, boolean includeEnclosingClasses) {

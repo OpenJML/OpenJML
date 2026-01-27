@@ -7393,16 +7393,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	@Override
 	public void visitConditional(JCConditional that) {
 	    try {
-	        addStat(comment(that, " ... conditional ...", null));
+	        //addStat(comment(that, " ... conditional ...", null));
 
+            //System.out.println("COND-A " + that.cond + " " + that.cond.getClass() + " " + that);
 	        JCExpression cond = convertExpr(that.cond);
-	        if (cond instanceof JCLiteral) {
-	            Boolean v = (Boolean) ((JCLiteral) cond).getValue();
-	            if (v) {
+            //System.out.println("COND " + cond + " " + (cond instanceof JCLiteral) + " " + that);
+	        if (cond instanceof JCLiteral lit) {
+	            if ((Boolean)lit.getValue()) {
 	                result = eresult = convertExpr(that.truepart);
 	            } else {
 	                result = eresult = convertExpr(that.falsepart);
 	            }
+	            //System.out.println("COND_SC " + eresult);
 	        } else if (!splitExpressions) {
 	            JCExpression prev = condition;
 	            try {
@@ -7426,7 +7428,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                condition = prev;
 	            }
 	        } else {
-	            cond = addImplicitConversion(cond, syms.booleanType, cond);
+	            if (cond.type.tsym != syms.booleanType.tsym) cond = addImplicitConversion(cond, syms.booleanType, cond);
 	            if (that.type.getTag() == TypeTag.BOT) {
 	                // For the rare case in which the conditional is condition ? null : null
 	                // so that that.type is <nulltype> and we cannot declare a temporary of that
@@ -7446,6 +7448,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    tres = addImplicitConversion(that.truepart, that.type, tres);
 	                    JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
 	                    addStat(treeutils.makeAssignStat(that.truepart.pos, id, tres));
+	                    //System.out.println("TF " + tres + " " + that.falsepart + " " + treeutils.isFalseLit(tres) + " " + treeutils.isFalseLit(that.falsepart));
+	                    if (treeutils.isFalseLit(tres) && treeutils.isFalseLit(that.falsepart)) {
+	                        System.out.println("BOTH FALSE");
+	                    }
 	                } finally {
 	                    try {
 	                    trueblock = popBlock(that.truepart, checkA);
@@ -10449,7 +10455,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JmlSource divergesPosition = cs;
 							JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
 							int preconditionDetailLocal3 = 0;
+							boolean skipRemainder = false;
 							for (JmlMethodClause clause : cs.clauses) {
+                                if (skipRemainder) continue;
 								IJmlClauseKind ct = clause.clauseKind;
 								if (ct == MethodDeclClauseExtension.oldClause) {
 									if (clauseIds.containsKey(clause)) continue; // Don't repeat
@@ -10611,6 +10619,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												nextPreExpr = convertedEx;
 										} else {
 											addStat(M.at(ex.pos).If(prex, thenbl, elsebl));
+										}
+										if (treeutils.isFalseLit(convertedEx)) {
+										    //System.out.println("PRECONDITION IS FALSE " + ex+ " " + nextPreExpr);
+										    addStat(comment("Precondition always false for this call: " + ex));
+										    skipRemainder = true;
+										    nextPreExpr = convertedEx;
 										}
 										check = null;
 										prex = nextPreExpr;
@@ -13159,6 +13173,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// literals so we can't hide them behind a cast, but FIXME: does this cause
 		// other problems, what about for MemberReferences?
 	    if (true) {
+	        //System.out.println("AIC " + annotatedNewtype + " " + expr.type + " " + types.isSameType(annotatedNewtype, expr.type) + " " + expr);
 	        if (types.isSameType(annotatedNewtype, expr.type)) return expr;
 	        return addConversion(pos, annotatedNewtype, expr, false, esc || splitExpressions); // FIXME -- need to add in RAC checks as expressions
 	    } else {
@@ -14564,6 +14579,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JCExpression wrapForOld(int pos, JCExpression arg) {
 		if (currentEnv.stateLabel == null) return arg;
+		if (arg instanceof JCLiteral) return arg;
 		return makeOld(pos, arg, currentEnv.stateLabel);
 	}
 
@@ -14993,14 +15009,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression rhs = that.getRightOperand();
 						lhs = addImplicitConversion(lhs, syms.booleanType, copy(lhs));
 						if (translatingJML)
-							condition = treeutils.makeAnd(that.lhs.pos, condition, wrapForOld(lhs.pos, lhs));
+							condition = treeutils.makeAndSimp(that.lhs.pos, condition, wrapForOld(lhs.pos, lhs));
                         if (!treeutils.isFalseLit(lhs)) {
 							rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow
 													// the previous one
 							rhs = addImplicitConversion(rhs, syms.booleanType, rhs);
 							if (translatingJML)
 								adjustWellDefinedConditions(lhs);
-							result = eresult = makeBin(that, optag, that.getOperator(), lhs, rhs, maxJmlType);
+							result = eresult = treeutils.makeAndSimp(that, lhs, rhs);
 						} else {
 							result = eresult = lhs;
 						}
@@ -15018,15 +15034,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression rhs = that.getRightOperand();
 						lhs = addImplicitConversion(lhs, syms.booleanType, lhs);
 						if (translatingJML)
-							condition = treeutils.makeAnd(that.lhs.pos, condition,
-									treeutils.makeNot(that.lhs, wrapForOld(lhs.pos, lhs)));
+							condition = treeutils.makeAndSimp(that.lhs.pos, condition,
+									treeutils.makeNotSimp(that.lhs, wrapForOld(lhs.pos, lhs)));
 						if (!treeutils.isTrueLit(lhs)) {
 							rhs = convertExpr(rhs); // condition is used within scanExpr so this statement must follow
 													// the previous one
 							rhs = addImplicitConversion(rhs, syms.booleanType, rhs);
 							if (translatingJML)
 								adjustWellDefinedConditions(treeutils.makeNot(that.lhs.pos, lhs));
-                            result = eresult = makeBin(that, optag, that.getOperator(), lhs, rhs, maxJmlType);
+                            result = eresult = treeutils.makeOrSimp(that, lhs, rhs);
 						} else {
 							result = eresult = lhs;
 						}
@@ -15603,7 +15619,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         
-        JCExpression castexpr = M.at(pos).TypeCast(newtype, expr);
+        JCExpression castexpr = jmltypes.isSameType(newtype, expr.type) ? expr : M.at(pos).TypeCast(newtype, expr);
         castexpr.setType(newtype); // may be superfluous
         if (rac && (newtype.tsym == BIGINT.tsym || newtype.tsym == REAL.tsym) && expr.type.isIntegral()) {
             var ty = treeutils.makeType(pos, newtype);
@@ -16146,7 +16162,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //				newexpr = castexpr;
 //			}
 //		}
-		result = eresult = !splitExpressions ? newexpr : newTemp(newexpr);
+		result = eresult = !splitExpressions ? newexpr : newTempIfNeeded(newexpr);
 	}
 
 	// OK
@@ -16169,6 +16185,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             } else {
                 notImplemented(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
                 throw new JmlNotImplementedException(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
+            }
+        }
+        if (that.pattern instanceof JCTree.JCArrayTypeTree at) {
+            if (that.getExpression() instanceof JCIdent id) {
+                var t = id.type;
+                if ((id.sym.flags() & Flags.PARAMETER) != 0) {
+                    var par = paramActuals_.get(id.sym);
+                    if (par != null) t = par.type;
+                }
+                if (utils.headType(t).isPrimitive()) {
+                    boolean b = types.isSameType(t, at.type);
+                    //System.out.println("COLLAPSING " + that + " " + at.type + " " + t + " " + b);
+                    result = eresult = treeutils.makeBooleanLiteral(that,b);
+                    return;
+                }
             }
         }
         var pat = that.pattern;
