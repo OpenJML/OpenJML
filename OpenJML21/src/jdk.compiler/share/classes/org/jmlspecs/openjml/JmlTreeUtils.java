@@ -505,6 +505,9 @@ public class JmlTreeUtils {
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isTrueLit(JCTree tree) {
         if (tree == trueLit) return true;
+        if (tree instanceof JmlLblExpression lbl) {
+            tree = lbl.expression;
+        }
         if (!(tree instanceof JCLiteral)) return false;
         if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
         return (Boolean)((JCLiteral)tree).getValue();
@@ -513,9 +516,14 @@ public class JmlTreeUtils {
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isFalseLit(JCTree tree) {
         if (tree == falseLit) return true;
-        if (!(tree instanceof JCLiteral)) return false;
-        if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
-        return !(Boolean)((JCLiteral)tree).getValue();
+        if (tree instanceof JmlLblExpression lbl) {
+            tree = lbl.expression;
+        }
+        if (tree instanceof JCLiteral lit) {
+            if (lit.typetag == TypeTag.BOOLEAN && !(Boolean)lit.getValue()) return true;
+            return false;
+        }
+        return false;
     }
     
     /** Makes an attributed AST that is a copy of a given literal AST,
