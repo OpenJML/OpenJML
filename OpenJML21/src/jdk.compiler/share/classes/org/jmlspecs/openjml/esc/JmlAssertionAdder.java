@@ -21671,6 +21671,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				currentEnv = currentEnv.popEnv();
 			}
 
+		} else if (that.clauseType == printClause) {
+		    if (rac) { // Silently skipped if not rac
+		        var blcheck = pushBlock();
+		        addStat(comment("Print statement: " + that));
+		        ListBuffer<JCExpression> exprs = new ListBuffer<>();
+		        for (var e: that.expressions) exprs.add(convertJML(e));
+                JCFieldAccess m = findUtilsMethod(that, "println");
+                JCExpression dim = treeutils.makeIntLiteral(that, that.expressions.length());
+                var eltype = treeutils.makeType(that, syms.objectType);
+                var arr = M.at(that).NewArray(eltype, List.<JCExpression>of(dim), exprs.toList());
+                arr.type = new Type.ArrayType(syms.objectType, syms.arrayClass);
+                JCMethodInvocation c = M.at(that).Apply(null, m, List.<JCExpression>of(arr));
+                c.type = syms.voidType;
+                var st = M.at(that).Exec(c);
+		        addStat(st);
+		        var bl = popBlock(that, blcheck);
+		        addStat(bl);
+		    }
 		} else {
 			String msg = "Unknown token in JmlAssertionAdder.visitJmlStatement: " + that.clauseType.keyword();
 			error(that, msg);
