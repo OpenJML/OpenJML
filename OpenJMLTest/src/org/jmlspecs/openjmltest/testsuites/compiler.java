@@ -188,11 +188,11 @@ public class compiler extends JmlTestSuite{
                 //                  "openjml: file not found: A.java" + eol +
                 //                  "Usage: openjml <options> <source files>" + eol +
                 //                  "use -help for a list of possible options" + eol +
-                "warning: [missing-specs-path] warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: [missing-specs-path] warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: [missing-specs-path] warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: [missing-specs-path] warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: [missing-specs-path] warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
+                "warning: [missing-specs-path] A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
                 );  // FIXME
     }
 
@@ -494,7 +494,7 @@ public class compiler extends JmlTestSuite{
                         src + "testWarnings/A.java"
                 },1,0
                 ,""
-                ,"warning: [missing-specs-path] warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                ,"warning: [missing-specs-path] A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
                 +"error: warnings found and -Werror specified"+eol
                 +"1 error"+eol
                 +"1 warning"+eol

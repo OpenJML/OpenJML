@@ -8973,7 +8973,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                             if (!anyChecks) {
                                 if (measuredByChecks.add(that)) {
-                                    utils.warningCategory(WarningCategory.MISSING_MEASURED_BY,log.currentSourceFile(), that, speccase.sourcefile, speccase, 
+                                    utils.warning(WarningCategory.MISSING_MEASURED_BY,log.currentSourceFile(), that, speccase.sourcefile, speccase, 
                                             "Method " + enclosingMethod + " is called recursively, but a specification case has no measured_by clause");
                                 }
                             }
@@ -8983,7 +8983,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 if (!anySpecCases) {
                     // FIXME - will there always be a default spec case?
                     if (measuredByChecks.add(that)) {
-                        utils.warningCategory(WarningCategory.MISSING_MEASURED_BY, log.currentSourceFile(), that, methodDecl.sourcefile, methodDecl, 
+                        utils.warning(WarningCategory.MISSING_MEASURED_BY, log.currentSourceFile(), that, methodDecl.sourcefile, methodDecl, 
                                 "Method " + enclosingMethod + " is called recursively, but there are no specification cases and hence no measured_by clauses");
                     }
                 }
@@ -14637,7 +14637,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (that.type.getTag() == TypeTag.INT) {
 				int d = ((Number) rhsv).intValue();
 				if (d == 0) {
-                    utils.warningCategory(WarningCategory.LITERAL_DIV_BY_ZERO, that.rhs, "Literal divide by zero");
+                    utils.warning(WarningCategory.LITERAL_DIV_BY_ZERO, (JavaFileObject)null, that.rhs, "jml.message", "Literal divide by zero");
 					res = 0;
 				} else {
 					res = ((Number) lhsv).intValue() / d;
@@ -14645,7 +14645,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (that.type.getTag() == TypeTag.LONG) {
 				long d = ((Number) rhsv).longValue();
 				if (d == 0) {
-					utils.warningCategory(WarningCategory.LITERAL_DIV_BY_ZERO, that.rhs, "Literal divide by zero");
+					utils.warning(WarningCategory.LITERAL_DIV_BY_ZERO, (JavaFileObject)null, that.rhs, "jml.message", "Literal divide by zero");
 					res = 0;
 				} else {
 					res = ((Number) lhsv).longValue() / d;
@@ -14660,7 +14660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (that.type.getTag() == TypeTag.INT) {
 				int d = ((Number) rhsv).intValue();
 				if (d == 0) {
-                    utils.warningCategory(WarningCategory.LITERAL_DIV_BY_ZERO, that.rhs, "Literal mod by zero");
+                    utils.warning(WarningCategory.LITERAL_DIV_BY_ZERO, (JavaFileObject)null, that.rhs, "jml.message", "Literal mod by zero");
 					res = 0;
 				} else {
 					res = ((Number) lhsv).intValue() % d;
@@ -14668,7 +14668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (that.type.getTag() == TypeTag.LONG) {
 				long d = ((Number) rhsv).longValue();
 				if (d == 0) {
-                    utils.warningCategory(WarningCategory.LITERAL_DIV_BY_ZERO, that.rhs, "Literal mod by zero");
+                    utils.warning(WarningCategory.LITERAL_DIV_BY_ZERO, (JavaFileObject)null, that.rhs, "jml.message", "Literal mod by zero");
 					res = 0;
 				} else {
 					res = ((Number) lhsv).longValue() % d;
