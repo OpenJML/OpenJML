@@ -4903,7 +4903,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = tree.clauseType;
-        if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
+        //if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
+        tree.clauseType.typecheck(this, tree, env);
         jmlenv.pop();
         jmlresolve.setAllowJML(prevAllowJML);
     }

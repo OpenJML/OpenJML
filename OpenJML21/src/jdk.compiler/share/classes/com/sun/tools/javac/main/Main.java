@@ -363,6 +363,7 @@ public class Main {
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
+            ex.printStackTrace(System.out);
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = false; // OPENJML - changed to false

@@ -553,6 +553,11 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void racprinting() {
+        helpCompileRun("PR", "--rac-java-checks");
+    }
+    
+    @Test
     public void termination() {
         helpCompileRun("Termination");
     }
