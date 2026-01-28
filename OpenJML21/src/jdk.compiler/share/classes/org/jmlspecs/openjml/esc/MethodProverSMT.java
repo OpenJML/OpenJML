@@ -407,10 +407,8 @@ public class MethodProverSMT {
             } catch (SMTTranslator.JmlBVException e) {
                 throw e;
             } catch (Exception e) {
-                //log.error("jml.internal", "Failed to convert to SMT: " + e);
-                JCDiagnostic d = utils.warningDiag(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
-                log.report(d);
-                e.printStackTrace(System.out);
+                var d = utils.errorDiag(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
+                //e.printStackTrace(System.out);
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date()).setOtherInfo(d);
             }
             // Starts the solver (and it waits for input)

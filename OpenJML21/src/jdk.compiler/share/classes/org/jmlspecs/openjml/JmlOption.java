@@ -239,8 +239,11 @@ public class JmlOption {
                 } else {
                     String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
                     for (var k: keys) {
-                        if (warnings.warningKeys.containsKey(k)) warnings.warningKeys.put(k, negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN );
-                        else Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
+                        if (warnings.containsKey(k)) {
+                            warnings.put(k, negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN );
+                        } else {
+                            Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
+                        }
                     }
                 }
             }

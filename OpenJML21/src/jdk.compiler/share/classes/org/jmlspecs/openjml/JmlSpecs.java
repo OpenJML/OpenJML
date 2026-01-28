@@ -464,7 +464,7 @@ public class JmlSpecs {
                         // FIXME - allow an error
                         var dg = com.sun.tools.javac.util.JCDiagnostic.Factory.instance(context).warning(null, null, null, "jml.specs.dir.not.exist", d + " (" + cwd + ")");
                         //var k = utils.warningKey("jml.specs.dir.not.exist",d + " (" + cwd + ")");
-                        utils.warningCategory(WarningCategory.MISSING_SPECS_PATH, dg.toString());
+                        utils.warning(WarningCategory.MISSING_SPECS_PATH, (JavaFileObject)null, null, "jml.specs.dir.not.exist", d + " (" + cwd + ")");
                     }
                     specsDirs.add(d);
                 } else {
