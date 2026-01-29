@@ -55,6 +55,14 @@ $OJA --esc AC.java -cp srct  >> actual 2>&1
 echo Test C4 -- should have a assignable verification failure >> actual 2>&1
 $OJA --esc AC.java -cp srctt --specs-path=specsempty >> actual 2>&1
 
+## Empty specs path, two .java on source path. second one on CL -- finds the .jml next to the used .java file
+echo Test Y1 finds pxsrc/P.jml >> actual 2>&1
+$OJA --esc --source-path=ppsrc:pxsrc --specs-path=specsempty pxsrc/P.java >> actual 2>&1
+## Empty specs path, two .java on source path. second one on CL -- usese the CL .java file even though there is a .jml on the sourcepath
+echo Test Y2 uses ppsrc/P.java >> actual 2>&1
+$OJA  --esc --source-path=pxsrc:ppsrc --specs-path=specsempty ppsrc/P.java >> actual 2>&1
+
+
 ## Referenced binary class with .class and .java and .jml
 echo Test Z1 uses ccspecs/z/C.jml >> actual 2>&1
 $OJA --esc AZC.java -cp srcz --specs-path=ccspecs >> actual 2>&1

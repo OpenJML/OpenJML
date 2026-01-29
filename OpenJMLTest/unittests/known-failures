@@ -138,12 +138,12 @@ escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem or invariant problem
-escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
+escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
-escfileslist2.test[gitbug778a]  #   Needs to handle bit-vector and Int together
-runscripts.gitbug784            #   apache commons library
-escfileslist2.test[gitbug785]   #   Google guava library
-escfileslist2.test[gitbug768]   # problem with invariants
+escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
+runscripts1.gitbug784            #   apache commons library
+escfileslist3.test[gitbug785]   #   Google guava library
+escfileslist3.test[gitbug768]   # problem with invariants
 escfileslist3.test[gitbug878]             #   problem with type inference
 escfileslist3.test[gitbug880]   #   Needs better reasoning about String length -- result OK standalone but not in runtests
 #escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
@@ -166,7 +166,7 @@ escnew3.testCast1       # m7 reports a verification error sometimes and sometime
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
 #generics.testBinaryGeneric3c
-primesc.locsetTests2
+primesc1.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
@@ -184,5 +184,5 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
 SFBugs.gitbug444a               # inadequate specifications in the given problem
-primesc.jmlreal                 # feasibility check times out
+primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
