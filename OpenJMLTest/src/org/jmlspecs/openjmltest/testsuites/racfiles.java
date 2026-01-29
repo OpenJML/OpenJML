@@ -558,6 +558,11 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void racbehaviors() {
+        helpCompileRun("Behaviors");
+    }
+    
+    @Test
     public void termination() {
         helpCompileRun("Termination");
     }
