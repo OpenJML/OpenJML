@@ -719,7 +719,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     /** show statement */
-    public void visitJmlStatementShow(JmlStatementShow that) {
+    public void visitJmlStatementExprList(JmlStatementExprList that) {
         try {
             if (useJMLComments) print ("/*@ ");
             print(that.clauseType.keyword());

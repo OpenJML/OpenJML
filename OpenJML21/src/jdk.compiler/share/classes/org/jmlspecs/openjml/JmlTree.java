@@ -141,7 +141,7 @@ public class JmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(IJmlClauseKind t, JCTree.JCStatement e);
-        JmlStatementShow JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions);
+        JmlStatementExprList JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementHavoc JmlStatementHavoc(List<JCTree.JCExpression> storerefs);
         JmlStatementLoopExpr JmlStatementLoopExpr(IJmlClauseKind t, JCTree.JCExpression e);
@@ -768,8 +768,8 @@ public class JmlTree {
         }
 
         @Override
-        public JmlStatementShow JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions) {
-            return new JmlStatementShow(pos,t,expressions);
+        public JmlStatementExprList JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions) {
+            return new JmlStatementExprList(pos,t,expressions);
         }
 
         @Override
@@ -3269,12 +3269,12 @@ public class JmlTree {
         }
     }
 
-    public static class JmlStatementShow extends JmlAbstractStatement {
+    public static class JmlStatementExprList extends JmlAbstractStatement {
         public IJmlClauseKind clauseType;
         public List<JCTree.JCExpression> expressions;
         
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
-        protected JmlStatementShow(int pos, IJmlClauseKind clauseType, List<JCTree.JCExpression> expressions) {
+        protected JmlStatementExprList(int pos, IJmlClauseKind clauseType, List<JCTree.JCExpression> expressions) {
             this.pos = pos;
             this.clauseType = clauseType;
             this.expressions = expressions;
@@ -3283,7 +3283,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlStatementShow(this); 
+                ((IJmlVisitor)v).visitJmlStatementExprList(this); 
             } else {
                 //System.out.println("A JmlStatement expects an IJmlVisitor, not a " + v.getClass());
                 super.accept(v);
@@ -3293,7 +3293,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementShow(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitJmlStatementExprList(this, d);
             } else {
                 //System.out.println("A JmlStatement expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
