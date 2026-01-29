@@ -5132,7 +5132,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// precondition is true and does not
 			// need to be assumed
 			if (combinedPrecondition != null) {
-	            if (!rac) {
+	            {
 	                var behaviors = specs.get(methodDecl.sym).cases.behaviors;
 	                if (behaviors != null) {
 	                    JmlMethodClauseBehaviors cl = null;
