@@ -1,0 +1,22 @@
+OUT:
+test/racbehaviors/Behaviors.java:5: verify: JML the method specification cases are not disjoint
+  //@ requires i <= 0;
+      ^
+test/racbehaviors/Behaviors.java:3: verify: Associated declaration: test/racbehaviors/Behaviors.java:5:
+  //@ requires i >= 0;
+      ^
+test/racbehaviors/Behaviors.java:26: verify: JML precondition is false
+    m3(0);
+      ^
+test/racbehaviors/Behaviors.java:19: verify: Associated declaration: test/racbehaviors/Behaviors.java:26:
+  public static void m3(int i) {}
+                     ^
+test/racbehaviors/Behaviors.java:18: verify: JML the method specification cases are not complete
+  //@ behaviors complete;
+      ^
+test/racbehaviors/Behaviors.java:17: verify: JML precondition is false
+  //@ requires i < 0;
+      ^
+DONE
+
+ERR:
