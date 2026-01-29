@@ -685,7 +685,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
 //    }
 //
-//    public void visitJmlStatementShow(JmlStatementShow tree) {
+//    public void visitJmlStatementExprList(JmlStatementShow tree) {
 //        for (JCExpression e: tree.expressions) scan(e);
 //    }
 //    

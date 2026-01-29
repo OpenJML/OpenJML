@@ -8,7 +8,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementShow;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExprList;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -56,14 +56,14 @@ public class ShowStatement extends JmlExtension {
                     expressions.add(t);
                 } while (parser.acceptIf(TokenKind.COMMA));
             }
-            JmlStatementShow st = toP(parser.maker().at(pp).JmlStatementShow(clauseType,expressions.toList()));
+            JmlStatementExprList st = toP(parser.maker().at(pp).JmlStatementShow(clauseType,expressions.toList()));
             wrapup(st, clauseType, true, true);
             return st;
         }
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree stat, Env<AttrContext> env) {
-            if (stat instanceof JmlStatementShow ps) {
+            if (stat instanceof JmlStatementExprList ps) {
                 for (var e: ps.expressions) {
                     attr.attribExpr(e, env, Type.noType);
                 }

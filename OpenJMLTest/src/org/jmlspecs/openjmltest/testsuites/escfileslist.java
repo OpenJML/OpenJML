@@ -41,7 +41,7 @@ import org.openjml.runners.ParameterizedWithNames;
 public class escfileslist extends EscBaseFiles implements Utils {
     
     static double split1 = 0.24;
-    static double split2 = 0.34;
+    static double split2 = 0.40;
     
     /** A list of test suites whose test are excluded from the list generated here */
     public static String[] testsuites = new String[]{

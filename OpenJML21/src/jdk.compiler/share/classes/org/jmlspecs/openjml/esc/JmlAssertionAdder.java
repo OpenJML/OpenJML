@@ -21637,7 +21637,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	protected int jmlShowUnique = 0;
 
 	@Override
-	public void visitJmlStatementShow(JmlStatementShow that) {
+	public void visitJmlStatementExprList(JmlStatementExprList that) {
 		result = null;
 		boolean saved = translatingJML;
 		boolean savedP = isPostcondition;

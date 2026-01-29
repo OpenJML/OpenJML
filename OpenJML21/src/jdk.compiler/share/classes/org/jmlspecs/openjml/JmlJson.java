@@ -1732,10 +1732,10 @@ public class JmlJson {
         }
     }
 
-    class JmlStatementShowAdapter extends Adapter<JmlStatementShow> {
+    class JmlStatementShowAdapter extends Adapter<JmlStatementExprList> {
         public static final String[] fields = { "name", "clauseType", "expressions" };
         @Override
-        public JmlStatementShow deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+        public JmlStatementExprList deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.JmlStatementShow(

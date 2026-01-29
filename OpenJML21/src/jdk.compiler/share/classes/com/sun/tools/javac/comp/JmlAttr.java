@@ -4899,7 +4899,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     /** This handles JML show statement */
-    public void visitJmlStatementShow(JmlTree.JmlStatementShow tree) { 
+    public void visitJmlStatementExprList(JmlTree.JmlStatementExprList tree) { 
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = tree.clauseType;
@@ -8967,7 +8967,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlSingleton(JmlSingleton tree)               { visitTree(tree); }
         public void visitJmlSpecificationCase(JmlSpecificationCase tree){ visitTree(tree); }
         public void visitJmlStatement(JmlStatement tree)               { visitTree(tree); }
-        public void visitJmlStatementShow(JmlStatementShow tree)       { visitTree(tree); }
+        public void visitJmlStatementExprList(JmlStatementExprList tree) { visitTree(tree); }
         public void visitJmlStatementDecls(JmlStatementDecls tree)     { visitTree(tree); }
         public void visitJmlStatementExpr(JmlStatementExpr tree)       { visitTree(tree); }
         public void visitJmlStatementHavoc(JmlStatementHavoc tree)     { visitTree(tree); }
