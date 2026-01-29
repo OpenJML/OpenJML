@@ -292,6 +292,7 @@ public class esc1 extends EscBase {
 
     @Test
     public void testForEach2() {
+        addOptions("--smt=esc1a.smt","--method=m2bad");
         helpEsc("tt.TestJava",
                   "package tt; import java.util.*; \n"
                 + "public class TestJava { \n"

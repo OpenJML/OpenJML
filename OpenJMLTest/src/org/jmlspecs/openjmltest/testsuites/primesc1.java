@@ -27,7 +27,7 @@ import org.openjml.runners.ParameterizedWithNames;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
-public class primesc extends EscBaseFiles {
+public class primesc1 extends EscBaseFiles {
 
 
     @Override
@@ -51,31 +51,10 @@ public class primesc extends EscBaseFiles {
     }
     
     @Test
-    public void jmlTYPE() {
-        helpTG();
-    }
-    
-    @Test
     public void jmldatagroup() {
         helpTG();
     }
     
-    @Test
-    public void jmlreal() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlstring() {
-        helpTG();
-    }
-    
-    @Test
-    public void jmlseq() {
-        helpTG();
-    }
-    
-
     @Test
     public void jmlarray() {
         helpTG();
@@ -88,11 +67,6 @@ public class primesc extends EscBaseFiles {
     }
     
     @Test
-    public void jmlset() {
-        helpTG();
-    }
-    
-    @Test
     public void jmlmap() {
         helpTG();
     }
@@ -101,6 +75,12 @@ public class primesc extends EscBaseFiles {
     public void jmlinit() {
         helpTG();
     }
+    
+    @Test
+    public void jmlTYPE() {
+        helpTG();
+    }
+    
     
     // TODO: Review the following and incorporate them with the above, as appropriate.
     

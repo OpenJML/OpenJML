@@ -77,6 +77,16 @@ AC.java:3: verify: Associated declaration: AC.java:5:
   //@ pure
       ^
 2 verification failures
+Test Y1 finds pxsrc/P.jml
+/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/specspath/pxsrc/P.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // pxsrc/P.jml
+                ^
+1 error
+Test Y2 uses ppsrc/P.java
+ppsrc/P.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false; // ppsrc/P.java
+        ^
+1 verification failure
 Test Z1 uses ccspecs/z/C.jml
 ccspecs/z/C.jml:3: error: incompatible types: int cannot be converted to boolean
     //@ invariant 0; // ccspecs/z/C.jml
