@@ -61,4 +61,3 @@ error: no source files
 error: no source files
 Help: --help=warn   Subcommands: none all list reset
 Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path]
-error: no source files

@@ -28,4 +28,3 @@ YES	YES	loop-assigns
 error: no source files
 Help: --help=infer   Subcommands: none all list reset show
 Implemented specification inference keys: [loop-assigns]
-error: no source files
