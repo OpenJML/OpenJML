@@ -28,7 +28,7 @@ static String lengthBalancerAddingZeroes(String binary_str, int lengthDiff)
     for (int i = 0; i < lengthDiff; i++)  
     {  
         //@ ghost int len = binary_str.length();
-        binary_str = "0" + binary_str;  
+        binary_str = "0" + binary_str;  //@ check binary_str.chars.length > 0;
         //@ assert binary_str.charAt(0) == '0' && binary_str.charAt(i) == '0';
         //@ assert \forall int k; 1 <= k <= i; binary_str.charAt(k) == \old(binary_str, \LoopBody).charAt(k-1);
     }  

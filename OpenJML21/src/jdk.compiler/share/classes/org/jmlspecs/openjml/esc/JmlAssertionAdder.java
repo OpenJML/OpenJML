@@ -14876,7 +14876,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //            }
 //            return;
 //        }
-        if (that.type.tsym == SEQ.tsym || that.type == STRING || that.lhs.type.tsym == SEQ.tsym || that.lhs.type.tsym == STRING.tsym
+        if (that.type.tsym == SEQ.tsym || that.type.tsym == STRING.tsym || that.lhs.type.tsym == SEQ.tsym || that.lhs.type.tsym == STRING.tsym
                 || that.rhs.type.tsym == SEQ.tsym || that.rhs.type.tsym == STRING.tsym) {
             Name nm = names.fromString(optag == JCTree.Tag.PLUS ? "append" : optag == JCTree.Tag.EQ ? "eq" : "ne");
 
@@ -14948,7 +14948,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					id.type = syms.stringType;
 					JCExpression lhs = that.getLeftOperand();
 					JCExpression rhs = that.getRightOperand();
-					if (lhs.type != syms.stringType) {
+					if (lhs.type.tsym != syms.stringType.tsym) {
 						Type t = lhs.type;
 						if (!lhs.type.isPrimitive())
 							t = syms.objectType;
@@ -14957,7 +14957,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						call.type = call.sym.type;
 						lhs = M.at(that).Apply(null, call, List.<JCExpression>of(lhs)).setType(syms.stringType);
 					}
-					if (rhs.type != syms.stringType) {
+					if (rhs.type.tsym != syms.stringType.tsym) {
 						Type t = rhs.type;
 						if (!rhs.type.isPrimitive())
 							t = syms.objectType;
@@ -17396,15 +17396,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				int len = str.length();
 				ClassSymbol chseq = ClassReader.instance(context)
 						.enterClass(names.fromString("java.lang.CharSequence"));
-				Symbol chs = chseq == null ? null : utils.findFieldMember(chseq, "charArray");
+				Symbol chs = chseq == null ? null : utils.findFieldMember(chseq, "chars");
 				// chs is null if we don't have specs for CharSequence,
-				// or if the charArray model field has been renamed
+				// or if the chars model field has been renamed
 				if (chs != null) {
 					JCExpression fa = M.at(id).Select(id, chs);
-					JCExpression e = treeutils.makeNotNull(fa.pos, fa);
 					fa = treeutils.makeLength(id, fa);
 					JCExpression ee = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id, len));
-					addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeAnd(id.pos, e, ee));
+					addAssume(that, Label.IMPLICIT_ASSUME, ee);
 				}
 
 				// These assumptions are necessary so that String literals are
@@ -17413,15 +17412,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						Label.INVARIANT_ENTRANCE, utils.qualifiedMethodSig(methodDecl.sym));
 
 				if (chs != null) {
+				    // assumptions so that s.chars[i] equals the string literal character
+				    addStat(comment("Adding assumptions for String elements"));
+                    JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
+                    JCExpression ex = convertJML(arr);
 					for (int k = 0; k < len; k++) {
-						JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
 						JCExpression z = treeutils.makeIntLiteral(that.pos, k);
-						JCExpression mm = treeutils.makeArrayElement(that.pos, arr, z);
-						mm.type = syms.charType;
+						JCExpression mm = treeutils.makeArrayElement(that.pos, ex, z);
 						JCExpression c = treeutils.makeCharLiteral(that.pos, str.charAt(k));
 						JCExpression m = treeutils.makeEquality(that.pos, mm, c);
 						JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
-						st.accept(this);
+						addStat(st);
 					}
 				}
 

@@ -1976,20 +1976,23 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression index = result;
         JCIdent arr = null;
         if (types.isJmlType(indexed.type)) {
-        	// continue;
+            // index operation on JML type;
+            result = new JmlBBArrayAccess(arr,indexed,index);
+            result.type = that.type;
         } else {
-        	// Standard Java array
-        	arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
+            // Standard Java array
+            arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
+            if (that instanceof JmlBBArrayAccess) {
+                that.indexed = indexed;
+                that.index = index;
+                ((JmlBBArrayAccess)that).arraysId = arr;
+                result = that;
+            } else {
+                utils.warning(that,"jml.internal","Did not expect this node in BasicBlocker2.visitIndexed: " + that + " " + that.getClass());
+                result = new JmlBBArrayAccess(arr,indexed,index);
+                result.type = that.type;
+            }
         }
-    	if (that instanceof JmlBBArrayAccess) {
-    		that.indexed = indexed;
-    		that.index = index;
-    		((JmlBBArrayAccess)that).arraysId = arr;
-    		result = that;
-    	} else {
-    		utils.warning(that,"jml.internal","Did not expect this node in BasicBlocker2.visitIndexed: " + that + " " + that.getClass());
-    		result = new JmlBBArrayAccess(arr,indexed,index);
-    	}
     }
 
 

@@ -2160,7 +2160,13 @@ public class JmlTreeUtils {
     public JCExpression makeArrayElement(int pos, JCExpression array, JCExpression index) {
         JCExpression e = factory.Indexed(array,  index);
         e.pos = pos;
-        e.type = ((Type.ArrayType)array.type).elemtype;
+        if (array.type instanceof Type.ArrayType at) {
+            e.type = at.elemtype;
+        } else if (array.type.tsym == JmlPrimitiveTypes.stringTypeKind.getType(context).tsym) {
+            e.type = syms.charType;
+        } else {
+            utils.error(array, "jml.internal", "Unknown array type in constructing array element: " + array.type);
+        }
         return e;
     }
     

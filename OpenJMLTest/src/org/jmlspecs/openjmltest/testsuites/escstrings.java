@@ -116,6 +116,8 @@ public class escstrings extends EscBase {
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       String sss = s + ss;\n"
                 +"       String s4 = s + ss;\n"
+                +"       //@ check sss.chars == s.chars + ss.chars;\n"
+                +"       //@ check s4.chars == s.chars + ss.chars;\n"
                 +"       //@ assert sss.equals(s4);\n"
                 +"  }\n"
                 
@@ -219,8 +221,8 @@ public class escstrings extends EscBase {
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java/lang/String.jml:297: verify: Associated declaration",35
-                ,"$SPECS/java/lang/CharSequence.jml:79: verify: Precondition conjunct is false: 0 <= index < charArray.length",34
+                ,"$SPECS/java/lang/String.jml:291: verify: Associated declaration",35
+                ,"$SPECS/java/lang/CharSequence.jml:62: verify: Precondition conjunct is false: 0 <= index < chars.length",34
                 );
     }
 
@@ -263,8 +265,8 @@ public class escstrings extends EscBase {
                 ,anyorder(
                         seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq(seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                             ,"$SPECS/java/lang/String.jml:297: verify: Associated declaration",35)
-                             ,"$SPECS/java/lang/CharSequence.jml:79: verify: Precondition conjunct is false: 0 <= index < charArray.length",34
+                             ,"$SPECS/java/lang/String.jml:291: verify: Associated declaration",35)
+                             //,"$SPECS/java/lang/CharSequence.jml:79: verify: Precondition conjunct is false: 0 <= index < chars.length",34
                             )
                                 		
                         )
