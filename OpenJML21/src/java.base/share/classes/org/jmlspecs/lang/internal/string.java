@@ -128,6 +128,10 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(value.substring(0,i) + value.substring(i+1));
     }
 
+    public boolean startsWith(string prefix) {
+        return substring(bigint.zero, prefix.length()).eq(prefix);
+    }
+    
     public string substring(bigint start) {
         return substring(start, length());
     }

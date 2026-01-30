@@ -21,9 +21,6 @@ test/jmlstring/TString.java:16: warning: The prover cannot establish an assertio
 $SPECS/org/jmlspecs/lang/internal/string.jml:78: warning: Associated declaration
     public char get(bigint i);
                 ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:75: warning: Precondition conjunct is false: 0 <= i < length
-    //-RAC@   requires 0 <= i < length;
-                              ^
 Completed proof of TString.errors2() with prover !!!! - with warnings
 Starting proof of TString.errors3() with prover !!!!
 test/jmlstring/TString.java:26: warning: The prover cannot establish an assertion (Assert) in method errors3
@@ -69,10 +66,10 @@ Starting proof of TString.errors8() with prover !!!!
 test/jmlstring/TString.java:67: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
         //@ check s.equals("ABCD");
                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:221: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:225: warning: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:220: warning: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/string.jml:224: warning: Precondition conjunct is false: false
     //@ requires false; // Not defined for JML primitive types. Use eq.
                  ^
 Completed proof of TString.errors8() with prover !!!! - with warnings

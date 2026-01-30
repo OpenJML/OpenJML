@@ -140,9 +140,9 @@ escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem or invariant problem
 escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
-escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
+escfileslist2.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 runscripts1.gitbug784            #   apache commons library
-escfileslist3.test[gitbug785]   #   Google guava library
+escfileslist2.test[gitbug785]   #   Google guava library
 escfileslist3.test[gitbug768]   # problem with invariants
 escfileslist3.test[gitbug878]             #   problem with type inference
 escfileslist3.test[gitbug880]   #   Needs better reasoning about String length -- result OK standalone but not in runtests
@@ -152,8 +152,6 @@ escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
 escfileslist3.test[staticInit]  #       Needs implementation of static initialization
-escfileslist3.test[textBlock4]  #       Handling of String, timeout
-escfileslist3.test[textBlock4b]	#	Handling of String, timeout
 escfileslist3.test[verifythis-2019-1]
 escgeneric.testGenericType1
 escgeneric.testTypeOf

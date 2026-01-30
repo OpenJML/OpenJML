@@ -76,25 +76,30 @@ public class HelloWorld {
     public static String getFormat(Date date) {
         String year, result;
         if (date.year.length() >= 4) {
-            year = "yyyy";
+            year = "yyyy-";
         } else {
-            year = "yy";
+            year = "yy-";
         }
+        String yearp = year + "-";
         int tokenLen = date.month.length(); 
         result = year + getMonthFormat(tokenLen); 
+        //@ check result.startsWith(year);
         tokenLen = date.day.length();
         result = result + getDayFormat(tokenLen); 
+        //@ check result.startsWith(year);
         tokenLen = date.time.length();
         result = result + getTimeFormat(tokenLen); 
-        //@ show date.year, date.year.length();
+        //@ check result.startsWith(year);
+        //@ show date.year, date.year.length(), year.length();
         return result;
     }
 
     //@ requires true;
-    //@ ensures length == 1 ==> \result.equals("-M");
-    //@ ensures length == 2 ==> \result.equals("-MM");
-    //@ ensures length != 1 && length != 2 ==> \result.equals("-MMM");
+    //@ ensures length == 1 ==> \result.equals("M");
+    //@ ensures length == 2 ==> \result.equals("MM");
+    //@ ensures length != 1 && length != 2 ==> \result.equals("MMM");
     //@ ensures \result != null;
+    // @ ensures \result.charAt(0) == '-';
     //@ assignable \nothing;
     //@ pure
     private static String getMonthFormat(int length) {
