@@ -249,6 +249,7 @@ public class JmlOptions extends Options {
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
                     }
+                    options.put("-?",""); // Allows a clean exit without complaining about missing source files
                     return;
                 } else if (o == null) {
                     // This is not a JML option. Might be misspelled or it might
