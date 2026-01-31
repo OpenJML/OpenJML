@@ -21151,8 +21151,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							} else {
 								// T index = lo; while (index </<= hi) { <inner computation>; index = index + 1
 								// }
-								JCExpression init = convertExpr(treeutils.makeBinary(that.pos, JCTree.Tag.PLUS,
-										treeutils.makeIdent(that.pos, indexdef.sym), treeutils.one));
+								JCExpression init = treeutils.makeBinary(that.pos, JCTree.Tag.PLUS,
+										treeutils.makeIdent(that.pos, indexdef.sym), treeutils.one);
 								st = treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, indexdef.sym),
 										castType(indexdef.type, init));
 
