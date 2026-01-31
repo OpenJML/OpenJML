@@ -896,6 +896,8 @@ public class SMTTranslator extends JmlTreeScanner {
             startCommands.add(c);
             c = command(smt,"(define-sort |#BV64#| () (_ BitVec 64))");
             startCommands.add(c);
+            c = command(smt,"(define-sort |#BV16#| () (_ BitVec 16))");
+            startCommands.add(c);
         }
 
         c = command(smt, useBV ? "(define-sort SEQ (E) (Array |#BV32#| E))" : "(define-sort SEQ (E) (Array Int E))");
@@ -906,7 +908,7 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         c = command(smt, useBV ? "(define-sort ARRAY (E) (Array |#BV32#| E))" : "(define-sort ARRAY (E) (Array Int E))");
         startCommands.add(c);
-        c = command(smt, "(define-sort STRINGJML ( ) (Array Int Int))");
+        c = command(smt, useBV ? "(define-sort STRINGJML ( ) (Array |#BV32#| |#BV16#| ))" : "(define-sort STRINGJML ( ) (Array Int Int))");
         startCommands.add(c);
         c = new C_declare_fun(nullStringSym,emptyList, stringSort);
         startCommands.add(c);
