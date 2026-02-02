@@ -563,6 +563,11 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void byteQuant() {
+        helpCompileRun("Test");
+    }
+    
+    @Test
     public void termination() {
         helpCompileRun("Termination");
     }

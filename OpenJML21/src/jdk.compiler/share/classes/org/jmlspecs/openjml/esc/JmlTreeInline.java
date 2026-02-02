@@ -250,9 +250,8 @@ public class JmlTreeInline extends JmlTreeCopier {
         // only special JML functions (e.g. \\nonnullelements) are JmlMethodInvocation
         // nodes.
         // CAUTION: if JCMethodInvocation adds fields, they have to be added here
-        JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(
-                that.kind,
-                copy(that.args,p));
+        var args = copy(that.args, p);
+        JmlMethodInvocation copy = M.at(that.pos).JmlMethodInvocation(that.kind,args);
         copy.name = that.name;
         copy.startpos = that.startpos;
         copy.labelProperties = that.labelProperties;

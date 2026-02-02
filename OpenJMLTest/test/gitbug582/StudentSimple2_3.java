@@ -44,7 +44,7 @@ public class StudentSimple2_3 {
   
   /*@
     @ requires e != null;
-    @ ensures !enrolments.values.contains(e);
+    @ ensures !enrolments.values.containsEquals(e);
     @*/
   public void removeEnrolmentBad(Object e) {
     //@ loop_assigns enrolments.values;

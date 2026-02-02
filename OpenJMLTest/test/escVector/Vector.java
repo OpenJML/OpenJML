@@ -147,6 +147,7 @@ public class Vector {
   public final synchronized Object elementAt(final int the_index) 
     throws ArrayIndexOutOfBoundsException {
     if (the_index >= my_element_count) {
+      //@ assume 100 + " >= ".length() + 100 <= Integer.MAX_VALUE;
       throw new ArrayIndexOutOfBoundsException(the_index + " >= " + my_element_count);
     }
     try {

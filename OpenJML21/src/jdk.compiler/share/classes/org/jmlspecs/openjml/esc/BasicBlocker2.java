@@ -1636,7 +1636,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
         } else if (that.clauseType == assumeClause || that.clauseType == assertClause || that.clauseType == checkClause) {
             //System.out.println("BBTRANSLATING " + that);
-            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,convertExpr(that.expression));
+            var ex = convertExpr(that.expression);
+            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,ex);
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
             st.associatedPos = that.associatedPos;

@@ -1928,8 +1928,8 @@ public class Gen extends JCTree.Visitor {
         // the parameters of the method's external type (that is, any implicit
         // outer instance of a super(...) call appears as first parameter).
         MethodSymbol msym = ms = (MethodSymbol)TreeInfo.symbol(tree.meth); // OPENJML
-        genArgs(tree.args,
-                msym.externalType(types).getParameterTypes());
+        try { genArgs(tree.args,
+                msym.externalType(types).getParameterTypes()); } catch (Throwable e) { System.out.println("APPLY " + tree); throw e; }
         if (!msym.isDynamic()) {
             code.statBegin(tree.pos);
         }
