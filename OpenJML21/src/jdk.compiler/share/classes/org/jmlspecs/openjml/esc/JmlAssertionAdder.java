@@ -14878,8 +14878,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        }
         if (that.type.tsym == SEQ.tsym || that.type.tsym == STRING.tsym || that.lhs.type.tsym == SEQ.tsym || that.lhs.type.tsym == STRING.tsym
                 || that.rhs.type.tsym == SEQ.tsym || that.rhs.type.tsym == STRING.tsym) {
-            Name nm = names.fromString(optag == JCTree.Tag.PLUS ? "append" : optag == JCTree.Tag.EQ ? "eq" : "ne");
-
+            Name nm = names.fromString(  // optag == JCTree.Tag.PLUS ? "append" : optag == JCTree.Tag.EQ ? "eq" : "ne");
+                switch (optag) {
+                case PLUS -> "append";
+                case EQ -> "eq";
+                case NE -> "ne";
+                case LT -> "lt";
+                case LE -> "le";
+                case GT -> "gt";
+                case GE -> "ge";
+                default -> null;
+                });
             // Convert to a function and use the specs in seq.jml or string.jml
             // Don't convert the arguments, because that will be done when visitApply is called for call
             JCExpression e = makeMethodInvocation(that, that.lhs, nm, that.rhs);
@@ -20740,6 +20749,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		for (JCVariableDecl d : that.decls) {
 			localVariables.put(d.sym, d.sym);
 		}
+		JCBreak brk = null;
 		result = eresult = treeutils.makeZeroEquivalentLit(that, that.type);
 		// FIXME - should really turn splitExpressions off for these expressions.
 		try {
@@ -20756,6 +20766,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression range = convertNoSplit(that.range);
 					if (range != null)
 						range = addImplicitConversion(range, syms.booleanType, range);
+					for (var d: that.decls) {
+					    if (d.type.isIntegral()) {
+					        var r = treeutils.makeRangeCheck(d.sym.type, treeutils.makeIdent(d, d.sym));
+					        range = range == null ? r : treeutils.makeAnd(range, range, r);
+					    }
+					}
+
 					JCExpression value = convertNoSplit(that.value);
 					Type targetType = that.kind == qforallKind ? syms.booleanType
                             : that.kind == qexistsKind ? syms.booleanType
@@ -21114,12 +21131,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								}
 								addStat(st);
 							} finally {
+
 								bl = popBlock(that, checkB); // D // end of guarded block
 							}
+
 							st = M.If(guard, bl, null);
 							addStat(st);
+							if (bound.decl.type.isIntegral()) {
+							    JCExpression hi = convertExpr(bound.hi);
+							    if (hi != null && hi.type.isIntegral()) {
+							        var comp = treeutils.makeBinary(that.pos, JCTree.Tag.EQ, treeutils.makeIdent(that.pos, indexdef.sym),
+							                hi);
+							        brk = M.Break(label);
+							        addStat(M.at(that.pos).If(comp, brk, null));
+							    }
+							}
 
 						} finally {
+						    JCStatement loop;
 							if (bound.decl.type.getTag() == TypeTag.BOOLEAN) {
 								// index = false; do { <innercomputation>; index = !index } while (index);
 								st = treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, indexdef.sym),
@@ -21131,10 +21160,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								indexdef.init = treeutils.falseLit;
 								JCExpression comp = treeutils.makeIdent(that.pos, indexdef.sym);
 								addStat(indexdef);
-								st = M.at(that.pos).DoLoop(bl, comp);
+								loop = M.at(that.pos).DoLoop(bl, comp);
 								if (brStat != null)
-									brStat.target = st;
-								st = M.at(that.pos).JmlLabeledStatement(label, null, st);
+									brStat.target = loop;
+								st = M.at(that.pos).JmlLabeledStatement(label, null, loop);
 								addStat(st);
 
 							} else if (bound.iterable != null) {
@@ -21142,10 +21171,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 								bl = popBlock(that, checkA); // C // loop block
 
-								st = M.at(that.pos).ForeachLoop(indexdef, convertExpr(bound.iterable), bl);
+								loop = M.at(that.pos).ForeachLoop(indexdef, convertExpr(bound.iterable), bl);
 								if (brStat != null)
-									brStat.target = st;
-								st = M.at(that.pos).JmlLabeledStatement(label, null, st);
+									brStat.target = loop;
+								st = M.at(that.pos).JmlLabeledStatement(label, null, loop);
 								addStat(st);
 
 							} else {
@@ -21192,15 +21221,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								} finally {
 									splitExpressions = saved1;
 								}
-								st = M.at(that.pos).WhileLoop(comp, bl);
+								loop = M.at(that.pos).WhileLoop(comp, bl);
 								if (brStat != null)
-									brStat.target = st;
-								st = M.at(that.pos).JmlLabeledStatement(label, null, st);
+									brStat.target = loop;
+								st = M.at(that.pos).JmlLabeledStatement(label, null, loop);
 								addStat(st);
 								if (failureBlock != null) {
 								    addStat(failureBlock);
 								}
 							}
+							if (brk != null) brk.target = loop;
 						}
 
 					}
@@ -21295,6 +21325,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		try {
 		    java.util.List<Comp> comps = new LinkedList<>();
+		    if (declType.isIntegral() && declType.tsym == syms.byteType.tsym) { // FIXME - want to do this for more than byte, but we need to combine possible lower/upper bounds
+		        var id = treeutils.makeIdent(decls.head, decls.head.sym);
+		        JCExpression e = treeutils.makeRangeCheck(declType, id);
+		        collectComparisons(comps, e, false);
+		    }
 		    collectComparisons(comps, range, false);
 		    sortComparisons(decls, comps, bounds);
 		} catch (Exception e) {

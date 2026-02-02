@@ -130,10 +130,10 @@ public class TString {
         //@ check s.length == s1.length + s2.length;
         //@ check s.length >= s1.length;
         //@ check s.substring(0,s1.length) == s1;
-        //@ check s.substring(s1.length()) == s2;
+        //@ check s.tail(s1.length()) == s2;
         //@ check !s.isEmpty() ==> s.head(s1.length()) == s1;
         //@ check !s.isEmpty() ==> s.tail(s1.length()) == s2;
-        //@ check !s.isEmpty() ==> s.tail() == s.substring(1);
+        //@ check !s.isEmpty() ==> s.tail() == s.substring(1, s.length());
         //@ check !s1.isEmpty() ==> s.head() == s1.head();
         //@ check s == s1.append(s2);
         
@@ -238,6 +238,6 @@ public class TString {
         errors7();
         errors8();
         errors9();
-        System.out.println("END");
+        //@ print "END";
     }
 }

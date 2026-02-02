@@ -11,8 +11,11 @@ class Main {
     //@ requires java.io.PrintStream.eol == "\n";
     //@ requires System.out.outputText.isEmpty();
     //@ ensures System.out.outputText.startsWith("foo\n".chars);
-    //@ ensures System.out.outputText == "foo\n".chars;
+    //@ ensures System.out.outputText == \old(System.out.outputText) + "foo".chars + java.io.PrintStream.eol.chars;
   public static void m(String[] args) {
+      //@ assert System.out.outputText == \string.empty;
     System.out.println("foo");
+    //@ assert System.out.outputText == \string.empty.append("foo".chars);
+    //@ assert System.out.outputText.startsWith("foo".chars);
   }
 }

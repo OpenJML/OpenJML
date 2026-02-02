@@ -88,4 +88,9 @@ public class escfiles3 extends EscBaseFiles {
     public void gitbug814z() {
         helpTG();
     }
+    
+    @Test
+    public void byteQuant() {
+        helpTG();
+    }
 }

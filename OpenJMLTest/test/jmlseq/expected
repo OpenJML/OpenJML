@@ -26,10 +26,10 @@ Starting proof of TSeq.errors3() with prover !!!!
 test/jmlseq/TSeq.java:28: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors3
             //@ ghost var o = s.put(-1, oo);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:150: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:156: warning: Associated declaration
     public seq<T> put(bigint i, T c);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:144: warning: Precondition conjunct is false: 0 <= i < this.length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:150: warning: Precondition conjunct is false: 0 <= i < this.length
     //@   requires 0 <= i < this.length;
                           ^
 Completed proof of TSeq.errors3() with prover !!!! - with warnings
@@ -37,7 +37,7 @@ Starting proof of TSeq.errors4() with prover !!!!
 test/jmlseq/TSeq.java:38: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors4
             //@ ghost var o = s.put(5, oo);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:150: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:156: warning: Associated declaration
     public seq<T> put(bigint i, T c);
                   ^
 Completed proof of TSeq.errors4() with prover !!!! - with warnings
@@ -45,10 +45,10 @@ Starting proof of TSeq.errors5() with prover !!!!
 test/jmlseq/TSeq.java:48: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
             //@ ghost var o = s.remove(-1);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:141: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:147: warning: Associated declaration
     public seq<T> remove(bigint j);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:135: warning: Precondition conjunct is false: 0 <= j < this.length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:141: warning: Precondition conjunct is false: 0 <= j < this.length
     //@   requires 0 <= j < this.length;
                           ^
 Completed proof of TSeq.errors5() with prover !!!! - with warnings
@@ -56,7 +56,7 @@ Starting proof of TSeq.errors6() with prover !!!!
 test/jmlseq/TSeq.java:58: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
             //@ ghost var o = s.remove(5);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:141: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:147: warning: Associated declaration
     public seq<T> remove(bigint j);
                   ^
 Completed proof of TSeq.errors6() with prover !!!! - with warnings
@@ -68,10 +68,10 @@ Starting proof of TSeq.errors8() with prover !!!!
 test/jmlseq/TSeq.java:80: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
             //@ ghost var o = s.insert(-1, oo);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:103: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: warning: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:96: warning: Precondition conjunct is false: 0 <= j <= length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:102: warning: Precondition conjunct is false: 0 <= j <= length
     //@   requires 0 <= j <= length;
                           ^
 Completed proof of TSeq.errors8() with prover !!!! - with warnings
@@ -79,7 +79,7 @@ Starting proof of TSeq.errors9() with prover !!!!
 test/jmlseq/TSeq.java:90: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
             //@ ghost var o = s.insert(6, oo);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:103: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: warning: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
 Completed proof of TSeq.errors9() with prover !!!! - with warnings
@@ -87,7 +87,7 @@ Starting proof of TSeq.errors10() with prover !!!!
 test/jmlseq/TSeq.java:100: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors10
             //@ ghost var t = \seq.<Object>empty().head();
                                                        ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:163: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:169: warning: Associated declaration
     public T head();
              ^
 Completed proof of TSeq.errors10() with prover !!!! - with warnings
@@ -95,10 +95,10 @@ Starting proof of TSeq.errors11() with prover !!!!
 test/jmlseq/TSeq.java:110: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors11
             //@ ghost var o = s.head(-1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:172: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:178: warning: Associated declaration
     public seq<T> head(bigint i);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:166: warning: Precondition conjunct is false: 0 <= i <= this.length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:172: warning: Precondition conjunct is false: 0 <= i <= this.length
     //@   requires 0 <= i <= this.length;
                           ^
 Completed proof of TSeq.errors11() with prover !!!! - with warnings
@@ -106,7 +106,7 @@ Starting proof of TSeq.errors12() with prover !!!!
 test/jmlseq/TSeq.java:120: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors12
             //@ ghost var o = s.head(s.length()+1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:172: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:178: warning: Associated declaration
     public seq<T> head(bigint i);
                   ^
 Completed proof of TSeq.errors12() with prover !!!! - with warnings
@@ -114,10 +114,10 @@ Starting proof of TSeq.errors13() with prover !!!!
 test/jmlseq/TSeq.java:130: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors13
             //@ ghost var o = s.tail(-1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:189: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:195: warning: Associated declaration
     public seq<T> tail(bigint i);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:183: warning: Precondition conjunct is false: 0 <= i <= this.length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:189: warning: Precondition conjunct is false: 0 <= i <= this.length
     //@   requires 0 <= i <= this.length;
                           ^
 Completed proof of TSeq.errors13() with prover !!!! - with warnings
@@ -125,7 +125,7 @@ Starting proof of TSeq.errors14() with prover !!!!
 test/jmlseq/TSeq.java:140: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors14
             //@ ghost var o = s.tail(s.length()+1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:189: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:195: warning: Associated declaration
     public seq<T> tail(bigint i);
                   ^
 Completed proof of TSeq.errors14() with prover !!!! - with warnings
@@ -133,10 +133,10 @@ Starting proof of TSeq.errors15() with prover !!!!
 test/jmlseq/TSeq.java:150: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors15
             //@ ghost var o = s.subseq(-1,s.length());
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:157: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:163: warning: Associated declaration
     public seq<T> subseq(bigint i, bigint j);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:153: warning: Precondition conjunct is false: 0 <= i <= j <= this.length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:159: warning: Precondition conjunct is false: 0 <= i <= j <= this.length
     //@   requires 0 <= i <= j <= this.length;
                                ^
 Completed proof of TSeq.errors15() with prover !!!! - with warnings
@@ -144,7 +144,7 @@ Starting proof of TSeq.errors16() with prover !!!!
 test/jmlseq/TSeq.java:160: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors16
             //@ ghost var o = s.subseq(0,s.length()+1);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:157: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:163: warning: Associated declaration
     public seq<T> subseq(bigint i, bigint j);
                   ^
 Completed proof of TSeq.errors16() with prover !!!! - with warnings
@@ -152,10 +152,10 @@ Starting proof of TSeq.errors17() with prover !!!!
 test/jmlseq/TSeq.java:170: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors17
             //@ ghost var o = s.subseq(1,0);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:157: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:163: warning: Associated declaration
     public seq<T> subseq(bigint i, bigint j);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:153: warning: Precondition conjunct is false: 0 <= i <= j <= this.length
+$SPECS/org/jmlspecs/lang/internal/seq.jml:159: warning: Precondition conjunct is false: 0 <= i <= j <= this.length
     //@   requires 0 <= i <= j <= this.length;
                                ^
 Completed proof of TSeq.errors17() with prover !!!! - with warnings
