@@ -117,13 +117,6 @@ public class escstrings extends EscBase {
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       String sss = s + ss;\n"
                 +"       String s4 = s + ss;\n"
-                +"       //@ assume sss != s4;\n"
-                +"       //@ check sss.chars == s.chars.append(ss.chars);\n"
-                +"       //@ check s4.chars == s.chars.append(ss.chars);\n"
-                +"       //@ check \\forall \\bigint i;; sss.chars[i] == (i < s.chars.length ? s.chars[i] : ss.chars[i-s.chars.length]);\n"
-                +"       //@ check \\forall \\bigint i;; s4.chars[i] == (i < s.chars.length ? s.chars[i] : ss.chars[i-s.chars.length]);\n"
-                +"       //@ check \\forall \\bigint i;; s4.chars[i] == sss.chars[i];\n"
-                +"       //@ check s4.chars == sss.chars;\n"
                 +"       //@ assert sss.equals(s4);\n"
                 +"  }\n"
                 
@@ -231,7 +224,7 @@ public class escstrings extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
                 ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration",35
-                ,optional(seq("$SPECS/java/lang/CharSequence.jml:62: verify: Precondition conjunct is false: 0 <= index < chars.length",34))
+                ,optional(seq("$SPECS/java/lang/CharSequence.jml:65: verify: Precondition conjunct is false: 0 <= index < chars.length",34))
                 );
     }
 

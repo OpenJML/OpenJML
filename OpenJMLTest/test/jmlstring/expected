@@ -66,10 +66,10 @@ Starting proof of TString.errors8() with prover !!!!
 test/jmlstring/TString.java:67: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
         //@ check s.equals("ABCD");
                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:236: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:230: warning: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:235: warning: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/string.jml:229: warning: Precondition conjunct is false: false
     //@ requires false; // Not defined for JML primitive types. Use eq.
                  ^
 Completed proof of TString.errors8() with prover !!!! - with warnings
@@ -77,7 +77,7 @@ Starting proof of TString.errors9() with prover !!!!
 test/jmlstring/TString.java:77: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
             //@ check \string.empty().head() == ' ';
                                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:139: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:142: warning: Associated declaration
     public char head();
                 ^
 Completed proof of TString.errors9() with prover !!!! - with warnings
@@ -93,42 +93,6 @@ Starting proof of TString.test4(\string,\string) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.test4(\string,\string) with prover !!!! - no warnings
-Starting proof of TString.test5() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test5() with prover !!!! - no warnings
-Starting proof of TString.test6() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test6() with prover !!!! - no warnings
-Starting proof of TString.test7() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test7() with prover !!!! - no warnings
-Starting proof of TString.test8() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test8() with prover !!!! - no warnings
-Starting proof of TString.test9() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test9() with prover !!!! - no warnings
-Starting proof of TString.test10() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test10() with prover !!!! - no warnings
-Starting proof of TString.test11() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test11() with prover !!!! - no warnings
-Starting proof of TString.test12() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.test12() with prover !!!! - no warnings
-Starting proof of TString.misc() with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of TString.misc() with prover !!!! - no warnings
 Starting proof of TString.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

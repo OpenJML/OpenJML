@@ -52,6 +52,11 @@ public class primesc2 extends EscBaseFiles {
     }
     
     @Test
+    public void jmlstring2() {
+        helpTG();
+    }
+    
+    @Test
     public void jmlseq() {
         helpTG();
     }
