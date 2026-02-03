@@ -75,6 +75,12 @@ public class primrac extends RacBase {
     }
     
     @Test
+    public void jmlstring2() {
+        expectedExit = 0;
+        helpCompileRun("TString");
+    }
+    
+    @Test
     public void jmlseq() {
         expectedExit = 0;
         helpCompileRun("TSeq");
