@@ -6078,7 +6078,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             var rep = jmlenv.representsHead;
         	if (rep != null && jmlenv.currentClauseKind == representsClause && tree.sym instanceof VarSymbol && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && tree.sym.name != names._super) {  // FIXME - also need to check the reads statement of method calls
         		//System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead + " " + jmlenv.currentClauseKind);
-        		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead)) {
+        		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead) && !tree.sym.isFinal()) {
         			utils.error(tree,"jml.message", "Because '" + rep + "' reads '" + tree.sym + "' in a represents clause, '" + tree.sym + "' must be 'in' the model field '" + rep + "'");
         		}
         	}

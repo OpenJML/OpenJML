@@ -2448,7 +2448,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addStat(comment("Feasibility check " + description));
 			JmlStatementExpr a = addAssert(item, Label.FEASIBILITY_CHECK, bin);
 			a.description = description;
-			a.sourcefile = (item instanceof JmlTree.JmlSource) ? ((JmlTree.JmlSource) item).source() : null;
+			a.sourcefile = (item instanceof JmlTree.JmlSource s) ? s.source() : log.currentSourceFile();
 			a.associatedPos = feasibilityCheckCount;
 			descs.add(a);
 			currentStatements = prev;
@@ -10765,6 +10765,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// assignable clauses
 			Name calllabel = null;
 			if (splitExpressions) { //if (!translatingJML) {
+			    addStat(comment("Label for call: " + that));
 				JCBlock bl = M.at(that).Block(0L, com.sun.tools.javac.util.List.<JCStatement>nil());
 				String label = "_JMLCALL_" + that.pos + "_" + nextUnique();
 				calllabel = names.fromString(label);
@@ -17433,6 +17434,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
 						addStat(st);
 					}
+					int p = that.pos;
+	                JCVariableDecl vd = newTempDecl(that, BIGINT);
+	                JCExpression z = treeutils.makeZeroEquivalentLit(that, BIGINT);
+	                JCExpression id1 = treeutils.makeIdent(p, vd.sym);
+	                JCExpression id2 = treeutils.makeIdent(p, vd.sym);
+	                JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
+	                JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, 
+	                        treeutils.makeTypeCast(that, BIGINT, treeutils.makeIntLiteral(p,len)));
+	                JCExpression element = treeutils.makeArrayElement(p, ex, treeutils.makeIdent(p, vd.sym));
+                    //JCExpression element = new JmlBBArrayAccess(null, ex, treeutils.makeIdent(p, vd.sym), p, syms.charType);
+	                
+	                Name nm = names.fromString("empty");
+	                VarSymbol fs = null;
+	                for (var f: STRING.tsym.members().getSymbolsByName(nm)) {
+	                    //System.out.println("SYM: " + f + " " + f.getClass());
+	                    if (f instanceof VarSymbol fss) fs = fss;
+	                }
+	                JCFieldAccess fa = treeutils.makeSelect(p, treeutils.makeType(that, STRING), fs);
+	                fa.type = STRING;
+                    JCExpression element2 = treeutils.makeArrayElement(p, fa, treeutils.makeIdent(p, vd.sym));
+                    //JCExpression element2 = new JmlBBArrayAccess(null, fa, treeutils.makeIdent(p, vd.sym), p, syms.charType);
+                    JCExpression rn = treeutils.makeAnd(p, a, b);
+                    rn = treeutils.makeOr(that, rn, treeutils.makeEquality(p, element, element2));
+	                JCExpression fr = M.at(p).JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd), null, rn);
+	                fr.type = syms.booleanType;
+	                //System.out.println("FR " + fr);
+	                //fr = convertExpr(fr);
+                    //System.out.println("FRC " + fr);
+	                addAssume(that, Label.IMPLICIT_ASSUME, fr);
 				}
 
 			}
@@ -20114,7 +20144,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// FIXME - use past instead of old?
 					// FIXME - what prestate should we refer to - e.g. refining statements and loops
 					// will have a different one
-					Name earlierState = attr.preLabel;
+					Name earlierState = currentOldLabel;
 					JCBinary bin;
 					if (arg instanceof JCIdent) {
 						JCExpression copy = copy(arg);
@@ -20451,8 +20481,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         		// FIXME _ for now don't use a let: there are problems translating it
         		// id0 = arg;
 
-        		Name nm = names.fromString("__JMLtemp" + nextUnique());
-        		JCVariableDecl vd = treeutils.makeVariableDecl(nm, syms.intType, null, p);
+        		JCVariableDecl vd = newTempDecl(arg, syms.intType);
         		JCExpression z = treeutils.makeIntLiteral(p, 0);
         		JCExpression id1 = treeutils.makeIdent(p, vd.sym);
         		JCExpression id2 = treeutils.makeIdent(p, vd.sym);
