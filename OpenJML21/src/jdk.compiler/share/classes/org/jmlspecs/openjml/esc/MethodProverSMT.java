@@ -1226,6 +1226,12 @@ public class MethodProverSMT {
                                                 String nmmm = nmm + "_" + pdetail3;
                                                 Boolean vvv = findPreValue(nmmm,info);
                                                 //log.note("jml.message",nmmm + " " + vvv);
+//                                                if (vvv == null) {
+//                                                    var vvvv = getValue(nmmm,info.smt,solver,false);
+//                                                    if (vvvv == null) break;
+//                                                    vvv = "true".equals(vvvv.toString()) ? true : "false".equals(vvvv.toString()) ? false : null;
+//                                                    if (vvv == null) break;
+//                                                }
                                                 if (vvv == null) break;
                                                 if (!vvv) {
                                                     JCTree s = findPreExpr(nmmm);
@@ -1585,6 +1591,12 @@ public class MethodProverSMT {
                                             String nmmm = nmm + "_" + pdetail3;
                                             Boolean vvv = findPreValue(nmmm,info);
                                             //log.note("jml.message",nmmm + " " + vvv);
+//                                            if (vvv == null) {
+//                                                var vvvv = getValue(nmmm,info.smt,solver,false);
+//                                                if (vvvv == null) break;
+//                                                vvv = "true".equals(vvvv.toString()) ? true : "false".equals(vvvv.toString()) ? false : null;
+//                                                if (vvv == null) break;
+//                                            }
                                             if (vvv == null) break;
                                             if (!vvv) {
                                                 JCExpression s = findPreExpr(nmmm);
