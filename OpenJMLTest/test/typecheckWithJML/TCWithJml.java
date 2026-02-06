@@ -51,3 +51,7 @@ final class BB {}
 class DD {}
 
 class EE {}
+
+@org.jmlspecs.annotation.Pure
+class FF {}
+

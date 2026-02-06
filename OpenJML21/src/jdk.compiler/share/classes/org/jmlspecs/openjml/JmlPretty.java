@@ -1101,9 +1101,9 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 //                }
                 super.visitAnnotation(tree);
             } else if (!useFullAnnotationTypeName && isJml) {
-                    s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
-                    print("@");
-                    print(s);
+                s = s.substring(Strings.jmlAnnotationPackage.length()+1); // +1 for the extra period
+                print("@");
+                print(s);
             } else {
                 super.visitAnnotation(tree);
                 if (tree instanceof JmlAnnotation) print("[" + ((JmlAnnotation)tree).kind + "]");

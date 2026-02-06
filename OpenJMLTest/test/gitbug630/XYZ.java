@@ -1,6 +1,6 @@
     public class XYZ {
         //@ private exceptional_behavior
-        //@     signals (IndexOutOfBoundsException ex) true;
+        //@     signals_only IndexOutOfBoundsException;
         private static void callMe() {
             throw new IndexOutOfBoundsException();
         }

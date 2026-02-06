@@ -52,3 +52,5 @@ class BB {} // Error - different modifiers
 @NonNullByDefault @NullableByDefault class DD {}  // Error - conflicting annotations
 
 @SpecPublic class EE {}
+
+class FF {} // Error - different annotations
