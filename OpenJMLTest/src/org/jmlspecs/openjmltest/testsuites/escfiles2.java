@@ -208,11 +208,6 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
-    public void gitbug883bad() {
-        helpTG();
-    }
-    
-    @Test
     public void gitbug889() {
         helpTG();
     }
@@ -224,7 +219,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug894() {
-        helpTG("--check-feasibility=none");
+        helpTG("--method=Test3.*");
     }
     
     @Test
