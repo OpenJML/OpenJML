@@ -93,4 +93,136 @@ public class escfiles3 extends EscBaseFiles {
     public void byteQuant() {
         helpTG();
     }
+    
+    // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
+    @Test
+    public void sfbug420() {
+        helpTG("--exclude=count;itemAt;main;isEmpty;push;top");
+    }
+    
+    @Test
+    public void sfbug420a() {
+        helpTG("--method=count");
+    }
+    
+    @Test
+    public void sfbug420b() {
+        helpTG("--method=itemAt");
+    }
+    
+    @Test
+    public void sfbug420c() {
+        helpTG("--method=main");
+    }
+    
+    @Test
+    public void sfbug420d() {
+        helpTG("--method=isEmpty");
+    }
+    
+    @Test
+    public void sfbug420e() {
+        helpTG("--method=push");
+    }
+    
+    @Test
+    public void sfbug420eOK() {
+        helpTG("--method=push"); // FIXME - not sure wheterh or not all methods should be checked here
+    }
+    
+    @Test
+    public void sfbug420f() {
+        helpTG("--method=top");
+    }
+    
+    @Test
+    public void sfbug420X() {
+        helpTG();
+    }
+    
+    @Test  // TODO - could use some additional investigation as to what this submitted file set is supposed to do
+    public void escrmloop() {
+        helpTG("--check-feasibility=none","--timeout=60");
+    }
+    
+    @Test
+    public void escrmloop2() {
+        expectedExit = 1;
+        helpTG();
+    }
+    
+    @Test @Ignore // not working yet
+    public void escFPcompose() {
+        helpTG();
+    }
+    
+    @Test
+    public void escLemma() {
+        helpTG("--check-feasibility=none");
+    }
+    
+    @Test
+    public void escOld() {
+        helpTG();
+    }
+    
+    @Test
+    public void escOldState() {
+        helpTG();
+    }
+    
+    @Test
+    public void exceptionCancel() {
+        helpTG();
+    }
+    
+    @Test @Ignore // Problem is with mixed BV and bigint operations
+    public void buggyCalculator() {
+        helpTG();
+    }
+
+    @Test
+    public void buggyRandomNumbers() {
+        helpTG();
+    }
+
+    @Test @Ignore // times out -- see testPrime for fixed version
+    public void buggyPrimeNumbers() {
+        helpTG();
+    }
+
+    @Test @Ignore // FIXME - unclear why fails
+    public void buggyPalindrome() {
+        helpTG();
+    }
+
+    @Test
+    public void escException() {
+        helpTG();
+    }
+
+    @Test
+    public void preold() {
+        helpTG();
+    }
+    
+
+    @Test
+    public void preold2() {
+        expectedExit = 1;
+        helpTG();
+    }
+
+    @Test
+    public void nullableOld() {
+        helpTG();
+    }
+
+    @Test
+    public void staticOld() {
+        expectedExit = 1;
+        helpTG();
+    }
+
+
 }

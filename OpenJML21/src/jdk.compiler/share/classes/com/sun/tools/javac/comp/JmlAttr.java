@@ -2094,7 +2094,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (!utils.hasMod(specMods, aa.kind)) {
                         String k = owner instanceof ClassSymbol ? "class"
                             : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
-                        utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.type);
+                        utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.toString());
                         break;
                     }
                 }

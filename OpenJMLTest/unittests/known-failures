@@ -125,8 +125,8 @@ escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
 escfiles.sfbug420X
-#escfiles.sfbug420e
-escfiles.sfbug420eOK
+#escfiles3.sfbug420e
+escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
 escfiles2.escRawding2
 escfiles2.escRawdingA
@@ -168,7 +168,6 @@ primesc1.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
-escfiles2.gitbug883bad #    Needs better handling of 2D array
 escfiles2.gitbug894    # unsuccessful specs for uniqueCharString
 
 escfileslist1.test[choose-repeat]

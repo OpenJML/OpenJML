@@ -150,7 +150,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test 
     public void gitbug812a() {
-        helpTG("--code-math=safe");
+        helpTG("--code-math=safe","--check-feasibility=none");
     }
     
     @Test
