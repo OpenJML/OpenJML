@@ -203,6 +203,11 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug880() {
+        helpTG();
+    }
+    
+    @Test
     public void gitbug883() {
         helpTG("--esc-max-warnings=1","--check-feasibility=precondition,exit","--nullable-by-default","--timeout=60");
     }

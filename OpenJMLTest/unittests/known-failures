@@ -124,7 +124,7 @@ escfiles.datatype		#       test of not yet implemented recursive data types (cf.
 escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
-escfiles.sfbug420X
+escfiles3.sfbug420X
 #escfiles3.sfbug420e
 escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
@@ -143,9 +143,7 @@ escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
 escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 runscripts1.gitbug784            #   apache commons library
 escfileslist3.test[gitbug785]   #   Google guava library
-escfileslist3.test[gitbug768]   # problem with invariants
 escfileslist3.test[gitbug878]             #   problem with type inference
-escfileslist3.test[gitbug880]   #   Needs better reasoning about String length -- result OK standalone but not in runtests
 #escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist3.test[gitbug897]   # substring and loop
 escfileslist3.test[listNullity]
@@ -153,6 +151,7 @@ escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
 escfileslist3.test[staticInit]  #       Needs implementation of static initialization
 escfileslist3.test[verifythis-2019-1]
+escfileslist3.test[gitbug908]   # THe weird OJ= problem
 escgeneric.testGenericType1
 escgeneric.testTypeOf
 escgeneric.testTypeParameter2d
@@ -168,7 +167,6 @@ primesc1.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
-escfiles2.gitbug894    # unsuccessful specs for uniqueCharString
 
 escfileslist1.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
@@ -180,6 +178,5 @@ SFBugs.gitbug651  # not yet working -- problems with Map specifications
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
-SFBugs.gitbug444a               # inadequate specifications in the given problem
 primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort

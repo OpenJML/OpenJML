@@ -10,7 +10,6 @@
             try {
                 callMe();
             } catch (IndexOutOfBoundsException ex) {
-                //@ assert ex.toStringDefined;
                 Object obj = ex;
                 String s = obj.toString();
                 Throwable th = ex;

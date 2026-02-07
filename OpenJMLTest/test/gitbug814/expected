@@ -49,26 +49,13 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinaryTree.toArray() with prover !!!! - no warnings
 Starting proof of BinaryTree.between(int,int) with prover !!!!
-test/gitbug814/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method between: arg0 in <E>of(E)
-      @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
-                       ^
-$SPECS/java/util/Set.jml:120: warning: Associated declaration
-    public static <E> java.util.Set<E> of(E e0);
-                                          ^
-test/gitbug814/BinaryTree.java:141: warning: Associated method exit
-    }
-     ^
-test/gitbug814/BinaryTree.java:140: warning: The prover cannot establish an assertion (Postcondition) in method between
-        return btw(root, a, b);
-        ^
-test/gitbug814/BinaryTree.java:137: warning: Associated declaration
-      @ ensures Set.of(\result).equals(this.keySet().subSet(a,false,b,false));
-        ^
-Completed proof of BinaryTree.between(int,int) with prover !!!! - with warnings
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BinaryTree.between(int,int) with prover !!!! - no warnings
 Starting proof of BinaryTree.btwT(BinaryTree.Node,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinaryTree.btwT(BinaryTree.Node,int,int) with prover !!!! - no warnings
 Skipping proof of BinaryTree.btw(BinaryTree.Node,int,int) (Skipping BinaryTree.btw because it matches the exclusion btw)
 Completed proving methods in BinaryTree
-7 warnings
+2 warnings

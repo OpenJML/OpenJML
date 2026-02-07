@@ -4,12 +4,9 @@ Completed proof of sv_esc.Bag.Bag(int[]) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!!
 Completed proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.removeOnce(int) with prover !!!!
-test/bag/Bag.java:28: warning: The prover cannot establish an assertion (InvariantExit) in method removeOnce
-  void removeOnce(int elt) {
-       ^
-test/bag/Bag.java:12: warning: Associated declaration
-  //@ invariant 0 <= n;
-      ^
+test/bag/Bag.java:30: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeOnce
+      if (contents[i] == elt ) {
+                  ^
 Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.removeAll(int) with prover !!!!
 test/bag/Bag.java:43: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeAll
@@ -17,9 +14,9 @@ test/bag/Bag.java:43: warning: The prover cannot establish an assertion (Possibl
                                ^
 Completed proof of sv_esc.Bag.removeAll(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.getCount(int) with prover !!!!
-test/bag/Bag.java:53: warning: The prover cannot establish an assertion (LoopInvariant) in method getCount
-    //@ loop_invariant count >= 0;
-        ^
+test/bag/Bag.java:55: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method getCount: overflow in int sum
+      if (contents[i] == elt) count++;
+                                   ^
 Completed proof of sv_esc.Bag.getCount(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.add(int) with prover !!!!
 test/bag/Bag.java:61: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
@@ -34,4 +31,4 @@ Completed proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!!
 Completed proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!! - no warnings
 Completed proving methods in sv_esc.Bag
-6 warnings
+5 warnings

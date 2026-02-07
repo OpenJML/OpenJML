@@ -9,7 +9,7 @@ Starting proof of PrintProblem.main1(String[]) with prover !!!!
 test/gitbug740/PrintProblem.java:17: warning: The prover cannot establish an assertion (InvariantEntrance) in method main1: (Caller: PrintProblem.main1(String[]), Callee: java.io.PrintStream.println(String))
         System.out.println("... test done."); // FAILURE -- test1 is assigns \everything
                           ^
-$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:43: warning: Associated declaration
     //-RAC@ public invariant outputText.length >= 0;
                    ^
 Completed proof of PrintProblem.main1(String[]) with prover !!!! - with warnings

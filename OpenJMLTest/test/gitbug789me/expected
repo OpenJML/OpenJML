@@ -12,7 +12,7 @@ Starting proof of CircleOperations.me(String[]) with prover !!!!
 test/gitbug789me/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantEntrance) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.ide(79));
                           ^
-$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
+$SPECS/java/io/PrintStream.jml:43: warning: Associated declaration
     //-RAC@ public invariant outputText.length >= 0;
                    ^
 Completed proof of CircleOperations.me(String[]) with prover !!!! - with warnings
