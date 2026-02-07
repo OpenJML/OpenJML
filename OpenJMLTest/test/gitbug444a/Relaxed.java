@@ -1,9 +1,9 @@
 public class Relaxed {
 	//@ requires true;
 	//@ ensures pat.length == 0 ==> \result == true;
-	//@ ensures a.length == 0  && pat.length == 1 ==> \result == true; 
-	//@ ensures a.length == 0  && pat.length > 1 ==> \result == false; 
-	//@ ensures pat.length > 0 && a.length > 0 ==>  Relaxed.diffIndex(pat, a) == pat.length ==> \result == true;
+	//@ ensures (a.length == 0  && pat.length == 1) ==> \result == true; 
+	//@ ensures (a.length == 0  && pat.length > 1) ==> \result == false; 
+	//@ ensures (pat.length > 0 && a.length > 0) ==>  Relaxed.diffIndex(pat, a) == pat.length ==> \result == true;
 	 public static boolean isRelaxedPrefix(int[] pat, int[] a) {
 	    int shift = 0;
 	    int index = 0;
@@ -13,6 +13,7 @@ public class Relaxed {
 	    if (a.length == 0 && pat.length > 1) return false;
 	    assert a.length > 0 && pat.length > 0;
 	    if (Relaxed.diffIndex(pat, a) == pat.length) return true;
+	    //@ maintaining Relaxed.diffIndex(pat, a) != pat.length;
 	    //@ maintaining 0 <= index && index <= pat.length;
 	    //@ maintaining 0 <= index - shift && index - shift <= a.length && 0 <= shift && shift <= 1;
 	   //@ maintaining  Relaxed.diffIndex(pat, a) > index ==>(\forall int i; 0 <= i && i < index; pat[i] == a[i]) ;

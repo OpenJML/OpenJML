@@ -17403,76 +17403,75 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			if (esc) {
 				String str = (String) that.getValue();
-				int len = str.length();
-				ClassSymbol chseq = ClassReader.instance(context)
-						.enterClass(names.fromString("java.lang.CharSequence"));
-				Symbol chs = chseq == null ? null : utils.findFieldMember(chseq, "chars");
-				// chs is null if we don't have specs for CharSequence,
-				// or if the chars model field has been renamed
-				if (chs != null) {
-					JCExpression fa = M.at(id).Select(id, chs);
-					fa = treeutils.makeLength(id, fa);
-					JCExpression ee = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id, len));
-					addAssume(that, Label.IMPLICIT_ASSUME, ee);
-				}
+                // These assumptions are necessary so that String literals are
+                // known to satisfy the invariants about Strings
+                addInvariants(id, id.type, id, currentStatements, false, false, false, false, false, true,
+                        Label.INVARIANT_ENTRANCE, utils.qualifiedMethodSig(methodDecl.sym));
 
-				// These assumptions are necessary so that String literals are
-				// known to satisfy the invariants about Strings
-				addInvariants(id, id.type, id, currentStatements, false, false, false, false, false, true,
-						Label.INVARIANT_ENTRANCE, utils.qualifiedMethodSig(methodDecl.sym));
+                int len = str.length();
+                ClassSymbol chseq = ClassReader.instance(context)
+                        .enterClass(names.fromString("java.lang.Object"));
+                Symbol chs = chseq == null ? null : utils.findFieldMember(chseq, "chars");
+                if (chs == null) {
+                    // chs is null if we don't have specs for CharSequence,
+                    // or if the chars model field has been renamed or moved
+                    utils.error("jml.internal", "Failed to find necessary model field java.lang.Object.chars");
+                } else {
+                    JCExpression fa = M.at(id).Select(id, chs);
+                    fa = treeutils.makeLength(id, fa);
+                    JCExpression ee = treeutils.makeEquality(id.pos, fa, treeutils.makeIntLiteral(id, len));
+                    addAssume(that, Label.IMPLICIT_ASSUME, ee);
 
-				if (chs != null) {
-				    // assumptions so that s.chars[i] equals the string literal character
-				    addStat(comment("Adding assumptions for String elements"));
+                    // assumptions so that s.chars[i] equals the string literal character
+                    addStat(comment("Adding assumptions for String elements"));
                     JCFieldAccess arr = treeutils.makeSelect(that.pos, id, chs);
                     JCExpression ex = convertJML(arr);
-					for (int k = 0; k < len; k++) {
-						JCExpression z = treeutils.makeIntLiteral(that.pos, k);
-						JCExpression mm = treeutils.makeArrayElement(that.pos, ex, z);
-						JCExpression c = treeutils.makeCharLiteral(that.pos, str.charAt(k));
-						JCExpression m = treeutils.makeEquality(that.pos, mm, c);
-						JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
-						addStat(st);
-					}
-					int p = that.pos;
-	                JCVariableDecl vd = newTempDecl(that, BIGINT);
-	                JCExpression z = treeutils.makeZeroEquivalentLit(that, BIGINT);
-	                JCExpression id1 = treeutils.makeIdent(p, vd.sym);
-	                JCExpression id2 = treeutils.makeIdent(p, vd.sym);
-	                JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
-	                JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, 
-	                        treeutils.makeTypeCast(that, BIGINT, treeutils.makeIntLiteral(p,len)));
-	                JCExpression element = treeutils.makeArrayElement(p, ex, treeutils.makeIdent(p, vd.sym));
+                    for (int k = 0; k < len; k++) {
+                        JCExpression z = treeutils.makeIntLiteral(that.pos, k);
+                        JCExpression mm = treeutils.makeArrayElement(that.pos, ex, z);
+                        JCExpression c = treeutils.makeCharLiteral(that.pos, str.charAt(k));
+                        JCExpression m = treeutils.makeEquality(that.pos, mm, c);
+                        JCStatement st = treeutils.makeAssume(that, Label.IMPLICIT_ASSUME, m);
+                        addStat(st);
+                    }
+                    int p = that.pos;
+                    JCVariableDecl vd = newTempDecl(that, BIGINT);
+                    JCExpression z = treeutils.makeZeroEquivalentLit(that, BIGINT);
+                    JCExpression id1 = treeutils.makeIdent(p, vd.sym);
+                    JCExpression id2 = treeutils.makeIdent(p, vd.sym);
+                    JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
+                    JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, 
+                            treeutils.makeTypeCast(that, BIGINT, treeutils.makeIntLiteral(p,len)));
+                    JCExpression element = treeutils.makeArrayElement(p, ex, treeutils.makeIdent(p, vd.sym));
                     //JCExpression element = new JmlBBArrayAccess(null, ex, treeutils.makeIdent(p, vd.sym), p, syms.charType);
-	                
-	                Name nm = names.fromString("empty");
-	                VarSymbol fs = null;
-	                for (var f: STRING.tsym.members().getSymbolsByName(nm)) {
-	                    //System.out.println("SYM: " + f + " " + f.getClass());
-	                    if (f instanceof VarSymbol fss) fs = fss;
-	                }
-	                JCFieldAccess fa = treeutils.makeSelect(p, treeutils.makeType(that, STRING), fs);
-	                fa.type = STRING;
+
+                    Name nm = names.fromString("empty");
+                    VarSymbol fs = null;
+                    for (var f: STRING.tsym.members().getSymbolsByName(nm)) {
+                        //System.out.println("SYM: " + f + " " + f.getClass());
+                        if (f instanceof VarSymbol fss) fs = fss;
+                    }
+                    fa = treeutils.makeSelect(p, treeutils.makeType(that, STRING), fs);
+                    fa.type = STRING;
                     JCExpression element2 = treeutils.makeArrayElement(p, fa, treeutils.makeIdent(p, vd.sym));
                     //JCExpression element2 = new JmlBBArrayAccess(null, fa, treeutils.makeIdent(p, vd.sym), p, syms.charType);
                     JCExpression rn = treeutils.makeAnd(p, a, b);
                     rn = treeutils.makeOr(that, rn, treeutils.makeEquality(p, element, element2));
-	                JCExpression fr = M.at(p).JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd), null, rn);
-	                fr.type = syms.booleanType;
-	                //System.out.println("FR " + fr);
-	                //fr = convertExpr(fr);
+                    JCExpression fr = M.at(p).JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd), null, rn);
+                    fr.type = syms.booleanType;
+                    //System.out.println("FR " + fr);
+                    //fr = convertExpr(fr);
                     //System.out.println("FRC " + fr);
-	                addAssume(that, Label.IMPLICIT_ASSUME, fr);
-				}
-
+                    addAssume(that, Label.IMPLICIT_ASSUME, fr);
+                }
 			}
 
 			// Use the literal instead of the temp in order to make optimizations
 			// and constant folding, for some types. Keep the temp above for tracing.
 			if (that.type.baseType() == syms.booleanType || that.type.isNumeric()) {
-				result = eresult = that; // FIXME - what about bigint, real, null
+			    result = eresult = that; // FIXME - what about bigint, real, null
 			} else {
-				result = eresult = id;
+			    result = eresult = id;
 			}
 		}
 
