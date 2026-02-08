@@ -7,7 +7,7 @@ Starting proof of Test.whok(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits2/Test.java:13: warning: There is no feasible path to program point at program exit in method Test.whok(int)
+test/splits2/Test.java:13: verify: There is no feasible path to program point at program exit in method Test.whok(int)
     }
     ^
 Result of split A is INFEASIBLE
@@ -19,32 +19,32 @@ Composite result INFEASIBLE
 Completed proof of Test.whok(int) with prover !!!! - INFEASIBLE
 Starting proof of Test.wh(int) with prover !!!!
 Proof attempt for split A
-test/splits2/Test.java:19: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:19: verify: The prover cannot establish an assertion (Assert) in method wh
             //@ assert i < -1; // Split A // FAILS
                 ^
 Result of split A is Not verified
 Proof attempt for split BAA
-test/splits2/Test.java:30: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:30: verify: The prover cannot establish an assertion (Assert) in method wh
                 //@ assert k < 0; // FAILS - BAA
                     ^
 Result of split BAA is Not verified
 Proof attempt for split BABA
-test/splits2/Test.java:36: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:36: verify: The prover cannot establish an assertion (Assert) in method wh
                 //@ assert i < 1; // FAILS - BABA
                     ^
 Result of split BABA is Not verified
 Proof attempt for split BABB
-test/splits2/Test.java:39: warning: The prover cannot establish an assertion (Assert) in method wh
+test/splits2/Test.java:39: verify: The prover cannot establish an assertion (Assert) in method wh
             //@ assert i < 2; // FAILS - BABB
                 ^
 Result of split BABB is Not verified
 Proof attempt for split BBA
-test/splits2/Test.java:42: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
+test/splits2/Test.java:42: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
         //@ loop_invariant 0 <= j <= 10;
             ^
 Result of split BBA is Not verified
 Proof attempt for split BBB
-test/splits2/Test.java:42: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
+test/splits2/Test.java:42: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method wh
         //@ loop_invariant 0 <= j <= 10;
             ^
 Result of split BBB is Not verified
@@ -54,7 +54,7 @@ Starting proof of Test.whfor(int) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits2/Test.java:62: warning: There is no feasible path to program point at program exit in method Test.whfor(int)
+test/splits2/Test.java:62: verify: There is no feasible path to program point at program exit in method Test.whfor(int)
     }
     ^
 Result of split A is INFEASIBLE
@@ -68,7 +68,7 @@ Starting proof of Test.enfor(int[]) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits2/Test.java:75: warning: There is no feasible path to program point at program exit in method Test.enfor(int[])
+test/splits2/Test.java:75: verify: There is no feasible path to program point at program exit in method Test.enfor(int[])
     }
     ^
 Result of split A is INFEASIBLE
@@ -79,4 +79,4 @@ Result of split B is Verified
 Composite result INFEASIBLE
 Completed proof of Test.enfor(int[]) with prover !!!! - INFEASIBLE
 Completed proving methods in Test
-9 warnings
+9 verification failures

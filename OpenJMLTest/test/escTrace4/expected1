@@ -42,6 +42,6 @@ test\escTrace4\trace.java:19: verify: The prover cannot establish an assertion (
 test\escTrace4\trace.java:13: verify: Associated declaration: test\escTrace4\trace.java:19: 
     //@ ensures \result != 0;
         ^
-Completed proof of trace.m(int) with prover cvc4 - with verification failures
+Completed proof of trace.m(int) with prover cvc4 - with warnings
 Completed proving methods in trace
 2 verification failures

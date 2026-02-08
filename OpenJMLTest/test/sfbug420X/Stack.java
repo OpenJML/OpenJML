@@ -3,7 +3,7 @@ package stack;
 
 public interface Stack{
 	/*@
-	  @public invariant count>=0;
+	  @ public invariant 0 <= count <= items.length;
 	  @*/
 
 	//-RAC@ public instance model int count;

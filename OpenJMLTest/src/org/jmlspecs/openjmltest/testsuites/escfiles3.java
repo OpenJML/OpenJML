@@ -50,7 +50,7 @@ public class escfiles3 extends EscBaseFiles {
     
     public void helpTG(String... opts) {
         addOptions("--code-math=safe");
-        super.helpTG(addVE(opts));
+        super.helpTG(opts);
     }
 
     @Test

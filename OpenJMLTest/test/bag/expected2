@@ -4,19 +4,25 @@ Completed proof of sv_esc.Bag.Bag(int[]) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!!
 Completed proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.removeOnce(int) with prover !!!!
-test/bag/Bag.java:30: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeOnce
-      if (contents[i] == elt ) {
-                  ^
+test/bag/Bag.java:28: verify: The prover cannot establish an assertion (InvariantExit) in method removeOnce
+  void removeOnce(int elt) {
+       ^
+test/bag/Bag.java:13: verify: Associated declaration
+  //@ invariant n <= contents.length;
+      ^
 Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.removeAll(int) with prover !!!!
-test/bag/Bag.java:43: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeAll
-         contents[i] = contents[n];
-                               ^
+test/bag/Bag.java:38: verify: The prover cannot establish an assertion (InvariantExit) in method removeAll
+  void removeAll(int elt) {
+       ^
+test/bag/Bag.java:13: verify: Associated declaration
+  //@ invariant n <= contents.length;
+      ^
 Completed proof of sv_esc.Bag.removeAll(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.getCount(int) with prover !!!!
-test/bag/Bag.java:55: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method getCount: overflow in int sum
-      if (contents[i] == elt) count++;
-                                   ^
+test/bag/Bag.java:53: verify: The prover cannot establish an assertion (LoopInvariant) in method getCount
+    //@ loop_invariant count >= 0;
+        ^
 Completed proof of sv_esc.Bag.getCount(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.add(int) with prover !!!!
 test/bag/Bag.java:61: verify: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
@@ -24,11 +30,11 @@ test/bag/Bag.java:61: verify: The prover cannot establish an assertion (Possibly
                                        ^
 Completed proof of sv_esc.Bag.add(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!!
-test/bag/Bag.java:75: verify: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
+test/bag/Bag.java:75: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method add: overflow in int sum
     int[] new_contents = new int[n+b.n];
                                   ^
 Completed proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!!
 Completed proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!! - no warnings
 Completed proving methods in sv_esc.Bag
-5 verification failures
+7 verification failures

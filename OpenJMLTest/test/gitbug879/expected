@@ -4,16 +4,16 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of ArrayUtils.ArrayUtils() with prover !!!! - no warnings
 Starting proof of ArrayUtils.f(int[]) with prover !!!!
-test/gitbug879/ArrayUtils.java:3: warning: The prover cannot establish an assertion (Postcondition) in method f
+test/gitbug879/ArrayUtils.java:3: verify: The prover cannot establish an assertion (Postcondition) in method f
     void f(int[] a) {
          ^
-test/gitbug879/ArrayUtils.java:2: warning: Associated declaration
+test/gitbug879/ArrayUtils.java:2: verify: Associated declaration
     //@ ensures 1 == \old(a[5 - 1]);
         ^
-test/gitbug879/ArrayUtils.java:2: warning: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method f
+test/gitbug879/ArrayUtils.java:2: verify: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method f
     //@ ensures 1 == \old(a[5 - 1]);
                            ^
-test/gitbug879/ArrayUtils.java:4: warning: Associated method exit
+test/gitbug879/ArrayUtils.java:4: verify: Associated method exit
     }
      ^
 Completed proof of ArrayUtils.f(int[]) with prover !!!! - with warnings
@@ -22,4 +22,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of ArrayUtils.main(String...) with prover !!!! - no warnings
 Completed proving methods in ArrayUtils
-4 warnings
+4 verification failures

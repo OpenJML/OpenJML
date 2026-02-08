@@ -16,9 +16,9 @@ public class Relaxed {
 	    //@ maintaining Relaxed.diffIndex(pat, a) != pat.length;
 	    //@ maintaining 0 <= index && index <= pat.length;
 	    //@ maintaining 0 <= index - shift && index - shift <= a.length && 0 <= shift && shift <= 1;
-	   //@ maintaining  Relaxed.diffIndex(pat, a) > index ==>(\forall int i; 0 <= i && i < index; pat[i] == a[i]) ;
-	   //@ maintaining  Relaxed.diffIndex(pat, a) >  index ==> (\forall int j; Relaxed.diffIndex(pat, a) < j && j < index; pat[j] == a[j - 1]);
-	   //@ decreases pat.length - index - shift;
+	    //@ maintaining  Relaxed.diffIndex(pat, a) > index ==>(\forall int i; 0 <= i && i < index; pat[i] == a[i]) ;
+	    //@ maintaining  Relaxed.diffIndex(pat, a) >  index ==> (\forall int j; Relaxed.diffIndex(pat, a) < j && j < index; pat[j] == a[j - 1]);
+	    //@ decreases pat.length - index - shift;
 	    while((pat.length > index ) && (a.length > index - shift)){
 	        if (pat[index] != a[index - shift]){
 	            if (shift == 0) shift = 1;

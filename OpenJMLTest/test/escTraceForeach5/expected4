@@ -181,6 +181,6 @@ test\escTraceLoops\trace.java:1:  	LoopDecreasesNonNegative assertion: 0 <= _JML
 			VALUE: 0 <= _JML__tmp121	 === false
 test\escTraceLoops\trace.java:208:  Invalid assertion (LoopDecreasesNonNegative)
 
-Completed proof of trace.mforeach5(int[]) with prover !!!! - with verification failures
+Completed proof of trace.mforeach5(int[]) with prover !!!! - with warnings
 Completed proving methods in trace
 1 warning

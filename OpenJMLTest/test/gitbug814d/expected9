@@ -20,9 +20,9 @@ Skipping proof of BinaryTree.toArray() (Skipping BinaryTree.toArray because it d
 Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between because it does not match btw)
 Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match btw)
 Starting proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!!
-test/gitbug814d/BinaryTree.java:160: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method btw
+test/gitbug814d/BinaryTree.java:160: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method btw
             r[r1.length + 1 + i] = r2[i];
                                      ^
 Completed proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!! - with warnings
 Completed proving methods in BinaryTree
-1 warning
+1 verification failure

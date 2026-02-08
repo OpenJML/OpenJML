@@ -145,7 +145,7 @@ test\escTraceLoops\trace.java:110:  	LoopInvariant assertion: j == 2 * i && 0 <=
 			VALUE: j == 2 * i && 0 <= i && i <= k	 === false
 test\escTraceLoops\trace.java:110:  Invalid assertion (LoopInvariant)
 
-Completed proof of trace.mwhile2() with prover !!!! - with verification failures
+Completed proof of trace.mwhile2() with prover !!!! - with warnings
 Skipping proof of trace.mdo() (excluded by -method)
 Skipping proof of trace.mdo1() (excluded by -method)
 Skipping proof of trace.mdo2() (excluded by -method)

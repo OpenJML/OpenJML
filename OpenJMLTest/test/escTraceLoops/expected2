@@ -4,7 +4,7 @@ Starting proof of trace.mgood() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of trace.mgood() with prover !!!! - no verification failures
+Completed proof of trace.mgood() with prover !!!! - no warnings
 Skipping proof of trace.m1() (excluded by -method)
 Skipping proof of trace.m2() (excluded by -method)
 Skipping proof of trace.m3() (excluded by -method)

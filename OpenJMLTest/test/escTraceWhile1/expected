@@ -23,6 +23,6 @@ test\escTraceLoops\trace.java:98:  	//@ loop_invariant j == 2 * i && 0 <= i && i
 test\escTraceLoops\trace.java:98: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mwhile1
         //@ loop_invariant j == 2*i && 0 <= i && i <= k;
             ^
-Completed proof of trace.mwhile1() with prover z3_4_3 - with verification failures
+Completed proof of trace.mwhile1() with prover z3_4_3 - with warnings
 Completed proving methods in trace
 1 warning

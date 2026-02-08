@@ -50,18 +50,13 @@ public class escfiles extends EscBaseFiles {
     }
     
     public void helpTCF(String n, String d, String ... opts) {
-        super.helpTCF(n, d, addVE(opts));
+        super.helpTCF(n, d, opts);
     }
 
     public void helpTG(String... opts) {
-        super.helpTG(addVE(opts));
+        super.helpTG(opts);
     }
     
-    public void helpTFM(String ... opts) {
-        super.helpTFM(addVE(opts));
-    }
-    // FIXME - use helpDemo?
-
     @Test // Order of errors is somewhat non-deterministic
     public void bag() {
         expectedExit = 0;
@@ -104,7 +99,7 @@ public class escfiles extends EscBaseFiles {
     @Test
     public void escAdd() {
         expectedExit = 0;
-        helpTFM();
+        helpTG("--code-math=bigint");
     }
 
     @Test
@@ -128,7 +123,6 @@ public class escfiles extends EscBaseFiles {
     @Test
     public void esc2DArray() {
         //addOptions("--method=m","--progress","--show");
-        expectedExit = 0;
         helpTG();
     }
 
@@ -164,19 +158,19 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escVector() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG("--code-math=java","--exclude=copyIntoOK,copyIntoA");
     }
 
     @Test
     public void escVectorA() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG("--code-math=java","--method=copyIntoOK,copyIntoA");
     }
 
     @Test
     public void escDMZLoop() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG("--method=findMax");
     }
 
@@ -207,7 +201,7 @@ public class escfiles extends EscBaseFiles {
     @Test
     public void testquant() {
         expectedExit = -1;
-        helpTFM();
+        helpTG("--code-math=bigint");
     }
 
     @Test
@@ -243,7 +237,7 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escModelFields() {
-        helpTFM("--progress");
+        helpTG("--code-math=bigint");
     }
 
     @Test
@@ -356,12 +350,12 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escShortCircuit() {
-        helpTFM();
+        helpTG("--code-math=bigint");
     }
     
     @Test
     public void escRecursiveOld() {
-        helpTFM();
+        helpTG();
     }
     
     @Test
@@ -380,12 +374,12 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void preconditionDetail() {  // FIXME - why multiple conjuncts reported
+    public void preconditionDetail() {  // FIXME - no detail?
         helpTG();
     }
 
     @Test
-    public void preconditionDetail2() {  // FIXME - why multiple conjuncts reported
+    public void preconditionDetail2() {
         helpTG();
     }
 
@@ -436,17 +430,17 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void specificationInterfaceDemo() {
-        helpTFM();
+        helpTG();
     }
 
     @Test
     public void implicitIteration() {
-        helpTFM();
+        helpTG();
     }
 
     @Test
     public void implicitIterationA() {
-        helpTFM();
+        helpTG();
     }
 
 
@@ -461,7 +455,6 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escPrivate() {
-        expectedExit = 0;
         helpTG();
     }
 
@@ -473,50 +466,47 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void enums() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG();
     }
 
     @Test @Ignore // FIXME - not yet implemented
     public void enums1() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG();
         //helpTG("-show","-method=m5c","-subexpressions");
     }
 
     @Test
     public void enums2() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG();
     }
 
     @Test
     public void datatype() {
-        expectedExit = 0;
         helpTG();
     }
 
     @Test // Basic problem is with the toString conversion of a \bigint, because of the -code-math=bigint setting of these
     public void factorial() {
-        expectedExit = 0;
         helpTG("--check-feasibility=none");//,"-code-math=java");
     }
 
     @Test @Ignore // FIXME - times out
     public void primeNumbers() {
-        expectedExit = 0;
         helpTG();
     }
     
     @Test
     public void splits() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG();
     }
     
     @Test
     public void splits2() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG();
     }
     
@@ -528,13 +518,12 @@ public class escfiles extends EscBaseFiles {
     
     @Test
     public void Dzmz() {
-        expectedExit = 0;
         helpTG();
     }
 
     @Test
     public void refining() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG();
     }
 
@@ -546,7 +535,6 @@ public class escfiles extends EscBaseFiles {
 
     @Test @Ignore // FIXME - fix a problem with concatenation
     public void gcdcalculator() {
-        expectedExit = 0;
         helpTG();
 
     }

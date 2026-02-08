@@ -2,7 +2,7 @@ Proving methods in trace
 Starting proof of trace.trace() with prover cvc4
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of trace.trace() with prover cvc4 - no verification failures
+Completed proof of trace.trace() with prover cvc4 - no warnings
 Starting proof of trace.mnonnullelements(int[]) with prover cvc4
 
 TRACE of trace.mnonnullelements(int[])
@@ -24,7 +24,7 @@ test\escTraceBS\trace.java:5:  	assert Assert i == 0 && \nonnullelements(a);
 test\escTraceBS\trace.java:5: verify: The prover cannot establish an assertion (Assert) in method mnonnullelements
         //@ assert i == 0 && \nonnullelements(a);
             ^
-Completed proof of trace.mnonnullelements(int[]) with prover cvc4 - with verification failures
+Completed proof of trace.mnonnullelements(int[]) with prover cvc4 - with warnings
 Starting proof of trace.mnotmodified(int) with prover cvc4
 
 TRACE of trace.mnotmodified(int)
@@ -45,6 +45,6 @@ test\escTraceBS\trace.java:12:  	assert Assert i == 4 && \not_modified(i);
 test\escTraceBS\trace.java:12: verify: The prover cannot establish an assertion (Assert) in method mnotmodified
         //@ assert i == 4 && \not_modified(i);
             ^
-Completed proof of trace.mnotmodified(int) with prover cvc4 - with verification failures
+Completed proof of trace.mnotmodified(int) with prover cvc4 - with warnings
 Completed proving methods in trace
 2 verification failures
