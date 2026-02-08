@@ -44,6 +44,7 @@ public abstract class EscBaseFiles extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        expectedExit = -1;
     }
     
     /** Sets a common initial set of options for these file-based tests */
@@ -93,10 +94,12 @@ public abstract class EscBaseFiles extends EscBase {
         helpTCF(d,d,newopts);
     }
     
-    public void helpTFM(String ... opts) {
-        helpTF(getTestName(), opts);
-    }
-
+    /** Executes a test in which (1) the name of the calling method is the name of the test and
+     * also the name of the test directory, (2) the classpath is that same directory, (3) all the
+     * .java files in that directory are processed, (4) any base options in collectArgs() and added
+     * here in helpTG and supplemented by any arguments to helpTG.
+     * @param opts
+     */
     public void helpTG(String ... opts) {
         String dir = "test/" + getTestName();
         var a = new LinkedList<String>();
@@ -105,7 +108,6 @@ public abstract class EscBaseFiles extends EscBase {
         a.add("--code-math=safe");
         a.add("--spec-math=bigint");
         a.add("--check-feasibility=precondition,reachable,exit,spec");
-        a.add("--progress");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
@@ -176,10 +178,44 @@ public abstract class EscBaseFiles extends EscBase {
             var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run")));
             assertTrue("There are no expected output files in " + outDir, 0 != files.length);
             for (String name: files) {
-                diffs = outputCompare.compareFiles(outDir + "/" + name, actCompile);
+                String expectedFile = outDir + "/" + name;
+                diffs = outputCompare.compareFiles(expectedFile, actCompile);
                 if (diffs == null) {
                     if (files.length != 1) this.out.println("Matched: " + name);
                     new File(actCompile).delete();
+                    if (expectedExit == -1) {
+                        String[] command = {"/bin/bash", "-c", "grep -q -E '^[0-9]* error[s]?$'  " + expectedFile };
+                        ProcessBuilder processBuilder = new ProcessBuilder(command);
+                        Process process = processBuilder.start();
+                        int exitCode = process.waitFor();
+                        if (exitCode == 0) {
+                            //System.out.println("Found errors " + expectedFile);
+                            expectedExit = 1;
+                        }
+                    }
+                    if (expectedExit == -1) {
+                        String[] command = {"/bin/bash", "-c", "grep -q -E '^[0-9]* verification failure[s]?$' " + expectedFile };
+                        ProcessBuilder processBuilder = new ProcessBuilder(command);
+                        Process process = processBuilder.start();
+                        int exitCode = process.waitFor();
+                        if (exitCode == 0) {
+                            //System.out.println("Found verification failures " + expectedFile);
+                            expectedExit = 6;
+                        }
+                    }
+                    if (expectedExit == -1) {
+                        String[] command = {"/bin/bash", "-c", "grep -q -E '^[0-9]* warning[s]?$'  " + expectedFile };
+                        ProcessBuilder processBuilder = new ProcessBuilder(command);
+                        Process process = processBuilder.start();
+                        int exitCode = process.waitFor();
+                        if (exitCode == 0) {
+                            //System.out.println("Found warnings " + expectedFile);
+                            expectedExit = 0;
+                        }
+                    }
+                    if (expectedExit == -1) {
+                        expectedExit = 0;
+                    }
                     break;
                 }
             }

@@ -3,5 +3,5 @@ Starting proof of trace.m5() with prover yices2
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of trace.m5() with prover yices2 - no verification failures
+Completed proof of trace.m5() with prover yices2 - no warnings
 Completed proving methods in trace

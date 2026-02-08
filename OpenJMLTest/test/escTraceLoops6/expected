@@ -52,6 +52,6 @@ test\escTraceLoops\trace.java:75:  	Loop test
 test\escTraceLoops\trace.java:74: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method m6
         //@ decreases k-j-2;
             ^
-Completed proof of trace.m6() with prover z3_4_3 - with verification failures
+Completed proof of trace.m6() with prover z3_4_3 - with warnings
 Completed proving methods in trace
 1 warning

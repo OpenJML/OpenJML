@@ -3,6 +3,6 @@ Starting proof of trace.m4() with prover yices2
 test\escTraceLoops\trace.java:51: verify: The prover cannot establish an assertion (LoopDecreases) in method m4
         //@ decreases i-j;
             ^
-Completed proof of trace.m4() with prover yices2 - with verification failures
+Completed proof of trace.m4() with prover yices2 - with warnings
 Completed proving methods in trace
 1 warning

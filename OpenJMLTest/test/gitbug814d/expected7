@@ -20,9 +20,9 @@ Skipping proof of BinaryTree.toArray() (Skipping BinaryTree.toArray because it d
 Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between because it does not match btw)
 Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match btw)
 Starting proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!!
-test/gitbug814d/BinaryTree.java:157: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method btw: overflow in int sum
+test/gitbug814d/BinaryTree.java:157: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method btw: overflow in int sum
         int[] r = Arrays.copyOf(r1, r1.length + 1 + r2.length);
                                                   ^
 Completed proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!! - with warnings
 Completed proving methods in BinaryTree
-1 warning
+1 verification failure

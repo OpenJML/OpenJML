@@ -131,8 +131,7 @@ escfiles.valuestrings           # string specs
 escfiles2.escRawding2
 escfiles2.escRawdingA
 escfiles2.escRawdingB
-escfiles2.gitbug450a		#	feasibility problems
-escfiles2.gitbug450b		#	feasibility problems
+escfiles2.gitbug450b		#	ArrayList contains
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[choose-repeat]

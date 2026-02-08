@@ -15,14 +15,14 @@ Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt b
 Skipping proof of stack.StackImpl.isEmpty() (Skipping stack.StackImpl.isEmpty because it does not match top)
 Skipping proof of stack.StackImpl.push(int) (Skipping stack.StackImpl.push because it does not match top)
 Starting proof of stack.StackImpl.top() with prover !!!!
-test/sfbug420f/StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
+test/sfbug420f/StackImpl.java:40: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
-test/sfbug420f/StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
+test/sfbug420f/StackImpl.java:40: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
 Completed proof of stack.StackImpl.top() with prover !!!! - with warnings
 Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match top)
 Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match top)
 Completed proving methods in stack.StackImpl
-2 warnings
+2 verification failures

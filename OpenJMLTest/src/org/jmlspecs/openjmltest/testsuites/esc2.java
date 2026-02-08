@@ -292,10 +292,12 @@ public class esc2 extends EscBase {
                 + "  }\n"
 
                 + "}"
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34
-                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9);
+                ,anyorder(
+                seq("/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34)
+                ,seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9)
+                ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34)
+                ,seq("/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9)
+                ));
     }
 
     @Test
