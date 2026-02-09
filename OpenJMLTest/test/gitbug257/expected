@@ -1,8 +1,8 @@
 Proving methods in CC
 Starting proof of CC.CC() with prover !!!!
-test/gitbug257/CC.java:2: warning: The prover cannot establish an assertion (NullField) in method CC
+test/gitbug257/CC.java:2: verify: The prover cannot establish an assertion (NullField) in method CC
 private java.util.Hashtable m;
                             ^
 Completed proof of CC.CC() with prover !!!! - with warnings
 Completed proving methods in CC
-1 warning
+1 verification failure

@@ -7,20 +7,20 @@ Starting proof of A.main(String[]) with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at statement spec (after using summary) : infeasible
-test/gitbug639/A.java:4: warning: There is no feasible path to program point at statement spec (after using summary) in method A.main(java.lang.String[])
+test/gitbug639/A.java:4: verify: There is no feasible path to program point at statement spec (after using summary) in method A.main(java.lang.String[])
         //@ refining ensures false;  // statement spec, but no warning about false assertion
             ^
 Feasibility check - at program exit : infeasible
-test/gitbug639/A.java:6: warning: There is no feasible path to program point at program exit in method A.main(java.lang.String[])
+test/gitbug639/A.java:6: verify: There is no feasible path to program point at program exit in method A.main(java.lang.String[])
     }
     ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
-test/gitbug639/A.java:4: warning: The prover cannot establish an assertion (Postcondition) in method main
+test/gitbug639/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method main
         //@ refining ensures false;  // statement spec, but no warning about false assertion
                      ^
 Result of split B is Not verified
 Composite result INFEASIBLE
 Completed proof of A.main(String[]) with prover !!!! - INFEASIBLE
 Completed proving methods in A
-3 warnings
+3 verification failures

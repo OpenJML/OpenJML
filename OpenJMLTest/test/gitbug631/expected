@@ -56,7 +56,7 @@ Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.msaa(TestA[][]) with prover !!!! - no warnings
 Starting proof of TestA.mt(TestA) with prover !!!!
-test/gitbug631/TestA.java:94: warning: The prover cannot establish an assertion (Assert) in method mt
+test/gitbug631/TestA.java:94: verify: The prover cannot establish an assertion (Assert) in method mt
         //@ assert this.value == 1; // ERROR - should fail
             ^
 Completed proof of TestA.mt(TestA) with prover !!!! - with warnings
@@ -69,7 +69,7 @@ Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.mt2(TestA) with prover !!!! - no warnings
 Starting proof of TestA.max(TestA[]) with prover !!!!
-test/gitbug631/TestA.java:116: warning: The prover cannot establish an assertion (Assert) in method max
+test/gitbug631/TestA.java:116: verify: The prover cannot establish an assertion (Assert) in method max
         //@ assert t[1].value == 1;  // Fails
             ^
 Completed proof of TestA.max(TestA[]) with prover !!!! - with warnings
@@ -91,4 +91,4 @@ Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.max2(TestA[]) with prover !!!! - no warnings
 Completed proving methods in TestA
-2 warnings
+2 verification failures
