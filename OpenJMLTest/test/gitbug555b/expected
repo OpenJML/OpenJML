@@ -2,7 +2,7 @@ Proving methods in Test
 Skipping proof of Test.Test() (Skipping Test.Test because it does not match Test.1.show)
 Proving methods in Test.1
 Starting proof of Test.1.show(TestA) with prover !!!!
-test/gitbug555b/Test.java:14: warning: To check a specific method of an anonymous class, you must also check any containing methods
+test/gitbug555b/Test.java:14: verify: To check a specific method of an anonymous class, you must also check any containing methods
             public /*@ nullable */ TestA show(TestA aa) {
                                          ^
 Completed proof of Test.1.show(TestA) with prover !!!! - SKIPPED
@@ -17,4 +17,4 @@ Proving methods in TestB
 Skipping proof of TestB.TestB(TestA) (Skipping TestB.TestB because it does not match Test.1.show)
 Skipping proof of TestB.wrap(TestA) (Skipping TestB.wrap because it does not match Test.1.show)
 Completed proving methods in TestB
-1 warning
+1 verification failure
