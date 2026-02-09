@@ -4672,7 +4672,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         MethodSymbol msym = (MethodSymbol)sym;
         var mspecs = specs.getLoadedOrDefaultSpecs(msym, tree.pos);
         if (jmlenv.inPureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
-            // Check that the method being called is pure
+            // Check that the method being called is pure enough
             if (msym != null) {
                 boolean isAllowed = specs.isSpecOKMethod(msym);
                 isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this

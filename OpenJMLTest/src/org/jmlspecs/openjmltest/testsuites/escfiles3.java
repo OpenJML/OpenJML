@@ -176,9 +176,19 @@ public class escfiles3 extends EscBaseFiles {
         helpTG();
     }
     
-    @Test @Ignore // Problem is with mixed BV and bigint operations
+    @Test
     public void buggyCalculator() {
         helpTG();
+    }
+
+    @Test
+    public void buggyCalculatorBV() {
+        helpTG("--esc-max-warnings=1","--timeout=600");
+    }
+
+    @Test
+    public void buggyCalculatorBV2() {
+        helpTG("--esc-max-warnings=1","--timeout=600");
     }
 
     @Test

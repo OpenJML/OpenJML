@@ -8,14 +8,4 @@ Note: Using bit-vector arithmetic
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of buggyCalculator.calculate(int,int,char) with prover !!!! - no warnings
-Starting proof of buggyCalculator.calculateBad(int,int,char) with prover !!!!
-Note: Using bit-vector arithmetic
-test/buggyCalculatorBV/buggyCalculator.java:213: warning: The prover cannot establish an assertion (Postcondition) in method calculateBad
-            return output;
-            ^
-test/buggyCalculatorBV/buggyCalculator.java:116: warning: Associated declaration
-        //@ ensures \result == num1 + num2;
-            ^
-Completed proof of buggyCalculator.calculateBad(int,int,char) with prover !!!! - with warnings
 Completed proving methods in buggyCalculator
-2 warnings

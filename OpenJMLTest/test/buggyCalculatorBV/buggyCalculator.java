@@ -5,39 +5,39 @@ public class buggyCalculator {
   //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
     //@ {|
       //@ requires operator == '+';
-      //@ requires num1 + num2 <= Integer.MAX_VALUE;
-      //@ requires num1 + num2 >= Integer.MIN_VALUE;
-      //@ ensures \result == num1 + num2;
+      //@ requires num1 + (long)num2 <= (long)Integer.MAX_VALUE;
+      //@ requires num1 + (long)num2 >= (long)Integer.MIN_VALUE;
+      //@ ensures \result == num1 + (long)num2;
 
       //@ also
 
       //@ requires operator == '*'; 
-      //@ requires num1 * num2 <= Integer.MAX_VALUE;
-      //@ requires num1 * num2 >= Integer.MIN_VALUE;
-      //@ ensures \result == num1 * num2;
+      //@ requires num1 * (long)num2 <= (long)Integer.MAX_VALUE;
+      //@ requires num1 * (long)num2 >= (long)Integer.MIN_VALUE;
+      //@ ensures \result == num1 * (long)num2;
 
       //@ also
 
       //@ requires operator == '-'; 
-      //@ requires num1 - num2 <= Integer.MAX_VALUE;
-      //@ requires num1 - num2 >= Integer.MIN_VALUE;
-      //@ ensures \result == num1 - num2;
+      //@ requires num1 - (long)num2 <= (long)Integer.MAX_VALUE;
+      //@ requires num1 - (long)num2 >= (long)Integer.MIN_VALUE;
+      //@ ensures \result == num1 - (long)num2;
 
       //@ also
 
       //@ requires operator == '/'; 
       //@ requires num2 != 0;
-      //@ requires num1 / num2 <= Integer.MAX_VALUE;
-      //@ requires num1 / num2 >= Integer.MIN_VALUE;
-      //@ ensures \result == (num1 / num2);
+      //@ requires (long)num1 / num2 <= (long)Integer.MAX_VALUE;
+      //@ requires (long)num1 / num2 >= (long)Integer.MIN_VALUE;
+      //@ ensures \result == ((long)num1 / num2);
 
       //@ also
 
       //@ requires operator == '%'; 
       //@ requires num2 != 0;
-      //@ requires num1 % num2 <= Integer.MAX_VALUE;
-      //@ requires num1 % num2 >= Integer.MIN_VALUE;
-      //@ ensures \result == (num1 % num2);
+      //@ requires (long)num1 % num2 <= (long)Integer.MAX_VALUE;
+      //@ requires (long)num1 % num2 >= (long)Integer.MIN_VALUE;
+      //@ ensures \result == ((long)num1 % num2);
 
       //@ also
 
@@ -64,6 +64,7 @@ public class buggyCalculator {
       public int calculate(int num1, int num2, char operator) {
 
           int output;
+          //@ show operator, num1, num2;
 
       
           switch(operator)
@@ -106,113 +107,4 @@ public class buggyCalculator {
           }
           return output;
       }
-    //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
-      //@ {|
-        //@ requires operator == '+';
-        //@ requires num1 + num2 <= Integer.MAX_VALUE;
-        //@ requires num1 + num2 >= Integer.MIN_VALUE;
-        //@ requires num1 - num2 <= Integer.MAX_VALUE;
-        //@ requires num1 - num2 >= Integer.MIN_VALUE;
-        //@ ensures \result == num1 + num2;
-
-        //@ also
-
-        //@ requires operator == '*'; 
-        //@ requires num1 * num2 <= Integer.MAX_VALUE;
-        //@ requires num1 * num2 >= Integer.MIN_VALUE;
-        //@ ensures \result == num1 * num2;
-
-        //@ also
-
-        //@ requires operator == '-'; 
-        //@ requires num1 - num2 <= Integer.MAX_VALUE;
-        //@ requires num1 - num2 >= Integer.MIN_VALUE;
-        //@ ensures \result == num1 - num2;
-
-        //@ also
-
-        //@ requires operator == '/'; 
-        //@ requires num2 != 0;
-        //@ requires num1 / num2 <= Integer.MAX_VALUE;
-        //@ requires num1 / num2 >= Integer.MIN_VALUE;
-        //@ ensures \result == (num1 / num2);
-
-        //@ also
-
-        //@ requires operator == '%'; 
-        //@ requires num2 != 0;
-        //@ requires num1 % num2 <= Integer.MAX_VALUE;
-        //@ requires num1 % num2 >= Integer.MIN_VALUE;
-        //@ ensures \result == (num1 % num2);
-
-        //@ also
-
-        //@ requires operator == '&';
-        //@ ensures \result == (num1 & num2);
-
-        //@ also
-
-        //@ requires operator == '|';
-        //@ ensures \result == (num1 | num2);
-
-        //@ also
-
-        //@ requires operator == '^';
-        //@ ensures \result == (num1 ^ num2);
-
-        //@ |}
-
-        //@ also
-        //@ requires operator != '+' && operator != '-' && operator != '*' && operator != '/' && operator != '%' && operator != '^' && operator != '&' && operator != '|' ;
-        //@ ensures \result == -1;
-
-
-        public int calculateBad(int num1, int num2, char operator) {
-
-            int output;
-
-        
-            switch(operator)
-            {
-                case '+':
-                    output = num1 - num2; // ERROR
-                    break;
-
-                case '-':
-                    output = num1 - num2;
-                    break;
-
-                case '*':
-                    output = num1 * num2;
-                    break;
-
-                case '/':
-                    output = num1 / num2;
-                    break;
-
-                case '%':
-                    output = num1 % num2;
-                    break;
-
-                case '&':
-                    output = num1 & num2;
-                    break;
-            
-                case '|':
-                    output = num1 | num2;
-                    break;
-             
-                case '^':
-                    output = num1 ^ num2;
-                    break;
-
-                default:
-                    System.err.println("You entered a not defined operator");
-                    return -1;
-            }
-            return output;
-        }
-        
-
-
 }
