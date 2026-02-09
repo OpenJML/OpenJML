@@ -1207,6 +1207,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// We'll add the block into the right spot later.
 			// Other checks will be created during addPrePostConditions
             //System.out.println("ADD PRE CONDITIONS");
+            //addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_pre, "before preconditions");
+
 			ListBuffer<JCStatement> check = pushBlock(); // FIXME - should we have a try block?
 			{
 			    boolean pv = checkAccessEnabled;
@@ -4251,6 +4253,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JmlTypeClauseExpr t = (JmlTypeClauseExpr) clause;
 							JCExpression e = convertJML(t.expression);
 							addAssume(cpos, Label.AXIOM, e, cpos, clause.sourcefile);
+				            addFeasibilityCheck(clause, currentStatements, Strings.feas_methodaxioms, "after axiom " + t.expression);
 						}
 					}
 				} catch (NoModelMethod e) {
@@ -4499,6 +4502,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addAssume(methodDecl, Label.INVARIANT_ENTRANCE_ASSUMED,
 						convertJML(((JmlTypeClauseExpr) t).expression),
 						t, t.source(), utils.qualifiedMethodSig(methodDecl.sym));
+	            addFeasibilityCheck(t, currentStatements, Strings.feas_methodaxioms, "after static invariant: " + t);
 			}
 		} finally {
 			endInvariants(csym);
@@ -4802,12 +4806,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addStaticInitialization((ClassSymbol) methodDecl.sym.owner);
 				}
 			}
+            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after static initialization");
 
 			// FIXME - include for rac also?
 			if ((infer || esc)) {
 				if (methodDecl.sym.isConstructor() || utils.isJMLStatic(methodDecl.sym)) {
 					addStat(comment(methodDecl, "Assuming static initial state", null));
 					assumeStaticInitialState(classDecl.sym);
+	                addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after static initial state assumption");
 				}
 				if (!methodDecl.sym.isConstructor() && !utils.isJMLStatic(methodDecl.sym)) {
 					// Add nullness, type, and allocation conditions for fields and inherited fields
@@ -4815,6 +4821,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addNullnessAndTypeConditionsForInheritedFields(classDecl.sym, isConstructor,
 							currentEnv.currentReceiver == null);
 				}
+                addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after inherited fields");
 
 				// FIXME - this could be combined with populating preparams above
 				// For the parameters of the method
@@ -4823,6 +4830,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				boolean isNonNull = true;
 				for (JCVariableDecl d : methodDecl.params) {
 					isNonNull = addNullnessAllocationTypeConditionFormal(d, d.sym, false, null);
+	                addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after field " + d.sym.owner + "." + d.sym);
 				}
 				if (varargs && !isNonNull) { // isNonNull is the nullness of the last parameter, so the varargs
 												// parameter
@@ -4840,6 +4848,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addAssume(methodDecl, Label.IMPLICIT_ASSUME, fa);
 
 				}
+	            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after allocation assumption");
 
 			}
 
@@ -4868,6 +4877,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addInvariants(methodDecl, owner.type, receiver, currentStatements, true, methodDecl.sym.isConstructor(),
 					false, isHelper(methodDecl.sym), false, true, Label.INVARIANT_ENTRANCE_ASSUMED,
 					utils.qualifiedMethodSig(methodDecl.sym));
+            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after invariants for receiver of " + methodDecl.sym);
             addStat(comment(methodDecl, "End instance invariants for method receiver " + methodDecl.sym.owner + "." + methodDecl.sym, null));
 			// Assume invariants for the class of each parameter
 			for (JCVariableDecl v : methodDecl.params) {
@@ -4890,6 +4900,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addInvariants(idd, idd.type, id, currentStatements, true, false, false, false, false, true,
 						Label.INVARIANT_ENTRANCE_ASSUMED,
 						utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + idd.name + ")");
+	            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after invariants for " + vsym.owner + "." + vsym + " (" + vsym.type + ")");
+
 			}
 
 			// Collect and check precondition
@@ -4900,6 +4912,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			currentEnv.currentReceiver = savedThis;
 			JCExpression combinedPrecondition = null;
 			JavaFileObject combinedPreconditionSource = null;
+            //addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_pre, "before preconditions");
 			addStat(comment(methodDecl, "Assume Preconditions", null));
 			paramActuals_ = new HashMap<>();
 			// Iterate over all methods that methodDecl overrides, collecting specs
@@ -5466,6 +5479,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			addNullnessAndTypeConditionsForField(csym, (VarSymbol) sy, beingConstructed);
 			// FIXME - why both of these?
 			addNullnessAllocationTypeCondition(methodDecl, sy, beingConstructed && !utils.isJMLStatic(sy));
+            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after field assumption: " + sy.owner + " " + sy);
 		}
 
 	}

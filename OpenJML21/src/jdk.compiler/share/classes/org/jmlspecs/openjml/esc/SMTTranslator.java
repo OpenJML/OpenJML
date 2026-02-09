@@ -2632,7 +2632,7 @@ public class SMTTranslator extends JmlTreeScanner {
         result = convertExpr(tree.expr);
         boolean exprIsPrim = utils.isJavaOrJmlPrimitiveType(tree.expr.type);
         boolean treeIsPrim = utils.isJavaOrJmlPrimitiveType(tree.type);
-        //System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
+        //System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim + " " + tree.expr.getClass() + " " + tree.expr);
         Number value = null;
         if (tree.expr instanceof JCLiteral lit) {
             if (lit.getValue() instanceof Number) {
@@ -2653,7 +2653,12 @@ public class SMTTranslator extends JmlTreeScanner {
                     k = 0;
                     // FIXME - unexpected kind of literal
                 }
-                result = useBV ? F.hex("00000000") : numeral(k);
+                if (useBV) {
+                    String s = String.format("%08x", k); // Since k is a long, negative numbers are padded out with f's to a long length
+                    result = F.hex(s);
+                } else {
+                    result = numeral(k);
+                }
                 return;
             }    
         }

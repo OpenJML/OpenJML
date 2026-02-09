@@ -1791,10 +1791,9 @@ public class esc2 extends EscBase {
                         + "  //@ model public static boolean m(int i);\n"
 
                         + "  //@ pure\n" 
-                        + "  public void mm() {\n"
+                        + "  public void mm() {  //@ assert !m(10); \n" // Assertion serves as a lemma that aids in quickly proving the following assert
                         + "  //@ assert !(\\forall int k; 3 < k < 11; m(k));\n" // Should be OK because m(10) is false
                         + "  }\n" + "}"
-            //    ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method mm", 7
                         );
     }
 
@@ -1809,7 +1808,7 @@ public class esc2 extends EscBase {
                         + "  //@ model public boolean m(int i);\n"
 
                         + "  //@ pure\n" 
-                        + "  public void mm() {\n"
+                        + "  public void mm() {\n" 
                         + "  //@ assert (\\forall int k; 3 < k < 11; m(k));\n" // ERROR because m(10) is false
                         + "  }\n" + "}"
                         ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method mm", 7
