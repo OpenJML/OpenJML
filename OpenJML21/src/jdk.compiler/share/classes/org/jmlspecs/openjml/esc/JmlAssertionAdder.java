@@ -3740,6 +3740,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				outer: while (iter.hasPrevious()) {
 					JmlSpecs.TypeSpecs tyspecs = specs.getAttrSpecs((ClassSymbol) iter.previous().tsym);
 					for (var md : tyspecs.modelFieldMethods) {
+					    //System.out.println("MODEL FIELD METHOD " + varsym.owner + " " + varsym+ " " + md);
 						//if (x.decl instanceof JmlMethodDecl md) {
 							// THe DEFAULT Flag is used to indicate that the method is just the place-holder
 							// method
@@ -8788,7 +8789,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        condition = treeutils.trueLit;
 
 	    boolean print = false; // that.toString().startsWith("s.");
-
+	    if (print) utils.warning(that, "jml.message", "APPLY " + that);
+	    
 	    if (that.meth.type == null) {
 	        if (print) System.out.println("APPLY " + that);
 	    } else if (that.meth.type.isErroneous()) {
@@ -8853,6 +8855,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		if (translatingJML && rac) {
 		    if (print) System.out.println("RAC CALL IN GHOST CODE " + that);
+		    try {
 		    // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
 		    currentEnv = currentEnv.pushEnvCopy();
 		    if (currentEnv.stateLabel != null) {
@@ -8867,6 +8870,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression meth = convertExpr(that.meth);
             List<JCExpression> args = convertArgs(that, that.args, formals);
             currentEnv = currentEnv.popEnv();
+            if (print) System.out.println("INLINE " + inline);
 		    if (!inline) {
 		        JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
 		        app.varargsElement = that.varargsElement; // a Type
@@ -8881,6 +8885,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		            System.out.println("MODEL BODY NULL FOR RAC INLINING " + methsym);
 		        } else {
                     //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
+                    if (print) System.out.println("INLINING FOR RAC " + methsym + " " + mspecs.modelBody);
 		            addStat(comment(that, "Inlining for rac: " + methsym, null));
 		            JCExpression savedRecv = currentEnv.currentReceiver;
 		            if (meth instanceof JCFieldAccess fa) currentEnv.currentReceiver = fa.selected;
@@ -8892,6 +8897,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		            
 		            // if (!splitExpressions) ... PROBLEM FIXME, also model methods
 		        }
+		    }
+		    } catch (Exception e) {
+		        System.out.println("CAUGHT " + e);
+		        e.printStackTrace(System.out);
+		        throw e;
+		    } finally {
+		        if (print) System.out.println("RAC CALL IN GHOST CODE-Z " + that);
 		    }
 
 		} else {
@@ -9410,7 +9422,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** Helper method to do the work of visitApply and visitNewObject */
 	protected void applyHelper(JCExpression that) {
-		boolean print = Utils.debug("trans"); //  || that.toString().contains("zrange.isEmpty()");
+		boolean print = Utils.debug("trans");// || that.toString().contains("Double.valueOf(d2)");
         boolean printb = print;
         //print |= that.toString().contains("cops.id");
     	if (print) {
@@ -12066,7 +12078,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			log.error("jml.internal", e.toString()); // FIXME - improve error message
 			Utils.conditionalPrintStack("JMLAA-Error", e);
 			throw e;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Utils.conditionalPrintStack("JMLAA-Exception", e);
 			throw e;
 		} finally {
