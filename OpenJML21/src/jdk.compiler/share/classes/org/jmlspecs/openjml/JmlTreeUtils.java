@@ -1209,6 +1209,14 @@ public class JmlTreeUtils {
         if (e instanceof JCLiteral) return true;
         return null != typeLiteral(e);
     }
+    
+    public boolean isLiteralRec(JCExpression e) {
+        if (e instanceof JCLiteral) return true;
+        if (e instanceof JCUnary p) return isLiteralRec(p.arg);
+        if (e instanceof JCParens p) return isLiteralRec(p.expr);
+        if (e instanceof JCTypeCast cast) return isLiteralRec(cast.expr);
+        return false;
+    }
 
     public Number integralLiteral(JCExpression e) {
         if (e instanceof JCLiteral lit) {

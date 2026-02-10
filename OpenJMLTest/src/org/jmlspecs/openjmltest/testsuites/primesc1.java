@@ -42,7 +42,7 @@ public class primesc1 extends EscBaseFiles {
 
     @Test
     public void jmlbigint() {
-        helpTG();
+        helpTG("--method=shift","--show");
     }
     
     @Test
