@@ -57,7 +57,6 @@ public class escnonpublic extends EscBaseFiles {
         else args.add(source.getParent());
         args.add("--esc"); // FIXME - merge this with what is in EscBase
         args.add("-jmltesting");
-        args.add("--no-purity-check");
         args.add("--code-math=java");
         args.add("--check-feasibility=basic");
         args.add("--no-warn=implicit-everything");

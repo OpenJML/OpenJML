@@ -15,7 +15,6 @@ public class purity extends TCBase {
 //        jmldebug = true;
         super.setUp();
         addOptions("--no-require-white-space");
-       // addOptions("--no-purity-check");  // Do not warn about library calls -- everything else is warned about
     }
 
     /** Test scanning something very simple */

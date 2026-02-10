@@ -95,7 +95,6 @@ public abstract class RacBase extends JmlTestSuite {
         //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
         addOptions("--rac","--rac-java-checks","--rac-check-assumptions");
         addOptions("--show-not-implemented");
-        addOptions("--no-purity-check"); // System specs have a lot of purity errors, so turn this off for now
         addOptions("--rac-show-source=none"); // To make the test output more stable and smaller
         expectedExit = 0;
         expectedRACExit = 0;
@@ -301,7 +300,6 @@ public abstract class RacBase extends JmlTestSuite {
             //args.add("-classpath");
             //args.add(cp);
             args.add("--rac");
-            args.add("--no-purity-check");
             args.add("--code-math=java");
             args.add("--spec-math=bigint");
             if (new File(sourcedir).isDirectory()) args.add("--dir");

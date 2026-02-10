@@ -4675,7 +4675,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Check that the method being called is pure enough
             if (msym != null) {
                 boolean isAllowed = specs.isSpecOKMethod(msym);
-                isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
+                //isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
                 if (!isAllowed) {
                     // FIXME - really need to check for recursion at any level. Alternately just make missing purity always an error
                     if (enclosingMethodEnv.enclMethod.sym == msym) {

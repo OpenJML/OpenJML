@@ -59,7 +59,7 @@ public class escfiles extends EscBaseFiles {
     
     @Test // Order of errors is somewhat non-deterministic
     public void bag() {
-        expectedExit = 0;
+        expectedExit = 6;
         helpTG("--esc-max-warnings=1","--check-feasibility=none");
     }
 

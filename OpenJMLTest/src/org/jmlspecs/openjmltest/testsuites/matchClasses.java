@@ -9,7 +9,6 @@ public class matchClasses  extends TCBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("--no-purity-check");
     }
 
     /** Test something very simple with no errors*/
