@@ -25,7 +25,6 @@ public class racsystem extends RacBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("--no-purity-check"); // To shut off complaints about misuse of purity in Java specifications
         addOptions("--rac-show-source=line");
     }
     

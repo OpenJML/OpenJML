@@ -217,7 +217,7 @@ public class release extends JmlTestSuite {
     public void testOK1() throws Exception {
         expectedOutput = "";
         helper(new String[]
-                { "--no-purity-check","--specs-path","releaseTests/testOK1","temp-release/B.java"
+                { "--specs-path","releaseTests/testOK1","temp-release/B.java"
                 },0
                 );
     }
@@ -227,7 +227,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testEsc1() throws Exception {
         helper(new String[]
-                { "--no-purity-check", "--esc", relsrc + "/testEsc/A.java", "-classpath", relsrc + "/testEsc"
+                {  "--esc", relsrc + "/testEsc/A.java", "-classpath", relsrc + "/testEsc"
                 },6
                 );
     }
@@ -236,7 +236,7 @@ public class release extends JmlTestSuite {
     public void testEsc2A() throws Exception {
         expectedFile = "releaseTests/testEsc2/expected";
         helper(new String[]
-                { "--no-purity-check", "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc"
+                { "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc"
                 },0
                 );
     }
@@ -245,7 +245,7 @@ public class release extends JmlTestSuite {
     public void testEsc2B() throws Exception {
         expectedFile = "releaseTests/testEsc2/expected";
         helper(new String[]
-                { "--no-purity-check", "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc",
+                { "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc",
                         "--exec=" + JmlTestSuite.root + "/Solvers/Solvers-macos/z3-4.3.1"
                 },0
                 );
@@ -254,7 +254,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath1() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", 
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", 
                 },1
                 );
     }
@@ -262,7 +262,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath2() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data"
                 },1
                 );
     }
@@ -270,7 +270,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath3() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "--specs-path", relsrc + "/testPath/data-specs"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "--specs-path", relsrc + "/testPath/data-specs"
                 },1
                 );
     }
@@ -278,7 +278,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath4() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" 
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" 
                 },1
                 );
     }
@@ -286,7 +286,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath5() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" + z + relsrc + "/testPath/data" 
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data-specs" + z + relsrc + "/testPath/data" 
                 },1
                 );
     }
@@ -294,7 +294,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath6() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data" + z + relsrc + "/testPath/data-specs" 
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data" + z + relsrc + "/testPath/data-specs" 
                 },1
                 );
     }
@@ -302,7 +302,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath7() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data", "--specs-path", relsrc + "/testPath/data-specs" 
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-sourcepath", relsrc + "/testPath/data", "--specs-path", relsrc + "/testPath/data-specs" 
                 },1
                 );
     }
@@ -310,7 +310,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath8() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data-specs" + z + relsrc + "/testPath/data"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data-specs" + z + relsrc + "/testPath/data"
                 },1
                 );
     }
@@ -318,7 +318,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath9() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data:" + relsrc + "/testPath/data-specs"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data:" + relsrc + "/testPath/data-specs"
                 },1
                 );
     }
@@ -326,7 +326,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath10() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data", "--specs-path", relsrc + "/testPath/data-specs"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data", "--specs-path", relsrc + "/testPath/data-specs"
                 },1
                 );
     }
@@ -334,7 +334,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testCheck1() throws Exception {
         helper(new String[]
-                { "-jmltesting", "--no-purity-check", "--specs-path", relsrc, relsrc + "/A.java"
+                { "-jmltesting", "--specs-path", relsrc, relsrc + "/A.java"
                 },1
                 );
     }
@@ -347,7 +347,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testRuntime4() throws Exception {
         helper(new String[]
-                { "temp-release/C.java", "--no-purity-check",
+                { "temp-release/C.java",
                 },0
                 );
     }
@@ -356,7 +356,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testRuntime5() throws Exception {
         helper(new String[]
-                { "temp-release/D.java", "--no-purity-check",
+                { "temp-release/D.java",
                 },0
                 );
     }

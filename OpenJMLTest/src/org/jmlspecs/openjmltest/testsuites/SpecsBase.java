@@ -137,7 +137,7 @@ public class SpecsBase extends TCBase {
             List<JavaFileObject> files = List.of(f);
             // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
             int ex = main.compile(new String[]{
-                    "-Xlint:removal","-Xlint:deprecation","--no-purity-check"},
+                    "-Xlint:removal","-Xlint:deprecation"},
                     files).exitCode;
             int expected = expectedExit;
             boolean allNotes = collector.getDiagnostics().stream().allMatch(d->d.toString().contains("Note:"));

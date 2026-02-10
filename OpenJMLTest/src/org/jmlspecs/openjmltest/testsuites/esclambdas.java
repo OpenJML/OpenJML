@@ -33,7 +33,7 @@ public class esclambdas extends EscBase {
                 +"  }\n"
                                 
                 +"}"
-                ,"$SPECS/java/lang/Iterable.jml:45: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
+                ,"$SPECS/java/lang/Iterable.jml:51: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",40
                 );
     }
     

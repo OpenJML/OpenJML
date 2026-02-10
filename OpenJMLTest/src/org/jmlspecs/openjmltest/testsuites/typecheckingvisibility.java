@@ -9,7 +9,6 @@ public class typecheckingvisibility extends TCBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("--no-purity-check");
     }
 
     @Test public void testLocalVisibility() {

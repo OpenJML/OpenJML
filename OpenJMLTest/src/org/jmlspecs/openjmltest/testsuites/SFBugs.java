@@ -589,7 +589,7 @@ public class SFBugs extends EscBaseFiles {
     
     @Test
     public void gitbug622() { // Problem with implicit assertion about string literal
-        helpTG("-staticInitWarning","--purity-check");
+        helpTG("-staticInitWarning");
     }
     
     @Test
