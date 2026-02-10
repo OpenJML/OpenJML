@@ -102,7 +102,6 @@ JML options:
   --arithmetic-failure       Whether arithmetic warnings are hard, soft (default) or quiet
   --check-accessible         When on (the default), JML accessible clauses are checked
   --specs-path               Specifies the directory path to search for specification files
-  --purity-check             When on (the default), warnings for use of impure methods from system libraries are issued
   --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued

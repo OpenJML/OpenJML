@@ -18,7 +18,6 @@ public class arith extends TCBase {
     /** See the FIXME in BigInteger.jml */
     @Test
     public void testSomeJava() {
-        JmlOption.PURITYCHECK.set(context,false);
         helpTCText("A.java","public class A { java.math.BigInteger list; }");
     }
 

@@ -4,80 +4,80 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.TString() with prover !!!! - no warnings
 Starting proof of TString.errors1() with prover !!!!
-test/jmlstring/TString.java:7: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
+test/jmlstring/TString.java:7: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
         //@ check s.get(-1) == 'A';
                        ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:83: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:83: verify: Associated declaration
     public char get(bigint i);
                 ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:80: warning: Precondition conjunct is false: 0 <= i < length
+$SPECS/org/jmlspecs/lang/internal/string.jml:80: verify: Precondition conjunct is false: 0 <= i < length
     //-RAC@   requires 0 <= i < length;
                               ^
 Completed proof of TString.errors1() with prover !!!! - with warnings
 Starting proof of TString.errors2() with prover !!!!
-test/jmlstring/TString.java:16: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
+test/jmlstring/TString.java:16: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
         //@ check s.get(4) == 'A';
                        ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:83: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:83: verify: Associated declaration
     public char get(bigint i);
                 ^
 Completed proof of TString.errors2() with prover !!!! - with warnings
 Starting proof of TString.errors3() with prover !!!!
-test/jmlstring/TString.java:26: warning: The prover cannot establish an assertion (Assert) in method errors3
+test/jmlstring/TString.java:26: verify: The prover cannot establish an assertion (Assert) in method errors3
         //@ check s[4] != 'A'; // no checking, just undefined // ERROR
             ^
-test/jmlstring/TString.java:25: warning: The prover cannot establish an assertion (Assert) in method errors3
+test/jmlstring/TString.java:25: verify: The prover cannot establish an assertion (Assert) in method errors3
         //@ check s[-1] != 'A'; // no checking, just undefined // ERROR
             ^
 Completed proof of TString.errors3() with prover !!!! - with warnings
 Starting proof of TString.errors4() with prover !!!!
-test/jmlstring/TString.java:32: warning: The prover cannot establish an assertion (NullFormal) in method errors4: arg0 in of(String)
+test/jmlstring/TString.java:32: verify: The prover cannot establish an assertion (NullFormal) in method errors4: arg0 in of(String)
         //@ ghost \string ss = sn;
                                ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:69: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:69: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                             ^
 Completed proof of TString.errors4() with prover !!!! - with warnings
 Starting proof of TString.errors5() with prover !!!!
-test/jmlstring/TString.java:41: warning: The prover cannot establish an assertion (NullFormal) in method errors5: arg0 in of(String)
+test/jmlstring/TString.java:41: verify: The prover cannot establish an assertion (NullFormal) in method errors5: arg0 in of(String)
         //@ ghost \string ss = (\string)sn;
                                         ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:69: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:69: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                             ^
 Completed proof of TString.errors5() with prover !!!! - with warnings
 Starting proof of TString.errors6() with prover !!!!
-test/jmlstring/TString.java:50: warning: The prover cannot establish an assertion (NullFormal) in method errors6: arg0 in of(String)
+test/jmlstring/TString.java:50: verify: The prover cannot establish an assertion (NullFormal) in method errors6: arg0 in of(String)
         //@ ghost \string ss = \string.of(sn);
                                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:69: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:69: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                             ^
 Completed proof of TString.errors6() with prover !!!! - with warnings
 Starting proof of TString.errors7() with prover !!!!
-test/jmlstring/TString.java:58: warning: The prover cannot establish an assertion (NullFormal) in method errors7: arg0 in of(String)
+test/jmlstring/TString.java:58: verify: The prover cannot establish an assertion (NullFormal) in method errors7: arg0 in of(String)
         //@ ghost \string ss = \string.of(null);
                                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:69: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:69: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                             ^
 Completed proof of TString.errors7() with prover !!!! - with warnings
 Starting proof of TString.errors8() with prover !!!!
-test/jmlstring/TString.java:67: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
+test/jmlstring/TString.java:67: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
         //@ check s.equals("ABCD");
                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:230: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:230: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:229: warning: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/string.jml:229: verify: Precondition conjunct is false: false
     //@ requires false; // Not defined for JML primitive types. Use eq.
                  ^
 Completed proof of TString.errors8() with prover !!!! - with warnings
 Starting proof of TString.errors9() with prover !!!!
-test/jmlstring/TString.java:77: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
+test/jmlstring/TString.java:77: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
             //@ check \string.empty().head() == ' ';
                                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:142: warning: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:142: verify: Associated declaration
     public char head();
                 ^
 Completed proof of TString.errors9() with prover !!!! - with warnings
@@ -98,4 +98,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.main(String...) with prover !!!! - no warnings
 Completed proving methods in TString
-20 warnings
+20 verification failures

@@ -1204,13 +1204,11 @@ public class JmlSpecs {
         
         boolean print = false; // sym.toString().contains("? extends U");
         
-        boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
                // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.NO_STATE); // use isPure?
-        boolean isPureL = libraryMethod && !JmlOption.PURITYCHECK.isSet(context);
         //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
 

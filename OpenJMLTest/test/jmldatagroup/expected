@@ -8,10 +8,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tdatagroup.q() with prover !!!! - no warnings
 Starting proof of Tdatagroup.qbad() with prover !!!!
-test/jmldatagroup/Tdatagroup.java:15: warning: The prover cannot establish an assertion (Assignable) in method qbad: j
+test/jmldatagroup/Tdatagroup.java:15: verify: The prover cannot establish an assertion (Assignable) in method qbad: j
         j = 0; // ERROR
           ^
-test/jmldatagroup/Tdatagroup.java:13: warning: Associated declaration
+test/jmldatagroup/Tdatagroup.java:13: verify: Associated declaration
     //@ assigns m;
         ^
 Completed proof of Tdatagroup.qbad() with prover !!!! - with warnings
@@ -20,4 +20,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tdatagroup.main(String...) with prover !!!! - no warnings
 Completed proving methods in Tdatagroup
-2 warnings
+2 verification failures
