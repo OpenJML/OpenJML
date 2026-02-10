@@ -134,7 +134,7 @@ public class escstrings extends EscBase {
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       // @ assert s.concat(ss).equals(s.concat(ss));\n"  // FIXME - not allowed by purity
-                +"       //@ assert (s+ss).equals(s+ss);\n"
+                +"       //@ assert (s+ss).equals(s+ss);\n"                 // but then, why is this one
                 +"  }\n"
                 
                 +"}" 

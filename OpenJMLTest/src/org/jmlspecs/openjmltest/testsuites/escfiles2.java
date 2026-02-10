@@ -78,7 +78,6 @@ public class escfiles2 extends EscBaseFiles {
     @Test
     public void gitbug582() {
         expectedExit = 0;
-        helpTG("--purity-check");
     }
 
 

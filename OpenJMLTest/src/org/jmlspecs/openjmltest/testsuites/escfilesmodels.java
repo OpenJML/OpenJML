@@ -85,7 +85,6 @@ public class escfilesmodels extends EscBaseFiles {
     @Ignore // times out
     @Test public void gitbug584() {
         expectedExit = 0;
-        helpTCG("-purityCheck");
     }
     
     @Test @Ignore  // Needs specs about double

@@ -53,7 +53,6 @@ public abstract class EscBaseFiles extends EscBase {
         java.util.List<String> args = new LinkedList<String>();
         args.add("-g");
         args.add("--esc");
-        args.add("--no-purity-check");
         args.add("-jmltesting");
         args.add("--progress");
         args.add("--timeout=300");

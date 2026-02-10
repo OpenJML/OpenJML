@@ -26,10 +26,6 @@ public class SFBugs extends EscBaseFiles {
         super.setUp();
     }
     
-    // FIXME: Eventually, remove all --verify-exit=-1 options -- they have the effect of turning verification failures 
-    // into pure warnings, both the in the diagnostic messages and the returned error code.
-    // To fix this means editing all the expected output files.
-    
     public void helpTG(String... opts) {
         super.helpTG(opts);
     }
@@ -41,7 +37,6 @@ public class SFBugs extends EscBaseFiles {
         list.add("-spec-math=bigint");
         list.add("--check-feasibility=precondition,reachable,exit,spec");
         list.add("--progress");
-  //      list.add("--verify-exit=-1");
         list.addAll(Arrays.asList(opts));
         escOnFiles(sourceDirname,outDir,list.toArray(opts));
     }
@@ -51,7 +46,6 @@ public class SFBugs extends EscBaseFiles {
         List<String> a = new LinkedList<>();
         a.add(0,"-cp"); 
         a.add(1,dir);
-     //   a.add("--verify-exit=-1");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
@@ -647,7 +641,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug635() {
         expectedExit = 6;
-        helpTG("--verify-exit=6"); // FIXME - remove this option when all the others are adjusted to non-legacy behavior
+        helpTG();
     }
     
     @Test
@@ -706,7 +700,7 @@ public class SFBugs extends EscBaseFiles {
     @Test
     public void gitbug648a() {
         expectedExit = 6;
-        helpTG("-cp","test/gitbug648","--verify-exit=6");
+        helpTG("-cp","test/gitbug648");
     }
     
     @Test

@@ -17,7 +17,6 @@ public class escvisibility extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("--no-purityCheck");
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
         Options.instance(context).put("--class-path",   testspecpath);

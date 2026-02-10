@@ -37,7 +37,7 @@ public class primesc1 extends EscBaseFiles {
     }
     
     public void helpTG(String ... opts) {
-        super.helpTG(addVE(opts));
+        super.helpTG(opts);
     }
 
     @Test
