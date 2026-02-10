@@ -2518,6 +2518,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 break;
             case SL:
+                System.out.println("SMT SL " + useBV + " " + tree.rhs.getClass() + " " + tree);
                 if (useBV) {
                     result = F.fcn(F.symbol("bvshl"), args);
                 } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
@@ -2536,6 +2537,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // \bigint - no change to i
                         // FIXME - what if i is bigger than an int
                     }
+                    System.out.println("SHIFTING BY " + i);
                     if (i >= 0) {
                         args.add(powToNumeral((int)i));
                         result = F.fcn(F.symbol("*"), args);
@@ -2544,6 +2546,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         result = F.fcn(F.symbol("div"), args);
                     }
                 } else {
+                    System.out.println("SMT SL BAD " + tree);
                     notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
@@ -2618,7 +2621,7 @@ public class SMTTranslator extends JmlTreeScanner {
         	throw e;
         }
     }
-    
+
     private IExpr powToNumeral(int i) {
         if (i < 63) return F.numeral(1L<<i);
         else return F.numeral(java.math.BigInteger.ONE.shiftLeft(i).toString());

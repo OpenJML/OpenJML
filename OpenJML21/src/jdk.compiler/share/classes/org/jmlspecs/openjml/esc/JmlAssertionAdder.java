@@ -15299,6 +15299,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					Type tt = unboxedType(that.rhs.type);
 					if (!tt.equals(syms.longType))
 						tt = syms.intType;
+                    System.out.println("TRANS SHIFT " + that.type + " " + rhs + " " + rhs.type + " " + tt);
 					rhs = addImplicitConversion(rhs, tt, rhs);
 				} else
 					rhs = addImplicitConversion(rhs, that.type, rhs);
