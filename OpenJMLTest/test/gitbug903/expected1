@@ -37,5 +37,5 @@ Result of split BB is Not verified
 Composite result Not verified
 Completed proof of Calculator2.calculate(int,int,char) with prover !!!! - with warnings
 Completed proving methods in Calculator2
-4 verification failures
 2 warnings
+4 verification failures

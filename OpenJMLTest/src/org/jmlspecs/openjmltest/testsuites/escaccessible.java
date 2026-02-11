@@ -27,7 +27,7 @@ public class escaccessible extends EscBase {
     }
 
     @Test
-    public void testBasic() {
+    public void testAccessibleNothing() {
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ accessible \\nothing;\n"

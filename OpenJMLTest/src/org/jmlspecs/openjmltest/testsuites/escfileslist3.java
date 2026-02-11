@@ -28,7 +28,7 @@ public class escfileslist3 extends escfileslist {
     
     @Test
     public void test() {
-        helpTF(testName, addVE(getOptions()));
+        helpTF(testName, getOptions());
     }
 
     

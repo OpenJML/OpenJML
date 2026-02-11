@@ -9,6 +9,8 @@ public class buggyCalculator {
       //@ requires operator == '+';
       //@ requires num1 + num2 <= Integer.MAX_VALUE;
       //@ requires num1 + num2 >= Integer.MIN_VALUE;
+      //@ requires num1 - num2 <= Integer.MAX_VALUE;
+      //@ requires num1 - num2 >= Integer.MIN_VALUE;
       //@ ensures \result == num1 + num2;
 
       //@ also
