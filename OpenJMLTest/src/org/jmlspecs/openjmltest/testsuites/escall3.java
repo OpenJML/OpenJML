@@ -811,6 +811,24 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavoc() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\nothing;
+              public void m(int k) {
+                int j;
+                //@ havoc i,j,k;
+              }
+            }
+            """
+                ,"/A.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: i", 15
+                ,"/A.java:3: verify: Associated declaration", 7
+        );
+    }
+
+    @Test
+    public void testHavocA() {
     	addOptions("--exclude=TestJava");
         helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
@@ -2049,7 +2067,7 @@ public class escall3 extends EscBase {
     }
     
     @Test // cf. gitbug877 -- was a bug in RAC, but included an ESC test here for good measure - here instead of escfiles because of indeterminate output order
-    public void testSwitch() {
+    public void testSwitch877() {
         helpEsc("tt.ZZ",
         """
         public class ZZ {

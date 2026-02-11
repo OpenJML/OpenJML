@@ -7464,9 +7464,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    JCIdent id = treeutils.makeIdent(that.truepart.pos, vdecl.sym);
 	                    addStat(treeutils.makeAssignStat(that.truepart.pos, id, tres));
 	                    //System.out.println("TF " + tres + " " + that.falsepart + " " + treeutils.isFalseLit(tres) + " " + treeutils.isFalseLit(that.falsepart));
-	                    if (treeutils.isFalseLit(tres) && treeutils.isFalseLit(that.falsepart)) {
-	                        System.out.println("BOTH FALSE");
-	                    }
+//	                    if (treeutils.isFalseLit(tres) && treeutils.isFalseLit(that.falsepart)) {
+//	                        System.out.println("BOTH FALSE"); // This does happen - cf gitbug759
+//	                    }
 	                } finally {
 	                    try {
 	                    trueblock = popBlock(that.truepart, checkA);

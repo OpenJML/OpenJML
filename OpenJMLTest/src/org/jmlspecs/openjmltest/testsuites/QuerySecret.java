@@ -690,7 +690,7 @@ public class QuerySecret extends TCBase {
 
     /** no secret in invariant */
     @Test
-    public void testInvariant() {
+    public void testInvariantSecret() {
         helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
@@ -704,7 +704,7 @@ public class QuerySecret extends TCBase {
     }
 
     @Test
-    public void testMethodCall() {
+    public void testMethodCallSecret() {
         helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" + 
