@@ -42,8 +42,8 @@ QuerySecret.testFBadParse4
 QuerySecret.testFInNonSecret
 QuerySecret.testFInSecret
 QuerySecret.testFInSecret2
-QuerySecret.testInvariant
-QuerySecret.testMethodCall
+QuerySecret.testInvariantSecret
+QuerySecret.testMethodCallSecret
 QuerySecret.testNoDG
 QuerySecret.testNoDG2
 QuerySecret.testNoOuter
