@@ -11,13 +11,13 @@ Starting proof of buggyCalculator.calculateBad(int,int,char) with prover !!!!
 test/buggyCalculator/buggyCalculator.java:134: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method calculateBad: underflow in int difference
                     output = num1 - num2; // ERROR
                                   ^
-test/buggyCalculator/buggyCalculator.java:132: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method calculateBad: overflow in int difference
+test/buggyCalculator/buggyCalculator.java:134: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method calculateBad: overflow in int difference
                     output = num1 - num2; // ERROR
                                   ^
-test/buggyCalculator/buggyCalculator.java:155: verify: The prover cannot establish an assertion (Postcondition) in method calculateBad
+test/buggyCalculator/buggyCalculator.java:157: verify: The prover cannot establish an assertion (Postcondition) in method calculateBad
             return output;
             ^
-test/buggyCalculator/buggyCalculator.java:87: verify: Associated declaration
+test/buggyCalculator/buggyCalculator.java:89: verify: Associated declaration
         //@ ensures \result == num1 + num2;
             ^
 Completed proof of buggyCalculator.calculateBad(int,int,char) with prover !!!! - with warnings
