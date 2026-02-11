@@ -9761,7 +9761,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
             boolean calleeIsPure = specs.isAnyPurityMethod(calleeMethodSym);
-            boolean calleeIsEffectivelySpecPure = specs.isEffectivelySpecPureMethod(calleeMethodSym);
+            boolean calleeIsEffectivelySpecPure = specs.isEffectivelySpecPureMethod(calleeMethodSym) && !isVoid; // FIXME - why is !isVOid needed
             //if (calleeMethodSym.toString().contains("ok")) System.out.println("ISPURE-Z " + calleeIsPure + " " + calleeMethodSym.owner + "." + calleeMethodSym);
             boolean effectivelyPure = true;
 			{
@@ -10809,7 +10809,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (print) System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
-			if (calleeIsEffectivelySpecPure  && !calleeMethodSym.isConstructor()) {
+			if (calleeIsEffectivelySpecPure && !calleeMethodSym.isConstructor()) {
 			    assertDeterminismCall(that, print, calleeMethodSym, newThisExpr, resultType,
 			            effectivelySpecPure, includeDeterminism, extendedArgs);
 			}
