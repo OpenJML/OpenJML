@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of buggyCalculator.calculate(int,int,char) with prover !!!! - no warnings
 Starting proof of buggyCalculator.calculateBad(int,int,char) with prover !!!!
-test/buggyCalculator/buggyCalculator.java:132: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method calculateBad: underflow in int difference
+test/buggyCalculator/buggyCalculator.java:134: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method calculateBad: underflow in int difference
                     output = num1 - num2; // ERROR
                                   ^
 test/buggyCalculator/buggyCalculator.java:132: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method calculateBad: overflow in int difference

@@ -9761,7 +9761,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			java.util.List<Pair<MethodSymbol, Type>> overridden = parents(calleeMethodSym, rt);
 			
             boolean calleeIsPure = specs.isAnyPurityMethod(calleeMethodSym);
-            boolean calleeIsSpecPure = specs.isAtLeastSpecPureMethod(calleeMethodSym);
+            boolean calleeIsEffectivelySpecPure = specs.isEffectivelySpecPureMethod(calleeMethodSym);
             //if (calleeMethodSym.toString().contains("ok")) System.out.println("ISPURE-Z " + calleeIsPure + " " + calleeMethodSym.owner + "." + calleeMethodSym);
             boolean effectivelyPure = true;
 			{
@@ -9896,9 +9896,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    && (!calleeMethodSym.getReturnType().isReference() || translatingJML);
 			boolean inlineSpecs = !isRecursive && splitExpressions && localVariables.isEmpty(); // !addMethodAxioms;
 			//boolean effectivelySpecPure = utils.isJavaOrJmlPrimitiveType(calleeMethodSym.getReturnType());
-			boolean effectivelySpecPure = specs.isAtLeastSpecPureMethod(calleeMethodSym) || utils.isJavaOrJmlPrimitiveType(calleeMethodSym.getReturnType());
-			boolean includeDeterminism = !rac && !calleeIsConstructor && !isSuperCall && !isThisCall
-					&& (effectivelySpecPure) && !isVoid;
+			boolean effectivelySpecPure = specs.isEffectivelySpecPureMethod(calleeMethodSym);
+			boolean includeDeterminism = !rac && !calleeIsConstructor && !isSuperCall && !isThisCall && (effectivelySpecPure);
 			boolean details = true && !calleeMethodSym.owner.getQualifiedName().toString().equals(Strings.JMLClass);
 
 			addToCallStack(that);
@@ -10810,7 +10809,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (print) System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
-			if (calleeIsSpecPure && !isVoid && !calleeMethodSym.isConstructor()) {
+			if (calleeIsEffectivelySpecPure  && !calleeMethodSym.isConstructor()) {
 			    assertDeterminismCall(that, print, calleeMethodSym, newThisExpr, resultType,
 			            effectivelySpecPure, includeDeterminism, extendedArgs);
 			}
@@ -12121,14 +12120,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     private JCExpression assertDeterminismCall(JCExpression that, boolean print, MethodSymbol calleeMethodSym,
             JCExpression newThisExpr, Type resultType, boolean effectivelySpecPure, boolean includeDeterminism,
             List<JCExpression> extendedArgs) {
+        if (print) System.out.println("DETERMINISM CALL FOR " + calleeMethodSym + " ? " + includeDeterminism + " " + effectivelySpecPure);
+        if (!includeDeterminism) return null;
+        if (!effectivelySpecPure) return null;
         JCExpression e = makeDeterminismCall(that, calleeMethodSym, newThisExpr, extendedArgs);
         if (e == null) return null; // This can happen if the method is not pure
         e.type = resultType; // In case the determinism call has a typevar output
-        if (print) System.out.println("DETERMINISM CALL FOR " + includeDeterminism + " " + calleeMethodSym + " " + e);
         if (!calleeMethodSym.isConstructor() && calleeMethodSym.getReturnType().isReference()) {
         	// makeFreshExpression()
         }
-        if (includeDeterminism && effectivelySpecPure) addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, e);
+        addAssumeEqual(that, Label.IMPLICIT_ASSUME, resultExpr, e);
         return e;
     }
 	
