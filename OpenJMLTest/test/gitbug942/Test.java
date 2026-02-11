@@ -1,6 +1,6 @@
+// These tests check the interaction of pure/spec_pure with determinism
 public class Test {
 
-//@ assigns \nothing;
 //@ ensures \result == (a == b);
 //@ no_state
 public static boolean Equals(int a, int b) {
@@ -67,5 +67,4 @@ public static boolean Equals(int a, int b) {
      //@     int ret2 = abs3(x);
      //@     assert Equals(ret1, ret2); // OK
      //@ }
-
 }

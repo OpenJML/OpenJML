@@ -1,0 +1,37 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.Equals(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Equals(int,int) with prover !!!! - no warnings
+Starting proof of Test.abs(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.abs(int) with prover !!!! - no warnings
+Starting proof of Test.abs2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.abs2(int) with prover !!!! - no warnings
+Starting proof of Test.abs3(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.abs3(int) with prover !!!! - no warnings
+Starting proof of Test.A_test_completeness_0(int) with prover !!!!
+test/gitbug942/Test.java:50: verify: The prover cannot establish an assertion (Assert) in method A_test_completeness_0
+//@     assert Equals(ret1, ret2); // ERROR
+        ^
+Completed proof of Test.A_test_completeness_0(int) with prover !!!! - with warnings
+Starting proof of Test.B_test_completeness_0(int) with prover !!!!
+test/gitbug942/Test.java:59: verify: The prover cannot establish an assertion (Assert) in method B_test_completeness_0
+//@     assert Equals(ret1, ret2); // ERROR
+        ^
+Completed proof of Test.B_test_completeness_0(int) with prover !!!! - with warnings
+Starting proof of Test.C_test_completeness_0(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.C_test_completeness_0(int) with prover !!!! - no warnings
+Completed proving methods in Test
+2 verification failures
