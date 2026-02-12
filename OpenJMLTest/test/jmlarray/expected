@@ -26,7 +26,7 @@ Starting proof of Tarray.errors3() with prover !!!!
 test/jmlarray/Tarray.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors3
             //@ ghost var o = s.put(-1, oo);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/array.jml:51: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:52: verify: Associated declaration
     public array<T> put(bigint i, T t);
                     ^
 $SPECS/org/jmlspecs/lang/internal/array.jml:46: verify: Precondition conjunct is false: \bigint.zero <= i < length
@@ -37,7 +37,7 @@ Starting proof of Tarray.errors4() with prover !!!!
 test/jmlarray/Tarray.java:38: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors4
             //@ ghost var o = s.put(5, oo);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/array.jml:51: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:52: verify: Associated declaration
     public array<T> put(bigint i, T t);
                     ^
 Completed proof of Tarray.errors4() with prover !!!! - with warnings
@@ -45,10 +45,10 @@ Starting proof of Tarray.errors5() with prover !!!!
 test/jmlarray/Tarray.java:48: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
             //@ assert s.equals(o);
                                ^
-$SPECS/org/jmlspecs/lang/internal/array.jml:73: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/array.jml:75: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/array.jml:71: verify: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/array.jml:73: verify: Precondition conjunct is false: false
     //@   requires false; 
                    ^
 Completed proof of Tarray.errors5() with prover !!!! - with warnings

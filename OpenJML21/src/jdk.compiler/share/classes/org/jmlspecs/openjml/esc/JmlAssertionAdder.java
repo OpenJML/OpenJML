@@ -20684,7 +20684,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return null;
 		TypeSpecs tspecs = specs.getAttrSpecs((ClassSymbol) t.tsym);
 		JCExpression saved = currentEnv.currentReceiver;
-		currentEnv.currentReceiver = convertJML(obj);
+		// FIXME - if obj is already converted and is an expression containing a method call, we can get unbounded recursion
+		// FIXME - but is obj sometimes already converted and sometimes not?  ANd this test seems not robust
+		currentEnv.currentReceiver = (obj == null || obj.toString().contains("$_")) ? obj : convertJML(obj);
 		JCExpression result = null;
 		try {
 			for (JmlTypeClause clause : tspecs.clauses) {
@@ -21475,7 +21477,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     break;
                 }
             }
-            if (lo == null || hi == null) throw new RuntimeException(); // No usable bounds
+//            if (lo == null) {
+//                if decl.type.tsym == syms.byteType.tsym) {
+//                    lo = treeutils.makeIntLiteral(decl, Byte.MIN_VALUE);
+//                    lotag = JCTree.Tag.LE;
+//                } else if decl.type.tsym == syms.shortType.tsym) {
+//                    lo = treeutils.makeIntLiteral(decl, Short.MIN_VALUE);
+//                    lotag = JCTree.Tag.LE;
+//                }
+//            }
+//            if (hi == null) {
+//                if decl.type.tsym == syms.byteType.tsym) {
+//                    hi = treeutils.makeIntLiteral(decl, Byte.MAX_VALUE);
+//                    hitag = JCTree.Tag.LE;
+//                } else if decl.type.tsym == syms.shortType.tsym) {
+//                    hi = treeutils.makeIntLiteral(decl, Short.MAX_VALUE);
+//                    hitag = JCTree.Tag.LE;
+//                }
+//            }
+            if (lo == null || hi == null) {
+                throw new RuntimeException(); // No usable bounds
+            }
             Bound b = new Bound();
             b.decl = decl;
             b.lo = lo;
@@ -22337,6 +22359,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
                 for (var cs: sspecs.cases) {
                     for (JmlMethodClause clause : cs.clauses) {
+                        if (clause.clauseKind != requiresClauseKind)
+                            continue;
+                        addAssert(clause, Label.PRECONDITION, convertJML(((JmlMethodClauseExpr)clause).expression));
+                    }
+                }
+                for (var cs: sspecs.cases) {
+                    for (JmlMethodClause clause : cs.clauses) {
                         if (clause.clauseKind != assignableClauseKind)
                             continue;
                         JmlMethodClauseStoreRef a = (JmlMethodClauseStoreRef) clause;
@@ -22365,6 +22394,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 convert(that.newStatements);
                 // FIXME - change the name on this and the defaults
                 // FIXME _ fix position
+                for (var cs: sspecs.cases) {
+                    for (JmlMethodClause clause : cs.clauses) {
+                        if (clause.clauseKind != requiresClauseKind)
+                            continue;
+                        addAssert(clause, Label.PRECONDITION, convertJML(((JmlMethodClauseExpr)clause).expression));
+                    }
+                }
                 for (var cs: sspecs.cases) {
                     for (JmlMethodClause clause : cs.clauses) {
                         if (clause.clauseKind != MethodExprClauseExtensions.ensuresClauseKind)
