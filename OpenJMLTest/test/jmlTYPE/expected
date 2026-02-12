@@ -28,7 +28,7 @@ Starting proof of Test.errors5() with prover !!!!
 test/jmlTYPE/Test.java:79: verify: The prover cannot establish an assertion (NullFormal) in method errors5: arg0 in equals(Object)
             //@ check \type(Integer).equals(null); // ERROR
                                             ^
-$SPECS/org/jmlspecs/lang/internal/TYPE.jml:126: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:145: verify: Associated declaration
     public boolean equals(Object o);
                           ^
 Completed proof of Test.errors5() with prover !!!! - with warnings
@@ -36,10 +36,10 @@ Starting proof of Test.errors6() with prover !!!!
 test/jmlTYPE/Test.java:87: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
             //@ check \type(Integer).equals(o); // ERROR
                                            ^
-$SPECS/org/jmlspecs/lang/internal/TYPE.jml:126: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:145: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/TYPE.jml:124: verify: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:142: verify: Precondition conjunct is false: false
     //@  requires false; // Use eq(t) instead
                   ^
 Completed proof of Test.errors6() with prover !!!! - with warnings
@@ -83,7 +83,7 @@ Starting proof of Test.misc2() with prover !!!!
 test/jmlTYPE/Test.java:168: verify: The prover cannot establish an assertion (NullFormal) in method misc2: arg0 in of(Class<?>)
             //@ ghost \TYPE tt = \TYPE.of(c); // ERROR -- c is null
                                           ^
-$SPECS/org/jmlspecs/lang/internal/TYPE.jml:21: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:23: verify: Associated declaration
     public static TYPE of(Class<?> h);
                           ^
 Completed proof of Test.misc2() with prover !!!! - with warnings

@@ -6003,7 +6003,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
 //        var rep = jmlenv.representsHead;
 //        jmlenv.representsHead = null; // To avoid datagroup containment checks if checkSecretReadable attribs in clauses
-
         try {
             
         	// First check quantified variables. If we are an old environment, they will not necessarily be in the
@@ -6089,6 +6088,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             e.printStackTrace(System.out);
         	utils.unexpectedException(e, "JmlAttr.visitIdent: " + tree);
         } finally {
+            if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == NO_STATE) {
+                if (tree.sym.owner instanceof TypeSymbol) {
+                    if (tree.sym.isStatic() && tree.sym.isFinal()) {
+                        // OK
+                    } else {
+ //                       utils.error(tree, "jml.message", "A no_state method may not read class fields");
+                    }
+                }
+            }
+
             jmlenv = jmlenv.pop();
         }
     }

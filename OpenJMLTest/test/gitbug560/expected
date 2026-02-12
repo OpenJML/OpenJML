@@ -11,4 +11,5 @@ Starting proof of B.m() with prover !!!!
 Completed proof of B.m() with prover !!!! - no warnings
 Completed proving methods in B
 Proving methods in A
+Skipping proof of A.m() (because the method has no body)
 Completed proving methods in A

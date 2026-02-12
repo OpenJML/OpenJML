@@ -1793,6 +1793,12 @@ public class JmlSpecs {
         return t != null && (t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
     }
 
+    // Allows void returns for lemmas
+    public boolean isNoStateMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        return t != null && t.jmlclausekind == NO_STATE;
+    }
+
     public boolean isSpecOKMethod(MethodSymbol msym) {
         var t = determinePurity(msym);
         if (t == null) return false;

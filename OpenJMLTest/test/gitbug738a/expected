@@ -11,6 +11,7 @@ test/gitbug738a/HasComm.java:2: verify: Associated declaration
 Completed proof of A.comm(HasComm) with prover !!!! - with warnings
 Completed proving methods in A
 Proving methods in HasComm
+Skipping proof of HasComm.comm(HasComm) (because the method has no body)
 Completed proving methods in HasComm
 Proving methods in B
 Starting proof of B.B() with prover !!!!
