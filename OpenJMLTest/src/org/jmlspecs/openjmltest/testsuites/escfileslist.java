@@ -112,7 +112,7 @@ public class escfileslist extends EscBaseFiles implements Utils {
                 return noargs;
             }
         }
-        return args == null ? noargs : args.split(" ");
+        return args == null || args.isEmpty() ? noargs : args.split(" ");
     }
     
     /** This test just lists, for information, the tests that will be done by escfileslist1,2,3
