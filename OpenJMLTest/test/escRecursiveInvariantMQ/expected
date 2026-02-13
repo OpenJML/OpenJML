@@ -3,10 +3,10 @@ test/escRecursiveInvariantMQ/RecursiveInvariantMQ.java:4: warning: Recursive att
                           ^
 Proving methods in RecursiveInvariantMQ
 Starting proof of RecursiveInvariantMQ.RecursiveInvariantMQ() with prover !!!!
-test/escRecursiveInvariantMQ/RecursiveInvariantMQ.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method RecursiveInvariantMQ
+test/escRecursiveInvariantMQ/RecursiveInvariantMQ.java:2: verify: The prover cannot establish an assertion (InvariantExit) in method RecursiveInvariantMQ
 public class RecursiveInvariantMQ {
        ^
-test/escRecursiveInvariantMQ/RecursiveInvariantMQ.java:4: warning: Associated declaration
+test/escRecursiveInvariantMQ/RecursiveInvariantMQ.java:4: verify: Associated declaration
     //@ public invariant m();
                ^
 Completed proof of RecursiveInvariantMQ.RecursiveInvariantMQ() with prover !!!! - with warnings
@@ -19,4 +19,5 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of RecursiveInvariantMQ.t() with prover !!!! - no warnings
 Completed proving methods in RecursiveInvariantMQ
-3 warnings
+1 warning
+2 verification failures

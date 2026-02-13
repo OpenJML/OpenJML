@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FirstTest.FirstTest() with prover !!!! - no warnings
 Starting proof of FirstTest.setA(int) with prover !!!!
-test/firstTest/FirstTest.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method setA
-    public void setA(int a) {
+test/firstTest/FirstTest.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method setA
+    public void setA(int a) { // ERROR: expcts an invariant failure at end of constructor
                 ^
-test/firstTest/FirstTest.java:4: warning: Associated declaration
+test/firstTest/FirstTest.java:4: verify: Associated declaration
     int a; //@ invariant a >= 0;
                ^
 Completed proof of FirstTest.setA(int) with prover !!!! - with warnings
@@ -16,15 +16,15 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FirstTest.toString() with prover !!!! - no warnings
 Starting proof of FirstTest.main(String[]) with prover !!!!
-test/firstTest/FirstTest.java:17: warning: The prover cannot establish an assertion (Precondition) in method main
+test/firstTest/FirstTest.java:17: verify: The prover cannot establish an assertion (Precondition) in method main
         x.setA(10);
               ^
-test/firstTest/FirstTest.java:7: warning: Associated declaration
+test/firstTest/FirstTest.java:7: verify: Associated declaration
     public void setA(int a) {
                 ^
-test/firstTest/FirstTest.java:6: warning: Precondition conjunct is false: a < 0
+test/firstTest/FirstTest.java:6: verify: Precondition conjunct is false: a < 0
     //@ requires a < 0;
                    ^
 Completed proof of FirstTest.main(String[]) with prover !!!! - with warnings
 Completed proving methods in FirstTest
-5 warnings
+5 verification failures

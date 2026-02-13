@@ -17,7 +17,7 @@ public class arith extends TCBase {
     
     /** See the FIXME in BigInteger.jml */
     @Test
-    public void testSomeJava() {
+    public void testSimpleJava() {
         helpTCText("A.java","public class A { java.math.BigInteger list; }");
     }
 

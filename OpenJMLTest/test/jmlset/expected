@@ -39,10 +39,10 @@ Starting proof of TSet.misc() with prover !!!!
 test/jmlset/TSet.java:130: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
         //@ check !s1.equals(o);
                             ^
-$SPECS/org/jmlspecs/lang/internal/set.jml:85: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/set.jml:88: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/set.jml:83: verify: Precondition conjunct is false: false
+$SPECS/org/jmlspecs/lang/internal/set.jml:86: verify: Precondition conjunct is false: false
     //@   requires false;
                    ^
 Completed proof of TSet.misc() with prover !!!! - with warnings

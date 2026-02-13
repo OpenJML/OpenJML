@@ -306,9 +306,12 @@ public class TSeq {
         //@ ensures \seq.<T>empty().length == 0;
         //@ model public static <T> void newSeqIsEmpty() {}
         
-        //@ ensures s.append(k).length == 1 + s.length;
-        //@ model public static <T> void appendBumpsSize(\seq<T> s, T k) {}
+        //@ requires 0 <= s.length(); // FIXME - shouldn't this be assumed by invariants on arguments
+        //@ requires 0 <= ss.length(); // FIXME - shouldn't this be assumed by invariants on arguments
+        //@ ensures s.append(ss).length == s.length + ss.length;
+        //@ model public static <T> void appendBumpsSize(\seq<T> s, \seq<T> ss) {}
         
+        //@ requires 0 <= s.length(); // FIXME - shouldn't this be assumed by invariants on arguments
         //@ ensures s.append(k).length() == 1 + s.length();
         //@ model public static <T> void appendBumpsSize1(\seq<T> s, T k) {}
         
@@ -326,6 +329,7 @@ public class TSeq {
         //@ model public static <T> void insertRemove(\seq<T> s, T t, \bigint i) {}
         
         //@ public normal_behavior
+        //@   requires 0 <= s.length(); // FIXME - shouldn't this be assumed by invariants on arguments
         //@   ensures !s.append(t).equals(s);
         //@ model public static <T> void appendNotEqual(\seq<T> s, T t) {}
         

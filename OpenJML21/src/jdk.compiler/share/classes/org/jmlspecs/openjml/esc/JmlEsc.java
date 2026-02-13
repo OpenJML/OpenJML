@@ -182,8 +182,7 @@ public class JmlEsc extends JmlTreeScanner {
         long classDuration = System.currentTimeMillis() - classStart;
         utils.progress(0,Utils.PROGRESS,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
                 (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
-        if (utils.isModel(node.sym)) classesModel++; 
-        else {
+        {
             classes++;
             if (allMethodsOK) classesOK++;
         }
@@ -244,7 +243,7 @@ public class JmlEsc extends JmlTreeScanner {
         return utils.hasMod(methodDecl.mods, Modifiers.SKIPESC);
     }
     
-    // FIXME - perhaps shoud not be in JmlEsc
+    // FIXME - perhaps should not be in JmlEsc
     public boolean skipRac(JmlMethodDecl methodDecl) {
         return utils.hasMod(methodDecl.mods, Modifiers.SKIPRAC);
     }
@@ -309,8 +308,7 @@ public class JmlEsc extends JmlTreeScanner {
             return markMethodSkipped(methodDecl," (because of SkipEsc annotation)");
         }
         if (!doEsc) {
-            return null;
-            //return markMethodSkipped(methodDecl," (because the method has no body)");
+            return markMethodSkipped(methodDecl," (because the method has no body)");
         }
         boolean testingMode = Options.instance(context).getBoolean(JmlOption.JMLTESTING.optionName());
 
@@ -393,28 +391,27 @@ public class JmlEsc extends JmlTreeScanner {
     }
         
     public Map<IProverResult.Kind,Integer> counts = new HashMap<>();
-    public Map<IProverResult.Kind,Integer> modelcounts = new HashMap<>();
+    //public Map<IProverResult.Kind,Integer> modelcounts = new HashMap<>();
     public int classes;
     public int classesOK;
-    public int classesModel;
-    public int methodsModel;
+//    public int classesModel;
+//    public int methodsModel;
     public boolean allMethodsOK;
     
     private long startTime;
     
     public void initCounts() {
-        classes = classesOK = classesModel = methodsModel = 0;
+        classes = classesOK = 0;
         counts.clear();
-        modelcounts.clear();
         startTime = System.currentTimeMillis();
     }
     
     public void count(IProverResult.Kind r, MethodSymbol sym) {
-        if (utils.isModel(sym) || utils.isModel(sym.owner)) {
-            modelcounts.put(r, modelvalue(r) + 1);
-        } else {
+//        if (utils.isModel(sym) || utils.isModel(sym.owner)) {
+//            modelcounts.put(r, modelvalue(r) + 1);
+//        } else {
             count(r);
-        }
+//        }
     }
     public void count(IProverResult.Kind r) {
         counts.put(r,  value(r) + 1);
@@ -426,19 +423,19 @@ public class JmlEsc extends JmlTreeScanner {
         return i == null ? 0 : i;
     }
     
-    public int modelvalue(IProverResult.Kind r) {
-        Integer i = modelcounts.get(r);
-        return i == null ? 0 : i;
-    }
+//    public int modelvalue(IProverResult.Kind r) {
+//        Integer i = modelcounts.get(r);
+//        return i == null ? 0 : i;
+//    }
     
-    public int allmodelvalue() {
-        int sum = 0;
-        for (Integer i: modelcounts.values()) {
-            if (i == null) i = 0;
-            sum += i;
-        }
-        return sum;
-    }
+//    public int allmodelvalue() {
+//        int sum = 0;
+//        for (Integer i: modelcounts.values()) {
+//            if (i == null) i = 0;
+//            sum += i;
+//        }
+//        return sum;
+//    }
     
     public int allvalue() {
         int sum = 0;
@@ -467,8 +464,8 @@ public class JmlEsc extends JmlTreeScanner {
         s.append(" TOTAL METHODS: " + t + Strings.eol);
         if (t != allvalue()) s.append("  DISCREPANCY " + t + " vs. " + allvalue() + Strings.eol);
         s.append(" Classes:       " + classesOK + " proved of " + classes + Strings.eol);
-        s.append(" Model Classes: " + classesModel + Strings.eol);
-        s.append(" Model methods: " + modelvalue(IProverResult.UNSAT) + " proved of " + allmodelvalue() + Strings.eol);
+//        s.append(" Model Classes: " + classesModel + Strings.eol);
+//        s.append(" Model methods: " + modelvalue(IProverResult.UNSAT) + " proved of " + allmodelvalue() + Strings.eol);
         long duration = System.currentTimeMillis() - startTime;
         s.append(" DURATION: " + String.format("%12.1f",(duration/1000.0)) + " secs" + Strings.eol);
         return s.toString();

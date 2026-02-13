@@ -5,10 +5,10 @@ Feasibility check - at program exit : OK
 Completed proof of buggyCalculator.buggyCalculator() with prover !!!! - no warnings
 Starting proof of buggyCalculator.calculateBad(int,int,char) with prover !!!!
 Note: Using bit-vector arithmetic
-test/buggyCalculatorBV2/buggyCalculator.java:107: verify: The prover cannot establish an assertion (Postcondition) in method calculateBad
+test/buggyCalculatorBV2/buggyCalculator.java:109: verify: The prover cannot establish an assertion (Postcondition) in method calculateBad
             return output;
             ^
-test/buggyCalculatorBV2/buggyCalculator.java:10: verify: Associated declaration
+test/buggyCalculatorBV2/buggyCalculator.java:12: verify: Associated declaration
         //@ ensures \result == num1 + num2;
             ^
 Completed proof of buggyCalculator.calculateBad(int,int,char) with prover !!!! - with warnings

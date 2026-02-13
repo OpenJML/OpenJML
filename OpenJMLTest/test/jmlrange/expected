@@ -11,7 +11,7 @@ Starting proof of Trange.misc() with prover !!!!
 test/jmlrange/Trange.java:28: verify: The prover cannot establish an assertion (NullFormal) in method misc: arg0 in equals(Object)
             //@ check r1.equals(null); // ERROR
                                 ^
-$SPECS/org/jmlspecs/lang/internal/range.jml:73: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/range.jml:83: verify: Associated declaration
     public boolean equals(Object o);
                           ^
 Completed proof of Trange.misc() with prover !!!! - with warnings
