@@ -63,9 +63,15 @@ public class Tarray {
         Object oo = new Object();
         //@ ghost \array<Object> s = \array.of(o,oo);
         //@ check s.length == \bigint.of(2);
+        //@ check \array.<Integer>of().length == 0;
+        //@ ghost var a = \array.<Integer>empty();
+        //@ ghost var b = \array.<Integer>of();
+        //@ check a.length == b.length;
+        //@ check a.eq(b);
+        //-RAC@ check \forall \bigint i;; a[i] == b[i];
         //@ check \array.<Integer>empty() == \array.<Integer>of();
     }
-
+    
     //@ spec_pure
     public static void test4() { // of, length
         Object[] o = new Object[4];
@@ -147,18 +153,26 @@ public class Tarray {
         //@ check s1 == s2;
         //@ check s1 != s3;
         //@ check s1 != s4;
-        //@ check \array.<Object>empty() != s1;
-        //@ check \array.<Object>empty() == \array.<Object>empty();
         //@ check s1.eq(s1);
         //@ check s1.eq(s2);
         //@ check s1.ne(s3);
         //@ check s1.ne(s4);
+    }
+        
+    //@ spec_pure
+    public static void test9() { // equality
+        Object o = new Object();
+        Object oo = new Object();
+        Object ooo = new Object();
+        //@ ghost \array<Object> s1 = \array.of(o,oo,o);
+        //@ check \array.<Object>empty() != s1;
+        //@ check \array.<Object>empty() == \array.<Object>empty();
         //@ check \array.<Object>empty().ne(s1);
         //@ check \array.<Object>empty().eq(\array.<Object>empty());
     }
         
     public static void main(String... args) {
-        //-ESC@ set System.out.println("START");
+        //@ print "START";
         test2();
         test3();
         test5();
@@ -167,12 +181,13 @@ public class Tarray {
         // -RAC@ set test6a(0, o, oo);
         test7();
         test8();
+        test9();
         errors1();
         errors2();
         errors3();
         errors4();
         errors5();
-        //-ESC@ set System.out.println("END");
+        //@ print "END";
     }
 
 }

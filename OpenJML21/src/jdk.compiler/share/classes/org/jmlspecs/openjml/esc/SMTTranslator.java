@@ -2528,21 +2528,18 @@ public class SMTTranslator extends JmlTreeScanner {
                     long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
-                    boolean neg = i < 0;
-                    if (neg) i = -i;
                     if (tree.lhs.type == syms.intType) {
                         i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
                         i = i&63;
                     } else {
                         // \bigint - no change to i
-                        // FIXME - what if i is bigger than an int
                     }
-                    if (!neg) {
+                    if (i >= 0) {
                         args.add(powToNumeral((int)i));
                         result = F.fcn(F.symbol("*"), args);
                     } else {
-                        args.add(powToNumeral((int)i)); // Only for \bigint
+                        args.add(powToNumeral((int)-i)); // Only for \bigint
                         result = F.fcn(F.symbol("div"), args);
                     }
                 } else {
@@ -2560,21 +2557,18 @@ public class SMTTranslator extends JmlTreeScanner {
                     long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
-                    boolean neg = i < 0;
-                    if (neg) i = -i;
                     if (tree.lhs.type == syms.intType) {
                         i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
                         i = i&63;
                     } else {
                         // \bigint - no change to i
-                        // FIXME - what if i is bigger than an int
                     }
-                    if (!neg) {
+                    if (i >= 0) {
                         args.add(powToNumeral((int)i));
                         result = F.fcn(F.symbol("div"), args);
                     } else {
-                        args.add(powToNumeral((int)i));
+                        args.add(powToNumeral((int)-i));
                         result = F.fcn(F.symbol("*"), args);
                     }
                 } else {

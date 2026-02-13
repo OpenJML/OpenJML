@@ -84,8 +84,8 @@ public abstract class EscBaseFiles extends EscBase {
         String[] firstopts = new String[]{
                 "-classpath", d 
                 ,"--check-feasibility=precondition,reachable,exit,spec"
-                ,"--code-math=bigint" // Just to avoid overflow errors in these tests
-                ,"--spec-math=bigint" // Just to avoid overflow errors in these tests
+                ,"--code-math=bigint" // Just to avoid overflow errors in these tests // FIXME - causes feasibility problem
+                ,"--spec-math=bigint"
         };
         String[] newopts = new String[opts.length+firstopts.length];
         System.arraycopy(firstopts,0,newopts,0,firstopts.length);

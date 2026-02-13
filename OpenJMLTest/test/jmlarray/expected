@@ -11,7 +11,7 @@ $SPECS/org/jmlspecs/lang/internal/array.jml:31: verify: Associated declaration
     public T get(bigint i);
              ^
 $SPECS/org/jmlspecs/lang/internal/array.jml:29: verify: Precondition conjunct is false: \bigint.zero <= i < length
-    //@   requires \bigint.zero <= i < length;
+    //@   requires \bigint.zero <= i < length; //-RAC@ ensures \result == this[i];
                                      ^
 Completed proof of Tarray.errors1() with prover !!!! - with warnings
 Starting proof of Tarray.errors2() with prover !!!!
@@ -80,6 +80,10 @@ Starting proof of Tarray.test8() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tarray.test8() with prover !!!! - no warnings
+Starting proof of Tarray.test9() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tarray.test9() with prover !!!! - no warnings
 Starting proof of Tarray.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

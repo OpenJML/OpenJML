@@ -125,6 +125,7 @@ class ClassCollector extends JmlTreeScanner {
         if (e instanceof JCTypeCast cast) return isLiteralRec(cast.expr);
         if (e instanceof JCIdent id) {
             var ex = formals.get(id.sym);
+            //if (ex != null) System.out.println("LOOKUP " + id + " " + ex);
             if (ex != null) return isLiteralRec(ex);
         }
         return false;
@@ -160,7 +161,7 @@ class ClassCollector extends JmlTreeScanner {
         }
         if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) {
             if (!isLiteralRec(tree.rhs)) {
-                Utils.instance(context).warning(tree, "jml.message", "Using BV " + tree);
+                //Utils.instance(context).warning(tree, "jml.message", "Using BV " + tree);
                 useBV = true;
             }
         }
@@ -243,7 +244,6 @@ class ClassCollector extends JmlTreeScanner {
     
     @Override
     public void visitApply(JCMethodInvocation tree) {
-        //System.out.println("APPLY " + tree);
         save(tree.type);
 
         super.visitApply(tree);
@@ -252,14 +252,20 @@ class ClassCollector extends JmlTreeScanner {
                 : (tree.meth instanceof JCFieldAccess) ? ((JCFieldAccess)tree.meth).sym : null;
         JmlSpecs.MethodSpecs mspecs = null;
         if (sym instanceof Symbol.MethodSymbol msym) {
-            mspecs = JmlSpecs.instance(context).getAttrSpecs(msym);
-            if (mspecs != null)  {
-                int i = 0;
-                for (var arg: tree.args) {
-                    formals.put(mspecs.specDecl.params.get(i).sym, arg);
-                    i++;
+            if (methodsVisited.add(msym)) {
+                mspecs = JmlSpecs.instance(context).getAttrSpecs(msym);
+                if (mspecs != null)  {
+                    if (mspecs.specDecl != null && !msym.isVarArgs()) {
+                        int i = 0;
+                        for (var arg: tree.args) {
+                            formals.put(mspecs.specDecl.params.get(i).sym, 
+                                    (arg instanceof JCLiteral) ? arg : null);
+                            //System.out.println("PUTTING " + mspecs.specDecl.params.get(i).sym + " " + ((arg instanceof JCLiteral) ? arg : null) + " " + tree);
+                            i++;
+                        }
+                    }
+                    scan(mspecs.cases);
                 }
-                scan(mspecs.cases);
             }
         }
     }

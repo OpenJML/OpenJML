@@ -3,7 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import org.jmlspecs.openjmltest.*;
 import org.junit.Test;
 
-/** Thgis file contains type-checking tests of JML value types. They mostly check that improper uses give error messages. */
+/** This file contains type-checking tests of JML value types. They mostly check that improper uses give error messages. */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class primTC extends TCBase {
 
@@ -88,8 +88,18 @@ public class primTC extends TCBase {
             ,"/TEST.java:15: error: incompatible types: java.lang.String cannot be converted to \\bigint",21
             ,"/TEST.java:16: error: incompatible types: java.lang.String cannot be converted to \\bigint",20
             ,"/TEST.java:17: error: incompatible types: java.lang.String cannot be converted to \\bigint",21
-            ,"/TEST.java:18: error: incompatible types: java.lang.String cannot be converted to \\bigint",27
-            ,"/TEST.java:19: error: incompatible types: java.lang.String cannot be converted to \\bigint",28
+            ,"""
+             /TEST.java:18: error: no suitable method found for shiftLeft(java.lang.String)
+                 method org.jmlspecs.lang.internal.bigint.shiftLeft(\\bigint) is not applicable
+                   (argument mismatch; java.lang.String cannot be converted to \\bigint)
+                 method org.jmlspecs.lang.internal.bigint.shiftLeft(int) is not applicable
+                   (argument mismatch; java.lang.String cannot be converted to int)""", 16
+            ,"""
+             /TEST.java:19: error: no suitable method found for shiftRight(java.lang.String)
+                 method org.jmlspecs.lang.internal.bigint.shiftRight(\\bigint) is not applicable
+                   (argument mismatch; java.lang.String cannot be converted to \\bigint)
+                 method org.jmlspecs.lang.internal.bigint.shiftRight(int) is not applicable
+                   (argument mismatch; java.lang.String cannot be converted to int)""", 16
             ,"/TEST.java:21: error: incompatible types: java.lang.String cannot be converted to \\bigint",27
             ,"/TEST.java:22: error: incompatible types: \\real cannot be converted to \\bigint",28
             ,"/TEST.java:24: error: No allowed implicit conversion permits this operation on JML types: \\bigint == boolean", 17
