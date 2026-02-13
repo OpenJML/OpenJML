@@ -303,7 +303,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
 //    }
 
-    //public void visitJmlStatementShow(JmlStatementShow tree);
+    //public void visitJmlStatementExprList(JmlStatementShow tree);
     
 //    public void visitJmlStatementDecls(JmlStatementDecls tree) {
 //        for (JCTree.JCStatement s : tree.list) {

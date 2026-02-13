@@ -21,6 +21,6 @@ openjml -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
 
 echo "Test that -java must be first" >> actual 2>&1
 ## Tests that the -java option must be first >> actual 2>&1
-openjml -classpath ../compiler -java --no-purity-check ../compiler/testNoErrors/A.java >> actual 2>&1
+openjml -classpath ../compiler -java ../compiler/testNoErrors/A.java >> actual 2>&1
 
 cat expected | sed -e "s^\$SPECS^$SPECS^" -e "s^\$ROOT^$ROOT^" | diff actual -  && rm actual

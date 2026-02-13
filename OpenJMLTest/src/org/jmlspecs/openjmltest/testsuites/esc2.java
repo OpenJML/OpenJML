@@ -292,10 +292,12 @@ public class esc2 extends EscBase {
                 + "  }\n"
 
                 + "}"
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34
-                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9);
+                ,anyorder(
+                seq("/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34)
+                ,seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9)
+                ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34)
+                ,seq("/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9)
+                ));
     }
 
     @Test
@@ -385,6 +387,7 @@ public class esc2 extends EscBase {
     // definedness
 
 
+
     @Test
     public void testOldJava() {
         helpEsc("tt.TestJava",
@@ -392,26 +395,31 @@ public class esc2 extends EscBase {
                  + "/*@ code_java_math*/ public class TestJava { \n" 
                  + "  static public  int i;\n"
                  + "  //@ static public constraint i > \\old(i);\n" 
-                 + "  //@ modifies i;\n"
+                 + "  //@ assigns i;\n"
                  + "  //@ ensures true;\n" 
                  + "  public static void bok() { i = i - 1; }\n" 
                  + "}"
-                 ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Constraint) in method TestJava",29
-                , "/tt/TestJava.java:4: verify: Associated declaration", 21
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Constraint) in method TestJava",29
+                ,"/tt/TestJava.java:4: verify: Associated declaration", 21
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method bok", 22
                 ,"/tt/TestJava.java:4: verify: Associated declaration", 21
                 );
     }
 
+
+
     @Test
     public void testOld2Math() {
         helpEsc("tt.TestJava",
                 "package tt; \n" + "/*@ code_bigint_math*/ public class TestJava { \n" + "  static public int i;\n"
-                        + "  //@ modifies i;\n" + "  //@ ensures i == \\old(i)+2;\n"
-                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ modifies i;\n"
-                        + "  //@ ensures i == \\old(i+1);\n" + "  public static void bbad() { i = i - 1; }\n" + "}",
-                "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad",
-                22, "/tt/TestJava.java:8: verify: Associated declaration", 7);
+                        + "  //@ assigns i;\n" + "  //@ ensures i == \\old(i)+2;\n"
+                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ assigns i;\n"
+                        + "  //@ ensures i == \\old(i+1);\n" 
+                        + "  public static void bbad() { i = i - 1; }\n" 
+                        + "}"
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad",22
+                ,"/tt/TestJava.java:8: verify: Associated declaration", 7
+                );
     }
 
     @Test
@@ -420,15 +428,16 @@ public class esc2 extends EscBase {
                 "package tt; \n" 
                         + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
                         + "  static public int i;\n"
-                        + "  //@ modifies i;\n" 
+                        + "  //@ assigns i;\n" 
                         + "  //@ ensures i == \\old(i)+2;\n"
                         + "  public static void bok() { i = i + 1; i = i + 1;}\n" 
-                        + "  //@ modifies i;\n"
+                        + "  //@ assigns i;\n"
                         + "  //@ ensures i == \\old(i+1);\n" 
                         + "  public static void bbad() { i = i - 1; }\n" 
-                        + "}",
-                "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad",
-                22, "/tt/TestJava.java:8: verify: Associated declaration", 7);
+                        + "}"
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad",22
+                ,"/tt/TestJava.java:8: verify: Associated declaration", 7
+                );
     }
 
     // FIXME
@@ -533,7 +542,7 @@ public class esc2 extends EscBase {
     }
 
     @Test
-    public void testFields() {
+    public void testFieldsOK() {
         helpEsc("tt.TestJava", "package tt; import org.jmlspecs.annotation.*;/*@ nullable_by_default */  \n"
                 + "public class TestJava { \n" + "  int f; static int sf;\n" + "  int g; static int sg;\n"
                 + "  public static TestJava t;  //@ public static invariant t != null; \n"
@@ -1789,10 +1798,9 @@ public class esc2 extends EscBase {
                         + "  //@ model public static boolean m(int i);\n"
 
                         + "  //@ pure\n" 
-                        + "  public void mm() {\n"
+                        + "  public void mm() {  //@ assert !m(10); \n" // Assertion serves as a lemma that aids in quickly proving the following assert
                         + "  //@ assert !(\\forall int k; 3 < k < 11; m(k));\n" // Should be OK because m(10) is false
                         + "  }\n" + "}"
-            //    ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method mm", 7
                         );
     }
 
@@ -1807,7 +1815,7 @@ public class esc2 extends EscBase {
                         + "  //@ model public boolean m(int i);\n"
 
                         + "  //@ pure\n" 
-                        + "  public void mm() {\n"
+                        + "  public void mm() {\n" 
                         + "  //@ assert (\\forall int k; 3 < k < 11; m(k));\n" // ERROR because m(10) is false
                         + "  }\n" + "}"
                         ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method mm", 7

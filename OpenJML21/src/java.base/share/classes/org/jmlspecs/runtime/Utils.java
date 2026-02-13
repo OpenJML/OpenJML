@@ -759,4 +759,16 @@ public class Utils {
     public TYPE makeTYPE0(Class<?> clazz) {
         return TYPE.of(clazz, TYPE.noargs);
     }
+    
+    public static void println(Object ... exprs) {
+        if (exprs != null && exprs.length > 0) {
+            System.out.print(java.util.Objects.toString(exprs[0]));
+            for (int i = 1; i < exprs.length; i++) {
+                System.out.print(" ");
+                System.out.print(java.util.Objects.toString(exprs[i]));
+            }
+        }
+        System.out.println();
+    }
+    
 }

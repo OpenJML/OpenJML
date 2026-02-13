@@ -102,8 +102,6 @@ JML options:
   --arithmetic-failure       Whether arithmetic warnings are hard, soft (default) or quiet
   --check-accessible         When on (the default), JML accessible clauses are checked
   --specs-path               Specifies the directory path to search for specification files
-  --check-specs-path         When on (the default), warnings for non-existent specification path directories are issued
-  --purity-check             When on (the default), warnings for use of impure methods from system libraries are issued
   --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
@@ -140,6 +138,6 @@ JML options:
   --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
   --determinism              Experimental: enables better determinism (default is true)
-  --os-name                  Name of OS to use in selecting solver executable (default: auto detect)
+  --os-name                  Name of OS to use in selecting solver executable (default: auto detect; macos, linux, windows)
   --inline-function-literal  Whether to inline function literals (default: true)
   --require-white-space      Whether white space is required after the @ in a JML comment (default: false)

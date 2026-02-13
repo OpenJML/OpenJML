@@ -505,6 +505,9 @@ public class JmlTreeUtils {
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isTrueLit(JCTree tree) {
         if (tree == trueLit) return true;
+        if (tree instanceof JmlLblExpression lbl) {
+            tree = lbl.expression;
+        }
         if (!(tree instanceof JCLiteral)) return false;
         if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
         return (Boolean)((JCLiteral)tree).getValue();
@@ -513,9 +516,14 @@ public class JmlTreeUtils {
     /** Returns true if the argument is a boolean Literal with value true */
     public boolean isFalseLit(JCTree tree) {
         if (tree == falseLit) return true;
-        if (!(tree instanceof JCLiteral)) return false;
-        if (((JCLiteral)tree).typetag != TypeTag.BOOLEAN) return false;
-        return !(Boolean)((JCLiteral)tree).getValue();
+        if (tree instanceof JmlLblExpression lbl) {
+            tree = lbl.expression;
+        }
+        if (tree instanceof JCLiteral lit) {
+            if (lit.typetag == TypeTag.BOOLEAN && !(Boolean)lit.getValue()) return true;
+            return false;
+        }
+        return false;
     }
     
     /** Makes an attributed AST that is a copy of a given literal AST,
@@ -1200,6 +1208,14 @@ public class JmlTreeUtils {
     public boolean isLiteral(JCExpression e) {
         if (e instanceof JCLiteral) return true;
         return null != typeLiteral(e);
+    }
+    
+    public boolean isLiteralRec(JCExpression e) {
+        if (e instanceof JCLiteral) return true;
+        if (e instanceof JCUnary p) return isLiteralRec(p.arg);
+        if (e instanceof JCParens p) return isLiteralRec(p.expr);
+        if (e instanceof JCTypeCast cast) return isLiteralRec(cast.expr);
+        return false;
     }
 
     public Number integralLiteral(JCExpression e) {
@@ -2152,7 +2168,13 @@ public class JmlTreeUtils {
     public JCExpression makeArrayElement(int pos, JCExpression array, JCExpression index) {
         JCExpression e = factory.Indexed(array,  index);
         e.pos = pos;
-        e.type = ((Type.ArrayType)array.type).elemtype;
+        if (array.type instanceof Type.ArrayType at) {
+            e.type = at.elemtype;
+        } else if (array.type.tsym == JmlPrimitiveTypes.stringTypeKind.getType(context).tsym) {
+            e.type = syms.charType;
+        } else {
+            utils.error(array, "jml.internal", "Unknown array type in constructing array element: " + array.type);
+        }
         return e;
     }
     

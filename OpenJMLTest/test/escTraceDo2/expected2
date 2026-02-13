@@ -126,6 +126,6 @@ test\escTraceLoops\trace.java:155:  	assert Assert j == k + k;
 test\escTraceLoops\trace.java:155: verify: The prover cannot establish an assertion (Assert) in method mdo2
         //@ assert j == k+k;
             ^
-Completed proof of trace.mdo2() with prover cvc4 - with verification failures
+Completed proof of trace.mdo2() with prover cvc4 - with warnings
 Completed proving methods in trace
 2 verification failures

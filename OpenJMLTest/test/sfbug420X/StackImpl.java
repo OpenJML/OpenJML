@@ -46,7 +46,11 @@ public class StackImpl implements Stack {
 	//@   ensures !\result ==> stackCounter == \old(stackCounter);
 	//@   ensures \result ==> internalStack[stackCounter-1] == item;
 	public boolean push(int item) {
-		if(stackCounter >= maxSize) return false;
+	    //@ assert (\forall int i; 1 <= i <= \old(count()); itemAt(i)==items[i-1]);
+	    if(stackCounter >= maxSize) {
+	        //@ assert (\forall int i; 1 <= i <= \old(count); itemAt(i)==items[i-1]);
+	        return false;
+	    }
 		internalStack[stackCounter] = item;
 		stackCounter++;
 		return true;

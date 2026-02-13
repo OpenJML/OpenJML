@@ -407,10 +407,8 @@ public class MethodProverSMT {
             } catch (SMTTranslator.JmlBVException e) {
                 throw e;
             } catch (Exception e) {
-                //log.error("jml.internal", "Failed to convert to SMT: " + e);
-                JCDiagnostic d = utils.warningDiag(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
-                log.report(d);
-                e.printStackTrace(System.out);
+                var d = utils.errorDiag(log.currentSource(), null, "jml.internal", "Failed to convert to SMT: " + e);
+                //e.printStackTrace(System.out);
                 return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.ERROR,new Date()).setOtherInfo(d);
             }
             // Starts the solver (and it waits for input)
@@ -1228,6 +1226,12 @@ public class MethodProverSMT {
                                                 String nmmm = nmm + "_" + pdetail3;
                                                 Boolean vvv = findPreValue(nmmm,info);
                                                 //log.note("jml.message",nmmm + " " + vvv);
+//                                                if (vvv == null) {
+//                                                    var vvvv = getValue(nmmm,info.smt,solver,false);
+//                                                    if (vvvv == null) break;
+//                                                    vvv = "true".equals(vvvv.toString()) ? true : "false".equals(vvvv.toString()) ? false : null;
+//                                                    if (vvv == null) break;
+//                                                }
                                                 if (vvv == null) break;
                                                 if (!vvv) {
                                                     JCTree s = findPreExpr(nmmm);
@@ -1587,6 +1591,12 @@ public class MethodProverSMT {
                                             String nmmm = nmm + "_" + pdetail3;
                                             Boolean vvv = findPreValue(nmmm,info);
                                             //log.note("jml.message",nmmm + " " + vvv);
+//                                            if (vvv == null) {
+//                                                var vvvv = getValue(nmmm,info.smt,solver,false);
+//                                                if (vvvv == null) break;
+//                                                vvv = "true".equals(vvvv.toString()) ? true : "false".equals(vvvv.toString()) ? false : null;
+//                                                if (vvv == null) break;
+//                                            }
                                             if (vvv == null) break;
                                             if (!vvv) {
                                                 JCExpression s = findPreExpr(nmmm);

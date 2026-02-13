@@ -422,8 +422,8 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
 
     @Override
-    public void visitJmlStatementShow(JmlStatementShow that) {
-        JmlStatementShow r = that;
+    public void visitJmlStatementExprList(JmlStatementExprList that) {
+        JmlStatementExprList r = that;
         ListBuffer<JCExpression> expressions = new ListBuffer<>();
         for (JCExpression e: that.expressions) expressions.add( translate(e));
         that.expressions = expressions.toList();

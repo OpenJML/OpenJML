@@ -131,16 +131,17 @@ public class TestByteArrayInputStream {
         var ba = new byte[] {(byte)'a', (byte)'b', (byte)'c', (byte)'d' };
         var st = new ByteArrayInputStream(ba);
         //@ check st.markSupported();
-        var k = st.read();
+        var k = st.read();  // read 'a'
         //@ check k == 'a'; 
         st.mark(10);
-        k = st.read();
+        k = st.read();   // read 'b'
         //@ check k == 'b';
         st.mark(10);
-        k = st.read();
+        k = st.read();   // read 'c'
         //@ check k == 'c';
         st.reset();
-        k = st.read();
+        //@ reachable
+        k = st.read();   // read 'c' again
         //@ check k == 'c';
     }
     

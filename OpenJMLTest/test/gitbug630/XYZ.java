@@ -1,6 +1,6 @@
     public class XYZ {
         //@ private exceptional_behavior
-        //@     signals (IndexOutOfBoundsException ex) true;
+        //@     signals_only IndexOutOfBoundsException;
         private static void callMe() {
             throw new IndexOutOfBoundsException();
         }
@@ -10,7 +10,6 @@
             try {
                 callMe();
             } catch (IndexOutOfBoundsException ex) {
-                //@ assert ex.toStringDefined;
                 Object obj = ex;
                 String s = obj.toString();
                 Throwable th = ex;

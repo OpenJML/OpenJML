@@ -20,7 +20,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mm2b(int[][]) with prover !!!! - no warnings
 Starting proof of Test.mm2c(int[][]) with prover !!!!
-test/esc2DArray/Test.java:93: warning: The prover cannot establish an assertion (Assert) in method mm2c
+test/esc2DArray/Test.java:93: verify: The prover cannot establish an assertion (Assert) in method mm2c
     	//@ assert a[2][3] == 7;  // FAILS
     	    ^
 Completed proof of Test.mm2c(int[][]) with prover !!!! - with warnings
@@ -29,4 +29,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mm3(int[][]) with prover !!!! - no warnings
 Completed proving methods in Test
-1 warning
+1 verification failure

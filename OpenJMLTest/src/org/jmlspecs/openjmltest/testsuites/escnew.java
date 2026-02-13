@@ -2789,13 +2789,13 @@ public class escnew extends EscBase {
                 
                 +"  //@ requires s1.length() < Integer.MAX_VALUE;\n"
                 +"  public void m2(String s1, String s2) {\n" 
-                +"     String s = s1 + String.valueOf('c');\n"
+                +"     String s = s1 + String.valueOf('c'); String sc = String.valueOf('c'); //@ check sc.length() == 1; \n"
                 +"     //@ assert s.length() == s1.length() + 1;\n"
                 +"  }\n"
                 
                 +"  //@ requires s1.length() < Integer.MAX_VALUE;\n"
                 +"  public void m2a(String s1, String s2) {\n" 
-                +"     String s = s1 + Character.toString('c');\n"
+                +"     String s = s1 + Character.toString('c'); //@ check s.chars.length == s1.chars.length + 1;\n"
                 +"     //@ assert s.length() == s1.length() + 1;\n"
                 +"  }\n"
                 

@@ -17,8 +17,8 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","package java.util; public interface Collection<E> extends java.lang.Iterable<E> { /*@ public behavior requires true; */ public boolean add(E t);  /*@ public behavior requires true; */ <T> T[] toArray(T[] a) throws NullPointerException;}");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t() { return null; }}");
+        addMockFile("$A/java/util/ListIterator.jml","package java.util; public interface ListIterator<E> extends java.util.Iterator<E> { /*@ also public behavior requires true; */ @Override public boolean hasNext(); }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t() { return null; }}");
     }
 
     /** Test mismatched type parameters*/
@@ -35,9 +35,9 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric2() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection extends java.lang.Iterable {  }");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: error: The type Collection in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+        addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator extends java.lang.Iterator { /*@ public behavior requires true; */ public boolean hasNext(); }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
+                ,"/$A/java/util/ListIterator.jml:2: error: The type ListIterator in the specification matches a Java type java.util.ListIterator<E> with a different number of type arguments",8
                 );
     }
 
@@ -45,8 +45,8 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric3() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<E> {  }");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t; }"
+        addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<E> extends java.util.Iterator<E> {  }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 );
     }
 
@@ -54,10 +54,9 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric3c() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E> extends java.lang.Iterable<Z> {  }");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: error: cannot find symbol\n  symbol: class Z",59
-                ,"$SPECS/java/util/Arrays.jml:1535: error: array required, but \\seq<Z> found", 64
+        addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<E> extends java.util.Iterator<Z> {  }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
+                ,"/$A/java/util/ListIterator.jml:2: error: cannot find symbol\n  symbol: class Z",61
                 );
     }
 
@@ -65,9 +64,9 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric3b() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<Z> extends java.lang.Iterable<Z> {  }");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: error: The specification type named Collection (java.util.Collection) has a type parameter named Z but the Java declaration has that type parameter named E",29
+        addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<Z> extends java.util.Iterator<Z> {  }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
+                ,"/$A/java/util/ListIterator.jml:2: error: The specification type named ListIterator (java.util.ListIterator) has a type parameter named Z but the Java declaration has that type parameter named E",31
                 );
     }
 
@@ -75,9 +74,9 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric3a() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","public interface Collection<Z> extends java.lang.Iterable<Z> {  }");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
+        addMockFile("$A/java/util/ListIterator.jml","public interface ListIterator<Z> extends java.util.Iterator<Z> {  }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
+                ,"/$A/java/util/ListIterator.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
                 );
     }
 
@@ -85,9 +84,9 @@ public class generics extends TCBase {
     @Test
     public void testBinaryGeneric4() {
         addOptions("--specs-path", "$A:$B:$CP");
-        addMockFile("$A/java/util/Collection.jml","package java.util;\npublic interface Collection<E,Z> extends java.lang.Iterable<E> {  }");
-        helpTCText("A.java","public class A<X> { java.util.Collection<X> t; }"
-                ,"/$A/java/util/Collection.jml:2: error: The type Collection<E,Z> in the specification matches a Java type java.util.Collection<E> with a different number of type arguments",8
+        addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<E,Z> extends java.util.Iterator<E> {  }");
+        helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
+                ,"/$A/java/util/ListIterator.jml:2: error: The type ListIterator<E,Z> in the specification matches a Java type java.util.ListIterator<E> with a different number of type arguments",8
                 );
     }
     

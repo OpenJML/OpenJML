@@ -34,7 +34,7 @@ public class JmlOperators extends Operators {
         JmlTypes jtype = JmlTypes.instance(context);
         boolean b1 = com.sun.tools.javac.code.JmlTypes.instance(context).isJmlType(op1);
         boolean b2 = com.sun.tools.javac.code.JmlTypes.instance(context).isJmlType(op2);
-        Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
         var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
 
         if (op1.isErroneous()) return noOpSymbol;

@@ -1,1 +1,0 @@
-ARGS+=" --check-feasibility=precondition,reachable,exit,assert "

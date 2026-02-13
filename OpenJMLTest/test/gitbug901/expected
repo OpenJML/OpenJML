@@ -1,13 +1,13 @@
 Proving methods in ArrayNullness2
 Starting proof of ArrayNullness2.ArrayNullness2() with prover !!!!
-test/gitbug901/ArrayNullness2.java:9: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method ArrayNullness2
+test/gitbug901/ArrayNullness2.java:9: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method ArrayNullness2
 		s = null;
 		  ^
 Completed proof of ArrayNullness2.ArrayNullness2() with prover !!!! - with warnings
 Starting proof of ArrayNullness2.ArrayNullness2(int) with prover !!!!
-test/gitbug901/ArrayNullness2.java:5: warning: The prover cannot establish an assertion (NullField) in method ArrayNullness2
+test/gitbug901/ArrayNullness2.java:5: verify: The prover cannot establish an assertion (NullField) in method ArrayNullness2
 	private /*@ nullable @*/String /*@ non_null @*/[] s; 
 	                                                  ^
 Completed proof of ArrayNullness2.ArrayNullness2(int) with prover !!!! - with warnings
 Completed proving methods in ArrayNullness2
-2 warnings
+2 verification failures

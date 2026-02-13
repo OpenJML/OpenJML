@@ -1,5 +1,10 @@
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after static initial state assumption : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of Test() : OK
 Feasibility check - end of preconditions : OK
 Feasibility check - before call : OK
 Feasibility check - after call : OK
@@ -7,6 +12,18 @@ Feasibility check - at implicit return : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test._sumFirstNElements(int[],int) with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after field assumption: java.lang.Object theHashCode : OK
+Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
+Feasibility check - after field assumption: java.lang.Object __owner : OK
+Feasibility check - after field assumption: java.lang.Object chars : OK
+Feasibility check - after field assumption: java.lang.Object modelString : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after field _sumFirstNElements(int[],int).arr : OK
+Feasibility check - after field _sumFirstNElements(int[],int).N : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of _sumFirstNElements(int[],int) : OK
+Feasibility check - after invariants for _sumFirstNElements(int[],int).arr (int[]) : OK
 Feasibility check - end of preconditions : OK
 Feasibility check - at return statement : OK
 Feasibility check - at then branch : OK
@@ -28,15 +45,26 @@ Feasibility check - after call : OK
 Feasibility check - after call : OK
 Completed proof of Test._sumFirstNElements(int[],int) with prover !!!! - no warnings
 Starting proof of Test.sumArray(int[]) with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after field assumption: java.lang.Object theHashCode : OK
+Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
+Feasibility check - after field assumption: java.lang.Object __owner : OK
+Feasibility check - after field assumption: java.lang.Object chars : OK
+Feasibility check - after field assumption: java.lang.Object modelString : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after field sumArray(int[]).arr : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of sumArray(int[]) : OK
+Feasibility check - after invariants for sumArray(int[]).arr (int[]) : OK
 Feasibility check - end of preconditions : OK
 Feasibility check - before call : OK
 Feasibility check - end of axioms for _sumFirstNElements(int[],int) : OK
 Feasibility check - before call : infeasible
-test/gitbug888/Test.java:11: warning: There is no feasible path to program point before call in method Test.sumArray(int[])
+test/gitbug888/Test.java:11: verify: There is no feasible path to program point before call in method Test.sumArray(int[])
     //@  ensures \result == arr[N] + _sumFirstNElements(arr, N-1);
                                                        ^
 Feasibility check - after call : infeasible
-test/gitbug888/Test.java:11: warning: There is no feasible path to program point after call in method Test.sumArray(int[])
+test/gitbug888/Test.java:11: verify: There is no feasible path to program point after call in method Test.sumArray(int[])
     //@  ensures \result == arr[N] + _sumFirstNElements(arr, N-1);
                                                        ^
 Feasibility check - after call : OK
@@ -67,6 +95,11 @@ Completed proof of Test.sumArray(int[]) with prover !!!! - INFEASIBLE
 Completed proving methods in Test
 Proving methods in Test2
 Starting proof of Test2.Test2() with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after static initial state assumption : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of Test2() : OK
 Feasibility check - end of preconditions : OK
 Feasibility check - before call : OK
 Feasibility check - after call : OK
@@ -74,6 +107,18 @@ Feasibility check - at implicit return : OK
 Feasibility check - at program exit : OK
 Completed proof of Test2.Test2() with prover !!!! - no warnings
 Starting proof of Test2._sumFirstNElements(int[],int) with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after field assumption: java.lang.Object theHashCode : OK
+Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
+Feasibility check - after field assumption: java.lang.Object __owner : OK
+Feasibility check - after field assumption: java.lang.Object chars : OK
+Feasibility check - after field assumption: java.lang.Object modelString : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after field _sumFirstNElements(int[],int).arr : OK
+Feasibility check - after field _sumFirstNElements(int[],int).N : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of _sumFirstNElements(int[],int) : OK
+Feasibility check - after invariants for _sumFirstNElements(int[],int).arr (int[]) : OK
 Feasibility check - end of preconditions : OK
 Feasibility check - at return statement : OK
 Feasibility check - at then branch : OK
@@ -95,15 +140,26 @@ Feasibility check - after call : OK
 Feasibility check - after call : OK
 Completed proof of Test2._sumFirstNElements(int[],int) with prover !!!! - no warnings
 Starting proof of Test2.sumArray(int[]) with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after field assumption: java.lang.Object theHashCode : OK
+Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
+Feasibility check - after field assumption: java.lang.Object __owner : OK
+Feasibility check - after field assumption: java.lang.Object chars : OK
+Feasibility check - after field assumption: java.lang.Object modelString : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after field sumArray(int[]).arr : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of sumArray(int[]) : OK
+Feasibility check - after invariants for sumArray(int[]).arr (int[]) : OK
 Feasibility check - end of preconditions : OK
 Feasibility check - before call : OK
 Feasibility check - end of axioms for _sumFirstNElements(int[],int) : OK
 Feasibility check - before call : infeasible
-test/gitbug888/Test2.java:7: warning: There is no feasible path to program point before call in method Test2.sumArray(int[])
+test/gitbug888/Test2.java:7: verify: There is no feasible path to program point before call in method Test2.sumArray(int[])
     //@  ensures \result == (N == -1 ? 0 : arr[N] + _sumFirstNElements(arr, N-1));
                                                                       ^
 Feasibility check - after call : infeasible
-test/gitbug888/Test2.java:7: warning: There is no feasible path to program point after call in method Test2.sumArray(int[])
+test/gitbug888/Test2.java:7: verify: There is no feasible path to program point after call in method Test2.sumArray(int[])
     //@  ensures \result == (N == -1 ? 0 : arr[N] + _sumFirstNElements(arr, N-1));
                                                                       ^
 Feasibility check - after call : OK
@@ -132,4 +188,4 @@ Feasibility check - after call : OK
 Feasibility check - after call : OK
 Completed proof of Test2.sumArray(int[]) with prover !!!! - INFEASIBLE
 Completed proving methods in Test2
-4 warnings
+4 verification failures

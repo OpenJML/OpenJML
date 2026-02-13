@@ -122,7 +122,7 @@ test\escTraceLoops\trace.java:30:  	assert Assert false;
 			VALUE: false	 === false
 test\escTraceLoops\trace.java:30:  Invalid assertion (Assert)
 
-Completed proof of trace.m2() with prover !!!! - with verification failures
+Completed proof of trace.m2() with prover !!!! - with warnings
 Skipping proof of trace.m3() (excluded by -method)
 Skipping proof of trace.m4() (excluded by -method)
 Skipping proof of trace.m5() (excluded by -method)

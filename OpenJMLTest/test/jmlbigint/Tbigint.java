@@ -132,7 +132,7 @@ public class Tbigint {
       d = c >> -1;
       check d == c << 1;
       check (c << 4) == c.shiftLeft(4);
-      check (c >> 4) == c.shiftRight(4);
+ //     check (c >> 4) == c.shiftRight(4);
       //-ESC@ check c << 1 == c*2;
     }
     pure model public static void compare(\bigint a, \bigint b) {

@@ -2,7 +2,7 @@
 // Its arguments are a few options and then the names of OpenJML test suites.
 // If no test suites are listed, then all the test suites are run.
 
-// The options allow choosing sequantial or parallel running,
+// The options allow choosing sequential or parallel running,
 // with a given number of threads, given timeout, and verbosity level.
 
 // FIXME -- running with more than one thread does not work because not all of OpenJDK/OpenJML is thread-safe.
@@ -307,7 +307,7 @@ public class OpenJMLTestRunner {
                         t = tt;
                         t.testname = method.getName(); // FIXME: This is the simple name, not the name + bracketed parameter list
                         t.setUp(); // FIXME - should we use the @Before methods
-                        method.invoke(t); // invokes the specific test within the testcase -- any output directly to System.out is not synchronized
+                        method.invoke(t); // invokes the specific test within the testcase -- any output directly to System.out may be interleaved
                     } else {
                         org.junit.Assert.fail("Test suite " + n.getClass() + " does not extend JmlTestSuite");
                     }

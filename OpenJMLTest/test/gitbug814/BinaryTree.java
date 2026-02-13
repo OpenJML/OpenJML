@@ -94,9 +94,12 @@ pure @*/
 
     private
     class Interval {
-        int min;
-        int max;
+        /*@ spec_public */ int min;
+        /*@ spec_public */ int max;
 
+        //@ public normal_behavior
+        //@   requires i <= j;
+        //@   ensures min == i & max == j;
         //@ pure
         public Interval(int i, int j) {
             min = i;

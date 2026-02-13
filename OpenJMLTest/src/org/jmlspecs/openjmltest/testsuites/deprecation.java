@@ -19,7 +19,7 @@ public class deprecation extends TCBase {
     }
 
     @Test
-    public void testRepresents() {
+    public void testRepresentsB() {
         addOptions(dep_opt);
         helpTCText("A.java","public class A {\n" +
                 " //@ model int i;\n" +

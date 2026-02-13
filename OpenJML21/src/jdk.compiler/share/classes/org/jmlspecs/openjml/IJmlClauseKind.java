@@ -129,16 +129,16 @@ public abstract class IJmlClauseKind {
     /** Set when the context is set */
     protected Utils utils;
     
-    // FIXME - not sure this is used
-    public com.sun.tools.javac.util.JCDiagnostic.Error errorKey(String key, Object ... args) {
-    	return diagFactory.errorKey(key,args);
-    }
-    
-    // FIXME - not sure this is used
-    public com.sun.tools.javac.util.JCDiagnostic.Warning warningKey(String key, Object ... args) {
-    	return diagFactory.warningKey(key,args);
-    }
-    
+//    // FIXME - not sure this is used
+//    public com.sun.tools.javac.util.JCDiagnostic.Error errorKey(String key, Object ... args) {
+//    	return diagFactory.errorKey(key,args);
+//    }
+//    
+//    // FIXME - not sure this is used
+//    public com.sun.tools.javac.util.JCDiagnostic.Warning warningKey(String key, Object ... args) {
+//    	return diagFactory.warningKey(key,args);
+//    }
+//    
     /** Writes an error message to the log, using the given DiagnosticPosition
      * (typically gotten from tree.pos()), 
      * a key (as in the file org.jmlspecs.openjml.messages.properties)
@@ -173,7 +173,7 @@ public abstract class IJmlClauseKind {
      * and arguments for that key, all with respect to log.currentOSurceFile()
      */
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
-        utils.warning(pos, key, args);
+        utils.warning((WarningCategory.Key)null, (JavaFileObject)null, pos, key, args);
     }
     
     /**

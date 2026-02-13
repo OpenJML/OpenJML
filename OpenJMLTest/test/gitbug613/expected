@@ -1,9 +1,9 @@
 Proving methods in Test
 Starting proof of Test.Test(int) with prover !!!!
-test/gitbug613/Test.java:16: warning: The prover cannot establish an assertion (InvariantExit) in method Test
+test/gitbug613/Test.java:16: verify: The prover cannot establish an assertion (InvariantExit) in method Test
 		if (i < 0) throw new RuntimeException();
 		           ^
-test/gitbug613/Test.java:5: warning: Associated declaration
+test/gitbug613/Test.java:5: verify: Associated declaration
 	//@ private static invariant zz == 1;
 	                   ^
 Completed proof of Test.Test(int) with prover !!!! - with warnings
@@ -22,10 +22,10 @@ Completed proof of Test2.Test2(int) with prover !!!! - no warnings
 Completed proving methods in Test2
 Proving methods in Test3B
 Starting proof of Test3B.Test3B(int) with prover !!!!
-test/gitbug613/Test.java:67: warning: The prover cannot establish an assertion (InvariantExit) in method Test3B
+test/gitbug613/Test.java:67: verify: The prover cannot establish an assertion (InvariantExit) in method Test3B
 		public Test3B(int i) {
 		       ^
-test/gitbug613/Test.java:62: warning: Associated declaration
+test/gitbug613/Test.java:62: verify: Associated declaration
 		//@ private invariant aa == 3;
 		            ^
 Completed proof of Test3B.Test3B(int) with prover !!!! - with warnings
@@ -36,4 +36,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test3.Test3(int) with prover !!!! - no warnings
 Completed proving methods in Test3
-4 warnings
+4 verification failures

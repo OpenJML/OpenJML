@@ -17,7 +17,7 @@ Starting proof of trace.mforeach(int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - before explicit assert statement : OK
 Feasibility check - at program exit : OK
-Completed proof of trace.mforeach(int[]) with prover !!!! - no verification failures
+Completed proof of trace.mforeach(int[]) with prover !!!! - no warnings
 Skipping proof of trace.mforeach1(int[]) (excluded by -method)
 Skipping proof of trace.mforeach2(int[]) (excluded by -method)
 Skipping proof of trace.mforeach3(int[]) (excluded by -method)

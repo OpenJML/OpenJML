@@ -4,17 +4,17 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.m1(@Nullable Object) with prover !!!!
-test/annotationPosition/Test.java:4: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: oo
+test/annotationPosition/Test.java:4: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: oo
     public void m1(final /*@ nullable */ Object o) { @NonNull Object oo = o; }
                                                                      ^
 Completed proof of Test.m1(@Nullable Object) with prover !!!! - with warnings
 Starting proof of Test.m1a(@Nullable Object) with prover !!!!
-test/annotationPosition/Test.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: oo
+test/annotationPosition/Test.java:5: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: oo
     public void m1a(@Nullable Object o) { @NonNull Object oo = o; }
                                                           ^
 Completed proof of Test.m1a(@Nullable Object) with prover !!!! - with warnings
 Starting proof of Test.m2(@Nullable Object) with prover !!!!
-test/annotationPosition/Test.java:6: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2: oo
+test/annotationPosition/Test.java:6: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2: oo
     public void m2(/*@ nullable */ java.lang.Object o) { @NonNull Object oo = o; }
                                                                          ^
 Completed proof of Test.m2(@Nullable Object) with prover !!!! - with warnings
@@ -23,9 +23,9 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m2a(Object) with prover !!!! - no warnings
 Starting proof of Test.m2b(@Nullable Object) with prover !!!!
-test/annotationPosition/Test.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2b: oo
+test/annotationPosition/Test.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2b: oo
     public void m2b(java.lang.@Nullable Object o) { @NonNull Object oo = o; }
                                                                     ^
 Completed proof of Test.m2b(@Nullable Object) with prover !!!! - with warnings
 Completed proving methods in Test
-4 warnings
+4 verification failures

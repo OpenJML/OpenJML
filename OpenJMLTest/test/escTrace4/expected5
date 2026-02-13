@@ -1022,6 +1022,6 @@ test\escTrace4\trace.java:13:  	Postcondition assertion: _JML___result != 0
 test\escTrace4\trace.java:19:  Invalid assertion (Postcondition)
  Associated location
 
-Completed proof of trace.m(int) with prover !!!! - with verification failures
+Completed proof of trace.m(int) with prover !!!! - with warnings
 Completed proving methods in trace
 4 verification failures

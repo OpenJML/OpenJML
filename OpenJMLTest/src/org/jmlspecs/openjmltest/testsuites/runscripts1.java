@@ -16,56 +16,8 @@ import org.junit.Assert;
  * is contained in files typically named 'expected' (in the same folder as 'run'); 
  * if the output does not match the contents of 'expected', then the actual output should be preserved in a file named 'actual'.
  */
-public class runscripts extends RunBase {
+public class runscripts1 extends RunBase {
     
-    @Test public void sourcepath() {
-        doTest();
-    }
-
-    @Test public void specspath() {
-        doTest();
-    }
-
-    @Test public void apiZ() {
-        doTest();
-    }
-
-    @Test public void apiA() {
-        doTest();
-    }
-
-    @Test public void apiB() {
-        doTest();
-    }
-
-    @Test public void apiC() {
-        doTest();
-    }
-
-    @Test public void apiD() {
-        doTest();
-    }
-
-    @Test public void apiE() {
-        doTest();
-    }
-
-    @Test public void apiOut() {
-        doTest();
-    }
-
-    @Test public void apiToken() {
-        doTest();
-    }
-
-    @Test public void apiinstance() {
-        doTest();
-    }
-
-    @Test public void findSpecs() {
-        doTest();
-    }
-
     @Test public void gitbug449() {
         doTest();
     }
@@ -115,37 +67,6 @@ public class runscripts extends RunBase {
         doTest();
     }
 
-    @Test public void scandebug() {
-        doTest();
-    }
-
-    @Test public void showSkipped() {
-        doTest();
-    }
-
-    @Test public void requireWhitespace() {
-        doTest();
-    }
-
-    @Test public void optionJml() {
-        doTest();
-    }
-
-    @Test public void properties() {
-        doTest();
-    }
-
-    @Test public void nowarn() {
-        doTest();
-    }
-    
-    @Test public void inferoptions() {
-        doTest();
-    }
-    
-    @Test public void warningoptions() {
-        doTest();
-    }
     
     @Test public void quiet() {
         doTest();
@@ -206,8 +127,15 @@ public class runscripts extends RunBase {
                     allfiles.add(f.getName());
                 }
             }
-            var suite = "org.jmlspecs.openjmltest.testsuites.runscripts";
             {
+                var suite = "org.jmlspecs.openjmltest.testsuites.runscripts1";
+                var runsuite = Class.forName(suite);
+                var runmethods = java.util.Arrays.stream(runsuite.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
+                    .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
+                allfiles.removeAll(runmethods);
+            }
+            {
+                var suite = "org.jmlspecs.openjmltest.testsuites.runscripts2";
                 var runsuite = Class.forName(suite);
                 var runmethods = java.util.Arrays.stream(runsuite.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
                     .map(m->m.getName()).collect(java.util.stream.Collectors.toList());

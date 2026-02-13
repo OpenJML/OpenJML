@@ -186,10 +186,6 @@ public class JmlOption {
     { map.put("-checkAccessible",CHECK_ACCESSIBLE); }
     public static final JmlOption SPECS = new JmlOption("--specs-path",true,null,"Specifies the directory path to search for specification files",null);
     { map.put("-specspath",SPECS); }
-    public static final JmlOption CHECKSPECSPATH = new JmlOption("--check-specs-path",false,true,"When on (the default), warnings for non-existent specification path directories are issued",null);
-    { map.put("-checkSpecsPath",CHECKSPECSPATH); }
-    public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
-    { map.put("-purityCheck",PURITYCHECK); }
     //public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
     public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);
 
@@ -241,8 +237,11 @@ public class JmlOption {
                 } else {
                     String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
                     for (var k: keys) {
-                        if (warnings.warningKeys.containsKey(k)) warnings.warningKeys.put(k, negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN );
-                        else Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
+                        if (warnings.containsKey(k)) {
+                            warnings.put(k, negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN );
+                        } else {
+                            Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
+                        }
                     }
                 }
             }
@@ -437,9 +436,13 @@ public class JmlOption {
     // Experimental
     public static final JmlOption DETERMINISM = new JmlOption("--determinism",false,true,"Experimental: enables better determinism (default is true)",null);
 
-    public static final JmlOption OSNAME = new JmlOption("--os-name",true,null,"Name of OS to use in selecting solver executable (default: auto detect)",null);
+    public static final JmlOption OSNAME = new JmlOption("--os-name",true,"auto","Name of OS to use in selecting solver executable (default: auto detect; macos, linux, windows)",null);
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("--inline-function-literal",false,true,"Whether to inline function literals (default: true)",null);
     public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,false, "Whether white space is required after the @ in a JML comment (default: false)", null);
+
+//    // Obsolete
+//    public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null, true);
+//    { map.put("-purityCheck",PURITYCHECK); }
 
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");

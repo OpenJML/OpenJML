@@ -62,7 +62,7 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore // timesout
     public void escDouble2() {
-        helpTFM("--exclude=clone,remainderBy,toString");
+        helpTG("--exclude=clone,remainderBy,toString");
     }
 
     @Test @Ignore
@@ -72,7 +72,7 @@ public class escfpfiles extends EscBaseFiles {
     
     @Test @Ignore
     public void escDouble3() {
-        helpTFM("--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
+        helpTG("--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
     }
     
     @Test @Ignore

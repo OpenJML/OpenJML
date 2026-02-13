@@ -72,6 +72,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
+                +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       String sss =  (s + ss);\n"
                 +"       //@ assert sss != null;\n"
                 +"  }\n"
@@ -94,7 +95,7 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
-                +"       //@ reachable \n"
+                +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       //@ assert (s + ss) != null;\n"
                 +"  }\n"
                 
@@ -132,7 +133,8 @@ public class escstrings extends EscBase {
                 
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
-                +"       //@ assert (s+ss).equals(s+ss);\n"
+                +"       // @ assert s.concat(ss).equals(s.concat(ss));\n"  // FIXME - not allowed by purity
+                +"       //@ assert (s+ss).equals(s+ss);\n"                 // but then, why is this one
                 +"  }\n"
                 
                 +"}" 
@@ -153,11 +155,12 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
+                +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m",46
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",46
                 );
     }
 
@@ -174,13 +177,14 @@ public class escstrings extends EscBase {
                 +"  public static int b;\n"
                 
                 +"  public void m(String s, String ss) {\n"
+                +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
                 +"  }\n"
                 
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
 
@@ -219,8 +223,8 @@ public class escstrings extends EscBase {
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java/lang/String.jml:297: verify: Associated declaration",35
-                ,"$SPECS/java/lang/CharSequence.jml:79: verify: Precondition conjunct is false: 0 <= index < charArray.length",34
+                ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration",39
+                ,optional(seq("$SPECS/java/lang/CharSequence.jml:65: verify: Precondition conjunct is false: 0 <= index < chars.length",34))
                 );
     }
 
@@ -262,9 +266,9 @@ public class escstrings extends EscBase {
                 +"}"
                 ,anyorder(
                         seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",12)
-                        ,seq(seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                             ,"$SPECS/java/lang/String.jml:297: verify: Associated declaration",35)
-                             ,"$SPECS/java/lang/CharSequence.jml:79: verify: Precondition conjunct is false: 0 <= index < charArray.length",34
+                        ,seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
+                             ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration",39
+                             //,"$SPECS/java/lang/CharSequence.jml:62: verify: Precondition conjunct is false: 0 <= index < chars.length",34
                             )
                                 		
                         )

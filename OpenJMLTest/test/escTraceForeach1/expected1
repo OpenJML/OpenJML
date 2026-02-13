@@ -129,6 +129,6 @@ test\escTraceLoops\trace.java:174:  	assert Assert j == a.length;
 test\escTraceLoops\trace.java:174: verify: The prover cannot establish an assertion (Assert) in method mforeach1
         //@ assert j == a.length;
             ^
-Completed proof of trace.mforeach1(int[]) with prover yices2 - with verification failures
+Completed proof of trace.mforeach1(int[]) with prover yices2 - with warnings
 Completed proving methods in trace
 3 verification failures

@@ -1210,22 +1210,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     @Override
     public void visitNewArray(JCNewArray tree) {
-        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == Modifiers.STRICTLY_PURE) {
+        if (specs.isGEPurity(currentMethodPurity, STRICTLY_PURE)) {
             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
                     "jml.message", "Array allocations are not permitted in strictly_pure methods");
         }
-    	super.visitNewArray(tree);
-    	if (!quantifiedExprs.isEmpty()) {
-    		// FIXME - it appears this gets triggered when specs with constructors
-//    		System.out.println("QUANTIFIERS " + Arrays.toString(quantifiedExprs.toArray()));
-//        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
-    	}
+        super.visitNewArray(tree);
+        if (!quantifiedExprs.isEmpty()) {
+            // FIXME - it appears this gets triggered when specs with constructors
+            //    		System.out.println("QUANTIFIERS " + Arrays.toString(quantifiedExprs.toArray()));
+            //        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
+        }
     }
     
     @Override
     public void visitNewClass(JCNewClass tree) {
-    	// FIXME
-        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == Modifiers.STRICTLY_PURE) {
+        if (specs.isGEPurity(currentMethodPurity, STRICTLY_PURE)) {
             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
                     "jml.message", "Object allocations are not permitted in strictly_pure methods");
         }
@@ -1296,7 +1295,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
-        //if (msym.owner.toString().startsWith("java.")) return; // FIXME - need to fix type parameters in binary files
         utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
     }
    
@@ -2094,7 +2092,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (!utils.hasMod(specMods, aa.kind)) {
                         String k = owner instanceof ClassSymbol ? "class"
                             : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
-                        utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.type);
+                        utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.toString());
                         break;
                     }
                 }
@@ -4634,15 +4632,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (result == null) System.out.println("RESULT NULL");
             if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
     	}
-        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == Modifiers.STRICTLY_PURE) {
-            MethodSymbol msym = (MethodSymbol)(tree.meth instanceof JCFieldAccess f? f.sym : ((JCIdent)tree.meth).sym);
-            var cp = specs.determinePurity(msym);
-            if (cp == null || cp.jmlclausekind != Modifiers.STRICTLY_PURE) {
+        var methsym = treeutils.getSym(tree.meth);
+        if (currentMethodPurity != null && methsym instanceof MethodSymbol msym) {
+            JmlToken calleePurity = specs.determinePurity(msym);
+            if (calleePurity == null) {
+                if (specs.isGEPurity(currentMethodPurity, STRICTLY_PURE)) {
+                    utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
+                            "jml.message", currentMethodPurity + " methods may not call non-pure methods: " + methsym);
+                }
+            } else if (!specs.isGEPurity(calleePurity, currentMethodPurity) &&
+                    !(calleePurity.jmlclausekind == PURE && currentMethodPurity.jmlclausekind == SPEC_PURE)) {
                 utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
-                    "jml.message", "strictly_pure methods may only call strictly_pure methods");
+                    "jml.message", currentMethodPurity + " methods may not call " + calleePurity.toString() + " methods: " + methsym);
             }
         }
-        var methsym = treeutils.getSym(tree.meth);
         if (methsym instanceof MethodSymbol m && m.isVarArgs() && m.getParameters().length() == tree.args.length() && tree.args.last().type.getTag() == TypeTag.BOT) {
             // If the varargs method has a single actual argument for the varargs formal argument, that argument may not be a null literal
             // The null literal is actually ambiguous -- is it a singleton array consisting of a null element or is it an array that is null
@@ -4672,10 +4675,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         MethodSymbol msym = (MethodSymbol)sym;
         var mspecs = specs.getLoadedOrDefaultSpecs(msym, tree.pos);
         if (jmlenv.inPureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
-            // Check that the method being called is pure
+            // Check that the method being called is pure enough
             if (msym != null) {
-                boolean isAllowed = specs.isSpecOKMethod(msym);
-                isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
+                boolean isAllowed = specs.isSpecOKMethod(msym); 
+                isAllowed |= isPureMethod(msym);  // FIXME - decide whether to allow (non-deterministic) pure methods in specs
                 if (!isAllowed) {
                     // FIXME - really need to check for recursion at any level. Alternately just make missing purity always an error
                     if (enclosingMethodEnv.enclMethod.sym == msym) {
@@ -4899,11 +4902,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
 
     /** This handles JML show statement */
-    public void visitJmlStatementShow(JmlTree.JmlStatementShow tree) { 
+    public void visitJmlStatementExprList(JmlTree.JmlStatementExprList tree) { 
         boolean prevAllowJML = jmlresolve.setAllowJML(true);
         jmlenv = jmlenv.pushCopy();
         jmlenv.currentClauseKind = tree.clauseType;
-        if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
+        //if (tree.expressions != null) for (JCExpression e: tree.expressions) attribExpr(e,env);
+        tree.clauseType.typecheck(this, tree, env);
         jmlenv.pop();
         jmlresolve.setAllowJML(prevAllowJML);
     }
@@ -6002,7 +6006,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         jmlenv = jmlenv.pushCopy();
 //        var rep = jmlenv.representsHead;
 //        jmlenv.representsHead = null; // To avoid datagroup containment checks if checkSecretReadable attribs in clauses
-
         try {
             
         	// First check quantified variables. If we are an old environment, they will not necessarily be in the
@@ -6077,7 +6080,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             var rep = jmlenv.representsHead;
         	if (rep != null && jmlenv.currentClauseKind == representsClause && tree.sym instanceof VarSymbol && tree.sym.owner instanceof ClassSymbol && tree.sym.name != names._this && tree.sym.name != names._super) {  // FIXME - also need to check the reads statement of method calls
         		//System.out.println("CHECKING DG " + (VarSymbol)tree.sym + " IN " + jmlenv.representsHead + " " + jmlenv.currentClauseKind);
-        		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead)) {
+        		if (!isContainedInDatagroup((VarSymbol)tree.sym, jmlenv.representsHead) && !tree.sym.isFinal()) {
         			utils.error(tree,"jml.message", "Because '" + rep + "' reads '" + tree.sym + "' in a represents clause, '" + tree.sym + "' must be 'in' the model field '" + rep + "'");
         		}
         	}
@@ -6088,6 +6091,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             e.printStackTrace(System.out);
         	utils.unexpectedException(e, "JmlAttr.visitIdent: " + tree);
         } finally {
+            if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == NO_STATE) {
+                if (tree.sym instanceof VarSymbol && tree.sym.owner instanceof TypeSymbol && !jmltypes.isJmlType(tree.sym.owner.type)) {
+                    if (tree.sym.isStatic() && tree.sym.isFinal()) {
+                        // OK
+                    } else if (tree.name == names._this && jmltypes.isJmlType(tree.type)) {
+                        // OK -- we can use 'this' in JML primitive types like \bigint
+                    } else {
+                        utils.error(tree, "jml.message", "A no_state method may not read class fields: " + tree.name);
+                    }
+                }
+            }
+
             jmlenv = jmlenv.pop();
         }
     }
@@ -6542,6 +6557,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                }
             }
         }
+        
+        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == NO_STATE) {
+            if (tree.sym instanceof VarSymbol && tree.sym.owner instanceof TypeSymbol && !jmltypes.isJmlType(tree.sym.owner.type)) {
+                if (tree.sym.isStatic() && tree.sym.isFinal()) {
+                    // OK
+                } else {
+                    utils.error(tree, "jml.message", "A no_state method may not read class fields: " + tree);
+                }
+            }
+        }
+
         Type saved = result;
         
         Symbol s = tree.selected.type.tsym;
@@ -8966,7 +8992,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlSingleton(JmlSingleton tree)               { visitTree(tree); }
         public void visitJmlSpecificationCase(JmlSpecificationCase tree){ visitTree(tree); }
         public void visitJmlStatement(JmlStatement tree)               { visitTree(tree); }
-        public void visitJmlStatementShow(JmlStatementShow tree)       { visitTree(tree); }
+        public void visitJmlStatementExprList(JmlStatementExprList tree) { visitTree(tree); }
         public void visitJmlStatementDecls(JmlStatementDecls tree)     { visitTree(tree); }
         public void visitJmlStatementExpr(JmlStatementExpr tree)       { visitTree(tree); }
         public void visitJmlStatementHavoc(JmlStatementHavoc tree)     { visitTree(tree); }

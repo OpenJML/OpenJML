@@ -9,9 +9,9 @@ test/gitbug445a/Pair.java:21: error: cannot find symbol
                  ^
   symbol:   variable res
   location: class Pair<T>
-test/gitbug445a/PMax.java:4: warning: Method run overrides parent class methods and so its specification should begin with 'also' (PMax.run(java.lang.Integer) overrides Proc.run(T))
+test/gitbug445a/PMax.java:4: verify: Method run overrides parent class methods and so its specification should begin with 'also' (PMax.run(java.lang.Integer) overrides Proc.run(T))
     /*@ assignable maxSeen;
         ^
 Operation not performed because of parse or type errors
 3 errors
-1 warning
+1 verification failure

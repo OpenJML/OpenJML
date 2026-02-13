@@ -896,6 +896,8 @@ public class SMTTranslator extends JmlTreeScanner {
             startCommands.add(c);
             c = command(smt,"(define-sort |#BV64#| () (_ BitVec 64))");
             startCommands.add(c);
+            c = command(smt,"(define-sort |#BV16#| () (_ BitVec 16))");
+            startCommands.add(c);
         }
 
         c = command(smt, useBV ? "(define-sort SEQ (E) (Array |#BV32#| E))" : "(define-sort SEQ (E) (Array Int E))");
@@ -906,7 +908,7 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         c = command(smt, useBV ? "(define-sort ARRAY (E) (Array |#BV32#| E))" : "(define-sort ARRAY (E) (Array Int E))");
         startCommands.add(c);
-        c = command(smt, "(define-sort STRINGJML ( ) (Array Int Int))");
+        c = command(smt, useBV ? "(define-sort STRINGJML ( ) (Array |#BV32#| |#BV16#| ))" : "(define-sort STRINGJML ( ) (Array Int Int))");
         startCommands.add(c);
         c = new C_declare_fun(nullStringSym,emptyList, stringSort);
         startCommands.add(c);
@@ -2532,7 +2534,6 @@ public class SMTTranslator extends JmlTreeScanner {
                         i = i&63;
                     } else {
                         // \bigint - no change to i
-                        // FIXME - what if i is bigger than an int
                     }
                     if (i >= 0) {
                         args.add(powToNumeral((int)i));
@@ -2542,6 +2543,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         result = F.fcn(F.symbol("div"), args);
                     }
                 } else {
+                    System.out.println("SMT SL BAD " + tree);
                     notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
@@ -2561,7 +2563,6 @@ public class SMTTranslator extends JmlTreeScanner {
                         i = i&63;
                     } else {
                         // \bigint - no change to i
-                        // FIXME - what if i is bigger than an int
                     }
                     if (i >= 0) {
                         args.add(powToNumeral((int)i));
@@ -2616,7 +2617,7 @@ public class SMTTranslator extends JmlTreeScanner {
         	throw e;
         }
     }
-    
+
     private IExpr powToNumeral(int i) {
         if (i < 63) return F.numeral(1L<<i);
         else return F.numeral(java.math.BigInteger.ONE.shiftLeft(i).toString());
@@ -2630,7 +2631,7 @@ public class SMTTranslator extends JmlTreeScanner {
         result = convertExpr(tree.expr);
         boolean exprIsPrim = utils.isJavaOrJmlPrimitiveType(tree.expr.type);
         boolean treeIsPrim = utils.isJavaOrJmlPrimitiveType(tree.type);
-        //System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
+        //System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim + " " + tree.expr.getClass() + " " + tree.expr);
         Number value = null;
         if (tree.expr instanceof JCLiteral lit) {
             if (lit.getValue() instanceof Number) {
@@ -2651,7 +2652,12 @@ public class SMTTranslator extends JmlTreeScanner {
                     k = 0;
                     // FIXME - unexpected kind of literal
                 }
-                result = useBV ? F.hex("00000000") : numeral(k);
+                if (useBV) {
+                    String s = String.format("%08x", k); // Since k is a long, negative numbers are padded out with f's to a long length
+                    result = F.hex(s);
+                } else {
+                    result = numeral(k);
+                }
                 return;
             }    
         }

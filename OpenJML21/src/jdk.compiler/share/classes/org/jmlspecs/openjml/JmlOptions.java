@@ -94,6 +94,7 @@ public class JmlOptions extends Options {
     public void loadDefaults() {
         //System.out.println("SETTING DEFAULTS");
         for (JmlOption opt : JmlOption.map.values()) {
+//            if (opt == null || opt.obsolete()) continue;  // FIXME - how can there be a null? came with making purity-check obsolete
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
             if (opt.defaultValue() instanceof Boolean b) {
@@ -249,6 +250,7 @@ public class JmlOptions extends Options {
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
                     }
+                    options.put("-?",""); // Allows a clean exit without complaining about missing source files
                     return;
                 } else if (o == null) {
                     // This is not a JML option. Might be misspelled or it might

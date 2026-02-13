@@ -58,6 +58,6 @@ test\escTraceLoops\trace.java:179:  	//@ loop_invariant j == \count && 0 <= \cou
 test\escTraceLoops\trace.java:179: verify: The prover cannot establish an assertion (LoopInvariant) in method mforeach2
         //@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
             ^
-Completed proof of trace.mforeach2(int[]) with prover cvc4 - with verification failures
+Completed proof of trace.mforeach2(int[]) with prover cvc4 - with warnings
 Completed proving methods in trace
 1 warning

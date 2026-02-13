@@ -2307,7 +2307,7 @@ public class JmlParser extends JavacParser {
                 if (token.kind == RBRACKET) {
                     if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
                     	if (index instanceof JmlRange r && r.lo != null && r.hi == null) {
-                    		utils.warning(token.pos,"jml.not.strict","storeref with implied end-of-range: " + index);
+                    		utils.warning(token.pos, token.endPos, "jml.not.strict","storeref with implied end-of-range: " + index);
                     	}
                       } 
                     t = to(jmlF.at(t.pos).Indexed(t, index));

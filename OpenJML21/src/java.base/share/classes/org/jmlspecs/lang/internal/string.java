@@ -19,7 +19,7 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
     }
     
     public static string empty() {
-        return new string("");
+        return new string(emptyString);
     }
     
     public boolean isEmpty() {
@@ -52,12 +52,21 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return 0;
     }
     
+    // Expects but does not check that all indices are in range.
+    public static boolean eqspan(string a, bigint astart, string b, bigint bstart, bigint len) {
+        for (bigint i = bigint.zero; i.lt(len); i = i.add(bigint.one)) {
+            if (a.value.charAt(astart.add(i).intValue()) != b.value.charAt(bstart.add(i).intValue())) return false;
+        }
+        return true;
+    }
+    
     public int compareTo(string s) {
         return value.compareTo(s.value);
     }
  
     public boolean eq(string s) {
-        return this.value.equals(s.value);
+        if (this.value.length() != s.value.length()) return false;
+        return eqspan(this, bigint.zero, s, bigint.zero, s.length());
     }
     
     public boolean ne(string s) {
@@ -96,6 +105,10 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(value.substring(k.intValue()));
     }
     
+    public string prepend(char v) {
+        return string.of(v).append(this);
+    }
+    
     public string append(char v) {
         return this.append(string.of(v));
     }
@@ -108,10 +121,6 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(this.value + s.value);
     }
 
-//    public static string concat(string s, string ss) {
-//        return new string(s.value + ss.value);
-//    }
- 
     public string put(bigint ii, char v) {
         if (!indexOK(ii)) throw exc(ii, "put");
         int i = ii.intValue();
@@ -128,8 +137,14 @@ public final class string implements IJmlPrimitiveType, IJmlIntArrayLike, Compar
         return new string(value.substring(0,i) + value.substring(i+1));
     }
 
-    public string substring(bigint start) {
-        return substring(start, length());
+    public boolean startsWith(string prefix) {
+        if (prefix.length().gt(this.length())) return false;
+        return eqspan(this, bigint.zero, prefix, bigint.zero, prefix.length());
+    }
+    
+    public boolean endsWith(string suffix) {
+        if (suffix.length().gt(this.length())) return false;
+        return eqspan(this, this.length().subtract(suffix.length()), suffix, bigint.zero, suffix.length());
     }
     
     public string substring(bigint start, bigint end) {

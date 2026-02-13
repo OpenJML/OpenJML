@@ -1,13 +1,15 @@
 public class Test {
     //@  requires s != null;
-    //@  requires \exists int i; 0 <= i < s.length(); \forall int j; 0 <= j < s.length() && i != j; s.charAt(i) != s.charAt(j);
+    //@  old boolean b = \exists int i; 0 <= i < s.length(); \forall int j; 0 <= j < s.length() && i != j; s.charAt(i) != s.charAt(j);
+    //@ {|
+    //@ requires b;
     //@  ensures 0 <= \result < s.length();
     //@  ensures \forall int i; 0 <= i < s.length() && i != \result; s.charAt(\result) != s.charAt(i);
     //@  ensures \forall int i; 0 <= i < \result; \exists int j; 0 <= j < s.length() && i != j; s.charAt(i) == s.charAt(j);   // the result is the first unique
     //@ also
-    //@  requires s != null;
-    //@  requires !(\exists int i; 0 <= i < s.length(); \forall int j; 0 <= j < s.length() && i != j; s.charAt(i) != s.charAt(j));
+    //@  requires !b;
     //@  ensures \result == -1;
+    //@ |}
     //@ behaviors disjoint;
     public static int uniqueCharS1(String s) {
         //@ maintaining 0 <= i <= s.length();

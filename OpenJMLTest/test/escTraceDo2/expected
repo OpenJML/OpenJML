@@ -273,7 +273,7 @@ test\escTraceLoops\trace.java:155:  	assert Assert j == k + k;
 			VALUE: j == k + k	 === false
 test\escTraceLoops\trace.java:155:  Invalid assertion (Assert)
 
-Completed proof of trace.mdo2() with prover !!!! - with verification failures
+Completed proof of trace.mdo2() with prover !!!! - with warnings
 Skipping proof of trace.mforeach(int[]) (excluded by -method)
 Skipping proof of trace.mforeach1(int[]) (excluded by -method)
 Skipping proof of trace.mforeach2(int[]) (excluded by -method)

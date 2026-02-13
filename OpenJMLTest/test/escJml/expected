@@ -1,48 +1,48 @@
 Proving methods in Test
 Starting proof of Test.m(Object) with prover !!!!
-test/escJml/Test.java:10: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: oo
+test/escJml/Test.java:10: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: oo
 		@NonNull Object oo = o; // Error because .jml file says o is Nullable
 		                ^
 Completed proof of Test.m(Object) with prover !!!! - with warnings
 Starting proof of Test.m2(Object) with prover !!!!
-test/escJml/Test.java:14: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2: oo
+test/escJml/Test.java:14: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2: oo
 		Object oo = o; // Error because .jml file says o is Nullable
 		       ^
 Completed proof of Test.m2(Object) with prover !!!! - with warnings
 Starting proof of Test.m3(Object) with prover !!!!
 Completed proof of Test.m3(Object) with prover !!!! - no warnings
 Starting proof of Test.p() with prover !!!!
-test/escJml/Test.java:23: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method p
+test/escJml/Test.java:23: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method p
 		oo = f; // Error because f is declared Nullable
 		   ^
 Completed proof of Test.p() with prover !!!! - with warnings
 Starting proof of Test.p2() with prover !!!!
-test/escJml/Test.java:28: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method p2
+test/escJml/Test.java:28: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method p2
 		oo = f; // Error because f is declared Nullable
 		   ^
 Completed proof of Test.p2() with prover !!!! - with warnings
 Starting proof of Test.p3() with prover !!!!
 Completed proof of Test.p3() with prover !!!! - no warnings
 Starting proof of Test.q() with prover !!!!
-test/escJml/Test.java:39: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method q: oo
+test/escJml/Test.java:39: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method q: oo
     	@NonNull Object oo = n(); // Error because n is declared nullable
     	                ^
 Completed proof of Test.q() with prover !!!! - with warnings
 Starting proof of Test.n() with prover !!!!
 Completed proof of Test.n() with prover !!!! - no warnings
 Starting proof of Test.nn() with prover !!!!
-test/escJml/Test.java:45: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method nn
+test/escJml/Test.java:45: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method nn
     Object nn() { return f; } // Error because f is nullable but nn is not
     ^
-test/escJml/Test.java:45: warning: Associated declaration
+test/escJml/Test.java:45: verify: Associated declaration
     Object nn() { return f; } // Error because f is nullable but nn is not
            ^
-test/escJml/Test.java:45: warning: Associated method exit
+test/escJml/Test.java:45: verify: Associated method exit
     Object nn() { return f; } // Error because f is nullable but nn is not
                   ^
 Completed proof of Test.nn() with prover !!!! - with warnings
 Starting proof of Test.t(Object) with prover !!!!
-test/escJml/Test.java:50: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method t
+test/escJml/Test.java:50: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method t
     	o = null; // Error - o is NonNull by default
     	  ^
 Completed proof of Test.t(Object) with prover !!!! - with warnings
@@ -51,7 +51,7 @@ Completed proof of Test.tt(Object) with prover !!!! - no warnings
 Starting proof of Test.v() with prover !!!!
 Completed proof of Test.v() with prover !!!! - no warnings
 Starting proof of Test.mf() with prover !!!!
-test/escJml/Test.java:72: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mf
+test/escJml/Test.java:72: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method mf
 		fi = null; // Error - fi is nonnull by default
 		   ^
 Completed proof of Test.mf() with prover !!!! - with warnings
@@ -60,7 +60,7 @@ Completed proof of Test.mf2() with prover !!!! - no warnings
 Starting proof of Test.mf3() with prover !!!!
 Completed proof of Test.mf3() with prover !!!! - no warnings
 Starting proof of Test.mf4() with prover !!!!
-test/escJml/Test.java:84: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mf4: q
+test/escJml/Test.java:84: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method mf4: q
 		@NonNull Object q = fii; // Error
 		                ^
 Completed proof of Test.mf4() with prover !!!! - with warnings
@@ -71,12 +71,12 @@ Proving methods in A
 Starting proof of A.mf() with prover !!!!
 Completed proof of A.mf() with prover !!!! - no warnings
 Starting proof of A.mf2() with prover !!!!
-test/escJml/Test.java:107: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method mf2
+test/escJml/Test.java:107: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method mf2
 		fii = null; // Error - fii is nonnull
 		    ^
 Completed proof of A.mf2() with prover !!!! - with warnings
 Starting proof of A.mf3() with prover !!!!
-test/escJml/Test.java:112: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method mf3: q
+test/escJml/Test.java:112: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method mf3: q
 		@NonNull Object q = fi; // Error - fi is nullable
 		                ^
 Completed proof of A.mf3() with prover !!!! - with warnings
@@ -85,20 +85,20 @@ Completed proof of A.mf4() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
 Completed proof of A.m() with prover !!!! - no warnings
 Starting proof of A.mnn() with prover !!!!
-test/escJml/Test.java:126: warning: The prover cannot establish an assertion (PossiblyNullReturn) in method mnn
+test/escJml/Test.java:126: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method mnn
 	Object mnn() {
 	^
-test/escJml/Test.java:126: warning: Associated declaration
+test/escJml/Test.java:126: verify: Associated declaration
 	Object mnn() {
 	       ^
-test/escJml/Test.java:127: warning: Associated method exit
+test/escJml/Test.java:127: verify: Associated method exit
 		return f; // Error f is nullable, mnn is non null
 		^
 Completed proof of A.mnn() with prover !!!! - with warnings
 Starting proof of A.t(Object) with prover !!!!
 Completed proof of A.t(Object) with prover !!!! - no warnings
 Starting proof of A.tt(Object) with prover !!!!
-test/escJml/Test.java:136: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method tt
+test/escJml/Test.java:136: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method tt
     	ott = null; // Error - ott is NonNull
     	    ^
 Completed proof of A.tt(Object) with prover !!!! - with warnings
@@ -109,7 +109,7 @@ Proving methods in B
 Starting proof of B.B() with prover !!!!
 Completed proof of B.B() with prover !!!! - no warnings
 Starting proof of B.m(Object) with prover !!!!
-test/escJml/Test.java:145: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: oo
+test/escJml/Test.java:145: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: oo
 		@NonNull Object oo = om; // Error because .jml file says o is Nullable
 		                ^
 Completed proof of B.m(Object) with prover !!!! - with warnings
@@ -124,9 +124,9 @@ Completed proof of B.mn2(Object) with prover !!!! - no warnings
 Starting proof of B.mn3(Object) with prover !!!!
 Completed proof of B.mn3(Object) with prover !!!! - no warnings
 Starting proof of B.v(Object) with prover !!!!
-test/escJml/Test.java:172: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method v: oo
+test/escJml/Test.java:172: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method v: oo
 		@NonNull Object oo = o; // Error - o is nullable by default
 		                ^
 Completed proof of B.v(Object) with prover !!!! - with warnings
 Completed proving methods in B
-19 warnings
+19 verification failures

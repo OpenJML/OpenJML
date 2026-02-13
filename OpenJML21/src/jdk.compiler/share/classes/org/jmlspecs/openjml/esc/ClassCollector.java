@@ -1,8 +1,7 @@
 package org.jmlspecs.openjml.esc;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -12,7 +11,7 @@ import org.jmlspecs.openjml.ext.SetStatement;
 import org.jmlspecs.openjml.ext.StatementExprExtensions;
 
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.code.TypeTag;
@@ -44,6 +43,8 @@ class ClassCollector extends JmlTreeScanner {
     Context context;
     boolean doMethods;
     boolean useBV = false;
+    Map<VarSymbol, JCExpression> formals = new HashMap<>();
+    
     public final Set<ClassSymbol> classes = new HashSet<ClassSymbol>();
     
     public ClassCollector() {
@@ -117,6 +118,21 @@ class ClassCollector extends JmlTreeScanner {
         super.visitIdent(tree);
     }
     
+    public boolean isLiteralRec(JCExpression e) {
+        if (e instanceof JCLiteral) return true;
+        if (e instanceof JCUnary p) return isLiteralRec(p.arg);
+        if (e instanceof JCParens p) return isLiteralRec(p.expr);
+        if (e instanceof JCTypeCast cast) return isLiteralRec(cast.expr);
+        if (e instanceof JCIdent id) {
+            var ex = formals.get(id.sym);
+            //if (ex != null) System.out.println("LOOKUP " + id + " " + ex);
+            if (ex != null) return isLiteralRec(ex);
+        }
+        return false;
+    }
+
+
+    
     @Override
     public void visitBinary(JCTree.JCBinary tree) {
         JCTree.Tag op = tree.getTag();
@@ -144,7 +160,8 @@ class ClassCollector extends JmlTreeScanner {
             }
         }
         if (op == JCTree.Tag.SL || op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR || op == JCTree.Tag.USR_ASG    ) {
-            if (!(tree.rhs instanceof JCLiteral)) {
+            if (!isLiteralRec(tree.rhs)) {
+                //Utils.instance(context).warning(tree, "jml.message", "Using BV " + tree);
                 useBV = true;
             }
         }
@@ -228,14 +245,27 @@ class ClassCollector extends JmlTreeScanner {
     @Override
     public void visitApply(JCMethodInvocation tree) {
         save(tree.type);
+
         super.visitApply(tree);
+
         Symbol sym = (tree.meth instanceof JCIdent) ? ((JCIdent)tree.meth).sym
-                            : (tree.meth instanceof JCFieldAccess) ? ((JCFieldAccess)tree.meth).sym : null;
-        if (sym instanceof Symbol.MethodSymbol) {
-            Symbol.MethodSymbol msym = (Symbol.MethodSymbol)sym;
+                : (tree.meth instanceof JCFieldAccess) ? ((JCFieldAccess)tree.meth).sym : null;
+        JmlSpecs.MethodSpecs mspecs = null;
+        if (sym instanceof Symbol.MethodSymbol msym) {
             if (methodsVisited.add(msym)) {
-                JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).getAttrSpecs(msym);
-                if (mspecs != null) scan(mspecs.cases);
+                mspecs = JmlSpecs.instance(context).getAttrSpecs(msym);
+                if (mspecs != null)  {
+                    if (mspecs.specDecl != null && !msym.isVarArgs()) {
+                        int i = 0;
+                        for (var arg: tree.args) {
+                            formals.put(mspecs.specDecl.params.get(i).sym, 
+                                    (arg instanceof JCLiteral) ? arg : null);
+                            //System.out.println("PUTTING " + mspecs.specDecl.params.get(i).sym + " " + ((arg instanceof JCLiteral) ? arg : null) + " " + tree);
+                            i++;
+                        }
+                    }
+                    scan(mspecs.cases);
+                }
             }
         }
     }

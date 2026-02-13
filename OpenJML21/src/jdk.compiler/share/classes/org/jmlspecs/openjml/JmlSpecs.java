@@ -406,10 +406,8 @@ public class JmlSpecs {
             todo.add(s);
         }
         String dir;
-        boolean checkDirectories = JmlOption.CHECKSPECSPATH.isSet(context);
-        //if (JmlOption.isOption(context,JmlOption.INTERNALSPECS)) {
-            todo.add("$SY");
-        //}
+        boolean checkDirectories = WarningCategory.isNotQuiet(context, WarningCategory.MISSING_SPECS_PATH);
+        todo.add("$SY");
 
         String cwd = System.getProperty("user.dir");
         
@@ -462,8 +460,11 @@ public class JmlSpecs {
             } else if (dir.length()>0){
                 Dir d = make(dir);
                 if (d != null) {
-                    if (checkDirectories && !d.exists()) { 
-                        utils.warning("jml.specs.dir.not.exist",d + " (" + cwd + ")");
+                    if (!d.exists()) { 
+                        // FIXME - allow an error
+                        var dg = com.sun.tools.javac.util.JCDiagnostic.Factory.instance(context).warning(null, null, null, "jml.specs.dir.not.exist", d + " (" + cwd + ")");
+                        //var k = utils.warningKey("jml.specs.dir.not.exist",d + " (" + cwd + ")");
+                        utils.warning(WarningCategory.MISSING_SPECS_PATH, (JavaFileObject)null, null, "jml.specs.dir.not.exist", d + " (" + cwd + ")");
                     }
                     specsDirs.add(d);
                 } else {
@@ -1203,13 +1204,11 @@ public class JmlSpecs {
         
         boolean print = false; // sym.toString().contains("? extends U");
         
-        boolean libraryMethod = sym.owner instanceof ClassSymbol && sym.owner.toString().startsWith("java");
         boolean isPureA = determinePurity(sym) != null ;
                // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.NO_STATE); // use isPure?
-        boolean isPureL = libraryMethod && !JmlOption.PURITYCHECK.isSet(context);
         //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
-                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA||isPureL?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
+                com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
 
@@ -1773,22 +1772,56 @@ public class JmlSpecs {
         return t != null && (t.jmlclausekind == SPEC_PURE || t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
     }
 
+    // No void returns
+    public boolean isEffectivelySpecPureMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        if (t == null) return false;
+        if (t.jmlclausekind != PURE) return true;
+        Type ty = symbol.getReturnType();
+        if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
+        return false;
+    }
+
     public boolean isStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE);
     }
 
+    // Allows void returns for lemmas
     public boolean isAtLeastStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
+    }
+    
+    public boolean isGEPurity(JmlToken hit, IJmlClauseKind lo) {
+        if (hit == null) return false;
+        var hi = hit.jmlclausekind;
+        if (lo == PURE) return true;
+        if (hi == PURE) return false;
+        if (lo == SPEC_PURE) return true;
+        if (hi == SPEC_PURE) return false;
+        if (lo == STRICTLY_PURE) return true;
+        if (hi == STRICTLY_PURE) return false;
+        return true;
+    }
+
+    public boolean isGEPurity(JmlToken hi, JmlToken lo) {
+        if (lo == null) return true;
+        return isGEPurity(hi, lo.jmlclausekind);
+    }
+
+    // Allows void returns for lemmas
+    public boolean isNoStateMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        return t != null && t.jmlclausekind == NO_STATE;
     }
 
     public boolean isSpecOKMethod(MethodSymbol msym) {
         var t = determinePurity(msym);
         if (t == null) return false;
         var k = t.jmlclausekind;
-        if (k == SPEC_PURE || k == STRICTLY_PURE || k == NO_STATE) return true;
-        if (k == PURE) {
+        if (k != PURE) return true;
+        else {
             Type ty = msym.getReturnType();
             if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
             if (ty.isPrimitiveOrVoid()) return true; // Lemmas are pure methods that may return void

@@ -26,6 +26,6 @@ test\escTraceLoops\trace.java:161:  	//@ loop_invariant j == \count && 0 <= \cou
 test\escTraceLoops\trace.java:161: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mforeach
         //@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
             ^
-Completed proof of trace.mforeach(int[]) with prover yices2 - with verification failures
+Completed proof of trace.mforeach(int[]) with prover yices2 - with warnings
 Completed proving methods in trace
 1 warning

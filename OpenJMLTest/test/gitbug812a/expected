@@ -22,10 +22,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinaryTree.allNullAtOrPred(BinaryTree.Node,int) with prover !!!! - no warnings
 Starting proof of BinaryTree.allNullAtNearlySameLevel() with prover !!!!
-test/gitbug812a/BinaryTree.java:63: warning: The prover cannot establish an assertion (Postcondition) in method allNullAtNearlySameLevel
+test/gitbug812a/BinaryTree.java:63: verify: The prover cannot establish an assertion (Postcondition) in method allNullAtNearlySameLevel
     {return depthOfNull(root).size() <= 1;};
      ^
-test/gitbug812a/BinaryTree.java:58: warning: Associated declaration
+test/gitbug812a/BinaryTree.java:58: verify: Associated declaration
     /*@ ensures \result == (\exists int n;  n >= 0;
         ^
 Completed proof of BinaryTree.allNullAtNearlySameLevel() with prover !!!! - with warnings
@@ -44,4 +44,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinaryTree.depthOfNull(BinaryTree.Node) with prover !!!! - no warnings
 Completed proving methods in BinaryTree
-2 warnings
+2 verification failures
