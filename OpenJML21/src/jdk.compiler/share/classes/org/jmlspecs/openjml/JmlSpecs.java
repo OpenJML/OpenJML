@@ -1792,6 +1792,23 @@ public class JmlSpecs {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
     }
+    
+    public boolean isGEPurity(JmlToken hit, IJmlClauseKind lo) {
+        if (hit == null) return false;
+        var hi = hit.jmlclausekind;
+        if (lo == PURE) return true;
+        if (hi == PURE) return false;
+        if (lo == SPEC_PURE) return true;
+        if (hi == SPEC_PURE) return false;
+        if (lo == STRICTLY_PURE) return true;
+        if (hi == STRICTLY_PURE) return false;
+        return true;
+    }
+
+    public boolean isGEPurity(JmlToken hi, JmlToken lo) {
+        if (lo == null) return true;
+        return isGEPurity(hi, lo.jmlclausekind);
+    }
 
     // Allows void returns for lemmas
     public boolean isNoStateMethod(MethodSymbol symbol) {

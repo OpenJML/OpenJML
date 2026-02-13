@@ -1210,22 +1210,21 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     @Override
     public void visitNewArray(JCNewArray tree) {
-        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == Modifiers.STRICTLY_PURE) {
+        if (specs.isGEPurity(currentMethodPurity, STRICTLY_PURE)) {
             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
                     "jml.message", "Array allocations are not permitted in strictly_pure methods");
         }
-    	super.visitNewArray(tree);
-    	if (!quantifiedExprs.isEmpty()) {
-    		// FIXME - it appears this gets triggered when specs with constructors
-//    		System.out.println("QUANTIFIERS " + Arrays.toString(quantifiedExprs.toArray()));
-//        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
-    	}
+        super.visitNewArray(tree);
+        if (!quantifiedExprs.isEmpty()) {
+            // FIXME - it appears this gets triggered when specs with constructors
+            //    		System.out.println("QUANTIFIERS " + Arrays.toString(quantifiedExprs.toArray()));
+            //        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
+        }
     }
     
     @Override
     public void visitNewClass(JCNewClass tree) {
-    	// FIXME
-        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == Modifiers.STRICTLY_PURE) {
+        if (specs.isGEPurity(currentMethodPurity, STRICTLY_PURE)) {
             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
                     "jml.message", "Object allocations are not permitted in strictly_pure methods");
         }
@@ -4634,15 +4633,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (result == null) System.out.println("RESULT NULL");
             if (result.isErroneous()) System.out.println("RESULT ERRONEOUS");
     	}
-        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == Modifiers.STRICTLY_PURE) {
-            MethodSymbol msym = (MethodSymbol)(tree.meth instanceof JCFieldAccess f? f.sym : ((JCIdent)tree.meth).sym);
-            var cp = specs.determinePurity(msym);
-            if (cp == null || cp.jmlclausekind != Modifiers.STRICTLY_PURE) {
+        var methsym = treeutils.getSym(tree.meth);
+        if (currentMethodPurity != null && methsym instanceof MethodSymbol msym) {
+            JmlToken calleePurity = specs.determinePurity(msym);
+            if (calleePurity == null) {
+                if (specs.isGEPurity(currentMethodPurity, STRICTLY_PURE)) {
+                    utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
+                            "jml.message", currentMethodPurity + " methods may not call non-pure methods: " + methsym);
+                }
+            } else if (!specs.isGEPurity(calleePurity, currentMethodPurity) &&
+                    !(calleePurity.jmlclausekind == PURE && currentMethodPurity.jmlclausekind == SPEC_PURE)) {
                 utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
-                    "jml.message", "strictly_pure methods may only call strictly_pure methods");
+                    "jml.message", currentMethodPurity + " methods may not call " + calleePurity.toString() + " methods: " + methsym);
             }
         }
-        var methsym = treeutils.getSym(tree.meth);
         if (methsym instanceof MethodSymbol m && m.isVarArgs() && m.getParameters().length() == tree.args.length() && tree.args.last().type.getTag() == TypeTag.BOT) {
             // If the varargs method has a single actual argument for the varargs formal argument, that argument may not be a null literal
             // The null literal is actually ambiguous -- is it a singleton array consisting of a null element or is it an array that is null
@@ -6089,11 +6093,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	utils.unexpectedException(e, "JmlAttr.visitIdent: " + tree);
         } finally {
             if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == NO_STATE) {
-                if (tree.sym.owner instanceof TypeSymbol) {
+                if (tree.sym instanceof VarSymbol && tree.sym.owner instanceof TypeSymbol && !jmltypes.isJmlType(tree.sym.owner.type)) {
                     if (tree.sym.isStatic() && tree.sym.isFinal()) {
                         // OK
+                    } else if (tree.name == names._this && jmltypes.isJmlType(tree.type)) {
+                        // OK -- we can use 'this' in JML primitive types like \bigint
                     } else {
- //                       utils.error(tree, "jml.message", "A no_state method may not read class fields");
+                        utils.error(tree, "jml.message", "A no_state method may not read class fields: " + tree.name);
                     }
                 }
             }
@@ -6552,6 +6558,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                }
             }
         }
+        
+        if (currentMethodPurity != null && currentMethodPurity.jmlclausekind == NO_STATE) {
+            if (tree.sym instanceof VarSymbol && tree.sym.owner instanceof TypeSymbol && !jmltypes.isJmlType(tree.sym.owner.type)) {
+                if (tree.sym.isStatic() && tree.sym.isFinal()) {
+                    // OK
+                } else {
+                    utils.error(tree, "jml.message", "A no_state method may not read class fields: " + tree);
+                }
+            }
+        }
+
         Type saved = result;
         
         Symbol s = tree.selected.type.tsym;

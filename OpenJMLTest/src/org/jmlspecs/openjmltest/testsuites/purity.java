@@ -33,8 +33,33 @@ public class purity extends TCBase {
 
     /** Test scanning something very simple */
     @Test
+    public void testAllocate() {
+        helpTCText(null, " class A { /*@ strictly_pure */ boolean m() { return new Object() != null; }  \n /*@ spec_pure */ boolean q() { return new Object() != null; } \n}"
+                ,"/TEST.java:1: error: Object allocations are not permitted in strictly_pure methods", 54
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:", 16
+                );
+    }
+
+    @Test
+    public void testAllocateArray() {
+        helpTCText(null, " class A { /*@ strictly_pure */ boolean m() { return new int[2] != null; }  \n /*@ spec_pure */ boolean q() { return new int[2] != null; } \n}"
+                ,"/TEST.java:1: error: Array allocations are not permitted in strictly_pure methods", 54
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:", 16
+                );
+    }
+
+    /** Test scanning something very simple */
+    @Test
     public void testStrictlyPure() {
         helpTCText(null, " class A { /*@ strictly_pure */ boolean m() { return true; }  \n //@ invariant m(); \n}"
+                );
+    }
+
+    @Test
+    public void testCallPure() {
+        helpTCText(null, " class A { /*@ strictly_pure */ int m() { return q(); }  \n /*@ spec_pure */ int q() { return m(); } \n}"
+                ,"/TEST.java:1: error: strictly_pure methods may not call spec_pure methods: q()", 51
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:1:", 16
                 );
     }
 
@@ -233,5 +258,51 @@ public class purity extends TCBase {
                 );
     }
     
-
+    @Test
+    public void testNoState() {
+        expectedExit = 1;
+        helpTCText(null,
+            """
+            class A {
+                public static final int K = 0;;
+                public static int k;
+                public int j;
+        
+                //@ no_state
+                public int z1( int a) {
+                    boolean b = k == 0; // ERROR
+                    b = j == 0; // ERROR
+                    b = this == null; // ERROR
+                    b = 0 == Integer.MAX_VALUE; // OK
+                    b = 0 == m(); // ERROR
+                    b = 0 == mm(); // ERROR
+                    b = 0 == ns(); // OK
+                    b = 0 == nss(); // ERROR
+                    b = 0 == A.k; // ERROR
+                    b = 0 == A.K; // OK
+                    return a;
+                }
+        
+                //@ spec_pure
+                public int m() { return 0; }
+                //@ strictly_pure
+                public static int mm() { return 0; }
+                //@ no_state
+                public int ns() { return 0; }
+                //@ spec_pure
+                public static int nss() { return 0; }
+            }
+            """
+                ,"/TEST.java:8: error: A no_state method may not read class fields: k", 21
+                ,"/TEST.java:9: error: A no_state method may not read class fields: j", 13
+                ,"/TEST.java:10: error: A no_state method may not read class fields: this", 13
+                ,"/TEST.java:12: error: no_state methods may not call spec_pure methods: m()", 19
+                ,"/TEST.java:6: error: Associated declaration: /TEST.java:12:", 9
+                ,"/TEST.java:13: error: no_state methods may not call strictly_pure methods: mm()", 20
+                ,"/TEST.java:6: error: Associated declaration: /TEST.java:13:", 9
+                ,"/TEST.java:15: error: no_state methods may not call spec_pure methods: nss()", 21
+                ,"/TEST.java:6: error: Associated declaration: /TEST.java:15:", 9
+                ,"/TEST.java:16: error: A no_state method may not read class fields: A.k", 19
+        );
+    }
 }

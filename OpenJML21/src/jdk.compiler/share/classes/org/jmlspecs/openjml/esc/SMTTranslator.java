@@ -2518,7 +2518,6 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
                 break;
             case SL:
-                System.out.println("SMT SL " + useBV + " " + tree.rhs.getClass() + " " + tree);
                 if (useBV) {
                     result = F.fcn(F.symbol("bvshl"), args);
                 } else if (tree.rhs instanceof JCLiteral || (tree.rhs instanceof JCTypeCast cast && cast.expr instanceof JCLiteral)) {
@@ -2529,6 +2528,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
+                    boolean neg = i < 0;
+                    if (neg) i = -i;
                     if (tree.lhs.type == syms.intType) {
                         i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
@@ -2537,12 +2538,11 @@ public class SMTTranslator extends JmlTreeScanner {
                         // \bigint - no change to i
                         // FIXME - what if i is bigger than an int
                     }
-                    System.out.println("SHIFTING BY " + i);
-                    if (i >= 0) {
+                    if (!neg) {
                         args.add(powToNumeral((int)i));
                         result = F.fcn(F.symbol("*"), args);
                     } else {
-                        args.add(powToNumeral((int)-i)); // Only for \bigint
+                        args.add(powToNumeral((int)i)); // Only for \bigint
                         result = F.fcn(F.symbol("div"), args);
                     }
                 } else {
@@ -2560,6 +2560,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     long i = ((Number)lit.getValue()).longValue();
                     args = new LinkedList<IExpr>();
                     args.add(lhs);
+                    boolean neg = i < 0;
+                    if (neg) i = -i;
                     if (tree.lhs.type == syms.intType) {
                         i = i&31;
                     } else if (tree.lhs.type == syms.longType) {
@@ -2568,11 +2570,11 @@ public class SMTTranslator extends JmlTreeScanner {
                         // \bigint - no change to i
                         // FIXME - what if i is bigger than an int
                     }
-                    if (i >= 0) {
+                    if (!neg) {
                         args.add(powToNumeral((int)i));
                         result = F.fcn(F.symbol("div"), args);
                     } else {
-                        args.add(powToNumeral((int)-i));
+                        args.add(powToNumeral((int)i));
                         result = F.fcn(F.symbol("*"), args);
                     }
                 } else {
