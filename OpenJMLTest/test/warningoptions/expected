@@ -2,43 +2,57 @@ Value	Default	Key
 WARN	WARN	implicit-everything
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
+QUIET	QUIET	missing-semicolon
 QUIET	QUIET	missing-specs
+WARN	WARN	missing-specs-path
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
+QUIET	QUIET	missing-semicolon
 WARN	QUIET	missing-specs
+WARN	WARN	missing-specs-path
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
+QUIET	QUIET	missing-semicolon
 QUIET	QUIET	missing-specs
+WARN	WARN	missing-specs-path
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
+QUIET	QUIET	missing-semicolon
 QUIET	QUIET	missing-specs
+WARN	WARN	missing-specs-path
 error: no source files
 Value	Default	Key
 WARN	WARN	implicit-everything
 WARN	WARN	literal-divide-by-zero
 WARN	QUIET	missing-measured-by
+WARN	QUIET	missing-semicolon
 WARN	QUIET	missing-specs
+WARN	WARN	missing-specs-path
 error: no source files
 Value	Default	Key
 QUIET	WARN	implicit-everything
 QUIET	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
+QUIET	QUIET	missing-semicolon
 QUIET	QUIET	missing-specs
+QUIET	WARN	missing-specs-path
 error: no source files
 Value	Default	Key
 QUIET	WARN	implicit-everything
 QUIET	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
+QUIET	QUIET	missing-semicolon
 QUIET	QUIET	missing-specs
+QUIET	WARN	missing-specs-path
 error: no source files
 warning: In --(no-)warn, 'zzz' is not a valid warning key; see --help=warn
 error: no source files
@@ -46,5 +60,4 @@ warning: In --(no-)warn, ' ' is not a valid warning key; see --help=warn
 error: no source files
 error: no source files
 Help: --help=warn   Subcommands: none all list reset
-Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]
-error: no source files
+Implemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path]

@@ -811,6 +811,24 @@ public class escall3 extends EscBase {
 
     @Test
     public void testHavoc() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\nothing;
+              public void m(int k) {
+                int j;
+                //@ havoc i,j,k;
+              }
+            }
+            """
+                ,"/A.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: i", 15
+                ,"/A.java:3: verify: Associated declaration", 7
+        );
+    }
+
+    @Test
+    public void testHavocA() {
     	addOptions("--exclude=TestJava");
         helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
@@ -1619,19 +1637,19 @@ public class escall3 extends EscBase {
                 +"       public void close() throws EE2 { TestJava.flag = 2; throw new EE2(); }\n"
                 +"    }\n"
                 
-                +"  //@ requires flag == 0;\n" // Line 23
+                +"  //@ requires flag == 0;\n" // Line 25
                 +"  //@ assignable flag;\n"
-                +"  public void mmm() throws EE {\n"  // Line 25
+                +"  public void mmm() throws EE {\n"  // Line 27
                 +"    //@ assert TestJava.flag == 0;  \n"
                 +"    try {\n"
                 +"      try (RR2 r = new RR2(); RR rr = new RR()){\n"
                 +"       flag = 3; \n"
                 +"       //@ assert TestJava.flag == 3;\n"
                 +"      }\n"
-                +"      //@ assert TestJava.flag == 2;\n"  // Not feasible
+                +"      //@ assert TestJava.flag == 2;\n"  // Line 34 -- Not feasible
                 +"    } catch (EE e) {\n"
-                +"       //@ assert TestJava.flag == 2;\n"  // Line 34 // SHould be OK
-                +"       //@ assert e instanceof EE1;\n"  // Line 35 // Should be OK
+                +"       //@ assert TestJava.flag == 2;\n" // Should be OK
+                +"       //@ assert e instanceof EE1;\n"  // Should be OK
                 +"    }\n"
                 +"  }\n"
                 +"}"
@@ -2049,7 +2067,7 @@ public class escall3 extends EscBase {
     }
     
     @Test // cf. gitbug877 -- was a bug in RAC, but included an ESC test here for good measure - here instead of escfiles because of indeterminate output order
-    public void testSwitch() {
+    public void testSwitch877() {
         helpEsc("tt.ZZ",
         """
         public class ZZ {

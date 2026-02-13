@@ -1,0 +1,8 @@
+OUT:
+PRINTING Z 200 50 7 null 99 false true
+test/racprinting/PR.java:14: verify: JML A null object is dereferenced within a JML expression
+    //@ print "NULL?", p, p.ff;
+                           ^
+DONE
+
+ERR:

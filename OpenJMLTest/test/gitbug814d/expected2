@@ -20,15 +20,15 @@ Skipping proof of BinaryTree.toArray() (Skipping BinaryTree.toArray because it d
 Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between because it does not match btw)
 Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match btw)
 Starting proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!!
-test/gitbug814d/BinaryTree.java:148: warning: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
+test/gitbug814d/BinaryTree.java:148: verify: The prover cannot establish an assertion (NullFormal) in method btw: arg0 in <E>of(E)
       @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
                        ^
-$SPECS/java/util/Set.jml:120: warning: Associated declaration
+$SPECS/java/util/Set.jml:120: verify: Associated declaration
     public static <E> java.util.Set<E> of(E e0);
                                           ^
-test/gitbug814d/BinaryTree.java:162: warning: Associated method exit
+test/gitbug814d/BinaryTree.java:162: verify: Associated method exit
     }
      ^
 Completed proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!! - with warnings
 Completed proving methods in BinaryTree
-3 warnings
+3 verification failures

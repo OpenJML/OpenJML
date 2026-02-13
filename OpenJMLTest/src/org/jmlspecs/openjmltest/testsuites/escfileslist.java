@@ -40,8 +40,8 @@ import org.openjml.runners.ParameterizedWithNames;
 
 public class escfileslist extends EscBaseFiles implements Utils {
     
-    static double split1 = 0.330;
-    static double split2 = 0.665;
+    static double split1 = 0.24;
+    static double split2 = 0.40;
     
     /** A list of test suites whose test are excluded from the list generated here */
     public static String[] testsuites = new String[]{
@@ -49,10 +49,15 @@ public class escfileslist extends EscBaseFiles implements Utils {
             "org.jmlspecs.openjmltest.testsuites.jmldoctests",
             "org.jmlspecs.openjmltest.testsuites.escfiles",
             "org.jmlspecs.openjmltest.testsuites.escfiles2",
+            "org.jmlspecs.openjmltest.testsuites.escfiles3",
             "org.jmlspecs.openjmltest.testsuites.escfilesdemo",
             "org.jmlspecs.openjmltest.testsuites.escfilesmodels",
             "org.jmlspecs.openjmltest.testsuites.escfilesTrace",
-            "org.jmlspecs.openjmltest.testsuites.primesc",
+            "org.jmlspecs.openjmltest.testsuites.escfpfiles",
+            "org.jmlspecs.openjmltest.testsuites.escnonpublic",
+            "org.jmlspecs.openjmltest.testsuites.escfeatures",
+            "org.jmlspecs.openjmltest.testsuites.primesc1",
+            "org.jmlspecs.openjmltest.testsuites.primesc2",
             "org.jmlspecs.openjmltest.testsuites.SFBugs"
     };
     
@@ -107,7 +112,7 @@ public class escfileslist extends EscBaseFiles implements Utils {
                 return noargs;
             }
         }
-        return args == null ? noargs : args.split(" ");
+        return args == null || args.isEmpty() ? noargs : args.split(" ");
     }
     
     /** This test just lists, for information, the tests that will be done by escfileslist1,2,3

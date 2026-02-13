@@ -186,7 +186,7 @@ public class OutputCompare {
                 int initPos2 = diagListPos;
                 if (!compareResultsX(op.expected)) {
                     diagListPos = initPos2;
-                    System.out.println("COMPARING OPTIONAL NOMATCH");
+                    if (print) System.out.println("COMPARING OPTIONAL NOMATCH");
                 }
                 ++i;
                 // It is OK if the optional did not match

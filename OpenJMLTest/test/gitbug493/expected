@@ -2,9 +2,9 @@ Proving methods in T
 Starting proof of T.T() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/gitbug493/T.java:6: warning: There is no feasible path to program point at program exit in method T.T()
+test/gitbug493/T.java:6: verify: There is no feasible path to program point at program exit in method T.T()
 }
 ^
 Completed proof of T.T() with prover !!!! - INFEASIBLE
 Completed proving methods in T
-1 warning
+1 verification failure

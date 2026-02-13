@@ -225,14 +225,13 @@ public interface IJmlVisitor extends IVisitor {
     default public void visitJmlStatement(JmlStatement tree) {
         scan(tree.statement);
     }
-    default public void visitJmlStatementShow(JmlStatementShow tree) {
-        for (JCExpression e: tree.expressions) scan(e);
+    
+    default public void visitJmlStatementExprList(JmlStatementExprList tree) {
+        scan(tree.expressions);
     }
     
     default public void visitJmlStatementDecls(JmlStatementDecls tree) {
-        for (JCTree.JCStatement s : tree.list) {
-            scan(s);
-        }
+        scan(tree.list);
     }
 
     default public void visitJmlStatementExpr(JmlStatementExpr tree) {
@@ -268,9 +267,7 @@ public interface IJmlVisitor extends IVisitor {
     }
 
     default public void visitJmlStoreRefListExpression(JmlStoreRefListExpression tree) {
-        for (JCTree t: tree.list) {
-            scan(t);
-        }
+        scan(tree.list);
     }
     
     default public void visitJmlStoreRef(JmlStoreRef tree) {

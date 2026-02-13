@@ -22,10 +22,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinaryTree.allNullAtOrPred(BinaryTree.Node,int) with prover !!!! - no warnings
 Starting proof of BinaryTree.allNullAtNearlySameLevel() with prover !!!!
-test/gitbug812/BinaryTree.java:63: warning: The prover cannot establish an assertion (Postcondition) in method allNullAtNearlySameLevel
+test/gitbug812/BinaryTree.java:63: verify: The prover cannot establish an assertion (Postcondition) in method allNullAtNearlySameLevel
     {return depthOfNull(root).size() <= 1;};
      ^
-test/gitbug812/BinaryTree.java:58: warning: Associated declaration
+test/gitbug812/BinaryTree.java:58: verify: Associated declaration
     /*@ ensures \result == (\exists int n;  n >= 0;
         ^
 Completed proof of BinaryTree.allNullAtNearlySameLevel() with prover !!!! - with warnings
@@ -35,21 +35,21 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of BinaryTree.Interval.Interval(int,int) with prover !!!! - no warnings
 Starting proof of BinaryTree.Interval.size() with prover !!!!
-test/gitbug812/BinaryTree.java:79: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+test/gitbug812/BinaryTree.java:79: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
             if(max >= min) return max-min+1;
                                          ^
-test/gitbug812/BinaryTree.java:79: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int difference
+test/gitbug812/BinaryTree.java:79: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int difference
             if(max >= min) return max-min+1;
                                      ^
 Completed proof of BinaryTree.Interval.size() with prover !!!! - with warnings
 Completed proving methods in BinaryTree.Interval
 Starting proof of BinaryTree.depthOfNull(BinaryTree.Node) with prover !!!!
-test/gitbug812/BinaryTree.java:89: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method depthOfNull: overflow in int sum
+test/gitbug812/BinaryTree.java:89: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method depthOfNull: overflow in int sum
         return new Interval(1+Math.min(ileft.min, iright.min),1+Math.max(ileft.max, iright.max));
                              ^
-test/gitbug812/BinaryTree.java:89: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method depthOfNull: overflow in int sum
+test/gitbug812/BinaryTree.java:89: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method depthOfNull: overflow in int sum
         return new Interval(1+Math.min(ileft.min, iright.min),1+Math.max(ileft.max, iright.max));
                                                                ^
 Completed proof of BinaryTree.depthOfNull(BinaryTree.Node) with prover !!!! - with warnings
 Completed proving methods in BinaryTree
-6 warnings
+6 verification failures

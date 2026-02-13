@@ -1,9 +1,9 @@
 OUT:
 test/firstTest/FirstTest.java:17: verify: JML precondition is false
-        x.setA(10);
+        x.setA(10); // ERROR: Precondition failure
               ^
 test/firstTest/FirstTest.java:7: verify: Associated declaration: test/firstTest/FirstTest.java:17:
-    public void setA(int a) {
+    public void setA(int a) { // ERROR: expcts an invariant failure at end of constructor
                 ^
 test/firstTest/FirstTest.java:6: verify: JML precondition is false
     //@ requires a < 0;

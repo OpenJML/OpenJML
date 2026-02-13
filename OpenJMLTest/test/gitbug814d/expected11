@@ -1,0 +1,31 @@
+Proving methods in BinaryTree
+Proving methods in BinaryTree.Node
+Skipping proof of BinaryTree.Node.Node() (Skipping BinaryTree.Node.Node because it does not match btw)
+Skipping proof of BinaryTree.Node.size(BinaryTree.Node) (Skipping BinaryTree.Node.size because it does not match btw)
+Skipping proof of BinaryTree.Node.ks(BinaryTree.Node) (Skipping BinaryTree.Node.ks because it does not match btw)
+Completed proving methods in BinaryTree.Node
+Skipping proof of BinaryTree.keySet() (Skipping BinaryTree.keySet because it does not match btw)
+Skipping proof of BinaryTree.BinaryTree() (Skipping BinaryTree.BinaryTree because it does not match btw)
+Skipping proof of BinaryTree.BinaryTree(int) (Skipping BinaryTree.BinaryTree because it does not match btw)
+Skipping proof of BinaryTree.BinaryTree(@NonNull BinaryTree,@NonNull BinaryTree,int) (Skipping BinaryTree.BinaryTree because it does not match btw)
+Skipping proof of BinaryTree.allNullAtOrPred(BinaryTree.Node,int) (Skipping BinaryTree.allNullAtOrPred because it does not match btw)
+Skipping proof of BinaryTree.allNullAtNearlySameLevel() (Skipping BinaryTree.allNullAtNearlySameLevel because it does not match btw)
+Proving methods in BinaryTree.Interval
+Skipping proof of BinaryTree.Interval.Interval(int,int) (Skipping BinaryTree.Interval.Interval because it does not match btw)
+Skipping proof of BinaryTree.Interval.size() (Skipping BinaryTree.Interval.size because it does not match btw)
+Completed proving methods in BinaryTree.Interval
+Skipping proof of BinaryTree.depthOfNull(BinaryTree.Node) (Skipping BinaryTree.depthOfNull because it does not match btw)
+Skipping proof of BinaryTree.size() (Skipping BinaryTree.size because it does not match btw)
+Skipping proof of BinaryTree.toArray() (Skipping BinaryTree.toArray because it does not match btw)
+Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between because it does not match btw)
+Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match btw)
+Starting proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!!
+test/gitbug814d/BinaryTree.java:151: verify: The prover cannot establish an assertion (Postcondition) in method btw
+        if (n == null) return new int[0];
+                       ^
+test/gitbug814d/BinaryTree.java:148: verify: Associated declaration
+      @ ensures Set.of(\result).equals(Node.ks(n).subSet(a,false,b,false));
+        ^
+Completed proof of BinaryTree.btw(BinaryTree.Node,int,int) with prover !!!! - with warnings
+Completed proving methods in BinaryTree
+2 verification failures

@@ -441,13 +441,13 @@ public class Utils {
         if (symbol instanceof ClassSymbol) return isModel((ClassSymbol)symbol);
         if (symbol instanceof MethodSymbol) return isModel((MethodSymbol)symbol);
         if (symbol instanceof VarSymbol) return isModel((VarSymbol)symbol);
-        return false;// This shoudl really be an error FIXME
+        return false;// This should really be an error FIXME
     }
 
     /** Determines which OS we are in and returns an identifying string */
     public static String identifyOS(Context context) {
         String sp = context == null ? null : JmlOption.OSNAME.value(context);
-        if (sp == null || sp.isEmpty()) sp = System.getProperty("os.name");
+        if (sp == null || sp.isEmpty() || "auto".equals(sp)) sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
         if (sp.contains("lin") || sp.contains("Lin")) return "linux";
         if (sp.contains("win") || sp.contains("Win")) return "windows";
@@ -962,6 +962,11 @@ public class Utils {
     /** A special method to check the type of arguments; isSameType might fail because of different wildcard type arguments of Class<>. */
     public boolean isClassType(Type ct) {
         return ct.tsym == Symtab.instance(context).classType.tsym;
+    }
+    
+    public Type headType(Type t) {
+        while (t instanceof Type.ArrayType at) { t = at.getComponentType(); }
+        return t;
     }
 
     // Includes self
@@ -1720,29 +1725,31 @@ public class Utils {
     // - Position.NOPOS for an absent int position
     // - null for an absent DiagnosticPosition position
     
+    // Used in reporting parser syntax errors
     public JCDiagnostic.Error errorKey(String key, Object ... args) {
         return JCDiagnostic.Factory.instance(context).errorKey(key, args);
     }
 
-    public JCDiagnostic.Warning warningKey(String key, Object ... args) {
-        return JCDiagnostic.Factory.instance(context).warningKey(key, args);
-    }
-
-    public JCDiagnostic.Note noteKey(String key, Object ... args) {
-        return JCDiagnostic.Factory.instance(context).noteKey(key, args);
-    }
+//    public JCDiagnostic.Warning warningKey(String key, Object ... args) {
+//        return JCDiagnostic.Factory.instance(context).warningKey(key, args);
+//    }
+//
+//    public JCDiagnostic.Note noteKey(String key, Object ... args) {
+//        return JCDiagnostic.Factory.instance(context).noteKey(key, args);
+//    }
     
     public JCDiagnostic errorDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
         return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.ERROR, sp, pos, key, args);
     }
-    
-    public JCDiagnostic warningDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
-        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, sp, pos, key, args);
-    }
-    
-    public JCDiagnostic noteDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
-        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.NOTE, sp, pos, key, args);
-    }
+//    
+//    public JCDiagnostic warningDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
+//        // FIXME - needs a spot for a WarningCategory
+//        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING, sp, pos, key, args);
+//    }
+//    
+//    public JCDiagnostic noteDiag(DiagnosticSource sp, DiagnosticPosition pos, String key, Object ...args) {
+//        return JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.NOTE, sp, pos, key, args);
+//    }
     
     public void error(String key, Object ... args) {
         log().error(JCDiagnostic.Factory.instance(context).errorKey(key, args));
@@ -1777,69 +1784,29 @@ public class Utils {
     }
 
     public void warning(String key, Object ... args) {
-        log().warning(JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        warning(WarningCategory.NULL, (JavaFileObject)null, null, key, args);
     }
 
     public void warning(int pos, String key, Object ... args) {
-        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
+        warning(WarningCategory.NULL, (JavaFileObject)null, new DiagnosticPositionSE(pos,pos), key, args);
     }
 
-    public void warningCategory(String category, int pos, String message) {
-        var wt = WarningCategory.instance(context).action(category);
-        switch (wt) {
-        case WARN:
-            log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
-            break;
-        case ERROR:
-            log().error(pos, JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
-            break;
-        }
+    public void warning(int pos, int endPos, String key, Object ... args) {
+        warning(WarningCategory.NULL, (JavaFileObject)null, new DiagnosticPositionSE(pos,endPos-1), key, args);
     }
 
-    public void warningCategory(String category, String message) {
-        var wt = WarningCategory.instance(context).action(category);
-        switch (wt) {
-        case WARN:
-            log().warning(JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
-            break;
-        case ERROR:
-            log().error(JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
-            break;
-        }
+    public void warning(DiagnosticPosition pos, String key, Object ... args) {
+        warning(WarningCategory.NULL, (JavaFileObject)null, pos, key, args);
     }
 
-    public void warningCategory(String category, DiagnosticPosition pos, String message) {
-        var wt = WarningCategory.instance(context).action(category);
-        switch (wt) {
-        case WARN:
-            log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
-            break;
-        case ERROR:
-            log().error(pos, JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
-            break;
-        }
+    /** Warning messages with no source location */
+    public void warning(WarningCategory.Key category, String key, Object ... args) {
+        warning(category, (JavaFileObject)null, null, key, args);
     }
 
-    public void warningCategory(String category, JavaFileObject source, DiagnosticPosition pos, String message) {
+    public void warning(WarningCategory.Key category, JavaFileObject source, DiagnosticPosition pos, JavaFileObject asource, DiagnosticPosition apos, String message) {
         var wt = WarningCategory.instance(context).action(category);
-        switch (wt) {
-        case WARN: {
-            var prev = log().useSource(source);
-            log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey("jml.message", "[" + category + "] " + message));
-            log().useSource(prev);
-            break;
-        }
-        case ERROR: {
-            var prev = log().useSource(source);
-            log().error(pos, JCDiagnostic.Factory.instance(context).errorKey("jml.message", "[" + category + "] " + message));
-            log().useSource(prev);
-            break;
-        }
-        }
-    }
-
-    public void warningCategory(String category, JavaFileObject source, DiagnosticPosition pos, JavaFileObject asource, DiagnosticPosition apos, String message) {
-        var wt = WarningCategory.instance(context).action(category);
+        if (wt == WarningCategory.WarnAction.QUIET) return;
         Log log = log();
         switch (wt) {
         case WARN: {
@@ -1875,27 +1842,57 @@ public class Utils {
         }
     }
 
-    public void warningCategory(String category, JavaFileObject source, int begin, int end, String message) {
-        this.warningCategory(category, source,
+    public void warning(WarningCategory.Key category, JavaFileObject source, int begin, int end, String key, Object ... args) {
+        this.warning(category, source,
                 new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1
-                message);
+                key, args);
     }
     
-    public void warning(int begin, int end, String key, Object... args) {
-        this.warning(
-                new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1
-                key, args);// TODO - not unicode friendly
+    public void warning(WarningCategory.Key category, JavaFileObject source, DiagnosticPosition pos, String key, Object ... args) {
+        // All this mucking about with the diagnostic message is to insert the category string into the message
+        // without having to alter every message key and warning call throughout openjml
+        var wt = WarningCategory.instance(context).action(category);
+        if (wt == WarningCategory.WarnAction.QUIET) return;
+        var dg = com.sun.tools.javac.util.JCDiagnostic.Factory.instance(context).warning(null, null, null, key, args);
+        var message = dg.toString().substring("warning: ".length());
+        if (category != null) message = "[" + category + "] " +  message;
+        JavaFileObject prev = null;
+        if (source != null) prev = log.useSource(source);
+        try {
+            switch (wt) {
+            case WARN:
+                log().warning(null, pos, JCDiagnostic.Factory.instance(context).warningKey("jml.raw", message));
+                break;
+            case ERROR:
+                log().error(null, pos, JCDiagnostic.Factory.instance(context).errorKey("jml.raw", message));
+                break;
+            }
+        } finally {
+            if (prev != null) log.useSource(prev);
+        }
     }
     
-    public void warning(int begin, int preferred, int end, String key, Object... args) {
-        this.error(
-                new DiagnosticPositionSE(begin, preferred, end - 1), // FIXME - really the -1
-                key, args);// TODO - not unicode friendly
-    }
-    
-    public void warning(DiagnosticPosition pos, String key, Object ... args) {
-        log().warning(pos, JCDiagnostic.Factory.instance(context).warningKey(key, args));
-    }
+//    public void warning(WarningCategory.Key category, DiagnosticSource source, DiagnosticPosition pos, String key, Object ... args) {
+//        warning(category, source == null ? (JavaFileObject)null : source.getFile(), pos, key, args);
+////        // All this mucking about with the diagnostic message is to insert the category string into the message
+////        // without having to alter every message key and warning call throughout openjml
+////        var wt = WarningCategory.instance(context).action(category);
+////        if (wt == WarningCategory.WarnAction.QUIET) return;
+////        var dg = com.sun.tools.javac.util.JCDiagnostic.Factory.instance(context).warning(null, null, null, key, args);
+////        var message = dg.toString().substring("warning: ".length());
+////        if (category != null) message = "[" + category + "] " +  message;
+////        try {
+////            switch (wt) {
+////            case WARN:
+////                log().warning((LintCategory)null, source, pos, JCDiagnostic.Factory.instance(context).warningKey("jml.raw", message));
+////                break;
+////            case ERROR:
+////                log().error(source, pos, JCDiagnostic.Factory.instance(context).errorKey("jml.raw", message));
+////                break;
+////            }
+////        } finally {
+////        }
+//    }
     
     public int verifyWarnings = 0;
 

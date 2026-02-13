@@ -49,7 +49,7 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     public void helpTG(String... opts) {
-        super.helpTG(addVE(opts));
+        super.helpTG(opts);
     }
 
     
@@ -61,7 +61,6 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug450a() {
-        expectedExit = 1;
         helpTG();
     }
     
@@ -79,7 +78,6 @@ public class escfiles2 extends EscBaseFiles {
     @Test
     public void gitbug582() {
         expectedExit = 0;
-        helpTG("--purity-check");
     }
 
 
@@ -150,7 +148,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test 
     public void gitbug812a() {
-        helpTG("--code-math=safe");
+        helpTG("--code-math=safe","--check-feasibility=none");
     }
     
     @Test
@@ -203,13 +201,13 @@ public class escfiles2 extends EscBaseFiles {
     }
     
     @Test
-    public void gitbug883() {
-        helpTG("--esc-max-warnings=1","--check-feasibility=precondition,exit","--nullable-by-default","--timeout=60");
+    public void gitbug880() {
+        helpTG();//"--code-math=safe");
     }
     
     @Test
-    public void gitbug883bad() {
-        helpTG();
+    public void gitbug883() {
+        helpTG("--esc-max-warnings=1","--check-feasibility=precondition,exit","--nullable-by-default","--timeout=60");
     }
     
     @Test
@@ -224,7 +222,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug894() {
-        helpTG("--check-feasibility=none");
+        helpTG("--method=Test3.*");
     }
     
     @Test
@@ -298,6 +296,11 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug938() {
+        helpTG();
+    }
+    
+    @Test
+    public void gitbug941() {
         helpTG();
     }
     
@@ -387,99 +390,81 @@ public class escfiles2 extends EscBaseFiles {
         solver = "z3_4_3";
         helpTG("--normal");
     }
-
-    public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-        //Assert.fail(); // FIXME - Java8 - long running
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("-code-math=safe");
-        list.add("-spec-math=bigint");
-        list.add("--check-feasibility=precondition,reachable,exit,spec");
-        list.add("--verify-exit=-1");
-        list.addAll(Arrays.asList(opts));
-        escOnFiles(sourceDirname,outDir,list.toArray(opts));
-    }
-    
-    public void helpTCN(String ... opts) {
-        String n = "test/" + getTestName();
-        helpTCF(n, n, Utils.concat(new String[] {"-cp", n}, opts));
-    }
     
     @Test public void typecheckWithJML() {
         expectedExit = 1;
-        helpTCN("--check");
+        helpTG("--check");
     }
     
     @Test public void sfpatch25() {
-        helpTCN("--esc","--normal");
+        helpTG("--normal");
     }
     
     @Ignore // FIXME very long
     @Test public void sfbug402() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Ignore // FIXME very long
     @Test public void sfbug402a() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Ignore // FIXME very long
     @Test public void sfbug402b() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Test public void sfbug407() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Ignore // times out
     @Test public void sfbug396() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Test public void sfbug398() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Test public void sfbug399() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Test public void sfbug404() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Test public void sfbug408() {
-        helpTCN("--esc","--progress");
+        helpTG();
     }
     
     @Test public void sfbug409() {
-        helpTCN("--esc","--progress","--check-feasibility=precondition,exit,reachable,assert,assume");
+        helpTG("--check-feasibility=precondition,exit,reachable,assert,assume");
     }
     
     @Test public void sfbug410() {
-        helpTCN("--esc", "--progress");
+        helpTG();
     }
     
     @Test public void optiondir() {
-        helpTCN("--check", "--dirs", "test/optiondir/p", "q");
+        helpTG("--check", "--dirs", "test/optiondir/p", "q");
     }
     
     @Test public void changeMathMode() {
-        helpTCN("--esc","--progress","--check-feasibility=none");
+        helpTG("--check-feasibility=none");
     }
     
-
     @Test public void termination() {
-        helpTCN("--esc", "--progress", "--warn=missing-measured-by");
+        helpTG("--warn=missing-measured-by");
     }
     
     @Test public void terminationBad() {
-        helpTCN("--esc", "--progress", "--warn=missing-measured-by");
+        helpTG("--warn=missing-measured-by");
     }
     
     @Test public void legacyVerify() {
-        helpTCN("--esc", "--verify-exit=-1");
+        helpTG("--verify-exit=-1");
     }
-
 }

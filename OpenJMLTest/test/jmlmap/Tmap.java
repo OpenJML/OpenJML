@@ -83,14 +83,14 @@
         //-RAC@ show s, s2.toString();
     }
     
-    public static void errors5() {
+    public static void errors5() { // FIXME - rac does not show the same error as ESC?
         Object[] a = new Object[5];
         //@ ghost var s = \map.<Object,Integer>empty();
         try {
             Object o = new Object();
             //@ check !s.equals(o);
         } catch (Exception e) {
-            //-ESC@ set System.out.println(e);
+            //@ print e;
         }
     }
     
@@ -113,7 +113,7 @@
         test5();
         test6();
         errors5();
-        //-ESC@ set System.out.println("END");
+        //@ print "END";
     }
 
 }

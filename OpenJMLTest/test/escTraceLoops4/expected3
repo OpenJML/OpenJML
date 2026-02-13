@@ -8,7 +8,7 @@ Starting proof of trace.m4() with prover !!!!
 test\escTraceLoops\trace.java:51: verify: The prover cannot establish an assertion (LoopDecreases) in method m4
         //@ decreases i-j;
             ^
-Completed proof of trace.m4() with prover !!!! - with verification failures
+Completed proof of trace.m4() with prover !!!! - with warnings
 Skipping proof of trace.m5() (excluded by -method)
 Skipping proof of trace.m6() (excluded by -method)
 Skipping proof of trace.mwhile() (excluded by -method)

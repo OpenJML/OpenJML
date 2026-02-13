@@ -16,20 +16,21 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.f() with prover !!!!
-test/recbug2/Test.java:5: warning: The prover cannot establish an assertion (Postcondition) in method f
+test/recbug2/Test.java:5: verify: The prover cannot establish an assertion (Postcondition) in method f
   public boolean f() { return true; }
                        ^
-test/recbug2/Test.java:3: warning: Associated declaration
+test/recbug2/Test.java:3: verify: Associated declaration
   //@ ensures \result == g();
       ^
 Completed proof of Test.f() with prover !!!! - with warnings
 Starting proof of Test.g() with prover !!!!
-test/recbug2/Test.java:9: warning: The prover cannot establish an assertion (Postcondition) in method g
+test/recbug2/Test.java:9: verify: The prover cannot establish an assertion (Postcondition) in method g
   public boolean g() { return true; }
                        ^
-test/recbug2/Test.java:7: warning: Associated declaration
+test/recbug2/Test.java:7: verify: Associated declaration
   //@ ensures \result == f();
       ^
 Completed proof of Test.g() with prover !!!! - with warnings
 Completed proving methods in Test
-8 warnings
+4 warnings
+4 verification failures

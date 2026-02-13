@@ -82,7 +82,7 @@ test\escTraceLoops\trace.java:16:  	LoopInvariantBeforeLoop assertion: j == i &&
 			VALUE: j == i && 0 <= i && i <= k	 === false
 test\escTraceLoops\trace.java:16:  Invalid assertion (LoopInvariantBeforeLoop)
 
-Completed proof of trace.m1() with prover !!!! - with verification failures
+Completed proof of trace.m1() with prover !!!! - with warnings
 Skipping proof of trace.m2() (excluded by -method)
 Skipping proof of trace.m3() (excluded by -method)
 Skipping proof of trace.m4() (excluded by -method)

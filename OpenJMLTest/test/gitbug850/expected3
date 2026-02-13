@@ -13,12 +13,12 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FindMaxElemImpl.FindMaxElemImpl() with prover !!!! - no warnings
 Starting proof of FindMaxElemImpl.maxElem(int[]) with prover !!!!
-test/gitbug850/FindMaxElemImpl.java:25: warning: The prover cannot establish an assertion (Assignable) in method maxElem: maxIndex
+test/gitbug850/FindMaxElemImpl.java:25: verify: The prover cannot establish an assertion (Assignable) in method maxElem: `THIS.maxIndex
                   maxIndex = k;
-                           ^
-test/gitbug850/FindMaxElem.java:6: warning: Associated declaration
+                  ^
+test/gitbug850/FindMaxElem.java:6: verify: Associated declaration
      //@ assignable maxIndex;
          ^
 Completed proof of FindMaxElemImpl.maxElem(int[]) with prover !!!! - with warnings
 Completed proving methods in FindMaxElemImpl
-2 warnings
+2 verification failures

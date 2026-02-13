@@ -2,13 +2,13 @@ Proving methods in BinaryTree
 Proving methods in BinaryTree.Node
 Skipping proof of BinaryTree.Node.Node() (Skipping BinaryTree.Node.Node because it does not match BinaryTree.Node.size)
 Starting proof of BinaryTree.Node.size(BinaryTree.Node) with prover !!!!
-test/gitbug814a/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: underflow in int sum
+test/gitbug814a/BinaryTree.java:14: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: underflow in int sum
             return(size(n.left)+1+size(n.right));
                                  ^
-test/gitbug814a/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+test/gitbug814a/BinaryTree.java:14: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
             return(size(n.left)+1+size(n.right));
                                  ^
-test/gitbug814a/BinaryTree.java:14: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
+test/gitbug814a/BinaryTree.java:14: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method size: overflow in int sum
             return(size(n.left)+1+size(n.right));
                                ^
 Completed proof of BinaryTree.Node.size(BinaryTree.Node) with prover !!!! - with warnings
@@ -31,4 +31,4 @@ Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between becau
 Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match BinaryTree.Node.size)
 Skipping proof of BinaryTree.btw(BinaryTree.Node,int,int) (Skipping BinaryTree.btw because it does not match BinaryTree.Node.size)
 Completed proving methods in BinaryTree
-3 warnings
+3 verification failures

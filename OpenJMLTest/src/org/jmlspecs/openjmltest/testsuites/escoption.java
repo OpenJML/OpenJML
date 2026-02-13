@@ -616,7 +616,7 @@ public class escoption extends EscBase {
         addOptions("--help=warn");
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
-        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-specs]\n",output());
+        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path]\n",output());
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 

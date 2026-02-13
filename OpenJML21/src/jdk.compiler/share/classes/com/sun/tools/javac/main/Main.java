@@ -125,7 +125,7 @@ public class Main {
      * @param name the name of this tool
      */
     public Main(String name) {
-        this.ownName = name;
+        this(name, null, null);
     }
 
     /**
@@ -134,8 +134,7 @@ public class Main {
      * @param out a stream to which to write messages
      */
     public Main(String name, PrintWriter out) {
-        this.ownName = name;
-        this.stdOut = this.stdErr = out;
+        this(name, out, out);
     }
 
     /**
@@ -148,6 +147,16 @@ public class Main {
         this.ownName = name;
         this.stdOut = out;
         this.stdErr = err;
+        // The problem with this code is that an interrupt kills the sleep that is watching for output from the solver.
+        // That interruption is caught and treated as a solver failure, which continues on to the next proof.
+//        Thread t = Thread.currentThread();
+//        Runtime.getRuntime().addShutdownHook(new Thread() {
+//            public void run() {
+//                t.interrupt();
+//                out.println("openjml: shutting down ...");
+//                System.exit(Main.Result.CANCELLED.exitCode);
+//            }
+//        });
     }
 
     /** Report a usage error.
@@ -363,6 +372,7 @@ public class Main {
             // Nasty.  If we've already reported an error, compensate
             // for buggy compiler error recovery by swallowing thrown
             // exceptions.
+            ex.printStackTrace(System.out);
             if (comp == null || comp.errorCount() == 0 || options.isSet("dev"))
                 bugMessage(ex);
             printArgsToFile = false; // OPENJML - changed to false

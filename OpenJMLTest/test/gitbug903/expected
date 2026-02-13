@@ -17,24 +17,36 @@ Feasibility check - at statement spec (after using summary) : OK
 Feasibility check - at program exit : OK
 Result of split AA is Verified
 Proof attempt for split AB
-test/gitbug903/Calculator2.java:41: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
+test/gitbug903/Calculator2.java:41: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
             output = (long)num1 % num2;
                                 ^
 Result of split AB is Not verified
 Proof attempt for split BA
-test/gitbug903/Calculator2.java:35: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
+test/gitbug903/Calculator2.java:35: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
             output = (long)num1 / num2;
                                 ^
 Result of split BA is Not verified
 Proof attempt for split BB
-test/gitbug903/Calculator2.java:35: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
+test/gitbug903/Calculator2.java:35: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
             output = (long)num1 / num2;
                                 ^
-test/gitbug903/Calculator2.java:41: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
+test/gitbug903/Calculator2.java:41: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method calculate
             output = (long)num1 % num2;
                                 ^
 Result of split BB is Not verified
 Composite result Not verified
 Completed proof of Calculator2.calculate(int,int,char) with prover !!!! - with warnings
+Starting proof of Calculator2.calculateOK(int,int,char) with prover !!!!
+Proof attempt for split AA
+Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec (after using summary) : OK
+Feasibility check - at statement spec (after using summary) : OK
+Feasibility check - at program exit : OK
+Result of split AA is Verified
+Proof attempt for split AB
+Result of split BB is Not verified
+Composite result Not verified
+Completed proof of Calculator2.calculateOK(int,int,char) with prover !!!! - with warnings
 Completed proving methods in Calculator2
-6 warnings
+2 warnings
+4 verification failures

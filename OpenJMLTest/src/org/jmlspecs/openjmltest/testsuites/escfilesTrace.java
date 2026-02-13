@@ -54,7 +54,6 @@ public class escfilesTrace extends EscBaseFiles {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("--esc");
-        args.add("--no-purity-check");
         args.add("-jmltesting");
         if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);

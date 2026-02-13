@@ -44,6 +44,11 @@ public class racfiles extends RacBase {
     public void racchoose() {
         helpCompileRun("T");
     }
+    
+    @Test
+    public void racJMLfunctionality() {
+        helpCompileRun("racJMLfunctionality");
+    }
 
     @Test
     public void rac1() {
@@ -545,6 +550,21 @@ public class racfiles extends RacBase {
     @Test
     public void choosex() {
         helpCompileRun("Demo");
+    }
+    
+    @Test
+    public void racprinting() {
+        helpCompileRun("PR", "--rac-java-checks");
+    }
+    
+    @Test
+    public void racbehaviors() {
+        helpCompileRun("Behaviors");
+    }
+    
+    @Test
+    public void byteQuant() {
+        helpCompileRun("Test");
     }
     
     @Test

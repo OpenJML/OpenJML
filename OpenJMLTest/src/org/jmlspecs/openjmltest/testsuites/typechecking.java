@@ -10,7 +10,6 @@ public class typechecking extends TCBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("--no-purity-check"); // TODO: eventually remove this?
     }
 
     /** Test something very simple with no errors*/

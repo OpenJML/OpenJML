@@ -115,7 +115,7 @@ public class compiler extends JmlTestSuite{
             assertEquals("The exit code is wrong",expectedExitCode,exitCode);
         } catch (AssertionError ex) {
             if (!print) {
-                this.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + berr.toString());
+                this.out.println("TEST: " + getTestName() + " exit=" + exitCode);
                 this.out.println("ACTUAL OUT: " + actualOutput);
                 this.out.println("ACTUAL ERR: " + errOutput);
             }
@@ -181,19 +181,18 @@ public class compiler extends JmlTestSuite{
                 {"-classpath","cpath"+z+"cpath2",
                         "-sourcepath","spath",
                         "--specs-path","A"+z+"$SY"+z+"$CP"+z+"$SP"+z+"Z",
-                        "--no-purity-check",
                         src + "testNoErrors/A.java"},
                 0,
                 1,
                 //                  "openjml: file not found: A.java" + eol +
                 //                  "Usage: openjml <options> <source files>" + eol +
                 //                  "use -help for a list of possible options" + eol +
-                "warning: A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
-                "warning: A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
-                );
+                "warning: [missing-specs-path] A specification path directory does not exist: A ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: cpath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: cpath2 ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: spath ($ROOT/OpenJML/OpenJMLTest)" + eol +
+                "warning: [missing-specs-path] A specification path directory does not exist: Z ($ROOT/OpenJML/OpenJMLTest)" + eol
+                );  // FIXME
     }
 
     /** Tests a recursive definition for the specspath */
@@ -266,7 +265,6 @@ public class compiler extends JmlTestSuite{
     public void testSourcePathX() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                        "--no-purity-check",  //"-Xlint:unchecked",
                         src + "testNoErrors/A.java"
                 },0,0
                 ,""
@@ -280,7 +278,6 @@ public class compiler extends JmlTestSuite{
     public void testJML() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                        "--no-purity-check",
                         src + "testNoErrors/A.jml"
                 },2,0
                 ,""
@@ -299,7 +296,6 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                 { "-sourcepath",src + "testJavaErrors2",
                         "--specs-path",src + "testJavaErrors2",
-                        "--no-purity-check",
                         src + "testJavaErrors2/A.java"
                 },1,1
                 ,src + "testJavaErrors2/A.java:2: error: incompatible types"
@@ -315,7 +311,6 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                 { "-sourcepath",src + "testJavaParseErrors",
                         "--specs-path",src + "testJavaParseErrors",
-                        "--no-purity-check",
                         src + "testJavaParseErrors/A.jml"
                 },2,1
                 ,""
@@ -334,7 +329,6 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                 { "-sourcepath",src + "testJavaErrors",
                         "--specs-path",src + "testJavaErrors",
-                        "--no-purity-check",
                         src + "testJavaErrors/A.java"
                 },0,0,
                 ""
@@ -348,7 +342,6 @@ public class compiler extends JmlTestSuite{
     public void testNoSource() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoSource",
-                        "--no-purity-check",
                         src + "testNoSource/A.jml"
                 },2,1
                 ,""
@@ -364,7 +357,6 @@ public class compiler extends JmlTestSuite{
     public void testNoErrors() throws Exception {
         helper(new String[]
                 { "-sourcepath"," ",
-                        "--no-purity-check",
                         src + "testNoErrors/A.jml"
                 },2,1
                 ,""
@@ -377,7 +369,6 @@ public class compiler extends JmlTestSuite{
     public void testNoSourceParseError() throws Exception {
         helper(new String[]
                 { "-sourcepath"," ",
-                        "--no-purity-check",
                         src + "testNoSourceParseError/A.jml"
                 },2,1
                 ,""
@@ -393,7 +384,6 @@ public class compiler extends JmlTestSuite{
     public void testNoSourceTypeError() throws Exception {
         helper(new String[]
                 { "-sourcepath"," ",
-                        "--no-purity-check",
                         src + "testNoSourceTypeError/A.jml"
                 },2,1
                 ,""
@@ -409,7 +399,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath", src + "testNoSourceWithClass",
                         "-sourcepath"," ",
                         "--specs-path", src + "testNoSourceWithClass",
-                        "--no-purity-check",
                         src + "testNoSourceWithClass/A.jml"
                 },2,1
                 ,""
@@ -494,11 +483,11 @@ public class compiler extends JmlTestSuite{
                         src + "testWarnings/A.java"
                 },1,0
                 ,""
-                ,"warning: A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                ,"warning: [missing-specs-path] A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
                 +"error: warnings found and -Werror specified"+eol
                 +"1 error"+eol
                 +"1 warning"+eol
-                );
+                );   // FIXME - duplicate 'warning' above
     }
 
     /** Tests using source path but including java spec files - may encounter
@@ -511,7 +500,6 @@ public class compiler extends JmlTestSuite{
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
                         "--specs-path","../../Specs/specs",
-                        "--no-purity-check",  //"-Xlint:unchecked",
                         src + "testNoErrors/A.java"
                 },0,0
                 ,""
@@ -568,7 +556,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         src + "testSuperRead/A.java"
                 },1,1
                 ,""
@@ -586,7 +573,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         src + "testKeys/D.java"
                 },0,0
                 ,""
@@ -601,7 +587,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         src + "testKeys/A.java"
                 },1,1
                 ,src + "testKeys/A.java:4: error: cannot find symbol"
@@ -616,7 +601,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         "-keys","K2",
                         src + "testKeys/A.java"
                 },1,1
@@ -632,7 +616,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         "-keys","K1",
                         src + "testKeys/A.java"
                 },0,1
@@ -647,7 +630,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         "-keys","K2",
                         src + "testKeys/B.java"
                 },1,1
@@ -663,7 +645,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         src + "testKeys/B.java"
                 },0,0
                 ,""
@@ -678,7 +659,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         "-keys","K3",
                         src + "testKeys/B.java"
                 },0,0
@@ -694,7 +674,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         "-keys","K4,K2",
                         src + "testKeys/C.java"
                 },0,0
@@ -710,7 +689,6 @@ public class compiler extends JmlTestSuite{
                 { "-classpath","bin", 
                         "-sourcepath",src,
                         "--specs-path",src,
-                        "--no-purity-check",
                         "-keys","K2,K3",
                         src + "testKeys/C.java"
                 },1,1
@@ -768,7 +746,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testModelBug() throws Exception {
         helper(new String[]
-                { "--no-purity-check",  //"-Xlint:unchecked",
+                {   //"-Xlint:unchecked",
                         src+"testModelBug/ModelClassExampleBug.java",
                         src+"testModelBug/ModelClassExampleBugSub.java",
                         src+"testModelBug/ModelClassExampleBugSub2.java"
@@ -1197,7 +1175,7 @@ public class compiler extends JmlTestSuite{
     @Test
     public void testModelBug2() throws Exception {
         helper(new String[]
-                { "--no-purity-check",  //"-Xlint:unchecked",
+                {   //"-Xlint:unchecked",
                         src+"testModelBug2/NonGenericModelClassExampleBug.java",
                         src+"testModelBug2/NonGenericModelClassExampleBugSub.java",
                 },0,0

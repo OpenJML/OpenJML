@@ -6,6 +6,6 @@ test\escTrace5\trace.java:8: verify: The prover cannot establish an assertion (P
 test\escTrace5\trace.java:4: verify: Associated declaration
     //@ ensures \result != 0;
         ^
-Completed proof of trace.m(int) with prover !!!! - with verification failures
+Completed proof of trace.m(int) with prover !!!! - with warnings
 Completed proving methods in trace
 2 verification failures

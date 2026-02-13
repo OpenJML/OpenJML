@@ -116,20 +116,20 @@ ${RTH} testJmlBadJava "$OJ -check -java" || RES=$(($RES+1))
 #echo "import org.jmlspecs.annotation.*; public class D { @Pure public static void main (@NonNull String... args) { System.out.println(\"END\");  } }" > D.java
 
 ## Checks a valid file
-${RTH} testOK1 "$OJ --no-purity-check --specs-path src src/B.java" || RES=$(($RES+1))
+${RTH} testOK1 "$OJ --specs-path src src/B.java" || RES=$(($RES+1))
 
 ## This checks verbose output - which changes too often to put in the 
 ## regular test suite
 if [[ "$COKENV" != "" ]] ; then
 ## Checks a valid file with jmlverbose
-${RTH} testOK3 "$OJ --no-purity-check --specs-path src src/B.java -jmlverbose" || RES=$(($RES+1))
+${RTH} testOK3 "$OJ --specs-path src src/B.java -jmlverbose" || RES=$(($RES+1))
 fi
 
 ## rac
 rm -rf rac
 mkdir -p rac
-${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
-${RTH} testRac "$OJ -rac --rac-show-source=line --no-purity-check -d rac -classpath src src/D.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=line -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=line -d rac -classpath src src/D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
 #echo java -classpath "rac${Z}${RT}" A
 java -classpath "rac${Z}${RT}" A  > racactual  2> racstderr
@@ -168,7 +168,7 @@ ${JV} -classpath "rac" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack-openjml || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 
-${RTH} testRac "$OJ -rac --rac-show-source=source --no-purity-check -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
+${RTH} testRac "$OJ -rac --rac-show-source=source -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
 java -classpath "rac${Z}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }
@@ -186,55 +186,55 @@ ANNOTATIONS=../../../JMLAnnotations
 #fi
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime4 "$OJ src/C.java --no-purity-check " || RES=$(($RES+1))
+${RTH} testRuntime4 "$OJ src/C.java " || RES=$(($RES+1))
 
 ## Checks using annotations with normal use - should be OK
-${RTH} testRuntime5 "$OJ src/D.java --no-purity-check " || RES=$(($RES+1))
+${RTH} testRuntime5 "$OJ src/D.java " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "$OJ --no-purity-check --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "$OJ --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc2 "$OJ --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## FIXME - is not platform-independent
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$OJ --no-purity-check --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=../../../Solvers/Solvers-macos/z3-4.3.1 || RES=$(($RES+1))
+${RTH} testEsc2 "$OJ --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=../../../Solvers/Solvers-macos/z3-4.3.1 || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
-${RTH} testPath1 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java " || RES=$(($RES+1))
+${RTH} testPath1 "$OJ -jmltesting ./src/testPath/data/TestPath.java " || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testPath2 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data" || RES=$(($RES+1))
+${RTH} testPath2 "$OJ -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data" || RES=$(($RES+1))
 
 ## Checks using specs path - finds specs but not super class
-${RTH} testPath3 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java --specs-path ./src/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath3 "$OJ -jmltesting ./src/testPath/data/TestPath.java --specs-path ./src/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path - finds specs but not super class
-${RTH} testPath4 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath4 "$OJ -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs " || RES=$(($RES+1))
 
 ## Checks using source path (specs and java) - finds specs and super class
-${RTH} testPath5 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
+${RTH} testPath5 "$OJ -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
 
 ## Checks using source path (java then specs) - finds super class; uses jml file for specs even though it is later on the search path
-${RTH} testPath6 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath6 "$OJ -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
-${RTH} testPath7 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath7 "$OJ -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path (specs and java) - finds specs and super class
-${RTH} testPath8 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
+${RTH} testPath8 "$OJ -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
 
 ## Checks using class path (java then specs) - finds super class; uses jml file for specs
-${RTH} testPath9 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath9 "$OJ -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class
-${RTH} testPath10 "$OJ -jmltesting --no-purity-check ./src/testPath/data/TestPath.java -classpath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath10 "$OJ -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
 
 
 ## Checks an invalid file
-${RTH} testCheck1 "$OJ -jmltesting --no-purity-check --specs-path src ./src/A.java" || RES=$(($RES+1))
+${RTH} testCheck1 "$OJ -jmltesting --specs-path src ./src/A.java" || RES=$(($RES+1))
 
 echo Testing testAPI
 ../releaseTests/testAPI/run &> ../releaseTests/testAPI/actual
@@ -249,55 +249,55 @@ export DIFFJMLDOC="diff -r "
 
 ## checks jmldoc prettyprinting
 rm -rf doc ./src/prettyprint/actual
-${RTH} testJmldocPP "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check ./src/prettyprint/data/PP.java " || { RES=$(($RES+1)); }
+${RTH} testJmldocPP "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp ./src/prettyprint/data/PP.java " || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/prettyprint/expected || { RES=$(($RES+1)); rm -rf ./src/prettyprint/actual; mv doc ./src/prettyprint/actual; }
 
 ## jmldoc check
 rm -rf doc ./src/jmldoc1/actual
-${RTH} testJmldoc "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -notimestamp --no-purity-check ./src/jmldoc1/data/*.java " || { RES=$(($RES+1)); }
+${RTH} testJmldoc "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -notimestamp ./src/jmldoc1/data/*.java " || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc1/expected || { RES=$(($RES+1)); rm -rf ./src/jmldoc1/actual; mv doc ./src/jmldoc1/actual; }
 
 ## jmldoc - checking the -java flag; uses the jmldoc3 input data
 rm -rf doc ./src/jmldoc2/actual
 export NOSTDDOCLET=1
-${RTH} testJmldoc2 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -java -d doc -public -notimestamp --no-purity-check ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc2 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -java -d doc -public -notimestamp ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc2/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc2/actual; }
 export NOSTDDOCLET=
 
 ## jmldoc - checking the -public flag
 rm -rf doc ./src/jmldoc3/actual
-${RTH} testJmldoc3 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -public -notimestamp --no-purity-check ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc3 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -public -notimestamp ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc3/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc3/actual; }
 
 ## jmldoc - checking the -protected flag - purposely uses the jmldoc3 data
 rm -rf doc ./src/jmldoc4/actual
-${RTH} testJmldoc4 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -protected -notimestamp --no-purity-check ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc4 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -protected -notimestamp ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc4/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc4/actual; }
 
 ## jmldoc - checking the -package flag - purposely uses the jmldoc3 data
 rm -rf doc ./src/jmldoc5/actual
-${RTH} testJmldoc5 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -package -notimestamp --no-purity-check ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc5 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -package -notimestamp ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc5/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc5/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ./src/jmldoc6/actual
-${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
+${RTH} testJmldoc6 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp ./src/jmldoc3/data/*.java ./src/jmldoc3/data/tp/*.java" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc6/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc6/actual; }
 
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ./src/jmldoc7/actual
-${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check -dir ./src/jmldoc3/data -dir ./src/jmldoc3/data/tp" || { RES=$(($RES+1)); }
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -dir ./src/jmldoc3/data -dir ./src/jmldoc3/data/tp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc7/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc7/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ./src/jmldoc7/actual
-${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp --no-purity-check -dirs ./src/jmldoc3/data ./src/jmldoc3/data/tp" || { RES=$(($RES+1)); }
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -notimestamp -dirs ./src/jmldoc3/data ./src/jmldoc3/data/tp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc7/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc7/actual; }
 
 ## jmldoc - checking the -private flag - purposely uses the jmldoc3 data
 rm -rf doc ./src/jmldoc7/actual
-${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private --no-purity-check -dirs ./src/jmldoc3/data ./src/jmldoc3/data/tp  -notimestamp" || { RES=$(($RES+1)); }
+${RTH} testJmldoc7 "java -classpath openjml.jar org.jmlspecs.openjml.jmldoc.Main -d doc -private -dirs ./src/jmldoc3/data ./src/jmldoc3/data/tp  -notimestamp" || { RES=$(($RES+1)); }
 ${DIFFJMLDOC} -x '.svn' -x 'package-tree.html' doc ./src/jmldoc7/expected || { RES=$(($RES+1)); mv doc ./src/jmldoc7/actual; }
 
 

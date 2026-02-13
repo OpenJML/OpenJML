@@ -42,7 +42,6 @@ public abstract class TCBase extends JmlTestSuite {
         addOptions("--source-path",  testSourcePath);
         addOptions("--class-path",   "src" + z + testSourcePath);
         addOptions("-Xlint:unchecked");
-        addOptions(JmlOption.PURITYCHECK.optionName()+"=false");    // FIXME - get rid of this eventually
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
     }

@@ -66,6 +66,6 @@ test\escTraceLoops\trace.java:198:  	//@ decreases j;
 test\escTraceLoops\trace.java:198: verify: The prover cannot establish an assertion (LoopDecreases) in method mforeach4
         //@ decreases j;
             ^
-Completed proof of trace.mforeach4(int[]) with prover cvc4 - with verification failures
+Completed proof of trace.mforeach4(int[]) with prover cvc4 - with warnings
 Completed proving methods in trace
 1 warning

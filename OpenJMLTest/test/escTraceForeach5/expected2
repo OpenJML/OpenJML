@@ -48,6 +48,6 @@ test\escTraceLoops\trace.java:209:  	Loop test
 test\escTraceLoops\trace.java:208: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
         //@ decreases -j;
             ^
-Completed proof of trace.mforeach5(int[]) with prover cvc4 - with verification failures
+Completed proof of trace.mforeach5(int[]) with prover cvc4 - with warnings
 Completed proving methods in trace
 1 warning

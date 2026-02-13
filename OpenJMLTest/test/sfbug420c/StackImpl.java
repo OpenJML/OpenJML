@@ -54,9 +54,9 @@ public class StackImpl implements Stack {
 		var b3 = s.push(2);
 		//@ assume b1 & b2 & b3;
 		//@ assert s.count() == 3;
-		System.out.println(s.itemAt(1));
-		System.out.println(s.itemAt(2));
-		System.out.println(s.itemAt(3));
+//		System.out.println(s.itemAt(1));
+//		System.out.println(s.itemAt(2));
+//		System.out.println(s.itemAt(3));
 	}
 
 }

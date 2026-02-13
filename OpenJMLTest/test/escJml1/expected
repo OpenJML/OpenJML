@@ -4,9 +4,9 @@ Completed proof of StorageParameters.StorageParameters(long[]) with prover !!!! 
 Starting proof of StorageParameters.getConfigurationSizes() with prover !!!!
 Completed proof of StorageParameters.getConfigurationSizes() with prover !!!! - no warnings
 Starting proof of StorageParameters.main(String...) with prover !!!!
-test/escJml1/StorageParameters.java:20: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method main: c
+test/escJml1/StorageParameters.java:20: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method main: c
         long[] c = a.getConfigurationSizes();  // Error - c is non_null by default
                ^
 Completed proof of StorageParameters.main(String...) with prover !!!! - with warnings
 Completed proving methods in StorageParameters
-1 warning
+1 verification failure

@@ -42,8 +42,8 @@ QuerySecret.testFBadParse4
 QuerySecret.testFInNonSecret
 QuerySecret.testFInSecret
 QuerySecret.testFInSecret2
-QuerySecret.testInvariant
-QuerySecret.testMethodCall
+QuerySecret.testInvariantSecret
+QuerySecret.testMethodCallSecret
 QuerySecret.testNoDG
 QuerySecret.testNoDG2
 QuerySecret.testNoOuter
@@ -124,64 +124,52 @@ escfiles.datatype		#       test of not yet implemented recursive data types (cf.
 escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
-escfiles.sfbug420X
-#escfiles.sfbug420e
-escfiles.sfbug420eOK
+escfiles3.sfbug420X
+#escfiles3.sfbug420e
+escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
 escfiles2.escRawding2
 escfiles2.escRawdingA
 escfiles2.escRawdingB
-escfiles2.gitbug450a		#	feasibility problems
-escfiles2.gitbug450b		#	feasibility problems
+escfiles2.gitbug450b		#	ArrayList contains
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfiles2.gitbug876     # PrimeChecker timeout
+escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem or invariant problem
-escfileslist1.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
+escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
-escfileslist2.test[gitbug778a]  #   Needs to handle bit-vector and Int together
-runscripts.gitbug784            #   apache commons library
-escfileslist2.test[gitbug785]   #   Google guava library
-escfileslist2.test[gitbug878]   #   problem with type inference
-escfileslist2.test[gitbug880]   #   Needs better reasoning about String length -- result OK standalone but not in runtests
-escfileslist2.test[gitbug882]	#	Java complaint about uninitialized variable
+escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
+runscripts1.gitbug784            #   apache commons library
+escfileslist3.test[gitbug785]   #   Google guava library
+escfileslist3.test[gitbug878]             #   problem with type inference
+#escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
+escfileslist3.test[gitbug897]   # substring and loop
 escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
 escfileslist3.test[staticInit]  #       Needs implementation of static initialization
-escfileslist3.test[textBlock4]  #       Handling of String, timeout
-escfileslist3.test[textBlock4b]	#	Handling of String, timeout
 escfileslist3.test[verifythis-2019-1]
+escfileslist3.test[gitbug908]   # THe weird OJ= problem
 escgeneric.testGenericType1
 escgeneric.testTypeOf
 escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
 
-feasibility.ffinally
-feasibility.floopbreak
-feasibility.floopcontinue
-feasibility.fspecC
-
 escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
 #generics.testBinaryGeneric3c
-primesc.locsetTests2
+primesc1.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
-#escfiles2.gitbug883    # Matrix add 
-escfiles2.gitbug883bad #    Needs better handling of 2D array
-escfiles2.gitbug894    # unsuccessful specs for uniqueCharString
-escfileslist1.test[choose-repeat]
-escfileslist1.test[gitbug489]   # try with resources and exceptions in finally block
-escfileslist3.test[gitbug897]   # substring and loop
-escfileslist2.test[gitbug763]   # specs for string handling problem
-escfileslist2.test[gitbug768]   # problem with invariants
 
-escfiles2.gitbug890 # Array.equals problem
+escfileslist1.test[choose-repeat]
+escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
+
 escfiles2.gitbug932 # mistranslation of super in specs
 racfiles.gitbug932  # mistranslation of super in specs
 
@@ -189,5 +177,5 @@ SFBugs.gitbug651  # not yet working -- problems with Map specifications
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
-SFBugs.gitbug444a               # inadequate specifications in the given problem
-primesc.jmlreal                 # feasibility check times out
+primesc2.jmlreal                 # feasibility check times out
+escwebexamples.HeapSort

@@ -1636,7 +1636,8 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
             currentBlock.statements.add(that);
         } else if (that.clauseType == assumeClause || that.clauseType == assertClause || that.clauseType == checkClause) {
             //System.out.println("BBTRANSLATING " + that);
-            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,convertExpr(that.expression));
+            var ex = convertExpr(that.expression);
+            JmlStatementExpr st = M.at(that.pos()).JmlExpressionStatement(that.clauseType.keyword(),that.clauseType,that.label,ex);
             st.id = that.id;
             st.optionalExpression = convertExpr(that.optionalExpression);
             st.associatedPos = that.associatedPos;
@@ -1976,20 +1977,23 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JCExpression index = result;
         JCIdent arr = null;
         if (types.isJmlType(indexed.type)) {
-        	// continue;
+            // index operation on JML type;
+            result = new JmlBBArrayAccess(arr,indexed,index);
+            result.type = that.type;
         } else {
-        	// Standard Java array
-        	arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
+            // Standard Java array
+            arr = getArrayIdent(JmlTypes.instance(context).indexType(that.indexed.type),that.type,that.pos);
+            if (that instanceof JmlBBArrayAccess) {
+                that.indexed = indexed;
+                that.index = index;
+                ((JmlBBArrayAccess)that).arraysId = arr;
+                result = that;
+            } else {
+                utils.warning(that,"jml.internal","Did not expect this node in BasicBlocker2.visitIndexed: " + that + " " + that.getClass());
+                result = new JmlBBArrayAccess(arr,indexed,index);
+                result.type = that.type;
+            }
         }
-    	if (that instanceof JmlBBArrayAccess) {
-    		that.indexed = indexed;
-    		that.index = index;
-    		((JmlBBArrayAccess)that).arraysId = arr;
-    		result = that;
-    	} else {
-    		utils.warning(that,"jml.internal","Did not expect this node in BasicBlocker2.visitIndexed: " + that + " " + that.getClass());
-    		result = new JmlBBArrayAccess(arr,indexed,index);
-    	}
     }
 
 

@@ -1,0 +1,21 @@
+Proving methods in Amount
+Starting proof of Amount.Amount(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Amount.Amount(int,int) with prover !!!! - no warnings
+Starting proof of Amount.negate() with prover !!!!
+test/gitbug567/Amount.java:28: verify: The prover cannot establish an assertion (Precondition) in method negate
+        return new Amount(-euros,-cents);
+               ^
+test/gitbug567/Amount.java:22: verify: Associated declaration
+    public Amount(int euros, int cents){
+           ^
+test/gitbug567/Amount.java:16: verify: Precondition conjunct is false: euros < 0 ==> cents <= 0
+    //@ requires euros < 0 ==> cents <= 0;
+                           ^
+test/gitbug567/Amount.java:28: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method negate: int negation
+        return new Amount(-euros,-cents);
+                          ^
+Completed proof of Amount.negate() with prover !!!! - with warnings
+Completed proving methods in Amount
+4 verification failures

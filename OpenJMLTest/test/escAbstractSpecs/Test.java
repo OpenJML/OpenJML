@@ -26,7 +26,7 @@ public class Test {
 	}
 	
 	static public class BB extends B {
-		//@ represents theString = "a";
+		//@ represents modelString = "a";
 		
 		@Override
 		public String toString() { return "a"; }

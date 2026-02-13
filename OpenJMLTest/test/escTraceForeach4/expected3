@@ -206,7 +206,7 @@ test\escTraceLoops\trace.java:198:  	LoopDecreases assertion: _JML__tmp118 < _JM
 			VALUE: _JML__tmp118 < _JML__tmp115	 === false
 test\escTraceLoops\trace.java:198:  Invalid assertion (LoopDecreases)
 
-Completed proof of trace.mforeach4(int[]) with prover !!!! - with verification failures
+Completed proof of trace.mforeach4(int[]) with prover !!!! - with warnings
 Skipping proof of trace.mforeach5(int[]) (excluded by -method)
 Completed proving methods in trace
 1 warning

@@ -13,55 +13,55 @@ Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVec
 Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,boolean) (excluded by -method)
 Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.ArrayFieldVector<T>,org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:315: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method ArrayFieldVector:  overflow in int sum
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:315: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ArrayFieldVector:  overflow in int sum
         data = MathArrays.buildArray(field, v1Data.length + v2Data.length);
                                                           ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:316: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:316: verify: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
         System.arraycopy(v1Data, 0, data, 0, v1Data.length);
                         ^
-$SPECS/java/lang/System.jml:314: warning: Associated declaration
+$SPECS/java/lang/System.jml:314: verify: Associated declaration
     public static native void arraycopy(/*@nullable*/ Object src,
                               ^
-$SPECS/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
+$SPECS/java/lang/System.jml:150: verify: Precondition conjunct is false: src == null || dest == null
       @    requires src == null || dest == null;
                                 ^
-$SPECS/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
+$SPECS/java/lang/System.jml:155: verify: Precondition conjunct is false: (src instanceof byte[])
            requires (src instanceof byte[]) &&
                     ^
-$SPECS/java/lang/System.jml:209: warning: Precondition conjunct is false: (dest instanceof Object[])
+$SPECS/java/lang/System.jml:209: verify: Precondition conjunct is false: (dest instanceof Object[])
                  (dest instanceof Object[]) &&
                  ^
-$SPECS/java/lang/System.jml:220: warning: Precondition conjunct is false: (src instanceof int[])
+$SPECS/java/lang/System.jml:220: verify: Precondition conjunct is false: (src instanceof int[])
         requires (src instanceof int[]) &&
                  ^
-$SPECS/java/lang/System.jml:232: warning: Precondition conjunct is false: (dest instanceof long[])
+$SPECS/java/lang/System.jml:232: verify: Precondition conjunct is false: (dest instanceof long[])
                  (dest instanceof long[]) &&
                  ^
-$SPECS/java/lang/System.jml:243: warning: Precondition conjunct is false: (dest instanceof char[])
+$SPECS/java/lang/System.jml:243: verify: Precondition conjunct is false: (dest instanceof char[])
                  (dest instanceof char[]) &&
                  ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:317: warning: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:317: verify: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
         System.arraycopy(v2Data, 0, data, v1Data.length, v2Data.length);
                         ^
-$SPECS/java/lang/System.jml:314: warning: Associated declaration
+$SPECS/java/lang/System.jml:314: verify: Associated declaration
     public static native void arraycopy(/*@nullable*/ Object src,
                               ^
-$SPECS/java/lang/System.jml:150: warning: Precondition conjunct is false: src == null || dest == null
+$SPECS/java/lang/System.jml:150: verify: Precondition conjunct is false: src == null || dest == null
       @    requires src == null || dest == null;
                                 ^
-$SPECS/java/lang/System.jml:155: warning: Precondition conjunct is false: (src instanceof byte[])
+$SPECS/java/lang/System.jml:155: verify: Precondition conjunct is false: (src instanceof byte[])
            requires (src instanceof byte[]) &&
                     ^
-$SPECS/java/lang/System.jml:208: warning: Precondition conjunct is false: (src instanceof Object[])
+$SPECS/java/lang/System.jml:208: verify: Precondition conjunct is false: (src instanceof Object[])
         requires (src instanceof Object[]) &&
                  ^
-$SPECS/java/lang/System.jml:221: warning: Precondition conjunct is false: (dest instanceof int[])
+$SPECS/java/lang/System.jml:221: verify: Precondition conjunct is false: (dest instanceof int[])
                  (dest instanceof int[]) &&
                  ^
-$SPECS/java/lang/System.jml:232: warning: Precondition conjunct is false: (dest instanceof long[])
+$SPECS/java/lang/System.jml:232: verify: Precondition conjunct is false: (dest instanceof long[])
                  (dest instanceof long[]) &&
                  ^
-$SPECS/java/lang/System.jml:242: warning: Precondition conjunct is false: (src instanceof char[])
+$SPECS/java/lang/System.jml:242: verify: Precondition conjunct is false: (src instanceof char[])
         requires (src instanceof char[]) &&
                  ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.linear.FieldVector<T>,org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
@@ -127,4 +127,4 @@ Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.checkIndices(
 Completed proving methods in org.apache.commons.math3.linear.ArrayFieldVector
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
-17 warnings
+17 verification failures

@@ -40,6 +40,7 @@ public class escfilesmodels extends EscBaseFiles {
         a.add("--code-math=safe");
         a.add("--spec-math=bigint");
         a.add("--check-feasibility=precondition,reachable,exit,spec");
+        a.add("--source-path=$SY");
         a.add("--progress");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
@@ -84,7 +85,6 @@ public class escfilesmodels extends EscBaseFiles {
     @Ignore // times out
     @Test public void gitbug584() {
         expectedExit = 0;
-        helpTCG("-purityCheck");
     }
     
     @Test @Ignore  // Needs specs about double

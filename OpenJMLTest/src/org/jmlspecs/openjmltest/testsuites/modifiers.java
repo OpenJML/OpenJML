@@ -1335,14 +1335,24 @@ public class modifiers extends TCBase {
     
     // TODO - test initializers
 
-    // FIXME
-    @Test public void testBinaryMods() {
+    // Reports no errors because it does not reference Math
+    @Test public void testBinaryModsNoRef() {
         addMockFile("$A/java/lang/Math.jml",
                 "package java.lang; public final class Math {\n"
                 +"//@ spec_public spec_protected\n"
                 +"public int addExact(int x, int y);}");
         helpTCText("A.java","public class A{ A(int i) {} \n" +
                 "  boolean m() { return new Object().equals(null); } }"
+                );
+    }
+    
+    @Test public void testBinaryMods() {
+        addMockFile("$A/java/lang/Math.jml",
+                "package java.lang; public final class Math {\n"
+                +"//@ spec_public spec_protected\n"
+                +"public int addExact(int x, int y);}");
+        helpTCText("A.java","public class A{ A(int i) {} \n" +
+                "  boolean m() { int i = Math.addExact(5,6); } }"
                 ,"/$A/java/lang/Math.jml:2: error: A declaration may not be both spec_public and spec_protected",5
                 ,"/$A/java/lang/Math.jml:2: error: Associated declaration: /$A/java/lang/Math.jml:2:", 17
                 ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
@@ -1403,7 +1413,7 @@ public class modifiers extends TCBase {
         expectedExit = 0;
         helpTCText("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @org.jmlspecs.annotation.Pure on class A", 8);
+                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @Pure on class A", 8);
     }
 
     @Test

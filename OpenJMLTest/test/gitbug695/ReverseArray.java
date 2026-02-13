@@ -54,11 +54,13 @@ public class ReverseArray {
       @*/
     public /*@ pure @*/ static String arr2str(char[] a) {
         String res = "";
-        //@ maintaining res.length() <= a.length;
+        //@ loop_assigns res;
+        //@ maintaining 0 <= \count <= a.length;
         //@ maintaining res.length() == \count;
-        //@ maintaining (\forall int j; 0 <= j < res.length(); res.charAt(j) == a[j]);
+        //@ maintaining (\forall int j; 0 <= j < \count; res.charAt(j) == a[j]);
         for (char c : a) {
-            res += c;
+            String x = res + c;
+            res = x;
         }
         return res;
     }

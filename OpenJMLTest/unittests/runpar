@@ -25,6 +25,7 @@ function ctrl_c() {
     exit 1
 }
 
+echo START `date`
 cd $(dirname "$BASH_SOURCE")
 rm -f the.jml.lock unittestframework
 
@@ -75,8 +76,10 @@ fi
 echo Completed
 sync
 set -o pipefail
+echo MID `date`
 ./retry -run  2>&1 | tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
 ERR=$?
+echo END `date`
 if [ $ERR -eq 0 ]; then 
     echo Completed all retrys successfully
 else

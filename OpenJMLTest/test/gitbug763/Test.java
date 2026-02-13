@@ -6,7 +6,7 @@ public class Test {
 //------step1
 //@ ensures  \result.length() == \old(binary_str.length()+lengthDiff);
 //------step2
-//@ ensures \result.substring(\old(lengthDiff)).equals(\old(binary_str));
+//@ ensures \result.chars.tail(\old(lengthDiff)) == \old(binary_str.chars);
 //------step3 
 // (This will be added to the specification after the the error will be solved:) ensures \forall int j; 0 <= j < \old(lengthDiff); \result.charAt(j) == '0';
 //@ writes \nothing;
@@ -19,7 +19,7 @@ static String lengthBalancerAddingZeroes(String binary_str, int lengthDiff)
 	//------step1
 	//@ loop_invariant binary_str.length() == \old(binary_str, \Pre ).length()+ i;
 	//------step2
-	//@ loop_invariant binary_str.substring(i).equals(\old(binary_str));
+	//@ loop_invariant binary_str.chars.tail(i) == \old(binary_str.chars);
 	//------step3
 	//@ loop_invariant (i>0) ==> (binary_str.charAt(i-1) == '0');
 	//@ loop_invariant (i>0) ==> (binary_str.charAt(0) == '0');
@@ -28,7 +28,7 @@ static String lengthBalancerAddingZeroes(String binary_str, int lengthDiff)
     for (int i = 0; i < lengthDiff; i++)  
     {  
         //@ ghost int len = binary_str.length();
-        binary_str = "0" + binary_str;  
+        binary_str = "0" + binary_str;  //@ check binary_str.chars.length > 0;
         //@ assert binary_str.charAt(0) == '0' && binary_str.charAt(i) == '0';
         //@ assert \forall int k; 1 <= k <= i; binary_str.charAt(k) == \old(binary_str, \LoopBody).charAt(k-1);
     }  
@@ -42,7 +42,7 @@ static String lengthBalancerAddingZeroes(String binary_str, int lengthDiff)
 //------step1
 //@ ensures  \result.length() == len+lengthDiff;
 //------step2
-//@ ensures \result.substring(lengthDiff).equals(binary_str);
+//@ ensures \result.chars.tail(lengthDiff) == binary_str.chars;
 //------step3 
 //(This will be added to the specification after the the error will be solved:) ensures \forall int j; 0 <= j < lengthDiff; \result.charAt(j) == '0';
 //@ writes \nothing;
@@ -57,7 +57,7 @@ static String lengthBalancerAddingZeroesB(String binary_str, int lengthDiff)
   //------step1
   //@ loop_invariant binary_str.length() == initialLength + i;
   //------step2
-  //@ loop_invariant binary_str.substring(i).equals(initialStr);
+  //@ loop_invariant binary_str.chars.tail(i) == initialStr.chars;
   //------step3
   //@ loop_invariant (i>0) ==> (binary_str.charAt(i-1) == '0');
   //@ loop_invariant (i>0) ==> (binary_str.charAt(0) == '0');

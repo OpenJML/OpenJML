@@ -8,7 +8,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
-import org.jmlspecs.openjml.JmlTree.JmlStatementShow;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExprList;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -24,8 +24,10 @@ import com.sun.tools.javac.util.ListBuffer;
 public class ShowStatement extends JmlExtension {
 
     public static final String showID = "show";
+    public static final String printID = "print";
     
     public static final IJmlClauseKind showClause = new JmlStatementType(showID);
+    public static final IJmlClauseKind printClause = new JmlStatementType(printID);
 
     public static class JmlStatementType extends IJmlClauseKind.Statement {
         public JmlStatementType(String keyword) { super(keyword); }
@@ -37,31 +39,35 @@ public class ShowStatement extends JmlExtension {
             int pe = parser.endPos();
             init(parser);
             if (JmlOption.langJML.equals(JmlOption.LANG.value(parser.context))) {
-                utils.warning(pp,"jml.not.strict","show statement");
+                utils.warning(pp,"jml.not.strict",keyword + " statement");
             }
             
             parser.nextToken();
 
             ListBuffer<JCExpression> expressions = new ListBuffer<>();
             if (parser.token().kind != TokenKind.SEMI && !parser.isEndJml()) {
-            	do {
-            		int n = log.nerrors;
-            		JCExpression t = parser.parseExpression();
-            		if (n != log.nerrors) {
-            			parser.skipToSemi();
-            			break;
-            		}
-            		expressions.add(t);
+                do {
+                    int n = log.nerrors;
+                    JCExpression t = parser.parseExpression();
+                    if (n != log.nerrors) {
+                        parser.skipToSemi();
+                        break;
+                    }
+                    expressions.add(t);
                 } while (parser.acceptIf(TokenKind.COMMA));
             }
-            JmlStatementShow st = toP(parser.maker().at(pp).JmlStatementShow(showClause,expressions.toList()));
+            JmlStatementExprList st = toP(parser.maker().at(pp).JmlStatementShow(clauseType,expressions.toList()));
             wrapup(st, clauseType, true, true);
             return st;
         }
         
         @Override
-        public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-            // TODO Auto-generated method stub
+        public Type typecheck(JmlAttr attr, JCTree stat, Env<AttrContext> env) {
+            if (stat instanceof JmlStatementExprList ps) {
+                for (var e: ps.expressions) {
+                    attr.attribExpr(e, env, Type.noType);
+                }
+            }
             return null;
         }
     }

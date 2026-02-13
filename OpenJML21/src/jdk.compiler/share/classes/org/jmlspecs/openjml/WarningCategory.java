@@ -21,25 +21,38 @@ public class WarningCategory {
         }
         return w;
     }
+    
+    public static class Key implements Comparable<Key> { // Comparable needed for the TreeSet
+        public String name;
+        public Key(String s) { name = s; }
+        public String toString() { return name; }
+        public boolean equals(Object o) { return o instanceof Key n && name.equals(n.toString()); }
+        public int hashCode() { return name.hashCode(); }
+        public int compareTo(Key k) { return name.compareTo(k.name); }
+    }
 
     // Warning-keys
-    public static final String IMPLICIT_EVERYTHING = "implicit-everything";
-    public static final String MISSING_MEASURED_BY = "missing-measured-by";
-    public static final String MISSING_SPECS = "missing-specs";
-    public static final String MISSING_SEMICOLON = "missing-semicolon";
-    public static final String LITERAL_DIV_BY_ZERO = "literal-divide-by-zero";
+    public static final Key NULL = null;
+    public static final Key IMPLICIT_EVERYTHING = new Key("implicit-everything");
+    public static final Key MISSING_MEASURED_BY = new Key("missing-measured-by");
+    public static final Key MISSING_SPECS = new Key("missing-specs");
+    public static final Key MISSING_SPECS_PATH = new Key("missing-specs-path");
+    public static final Key MISSING_SEMICOLON = new Key("missing-semicolon");
+    public static final Key LITERAL_DIV_BY_ZERO = new Key("literal-divide-by-zero");
 
     public static enum WarnAction { QUIET, WARN, ERROR };
-    public static Map<String, WarnAction> init(Map<String, WarnAction> map) {
+    public static Map<Key, WarnAction> init(Map<Key, WarnAction> map) {
         if (map == null) map = new java.util.TreeMap<>();
         map.put(MISSING_SPECS, WarnAction.QUIET);
+        map.put(MISSING_SPECS_PATH, WarnAction.WARN);
         map.put(IMPLICIT_EVERYTHING, WarnAction.WARN);
         map.put(MISSING_MEASURED_BY, WarnAction.QUIET);
+        map.put(MISSING_SEMICOLON, WarnAction.QUIET);
         map.put(LITERAL_DIV_BY_ZERO, WarnAction.WARN);
         return map;
     }
 
-    public Map<String,WarnAction> warningKeys;
+    public Map<Key,WarnAction> warningKeys;
     {
         warningKeys = init(null);
     }
@@ -52,12 +65,20 @@ public class WarningCategory {
         for (var k: warningKeys.keySet()) warningKeys.put(k, a);
     }
     
+    public boolean containsKey(String s) {
+        return warningKeys.get(new Key(s)) != null;
+    }
+    
+    public void put(String s, WarnAction action) {
+        warningKeys.put(new Key(s), action);
+    }
+    
     public String list() {
         var sb = new java.lang.StringBuilder();
         sb.append("Value\tDefault\tKey").append("\n");
         var defaultKeys = init(null);
-        TreeSet<String> keys = new TreeSet<>(warningKeys.keySet());
-        for (String k: keys) {
+        TreeSet<Key> keys = new TreeSet<>(warningKeys.keySet());
+        for (Key k: keys) {
             sb.append(warningKeys.get(k)).append("\t").append(defaultKeys.get(k)).append("\t").append(k).append("\n");
         }
         return sb.toString();
@@ -68,7 +89,8 @@ public class WarningCategory {
                 "Implemented warning keys: " + WarningCategory.instance(context).warningKeys.keySet();
     }
 
-    public WarnAction action(String key) {
+    public WarnAction action(Key key) {
+        if (key == null) return WarnAction.WARN;
         WarnAction b = warningKeys.get(key);
         if (b != null) {
             return b;
@@ -77,4 +99,7 @@ public class WarningCategory {
         return WarnAction.WARN;
     }
 
+    public static boolean isNotQuiet(Context context, Key key) {
+        return instance(context).action(key) != WarnAction.QUIET;
+    }
 }

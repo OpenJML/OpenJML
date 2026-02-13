@@ -401,8 +401,8 @@ public abstract class JmlTestSuite {
      */
     public void collectSystemOutput(boolean collect) {
         if (collect) {
+            //System.out.println("STARTING COLLECTING " + (bout == null));
             if (bout != null) return; // Already collecting
-            //System.out.println("STARTING COLLECTING");
             recordedOut = null;
             recordedErr = null;
             savederr = System.err;
@@ -410,19 +410,20 @@ public abstract class JmlTestSuite {
             System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
             System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
             this.out = System.out;
-            //savedout.println("STARTING COLLECTING-A");
+            //savedout.println("STARTING COLLECTING-A " + (berr!=null));
         } else {
+            //savedout.println("ENDING COLLECTING " + (bout != null) + " " + (berr!=null));
             if (bout == null) return; // Already not collecting
             System.err.flush();
             System.out.flush();
             System.setErr(savederr);
             System.setOut(savedout);
-            //System.out.println("ENDED COLLECTING-A " + recordedOut);
+            //System.out.println("ENDED COLLECTING-A " + (bout != null) + " " + (berr!=null) + " " + recordedOut);
             this.out = System.out;
             recordedErr = berr.toString();
             recordedOut = bout.toString();
             bout = berr = null;
-            //System.out.println("ENDED COLLECTING " + recordedOut);
+            //System.out.println("ENDED COLLECTING " + recordedOut + " " + (berr!=null) + " ##" + recordedErr + "##");
         }
     }
     
