@@ -1295,7 +1295,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     protected void nonPureWarning(DiagnosticPosition pos, MethodSymbol msym) {
-        //if (msym.owner.toString().startsWith("java.")) return; // FIXME - need to fix type parameters in binary files
         utils.warning(pos,"jml.non.pure.method",utils.qualifiedMethodSig(msym));
     }
    
@@ -4678,8 +4677,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (jmlenv.inPureEnvironment && tree.meth.type != null && tree.meth.type.getTag() != TypeTag.ERROR) {
             // Check that the method being called is pure enough
             if (msym != null) {
-                boolean isAllowed = specs.isSpecOKMethod(msym);
-                //isAllowed |= msym.owner.toString().startsWith("java."); // FIXME - edit libraries o avoid this
+                boolean isAllowed = specs.isSpecOKMethod(msym); 
+                isAllowed |= isPureMethod(msym);  // FIXME - decide whether to allow (non-deterministic) pure methods in specs
                 if (!isAllowed) {
                     // FIXME - really need to check for recursion at any level. Alternately just make missing purity always an error
                     if (enclosingMethodEnv.enclMethod.sym == msym) {
