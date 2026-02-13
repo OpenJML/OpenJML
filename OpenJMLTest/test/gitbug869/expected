@@ -1,21 +1,21 @@
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: <identifier> expected
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: <identifier> expected
     //@ equires false; // Use == and not .equals for comparing \\real values
                ^
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: illegal start of type
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: illegal start of type
     //@ equires false; // Use == and not .equals for comparing \\real values
                 ^
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: <identifier> expected
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: <identifier> expected
     //@ equires false; // Use == and not .equals for comparing \\real values
                      ^
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: A JML field declaration must be marked either ghost or model: <error> (owner: org.jmlspecs.lang.internal.real)
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: A JML field declaration must be marked either ghost or model: <error> (owner: org.jmlspecs.lang.internal.real)
     //@ equires false; // Use == and not .equals for comparing \\real values
                 ^
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: cannot find symbol
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: cannot find symbol
     //@ equires false; // Use == and not .equals for comparing \\real values
         ^
   symbol:   class equires
   location: class \real
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: A JML field declaration must be marked either ghost or model: <error> (owner: org.jmlspecs.lang.internal.real)
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: A JML field declaration must be marked either ghost or model: <error> (owner: org.jmlspecs.lang.internal.real)
     //@ equires false; // Use == and not .equals for comparing \\real values
                      ^
 test/gitbug869/Test.java:6: error: cannot find symbol
@@ -23,7 +23,7 @@ test/gitbug869/Test.java:6: error: cannot find symbol
             ^
   symbol:   class real
   location: class Test
-test/gitbug869/org/jmlspecs/lang/internal/real.jml:46: error: Error in parsed declaration, or misspelled keyword: //@ @org.jmlspecs.annotation.Ghost equires <error>
+test/gitbug869/org/jmlspecs/lang/internal/real.jml:51: error: Error in parsed declaration, or misspelled keyword: //@ @org.jmlspecs.annotation.Ghost equires <error>
     //@ equires false; // Use == and not .equals for comparing \\real values
          ^
 Operation not performed because of parse or type errors

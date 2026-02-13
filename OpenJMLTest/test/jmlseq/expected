@@ -71,9 +71,9 @@ test/jmlseq/TSeq.java:80: verify: The prover cannot establish an assertion (Unde
 $SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:103: verify: Precondition conjunct is false: 0 <= j <= length
-    //@   requires 0 <= j <= length;
-                          ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:103: verify: Precondition conjunct is false: 0 <= j <= this.length
+    //-RAC@   requires 0 <= j <= this.length;
+                              ^
 Completed proof of TSeq.errors8() with prover !!!! - with warnings
 Starting proof of TSeq.errors9() with prover !!!!
 test/jmlseq/TSeq.java:90: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
@@ -215,10 +215,10 @@ Starting proof of TSeq.Axioms.<T>newSeqIsEmpty() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSeq.Axioms.<T>newSeqIsEmpty() with prover !!!! - no warnings
-Starting proof of TSeq.Axioms.<T>appendBumpsSize(\seq<T>,T) with prover !!!!
+Starting proof of TSeq.Axioms.<T>appendBumpsSize(\seq<T>,\seq<T>) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of TSeq.Axioms.<T>appendBumpsSize(\seq<T>,T) with prover !!!! - no warnings
+Completed proof of TSeq.Axioms.<T>appendBumpsSize(\seq<T>,\seq<T>) with prover !!!! - no warnings
 Starting proof of TSeq.Axioms.<T>appendBumpsSize1(\seq<T>,T) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

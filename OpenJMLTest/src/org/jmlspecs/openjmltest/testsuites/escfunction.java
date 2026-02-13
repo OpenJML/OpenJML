@@ -102,6 +102,7 @@ public class escfunction extends EscBase {
                 +"  }\n"
                 +"}"
                 //,"/tt/TestJava.java:6: error: A non-static function method must be a member of a Immutable class", 7 // FIXME
+                ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
@@ -123,6 +124,7 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(0);\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
@@ -145,6 +147,7 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(n);\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }

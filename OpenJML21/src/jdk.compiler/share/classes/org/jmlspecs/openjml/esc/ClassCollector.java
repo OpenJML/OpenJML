@@ -125,7 +125,6 @@ class ClassCollector extends JmlTreeScanner {
         if (e instanceof JCTypeCast cast) return isLiteralRec(cast.expr);
         if (e instanceof JCIdent id) {
             var ex = formals.get(id.sym);
-            System.out.println("LOOKUP " + id + " " + ex);
             if (ex != null) return isLiteralRec(ex);
         }
         return false;
@@ -244,7 +243,7 @@ class ClassCollector extends JmlTreeScanner {
     
     @Override
     public void visitApply(JCMethodInvocation tree) {
-        System.out.println("APPLY " + tree);
+        //System.out.println("APPLY " + tree);
         save(tree.type);
 
         super.visitApply(tree);
@@ -255,11 +254,9 @@ class ClassCollector extends JmlTreeScanner {
         if (sym instanceof Symbol.MethodSymbol msym) {
             mspecs = JmlSpecs.instance(context).getAttrSpecs(msym);
             if (mspecs != null)  {
-                System.out.println("SPEC DECL " + mspecs.specDecl);
                 int i = 0;
                 for (var arg: tree.args) {
                     formals.put(mspecs.specDecl.params.get(i).sym, arg);
-                    System.out.println("MAPPING " + mspecs.specDecl.params.get(i) + " " + arg);
                     i++;
                 }
                 scan(mspecs.cases);

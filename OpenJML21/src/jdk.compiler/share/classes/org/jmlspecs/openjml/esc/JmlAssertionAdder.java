@@ -14857,7 +14857,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             lhs = addImplicitConversion(lhs, BIGINT, lhs);
-            rhs = addImplicitConversion(rhs, BIGINT, rhs);
+            if (!shift || !esc) rhs = addImplicitConversion(rhs, BIGINT, rhs);
             Name nm = names.fromString(JmlPrimitiveTypes.bigintTypeKind.opName(optag));
             if (optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) {
                 var pos = that.pos;
@@ -15312,7 +15312,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					Type tt = unboxedType(that.rhs.type);
 					if (!tt.equals(syms.longType))
 						tt = syms.intType;
-                    System.out.println("TRANS SHIFT " + that.type + " " + rhs + " " + rhs.type + " " + tt);
 					rhs = addImplicitConversion(rhs, tt, rhs);
 				} else
 					rhs = addImplicitConversion(rhs, that.type, rhs);
@@ -21478,24 +21477,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     break;
                 }
             }
-//            if (lo == null) {
-//                if decl.type.tsym == syms.byteType.tsym) {
-//                    lo = treeutils.makeIntLiteral(decl, Byte.MIN_VALUE);
-//                    lotag = JCTree.Tag.LE;
-//                } else if decl.type.tsym == syms.shortType.tsym) {
+            if (lo == null) {
+                if (decl.type.tsym == syms.byteType.tsym) {
+                    lo = treeutils.makeIntLiteral(decl, Byte.MIN_VALUE);
+                    lotag = JCTree.Tag.LE;
+//                } else if (decl.type.tsym == syms.shortType.tsym) {
 //                    lo = treeutils.makeIntLiteral(decl, Short.MIN_VALUE);
 //                    lotag = JCTree.Tag.LE;
-//                }
-//            }
-//            if (hi == null) {
-//                if decl.type.tsym == syms.byteType.tsym) {
-//                    hi = treeutils.makeIntLiteral(decl, Byte.MAX_VALUE);
-//                    hitag = JCTree.Tag.LE;
-//                } else if decl.type.tsym == syms.shortType.tsym) {
+                }
+            }
+            if (hi == null) {
+                if (decl.type.tsym == syms.byteType.tsym) {
+                    hi = treeutils.makeIntLiteral(decl, Byte.MAX_VALUE);
+                    hitag = JCTree.Tag.LE;
+//                } else if (decl.type.tsym == syms.shortType.tsym) {
 //                    hi = treeutils.makeIntLiteral(decl, Short.MAX_VALUE);
 //                    hitag = JCTree.Tag.LE;
-//                }
-//            }
+                }
+            }
             if (lo == null || hi == null) {
                 throw new RuntimeException(); // No usable bounds
             }

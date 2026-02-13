@@ -150,7 +150,7 @@ public class OLList {
         //e.g. getf(i) or getf(j) could be non-null, it will conclude j<i as well.
         ensures i<=j ==> getf(i)==null ==> getf(j)==null; 
     */
-    @Pure
+    @SpecPure
     public void lemma_getf_aux(int i, int j) {
        //if (i<j && getf(i)==null) {
           lemma_getf_aux(i, j-1);
@@ -447,7 +447,7 @@ public class OLList {
                    (\forall int i; 1<=i<size();\result[i]==\result[1].getf(i-1))); // new 04/04 for insert
        
     */
-    @SpecPure public @NonNull Node[] toSeq() {
+    @Pure public @NonNull Node[] toSeq() {
        return prefixToSeq(size());
     }
 

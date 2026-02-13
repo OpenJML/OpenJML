@@ -126,7 +126,6 @@ public class TSet {
         //@ check !s1.ne(s4);
         //@ check !s4.ne(s1);
         //@ check s1.hashCode() == s2.hashCode();
-        //-ESC@ show s1, \set.<Integer>empty().toString();
         //@ check !s1.equals(o);
     }
     
@@ -175,7 +174,7 @@ public class TSet {
         test8();
         test9();
         misc();
-        //-ESC@ set System.out.println("END");
+        //@ print "END";
     }
 
 }
