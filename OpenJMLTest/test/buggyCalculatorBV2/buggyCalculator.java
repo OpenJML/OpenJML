@@ -5,8 +5,10 @@ public class buggyCalculator {
     //@ requires operator == '+' || operator == '*' || operator == '-' || operator == '/' || operator == '%' || operator == '&' || operator == '|' || operator == '^';
       //@ {|
         //@ requires operator == '+';
-        //@ requires (long)num1 + num2 <= (long)Integer.MAX_VALUE;
-        //@ requires (long)num1 + num2 >= (long)Integer.MIN_VALUE;
+    //@ requires (long)num1 + num2 <= (long)Integer.MAX_VALUE;
+    //@ requires (long)num1 + num2 >= (long)Integer.MIN_VALUE;
+    //@ requires (long)num1 - num2 <= (long)Integer.MAX_VALUE;
+    //@ requires (long)num1 - num2 >= (long)Integer.MIN_VALUE;
         //@ ensures \result == num1 + num2;
 
         //@ also

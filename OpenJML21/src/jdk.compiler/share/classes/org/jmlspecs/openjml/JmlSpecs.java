@@ -1772,22 +1772,39 @@ public class JmlSpecs {
         return t != null && (t.jmlclausekind == SPEC_PURE || t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
     }
 
+    // No void returns
+    public boolean isEffectivelySpecPureMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        if (t == null) return false;
+        if (t.jmlclausekind != PURE) return true;
+        Type ty = symbol.getReturnType();
+        if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
+        return false;
+    }
+
     public boolean isStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE);
     }
 
+    // Allows void returns for lemmas
     public boolean isAtLeastStrictlyPureMethod(MethodSymbol symbol) {
         var t = determinePurity(symbol);
         return t != null && (t.jmlclausekind == STRICTLY_PURE || t.jmlclausekind == NO_STATE);
+    }
+
+    // Allows void returns for lemmas
+    public boolean isNoStateMethod(MethodSymbol symbol) {
+        var t = determinePurity(symbol);
+        return t != null && t.jmlclausekind == NO_STATE;
     }
 
     public boolean isSpecOKMethod(MethodSymbol msym) {
         var t = determinePurity(msym);
         if (t == null) return false;
         var k = t.jmlclausekind;
-        if (k == SPEC_PURE || k == STRICTLY_PURE || k == NO_STATE) return true;
-        if (k == PURE) {
+        if (k != PURE) return true;
+        else {
             Type ty = msym.getReturnType();
             if (utils.isJavaOrJmlPrimitiveType(ty)) return true;
             if (ty.isPrimitiveOrVoid()) return true; // Lemmas are pure methods that may return void

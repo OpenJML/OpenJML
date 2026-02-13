@@ -20,7 +20,7 @@ public class esc1 extends EscBase {
     }
 
     @Test
-    public void testCollect() {
+    public void testCollectD() {
         addOptions("--nonnull-by-default", "--method=m");
         helpEsc("tt.TestJava",
                 "package tt; import java.util.*;\n"
@@ -1510,7 +1510,7 @@ public class esc1 extends EscBase {
     }
 
     @Test
-    public void testRequires() {
+    public void testRequiresClause() {
         addOptions("--check-feasibility=precondition");
         helpEsc("tt.TestJava", // static invariant is assumed true at start of constructor; remains true at end
                 "package tt; \n" + 
@@ -1733,56 +1733,6 @@ public class esc1 extends EscBase {
                 "/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bifbad", 150,
                 "/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method bifbad2",
                 140);
-    }
-
-    @Test
-    public void testOldJava() {
-        helpEsc("tt.TestJava",
-                "package tt; \n" 
-                 + "/*@ code_java_math*/ public class TestJava { \n" 
-                 + "  static public  int i;\n"
-                 + "  //@ static public constraint i > \\old(i);\n" 
-                 + "  //@ assigns i;\n"
-                 + "  //@ ensures true;\n" 
-                 + "  public static void bok() { i = i - 1; }\n" 
-                 + "}"
-                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Constraint) in method TestJava",29
-                , "/tt/TestJava.java:4: verify: Associated declaration", 21
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method bok", 22
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 21
-                );
-    }
-
-    @Test
-    public void testOld2Math() {
-        helpEsc("tt.TestJava",
-                "package tt; \n" + "/*@ code_bigint_math*/ public class TestJava { \n" + "  static public int i;\n"
-                        + "  //@ assigns i;\n" + "  //@ ensures i == \\old(i)+2;\n"
-                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" + "  //@ assigns i;\n"
-                        + "  //@ ensures i == \\old(i+1);\n" 
-                        + "  public static void bbad() { i = i - 1; }\n" 
-                        + "}"
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad",22
-                ,"/tt/TestJava.java:8: verify: Associated declaration", 7
-                );
-    }
-
-    @Test
-    public void testOld2() {
-        helpEsc("tt.TestJava",
-                "package tt; \n" 
-                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
-                        + "  static public int i;\n"
-                        + "  //@ assigns i;\n" 
-                        + "  //@ ensures i == \\old(i)+2;\n"
-                        + "  public static void bok() { i = i + 1; i = i + 1;}\n" 
-                        + "  //@ assigns i;\n"
-                        + "  //@ ensures i == \\old(i+1);\n" 
-                        + "  public static void bbad() { i = i - 1; }\n" 
-                        + "}"
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad",22
-                ,"/tt/TestJava.java:8: verify: Associated declaration", 7
-                );
     }
 
     

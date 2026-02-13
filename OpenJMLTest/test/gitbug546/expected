@@ -1,9 +1,15 @@
 TEST-A
 Proving methods in Test
+Skipping proof of Test.mok(boolean) (because the method has no body)
+Skipping proof of Test.mbad(boolean) (because the method has no body)
 Completed proving methods in Test
 Proving methods in T
 Starting proof of T.T() with prover !!!!
 Completed proof of T.T() with prover !!!! - no warnings
+Skipping proof of T.qbad() (because the method has no body)
+Skipping proof of T.qok() (because the method has no body)
+Skipping proof of T.rok() (because the method has no body)
+Skipping proof of T.rr() (because the method has no body)
 Starting proof of T.rrr() with prover !!!!
 Completed proof of T.rrr() with prover !!!! - no warnings
 Completed proving methods in T

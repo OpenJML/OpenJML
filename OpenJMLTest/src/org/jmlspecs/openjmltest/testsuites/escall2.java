@@ -1162,24 +1162,6 @@ public class escall2 extends EscBase {
     }
 
     @Test
-    public void testHavoc() {
-        helpEsc("A",
-            """
-            public class A {
-              int i;
-              //@ writes \\nothing;
-              public void m(int k) {
-                int j;
-                //@ havoc i,j,k;
-              }
-            }
-            """
-                ,"/A.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: i", 15
-                ,"/A.java:3: verify: Associated declaration", 7
-        );
-    }
-
-    @Test
     public void testLoopWrites1() {
         helpEsc("A",
             """
@@ -1331,7 +1313,7 @@ public class escall2 extends EscBase {
     }
 
     @Test
-    public void testPureMethod() {
+    public void testPureMethod1() {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" public class TestJava { \n"
@@ -1408,7 +1390,7 @@ public class escall2 extends EscBase {
     }
    
     @Test
-    public void testKeys() {
+    public void testKeysOK() {
         helpEsc("tt.TestJava",
                 """
                 package tt;

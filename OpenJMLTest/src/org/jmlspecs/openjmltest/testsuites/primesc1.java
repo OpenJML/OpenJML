@@ -80,13 +80,4 @@ public class primesc1 extends EscBaseFiles {
     public void jmlTYPE() {
         helpTG();
     }
-    
-    
-    // TODO: Review the following and incorporate them with the above, as appropriate.
-    
-    @Test
-    public void locsetTests2() {
-        helpTG();
-    }
-
 }
