@@ -247,6 +247,7 @@ class ClassCollector extends JmlTreeScanner {
         save(tree.type);
 
         super.visitApply(tree);
+        var jmltypes = com.sun.tools.javac.code.JmlTypes.instance(context);
 
         Symbol sym = (tree.meth instanceof JCIdent) ? ((JCIdent)tree.meth).sym
                 : (tree.meth instanceof JCFieldAccess) ? ((JCFieldAccess)tree.meth).sym : null;
@@ -257,10 +258,11 @@ class ClassCollector extends JmlTreeScanner {
                 if (mspecs != null)  {
                     if (mspecs.specDecl != null && !msym.isVarArgs()) {
                         int i = 0;
-                        for (var arg: tree.args) {
-                            formals.put(mspecs.specDecl.params.get(i).sym, 
-                                    (arg instanceof JCLiteral) ? arg : null);
-                            //System.out.println("PUTTING " + mspecs.specDecl.params.get(i).sym + " " + ((arg instanceof JCLiteral) ? arg : null) + " " + tree);
+                        for (JCExpression arg: tree.args) {
+                            var p = mspecs.specDecl.params.get(i);
+                            boolean save = (arg instanceof JCLiteral && jmltypes.isSameType(arg.type, p.type));
+                            formals.put(p.sym, save ? arg : null);
+                            //System.out.println("PUTTING " + save + " " + p.sym + " " + arg + " " + tree);
                             i++;
                         }
                     }

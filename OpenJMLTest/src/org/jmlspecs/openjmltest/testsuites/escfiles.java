@@ -75,10 +75,10 @@ public class escfiles extends EscBaseFiles {
         helpTG("--exclude=gauss,gauss2","--check-feasibility=basic");
     }
 
-    @Teste // FIXME - nonlinear inference -- times out
+    @Test // FIXME - nonlinear inference -- times out
     public void loopExercises2() {
         expectedExit = 0;
-        helpTCF("test/loopExercises","test/loopExercises","--method=gauss,gauss2");
+        helpTCF("test/loopExercises","test/loopExercises2","--method=gauss,gauss2");
     }
 
     @Test

@@ -8,6 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of sv_esc.LoopExercises.isOrdered(int[]) with prover !!!! - no warnings
 Skipping proof of sv_esc.LoopExercises.gauss(int) (Skipping sv_esc.LoopExercises.gauss because it matches the exclusion gauss)
+Skipping proof of sv_esc.LoopExercises.gauss2(int) (Skipping sv_esc.LoopExercises.gauss2 because it matches the exclusion gauss2)
 Starting proof of sv_esc.LoopExercises.max(int[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

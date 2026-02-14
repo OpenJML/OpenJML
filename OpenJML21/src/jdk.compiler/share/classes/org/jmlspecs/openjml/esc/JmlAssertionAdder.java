@@ -8801,6 +8801,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    var savedTypevarMapping = typevarMapping;
 	    typevarMapping = new HashMap<>(); typevarMapping.putAll(savedTypevarMapping);
 
+	    try {
+	        
 	    if (that.meth.type == null) {
 	        if (print) System.out.println("APPLY " + that);
 	    } else if (that.meth.type.isErroneous()) {
@@ -9190,7 +9192,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// every argument is represented by a temporary variable.
 				// Without this an argument that is just an Ident or a Literal
 				// and is not used ends up without its value captured for
-				// tracing <<< THis all is no longer true I think, at least for literals
+				// tracing <<< THis all is no longer true I think, at least for literals  << Perhaps can be true for precondition conjuncts
 				if (!(a instanceof JCLiteral) && treeutils.typeLiteral(a) == null) {
 					a = newTemp(a);
 				}
@@ -13407,6 +13409,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        }
 		        return expr;
 		    } else {
+		        if (!newIsPrim && isPrim) {
+		            // Do a boxing conversion
+		            // This is needed if the actual is a primitive literal but the formal type is the boxed type
+                    expr = M.at(expr).TypeCast(newtype, expr);
+                    expr.type = newtype;
+                    System.out.println("BOXED " + expr);
+		        }
 		        return expr;// RAC handles implicit conversions implicitly
 		    }
 		}
@@ -13643,6 +13652,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * and also uses translatingJML to determine the assertion label to use.
 	 */
     protected void checkNDR(DiagnosticPosition pos, JCExpression condition, JCExpression expr) {
+        if (jmltypes.isJmlType(expr.type)) return;
         JCExpression nonnull = treeutils.makeNotNull(expr.pos, expr);
         if (condition != null) nonnull = treeutils.makeImpliesSimp(nonnull, condition, nonnull);
         addJavaCheck(pos, nonnull, Label.POSSIBLY_NULL_DEREFERENCE, Label.UNDEFINED_NULL_DEREFERENCE,
@@ -13817,8 +13827,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (!treeutils.isTrueLit(convertedCondition)) {
                         //System.out.println("OK " + okCondition);
                         convertedCondition = makeAssertionOptional(convertedCondition);
-                        //System.out.println("Assertion checking if [A] " + lhsUnconverted + " is in " + loopwrites + " :: " + kind + " " + convertedCondition);
-                        if (emitAsserts) addStat(comment(pos, "Assertion checking [A] if " + lhsUnconverted + " is in " + loopwrites, log.currentSourceFile()));
+                        //System.out.println("Assertion checking if [A] " + lhsUnconverted + " is in " + loopwrites + " [[ " loopwrites.asLocset + " ]] :: " + kind + " " + convertedCondition);
+                        if (emitAsserts) addStat(comment(pos, "Assertion checking [A] if " + lhsUnconverted + " is in " + loopwrites + " [[ " + loopwrites.asLocset + " ]]", log.currentSourceFile()));
                         if (emitAsserts) addAssertZ(true, pos, primarySource, kindLabel, convertedCondition, loopwrites, log.currentSourceFile(), null, lhsUnconverted);
                         var bl = popBlock(sr);
                         addStat(bl);
@@ -15847,7 +15857,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             
         } else if (!newtype.isPrimitive() && oldtype.isPrimitive()) {
             // boxing
-            eresult = rac ? expr : createBoxingStatsAndExpr(expr, newtype, false);
+            eresult = !rac ? createBoxingStatsAndExpr(expr, newtype, false)
+                    : expr instanceof JCLiteral ? M.at(expr).TypeCast(newtype, expr).setType(newtype)
+                    : expr;
         } else if (newtype.isPrimitive() && oldtype.isPrimitive()) {
             // numeric conversion
             // Java primitive to Java primitive - must be a numeric cast
@@ -16408,6 +16420,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             eresult.type = ntype;
             return;
         }
+//        if (that.indexed.type.tsym == SEQ.tsym) {
+//            JCExpression indexed = convertExpr(that.indexed);
+//            JCExpression index = convertExpr(that.index);
+//            result = eresult = M.at(that.pos).ArrayAccess(indexed,index);
+//            eresult.type = ntype;
+//            return;
+//        }
         if (esc) {
             if (that.indexed.type.tsym == setTypeKind.getType(context).tsym) {
                 result = eresult = convertExpr(makeMethodInvocation(that, that.indexed, "contains", that.index));
@@ -18758,7 +18777,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
 		indexDecl.sym.pos = pos.getPreferredPosition();
 		indexDecl.pos = pos.getPreferredPosition();
-		indexDecl.name = names.fromString("\\count");
+		indexDecl.name = indexName;
 		addStat(indexDecl);
 		for (int k=0; k<frameStack.size(); k++) if (frameStack.get(k) instanceof JmlStatementLoopModifies m) m.nestedLocals.add(indexDecl.sym);
 		indexStack.add(0, indexDecl);
@@ -18772,6 +18791,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> steps, JCTree... trees) {
 		ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
 		boolean useDefaultModifies = true;
+		JavaFileObject loopSource = null;
 		JmlStatementLoopModifies foundLoopMod = M.at(pos).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement,
 		        List.<JCExpression>nil());
 		if (loopSpecs != null) {
@@ -18782,6 +18802,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					}
 					foundLoopMod.storerefs = loopmod.storerefs;
 					foundLoopMod.pos = loopmod.pos;
+					loopSource = loopmod.source();
 					useDefaultModifies = false;
 				}
 			}
@@ -18867,13 +18888,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             utils.note(foundLoopMod, "jml.message", "Inferred clause: " + foundLoopMod);
         }
         foundLoopMod.nestedLocals = locals;
-        
+        var prev = Log.instance(context).useSource(loopSource);
         for (var expr: newlist.toList()) {
             var converted = convertLHS2(expr); // FIXME - is this needed?
             checkAccess2(assignableClauseKind, expr, expr, converted, true, treeutils.trueLit, true, null, false);
             if (expr instanceof JCIdent id) checkRW(writableClause, id.sym, currentEnv.currentReceiver, id);
             // FIXME - what about other things than JCIdent; does being ghost matter
         }
+        Log.instance(context).useSource(prev);
         
         String msg = "Inferred loop frame: " + foundLoopMod;
         //System.out.println("INFERRED LOOP FRAME " + foundLoopMod);
