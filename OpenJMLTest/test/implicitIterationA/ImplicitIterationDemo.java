@@ -20,11 +20,12 @@ public class ImplicitIterationDemo {
       // @ loop_invariant allTrue==(\forall int j; 0<=j && j <\count; s.values[j]);
       // @ loop_modifies allTrue;
 
+       var local = this;
        
        // @ loop_invariant 0 <= \count <= s.values.length;
        // @ decreases s.values.length - \count;
-       // @ loop_assigns allTrue;
-       // @ inlined_loop;
+       //@ loop_assigns local.allTrue;
+       //@ inlined_loop;
        s.forEachOrdered(b->check(b));
 
       

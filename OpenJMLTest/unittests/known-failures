@@ -137,6 +137,8 @@ escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
 escfileslist1.test[escConstructor5]	# Feasibility problem or invariant problem
+escfileslist1.test[choose-repeat]
+escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
 escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
@@ -167,8 +169,6 @@ primesc1.locsetTests2
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
 
-escfileslist1.test[choose-repeat]
-escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 
 escfiles2.gitbug932 # mistranslation of super in specs
 racfiles.gitbug932  # mistranslation of super in specs
