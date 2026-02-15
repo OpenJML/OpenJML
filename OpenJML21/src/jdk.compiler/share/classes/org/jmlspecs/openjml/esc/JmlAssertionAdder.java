@@ -8798,10 +8798,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         var methsym = (MethodSymbol)treeutils.getSym(that.meth);
         var methtype = that.meth.type;
 
-	    var savedTypevarMapping = typevarMapping;
-	    typevarMapping = new HashMap<>(); typevarMapping.putAll(savedTypevarMapping);
 
-	    try {
 	        
 	    if (that.meth.type == null) {
 	        if (print) System.out.println("APPLY " + that);
@@ -8811,7 +8808,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			that.args.forEach(a-> System.out.println("  ARG " + a + " " + a.type));
 			return;
 		}
-	    
+
+        var savedTypevarMapping = typevarMapping;
+        typevarMapping = new HashMap<>();
+        if (savedTypevarMapping != null) typevarMapping.putAll(savedTypevarMapping);
+
+        try {
+
 
 //	    if (that.meth.toString().contains("asList") || that.meth.toString().contains("toArray") || that.meth.toString().contains("forEach")) {
 //	        System.out.println("VAPPLY " + that + " " + that.type + " " + methtype + " " + methsym);
@@ -9180,6 +9183,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         || currentArgType.isPrimitive() || types.isNumeric(currentArgType) || types.isJmlType(convtype))) {
                     //System.out.println("ADDING IMPLICIT-A " + currentArgType + " " + convtype + " " + a + " " + a.type);
                     a = addImplicitConversion(a, convtype, a);
+                    //System.out.println("   CONVERTED " + a);
                 }
             }
 			if (useMethodAxioms && translatingJML) {
@@ -13227,264 +13231,264 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// if (expr instanceof JCLambda) return expr; // We depend on seeing JCLambda
 		// literals so we can't hide them behind a cast, but FIXME: does this cause
 		// other problems, what about for MemberReferences?
-	    if (true) {
+//	    if (true) {
 	        //System.out.println("AIC " + annotatedNewtype + " " + expr.type + " " + types.isSameType(annotatedNewtype, expr.type) + " " + expr);
 	        if (types.isSameType(annotatedNewtype, expr.type)) return expr;
 	        return addConversion(pos, annotatedNewtype, expr, false, esc || splitExpressions); // FIXME -- need to add in RAC checks as expressions
-	    } else {
-		Type newtype = annotatedNewtype.stripMetadata();
-		Type origtype = convertType(expr.type); // Substitutes type variables
-
-		if (paramActuals_ != null && newtype instanceof Type.TypeVar) {
-			JCExpression e = paramActuals_.get(newtype.toString());
-			if (e != null) {
-				newtype = e.type;
-			}
-		}
-
-		if (types.isJmlType(newtype)) {
-		    if (types.isSameType(newtype, origtype)) return expr;
-			// converting to a value type
-            if (types.isSameType(annotatedNewtype, STRING)
-                    && types.isSameType(expr.type, syms.stringType)) {
-                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), STRING);
-                JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
-                e = convertExpr(e);
-                return e;
-            }
-            if (types.isSameType(newtype, STRING)
-                    && types.isSameType(expr.type, syms.stringType)) {
-                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), STRING);
-                JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
-                e = convertExpr(e);
-                return e;
-            }
-            if (types.isSameType(newtype, REAL)) {
-                if (utils.rac) { 
-                    // FIXME -- need the implementatino type, not realT
-                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
-                    JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
-                    return e;
-                } else {
-                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
-                    JCExpression e = M.at(expr).TypeCast(ty, expr);
-                    e.type = REAL;
-                    return e;
-                }
-            }
-            if (types.isSameType(newtype, BIGINT)) {
-                if (utils.rac) { 
-                    // FIXME -- need the implementatino type, not realT
-                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
-                    JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
-                    //System.out.println("OF-C " + expr + " " + e);
-                    return e;
-                } else {
-                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
-                    JCExpression e = M.at(expr).TypeCast(ty, expr);
-                    e.type = BIGINT;
-                    return e;
-                }
-            }
-		}
-        if (types.isJmlType(origtype)) {
-            // New type is not a JML type
-            if (utils.rac) { 
-                // FIXME -- need the implementatino type, not realT
-                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
-                String nm = newtype.toString() + "Value";
-                try {
-                    JCExpression e = treeutils.makeMethodInvocation(pos, expr, names.fromString(nm));
-                    e = convertExpr(e);
-                    return e;
-                } catch (java.util.NoSuchElementException ex) {
-                    utils.error(expr, "jml.internal", "Failed to find runtime function " + nm + " to convert from " + origtype + " to " + newtype);
-                }
-            } else {
-                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), newtype);
-                JCExpression e = M.at(expr).TypeCast(ty, expr);
-                e.type = newtype;
-                return e;
-            }
-        }
-
-		// FIXME - change to utils.isPrimitiveType
-		boolean isPrim = origtype.isPrimitive() && origtype.getTag() != TypeTag.BOT;
-		boolean newIsPrim = newtype.isPrimitive() && newtype.getTag() != TypeTag.BOT;
-
-		// If we are converting from a non-primitive to primitive type (unboxing),
-		// check that the expression is not null
-		// But we don't unbox for rac for JML types because those are represented as a
-		// non-primitive anyway
-		if (methodEnv.javaChecks && newIsPrim && !isPrim && (esc || !jmltypes.isJmlType(newtype))) {
-		    JCExpression e = treeutils.makeNeqObject(pos.getPreferredPosition(), expr, treeutils.nullLit);
-		    addJavaCheck(pos, e, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
-		            "java.lang.NullPointerException");
-		}
-		if (rac && types.isSameType(origtype, BIGINT) && newIsPrim) {
-		    // For checking reductions of \bigint to regular int in MATH mode
-		    if (types.isSameType(newtype, BIGINT)) {
-		        // continue
-		    } else if (jmltypes.isJavaIntegral(newtype)) {
-		        int p = pos.getPreferredPosition();
-		        JCExpression emax = treeutils.makeUtilsMethodCall(expr.pos, "bigint_le", expr,
-		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",     // FIXME - does this exist?
-		                        treeutils.makeLongLiteral(pos, maxValue(pos, newtype.getTag()))));
-		        JCExpression emin = treeutils.makeUtilsMethodCall(expr.pos, "bigint_ge", expr,
-		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",    // FIXME - does this exist?
-		                        treeutils.makeLongLiteral(pos, minValue(pos, newtype.getTag()))));
-		        addCheck(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
-		        addCheck(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
-		    }
-		}
-		//        if (esc && !useBV && expr.type.getTag() == TypeTag.NONE && newtype.getTag() != TypeTag.NONE) {
-		//            // For checking reductions of \bigint to regular int in MATH mode
-		//            int p = pos.getPreferredPosition();
-		//            JCExpression emax = treeutils.makeBinary(p, JCTree.Tag.LE, expr, 
-		//                    treeutils.makeLit(p, syms.longType, Long.valueOf(maxValue(p,newtype.getTag()))));
-		//            JCExpression emin = treeutils.makeBinary(p, JCTree.Tag.LE,  
-		//                    treeutils.makeLit(p, syms.longType, Long.valueOf(minValue(p,newtype.getTag()))),
-		//                    expr);
-		//            addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
-		//            addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
-		//        }
-
-		if (rac) {
-		    if ((jmltypes.isSameType(newtype, BIGINT))
-		            && isPrim && !jmltypes.isJmlType(expr.type)) {
-		        // primitive to BigInteger
-		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf", expr);    // FIXME - does this exist?
-		    } else if (jmltypes.isSameType(BIGINT, newtype) && !isPrim
-		            && !jmltypes.isJmlType(expr.type)) {
-		        // boxed primitive to BigInteger
-		        if (jmltypes.isSameType(newtype, expr.type))
-		            return expr;
-		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOfNumber", expr);    // FIXME - does this exist?
-		    } else if (jmltypes.isSameType(REAL, newtype) && isPrim && !jmltypes.isJmlType(expr.type)) {
-		        return treeutils.makeUtilsMethodCall(expr.pos, "real_valueOf", expr);      // FIXME - does this exist?
-		    } else if (expr.type.getKind() == TypeKind.NULL && newtype.getKind() != TypeKind.NULL) {
-		        expr = M.at(expr).TypeCast(newtype, expr);
-		        expr.type = newtype;
-		        return expr;
-		    } else if (newIsPrim && jmltypes.isSameType(BIGINT, expr.type)
-		            && !jmltypes.isSameType(BIGINT, newtype) && !isPrim
-		            && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
-		        // In BIGINT mode, we can be required to cast a bigint value back to a primitive
-		        // for an assignment
-		        if (rac) {
-		            if (newtype.getTag() == TypeTag.LONG)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tolong", expr)    // FIXME - does this exist?, etc.
-		                .setType(syms.longType);
-		            else if (newtype.getTag() == TypeTag.FLOAT)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tofloat", expr)
-		                .setType(syms.floatType);
-		            else if (newtype.getTag() == TypeTag.DOUBLE)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_todouble", expr)
-		                .setType(syms.doubleType);
-		            else if (newtype == REAL)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_toreal", expr)
-		                .setType(REAL);
-		            else
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_toint", expr)
-		                .setType(syms.intType);
-		        } else if (!rac) { // FIXME - this never happens
-		            expr = M.at(expr).TypeCast(newtype, expr);
-		            expr.type = newtype;
-		        }
-		        return expr;
-		    } else if (newIsPrim && jmltypes.isSameType(REAL, expr.type) && !isPrim
-		            && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
-		        // In BIGINT mode, we can be required to cast a real value back to a primitive
-		        // for an assignment
-		        if (rac) {
-		            if (newtype.getTag() == TypeTag.FLOAT)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "real_tofloat", expr)
-		                .setType(syms.floatType);
-		            else if (newtype.getTag() == TypeTag.DOUBLE)
-		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "real_todouble", expr)
-		                .setType(syms.doubleType);
-		        } else if (!rac) { // FIXME - this never happens
-		            expr = M.at(expr).TypeCast(newtype, expr);
-		            expr.type = newtype;
-		        }
-		        return expr;
-		    } else {
-		        if (!newIsPrim && isPrim) {
-		            // Do a boxing conversion
-		            // This is needed if the actual is a primitive literal but the formal type is the boxed type
-                    expr = M.at(expr).TypeCast(newtype, expr);
-                    expr.type = newtype;
-                    System.out.println("BOXED " + expr);
-		        }
-		        return expr;// RAC handles implicit conversions implicitly
-		    }
-		}
-
-		if (types.isSameType(newtype, expr.type.stripMetadata()))
-		    return expr;
-		if (expr.type.getTag() == TypeTag.BOT || (expr instanceof JCLiteral && ((JCLiteral) expr).value == null))
-		    return expr;
-
-//        Type unboxed = unboxedType(expr.type);
-//        int tag = unboxed.getTag();
-//        String methodName =
-//                tag == TypeTag.INT ? "intValue" :
-//                tag == TypeTag.SHORT ? "shortValue" :
-//                tag == TypeTag.LONG ? "longValue" :
-//                tag == TypeTag.BOOLEAN ? "booleanValue" :
-//                tag == TypeTag.DOUBLE ? "doubleValue" :
-//                tag == TypeTag.FLOAT ? "floatValue" :
-//                tag == TypeTag.BYTE ? "byteValue" :
-//                tag == TypeTag.CHAR ? "charValue" : "";
-//                ;
-//        JCIdent id = M.Ident(names.fromString(methodName));
-		if (newIsPrim && !isPrim) {
-			if (expr.type instanceof Type.TypeVar) {
-				// FIXME: This is a hack - should really translate the typevar
-				expr.type = boxedType(annotatedNewtype.stripMetadata());
-			}
-			JCExpression mth = createUnboxingExpr(expr);
-			if (translatingJML || mth instanceof JCIdent) {
-				eresult = mth;
-			} else {
-				eresult = newTemp(mth);
-			}
-			isPrim = true;
-			expr = eresult;
-			if (types.isSameType(newtype, eresult.type))
-				return expr;
-		}
-		// Don't do casts to a base type
-		if (!isPrim && !newIsPrim) {
-			Type t = expr.type.stripMetadata();
-			if (!(t instanceof Type.ForAll)) {
-				if (types.isSubtype(t, newtype))
-					return expr;
-			} else {
-				if (newtype == syms.objectType)
-					return expr;
-				// FIXME - should do a better job of detecting subtypes for parameterized types
-			}
-		}
-
-		if (!newIsPrim && isPrim) {
-			// boxing: Integer = int and the like
-
-			JCExpression id = createBoxingStatsAndExpr(expr, newtype, true);
-			eresult = id;
-
-		} else {
-			JCTypeCast t = M.at(pos).TypeCast(newtype, expr);
-			t.clazz.type = newtype;
-			t.type = newtype;
-//            if (!jmltypes.isIntegral(newtype) && jmltypes.isIntegral(origtype)) {
-//                JCExpression ee = M.Apply(null, fn, args)
+//	    } else {
+//		Type newtype = annotatedNewtype.stripMetadata();
+//		Type origtype = convertType(expr.type); // Substitutes type variables
+//
+//		if (paramActuals_ != null && newtype instanceof Type.TypeVar) {
+//			JCExpression e = paramActuals_.get(newtype.toString());
+//			if (e != null) {
+//				newtype = e.type;
+//			}
+//		}
+//
+//		if (types.isJmlType(newtype)) {
+//		    if (types.isSameType(newtype, origtype)) return expr;
+//			// converting to a value type
+//            if (types.isSameType(annotatedNewtype, STRING)
+//                    && types.isSameType(expr.type, syms.stringType)) {
+//                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), STRING);
+//                JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
+//                e = convertExpr(e);
+//                return e;
 //            }
-			eresult = t;
-			// FIXME - for integer promotions, add assumptions about range of value
-		}
-		return eresult;
-	    }
+//            if (types.isSameType(newtype, STRING)
+//                    && types.isSameType(expr.type, syms.stringType)) {
+//                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), STRING);
+//                JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
+//                e = convertExpr(e);
+//                return e;
+//            }
+//            if (types.isSameType(newtype, REAL)) {
+//                if (utils.rac) { 
+//                    // FIXME -- need the implementatino type, not realT
+//                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
+//                    JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
+//                    return e;
+//                } else {
+//                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), REAL);
+//                    JCExpression e = M.at(expr).TypeCast(ty, expr);
+//                    e.type = REAL;
+//                    return e;
+//                }
+//            }
+//            if (types.isSameType(newtype, BIGINT)) {
+//                if (utils.rac) { 
+//                    // FIXME -- need the implementatino type, not realT
+//                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
+//                    JCExpression e = makeMethodInvocation(pos, ty, names.of, expr);
+//                    //System.out.println("OF-C " + expr + " " + e);
+//                    return e;
+//                } else {
+//                    JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
+//                    JCExpression e = M.at(expr).TypeCast(ty, expr);
+//                    e.type = BIGINT;
+//                    return e;
+//                }
+//            }
+//		}
+//        if (types.isJmlType(origtype)) {
+//            // New type is not a JML type
+//            if (utils.rac) { 
+//                // FIXME -- need the implementatino type, not realT
+//                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), BIGINT);
+//                String nm = newtype.toString() + "Value";
+//                try {
+//                    JCExpression e = treeutils.makeMethodInvocation(pos, expr, names.fromString(nm));
+//                    e = convertExpr(e);
+//                    return e;
+//                } catch (java.util.NoSuchElementException ex) {
+//                    utils.error(expr, "jml.internal", "Failed to find runtime function " + nm + " to convert from " + origtype + " to " + newtype);
+//                }
+//            } else {
+//                JCExpression ty = treeutils.makeType(pos.getPreferredPosition(), newtype);
+//                JCExpression e = M.at(expr).TypeCast(ty, expr);
+//                e.type = newtype;
+//                return e;
+//            }
+//        }
+//
+//		// FIXME - change to utils.isPrimitiveType
+//		boolean isPrim = origtype.isPrimitive() && origtype.getTag() != TypeTag.BOT;
+//		boolean newIsPrim = newtype.isPrimitive() && newtype.getTag() != TypeTag.BOT;
+//
+//		// If we are converting from a non-primitive to primitive type (unboxing),
+//		// check that the expression is not null
+//		// But we don't unbox for rac for JML types because those are represented as a
+//		// non-primitive anyway
+//		if (methodEnv.javaChecks && newIsPrim && !isPrim && (esc || !jmltypes.isJmlType(newtype))) {
+//		    JCExpression e = treeutils.makeNeqObject(pos.getPreferredPosition(), expr, treeutils.nullLit);
+//		    addJavaCheck(pos, e, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
+//		            "java.lang.NullPointerException");
+//		}
+//		if (rac && types.isSameType(origtype, BIGINT) && newIsPrim) {
+//		    // For checking reductions of \bigint to regular int in MATH mode
+//		    if (types.isSameType(newtype, BIGINT)) {
+//		        // continue
+//		    } else if (jmltypes.isJavaIntegral(newtype)) {
+//		        int p = pos.getPreferredPosition();
+//		        JCExpression emax = treeutils.makeUtilsMethodCall(expr.pos, "bigint_le", expr,
+//		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",     // FIXME - does this exist?
+//		                        treeutils.makeLongLiteral(pos, maxValue(pos, newtype.getTag()))));
+//		        JCExpression emin = treeutils.makeUtilsMethodCall(expr.pos, "bigint_ge", expr,
+//		                treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf",    // FIXME - does this exist?
+//		                        treeutils.makeLongLiteral(pos, minValue(pos, newtype.getTag()))));
+//		        addCheck(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
+//		        addCheck(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
+//		    }
+//		}
+//		//        if (esc && !useBV && expr.type.getTag() == TypeTag.NONE && newtype.getTag() != TypeTag.NONE) {
+//		//            // For checking reductions of \bigint to regular int in MATH mode
+//		//            int p = pos.getPreferredPosition();
+//		//            JCExpression emax = treeutils.makeBinary(p, JCTree.Tag.LE, expr, 
+//		//                    treeutils.makeLit(p, syms.longType, Long.valueOf(maxValue(p,newtype.getTag()))));
+//		//            JCExpression emin = treeutils.makeBinary(p, JCTree.Tag.LE,  
+//		//                    treeutils.makeLit(p, syms.longType, Long.valueOf(minValue(p,newtype.getTag()))),
+//		//                    expr);
+//		//            addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emax, newtype.toString() + " overflow");
+//		//            addAssert(expr, Label.ARITHMETIC_CAST_RANGE, emin, newtype.toString() + " underflow");
+//		//        }
+//
+//		if (rac) {
+//		    if ((jmltypes.isSameType(newtype, BIGINT))
+//		            && isPrim && !jmltypes.isJmlType(expr.type)) {
+//		        // primitive to BigInteger
+//		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOf", expr);    // FIXME - does this exist?
+//		    } else if (jmltypes.isSameType(BIGINT, newtype) && !isPrim
+//		            && !jmltypes.isJmlType(expr.type)) {
+//		        // boxed primitive to BigInteger
+//		        if (jmltypes.isSameType(newtype, expr.type))
+//		            return expr;
+//		        return treeutils.makeUtilsMethodCall(expr.pos, "bigint_valueOfNumber", expr);    // FIXME - does this exist?
+//		    } else if (jmltypes.isSameType(REAL, newtype) && isPrim && !jmltypes.isJmlType(expr.type)) {
+//		        return treeutils.makeUtilsMethodCall(expr.pos, "real_valueOf", expr);      // FIXME - does this exist?
+//		    } else if (expr.type.getKind() == TypeKind.NULL && newtype.getKind() != TypeKind.NULL) {
+//		        expr = M.at(expr).TypeCast(newtype, expr);
+//		        expr.type = newtype;
+//		        return expr;
+//		    } else if (newIsPrim && jmltypes.isSameType(BIGINT, expr.type)
+//		            && !jmltypes.isSameType(BIGINT, newtype) && !isPrim
+//		            && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
+//		        // In BIGINT mode, we can be required to cast a bigint value back to a primitive
+//		        // for an assignment
+//		        if (rac) {
+//		            if (newtype.getTag() == TypeTag.LONG)
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tolong", expr)    // FIXME - does this exist?, etc.
+//		                .setType(syms.longType);
+//		            else if (newtype.getTag() == TypeTag.FLOAT)
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_tofloat", expr)
+//		                .setType(syms.floatType);
+//		            else if (newtype.getTag() == TypeTag.DOUBLE)
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_todouble", expr)
+//		                .setType(syms.doubleType);
+//		            else if (newtype == REAL)
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_toreal", expr)
+//		                .setType(REAL);
+//		            else
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "bigint_toint", expr)
+//		                .setType(syms.intType);
+//		        } else if (!rac) { // FIXME - this never happens
+//		            expr = M.at(expr).TypeCast(newtype, expr);
+//		            expr.type = newtype;
+//		        }
+//		        return expr;
+//		    } else if (newIsPrim && jmltypes.isSameType(REAL, expr.type) && !isPrim
+//		            && currentEnv.arithmeticMode.mode() == Arithmetic.Mode.MATH) {
+//		        // In BIGINT mode, we can be required to cast a real value back to a primitive
+//		        // for an assignment
+//		        if (rac) {
+//		            if (newtype.getTag() == TypeTag.FLOAT)
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "real_tofloat", expr)
+//		                .setType(syms.floatType);
+//		            else if (newtype.getTag() == TypeTag.DOUBLE)
+//		                expr = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "real_todouble", expr)
+//		                .setType(syms.doubleType);
+//		        } else if (!rac) { // FIXME - this never happens
+//		            expr = M.at(expr).TypeCast(newtype, expr);
+//		            expr.type = newtype;
+//		        }
+//		        return expr;
+//		    } else {
+//		        if (!newIsPrim && isPrim) {
+//		            // Do a boxing conversion
+//		            // This is needed if the actual is a primitive literal but the formal type is the boxed type
+//                    expr = M.at(expr).TypeCast(newtype, expr);
+//                    expr.type = newtype;
+//                    System.out.println("BOXED " + expr);
+//		        }
+//		        return expr;// RAC handles implicit conversions implicitly
+//		    }
+//		}
+//
+//		if (types.isSameType(newtype, expr.type.stripMetadata()))
+//		    return expr;
+//		if (expr.type.getTag() == TypeTag.BOT || (expr instanceof JCLiteral && ((JCLiteral) expr).value == null))
+//		    return expr;
+//
+////        Type unboxed = unboxedType(expr.type);
+////        int tag = unboxed.getTag();
+////        String methodName =
+////                tag == TypeTag.INT ? "intValue" :
+////                tag == TypeTag.SHORT ? "shortValue" :
+////                tag == TypeTag.LONG ? "longValue" :
+////                tag == TypeTag.BOOLEAN ? "booleanValue" :
+////                tag == TypeTag.DOUBLE ? "doubleValue" :
+////                tag == TypeTag.FLOAT ? "floatValue" :
+////                tag == TypeTag.BYTE ? "byteValue" :
+////                tag == TypeTag.CHAR ? "charValue" : "";
+////                ;
+////        JCIdent id = M.Ident(names.fromString(methodName));
+//		if (newIsPrim && !isPrim) {
+//			if (expr.type instanceof Type.TypeVar) {
+//				// FIXME: This is a hack - should really translate the typevar
+//				expr.type = boxedType(annotatedNewtype.stripMetadata());
+//			}
+//			JCExpression mth = createUnboxingExpr(expr);
+//			if (translatingJML || mth instanceof JCIdent) {
+//				eresult = mth;
+//			} else {
+//				eresult = newTemp(mth);
+//			}
+//			isPrim = true;
+//			expr = eresult;
+//			if (types.isSameType(newtype, eresult.type))
+//				return expr;
+//		}
+//		// Don't do casts to a base type
+//		if (!isPrim && !newIsPrim) {
+//			Type t = expr.type.stripMetadata();
+//			if (!(t instanceof Type.ForAll)) {
+//				if (types.isSubtype(t, newtype))
+//					return expr;
+//			} else {
+//				if (newtype == syms.objectType)
+//					return expr;
+//				// FIXME - should do a better job of detecting subtypes for parameterized types
+//			}
+//		}
+//
+//		if (!newIsPrim && isPrim) {
+//			// boxing: Integer = int and the like
+//
+//			JCExpression id = createBoxingStatsAndExpr(expr, newtype, true);
+//			eresult = id;
+//
+//		} else {
+//			JCTypeCast t = M.at(pos).TypeCast(newtype, expr);
+//			t.clazz.type = newtype;
+//			t.type = newtype;
+////            if (!jmltypes.isIntegral(newtype) && jmltypes.isIntegral(origtype)) {
+////                JCExpression ee = M.Apply(null, fn, args)
+////            }
+//			eresult = t;
+//			// FIXME - for integer promotions, add assumptions about range of value
+//		}
+//		return eresult;
+//	    }
 	}
 
 	/**
@@ -15858,8 +15862,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         } else if (!newtype.isPrimitive() && oldtype.isPrimitive()) {
             // boxing
             eresult = !rac ? createBoxingStatsAndExpr(expr, newtype, false)
-                    : expr instanceof JCLiteral ? M.at(expr).TypeCast(newtype, expr).setType(newtype)
-                    : expr;
+                    : M.at(expr).TypeCast(newtype, expr).setType(newtype)
+                    ;
         } else if (newtype.isPrimitive() && oldtype.isPrimitive()) {
             // numeric conversion
             // Java primitive to Java primitive - must be a numeric cast
@@ -15918,7 +15922,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     break;
                 }
                 // need to do cast if between integral and numeric
-                if (esc || explicitCast) eresult = castexpr;
+                if (esc || explicitCast || expr instanceof JCLiteral) eresult = castexpr;
             }
         } else {
             utils.error(pos, "jml.internal", "Should never reach this point in JmlAssertionAdder.addConversion: " + newtype + " " + expr);
@@ -18777,7 +18781,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCVariableDecl indexDecl = treeutils.makeVarDef(syms.intType, indexName, methodDecl.sym, treeutils.zero);
 		indexDecl.sym.pos = pos.getPreferredPosition();
 		indexDecl.pos = pos.getPreferredPosition();
-		indexDecl.name = indexName;
+		indexDecl.name = names.fromString("\\count");
 		addStat(indexDecl);
 		for (int k=0; k<frameStack.size(); k++) if (frameStack.get(k) instanceof JmlStatementLoopModifies m) m.nestedLocals.add(indexDecl.sym);
 		indexStack.add(0, indexDecl);
