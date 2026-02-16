@@ -195,7 +195,7 @@ public class SFBugs extends EscBaseFiles {
     }
 
     @Test public void gitbug480() {
-        helpTG();
+        helpTG("--no-allow-pure-in-specs");
     }
 
     @Test public void gitbug497() {

@@ -584,7 +584,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         // But there is a problem: JavacMessages reads an option from Options (so JmlOptions must already be registered),
         // but Java option processing needs the messages read in order to emit any error messages.
         // So in creating a JavaCompiler the JavacMessage.diagFormatter is reset based on any options.
-
         JavacMessages.instance(context).add(Strings.messagesJML);
         JmlOptions.JmlArguments.register(context); // This call is not a factory. It creates a JmlArguments object
         // and also instantiates Log and (Jml)Options.

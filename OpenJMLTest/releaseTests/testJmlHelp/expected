@@ -76,6 +76,7 @@ Java options:
   --version, -version          Version information
   -Werror                      Terminate compilation if warnings occur
 JML options:
+  --verboseness              Level of verboseness (0=quiet...4=debug)
   --dir                      Process all files, recursively, within this directory
   --dirs                     Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
   --keys                     Identifiers for optional JML comments
@@ -94,6 +95,7 @@ JML options:
   --exclude                  Comma-separated list of method name patterns to exclude from ESC
   --prover                   The prover to use to check verification conditions
   --exec                     The prover executable to use
+  --logic                    The SMT logic to use (default ALL)
   --smt                      A file to write the smt command file to
   --nonnull-by-default       Makes references non_null by default [--nullable-by-default=false]
   --nullable-by-default      Makes references nullable by default
@@ -105,7 +107,6 @@ JML options:
   --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
-  --verboseness              Level of verboseness (0=quiet...4=debug)
   --warn                     Comma-separated list of warning keys to enable or disable
   --infer                    Comma-separated list of inference keys to enable or disable
   --quiet                    Only output the exit code [--verboseness=0]

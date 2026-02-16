@@ -22,6 +22,9 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Log.WriterKind;
 import com.sun.tools.javac.util.Options;
+import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JavacMessages;
+import com.sun.tools.javac.util.Position;
 import org.jmlspecs.openjml.Utils;
 
 /**
@@ -35,8 +38,21 @@ import org.jmlspecs.openjml.Utils;
 // information; javac loads its resources on demand
 public class JmlOption {
 
-    static public final Map<String,JmlOption> map = new HashMap<>();
-    static public final List<JmlOption> list = new ArrayList<>();
+    /** Holds a map from standard name (as String) to JmlOption */
+    static public final Map<String,JmlOption> map = new HashMap<>();  // Holds a map of name to JmlOption
+    /** Holds a list of JmlOption in a predictable order, namely the declaration order */
+    // (for both issuing help information and for loading defaults)
+    static public final List<JmlOption> list = new ArrayList<>(); 
+    
+    static public void clWarning(Context context, String message) {
+        JavacMessages.instance(context).add(Strings.messagesJML);
+        Log.instance(context).warning(Position.NOPOS, JCDiagnostic.Factory.instance(context).warningKey("jml.message",message));
+    }
+    
+    static public void clError(Context context, String message) {
+        JavacMessages.instance(context).add(Strings.messagesJML);
+        Log.instance(context).error(Position.NOPOS, JCDiagnostic.Factory.instance(context).errorKey("jml.message",message));
+    }
     
     public boolean check(Context context, boolean negate) { 
         if (defaultValue() instanceof Boolean) {
@@ -46,12 +62,39 @@ public class JmlOption {
                 options.put(name,null);
             }
         }
+        if (this.obsolete()) {
+            clWarning(context, "The option " + this.name + " is obsolete and ignored");
+        }
         return true;
     }
     
     // Do Not set cached fields in other classes in the check() methods of JmlOption instances, because that will cause premature 
     // instantiation of tool components (before all the options are processed). Instead, have setupOptions() call some initialization
     // method in those classes that need such initialization.
+
+    // This option is used in Utils.warning, so it must be the first option in the list
+    public static final JmlOption VERBOSENESS = new JmlOption("--verboseness",true,"1","Level of verboseness (0=quiet...4=debug)",null) {
+        public boolean check(Context context, boolean negate) {
+            String n = JmlOption.VERBOSENESS.optionName().trim();
+            String levelstring = JmlOptions.instance(context).get(n).trim();
+            {
+                try {
+                    Integer.parseInt(levelstring); // Just to see if it parses OK
+                } catch (NumberFormatException e) {
+                    // FIXME - avoid insttantiating Utils?
+                    clWarning(context, "The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) + " property should be the string representation of an integer: \"" + levelstring + "\"");
+                    JmlOptions.instance(context).put(n, "1");
+                    return false;
+                }
+            }
+            return true;
+        }
+        public int getInt(Context context) {
+            String n = JmlOption.VERBOSENESS.optionName().trim();
+            String value = JmlOptions.instance(context).get(n).trim();
+            try { return Integer.parseInt(value); } catch (NumberFormatException e) { return 1; }
+        }
+    };
 
     public static final JmlOption DIR = new JmlOption("--dir",true,null,"Process all files, recursively, within this directory",null);
     public static final JmlOption DIRS = new JmlOption("--dirs",true,null,"Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)",null);
@@ -98,7 +141,7 @@ public class JmlOption {
         public boolean check(Context context, boolean negate) {
             boolean b = JmlOption.USEJAVACOMPILER.isSet(context);
             if (b) {
-                Utils.instance(context).warning("jml.message","The -java option is ignored unless it is the first command-line argument");
+                clWarning(context, "The -java option is ignored unless it is the first command-line argument");
             }
             return true;
         }
@@ -134,7 +177,7 @@ public class JmlOption {
                 if (-1 <= n && n <= 6) return true;
                 throw new RuntimeException();
             } catch (Exception e) {
-                Utils.instance(context).error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
+                clError(context, "Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
                 options.put(JmlOption.EXITVERIFY.optionName(), JmlOption.EXITVERIFY.defaultValue().toString());
                 return false;
             }
@@ -148,7 +191,7 @@ public class JmlOption {
                 if (-1 <= n && n <= 6) return n;
                 throw new RuntimeException();
             } catch (Exception e) {
-                Utils.instance(context).error("jml.message","Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
+                clError(context, "Invalid value for " + JmlOption.EXITVERIFY + ": " + val);
                 return 6; // the default
             }
        }
@@ -159,7 +202,7 @@ public class JmlOption {
     public static final JmlOption EXCLUDE = new JmlOption("--exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null);
     public static final JmlOption PROVER = new JmlOption("--prover",true,null,"The prover to use to check verification conditions",null);
     public static final JmlOption PROVEREXEC = new JmlOption("--exec",true,null,"The prover executable to use",null);
-    public static final JmlOption LOGIC = new JmlOption("--logic",true,"ALL","The SMT logic to use (default ALL)",null, true); // obsolete
+    public static final JmlOption LOGIC = new JmlOption("--logic",true,"ALL","The SMT logic to use (default ALL)",null); // obsolete
     public static final JmlOption SMT = new JmlOption("--smt",true,null,"A file to write the smt command file to",null);
 
     public static final JmlOption NONNULLBYDEFAULT = new JmlOption("--nonnull-by-default",false,false,"Makes references non_null by default","--nullable-by-default=false");
@@ -173,7 +216,7 @@ public class JmlOption {
               String n = JmlOption.ARITHMETIC.optionName();
               String mode = JmlOptions.instance(context).get(n);
               if (!(mode.equals("hard") || mode.equals("soft") || mode.equals("quiet"))) {
-                  Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) 
+                  clWarning(context, "The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) 
                   + " property should be one of 'hard', 'soft', or 'quiet': " + mode);
                   JmlOption.ARITHMETIC.put(context, JmlOption.ARITHMETIC.defaultValue().toString());
                   return false;
@@ -194,28 +237,6 @@ public class JmlOption {
     public static final JmlOption SHOW_NOT_EXECUTABLE = new JmlOption("--show-not-executable",false,false,"When on (off by default), warnings about non-executable constructs are issued",null);
     { map.put("-showNotExecutable",SHOW_NOT_EXECUTABLE); }
 
-    public static final JmlOption VERBOSENESS = new JmlOption("--verboseness",true,"1","Level of verboseness (0=quiet...4=debug)",null) {
-        public boolean check(Context context, boolean negate) {
-            String n = JmlOption.VERBOSENESS.optionName().trim();
-            String levelstring = JmlOptions.instance(context).get(n).trim();
-            {
-                try {
-                    Integer.parseInt(levelstring); // Just to see if it parses OK
-                } catch (NumberFormatException e) {
-                    // FIXME - avoid insttantiating Utils?
-                    Utils.instance(context).warning("jml.message","The value of the " + n + " option or the " + Strings.optionPropertyPrefix + n.substring(2) + " property should be the string representation of an integer: \"" + levelstring + "\"");
-                    JmlOptions.instance(context).put(n, "1");
-                    return false;
-                }
-            }
-            return true;
-    	}
-        public int getInt(Context context) {
-            String n = JmlOption.VERBOSENESS.optionName().trim();
-            String value = JmlOptions.instance(context).get(n).trim();
-            try { return Integer.parseInt(value); } catch (NumberFormatException e) { return 1; }
-        }
-    };
     public static final JmlOption WARN = new JmlOption("--warn",true,"","Comma-separated list of warning keys to enable or disable",null) {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
@@ -240,7 +261,7 @@ public class JmlOption {
                         if (warnings.containsKey(k)) {
                             warnings.put(k, negate ? WarningCategory.WarnAction.QUIET : WarningCategory.WarnAction.WARN );
                         } else {
-                            Utils.instance(context).warning("jml.message", "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
+                            clWarning(context, "In --(no-)warn, '" + k + "' is not a valid warning key; see --help=warn");
                         }
                     }
                 }
@@ -272,7 +293,7 @@ public class JmlOption {
                     String[] keys = val.split(","); // Discards trailing empty strings (or a single empty string)
                     for (var k: keys) {
                         if (infermap.inferKeys.containsKey(k)) infermap.inferKeys.put(k, negate ? InferCategory.InferAction.NO : InferCategory.InferAction.YES );
-                        else Utils.instance(context).warning("jml.message", "In --(no-)infer, '" + k + "' is not a valid infer key; see --help=infer");
+                        else clWarning(context, "In --(no-)infer, '" + k + "' is not a valid infer key; see --help=infer");
                     }
                 }
             }
@@ -296,7 +317,7 @@ public class JmlOption {
         }
     };
     public static final JmlOption TRACE = new JmlOption("--trace",false,false,"ESC: Enables tracing of counterexamples",null);
-    public static final JmlOption SHOW = new JmlOption("--show",true,"","Show intermediate programs",null,false,"all");   // Has a default
+    public static final JmlOption SHOW = new JmlOption("--show",true,"","Show intermediate programs",null,"all");   // Has a default
     public static final JmlOption SPLIT = new JmlOption("--split",true,"","Split proof into sections",null) {
         public boolean check(Context context, boolean negate) {
             if (negate) {
@@ -315,7 +336,7 @@ public class JmlOption {
             {
                 if("auto".equals(val) || "true".equals(val) || "false".equals(val)) {
                 } else {
-                    Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
+                    clWarning(context, "Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
                     options.put(nm,(String)JmlOption.ESC_BV.defaultValue());
                     return false;
                 }
@@ -334,7 +355,7 @@ public class JmlOption {
                     try {
                         Integer.parseInt(limit);
                     } catch (NumberFormatException e) {
-                        Utils.instance(context).error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
+                        clError(context, "Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
                         return false;
                     }
                 }
@@ -351,7 +372,7 @@ public class JmlOption {
                         int k = Integer.parseInt(limit);
                         return k <= 0 ? Integer.MAX_VALUE : k;
                     } catch (NumberFormatException e) {
-                        Utils.instance(context).error("jml.message","Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
+                        clError(context, "Expected a number or 'all' as argument for --esc-max-warnings: " + limit);
                         return Integer.MAX_VALUE;
                     }
                 }
@@ -385,7 +406,7 @@ public class JmlOption {
             }
             String badString = Strings.isOKFeasibility(check);
             if (badString != null) {
-                Utils.instance(context).error("jml.message","Unexpected value as argument for --check-feasibility: " + badString);
+                clError(context, "Unexpected value as argument for --check-feasibility: " + badString);
                 return false;
             }
             return true;
@@ -404,7 +425,7 @@ public class JmlOption {
             if ("none".equals(val) || "line".equals(val) || "source".equals(val)) {
                 // OK
             } else {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : " + val);
+                clWarning(context, "Command-line argument error: Expected 'none', 'line' or 'source' for --rac-show-source : " + val);
                 options.put(optionName(),(String)defaultValue());
                 return false;
             }
@@ -423,7 +444,7 @@ public class JmlOption {
             for (var s: values) {
                 if (s.equals(val)) return true;
             }
-            Utils.instance(context).error("jml.message","Command-line argument error: Expected one of " + String.join(" ",values) + " for " + optionName() + " : " + val);
+            clError(context, "Command-line argument error: Expected one of " + String.join(" ",values) + " for " + optionName() + " : " + val);
             options.put(optionName(),(String)defaultValue());
             return false;
         }
@@ -440,9 +461,11 @@ public class JmlOption {
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("--inline-function-literal",false,true,"Whether to inline function literals (default: true)",null);
     public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,false, "Whether white space is required after the @ in a JML comment (default: false)", null);
 
-//    // Obsolete
-//    public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null, true);
-//    { map.put("-purityCheck",PURITYCHECK); }
+    // Obsolete
+    public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
+    { map.put("-purityCheck",PURITYCHECK); }
+
+    public static final JmlOption ALLOW_PURE_IN_SPECS = new JmlOption("--allow-pure-in-specs",false,true,"When on (the default), allow pure methods to be used in specifications", null);
 
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");
@@ -482,6 +505,9 @@ public class JmlOption {
 //        map.put("-nullable",NULLABLEBYDEFAULT);
 //    }
 
+    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK };
+    final static private JmlOption[] obsoleteOptions = new JmlOption[] { PURITYCHECK };
+    
     /** Holds the name of the option, as it is used in the command-line,
      * including the leading '-' characters.
      */
@@ -502,9 +528,6 @@ public class JmlOption {
     /** The canonical form for the option */
     final private String synonym;
 
-    /** If true, the option is obsolete */
-    final private boolean obsolete;
-
     /** Private constructor to create instances.
      * @param s The option name, including any leading - character
      * @param defaultValue the default value for the option
@@ -517,24 +540,7 @@ public class JmlOption {
             Object defaultValue,
             /*@ non_null */ String help,
             /*@ nullable */ String synonym) {
-        this(s,hasArg,defaultValue,help,synonym,false,null);
-    }
-
-    /** Private constructor to create Enum instances.
-     * @param s The option name, including any leading - character
-     * @param defaultValue the default value for the option
-     * @param hasArg Whether the option takes a (required) argument
-     * @param help The associated help string
-     * @param synonym an equivalent command-line argument
-     * @param obsolete whether the option is obsolete
-     */
-    private JmlOption(/*@ non_null */ String s,
-            boolean hasArg,
-            /*@ nullable */ Object defaultValue, // null for an entry that has a synonym
-            /*@ non_null */ String help,
-            /*@ nullable */ String synonym,
-            boolean obsolete) {
-        this(s,hasArg,defaultValue,help,synonym,obsolete,null);
+        this(s,hasArg,defaultValue,help,synonym,null);
     }
 
     /** Private constructor to create Enum instances.
@@ -550,14 +556,12 @@ public class JmlOption {
             /*@ nullable */ Object defaultValue,
             /*@ non_null */ String help,
             /*@ nullable */ String synonym,
-            boolean obsolete,
             /*@ nullable */ String enabledDefault) {
         this.name = s;
         this.hasArg = hasArg;
         this.defaultValue = defaultValue;
         this.help = help;
         this.synonym = synonym;
-        this.obsolete = obsolete;
         this.enabledDefault = enabledDefault;
         map.put(s, this);
         list.add(this);
@@ -680,7 +684,10 @@ public class JmlOption {
     public Object defaultValue() { return defaultValue; }
 
     /* Whether the option is obsolete */
-    public boolean obsolete() { return obsolete; }  // FIXME - do we really need this field?
+    public boolean obsolete() { return Arrays.asList(obsoleteOptions).contains(this); }
+
+    /* Whether the option is hidden */
+    public boolean hidden() { return Arrays.asList(hiddenOptions).contains(this); }
 
     /**
      * @return the help string associated with this option
@@ -724,7 +731,7 @@ public class JmlOption {
         StringBuilder sb = new StringBuilder();
         sb.append("JML options:").append(Strings.eol);
         for (var j : list) {
-            if (j.obsolete()) continue;
+            if (j.hidden()) continue;
             sb.append("  ").append(j.optionName()).append(" ");
             // The count up to 26 is just to make for nice formatting
             for (int i = j.optionName().length(); i<26; i++) {
