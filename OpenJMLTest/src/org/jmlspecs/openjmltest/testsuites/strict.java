@@ -26,7 +26,7 @@ public class strict extends TCBase {
     public void testLbl() {
         helpTCText("A.java","public class A {\n" +
                 " //@ ghost int i = (\\lbl A 0);\n }"
-                ,"/A.java:2: warning: The \\lbl construct is an OpenJML extension to JML and not allowed under " + optjml,21
+                ,"/A.java:2: warning: [strict-jml] The \\lbl construct is an OpenJML extension to JML and not allowed under " + optjml,21
                 );
     }
 
@@ -55,7 +55,7 @@ public class strict extends TCBase {
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\values.size() >= 0; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\values construct is an OpenJML extension to JML and not allowed under " + optjml,16
+                ,"/A.java:3: warning: [strict-jml] The \\values construct is an OpenJML extension to JML and not allowed under " + optjml,16
                 );
     }
 
@@ -85,7 +85,7 @@ public class strict extends TCBase {
                 " //@ signals (Exception) \\exception != null;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
-                ,"/A.java:2: warning: The \\exception construct is an OpenJML extension to JML and not allowed under " + optjml,26
+                ,"/A.java:2: warning: [strict-jml] The \\exception construct is an OpenJML extension to JML and not allowed under " + optjml,26
                 );
     }
 
@@ -95,7 +95,7 @@ public class strict extends TCBase {
                 " /*@ secret */ private int i;\n" +
                 " void m(int[] a) {\n" +
                 " }}"
-                ,"/A.java:2: warning: The secret construct is an OpenJML extension to JML and not allowed under " + optjml,6
+                ,"/A.java:2: warning: [strict-jml] The secret construct is an OpenJML extension to JML and not allowed under " + optjml,6
                 );
     }
 
@@ -115,7 +115,7 @@ public class strict extends TCBase {
                 " //@ query\n" +
                 " int m() { return 0; \n" +
                 " }}"
-                ,"/A.java:2: warning: The query construct is an OpenJML extension to JML and not allowed under " + optjml,6
+                ,"/A.java:2: warning: [strict-jml] The query construct is an OpenJML extension to JML and not allowed under " + optjml,6
                 );
     }
 
@@ -135,7 +135,7 @@ public class strict extends TCBase {
                 " //@ assignable a[0..];\n" +
                 " int m(int[] a) { return 0; \n" +
                 " }}"
-                ,"/A.java:2: warning: The storeref with implied end-of-range construct is an OpenJML extension to JML and not allowed under " + optjml,22
+                ,"/A.java:2: warning: [strict-jml] The storeref with implied end-of-range construct is an OpenJML extension to JML and not allowed under " + optjml,22
                 );
     }
 
@@ -160,7 +160,7 @@ public class strict extends TCBase {
         expectedExit = 0;
         addOptions(optjmlp);
         helpTCText("A.java","public class A {\n static int j; //@ in i;\n//@  model static int i; static represents i <- j;\n}"
-                ,"/A.java:3: warning: The left arrow is deprecated in represents clauses, use = instead",46
+                ,"/A.java:3: warning: [deprecated] The left arrow is deprecated in represents clauses, use = instead",46
                 );
     }
     
@@ -179,7 +179,7 @@ public class strict extends TCBase {
                 public void m() {}
             }
             """
-            ,"/A.java:8: warning: The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
+            ,"/A.java:8: warning: [strict-jml] The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
         );
     }
     
@@ -198,7 +198,7 @@ public class strict extends TCBase {
                 public void m() {}
             }
             """
-            ,"/A.java:8: warning: The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
+            ,"/A.java:8: warning: [strict-jml] The clauses following a clause group construct is an OpenJML extension to JML and not allowed under --lang=jml", 9
         );
     }
 }

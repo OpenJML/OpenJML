@@ -402,7 +402,7 @@ public class typeclauses extends TCBase {
         expectedExit = 0;
         setDeprecation();
         helpTCText("A.java","public class A {\n static int j; /*@ in i; */ //@  model static int i; static represents i <- j;\n}"
-                ,"/A.java:2: warning: The left arrow is deprecated in represents clauses, use = instead",74
+                ,"/A.java:2: warning: [deprecated] The left arrow is deprecated in represents clauses, use = instead",74
                 );
     }
     

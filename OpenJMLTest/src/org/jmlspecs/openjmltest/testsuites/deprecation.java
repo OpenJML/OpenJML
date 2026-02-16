@@ -24,7 +24,7 @@ public class deprecation extends TCBase {
         helpTCText("A.java","public class A {\n" +
                 " //@ model int i;\n" +
                 " //@ represents i <- 0;\n }"
-                ,"/A.java:3: warning: The left arrow is deprecated in represents clauses, use = instead",19
+                ,"/A.java:3: warning: [deprecated] The left arrow is deprecated in represents clauses, use = instead",19
                 );
     }
 
@@ -50,7 +50,7 @@ public class deprecation extends TCBase {
         helpTCText("A.java","public class A {\n" +
                 " //+@ model int i;\n" +
                 " }"
-                ,"/A.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",4
+                ,"/A.java:2: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",4
                 );
     }
 
@@ -60,7 +60,7 @@ public class deprecation extends TCBase {
         helpTCText("A.java","public class A {\n" +
                 " //-@ model int i;\n" +
                 " }"
-                ,"/A.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",4
+                ,"/A.java:2: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",4
                 );
     }
     
@@ -80,7 +80,7 @@ public class deprecation extends TCBase {
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\index == i; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\index construct is deprecated in favor of \\count",16
+                ,"/A.java:3: warning: [deprecated] The \\index construct is deprecated in favor of \\count",16
                 );
     }
 

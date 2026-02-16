@@ -284,7 +284,7 @@ public class JmlOptions extends Options {
         if (o == JmlOption.DIRS) {
             // Test for this option here before res is set from the iterator
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
-                Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
+                Utils.instance(context).warning(WarningCategory.DEPRECATED, "jml.message", "Option " + s + " is deprecated in favor of -" + s);
                 s = "-" + s;
             }
             if (negate) {
@@ -344,7 +344,7 @@ public class JmlOptions extends Options {
             // Special case: --dir
             // Note that more than one instance of --dir is permitted
             if (s.startsWith("-d")) { // This is here just to accommodate the old single-hyphen style
-                Utils.instance(context).warning("jml.message", "Option " + s + " is deprecated in favor of -" + s);
+                Utils.instance(context).warning(WarningCategory.DEPRECATED, "jml.message", "Option " + s + " is deprecated in favor of -" + s);
                 s = "-" + s;
             }
             addFilesRecursively(res, remainingArgs);

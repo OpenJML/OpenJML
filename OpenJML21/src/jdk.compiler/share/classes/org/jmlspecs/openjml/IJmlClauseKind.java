@@ -277,8 +277,20 @@ public abstract class IJmlClauseKind {
     
     /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
     public void strictCheck(JCTree e) {
+        strictCheck(e, keyword());
+    }
+
+    /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
+    public void strictCheck(JCTree e, String message) {
         if (requireStrictJML()) {
-            utils.warning(e,"jml.not.strict",keyword());
+            utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, e, "jml.not.strict", message);
+        }
+    }
+
+    /** Issue warning if strictness is required -- e.g. call this if an extension is being used */
+    public void strictCheck(int p, String message) {
+        if (requireStrictJML()) {
+            utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, p, "jml.not.strict", message);
         }
     }
 

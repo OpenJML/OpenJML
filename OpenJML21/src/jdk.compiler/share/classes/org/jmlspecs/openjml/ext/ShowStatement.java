@@ -38,9 +38,7 @@ public class ShowStatement extends JmlExtension {
             int pp = parser.pos();
             int pe = parser.endPos();
             init(parser);
-            if (JmlOption.langJML.equals(JmlOption.LANG.value(parser.context))) {
-                utils.warning(pp,"jml.not.strict",keyword + " statement");
-            }
+            strictCheck(pp,keyword + " statement");
             
             parser.nextToken();
 

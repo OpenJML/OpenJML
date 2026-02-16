@@ -139,6 +139,8 @@ public class Utils {
     static public boolean debugOptions = Utils.debug("options");
     static public boolean debugInst = Utils.debug("register") && isJML();
     
+    static public final JavaFileObject NULL_SOURCE = null;
+    
     /** True if OJ is set to anything at all, including an empty string */
     public static boolean debug() {
         return debugstring != null;
@@ -1868,28 +1870,12 @@ public class Utils {
         }
     }
     
-//    public void warning(WarningCategory.Key category, DiagnosticSource source, DiagnosticPosition pos, String key, Object ... args) {
-//        warning(category, source == null ? (JavaFileObject)null : source.getFile(), pos, key, args);
-////        // All this mucking about with the diagnostic message is to insert the category string into the message
-////        // without having to alter every message key and warning call throughout openjml
-////        var wt = WarningCategory.instance(context).action(category);
-////        if (wt == WarningCategory.WarnAction.QUIET) return;
-////        var dg = com.sun.tools.javac.util.JCDiagnostic.Factory.instance(context).warning(null, null, null, key, args);
-////        var message = dg.toString().substring("warning: ".length());
-////        if (category != null) message = "[" + category + "] " +  message;
-////        try {
-////            switch (wt) {
-////            case WARN:
-////                log().warning((LintCategory)null, source, pos, JCDiagnostic.Factory.instance(context).warningKey("jml.raw", message));
-////                break;
-////            case ERROR:
-////                log().error(source, pos, JCDiagnostic.Factory.instance(context).errorKey("jml.raw", message));
-////                break;
-////            }
-////        } finally {
-////        }
-//    }
-    
+    public void warning(WarningCategory.Key category, JavaFileObject source, int pos, String key, Object ... args) {
+        this.warning(category, source,
+                new DiagnosticPositionSE(pos, pos), // FIXME or is end pos+1?
+                key, args);
+    }
+        
     public int verifyWarnings = 0;
 
     com.sun.tools.javac.util.BasicDiagnosticFormatter verifyDiagnosticFormatter = null;

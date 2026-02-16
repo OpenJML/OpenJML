@@ -11,6 +11,8 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.VOID;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlPretty;
+import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.WarningCategory;
 import org.jmlspecs.openjml.JmlTree.JmlLblExpression;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
 import org.jmlspecs.openjml.JmlExtension;
@@ -202,9 +204,7 @@ public class MiscExpressions extends JmlExtension {
             // pos is the position of the \lbl token
             int labelPos = parser.pos();
             if (parser.token().kind == TokenKind.LPAREN) {
-                if (requireStrictJML()) {
-                    utils.warning(pos,"jml.not.strict","functional form of lbl expression");
-                }
+                strictCheck(pos,"functional form of lbl expression");
                 parser.nextToken();
                 List<JCExpression> args = parser.parseExpressionList();
                 if (parser.token().kind != TokenKind.RPAREN) {

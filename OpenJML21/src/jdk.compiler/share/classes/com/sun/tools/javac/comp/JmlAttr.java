@@ -1580,7 +1580,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             state = next[state];
             if (state == -1) {
-                utils.warning(clause,  "jml.message", "Clause " + tk + " is out of order for JML strict mode");
+                utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, clause,  "jml.message", "Clause " + tk + " is out of order for JML strict mode");
                 return;
             }
             if (tk == specGroupStartClause) {
@@ -1878,7 +1878,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ((mods.flags & (Flags.FINAL|Flags.STATIC|Flags.PRIVATE)) == 0)  &&
                     !isConstructor
                     ) {
-                utils.warning(t.source, t.pos,"jml.inline.should.be.final",msym.name.toString());
+                utils.warning(WarningCategory.JML_LINT, t.source, t.pos,"jml.inline.should.be.final",msym.name.toString());
             }
 
             checkMethodJavaModifiersMatch(javaMethodTree, msym, specDecl, (ClassSymbol)specDecl.sym.owner);
@@ -2092,7 +2092,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (!utils.hasMod(specMods, aa.kind)) {
                         String k = owner instanceof ClassSymbol ? "class"
                             : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
-                        utils.warning(aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.toString());
+                        utils.warning(WarningCategory.JML_LINT, aa.sourcefile, aa, "jml.java.annotation.superseded", k, owner, aa.toString());
                         break;
                     }
                 }
@@ -2111,7 +2111,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     if (annotAsString.contains("SuppressWarnings")) continue; // Allow this one to be different
                     String kind = owner instanceof ClassSymbol ? "class"
                             : owner instanceof MethodSymbol ? "method" : owner instanceof VarSymbol ? "var" : "";
-                    utils.warning(jmlannotation.sourcefile, jmlannotation, "jml.message", 
+                    utils.warning(WarningCategory.JML_LINT, jmlannotation.sourcefile, jmlannotation, "jml.message", 
                         "Specification " + kind + " declaration contains an annotation that the Java declaration does not have: " + annotAsString);
                 }
             }
@@ -2779,7 +2779,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     while (iter.hasNext()) rest.add(iter.next());
                     restt = rest.toList();
                     if (requireStrictJML()) {
-                        utils.warning(restt.head,"jml.not.strict","clauses following a clause group");
+                        utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, restt.head,"jml.not.strict","clauses following a clause group");
                     }                    
                 }
                 return deNest(prefix,((JmlMethodClauseGroup)m).cases, restt, parent, decl, msym, mods);
@@ -4170,7 +4170,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
         for (JCExpression e: tree.exceptions) {
             if (e instanceof JCAnnotatedType at) {
-                utils.warning(tree.sourcefile, e, "jml.message", "Annotations on signals_only exception types are meaningless and are ignored");
+                utils.warning(WarningCategory.JML_LINT, tree.sourcefile, e, "jml.message", "Annotations on signals_only exception types are meaningless and are ignored");
             }
             e.type = attribTree(e, env, new ResultInfo(KindSelector.TYP, syms.throwableType));
         }
@@ -4481,7 +4481,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         						if (p.getPreferredPosition() == Position.NOPOS) p = tree.pos();
         						if (!env.enclMethod.name.toString().equals("clone")) {
         							JavaFileObject prevsource = log.useSource(c.source());
-        							utils.warning(p,"jml.no.point.to.more.visibility", 
+        							utils.warning(WarningCategory.JML_LINT, Utils.NULL_SOURCE, p,"jml.no.point.to.more.visibility", 
         									Flags.toString(caseMod) + " vs. " + Flags.toString(methodMod) + " FOR " + mdecl.sym.owner + "." + mdecl.sym);
         							log.useSource(prevsource);
         						}
@@ -6913,23 +6913,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         boolean result = false;
         if ((mods.flags & Flags.PROTECTED) != 0 &&
                 (a=utils.findModifier(mods,SPEC_PROTECTED)) != null ) {
-            JavaFileObject prev = log.useSource(a.source); // FIXME - put source in warning call
-            utils.warning(a.pos,"jml.redundant.visibility","protected","spec_protected");
-            log.useSource(prev);
+            utils.warning(WarningCategory.JML_LINT, a.source, a.pos,"jml.redundant.visibility","protected","spec_protected");
             result = true;
         }
         if ((mods.flags & Flags.PUBLIC) != 0 &&
                 (a=utils.findModifier(mods,SPEC_PROTECTED)) != null ) {
-            JavaFileObject prev = log.useSource(a.source); // FIXME - put source in warning call
-            utils.warning(a.pos,"jml.redundant.visibility","public","spec_protected");
-            log.useSource(prev);
+            utils.warning(WarningCategory.JML_LINT, a.source, a.pos,"jml.redundant.visibility","public","spec_protected");
             result = true;
         }
         if ((mods.flags & Flags.PUBLIC) != 0 &&
                 (a=utils.findModifier(mods,SPEC_PUBLIC)) != null ) {
-            JavaFileObject prev = log.useSource(a.source); // FIXME - put source in warning call
-            utils.warning(a.pos,"jml.redundant.visibility","public","spec_public");
-            log.useSource(prev);
+            utils.warning(WarningCategory.JML_LINT, a.source, a.pos,"jml.redundant.visibility","public","spec_public");
             result = true;
         }
         return result;
@@ -8095,7 +8089,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (that.sym.owner.isInterface()) {
                 if (isModel(that.mods)) {
                     if (!isStatic(that.mods) && !isInstance(that.mods)) {
-                        utils.warning(that,"jml.message","Model fields in an interface should be explicitly declared either static or instance: " + that.name);
+                        utils.warning(WarningCategory.JML_LINT, Utils.NULL_SOURCE, that,"jml.message","Model fields in an interface should be explicitly declared either static or instance: " + that.name);
                     }
                 }
             }
@@ -8105,7 +8099,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // non-final model fields should not have initializers
             if (that.init != null && isModel(that.mods) && (that.mods.flags & Flags.FINAL) == 0) {
-                utils.warning(that.init, "jml.message", "A non-final model field may not have an initializer");
+                utils.warning(WarningCategory.JML_LINT, Utils.NULL_SOURCE, that.init, "jml.message", "A non-final model field may not have an initializer");
                 that.init = null;
             }
             
@@ -8720,9 +8714,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                    if (specHasAlso && !methodOverridesOthers) {
 //    	                        if (!msym.name.toString().equals("compareTo") && !jmethod.name.toString().equals("definedComparison")) {// FIXME
     	                            if (requireStrictJML()) {
-    	                                utils.error(spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
+    	                                utils.error(spec.source(), spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
     	                            } else {
-    	                                utils.warning(spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
+    	                                utils.warning(WarningCategory.STRICT_JML, spec.source(), spec.alsoPos, "jml.extra.also", specDecl.name.toString() );
     	                            }
  //   	                        }
     	                    } else if (!specHasAlso && methodOverridesOthers) {
@@ -8732,7 +8726,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	                            utils.error(spec.source(), spec,  
     	                            		"jml.missing.also", specDecl.name.toString(), s);
     	                        } else {
-    	                            utils.warning(spec.source(), spec, 
+    	                            utils.warning(WarningCategory.STRICT_JML, spec.source(), spec, 
     	                            		"jml.missing.also", specDecl.name.toString(), s);
     	                        }
     	                    }

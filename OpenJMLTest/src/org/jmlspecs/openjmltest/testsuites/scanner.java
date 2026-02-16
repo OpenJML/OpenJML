@@ -1232,8 +1232,8 @@ public class scanner extends JmlTestSuite {
                 new Object[]{SJML, IDENTIFIER, EJML, IDENTIFIER, SJML, IDENTIFIER, EJML, EOF},
                 new int[] { 0,4, 5,13, 13,14, 15,16, 18,22, 23,31, 32,34, 34,34},
                 2);
-        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
-                ,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",7);
+        checkMessages("/TEST.java:1: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+                ,"/TEST.java:2: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",7);
     }
 
     @Test public void testConditionalKey10() {
@@ -1242,8 +1242,8 @@ public class scanner extends JmlTestSuite {
                 new Object[]{EOF},
                 null,
                 2);
-        checkMessages("/TEST.java:1: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",3
-        		,"/TEST.java:2: warning: The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
+        checkMessages("/TEST.java:1: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",3
+        		,"/TEST.java:2: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",5);
     }
 
     @Test public void testLeadingPosition() {
