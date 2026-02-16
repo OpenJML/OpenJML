@@ -39,6 +39,9 @@ public class WarningCategory {
     public static final Key MISSING_SPECS_PATH = new Key("missing-specs-path");
     public static final Key MISSING_SEMICOLON = new Key("missing-semicolon");
     public static final Key LITERAL_DIV_BY_ZERO = new Key("literal-divide-by-zero");
+    public static final Key STRICT_JML = new Key("strict-jml");
+    public static final Key JML_LINT = new Key("jml-lint");
+    public static final Key DEPRECATED = new Key("deprecated");
 
     public static enum WarnAction { QUIET, WARN, ERROR };
     public static Map<Key, WarnAction> init(Map<Key, WarnAction> map) {
@@ -49,6 +52,9 @@ public class WarningCategory {
         map.put(MISSING_MEASURED_BY, WarnAction.QUIET);
         map.put(MISSING_SEMICOLON, WarnAction.QUIET);
         map.put(LITERAL_DIV_BY_ZERO, WarnAction.WARN);
+        map.put(STRICT_JML, WarnAction.WARN);
+        map.put(JML_LINT, WarnAction.WARN);
+        map.put(DEPRECATED, WarnAction.WARN);
         return map;
     }
 

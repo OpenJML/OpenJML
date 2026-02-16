@@ -12,6 +12,7 @@ import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.WarningCategory;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjml.ext.MethodSimpleClauseExtensions;
 import org.jmlspecs.openjml.ext.MiscExtensions;
@@ -226,7 +227,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                 // Old -style //+@ or //-@ comments
                 
                 if (Options.instance(context).isSet("-Xlint:deprecation")) {
-                    Utils.instance(context).warning(plusPosition,"jml.deprecated.conditional.annotation");
+                    Utils.instance(context).warning(WarningCategory.DEPRECATED, Utils.NULL_SOURCE, plusPosition,"jml.deprecated.conditional.annotation");
                 }
 
                 // To be backward compatible at the moment,
@@ -658,7 +659,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                         tk = TokenKind.CUSTOM;
                         // keep jmlTokenClauseKind
                         if (Utils.instance(context).isDeprecationSet() && seq.equals("\\index")) {
-                            Utils.instance(context).warning(ep, "jml.deprecated.index");
+                            Utils.instance(context).warning(WarningCategory.DEPRECATED, Utils.NULL_SOURCE, ep, "jml.deprecated.index");
                         }
                     }
                 } else {

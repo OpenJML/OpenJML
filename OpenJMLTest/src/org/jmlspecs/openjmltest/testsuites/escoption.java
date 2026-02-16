@@ -385,7 +385,7 @@ public class escoption extends EscBase {
         expectedExit = 0;
         addOptions("-dirs");
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
-                ,"warning: Option -dirs is deprecated in favor of --dirs",-1
+                ,"warning: [deprecated] Option -dirs is deprecated in favor of --dirs",-1
         );
         org.junit.Assert.assertEquals("",output());
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
@@ -396,7 +396,7 @@ public class escoption extends EscBase {
         expectedExit = 0;
         addOptions("-dir=.");
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
-                ,"warning: Option -dir is deprecated in favor of --dir",-1
+                ,"warning: [deprecated] Option -dir is deprecated in favor of --dir",-1
         );
         org.junit.Assert.assertEquals("",output());
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
@@ -616,7 +616,7 @@ public class escoption extends EscBase {
         addOptions("--help=warn");
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
-        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [implicit-everything, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path]\n",output());
+        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [deprecated, implicit-everything, jml-lint, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path, strict-jml]\n",output());
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 

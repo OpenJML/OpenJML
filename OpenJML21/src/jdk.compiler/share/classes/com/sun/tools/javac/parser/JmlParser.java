@@ -2306,10 +2306,10 @@ public class JmlParser extends JavacParser {
                 JCExpression index = parseExpression(); // parses an index or a range
                 if (token.kind == RBRACKET) {
                     if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
-                    	if (index instanceof JmlRange r && r.lo != null && r.hi == null) {
-                    		utils.warning(token.pos, token.endPos, "jml.not.strict","storeref with implied end-of-range: " + index);
-                    	}
-                      } 
+                        if (index instanceof JmlRange r && r.lo != null && r.hi == null) {
+                            utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, token.pos, token.endPos, "jml.not.strict","storeref with implied end-of-range: " + index);
+                        }
+                    } 
                     t = to(jmlF.at(t.pos).Indexed(t, index));
                     nextToken();
                     continue;
@@ -2450,7 +2450,7 @@ public class JmlParser extends JavacParser {
                     mods.pos = token.pos;
                 }
                 if (!mk.strict && JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
-                    utils.warning(jt.pos,"jml.not.strict",mk.keyword);
+                    utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, jt.pos,"jml.not.strict",mk.keyword);
                 }
 //    	    } else if (token.kind == TokenKind.RPAREN || token.kind == TokenKind.RPAREN) {
 //                // Unexpected -- and other closing punctuation
@@ -2614,40 +2614,40 @@ public class JmlParser extends JavacParser {
             nextToken();
 //        } else if (inExprMode() && token.kind == TokenKind.COLON) {
 //            t = null;
-//            nextToken();
+            //            nextToken();
         } else if (inExprMode() && token.kind == TokenKind.STAR) {
-    		t = null;
-        	int dotpos = pos();
-        	nextToken();
-        	if (jmlTokenClauseKind() != dotdotKind) {
-        		//JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
-        		return jmlF.at(dotpos).JmlRange(null,null);
-        	}
-        	op = token;
+            t = null;
+            int dotpos = pos();
+            nextToken();
+            if (jmlTokenClauseKind() != dotdotKind) {
+                //JmlPrimitiveTypes.rangeTypeKind.parse(null, null,JmlPrimitiveTypes.rangeTypeKind, this);
+                return jmlF.at(dotpos).JmlRange(null,null);
+            }
+            op = token;
         } else {
             op = null;
             t = term1Cond();
         }
         if (inExprMode() && (jmlTokenClauseKind() == dotdotKind /*|| token.kind == TokenKind.COLON*/)) {
-        	int dotpos = pos();
-        	nextToken();
-        	JCExpression tt;
-        	if (token.kind == TokenKind.STAR) {
-        		tt = null;
-        		nextToken();
-        	} else if (token.kind == TokenKind.RBRACKET || token.kind == TokenKind.RPAREN) {
+            int dotpos = pos();
+            nextToken();
+            JCExpression tt;
+            if (token.kind == TokenKind.STAR) {
+                tt = null;
+                nextToken();
+            } else if (token.kind == TokenKind.RBRACKET || token.kind == TokenKind.RPAREN) {
                 if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
-                	utils.warning(token.pos,"jml.not.strict","storeref with implied end-of-range");
+                    utils.warning(WarningCategory.STRICT_JML, Utils.NULL_SOURCE, token.pos, "jml.not.strict", "storeref with implied end-of-range");
                 }
-        		tt = null;
-        	} else {
-        	    tt = term1Cond();
-        	    if (jmlTokenClauseKind() == dotdotKind) {
-        	        utils.error(token.pos,"jml.message","Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed");
-        	    }
-        	}
-        	//JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
-        	return jmlF.at(dotpos).JmlRange(t,tt);
+                tt = null;
+            } else {
+                tt = term1Cond();
+                if (jmlTokenClauseKind() == dotdotKind) {
+                    utils.error(token.pos,"jml.message","Range operators (..) do not chain and have the lowest precedence; perhaps parentheses are needed");
+                }
+            }
+            //JmlPrimitiveTypes.rangeTypeKind.parse(null, null, JmlPrimitiveTypes.rangeTypeKind, this);
+            return jmlF.at(dotpos).JmlRange(t,tt);
         } else {
             return t;
         }

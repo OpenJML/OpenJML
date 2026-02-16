@@ -61,7 +61,7 @@ public class access extends TCBase {
     public void testSpecConflict3() {
         expectedExit = 0;
         helpTCText("A.java","public class A { /*@ spec_public */ static public boolean b; } "
-                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_public",22
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both public and spec_public",22
                 );
     }
 
@@ -75,7 +75,7 @@ public class access extends TCBase {
     public void testSpecConflict5() {
         expectedExit = 0;
         helpTCText("A.java","public class A { /*@ spec_protected */ static protected boolean b; } "
-                ,"/A.java:1: warning: There is no point to a declaration being both protected and spec_protected",22
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both protected and spec_protected",22
                 );
     }
 
@@ -119,7 +119,7 @@ public class access extends TCBase {
     public void testSpecConflictM3() {
         expectedExit = 0;
         helpTCText("A.java","public class A { /*@ spec_public */ static public boolean m(){return true;} } "
-                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_public",22
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both public and spec_public",22
                 );
     }
 
@@ -133,7 +133,7 @@ public class access extends TCBase {
     public void testSpecConflictM5() {
         expectedExit = 0;
         helpTCText("A.java","public class A { /*@ spec_protected */ static protected boolean m(){return true;} } "
-                ,"/A.java:1: warning: There is no point to a declaration being both protected and spec_protected",22
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both protected and spec_protected",22
                 );
     }
 
@@ -177,7 +177,7 @@ public class access extends TCBase {
     public void testSpecConflictC3() {
         expectedExit = 0;
         helpTCText("A.java","public class A { /*@ spec_public */ static public class C{} } "
-                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_public",22
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both public and spec_public",22
                 );
     }
 
@@ -191,7 +191,7 @@ public class access extends TCBase {
     public void testSpecConflictC5() {
         expectedExit = 0;
         helpTCText("A.java","public class A { /*@ spec_protected */ static protected class C{} } "
-                ,"/A.java:1: warning: There is no point to a declaration being both protected and spec_protected",22
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both protected and spec_protected",22
                 );
     }
 

@@ -7,6 +7,8 @@ import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClauseRepresents;
 import org.jmlspecs.openjml.JmlTree.Maker;
+import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.WarningCategory;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -42,7 +44,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 e = parser.parseExpression();
             } else if (parser.jmlTokenClauseKind() == org.jmlspecs.openjml.ext.Operators.leftarrowKind) {
                 if (utils.isDeprecationSet() && ! strict) {
-                    utils.warning(parser.pos(), "jml.deprecated.left.arrow.in.represents");
+                    utils.warning(WarningCategory.DEPRECATED, Utils.NULL_SOURCE, parser.pos(), "jml.deprecated.left.arrow.in.represents");
                 }
                 suchThat = false;
                 parser.nextToken();

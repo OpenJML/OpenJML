@@ -503,7 +503,7 @@ public class modifiers extends TCBase {
         helpTCText("A.java","/*@helper ghost spec_public*/ public class A{ }"
                 ,"/A.java:1: error: This JML modifier is not allowed for a type declaration",4
                 ,"/A.java:1: error: This JML modifier is not allowed for a type declaration",11
-                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_public",17
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both public and spec_public",17
         );
     }
     
@@ -522,7 +522,7 @@ public class modifiers extends TCBase {
         helpTCText("A.java","/*@helper ghost spec_protected*/ public interface A{ }"
                 ,"/A.java:1: error: This JML modifier is not allowed for a type declaration",4
                 ,"/A.java:1: error: This JML modifier is not allowed for a type declaration",11
-                ,"/A.java:1: warning: There is no point to a declaration being both public and spec_protected",17
+                ,"/A.java:1: warning: [jml-lint] There is no point to a declaration being both public and spec_protected",17
         );
     }
     
@@ -1058,7 +1058,7 @@ public class modifiers extends TCBase {
                 "  //@ public also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
-                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",14
+                ,"/A.java:2: warning: [strict-jml] Method m does not override parent class methods and so its specification may not begin with 'also'",14
                 );
     }
      
@@ -1068,7 +1068,7 @@ public class modifiers extends TCBase {
                 "  //@ pure also behavior requires true;\n" +
                 "  void m() {} }"
                 ,"/A.java:2: warning: No modifiers are allowed prior to a also token",7
-                ,"/A.java:2: warning: Method m does not override parent class methods and so its specification may not begin with 'also'",12
+                ,"/A.java:2: warning: [strict-jml] Method m does not override parent class methods and so its specification may not begin with 'also'",12
                 );
     }
      
@@ -1355,8 +1355,8 @@ public class modifiers extends TCBase {
                 "  boolean m() { int i = Math.addExact(5,6); } }"
                 ,"/$A/java/lang/Math.jml:2: error: A declaration may not be both spec_public and spec_protected",5
                 ,"/$A/java/lang/Math.jml:2: error: Associated declaration: /$A/java/lang/Math.jml:2:", 17
-                ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_protected",17
-                ,"/$A/java/lang/Math.jml:2: warning: There is no point to a declaration being both public and spec_public",5
+                ,"/$A/java/lang/Math.jml:2: warning: [jml-lint] There is no point to a declaration being both public and spec_protected",17
+                ,"/$A/java/lang/Math.jml:2: warning: [jml-lint] There is no point to a declaration being both public and spec_public",5
                 );
     }
     
@@ -1413,7 +1413,7 @@ public class modifiers extends TCBase {
         expectedExit = 0;
         helpTCText("A.java","import org.jmlspecs.annotation.*;\n" +
                 "public @Pure class A{}",
-                "/A.java:2: warning: Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @Pure on class A", 8);
+                "/A.java:2: warning: [jml-lint] Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @Pure on class A", 8);
     }
 
     @Test

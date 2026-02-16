@@ -35,7 +35,7 @@ test/gitbug922/PolygonMM.java:29: error: cannot find symbol
                         ^
   symbol:   variable longestSide
   location: class Square
-test/gitbug922/PolygonMM.java:38: warning: Method sides does not override parent class methods and so its specification may not begin with 'also'
+test/gitbug922/PolygonMM.java:38: warning: [strict-jml] Method sides does not override parent class methods and so its specification may not begin with 'also'
   //@ also public normal_behavior
       ^
 Operation not performed because of parse or type errors

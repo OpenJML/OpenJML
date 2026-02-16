@@ -158,7 +158,7 @@ public class JmlOption {
             // The default has been filled in before check is called
             String val = options.get(JmlOption.LANG.optionName());
             if (!jmlVariants.contains(val)) {
-                Utils.instance(context).warning("jml.message","Command-line argument error: Expected one of " + jmlVariants + " for --lang: " + val);
+                clWarning(context, "Command-line argument error: Expected one of " + jmlVariants + " for --lang: " + val);
                 options.put(JmlOption.LANG.optionName(),(String)JmlOption.LANG.defaultValue());
                 return false;
             }

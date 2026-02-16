@@ -425,7 +425,7 @@ public class compiler extends JmlTestSuite{
                         src + "testWarnings/A.java"
                 },1,0
                 ,""
-                ,src + "testWarnings/A.java:3: warning: There is no point to a specification case having more visibility than its method"+eol
+                ,src + "testWarnings/A.java:3: warning: [jml-lint] There is no point to a specification case having more visibility than its method"+eol
                 +"  //@ public normal_behavior"+eol
                 +"      ^"+eol
                 +"error: warnings found and -Werror specified"+eol

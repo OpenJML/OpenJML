@@ -71,8 +71,8 @@ public class typechecking extends TCBase {
     @Test public void testAlso1() {
         expectedExit = 0;
         helpTCText(null, " class B { void m() {} } class A extends B { /*@ requires true; */ void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",50
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",84
+                ,"/TEST.java:1: warning: [strict-jml] Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",50
+                ,"/TEST.java:1: warning: [strict-jml] Method n does not override parent class methods and so its specification may not begin with 'also'",84
                 );
     }
 
@@ -84,8 +84,8 @@ public class typechecking extends TCBase {
     @Test public void testAlso1I() {
         expectedExit = 0;
         helpTCText(null, " interface B { void m(); } class A implements B { /*@ public normal_behavior requires true; */ public void m() {} /*@ also requires true; */ void n() {}}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",62
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",119
+                ,"/TEST.java:1: warning: [strict-jml] Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",62
+                ,"/TEST.java:1: warning: [strict-jml] Method n does not override parent class methods and so its specification may not begin with 'also'",119
                 );
     }
 
@@ -97,8 +97,8 @@ public class typechecking extends TCBase {
     @Test public void testAlso1II() {
         expectedExit = 0;
         helpTCText(null, " interface B { void m(); } interface A extends B { /*@ requires true; */ void m(); /*@ also requires true; */ void n();}"
-                ,"/TEST.java:1: warning: Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",56
-                ,"/TEST.java:1: warning: Method n does not override parent class methods and so its specification may not begin with 'also'",88
+                ,"/TEST.java:1: warning: [strict-jml] Method m overrides parent class methods and so its specification should begin with 'also' (A.m() overrides B.m())",56
+                ,"/TEST.java:1: warning: [strict-jml] Method n does not override parent class methods and so its specification may not begin with 'also'",88
                 );
     }
 
@@ -111,7 +111,7 @@ public class typechecking extends TCBase {
     @Test public void testAlsoObjectBad() {
         expectedExit = 0;
         helpTCText(null, "  interface A { /*@ public normal_behavior requires true; */ String toString();}"
-                ,"/TEST.java:1: warning: Method toString overrides parent class methods and so its specification should begin with 'also' (A.toString() overrides java.lang.Object.toString())",28
+                ,"/TEST.java:1: warning: [strict-jml] Method toString overrides parent class methods and so its specification should begin with 'also' (A.toString() overrides java.lang.Object.toString())",28
                 );
     }
     
@@ -1805,12 +1805,12 @@ public class typechecking extends TCBase {
                 
 
                 +"}"
-                ,"/TestJava.java:18: warning: There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:33: warning: There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:36: warning: There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:39: warning: There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:48: warning: There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:51: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:18: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:33: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:36: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:39: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:48: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:51: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
                 );
     }
     
@@ -2004,7 +2004,7 @@ public class typechecking extends TCBase {
                     public void m() {}
                 }
                 """
-                ,"/Test.java:2: warning: Inlined methods should be final since overriding methods will be ignored: m", 9
+                ,"/Test.java:2: warning: [jml-lint] Inlined methods should be final since overriding methods will be ignored: m", 9
         );
     }
 

@@ -181,9 +181,7 @@ public class QuantifiedExpressions extends JmlExtension {
                         // TODO -= check for strictness
                         valueType = Type.noType;
                         resultType = Type.noType;
-                        if (requireStrictJML()) {
-                            utils.warning(that.pos,"jml.not.strict","\\choosex expression");
-                        }
+                        strictCheck(that,"\\choosex expression");
                         if (that.decls.tail.nonEmpty()) {
                             error(that.decls.tail.head, "jml.message", "A \\choosex quantifier may have only one variable declaration");
                         }
