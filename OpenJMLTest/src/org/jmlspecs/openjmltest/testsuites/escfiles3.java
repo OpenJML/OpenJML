@@ -55,32 +55,32 @@ public class escfiles3 extends EscBaseFiles {
 
     @Test
     public void gitbug814() {
-        helpTG("--exclude=size,ks,btw,depthOfNull");
+        helpTG("--allow-pure-in-specs","--exclude=size,ks,btw,depthOfNull");
     }
 
     @Test
     public void gitbug814a() {
-        helpTG("--method=BinaryTree.Node.size");
+        helpTG("--allow-pure-in-specs","--method=BinaryTree.Node.size");
     }
 
     @Test
     public void gitbug814b() {
-        helpTG("--method=ks","--esc-max-warnings=1");
+        helpTG("--allow-pure-in-specs","--method=ks","--esc-max-warnings=1");
     }
 
     @Test
     public void gitbug814c() {
-        helpTG("--method=BinaryTree.Interval.size");
+        helpTG("--allow-pure-in-specs","--method=BinaryTree.Interval.size");
     }
 
     @Test
     public void gitbug814d() {
-        helpTG("--method=btw","--esc-max-warnings=1");
+        helpTG("--allow-pure-in-specs","--method=btw","--esc-max-warnings=1");
     }
 
     @Test
     public void gitbug814e() {
-        helpTG("--method=depthOfNull");
+        helpTG("--allow-pure-in-specs","--method=depthOfNull");
     }
 
     // This actually does not appear to be related to the other gitbug814 tests

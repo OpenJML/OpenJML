@@ -93,8 +93,7 @@ public class JmlOptions extends Options {
     /** Loads the options map with all defaults for Jml options */
     public void loadDefaults() {
         //System.out.println("SETTING DEFAULTS");
-        for (JmlOption opt : JmlOption.map.values()) {
-//            if (opt == null || opt.obsolete()) continue;  // FIXME - how can there be a null? came with making purity-check obsolete
+        for (JmlOption opt : JmlOption.list) {
             Object d = opt.defaultValue();
             String s = d == null ? null : d.toString();
             if (opt.defaultValue() instanceof Boolean b) {
@@ -102,7 +101,7 @@ public class JmlOptions extends Options {
             } else {
                 put(opt.optionName(),s);
             }
-            opt.check(context,false);
+            if (!opt.obsolete()) opt.check(context,false);
         }
     }
 

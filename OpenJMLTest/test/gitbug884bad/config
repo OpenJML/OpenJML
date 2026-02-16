@@ -1,1 +1,2 @@
 EXIT=1
+ARGS+=" --no-allow-pure-in-specs "

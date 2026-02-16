@@ -656,7 +656,7 @@ public class MethodProverSMT {
                 }
             } else b: { // Proof was not UNSAT, so there may be a counterexample
                 if (!utils.testingMode) utils.progress(0,Utils.PROGRESS,loc + " Method assertions are INVALID");
-                int count = Utils.instance(context).maxWarnings;
+                int count = JmlOption.ESC_MAX_WARNINGS.getInt(context);
                 boolean byPath = JmlOption.ESC_WARNINGS_PATH.isSet(context);
                 ProverResult pr = (ProverResult)factory.makeProverResult(methodDecl.sym,proverToUse,
                         solverResponse.toString().equals("sat") ? IProverResult.SAT : IProverResult.POSSIBLY_SAT,start);

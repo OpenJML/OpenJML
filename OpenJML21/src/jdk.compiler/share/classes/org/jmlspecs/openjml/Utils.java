@@ -245,8 +245,7 @@ public class Utils {
         }
 
         testingMode = JmlOption.JMLTESTING.isSet(context);
-        maxWarnings = JmlOption.ESC_MAX_WARNINGS.getInt(context);
-}
+    }
 
     /** Global utility value that enables printing of debugging or trace information. */
     public int jmlverbose = NORMAL; 
@@ -276,9 +275,6 @@ public class Utils {
     
     /** Do Jmldoc  */
     public boolean doc = false;
-    
-    /** Max number of ESC warnings per method (set from an option) */
-    public int maxWarnings = 1;
     
     // These are now overloaded -- FIXME - need a better solution
 
