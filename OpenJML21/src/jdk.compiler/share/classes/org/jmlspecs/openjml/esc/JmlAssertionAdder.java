@@ -11732,20 +11732,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					//System.out.println("PNR " + that.type + " " + calleeMethodSym + " " + specs.isCheckNonNullReturn(that.type, calleeMethodSym));
 					if (apply != null && calleeMethodSym.getReturnType() != null
 							&& !utils.isJavaOrJmlPrimitiveOrVoidType(calleeMethodSym.getReturnType())
-							&& resultExpr != null && meth != null && 
-							specs.isCheckNonNullReturn(that.type, calleeMethodSym)) {
-						JCExpression nn = treeutils.makeNotNull(that.pos, resultExpr);
-						var p = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases
-																								// where specDecl is
-																								// null -- implicit
-																								// methods like
-																								// Enum.values()?
-						var psource = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.sourcefile : null;
-						currentStatements = ensuresStatsOuter;
-						addStat(comment(meth, "Assuming non-null return value in " + methodDecl.sym
-								+ " on return from callee " + calleeMethodSym, null));
-						addAssume(meth, Label.POSSIBLY_NULL_RETURN, nn, p, psource,
-								calleeMethodSym + ", checked in caller " + methodDecl.sym);
+							&& resultExpr != null && meth != null) { 
+						if (specs.isCheckNonNullReturn(that.type, calleeMethodSym)) {
+						    JCExpression nn = treeutils.makeNotNull(that.pos, resultExpr);
+						    var p = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.pos() : that.pos(); // FIXME - sort out cases
+						                            // where specDecl is null -- implicit methods like Enum.values()?
+						    var psource = (mspecs != null && mspecs.specDecl != null) ? mspecs.specDecl.sourcefile : null;
+						    currentStatements = ensuresStatsOuter;
+						    addStat(comment(meth, "Assuming non-null return value in " + methodDecl.sym.owner + "." + methodDecl.sym
+						            + " on return from callee " + calleeMethodSym, null));
+						    addAssume(meth, Label.POSSIBLY_NULL_RETURN, nn, p, psource,
+						            calleeMethodSym + ", checked in caller " + methodDecl.sym);
+						} else {
+	                        addStat(comment(meth, "Assuming nullable return value in " + methodDecl.sym.owner + "." + methodDecl.sym
+	                                + " on return from callee " + calleeMethodSym, null));
+						}
 					}
 
 //					paramActuals = mapParamActuals.get(mpsym);
