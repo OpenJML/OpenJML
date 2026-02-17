@@ -2392,7 +2392,7 @@ public class esc2 extends EscBase {
                         + "     //@ show i;\n"
                         + "  }\n"
                         + "}\n"
-                        ,"/tt/TestJava.java:7: warning: The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
+                        ,"/tt/TestJava.java:7: warning: [strict-jml] The show statement construct is an OpenJML extension to JML and not allowed under --lang=jml",10
                   ); 
     }
 

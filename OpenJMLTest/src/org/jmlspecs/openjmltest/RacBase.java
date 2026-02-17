@@ -307,7 +307,7 @@ public abstract class RacBase extends JmlTestSuite {
             args.addAll(Arrays.asList(opts));
 
             PrintWriter pw = new PrintWriter(actCompile);
-            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(String[]::new));
             pw.close();
 
             String compdiffs = "";

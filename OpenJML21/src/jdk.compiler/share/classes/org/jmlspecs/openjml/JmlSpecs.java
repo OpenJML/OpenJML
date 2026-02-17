@@ -263,6 +263,8 @@ public class JmlSpecs {
         utils = Utils.instance(context);
         names = Names.instance(context);
         jmltypes = JmlTypes.instance(context);
+        //nonnullType = Modifiers.NON_NULL.annotationType(context);  // FIXME - these cause the testsuite compilationUnit to crash -- circular initialization of Symtab
+        //nullableType = Modifiers.NULLABLE.annotationType(context);
     }
     
     /** Initializes the specs path given the current settings of options.
@@ -738,21 +740,43 @@ public class JmlSpecs {
                 // System.out.println("    Formal specs " + d.sym + " " + jsym.hashCode() + " " +  specSym + " " + f.isNonNull + " " + f.mods);
             }
         }
-        spec.returnNonNull = findNonNullReturn(specSym, decl);
-        if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode() + " " + spec.returnNonNull);
+        setReturnNullity(spec, specSym, decl);
+        //if (specSym.toString().contains("put(")) System.out.println("  NNR " + specSym.owner + " " + specSym + " " + spec.returnNonNull);
+        if (utils.verbose()) utils.note("            Saving method specs for " + specSym.owner + "." + specSym + " " + specSym.hashCode() );
         setStatus(specSym, SpecsStatus.SPECS_LOADED);
     }
     
-    public boolean findNonNullReturn(MethodSymbol sym, JCMethodDecl specDecl) {
+    public void setReturnNullity(MethodSpecs spec, MethodSymbol sym, JCMethodDecl specDecl) {
+        //if (sym.toString().contains("put(")) System.out.println("HAS SPECDECL? " + sym.owner + " " + sym + " " + (specDecl!= null));
+        boolean explicitNonNull = false;
+        boolean explicitNullable = false;
         if (specDecl != null) {
-            if (hasTypeAnnotation(specDecl.restype, Modifiers.NON_NULL)) return true;
-            if (hasTypeAnnotation(specDecl.restype, Modifiers.NULLABLE)) return false;
-            if (findModifier(specDecl, Modifiers.NON_NULL)) return true;
-            if (findModifier(specDecl, Modifiers.NULLABLE)) return false;
-            if (findAnnotation(specDecl.mods.annotations, Modifiers.NON_NULL) != null) return true;
-            if (findAnnotation(specDecl.mods.annotations, Modifiers.NULLABLE) != null) return false;
+            if (hasTypeAnnotation(specDecl.restype, Modifiers.NON_NULL)) {
+                explicitNonNull = true;
+            }
+            if (findModifier(specDecl, Modifiers.NON_NULL)) {
+                explicitNonNull = true;
+            }
+            if (findAnnotation(specDecl.mods.annotations, Modifiers.NON_NULL) != null) {
+                explicitNonNull = true;
+            }
+
+            if (hasTypeAnnotation(specDecl.restype, Modifiers.NULLABLE)) {
+                explicitNullable = true;
+            }
+            if (findModifier(specDecl, Modifiers.NULLABLE)) {
+                explicitNullable = true;
+            }
+            if (findAnnotation(specDecl.mods.annotations, Modifiers.NULLABLE) != null) {
+                explicitNullable = true;
+            }
+//            if (explicitNonNull && explicitNullable) {
+//                utils.error(Utils.NULL_SOURCE, specDecl, "jml.message", "Method declaration is explicitly non_null and explicitly nullable: " + sym.owner + "." + sym);
+//                // FIXME would like to have positions for the conflicting modifiers and annotations
+//            }
         }
-        return defaultNullity((ClassSymbol)sym.owner) == Modifiers.NON_NULL;
+        spec.returnExplicitlyNonNull = explicitNonNull;
+        spec.returnExplicitlyNullable = !explicitNonNull && explicitNullable;
     }
     
     public boolean findModifier(JCMethodDecl decl, ModifierKind kind) {
@@ -1622,21 +1646,44 @@ public class JmlSpecs {
     public boolean isCheckNonNullReturn(Type type, MethodSymbol msym) {
         // Extension type values are always non-null, but we do not check for that
         if (jmltypes.isJmlType(type)) return false;
-        {
-            var s = type.toString();
-            // FIXME - there must be a better way
-            if (s.contains("org.jmlspecs.annotation.NonNull")) return true;
-            if (s.contains("org.jmlspecs.annotation.Nullable")) return false;
+//        System.out.println("NONNULLRETURN? " + msym.owner + " " + msym + " " + type + " " + msym.getReturnType());
+//        System.out.println("NONNULLRETURN? " + msym.getModifiers());
+//        {
+//            var s = type.toString();
+//            // FIXME - there must be a better way
+//            if (s.contains("org.jmlspecs.annotation.NonNull")) return true;
+//            if (s.contains("org.jmlspecs.annotation.Nullable")) return false;
+//        }
+//        if (isNonNull(type)) return true; // FIXME - does this duplicate the above
+        var ms = get(msym);
+        if (ms.returnExplicitlyNonNull) return true;
+        if (ms.returnExplicitlyNullable) return false;
+        if (type.isAnnotated()) {
+//            System.out.println("CHECKING RETURN NULLITY " + type );
+//            for (var x: type.getAnnotationMirrors()) {
+////                System.out.println("  ANNMIRROR " + x + " " + x.getClass() + " " + x.getAnnotationType() + " " + x.getAnnotationType().getClass());
+////                        (x.getAnnotationType().tsym == Modifiers.NON_NULL.annotationSym) + " " + 
+////                        (x.getAnnotationType().tsym == Modifiers.NULLABLE.annotationSym)
+//                        //);
+//                //if (x.getAnnotationType().tsym == Modifiers.NON_NULL.annotationSym)
+//                var t = x.getAnnotationType();
+//                if (types.isSameType(t, nonnullType)) return true;
+//                if (types.isSameType(t, nullableType)) return false;
+//            }
+            if (type.toString().contains("NonNull")) return true;
+            if (type.toString().contains("Nullable")) return false;
         }
-        if (isNonNull(type)) return true; // FIXME - does this duplicate the above
-        if (isNonNullReturn(msym)) return true;
-        return false;
+        // FIXME - need to look at the type of the return, interpreting the type variable
+        return defaultNullity((ClassSymbol)msym.owner) == Modifiers.NON_NULL;
     }
 
     @SuppressWarnings("unchecked")
     public boolean isNonNullReturn(MethodSymbol msym) {
         var ms = get(msym);
-        return ms.returnNonNull;
+        if (ms.returnExplicitlyNonNull) return true;
+        if (ms.returnExplicitlyNullable) return false;
+        // FIXME - need to look at the type of the return, interpreting the type variable
+        return defaultNullity((ClassSymbol)msym.owner) == Modifiers.NON_NULL;
     }
     
     @SuppressWarnings("unchecked")
@@ -1708,6 +1755,8 @@ public class JmlSpecs {
     private ClassSymbol queryAnnotationSymbol = null;
     private ClassSymbol functionAnnotationSymbol = null;
     private ClassSymbol modelAnnotationSymbol = null;
+    public Type nonnullType;
+    public Type nullableType;
 
     // FIXME - these are also computed in JmlAttr
     protected ClassSymbol pureAnnotationSymbol() {
@@ -1971,7 +2020,8 @@ public class JmlSpecs {
         public JmlMethodSpecs cases;
         public Env<AttrContext> javaEnv;
         public Env<AttrContext> specsEnv;
-        public boolean returnNonNull;
+        public boolean returnExplicitlyNonNull;
+        public boolean returnExplicitlyNullable;
         public JCBlock modelBody;
         
         public MethodSpecs(JmlMethodDecl specsDecl) { 

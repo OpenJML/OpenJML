@@ -13,7 +13,6 @@ public final class B {
     //@   requires true;
     //@ pure
     public B(Builder builder) {
-        //    //@ assert builder.context.content.owner == builder.context;
         this.context = builder.context;
         // Here, OpenJML complains it cannot verify the Map invariant.
         // It ought to follow from what's known about this map on entry to this constructor.
@@ -25,21 +24,16 @@ public final class B {
     //@   requires true;
     public void testMethodA()
     {
-        // The following assertion is verified, as expected. In other words,
-        // OpenJML knows that the Map invariant holds for "this.context".
-        //@ assert this.context.content.owner == this.context;
+        //@ assert context.modelMap == context.modelMap; // OK
     }
 
     //@ public normal_behavior
     //@   requires true;
     public void testMethodB(Builder builder)
     {
-        // The following assertion fails. The only difference between this
-        // assertion and the one in "testMethodA" above is that it's talking
-        // about "builder.context" instead of "this.context". So, it seems
-        // that OpenJML knows about the Map invariant for "this.context", but
-        // not for "builder.context".
-        //@ assert builder.context.content.owner == builder.context;
+        // The following assertion fails. 
+        //@ check this.context == builder.context ==>  builder.context.modelMap == this.context.modelMap; // FAILS
+        //@ check builder.context.modelMap == this.context.modelMap; // FAILS
     }
 
     //@ non_null_by_default
@@ -53,7 +47,8 @@ public final class B {
         private Map<String, String> context = Collections.emptyMap();
         
         //@ public behavior
-        //@   assignable \everything;
+        //@   ensures this.context.isEmpty();
+        //@ pure
         public Builder() {
         }
     }
