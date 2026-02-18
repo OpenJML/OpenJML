@@ -152,7 +152,6 @@ escfileslist3.test[listNullity]
 escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
 escfileslist3.test[staticInit]  #       Needs implementation of static initialization
-escfileslist3.test[verifythis-2019-1]
 escfileslist3.test[gitbug908]   # THe weird OJ= problem
 escgeneric.testGenericType1
 escgeneric.testTypeOf
