@@ -512,13 +512,13 @@ public class compiler extends JmlTestSuite{
     //@Test  // FIXME - try running the build programmatically
     @Test 
     public void testSourcePath4() throws Exception {
-        if (!new java.io.File("../OpenJML21/release-temp/jmlruntime.jar").exists()) {
+        if (!new java.io.File("../OpenJMLsrc/release-temp/jmlruntime.jar").exists()) {
             this.err = savederr;  // FIXME
             this.out = savedout;
             this.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
         } else {
             helper(new String[]
-                    { "-classpath","../OpenJML21/release-temp/jmlruntime.jar",
+                    { "-classpath","../OpenJMLsrc/release-temp/jmlruntime.jar",
                             "-sourcepath",src + "testNoErrors",
                             "--specs-path","",
                             src + "testNoErrors/A.java",  
@@ -1188,7 +1188,7 @@ public class compiler extends JmlTestSuite{
     public void testExtension1() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                        "--specs-path","../OpenJML21/release-temp",
+                        "--specs-path","../OpenJMLsrc/release-temp",
                         "-lang=jml",
                         "--extensions=X", // Ignored when strict
                         src + "testNoErrors/A.java"

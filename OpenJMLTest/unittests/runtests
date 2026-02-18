@@ -9,7 +9,7 @@
 ## are stored in the one coverage data file 'unit-$1' where $1 is the name of the first testsuite listed in the command-line
 
 ## $R is the location of the directory containing this script, with
-## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJMLsrc
 
 trap ctrl_c INT
 
@@ -21,7 +21,7 @@ function ctrl_c() {
 
 F=$(realpath "$BASH_SOURCE")
 R=$(dirname "$F")
-export ROOT=`(cd "$R/../../OpenJML21" ; pwd)`
+export ROOT=`(cd "$R/../../OpenJMLsrc" ; pwd)`
 TEST="../OpenJMLTest"
 JROOT="$R/../libs"
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"

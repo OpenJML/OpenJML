@@ -5,7 +5,7 @@
 
 ## This script may be executed within the development environment or in a release
 
-## Directory containing this file, which should be either .../OpenJML21 or the release folder
+## Directory containing this file, which should be either .../OpenJMLsrc or the release folder
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the path to this script file
 INSTALL=$(dirname "$FILE") # path of the folder containing this file
 

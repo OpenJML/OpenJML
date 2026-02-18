@@ -3,6 +3,6 @@ Starting proof of TestArrayList.esc(int) with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of TestArrayList.esc(int) with prover !!!! - no warnings
 Completed proving methods in TestArrayList
-Note: /Users/davidcok/projects/OpenJML21/Specs/specs/java/util/ArrayList.jml uses unchecked or unsafe operations.
+Note: $SPECS/java/util/ArrayList.jml uses unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
 1 warning

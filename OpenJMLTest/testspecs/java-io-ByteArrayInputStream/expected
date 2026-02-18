@@ -3,10 +3,10 @@ Starting proof of TestByteArrayInputStream.t1() with prover !!!!
 $ROOT/OpenJML/OpenJMLTest/testspecs/java-io-ByteArrayInputStream/TestByteArrayInputStream.java:27: verify: The prover cannot establish an assertion (Precondition) in method t1
         var st = new ByteArrayInputStream(null);
                  ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/ByteArrayInputStream.jml:54: verify: Associated declaration
+$SPECS/java/io/ByteArrayInputStream.jml:54: verify: Associated declaration
     public ByteArrayInputStream(byte[] buf);
            ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/io/ByteArrayInputStream.jml:40: verify: Precondition conjunct is false: buf != null
+$SPECS/java/io/ByteArrayInputStream.jml:40: verify: Precondition conjunct is false: buf != null
       @    requires buf != null;
                         ^
 Completed proof of TestByteArrayInputStream.t1() with prover !!!! - with warnings

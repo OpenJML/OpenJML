@@ -11,7 +11,7 @@
 	<classpathentry kind="src" path="unittests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/OpenJML21"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OpenJMLsrc"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OpenJMLDemo"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Specs"/>
 	<classpathentry kind="output" path="bin"/>

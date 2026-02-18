@@ -20,7 +20,7 @@ fi
 
 if [ -z "${ZIP+x}" ]; then
   ## if ZIP is not set, then test the current build in development environment holding this file
-  export OJBIN="$LOCAL/../../OpenJML21"
+  export OJBIN="$LOCAL/../../OpenJMLsrc"
   OJ="$OJBIN"/openjml
   JV="$OJBIN"/openjml-java
   RT="$OJBIN"/jmlruntime.jar
@@ -29,7 +29,7 @@ if [ -z "${ZIP+x}" ]; then
 else
   if [ -z "${ZIP}" ]; then
     ## ZIP is set to an empty string -- use default
-    ZIP=$LOCAL/../../OpenJML21/release-temp/openjml.zip
+    ZIP=$LOCAL/../../OpenJMLsrc/release-temp/openjml.zip
   fi
   ## ZIP is set -- presume it names an openjml.zip to be tested
   if [ ! -e "$ZIP" ]; then
