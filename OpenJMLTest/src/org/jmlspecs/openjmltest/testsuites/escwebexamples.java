@@ -28,7 +28,7 @@ public class escwebexamples extends EscBaseFiles {
         addOptions("--no-infer=show");
     }
     
-    public void helpTG() {
+    public void helpEscSimple() {
         String testFileroot = getTestName();
         Assert.assertTrue("Web example sources not found", new File(sources).exists() && new File(sources).isDirectory());
         Assert.assertTrue("Expected location not found", new File(expected).exists() && new File(expected).isDirectory());
@@ -37,22 +37,22 @@ public class escwebexamples extends EscBaseFiles {
     
     @Test  // This one non-deterministically timesout - hence the fixing of solver-seed
     public void HeapSort() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void SelectionSort() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void BubbleSort() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void MergeSort() {
-        helpTG();
+        helpEscSimple();
     }
 
  

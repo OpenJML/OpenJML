@@ -21,7 +21,7 @@ public class escfilesmodels extends EscBaseFiles {
     
     String cpathAddition = "";
 
-    public void helpTCF(String sourceDirname, String outDir, String ... opts) {
+    public void helpEscFile(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
         ArrayList<String> list = new ArrayList<String>();
         list.add("-code-math=safe");
@@ -59,7 +59,7 @@ public class escfilesmodels extends EscBaseFiles {
 
     @Test public void gitbug431() {
         expectedExit = 0;
-        helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
+        helpEscFile("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
     }
         
     @Test public void gitbug461() {

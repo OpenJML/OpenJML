@@ -36,35 +36,35 @@ public class primesc2 extends EscBaseFiles {
         ignoreNotes = true;
     }
     
-    public void helpTG(String ... opts) {
-        super.helpTG(opts);
+    public void helpEscSimple(String ... opts) {
+        super.helpEscSimple(opts);
     }
 
     
     @Test
     public void jmlreal() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void jmlstring() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void jmlstring2() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void jmlseq() {
-        helpTG();
+        helpEscSimple();
     }
     
 
     @Test
     public void jmlset() {
-        helpTG();
+        helpEscSimple();
     }
     
 }

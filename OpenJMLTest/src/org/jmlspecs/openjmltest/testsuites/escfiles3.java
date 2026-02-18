@@ -48,200 +48,200 @@ public class escfiles3 extends EscBaseFiles {
         ignoreNotes = true;
     }
     
-    public void helpTG(String... opts) {
+    public void helpEscSimple(String... opts) {
         addOptions("--code-math=safe");
-        super.helpTG(opts);
+        super.helpEscSimple(opts);
     }
 
     @Test
     public void gitbug814() {
-        helpTG("--allow-pure-in-specs","--exclude=size,ks,btw,depthOfNull");
+        helpEscSimple("--allow-pure-in-specs","--exclude=size,ks,btw,depthOfNull");
     }
 
     @Test
     public void gitbug814a() {
-        helpTG("--allow-pure-in-specs","--method=BinaryTree.Node.size");
+        helpEscSimple("--allow-pure-in-specs","--method=BinaryTree.Node.size");
     }
 
     @Test
     public void gitbug814b() {
-        helpTG("--allow-pure-in-specs","--method=ks","--esc-max-warnings=1");
+        helpEscSimple("--allow-pure-in-specs","--method=ks","--esc-max-warnings=1");
     }
 
     @Test
     public void gitbug814c() {
-        helpTG("--allow-pure-in-specs","--method=BinaryTree.Interval.size");
+        helpEscSimple("--allow-pure-in-specs","--method=BinaryTree.Interval.size");
     }
 
     @Test
     public void gitbug814d() {
-        helpTG("--allow-pure-in-specs","--method=btw","--esc-max-warnings=1");
+        helpEscSimple("--allow-pure-in-specs","--method=btw","--esc-max-warnings=1");
     }
 
     @Test
     public void gitbug814e() {
-        helpTG("--allow-pure-in-specs","--method=depthOfNull");
+        helpEscSimple("--allow-pure-in-specs","--method=depthOfNull");
     }
 
     // This actually does not appear to be related to the other gitbug814 tests
     @Test
     public void gitbug814z() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void byteQuant() {
-        helpTG();
+        helpEscSimple();
     }
     
     // The following are split into multiple tests to minimize the combinatorial non-determinism in the output
     @Test
     public void sfbug420() {
-        helpTG("--exclude=count;itemAt;main;isEmpty;push;top");
+        helpEscSimple("--exclude=count;itemAt;main;isEmpty;push;top");
     }
     
     @Test
     public void sfbug420a() {
-        helpTG("--method=count");
+        helpEscSimple("--method=count");
     }
     
     @Test
     public void sfbug420b() {
-        helpTG("--method=itemAt");
+        helpEscSimple("--method=itemAt");
     }
     
     @Test
     public void sfbug420c() {
-        helpTG("--method=main");
+        helpEscSimple("--method=main");
     }
     
     @Test
     public void sfbug420d() {
-        helpTG("--method=isEmpty");
+        helpEscSimple("--method=isEmpty");
     }
     
     @Test
     public void sfbug420e() {
-        helpTG("--method=push");
+        helpEscSimple("--method=push");
     }
     
     @Test
     public void sfbug420eOK() {
-        helpTG("--method=push"); // FIXME - not sure wheterh or not all methods should be checked here
+        helpEscSimple("--method=push"); // FIXME - not sure wheterh or not all methods should be checked here
     }
     
     @Test
     public void sfbug420f() {
-        helpTG("--method=top");
+        helpEscSimple("--method=top");
     }
     
     @Test
     public void sfbug420X() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test  // TODO - could use some additional investigation as to what this submitted file set is supposed to do
     public void escrmloop() {
-        helpTG("--check-feasibility=none","--timeout=60");
+        helpEscSimple("--check-feasibility=none","--timeout=60");
     }
     
     @Test
     public void escrmloop2() {
         expectedExit = 1;
-        helpTG();
+        helpEscSimple();
     }
     
     @Test @Ignore // not working yet
     public void escFPcompose() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void escLemma() {
-        helpTG("--check-feasibility=none");
+        helpEscSimple("--check-feasibility=none");
     }
     
     @Test
     public void escOld() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void escOldState() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void exceptionCancel() {
-        helpTG();
+        helpEscSimple();
     }
     
     @Test
     public void buggyCalculator() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void buggyCalculatorBV() {
-        helpTG("--esc-max-warnings=1","--timeout=600");
+        helpEscSimple("--esc-max-warnings=1","--timeout=600");
     }
 
     @Test
     public void buggyCalculatorBV2() {
-        helpTG("--esc-max-warnings=1","--timeout=600");
+        helpEscSimple("--esc-max-warnings=1","--timeout=600");
     }
 
     @Test
     public void buggyRandomNumbers() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore // times out -- see testPrime for fixed version
     public void buggyPrimeNumbers() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore // FIXME - unclear why fails
     public void buggyPalindrome() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void escException() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void preold() {
-        helpTG();
+        helpEscSimple();
     }
     
 
     @Test
     public void preold2() {
         expectedExit = 1;
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void nullableOld() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void staticOld() {
         expectedExit = 1;
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void gitbug942() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void prelabel() {
-        helpTG();
+        helpEscSimple();
     }
 
 

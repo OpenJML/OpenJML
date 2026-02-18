@@ -41,53 +41,53 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore
     public void gitbug732() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void gitbug735() {
         expectedExit = 0;
-        helpTG();
+        helpEscSimple();
     }
     
     @Test @Ignore
     public void escDouble() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void escDouble1() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore // timesout
     public void escDouble2() {
-        helpTG("--exclude=clone,remainderBy,toString");
+        helpEscSimple("--exclude=clone,remainderBy,toString");
     }
 
     @Test @Ignore
     public void escDouble2a() {
-        helpTF("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
+        helpEscName("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
     }
     
     @Test @Ignore
     public void escDouble3() {
-        helpTG("--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
+        helpEscSimple("--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
     }
     
     @Test @Ignore
     public void escFloat() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void escfpMath() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void escfpPrimitiveOps() {
-        helpTG();
+        helpEscSimple();
     }
 
 
@@ -95,38 +95,38 @@ public class escfpfiles extends EscBaseFiles {
     @Ignore // FIXME -  Needs more double specs
     @Test public void gitbug580() {
         expectedExit = 0;
-        helpTG();
+        helpEscSimple();
     }
     
     @Ignore // FIXME - times out -- double arithmetic?
     @Test
     public void gitbug601() {
         expectedExit = 0;
-        helpTG();
+        helpEscSimple();
     }
     
     @Ignore // FIXME -  double arithmetic?
     @Test
     public void gitbug633() {
         expectedExit = 0;
-        helpTG();
+        helpEscSimple();
     }
     
     @Ignore // FIXME 
     @Test
     public void gitbug751() {
         expectedExit = 0;
-        helpTG();
+        helpEscSimple();
     }
     
 
     @Test public void sfbug414() { // FIXME - is the code-math option needed? Why?
         expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint");
+        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint");
     }
 
     @Test public void sfbug414n() { // FIXME - is the code-math option needed? Why?
         expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=AUFNIRA","--esc-max-warnings=5", "--code-math=bigint");
+        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=AUFNIRA","--esc-max-warnings=5", "--code-math=bigint");
     }
 }

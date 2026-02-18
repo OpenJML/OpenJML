@@ -198,7 +198,7 @@ public class escfilesdemo extends EscBaseFiles {
     @Test
     public void escCashAmountPrivate2() {   // FIXME - should thius be in with demo files?
         expectedExit = 0;
-        helpTCF("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
+        helpEscFile("test/escCashAmountPrivate2/CashAmountOnlyPrivate.java","test/escCashAmountPrivate2","-classpath","test/escCashAmountPrivate2","-method=increase","-checkFeasibility=none");
     }
 
     @Test
