@@ -50,6 +50,7 @@ private   /*@ pure @*/ static String getVocali(String str){
     return str.replaceAll("[^aeiou]", "");
 }
 
+//@ requires giorno < Integer.MAX_VALUE-100;
 public   /*@ pure @*/ static String codiceGiorno(int giorno, char sesso){
     if(sesso=='f'){
         giorno+=40;

@@ -141,13 +141,13 @@ public class escfiles extends EscBaseFiles {
     @Test @Ignore // FIXME - Specs need improvement
     public void verifythis2019_1() {
         expectedExit = 0;
-        helpTF("verifythis2019_1","--check-feasibility=none"); // FIXME - feasibility check times out
+        helpTF("verifythis2019_1","--check-feasibility=none", "--code-math=bigint"); // FIXME - feasibility check times out // FIXME - not sure code-math option is needed
     }
 
     @Test
     public void verifythis2019_2() {
         expectedExit = 0;
-        helpTF("verifythis2019_2","--solver-seed=42");
+        helpTF("verifythis2019_2","--solver-seed=42", "--code-math=bigint"); // FIXME - not sure code-math option is needed
     }
 
     @Test
