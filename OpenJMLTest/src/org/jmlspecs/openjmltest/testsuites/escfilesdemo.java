@@ -203,7 +203,6 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test
     public void demoSettableClock() {
-        expectedExit = 0;
         helpDemo("settableClock","demoSettableClock","--check-feasibility=precondition,exit");
     }
 

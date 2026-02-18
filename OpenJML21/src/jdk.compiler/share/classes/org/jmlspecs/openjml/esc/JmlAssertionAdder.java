@@ -528,7 +528,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * a statement contract or the prestate of a callee.
 	 */
 	/*@ nullable */ 
-	public Name currentOldLabel = null;
+    public Name currentOldLabel = null;
+    /** The current interpretation of \Pre; chnages when calling a method. */
+    public Name currentPreLabel = null;
 
 
 	/** Used to hold the result of non-expression AST nodes */
@@ -675,7 +677,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.preconditions.clear();
 		this.treeMap.clear();
 //		this.evalStateLabel = null;
-		this.currentOldLabel = attr.preLabel;
+        this.currentOldLabel = attr.preLabel;
+        this.currentPreLabel = attr.preLabel;
 		this.topHeapCount = 0;
 		this.heapVarName = names.fromString(Strings.heap); // FIXME - cf. BasicBlocker2
 		this.applyNesting = 0;
@@ -8900,7 +8903,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    } else {
 		        var mspecs = specs.get(methsym);
 		        if (mspecs.modelBody == null) {
-		            System.out.println("MODEL BODY NULL FOR RAC INLINING " + methsym);
+		            String message = "Cannot inline a method that has no body; this error should have been reported during type-checking: " + methsym;
+		            utils.error(that, "jml.internal", message);
+		            throw new JmlInternalException(message);
 		        } else {
                     //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
                     if (print) System.out.println("INLINING FOR RAC " + methsym + " " + mspecs.modelBody);
@@ -9502,7 +9507,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		ClassSymbol savedEnclosingClass = this.enclosingClass;
 		Map<TypeSymbol, Type> savedTypeVarMapping = this.typevarMapping;
 		Map<TypeSymbol, Type> newTypeVarMapping = this.typevarMapping;
-		var savedCurrentOldLabel = currentOldLabel;
+        var savedCurrentOldLabel = currentOldLabel;
+        var savedCurrentPreLabel = currentPreLabel;
 		var applySource = log.currentSourceFile();
 
         nestedCallLocation = null;
@@ -10835,7 +10841,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				markLocation(calllabel, currentStatements, stat);
 			}
-			currentOldLabel = calllabel;
+			currentOldLabel = currentPreLabel = calllabel;
 			//System.out.println("CURRENTOLDENV-B " + currentOldEnv.name + " " + calllabel + " " + allocCounter + " " + preAllocCounter);
 			if (print) System.out.println("APPLYHELPER-R " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -12131,7 +12137,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             nestedCallSource = savedNestedCallSource;
 			applyNesting--;
 			this.calleePreconditions = savedPreexpressions;
-			currentOldLabel = savedCurrentOldLabel;
+            currentOldLabel = savedCurrentOldLabel;
+            currentPreLabel = savedCurrentPreLabel;
 			if (rac) {
 				outerDeclarations.addAll(currentStatements);
 				currentStatements = outerDeclarations;
@@ -15146,14 +15153,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 
 		} else if (translatingJML) {
-//		      if (translatingJML && optag == JCTree.Tag.EQ) {
-//		          System.out.println("TRANSLATING " + that + " " + that.lhs.type + " " + equality);
-//		          System.out.println("   B " + that.lhs.type + " " + types.isSameType(that.lhs.type, JMLPrimitiveTypes.stringTypeKind.getType(context)));
-//		      }
 
-//            boolean savedApplyingLambda = applyingLambda;
-//            applyingLambda = false;
-			JCExpression lhs = convertExpr(that.getLeftOperand());
+ 			JCExpression lhs = convertExpr(that.getLeftOperand());
 			JCExpression rhs = convertExpr(that.getRightOperand());
 			if (equality) {
 			    if (treeutils.isNullLit(lhs)) {
@@ -15345,20 +15346,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					lhs = addImplicitConversion(lhs, t, lhs); // FIXME - what final type
 				} else if (shift)
 					lhs = addImplicitConversion(lhs, unboxedType(that.type), lhs); // FIXME - what final type
-				else
+				else {
 					lhs = addImplicitConversion(lhs, that.type, lhs);
+				}
 
 				if (equality && t == null) {
-				 // OK
-				} else if (comp) {
-					rhs = addImplicitConversion(rhs, t, rhs); // FIXME - what final type
+				    // OK
+				} else if (comp) { // includes equality
+					rhs = addImplicitConversion(rhs, t, rhs);
 				} else if (shift) {
 					Type tt = unboxedType(that.rhs.type);
 					if (!tt.equals(syms.longType))
 						tt = syms.intType;
 					rhs = addImplicitConversion(rhs, tt, rhs);
-				} else
+				} else {
 					rhs = addImplicitConversion(rhs, that.type, rhs);
+				}
 			}
             addBinaryChecks(that,optag,lhs,rhs,null);
 			result = eresult = makeBin(that, optag, that.getOperator(), lhs, rhs, maxJmlType);
@@ -15422,19 +15425,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					lhs = addImplicitConversion(lhs, that.type, lhs);
 			    }
 			}
-
 			{
 			    if (equality && lhs.type.isNullOrReference() && rhs.type.isNullOrReference()) {
                     // do nothing
-                } else if (comp)
+                } else if (comp) { // include equality
 					rhs = addImplicitConversion(rhs, t, rhs);
-				else if (shift) {
+                } else if (shift) {
 					Type tt = unboxedType(that.rhs.type);
 					if (!tt.equals(syms.longType))
 						tt = syms.intType;
-					rhs = addImplicitConversion(rhs, tt, rhs); // FIXME - tt or int as above?
-				} else
+					rhs = addImplicitConversion(rhs, tt, rhs);
+				} else {
 					rhs = addImplicitConversion(rhs, that.type, rhs);
+				}
 			}
 			if (equality && ((that.lhs instanceof JCLambda && treeutils.isNullLit(that.rhs))
 					|| (that.rhs instanceof JCLambda && treeutils.isNullLit(that.lhs)))) {
@@ -20617,7 +20620,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else {
 		    label = ((JCIdent)arg).name;
 		}
-		if (label == attr.oldLabel) label = currentOldLabel;
+        if (label == attr.preLabel) label = currentPreLabel;
+        if (label == attr.oldLabel) label = currentOldLabel;
 		if (labelPropertiesStore.get(label) == null) {
 			String s = label.toString();
 			if (Arrays.stream(attr.predefinedLabels).anyMatch(ss->ss.equals(s))) {

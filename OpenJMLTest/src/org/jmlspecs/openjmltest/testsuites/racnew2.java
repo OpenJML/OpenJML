@@ -767,16 +767,16 @@ public class racnew2 extends RacBase {
                 "m(null); \n" +
                 "System.out.println(\"END\"); } static int i = 0; \n" +
                 " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl OBJECT null) == null; \n" +
-                "//@ assert (\\lbl INT 4) != 0; \n" +
-                "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
-                "//@ assert (\\lbl LONG 2L) != 0; \n" +
-                "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
-                "//@ assert (\\lbl DOUBLE 6.0) != 0; \n" +
-                "//@ assert (\\lbl CHAR 'a') != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN true) ; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
+                "//@ check (\\lbl OBJECT null) == null; \n" +
+                "//@ check (\\lbl INT 4) != 0; \n" +
+                "//@ check (\\lbl SHORT (short)(1)) != 0; \n" +
+                "//@ check (\\lbl LONG 2L) != 0; \n" +
+                "//@ check (\\lbl BYTE (byte)(3)) != 0; \n" +
+                "//@ check (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
+                "//@ check (\\lbl DOUBLE 6.0) != 0; \n" +
+                "//@ check (\\lbl CHAR 'a') != 0; \n" +
+                "//@ check (\\lbl BOOLEAN true) ; \n" +
+                "//@ check (\\lbl STRING \"abc\") != null; \n" +
                 "} " +
                 "}"
                 ,"LABEL OBJECT = null"

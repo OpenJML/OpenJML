@@ -120,13 +120,13 @@ public class escfpfiles extends EscBaseFiles {
     }
     
 
-    @Test public void sfbug414() {
+    @Test public void sfbug414() { // FIXME - is the code-math option needed? Why?
         expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5");
+        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint");
     }
 
-    @Test public void sfbug414n() {
+    @Test public void sfbug414n() { // FIXME - is the code-math option needed? Why?
         expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=AUFNIRA","--esc-max-warnings=5");
+        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=AUFNIRA","--esc-max-warnings=5", "--code-math=bigint");
     }
 }

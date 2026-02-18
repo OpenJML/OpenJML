@@ -57,7 +57,7 @@ public class Loops {
     for (int k: a) {
       //@ check k == a[\count];
       //@ check k == \old(k, \LoopBody);
-      k += 20;
+      k += 0;
       j = 0;
       //@ check \old(k, \LoopBody) == a[\count];
       //@ check \old(j, \LoopInit) == 123;

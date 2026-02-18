@@ -851,22 +851,17 @@ public class JmlTreeUtils {
             if (ltag == TypeTag.DOUBLE || ltag == TypeTag.FLOAT) return REAL.type;
             return rhs;
         }
-        if (ltag == TypeTag.DOUBLE) return lhs;
-        if (rtag == TypeTag.DOUBLE) return rhs;
+        // We cannot just reuse the left or right type, because those might be types with constant values
+        if (ltag == TypeTag.DOUBLE) return syms.doubleType;
+        if (rtag == TypeTag.DOUBLE) return syms.doubleType;
         if (ltag == TypeTag.FLOAT && rtag == TypeTag.LONG) return syms.doubleType;
         if (ltag == TypeTag.LONG && rtag == TypeTag.FLOAT) return syms.doubleType;
-        if (ltag == TypeTag.FLOAT) return lhs;
-        if (rtag == TypeTag.FLOAT) return rhs;
-        if (ltag == TypeTag.LONG) return lhs;
-        if (rtag == TypeTag.LONG) return rhs;
-        if (ltag == TypeTag.INT) return lhs;
-        if (rtag == TypeTag.INT) return rhs;
-        if (ltag == TypeTag.SHORT) return lhs;
-        if (rtag == TypeTag.SHORT) return rhs;
-        if (ltag == TypeTag.CHAR) return lhs;
-        if (rtag == TypeTag.CHAR) return rhs;
-        if (ltag == TypeTag.BYTE) return lhs;
-        if (rtag == TypeTag.BYTE) return rhs;
+        if (ltag == TypeTag.FLOAT || rtag == TypeTag.FLOAT) return syms.floatType;
+        if (ltag == TypeTag.LONG || rtag == TypeTag.LONG) return syms.longType;
+        if (ltag == TypeTag.INT || rtag == TypeTag.INT) return syms.intType;
+        if (ltag == TypeTag.SHORT || rtag == TypeTag.SHORT) return syms.shortType;
+        if (ltag == TypeTag.CHAR || rtag == TypeTag.CHAR) return syms.charType;
+        if (ltag == TypeTag.BYTE || rtag == TypeTag.BYTE) return syms.byteType;
         return lhs; // Only if non-numeric types, such as boolean
     }
     

@@ -56,7 +56,7 @@ public abstract class EscBaseFiles extends EscBase {
         args.add("-jmltesting");
         args.add("--progress");
         args.add("--timeout=300");
-        args.add("--code-math=java");
+//        args.add("--code-math=java");
         args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
@@ -84,7 +84,7 @@ public abstract class EscBaseFiles extends EscBase {
         String[] firstopts = new String[]{
                 "-classpath", d 
                 ,"--check-feasibility=precondition,reachable,exit,spec"
-                ,"--code-math=bigint" // Just to avoid overflow errors in these tests // FIXME - causes feasibility problem
+ //               ,"--code-math=bigint" // Just to avoid overflow errors in these tests // FIXME - causes feasibility problem
                 ,"--spec-math=bigint"
         };
         String[] newopts = new String[opts.length+firstopts.length];
@@ -110,21 +110,6 @@ public abstract class EscBaseFiles extends EscBase {
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
     }
-
-//    // FIXME - get rid of this eventually
-//    public String[] addVE(String ... opts) {
-//        var newopts = new String[opts.length+1];
-//        System.arraycopy(opts, 0, newopts, 0, opts.length);
-//        newopts[opts.length] = "--verify-exit=-1";
-//        return newopts;
-//    }
-//
-//    public String[] addVEF(String ... opts) {
-//        var newopts = new String[opts.length+1];
-//        System.arraycopy(opts, 0, newopts, 1, opts.length);
-//        newopts[0] = "--verify-exit=-1";
-//        return newopts;
-//    }
 
     /** runs a test whose source material is in the JMLDemo repo */ 
     public void helpDemoFile(String testFilename, String outdir, String ... opts) {
@@ -170,7 +155,7 @@ public abstract class EscBaseFiles extends EscBase {
         try (PrintWriter pw = new PrintWriter(actCompile)) {
             java.util.List<String> args = collectArgs(sourceDirname, outDir, opts);
 
-            // this.out.println("ARGS " + args);
+            //this.out.println("ARGS " + args);
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
 
             String diffs = null;
