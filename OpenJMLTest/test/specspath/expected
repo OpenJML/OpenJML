@@ -78,7 +78,7 @@ AC.java:3: verify: Associated declaration: AC.java:5:
       ^
 2 verification failures
 Test Y1 finds pxsrc/P.jml
-/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/specspath/pxsrc/P.jml:2: error: incompatible types: int cannot be converted to boolean
+$ROOT/OpenJML/OpenJMLTest/test/specspath/pxsrc/P.jml:2: error: incompatible types: int cannot be converted to boolean
   //@ invariant 0; // pxsrc/P.jml
                 ^
 1 error

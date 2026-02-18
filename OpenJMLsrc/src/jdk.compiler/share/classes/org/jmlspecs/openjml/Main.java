@@ -52,7 +52,7 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** Holds the value of an environment variable that is the path to
      *  the installation directory for openjml. In a release installation,
      *  install, specs, solvers are the same (as of this writing).
-     *  In a development environment, they are different -- OPENJML_INSTALL is the OpenJML21 folder, holding openjml, openjml-java etc.
+     *  In a development environment, they are different -- OPENJML_INSTALL is the OpenJMLsrc folder, holding openjml, openjml-java etc.
      */
     public static final String install = System.getenv("OPENJML_INSTALL");
     /** Absolute path to the folder that holds the library specifications */

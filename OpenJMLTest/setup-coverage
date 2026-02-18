@@ -23,12 +23,12 @@ fi
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the absolute path to this script file
 TEST=$(dirname "$FILE") 
 
-INSTALL="$TEST"/../OpenJML21
+INSTALL="$TEST"/../OpenJMLsrc
 . "$INSTALL/setup-vars" ## uses INSTALL, sets BINJAVA
 
 export AGENT=
 export PR=
-export OJA="$TEST/../OpenJML21/openjml"
+export OJA="$TEST/../OpenJMLsrc/openjml"
 export OPENJML_JVM=
 
 ## AGENT and PR are command-line arguments for **java**, not javac

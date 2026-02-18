@@ -96,9 +96,12 @@ release: .FORCE
 	make tutorial
 	make post
 
+clean-jml:
+	rm -rf release-temp temp-release
+
 ## Cleans and makes release
 clean-release:
-	-make clean dist-clean
+	-make clean dist-clean clean-jml
 	rm -rf $(makefile_path)/html
 	rm -rf $(TEMP)
 	rm -rf src/java.base/share/classes/org/jmlspecs/annotation
@@ -182,7 +185,7 @@ update-docs:
 	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
 
 ## Commits and pushes the builds produced by `update-docs` to openjml.github.io
-## (Does not commit them to the current branch of OpenJML21)
+## (Does not commit them to the current branch of OpenJMLsrc)
 push-docs:
 	( cd ../../openjml.github.io; git add documentation/OpenJMLUserGuide.pdf documentation/JML_Reference_Manual.pdf examples/${ZIPNAME} ; git commit -m "Updating docs"; git push )
 

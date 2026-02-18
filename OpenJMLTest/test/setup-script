@@ -3,7 +3,7 @@
 ## as a helper to run files in the OpenJML tests
 
 cd "$LOCAL"
-BIN=../../../OpenJML21
+BIN=../../../OpenJMLsrc
 PATH=$BIN:$PATH
 export ROOT=`(cd ../../../.. ; pwd)`
 export SPECS=`(cd $ROOT/Specs/specs; pwd)`

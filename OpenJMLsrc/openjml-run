@@ -2,9 +2,9 @@
 
 ## This script runs (like 'java' does) compiled programs (the result of openjml-compile) that have OpenJML programmatically linked in.
 
-## The directory containing this file, which should be either .../OpenJML21 or the release folder
+## The directory containing this file, which should be either .../OpenJMLsrc or the release folder
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; result is the absolute path to this script file
-INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, which should be either .../OpenJML21 or the release folder
+INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, which should be either .../OpenJMLsrc or the release folder
 
 . "$INSTALL/setup-exports" ## Sets OPENJML_EXPORTS
 

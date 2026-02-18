@@ -8,7 +8,7 @@
 ## If the PROF env var is set to something, then profiling is enabled
 
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; result is the absolute path to this script file
-INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, which should be either .../OpenJML21 or the release folder
+INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, which should be either .../OpenJMLsrc or the release folder
 
 
 # mac-setup is needed to fix Mac security complaints, though it is only needed the first time

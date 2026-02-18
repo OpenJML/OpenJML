@@ -79,7 +79,7 @@ public abstract class JmlTestSuite {
     // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
 
     // In a 'standard' local OpenJML github working environment, root will be the container for
-    // OpenJML/OpenJML21, OpenJML/OpenJMLTest, Specs, etc.
+    // OpenJML/OpenJMLsrc, OpenJML/OpenJMLTest, Specs, etc.
     // This value is needed because some tests emit a full absolute path name in error messages
     // The code to set this value presumes the initial working directory of the test runner is 'OpenJMLTest'
     static final public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();

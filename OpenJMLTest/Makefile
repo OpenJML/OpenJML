@@ -6,8 +6,8 @@ mkfile_dir := $(dir $(mkfile_path))
 ## The folder containing this Makefile, namely .../OpenJMLTest
 TEST=${mkfile_dir}
 
-## The folder containing the source and builds, namely (currently) .../OpenJML21
-SRC=${TEST}/../OpenJML21
+## The folder containing the source and builds, namely (currently) .../OpenJMLsrc
+SRC=${TEST}/../OpenJMLsrc
 
 ## Location of a folder in which to put test files (relative to the folder holding this makefile)
 T=temp-release
@@ -168,11 +168,11 @@ cov-report:
 	@( rm -f cov/combined.exec; java -jar ./jacoco/lib/jacococli.jar merge --quiet cov/*.exec --destfile cov/combined.exec )
 	@( java -jar ./jacoco/lib/jacococli.jar report --quiet ./cov/combined.exec --html ./cov/html \
 	    --sourcefiles "./unittests" --classfiles "./unittests" \
-	    --sourcefiles ./../OpenJML21/src/jdk.compiler/share/classes \
+	    --sourcefiles ./../OpenJMLsrc/src/jdk.compiler/share/classes \
             --sourcefiles ./../OpenJMLTest/src/ \
             --classfiles ./../OpenJMLTest/src/ \
-            --classfiles ./../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/java.base \
-            --classfiles ./../OpenJML21/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
+            --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/java.base \
+            --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
 
 # Launches a browser on the current coverage data
 cov-show:
