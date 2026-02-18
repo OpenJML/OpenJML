@@ -56,7 +56,6 @@ public abstract class EscBaseFiles extends EscBase {
         args.add("-jmltesting");
         args.add("--progress");
         args.add("--timeout=300");
-//        args.add("--code-math=java");
         args.add("--no-warn=implicit-everything"); // Because too many tests would issue warnings if enabled
         if (!new File(sourceDirOrFilename).isFile()) args.add("--dir");
         args.add(sourceDirOrFilename);
@@ -75,22 +74,21 @@ public abstract class EscBaseFiles extends EscBase {
     /** runs a test in the folder with the given name, with the classpath set to that folder,
      * placing the output in an 'actual' file in that same folder
      * and comparing to one or more 'expected' files in that folder; the additional arguments are test-specific 
-     * openjml options, which are appended to those set in 'setupForFiles'
+     * openjml options, which are appended to those set in 'collectArgs'
      * @param testDirname
      * @param opts
      */
-    public void helpTF(String testDirname, String ... opts) {
+    public void helpEscName(String testDirname, String ... opts) {
         String d = "test/" + testDirname;
         String[] firstopts = new String[]{
                 "-classpath", d 
                 ,"--check-feasibility=precondition,reachable,exit,spec"
- //               ,"--code-math=bigint" // Just to avoid overflow errors in these tests // FIXME - causes feasibility problem
                 ,"--spec-math=bigint"
         };
         String[] newopts = new String[opts.length+firstopts.length];
         System.arraycopy(firstopts,0,newopts,0,firstopts.length);
         System.arraycopy(opts,0,newopts,firstopts.length,opts.length);
-        helpTCF(d,d,newopts);
+        helpEscFile(d,d,newopts);
     }
     
     /** Executes a test in which (1) the name of the calling method is the name of the test and
@@ -99,16 +97,19 @@ public abstract class EscBaseFiles extends EscBase {
      * here in helpTG and supplemented by any arguments to helpTG.
      * @param opts
      */
-    public void helpTG(String ... opts) {
-        String dir = "test/" + getTestName();
-        var a = new LinkedList<String>();
-        a.add("-cp"); 
-        a.add(dir);
-        a.add("--code-math=safe");
-        a.add("--spec-math=bigint");
-        a.add("--check-feasibility=precondition,reachable,exit,spec");
-        a.addAll(Arrays.asList(opts));
-        escOnFiles(dir, dir, a.toArray(new String[a.size()]));
+    public void helpEscSimple(String ... opts) {
+        helpEscName(getTestName(), opts);
+    }
+
+    /** Runs an --esc test on the files in folder 'sourceDirName', putting the actual output
+     * in folder 'outDir' and comparing with expected files also in 'outDir'.
+     * Default options are setup in setupForFiles().  The options in 'opts' are appended to them. 
+     * @param sourceDirname
+     * @param outDir
+     * @param opts
+     */
+    public void helpEscFile(String sourceDirname, String outDir, String ... opts) {
+        escOnFiles(sourceDirname,outDir,opts);
     }
 
     /** runs a test whose source material is in the JMLDemo repo */ 
@@ -120,7 +121,7 @@ public abstract class EscBaseFiles extends EscBase {
         newopts[0] = "-classpath";
         newopts[1] = dir;
         System.arraycopy(opts,0,newopts,2,opts.length);
-        helpTCF(file,"test/" + outdir,newopts);
+        helpEscFile(file,"test/" + outdir,newopts);
     }
 
     /** runs a test whose source material is in the JMLDemo repo */ 
@@ -130,23 +131,12 @@ public abstract class EscBaseFiles extends EscBase {
         newopts[0] = "-classpath";
         newopts[1] = d;
         System.arraycopy(opts,0,newopts,2,opts.length);
-        helpTCF(d,"test/" + outdir,newopts);
-    }
-
-    /** Runs an --esc test on the files in folder 'sourceDirName', putting the actual output
-     * in folder 'outDir' and comparing with expected files also in 'outDir'.
-     * Default options are setup in setupForFiles().  The options in 'opts' are appended to them. 
-     * @param sourceDirname
-     * @param outDir
-     * @param opts
-     */
-    public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-        escOnFiles(sourceDirname,outDir,opts);
+        helpEscFile(d,"test/" + outdir,newopts);
     }
 
     /** Runs an --esc test on the file named in 'sourceDirOrFileName' (or if it is a folder, all the files in that folder), 
      * putting the actual output in folder 'outDir' and comparing with expected files also in 'outDir'.
-     * Default options are setup in EscBase.setupForFiles().  The options in 'opts' are appended to them. 
+     * Default options are setup in 'collectArgs'.  The options in 'opts' are appended to them. 
      * **/
     public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
         boolean print = false;

@@ -34,36 +34,36 @@ public class jmldoctests extends EscBaseFiles {
 
     @Test @Ignore
     public void jmldoc1() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void jmldoc2() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void jmldoc3() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void jmldoc4() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void jmldoc5() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void jmldoc6() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void jmldoc7() {
-        helpTG();
+        helpEscSimple();
     }
 }
