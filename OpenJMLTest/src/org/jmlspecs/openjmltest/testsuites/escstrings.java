@@ -268,9 +268,9 @@ public class escstrings extends EscBase {
                         seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",12)
                         ,seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
                              ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration",39
-                             //,"$SPECS/java/lang/CharSequence.jml:62: verify: Precondition conjunct is false: 0 <= index < chars.length",34
-                            )
-                                		
+                             ,optional("$SPECS/java/lang/CharSequence.jml:62: verify: Precondition conjunct is false: 0 <= index < chars.length",34)
+                                 // FIXME - why does the above sometime occur and sometimes not
+                                )
                         )
                 );
     }

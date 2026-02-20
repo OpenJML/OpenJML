@@ -137,8 +137,8 @@ escfiles2.gitbug861		#	needs checks within a compiler constant static initialize
 escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
-escfileslist1.test[escConstructor5]	# Feasibility problem or invariant problem
-escfileslist1.test[choose-repeat]
+escfileslist2.test[escConstructor5]	# Feasibility problem or invariant problem
+escfileslist2.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
@@ -163,7 +163,6 @@ escnew3.testCast1       # m7 reports a verification error sometimes and sometime
 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
-primesc1.locsetTests2
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a

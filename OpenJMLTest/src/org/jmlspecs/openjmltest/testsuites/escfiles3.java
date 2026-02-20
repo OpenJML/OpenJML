@@ -89,6 +89,16 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
     
+    @Test @Ignore // non-linear integer arithmetic times out
+    public void gitbug943() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug943a() {
+        helpEscName("gitbug943", "--check-feasibility=none", "--method=myGCD");
+    }
+    
     @Test
     public void byteQuant() {
         helpEscSimple();
