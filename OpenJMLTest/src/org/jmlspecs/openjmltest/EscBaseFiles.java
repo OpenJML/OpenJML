@@ -4,17 +4,15 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -22,7 +20,6 @@ import org.junit.rules.Timeout;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
 
 /** This is a superclass for all testcases whose individual tests consist of running esc on a folder of files,
  *  comparing the test output to expected text in an 'expected' file.
@@ -197,7 +194,7 @@ public abstract class EscBaseFiles extends EscBase {
                 this.out.println("TEST DIFFERENCES: " + actCompile);
                 // The output can be voluminous, partly because the comparison algorithm is not smart, so we just truncate it
                 // at an arbitrary length
-                this.out.println(diffs.substring(0, Math.min(300, diffs.length())));
+                this.out.println(diffs.substring(0, Math.min(500, diffs.length())));
                 fail("Files differ"); // Does not return, so appears to be not covered by Jacoco
             }
             

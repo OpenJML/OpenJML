@@ -2242,4 +2242,51 @@ public class escall3 extends EscBase {
             ,"/LOOP.java:25: error: Local variable is assigned but not present in loop frame clause: k not in //@ loop_writes i, \\count;", 7
         );
     }
+    
+    @Test
+    public void testReturnNullity() {
+        helpEsc("RET",
+            """
+            import org.jmlspecs.annotation.*;
+            public class RET {
+            
+              public static class R<T> {
+                public T m(T t) { return t; }
+                public /*@ nullable */ T q(T t) { return t; }
+                public /*@ non_null */ T s(T t) { return t; }
+              }
+              public void z() {
+                  Integer i = 42;
+            
+                  /*@ nullable */
+                  Object x = new R<Integer>().m(i);
+                  //@ check x != null; // OK - default
+                  x = new R</*@ non_null */ Integer>().m(i);
+                  //@ check x != null; // OK - explicit type-variable
+                  x = new R</*@ nullable */ Integer>().m(i);
+                  //@ check x != null; // FAILS - explicit type-variable
+                  x = new R<Integer>().q(i);
+                  //@ check x != null; // FAILS - explicit in decl
+                  x = new R<@NonNull Integer>().q(i);
+                  //@ check x != null; // FAILS - explicit in decl
+                  x = new R<@Nullable Integer>().q(i);
+                  //@ check x != null; // FAILS - explicit in decl
+                  x = new R<Integer>().s(i);
+                  //@ check x != null; // OK - explicit in decl
+                  x = new R<@NonNull Integer>().s(i);
+                  //@ check x != null; // OK - explicit in decl and type variable
+                  x = new R<@Nullable Integer>().s(i);
+                  //@ check x != null; // OK - explicit in decl
+            
+                }
+            }
+            """
+            ,anyorder(
+                 seq("/RET.java:18: verify: The prover cannot establish an assertion (Assert) in method z",11)
+                ,seq("/RET.java:20: verify: The prover cannot establish an assertion (Assert) in method z",11)
+                ,seq("/RET.java:22: verify: The prover cannot establish an assertion (Assert) in method z",11)
+                ,seq("/RET.java:24: verify: The prover cannot establish an assertion (Assert) in method z",11)
+                )
+        );
+    }
 }

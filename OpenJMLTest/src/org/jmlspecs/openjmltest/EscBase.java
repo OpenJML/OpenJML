@@ -5,16 +5,14 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.esc.MethodProverSMT;
 import org.jmlspecs.openjmltest.OutputCompare.*;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -23,15 +21,14 @@ import org.junit.runners.Parameterized.Parameters;
 import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
 
 
 public abstract class EscBase extends JmlTestSuite {
     
     // FIXME - either rewrite to use Parameters, or delete all this stuff
-    // Might well use Parameters for testig more than one solver; not as likely for different option sets
+    // Might well use Parameters for testing more than one solver; not as likely for different option sets
 
-    // FIXME - this only applies when running a standard Runner, not with the custom OpenJMLTestRUnner
+    // FIXME - this only applies when running a standard Runner, not with the custom OpenJMLTestRunner
     /** This JUnit rule sets a timeout on the whole test */
     @Rule public Timeout timeout = new Timeout(10, TimeUnit.MINUTES); // limit on entire test, not on each proof attempt
 
@@ -136,11 +133,8 @@ public abstract class EscBase extends JmlTestSuite {
     /** variable that holds the specification path for each test -- may be set per test (after setUp is called) */
     protected static String testspecpath;
     
-    /** Set this field to the expected exit value. 
-    <UL><LI> 0: only warnings and static checking errors, not parsing or type errors
-    <LI> 1: parsing or type errors
-    <LI> -1: don't check the exit value
-    </UL> **/
+    /** Set this field to the expected exit value; -1 means use a default based on the conttent of the expected output
+    **/
     protected int expectedExit = 0;
 
     protected boolean captureOutput = false; // FIXME - why isn't true the default -- explain
