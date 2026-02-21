@@ -4834,8 +4834,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - this could be combined with populating preparams above
 				// For the parameters of the method
 				addStat(comment(methodDecl, "Assume parameter type, allocation, and nullness", null));
-				boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
-				boolean isNonNull = true;
+                boolean varargs = methodDecl.sym.isVarArgs();
+                boolean isNonNull = true;
 				for (JCVariableDecl d : methodDecl.params) {
 					isNonNull = addNullnessAllocationTypeConditionFormal(d, d.sym, false, null);
 	                addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after field " + d.sym.owner + "." + d.sym);
