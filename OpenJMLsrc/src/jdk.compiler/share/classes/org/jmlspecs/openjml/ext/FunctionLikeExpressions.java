@@ -355,9 +355,27 @@ public class FunctionLikeExpressions extends JmlExtension {
     }
 
     public static final String javaMathID = "\\java_math";
-    public static final IJmlClauseKind javaMathKind = new OneArgExpression(javaMathID);
+    public static final IJmlClauseKind javaMathKind = new OneArgExpression(javaMathID) {
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            super.typecheck(attr, tree, localEnv);
+            if (!tree.type.isIntegral()) {
+                log.error(tree.pos, "jml.message", "the argument of " + javaMathID + " must be cast to a Java integral type");
+            }
+            return tree.type;
+        }
+    };
     public static final String safeMathID = "\\safe_math";
-    public static final IJmlClauseKind safeMathKind = new OneArgExpression(safeMathID);
+    public static final IJmlClauseKind safeMathKind = new OneArgExpression(safeMathID) {
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> localEnv) {
+            super.typecheck(attr, tree, localEnv);
+            if (!tree.type.isIntegral()) {
+                log.error(tree.pos, "jml.message", "the argument of " + safeMathID + " must be cast to a Java integral type");
+            }
+            return tree.type;
+        }
+    };
     public static final String bigintMathID = "\\bigint_math";
     public static final IJmlClauseKind bigintMathKind = new OneArgExpression(bigintMathID);
 

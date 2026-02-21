@@ -1402,9 +1402,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean prevAllowJML = jmlresolve.allowJML();
             if (isJmlDecl) prevAllowJML = jmlresolve.setAllowJML(true);
             
+            var defaultNullity = specs.defaultNullity(env.enclClass.sym);
 //            boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
 //            ((JmlCheck)chk).noDuplicateWarn = false;
             super.visitMethodDef(m);
+            
+            System.out.println("METHODDEF " + javaMethodDecl.sym + " " + env.enclClass.sym + " " + defaultNullity);
 //            ((JmlCheck)chk).noDuplicateWarn = prevChk;
 //            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
             noBodyOK = noBodyOKSaved;
@@ -1621,7 +1624,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor interface methods */
     public final ModifierKind[] allowedInterfaceModelMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, NO_STATE,
+        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, NO_STATE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1630,7 +1633,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on non-model constructors */
     public final ModifierKind[] allowedConstructorAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT,
+        MODEL, PURE, SPEC_PUBLIC, SPEC_PROTECTED, HELPER, EXTRACT,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, OPTIONS, SKIPESC // FIXME - allowing these until the rules are really implemented
 
@@ -1825,6 +1828,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     );
                             
                     }
+                    var parentSpecs = specs.getAttrSpecs(ms);
+                    var th = utils.findModifier(parentSpecs.mods, HELPER);
+                    if (th != null && utils.findModifier(mods,HELPER) == null) {
+                        utils.errorAndAssociatedDeclaration(log.currentSourceFile(), javaMethodTree.pos, th.source, th.pos,
+                                "jml.message", "A method that overrides a helper method must be marked helper");
+                    }
                 }
                 
             } else { // Constructor
@@ -1868,6 +1877,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ) {
                 utils.error(t.source, t.pos,"jml.helper.must.be.private",specDecl.name.toString());
             }
+
             if (!model) {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
                 checkForRedundantSpecMod(mods);
@@ -2377,24 +2387,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        if (env == null) env = enclosingMethodEnv;
         
     	JCExpression nnexpr = treeutils.trueLit;
-        {
-        	int i = 0;
-        	var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
-        	var syms = msp.specSym == null ? null : msp.specSym.params.iterator();
-        	for (var param: msym.params) {
-        		var p = iter == null ? null : iter.next();
-        		var pos = p == null ? Position.NOPOS : p.pos;
-        		var s = syms == null ? null : syms.next();
-        		boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym);
-        		if (nn) {
-        			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
-        			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
-        			JCExpression ee = treeutils.makeNotNull(pos, e);
-        			nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
-        		}
-        		++i;
-        	}
-        }
+//        {
+//        	int i = 0;
+//        	var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
+//        	var syms = msp.specSym == null ? null : msp.specSym.params.iterator();
+//        	for (var param: msym.params) {
+//        		var p = iter == null ? null : iter.next();
+//        		var pos = p == null ? Position.NOPOS : p.pos;
+//        		var s = syms == null ? null : syms.next();
+//        		boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym, param.type);
+//        		if (nn) {
+//        			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
+//        			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
+//        			JCExpression ee = treeutils.makeNotNull(pos, e);
+//        			nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
+//        		}
+//        		++i;
+//        	}
+//        }
         
         JavaFileObject prevSource = decl == null ? log.currentSourceFile() : log.useSource(decl.sourcefile);
         EndPosTable endPosTable = null;
