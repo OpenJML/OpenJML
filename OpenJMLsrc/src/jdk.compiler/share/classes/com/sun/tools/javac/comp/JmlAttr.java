@@ -1407,7 +1407,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            ((JmlCheck)chk).noDuplicateWarn = false;
             super.visitMethodDef(m);
             
-            System.out.println("METHODDEF " + javaMethodDecl.sym + " " + env.enclClass.sym + " " + defaultNullity);
+//            System.out.println("METHODDEF " + javaMethodDecl.sym + " " + env.enclClass.sym + " " + defaultNullity);
 //            ((JmlCheck)chk).noDuplicateWarn = prevChk;
 //            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
             noBodyOK = noBodyOKSaved;
@@ -1624,7 +1624,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model non-constructor interface methods */
     public final ModifierKind[] allowedInterfaceModelMethodAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, NO_STATE,
+        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, NON_NULL, NULLABLE, OPTIONS, HELPER, QUERY, SECRET, NO_STATE,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
