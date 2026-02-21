@@ -1642,7 +1642,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** The annotations allowed on model constructors */
     public final ModifierKind[] allowedModelConstructorAnnotations =
         new ModifierKind[] {
-        MODEL, PURE, SPEC_PURE, STRICTLY_PURE, HELPER, EXTRACT ,
+        MODEL, PURE, HELPER, EXTRACT ,
         CODE_JAVA_MATH, CODE_SAFE_MATH, CODE_BIGINT_MATH, SPEC_JAVA_MATH, SPEC_SAFE_MATH, SPEC_BIGINT_MATH, 
         OPTIONS, SKIPESC, PEER, REP, READONLY, INLINE // FIXME - allowing these until the rules are really implemented
 
@@ -1831,11 +1831,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     var parentSpecs = specs.getAttrSpecs(ms);
                     var th = utils.findModifier(parentSpecs.mods, HELPER);
                     if (th != null && utils.findModifier(mods,HELPER) == null) {
-                        utils.errorAndAssociatedDeclaration(log.currentSourceFile(), javaMethodTree.pos, th.source, th.pos,
+                        utils.warningAndAssociatedDeclaration(log.currentSourceFile(), mods.pos, th.source, th.pos,
                                 "jml.message", "A method that overrides a helper method must be marked helper");
+                        mods.jmlmods.add(th);
                     }
                 }
-                
+
             } else { // Constructor
                 if (model) {
                     allAllowed(mods,allowedModelConstructorAnnotations,"model constructor declaration");
