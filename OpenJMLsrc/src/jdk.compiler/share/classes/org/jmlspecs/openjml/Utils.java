@@ -1588,6 +1588,22 @@ public class Utils {
         }
     }
     
+    public void warningAndAssociatedDeclaration(JavaFileObject source, int pos, JavaFileObject assoc, int assocpos, String key, Object ... args) {
+        Log log = log();
+        JavaFileObject prev = log.useSource(source);
+        try {
+            warning(pos, key, args);
+        } finally {
+            log.useSource(prev);
+        }
+        prev = log.useSource(assoc);
+        try {
+            warning(assocpos, "jml.associated.decl.cf", locationString(pos, source));
+        } finally {
+            log.useSource(prev);
+        }
+    }
+    
     public void error(JavaFileObject source, int pos, String key, Object ... args) {
         Log log = log();
         JavaFileObject prev = null;

@@ -834,6 +834,28 @@ public class modifiers extends TCBase {
                 );
     }
      
+    @Test public void testConstructor5() {
+        helpTCText("A.java","public class A{ \n/*@ spec_pure */ A(){} }"
+                ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",5
+                );
+    }
+     
+    @Test public void testConstructor6() {
+        helpTCText("A.java","public class A{ \n/*@ strictly_pure */ A(){} }"
+                ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",5
+                ,"/A.java:2: error: strictly_pure methods may not call pure methods: Object()", 25
+                ,"/A.java:2: error: Associated declaration: /A.java:2:", 5
+                );
+    }
+     
+    @Test public void testConstructor7() {
+        helpTCText("A.java","public class A{ \n/*@ no_state */ A(){} }"
+                ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",5
+                ,"/A.java:2: error: no_state methods may not call pure methods: Object()", 25
+                ,"/A.java:2: error: Associated declaration: /A.java:2:", 5
+                );
+    }
+     
     
     @Test public void testModelMethod() {
         helpTCText("A.java","public class A{ /*@ model pure extract non_null Object m(){ return null; } */ }"
