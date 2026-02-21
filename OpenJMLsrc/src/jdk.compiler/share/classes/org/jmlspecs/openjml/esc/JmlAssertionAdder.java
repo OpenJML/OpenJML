@@ -4834,7 +4834,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// FIXME - this could be combined with populating preparams above
 				// For the parameters of the method
 				addStat(comment(methodDecl, "Assume parameter type, allocation, and nullness", null));
-				boolean varargs = (methodDecl.sym.flags() & Flags.VARARGS) != 0;
+				boolean varargs = methodDecl.sym.isVarArgs();
 				boolean isNonNull = true;
 				for (JCVariableDecl d : methodDecl.params) {
 					isNonNull = addNullnessAllocationTypeConditionFormal(d, d.sym, false, null);
@@ -4944,6 +4944,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				paramActuals_.putAll(specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym));
 				Map<JmlMethodClause, JCExpression> clauseIds = new HashMap<>();
 				elseExpression = treeutils.falseLit;
+				JCExpression nullity = collectFormalNullity(parentMethodSym, specs.getAttrSpecs(parentMethodSym));
+				JmlMethodClause req = null;
+				if (!treeutils.isTrueLit(nullity)) req = M.at(methodDecl).JmlMethodClauseExpr("requires",requiresClauseKind, nullity);
+				//if (req != null) System.out.println("FORMAL NULLITY " + parentMethodSym + " " + req);
+				
 				for (JmlSpecificationCase scase : denestedSpecs.cases) {
 				    //System.out.println("ITER " + parentMethodSym + " " + scase);
 					if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase, false)) continue;
@@ -4957,6 +4962,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						JCExpression preexpr = null;
 						JCExpression diverges = null;
 						JmlSource divergesPosition = scase;
+						var clauses = scase.clauses;
+						if (req != null) {
+						    clauses = clauses.prepend(req);
+						}
 						for (JmlMethodClause clause : scase.clauses) {
 							IJmlClauseKind ct = clause.clauseKind;
 							if (ct == MethodDeclClauseExtension.oldClause) {
@@ -5254,6 +5263,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			popBlock(null, check);
 		}
+	}
+	
+	public JCExpression collectFormalNullity(MethodSymbol msym, JmlSpecs.MethodSpecs msp) {
+	    JCExpression nnexpr = treeutils.trueLit;
+	    {
+	        int i = 0;
+	        var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
+	        var syms = msp.specSym == null ? null : msp.specSym.params.iterator();
+	        for (var param: msym.params) {
+	            var p = iter == null ? null : iter.next();
+	            var pos = p == null ? Position.NOPOS : p.pos;
+	            var s = syms == null ? null : syms.next();
+	            boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym, param.type, null);
+	            if (nn) {
+	                JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
+	                //System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
+	                JCExpression ee = treeutils.makeNotNull(pos, e);
+	                nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
+	            }
+	            ++i;
+	        }
+	    }
+	    return nnexpr;
 	}
 
     public void handleFrameConditions(JmlMethodDecl methodDecl, ListBuffer<JCStatement> initialStatements) {
@@ -10311,34 +10343,40 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				var paramTypes = meth != null ? meth.type.getParameterTypes()
 						: newclass != null ? newclass.type.getParameterTypes() : null;
-				if (paramTypes != null) {
+				{
 					// Type checks (e.g. NonNull) on assignments to formal parameters
-					if (calleeMethodSym.params == null) {
-//						System.out.println(
-//								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
-//										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
-					} else {
+					{
 						var calleeSpecs = specs.getDenestedSpecs(calleeMethodSym);
+						//System.out.println("SIZES " + trArgs.length() + " " + paramTypes.length() + " " + calleeMethodSym.params.size() + " " + calleeMethodSym + " " + that);
 						for (int i = 0; i < calleeMethodSym.params.size(); i++) {
 							VarSymbol v = calleeMethodSym.params.get(i);
-							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
+							if (i >= paramTypes.length()) {
+	                            //System.out.println("TYPEARGS " + typeargs);
+	                            //System.out.println("PARAMTYPES " + paramTypes);
+							    
+							}
+							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym, trArgs.get(i).type, methodDecl.sym); // FIXME - adjust for varargs
+							//System.out.println("NN " + calleeMethodSym + " " + nn);
 							if (nn) {
+							    var arg = trArgs.get(i);
 							    // FIXME - why this if?
 								if (calleeSpecs.decl == null) {
 									// There are no specs to point to
-									addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
-											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
+									addAssert(arg, Label.NULL_ARGUMENT_LOC,
+											treeutils.makeNotNull(arg.pos, arg),
 											v.name + " in " + calleeMethodSym);
 								} else {
 								    var formal = calleeSpecs.decl.params.get(i);
 								    var p = utils.locNonNullAnnotation(formal);
 								    if (p == Position.NOPOS) p = formal.getStartPosition();
 								    addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
-											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
+											treeutils.makeNotNull(arg.pos,arg),
 											new JCDiagnostic.SimpleDiagnosticPosition(p), 
 											calleeSpecs.decl.sourcefile,
 											v.name + " in " + calleeMethodSym);
 								}
+							} else {
+							    addStat(comment("Parameter " + calleeSpecs.decl.params.get(i) + " is nullable"));
 							}
 						}
 					}
