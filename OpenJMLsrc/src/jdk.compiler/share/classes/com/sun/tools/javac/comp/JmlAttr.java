@@ -1825,15 +1825,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     );
                             
                     }
-                    var parentSpecs = specs.getAttrSpecs(ms);
-                    if (parentSpecs != null) { // FIXME - why might the parent not have specs?
-                        var th = utils.findModifier(parentSpecs.mods, HELPER);
-                        if (th != null && utils.findModifier(mods,HELPER) == null) {
-                            //utils.warningAndAssociatedDeclaration(log.currentSourceFile(), mods.pos, th.source, th.pos,
-                            //        "jml.message", "A method that overrides a helper method must be marked helper");
-                            mods.jmlmods.add(th);
-                        }
-                    }
+//                    var parentSpecs = specs.getAttrSpecs(ms);  // FIXME - this line causes unchecked cast warnings in List.jml??
+//                    if (parentSpecs != null) { // FIXME - why might the parent not have specs?
+//                        var th = utils.findModifier(parentSpecs.mods, HELPER);
+//                        if (th != null && utils.findModifier(mods,HELPER) == null) {
+//                            //utils.warningAndAssociatedDeclaration(log.currentSourceFile(), mods.pos, th.source, th.pos,
+//                            //        "jml.message", "A method that overrides a helper method must be marked helper");
+//                            mods.jmlmods.add(th);
+//                        }
+//                    }
                 }
 
             } else { // Constructor
