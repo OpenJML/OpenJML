@@ -202,7 +202,7 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug880() {
-        helpEscSimple("--show");
+        helpEscSimple();
     }
     
     @Test

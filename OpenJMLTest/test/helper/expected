@@ -1,0 +1,46 @@
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Hashtable.jml:83: warning: A method that overrides a helper method must be marked helper
+    public synchronized int size();
+    ^
+/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Map.jml:101: warning: Associated declaration: /Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Hashtable.jml:83:
+    /*@ spec_pure helper @*/
+                  ^
+test/helper/Helper.java:15: warning: A method that overrides a helper method must be marked helper
+  @Override
+  ^
+test/helper/Helper.java:4: warning: Associated declaration: test/helper/Helper.java:15:
+  //@ helper spec_pure
+      ^
+Proving methods in Helper
+Starting proof of Helper.Helper() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Helper.Helper() with prover !!!! - no warnings
+Starting proof of Helper.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Helper.m() with prover !!!! - no warnings
+Completed proving methods in Helper
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.m() with prover !!!!
+test/helper/Helper.java:17: verify: The prover cannot establish an assertion (Assignable) in method m: k
+    k = 0;
+      ^
+test/helper/Helper.java:4: verify: Associated declaration
+  //@ helper spec_pure
+             ^
+Completed proof of A.m() with prover !!!! - with warnings
+Starting proof of A.mm() with prover !!!!
+test/helper/Helper.java:21: verify: The prover cannot establish an assertion (InvariantExit) in method mm
+  public void mm() {
+              ^
+test/helper/Helper.java:13: verify: Associated declaration
+  //@ public invariant k >= 0;
+             ^
+Completed proof of A.mm() with prover !!!! - with warnings
+Completed proving methods in A
+4 warnings
+4 verification failures

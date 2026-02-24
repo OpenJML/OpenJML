@@ -3535,7 +3535,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             jmlenv.inPureEnvironment = true;
             tree.clauseType.typecheck(this, tree, env);
         } catch (Exception e) {
-            utils.unexpectedException("Typechecking clause: " + tree, e);
+            utils.unexpectedException(e, "Typechecking clause: " + tree);
             throw e;
         } finally {
             jmlenv = jmlenv.pop(check);
@@ -8791,7 +8791,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		// continue to clean exit - already reported
     		throw e;
     	} catch (Exception e) {
-    		utils.unexpectedException("Exception while attributing method specs: " + msym.owner + "." + msym, e);
+    		utils.unexpectedException(e, "Exception while attributing method specs: " + msym.owner + "." + msym);
     	} finally {
     		this.enclosingClassEnv = savedEnclosingClassEnv;
     		this.enclosingMethodEnv = savedEnclosingMethodEnv;

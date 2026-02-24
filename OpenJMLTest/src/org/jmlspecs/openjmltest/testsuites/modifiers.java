@@ -851,7 +851,7 @@ public class modifiers extends TCBase {
     @Test public void testConstructor7() {
         helpTCText("A.java","public class A{ \n/*@ no_state */ A(){} }"
                 ,"/A.java:2: error: This JML modifier is not allowed for a constructor declaration",5
-                ,"/A.java:2: error: no_state methods may not call pure methods: Object()", 25
+                ,"/A.java:2: error: no_state methods may not call pure methods: Object()", 20
                 ,"/A.java:2: error: Associated declaration: /A.java:2:", 5
                 );
     }

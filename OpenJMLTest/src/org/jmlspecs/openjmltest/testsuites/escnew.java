@@ -2832,7 +2832,28 @@ public class escnew extends EscBase {
     }
 
     @Test 
+    public void testPureConstructor() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+
+                  public int i;
+
+                  //@ pure
+                  public TestJava(int i) { this.i = i; }
+
+                  public void m() {
+                    var c = new TestJava(42);
+                  }
+                }
+                """
+                );
+    }
+
+    @Test 
     public void testSpecPureConstructor() {
+        expectedExit = 1;
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -2848,6 +2869,7 @@ public class escnew extends EscBase {
                   }
                 }
                 """
+                ,"/tt/TestJava.java:6: error: This JML modifier is not allowed for a constructor declaration", 7
                 );
     }
 }

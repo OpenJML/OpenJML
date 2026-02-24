@@ -6,3 +6,5 @@ public class Mismatched {
         q.add(null);
     }
 }
+
+// Queue.jml allows a null argument. PriorityQueue has no specs so it inherits Queue.jml's specs. 
