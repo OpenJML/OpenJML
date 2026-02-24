@@ -10380,7 +10380,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }
                             //System.out.println("NN-A " + v.type + " " + v + " " + trArgs.get(i) + " " + trArgs.get(i).type);
                             //System.out.println("NN-ARGS " + (meth != null ? meth.type : newclass.type));
-                            Type ft = (meth != null ? ((Type.MethodType)meth.type).argtypes.get(i) : ((Type.MethodType)newclass.constructorType).argtypes.get(i));
+                            Type ft;
+                            if (meth == null) {
+                                ft = ((Type.MethodType)newclass.constructorType).argtypes.get(i);
+                            } else if (meth.type instanceof Type.MethodType mt) {
+                                ft = mt.argtypes.get(i);
+                            } else if (meth.type instanceof Type.ForAll fat) {
+                                var mt = fat.asMethodType();
+                                ft = mt.argtypes.get(i);
+                            } else {
+                                System.out.println("UNIMPLEMENTED METHOD TYPE " + meth.type + " " + meth.type.getClass());
+                                Utils.dumpStack();
+                                ft = null;
+                            }
                             boolean nn = specs.isCheckNonNullFormal(ft, i, calleeSpecs, mpsym, trArgs.get(i).type, methodDecl.sym); // FIXME - adjust for varargs
                             //System.out.println("NN " + calleeMethodSym + " " + mpsym + " " + v.type + " " + v + " " + nn);
                             if (nn) {
