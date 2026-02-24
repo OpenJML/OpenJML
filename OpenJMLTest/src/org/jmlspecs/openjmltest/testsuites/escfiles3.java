@@ -259,5 +259,10 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
 
+    @Test
+    public void argnullity() {
+        helpEscSimple();
+    }
+
 
 }
