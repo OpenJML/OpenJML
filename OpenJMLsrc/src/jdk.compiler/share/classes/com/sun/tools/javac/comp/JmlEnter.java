@@ -792,7 +792,7 @@ public class JmlEnter extends Enter {
 			// Do all nested classes, recursively
 			specDecl.defs = specsListEnter(csym, specDecl.defs, localEnv);
 		} catch (Exception e) {
-			utils.unexpectedException("JmlEnterspecsClassEnter", e);
+			utils.unexpectedException(e, "JmlEnterspecsClassEnter");
 			return false;
 		} finally {
 		}

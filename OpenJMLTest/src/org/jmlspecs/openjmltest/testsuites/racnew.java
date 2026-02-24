@@ -161,27 +161,31 @@ public class racnew extends RacBase {
     
     @Test public void testNonnullPrecondition() {
         addOptions("--rac-show-source=source");
-        helpRacText("tt.TestJava","package tt; public class TestJava { \n" + 
-                "public static void main(String[] args) { \n" +
-                " m(null,1); \n" +
-                " System.out.println(\"END\"); }\n" +
-                " /*@ requires true; */\n" +
-                " static public void m(/*@non_null*/ Object o, int i) {\n" +
-                " }\n" +
-                "}"
-                ,"/tt/TestJava.java:3: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
-                ," m(null,1); "
-                ,"   ^"
-                ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
-                ," static public void m(/*@non_null*/ Object o, int i) {"
-                ,"                         ^"
-                ,"/tt/TestJava.java:3: JML precondition is false"
-                ," m(null,1); "
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                public static void main(String[] args) {
+                 m(null,1);
+                 //@ print "END";
+                 }
+                 /*@ requires true; */
+                 static public void m(/*@non_null*/ Object o, int i) {
+                 }
+                }
+                """
+//                ,"/tt/TestJava.java:3: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
+//                ," m(null,1); "
+//                ,"   ^"
+//                ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
+//                ," static public void m(/*@non_null*/ Object o, int i) {"
+//                ,"                         ^"
+                ,"/tt/TestJava.java:3: verify: JML precondition is false"
+                ," m(null,1);"
                 ,"  ^"
-                ,"/tt/TestJava.java:6: Associated declaration: /tt/TestJava.java:3:"
+                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:3:"
                 ," static public void m(/*@non_null*/ Object o, int i) {"
                 ,"                    ^"
-                ,"/tt/TestJava.java:5: JML precondition is false"
+                ,"/tt/TestJava.java:6: JML precondition is false"
                 ," /*@ requires true; */"
                 ,"     ^"
                 ,"END"
@@ -195,13 +199,13 @@ public class racnew extends RacBase {
                 public class TestJava {
                     public static void main(String[] args) {
                         m(null,1);
-                        System.out.println(\"END\");
+                        //@ print "END";
                     }
                     static public void m(/*@ non_null*/ Object o, int i) {}
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
-                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
+//                ,"/tt/TestJava.java:4: verify: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
+//                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:4: verify: JML precondition is false"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:7: verify: JML precondition is false"

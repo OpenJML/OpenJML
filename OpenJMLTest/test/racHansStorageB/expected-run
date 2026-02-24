@@ -1,10 +1,4 @@
 OUT:
-test/racHansStorageB/StorageParameters.java:24: verify: JML actual argument may not be null: sizes in StorageParameters(long,long[])
-        new StorageParameters(1L,null);
-                                 ^
-test/racHansStorageB/StorageParameters.jml:16: verify: Associated declaration: test/racHansStorageB/StorageParameters.java:24:
-    public StorageParameters(long totalBackingStore, long[] sizes );
-                                                     ^
 test/racHansStorageB/StorageParameters.java:24: verify: JML precondition is false
         new StorageParameters(1L,null);
         ^

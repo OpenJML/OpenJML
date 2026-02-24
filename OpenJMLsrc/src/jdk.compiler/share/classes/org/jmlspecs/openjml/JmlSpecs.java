@@ -1562,6 +1562,7 @@ public class JmlSpecs {
     
     public boolean findAnnotation(Type type, ModifierKind kind) {
         for (var a: type.getAnnotationMirrors()) {
+            //System.out.println("FINDANN-A " + a + " " + a.type);
             if (a.type.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
         }
         return false;
@@ -1570,6 +1571,7 @@ public class JmlSpecs {
     public boolean findAnnotation(JCExpression type, ModifierKind kind) {
         if (!(type instanceof JCTree.JCAnnotatedType)) return false;
         for (var a: ((JCTree.JCAnnotatedType)type).annotations) {
+            //System.out.println("FINDANN-B " + a + " " + a.type);
             if (a.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
         }
         return false;
@@ -1606,16 +1608,17 @@ public class JmlSpecs {
     @SuppressWarnings("unchecked")
     public boolean isNonNullFormal(Type type, int i, JmlMethodSpecs calleeSpecs, MethodSymbol msym, Type argtype, MethodSymbol caller) {
         //System.out.println("NNFP " + calleeSpecs.decl.params.get(i)); // msym.params.get(i).toString());
-        boolean pr = false;//calleeSpecs.decl.params.get(i).toString().contains("vvvv");
-        if (pr) System.out.println("NNF " + calleeSpecs.decl.params.get(i) + " " + type + " " + argtype + " : " + type.getAnnotationMirrors() + " : " + argtype.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
+        boolean pr = false;//msym.toString().contains("m1");
+        if (pr) System.out.println("NNF " + calleeSpecs.decl.params.get(i) + " : " + type + " : " + argtype + " : " + type.getAnnotationMirrors() + " : " + argtype.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (jmltypes.isJmlType(type)) return true;
-        if (pr) System.out.println("NNF-A1 " + findAnnotation(argtype, Modifiers.NULLABLE) + " " + findAnnotation(argtype, Modifiers.NON_NULL));
-        if (pr) System.out.println("NNF-A2 " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
-        if (findAnnotation(argtype, Modifiers.NULLABLE)) return false;
-        if (findAnnotation(argtype, Modifiers.NON_NULL)) return true;
+        if (pr) System.out.println("NNF-A1 " + argtype + " " + findAnnotation(argtype, Modifiers.NULLABLE) + " " + findAnnotation(argtype, Modifiers.NON_NULL));
+        if (pr) System.out.println("NNF-A2 " + type + " " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
+        // type is the declared type of the callee parameter
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
+//        if (findAnnotation(argtype, Modifiers.NULLABLE)) return false;
+//        if (findAnnotation(argtype, Modifiers.NON_NULL)) return true;
         //if (type instanceof Type.TypeVar) return false; 
         if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.decl);
         if (!(type instanceof Type.TypeVar) && calleeSpecs.decl != null) {
@@ -1628,10 +1631,19 @@ public class JmlSpecs {
             if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
             if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
         }
+        if (calleeSpecs.decl == null) {
+            // The callee is a binary class with no source and no jml, so there is no declaration
+            // The specs themselves are default specs
+            // In this case, the default nullity for a formal parameter is 'non_null'
+            return true;
+        }
         if (caller != null && calleeSpecs.decl.params.get(i).type instanceof Type.TypeVar) {
+            // The type is a type variable with no attached annotation. The default is the default nullity
+            // of the caller, because the caller is specifying the value of the type variable
             return defaultNullity((ClassSymbol)caller.owner) == Modifiers.NON_NULL;
         }
         if (pr) System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
+        // The default nullity is the default in the class that declares the callee
         return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
     
