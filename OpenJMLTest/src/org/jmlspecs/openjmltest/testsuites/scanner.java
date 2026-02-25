@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import org.jmlspecs.openjmltest.JmlTestSuite;
+
 import static com.sun.tools.javac.parser.Tokens.*;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.*;
 import static org.jmlspecs.openjml.ext.Operators.*;
@@ -9,9 +11,6 @@ import static org.jmlspecs.openjml.ext.SingletonExpressions.*;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlOptions;
-import org.jmlspecs.openjmltest.JmlTestSuite;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.parser.JmlParser;
@@ -25,6 +24,7 @@ import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Options;
 
 import static org.junit.Assert.*;
+import org.junit.*;
 
 import java.util.Locale;
 

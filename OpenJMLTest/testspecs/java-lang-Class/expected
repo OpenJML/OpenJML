@@ -1,0 +1,5 @@
+Proving methods in TestClass
+Starting proof of TestClass.test() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestClass.test() with prover !!!! - no warnings
+Completed proving methods in TestClass

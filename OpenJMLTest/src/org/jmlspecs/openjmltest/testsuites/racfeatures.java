@@ -1,18 +1,9 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.Assert.fail;
+import org.junit.*;
 
 /** These tests run rac on the demo files in OpenJMLDemo/src/features
  *  The expected results are in OpenJMLTest/test/features

@@ -3,8 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.util.Collection;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;

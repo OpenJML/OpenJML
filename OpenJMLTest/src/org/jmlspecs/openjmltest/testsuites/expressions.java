@@ -7,8 +7,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjmltest.IgnoreFalseAssumptions;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.*;
 import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.parser.JmlFactory;

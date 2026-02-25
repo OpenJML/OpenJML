@@ -1,11 +1,11 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import org.jmlspecs.openjmltest.RacBase;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;

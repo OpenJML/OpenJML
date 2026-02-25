@@ -1,0 +1,6 @@
+Proving methods in T_Old
+Skipping proof of T_Old.T_Old() (Skipping T_Old.T_Old because it does not match myGCD)
+Starting proof of T_Old.myGCD(int,int) with prover !!!!
+Completed proof of T_Old.myGCD(int,int) with prover !!!! - no warnings
+Skipping proof of T_Old.mygcd(int,int) (Skipping T_Old.mygcd because it does not match myGCD)
+Completed proving methods in T_Old

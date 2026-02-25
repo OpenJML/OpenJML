@@ -2,22 +2,12 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.fail;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjmltest.*;
 
-import org.junit.Assume;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;

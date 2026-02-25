@@ -1,8 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;

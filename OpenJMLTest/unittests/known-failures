@@ -138,7 +138,7 @@ escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
 escfileslist2.test[escConstructor5]	# Feasibility problem or invariant problem
-escfileslist3.test[choose-repeat]
+escfileslist2.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
 escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD

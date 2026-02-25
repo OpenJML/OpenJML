@@ -1,14 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.*;
 
 // These tests are run for both new and custom translations.
 
@@ -237,8 +230,6 @@ public class racsystem extends RacBase {
                     }
                 }
                 """
-                ,"verify: JML actual argument may not be null: arg0 in File(java.lang.String)"
-                ,"verify: Associated declaration: /tt/TestJava.java:13:"
                 ,"verify: JML precondition is false"
                 ,"verify: Associated declaration: /tt/TestJava.java:13:"
                 ,"CAUGHT EXCEPTION"

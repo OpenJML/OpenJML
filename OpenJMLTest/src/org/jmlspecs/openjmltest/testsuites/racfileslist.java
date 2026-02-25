@@ -1,18 +1,12 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import org.jmlspecs.openjmltest.RacBase;
+import org.jmlspecs.openjmltest.Utils;
+import java.io.*;
 import java.util.*;
 
-import org.jmlspecs.openjmltest.*;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.fail;
+import org.junit.*;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
@@ -53,7 +47,7 @@ public class racfileslist extends RacBase implements Utils {
                     testsuitesToExclude);
             // Just for information, print out all the tests that have been identified
             List<String> remaining = tests.stream().map(t -> t[0]).collect(java.util.stream.Collectors.toList());
-            System.out.println("ORPHANED RAC FILES FOLDERS: " + remaining); // Expect the racfilesorphan harness test
+            // System.out.println("ORPHANED RAC FILES FOLDERS: " + remaining); // Expect the racfilesorphan harness test
             // Comment out this assert if you want the orphaned tests to actually run, but it is better to make
             // explicit tests in racfiles
             Assert.assertTrue(remaining.size() != 1 || !"racfilesorphan".equals(remaining.get(0)));

@@ -1,9 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -65,10 +63,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
-        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Precondition) in method m8", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:26: verify: Precondition conjunct is false: _JML__tmp`47 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
@@ -109,10 +113,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
-        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Precondition) in method m8", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:26: verify: Precondition conjunct is false: _JML__tmp`47 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
@@ -153,10 +163,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
-        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: verify: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Precondition) in method m3", 8
+        ,"/tt/TestJava.java:33: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: _JML__tmp`15 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+//        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
     @Test
@@ -197,10 +213,17 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
-        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: verify: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Precondition) in method m3", 8
+        ,"/tt/TestJava.java:33: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: _JML__tmp`15 != null", 9
+
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+//        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
 
@@ -242,10 +265,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
-        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Precondition) in method m8", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:26: verify: Precondition conjunct is false: _JML__tmp`47 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
@@ -287,10 +316,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: verify: Associated declaration",17
-        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: verify: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Precondition) in method m3", 8
+        ,"/tt/TestJava.java:33: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: _JML__tmp`15 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+//        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
     

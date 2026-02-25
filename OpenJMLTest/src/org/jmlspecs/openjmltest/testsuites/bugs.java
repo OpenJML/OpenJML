@@ -2,7 +2,6 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.*;
 
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 

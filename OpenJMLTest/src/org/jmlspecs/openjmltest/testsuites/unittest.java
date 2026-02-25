@@ -1,12 +1,15 @@
 package org.jmlspecs.openjmltest.testsuites;
+
+import org.jmlspecs.openjmltest.JmlTestSuite;
+import org.openjml.*;
+
 import static org.junit.Assert.*;
 import org.junit.Test;
-import org.openjml.*;
 
 /** This suite holds some low-level unit tests (rather than the functional
  * tests in most of the other test suites)
  */
-public class unittest extends org.jmlspecs.openjmltest.JmlTestSuite {
+public class unittest extends JmlTestSuite {
     
     @Test
     public void mockfile() {

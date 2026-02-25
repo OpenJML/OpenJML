@@ -1402,9 +1402,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean prevAllowJML = jmlresolve.allowJML();
             if (isJmlDecl) prevAllowJML = jmlresolve.setAllowJML(true);
             
+            var defaultNullity = specs.defaultNullity(env.enclClass.sym);
 //            boolean prevChk = ((JmlCheck)chk).noDuplicateWarn;
 //            ((JmlCheck)chk).noDuplicateWarn = false;
             super.visitMethodDef(m);
+            
+//            System.out.println("METHODDEF " + javaMethodDecl.sym + " " + env.enclClass.sym + " " + defaultNullity);
 //            ((JmlCheck)chk).noDuplicateWarn = prevChk;
 //            if (JmlOption.isOption(context, JmlOption.STRICT)) checkClauseOrder(jmethod.methodSpecsCombined);
             noBodyOK = noBodyOKSaved;
@@ -1877,6 +1880,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     ) {
                 utils.error(t.source, t.pos,"jml.helper.must.be.private",specDecl.name.toString());
             }
+
             if (!model) {
                 checkForConflict(mods,SPEC_PUBLIC,SPEC_PROTECTED);
                 checkForRedundantSpecMod(mods);
@@ -2386,24 +2390,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        if (env == null) env = enclosingMethodEnv;
         
     	JCExpression nnexpr = treeutils.trueLit;
-        {
-        	int i = 0;
-        	var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
-        	var syms = msp.specSym == null ? null : msp.specSym.params.iterator();
-        	for (var param: msym.params) {
-        		var p = iter == null ? null : iter.next();
-        		var pos = p == null ? Position.NOPOS : p.pos;
-        		var s = syms == null ? null : syms.next();
-        		boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym);
-        		if (nn) {
-        			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
-        			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
-        			JCExpression ee = treeutils.makeNotNull(pos, e);
-        			nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
-        		}
-        		++i;
-        	}
-        }
+//        {
+//        	int i = 0;
+//        	var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
+//        	var syms = msp.specSym == null ? null : msp.specSym.params.iterator();
+//        	for (var param: msym.params) {
+//        		var p = iter == null ? null : iter.next();
+//        		var pos = p == null ? Position.NOPOS : p.pos;
+//        		var s = syms == null ? null : syms.next();
+//        		boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym, param.type);
+//        		if (nn) {
+//        			JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
+//        			//System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
+//        			JCExpression ee = treeutils.makeNotNull(pos, e);
+//        			nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
+//        		}
+//        		++i;
+//        	}
+//        }
         
         JavaFileObject prevSource = decl == null ? log.currentSourceFile() : log.useSource(decl.sourcefile);
         EndPosTable endPosTable = null;
@@ -3531,7 +3535,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             jmlenv.inPureEnvironment = true;
             tree.clauseType.typecheck(this, tree, env);
         } catch (Exception e) {
-            utils.unexpectedException("Typechecking clause: " + tree, e);
+            utils.unexpectedException(e, "Typechecking clause: " + tree);
             throw e;
         } finally {
             jmlenv = jmlenv.pop(check);
@@ -4340,7 +4344,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-    	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("SPECCASE " + tree);
+        if (tree.sourcefile.toString().contains("Super.java")) System.out.println("SPECCASE " + tree.sourcefile + " " + tree);
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
         Env<AttrContext> prevEnv = env;
@@ -8787,7 +8791,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		// continue to clean exit - already reported
     		throw e;
     	} catch (Exception e) {
-    		utils.unexpectedException("Exception while attributing method specs: " + msym.owner + "." + msym, e);
+    		utils.unexpectedException(e, "Exception while attributing method specs: " + msym.owner + "." + msym);
     	} finally {
     		this.enclosingClassEnv = savedEnclosingClassEnv;
     		this.enclosingMethodEnv = savedEnclosingMethodEnv;

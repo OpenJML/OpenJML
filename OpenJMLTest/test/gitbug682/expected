@@ -14,12 +14,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Mismatched.Mismatched() with prover !!!! - no warnings
 Starting proof of Mismatched.mismatched(java.util.PriorityQueue<Object>) with prover !!!!
-test/gitbug682/Mismatched.java:6: verify: The prover cannot establish an assertion (NullFormal) in method mismatched: arg0 in add(E)
-        q.add(null);
-              ^
-$SPECS/java/util/AbstractQueue.jml:59: verify: Associated declaration
-    public boolean add(E o); 
-                       ^
-Completed proof of Mismatched.mismatched(java.util.PriorityQueue<Object>) with prover !!!! - with warnings
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Mismatched.mismatched(java.util.PriorityQueue<Object>) with prover !!!! - no warnings
 Completed proving methods in Mismatched
-2 verification failures

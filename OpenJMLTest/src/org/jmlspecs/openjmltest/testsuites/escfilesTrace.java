@@ -2,21 +2,13 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.fail;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openjml.runners.ParameterizedWithNames;
