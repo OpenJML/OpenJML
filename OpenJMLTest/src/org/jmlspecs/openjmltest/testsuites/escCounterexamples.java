@@ -1,9 +1,10 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import org.jmlspecs.openjml.JmlOption;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
