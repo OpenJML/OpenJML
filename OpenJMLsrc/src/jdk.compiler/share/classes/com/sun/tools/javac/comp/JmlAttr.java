@@ -4344,7 +4344,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-    	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("SPECCASE " + tree);
+        if (tree.sourcefile.toString().contains("Super.java")) System.out.println("SPECCASE " + tree.sourcefile + " " + tree);
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
         Env<AttrContext> prevEnv = env;

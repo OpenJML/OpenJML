@@ -1,0 +1,9 @@
+OUT:
+test/gitbug932a/M.java:15: verify: JML postcondition is false
+  public int m() {
+             ^
+test/gitbug932a/M.java:13: verify: Associated declaration: test/gitbug932a/M.java:15:
+  //@ ensures \result == 43; // ERROR
+      ^
+
+ERR:

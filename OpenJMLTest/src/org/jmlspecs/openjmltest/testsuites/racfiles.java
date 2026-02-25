@@ -484,7 +484,12 @@ public class racfiles extends RacBase {
 
     @Test
     public void gitbug932() {
-        helpCompileRun("Super");
+        helpCompileRun("M");
+    }
+
+    @Test
+    public void gitbug932a() {
+        helpCompileRun("M");
     }
 
     @Test
