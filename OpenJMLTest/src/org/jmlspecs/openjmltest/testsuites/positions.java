@@ -1,21 +1,19 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.Arrays;
+import org.openjml.MockJavaFileObject;
 
 import org.jmlspecs.openjml.JmlTree.JmlBinary;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjmltest.JmlTestSuite;
+
+import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
-import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.parser.JmlParser;

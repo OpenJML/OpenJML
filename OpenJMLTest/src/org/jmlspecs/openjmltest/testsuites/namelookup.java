@@ -1,8 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.TCBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class namelookup extends TCBase {

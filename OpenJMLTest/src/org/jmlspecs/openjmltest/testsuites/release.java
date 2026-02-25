@@ -1,17 +1,12 @@
 package org.jmlspecs.openjmltest.testsuites;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import org.jmlspecs.openjmltest.JmlTestSuite;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+
+//import java.io.ByteArrayOutputStream;
+//import java.io.PrintStream;
+
+import static org.junit.Assert.*;
+import org.junit.*;
 import org.junit.rules.TestName;
 
 

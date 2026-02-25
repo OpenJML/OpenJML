@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import org.jmlspecs.openjmltest.EscBaseFiles;
+import org.jmlspecs.openjmltest.JmlTestSuite;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -7,7 +9,7 @@ import java.util.Collection;
 
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.Strings;
-import org.jmlspecs.openjmltest.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

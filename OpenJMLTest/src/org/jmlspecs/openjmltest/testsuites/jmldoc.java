@@ -1,9 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.io.ByteArrayOutputStream;
-
-import java.io.PrintStream;
-
 import org.junit.*;
 import org.junit.rules.TestName;
 
