@@ -1,8 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
 /** These tests exercise the RAC checking.  They compile a test class 
  * using RAC and then execute the resulting program, catching that

@@ -1,16 +1,11 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.jmlspecs.openjml.Main;
+
+import java.util.*;
+
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openjml.runners.ParameterizedWithNames;
 

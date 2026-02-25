@@ -1,30 +1,20 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.jmlspecs.openjmltest.TCBase;
+import org.jmlspecs.openjml.Dir;
+///import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.Main;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.Dir;
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjmltest.TCBase;
-import org.junit.BeforeClass;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
+import static org.junit.Assert.*;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.MockJavaFileObject;

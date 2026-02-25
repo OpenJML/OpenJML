@@ -3,8 +3,8 @@ package org.jmlspecs.openjmltest.testsuites;
 /** This tests that extensions are prohibited by -strict. 
  *  (I suppose we should test that every non-extension is allowed by -strict, but we don't.) */
 
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.TCBase;
+import org.jmlspecs.openjml.JmlOption;
 import org.junit.Test;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)

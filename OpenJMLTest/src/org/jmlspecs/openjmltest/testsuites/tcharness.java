@@ -1,9 +1,8 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import org.jmlspecs.openjmltest.TCBase;
+
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /** Does some simple tests of the TCBase test harness */

@@ -1,4 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
+
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.TCBase;
 import org.junit.*;

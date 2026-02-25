@@ -1,11 +1,10 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import org.jmlspecs.openjmltest.RunBase;
+
 import java.io.File;
 
-import org.jmlspecs.openjmltest.*;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.*;
 
 /** Each test in this suite runs a teset that is a (bash) script. The testName is the name of the
  * test method. The script that is run is '.../OpenJMLTest/test/NAME/run', where NAME is the test name.

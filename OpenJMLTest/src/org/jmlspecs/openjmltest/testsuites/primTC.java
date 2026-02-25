@@ -1,6 +1,6 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import org.jmlspecs.openjmltest.*;
+import org.jmlspecs.openjmltest.TCBase;
 import org.junit.Test;
 
 /** This file contains type-checking tests of JML value types. They mostly check that improper uses give error messages. */
