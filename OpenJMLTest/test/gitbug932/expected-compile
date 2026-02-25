@@ -1,0 +1,3 @@
+test/gitbug932/M.java:11: Note: Not implemented for runtime assertion checking: ensures clause containing a super call in a specification clause within class Super that is tested from a method in a different class (M.main(java.lang.String...))
+  //@ ensures \result == super.m();
+                                ^

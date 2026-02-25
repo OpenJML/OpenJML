@@ -8813,7 +8813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		return newlist.toList();
 //	}
 	
-	// This set records locations where warnings about missing mieasured_by clauses are given,
+	// This set records locations where warnings about missing measured_by clauses are given,
 	// so we don't repeat the same warning for the same location.
 	java.util.Set<Object> measuredByChecks = new java.util.HashSet<>();
 
@@ -8824,8 +8824,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
-	    boolean print = false; // that.toString().startsWith("s.");
-        //if (print) utils.warning(that, "jml.message", "APPLY " + that);
+	    boolean print = false; // that.toString().contains("super");
+        if (print) utils.warning(that, "jml.message", "APPLY " + that);
 
         var methsym = (MethodSymbol)treeutils.getSym(that.meth);
         var methtype = that.meth.type;
@@ -8903,60 +8903,70 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		}
 
-		if (translatingJML && rac) {
-		    if (print) System.out.println("RAC CALL IN GHOST CODE " + that);
-		    try {
-		    // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
-		    currentEnv = currentEnv.pushEnvCopy();
-		    if (currentEnv.stateLabel != null) {
-		        if (!utils.hasModifier(methsym, Modifiers.NO_STATE)) {
-		            currentEnv.localsForbidden = true;
-	                System.out.println("APPLY-IN-OLD " + currentEnv.stateLabel + " " + currentEnv);
-		        }
-		    }
-		    boolean inline = utils.hasModifier(methsym, Modifiers.INLINE);
-            var formals = methsym.type.asMethodType().argtypes;
-            List<JCExpression> typeargs = convertExprList(that.typeargs);
-            JCExpression meth = convertExpr(that.meth);
-            List<JCExpression> args = convertArgs(that, that.args, formals);
-            currentEnv = currentEnv.popEnv();
-            if (print) System.out.println("INLINE " + inline);
-		    if (!inline) {
-		        JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
-		        app.varargsElement = that.varargsElement; // a Type
-		        result = eresult = app;
-		        if (splitExpressions && app.type != null && app.type != syms.voidType) {
-		            JCIdent id = newTemp(app);
-		            result = eresult = id;
-		        }
-		    } else {
-		        var mspecs = specs.get(methsym);
-		        if (mspecs.modelBody == null) {
-		            String message = "Cannot inline a method that has no body; this error should have been reported during type-checking: " + methsym;
-		            utils.error(that, "jml.internal", message);
-		            throw new JmlInternalException(message);
-		        } else {
-                    //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
-                    if (print) System.out.println("INLINING FOR RAC " + methsym + " " + mspecs.modelBody);
-		            addStat(comment(that, "Inlining for rac: " + methsym, null));
-		            JCExpression savedRecv = currentEnv.currentReceiver;
-		            if (meth instanceof JCFieldAccess fa) currentEnv.currentReceiver = fa.selected;
-                    for (int i = 0; i<args.size(); i++) paramActuals_.put(mspecs.specDecl.params.get(i).sym, args.get(i));
-                    // FIXME - push arith mode?
-                    result = eresult = inlineConvertBlock(mspecs.modelBody, paramActuals_, that.type);
-                    for (int i = 0; i<args.size(); i++) paramActuals_.remove(mspecs.specDecl.params.get(i).sym);
-		            currentEnv.currentReceiver = savedRecv;
-		            
-		            // if (!splitExpressions) ... PROBLEM FIXME, also model methods
-		        }
-		    }
-		    } catch (Exception e) {
-		        System.out.println("CAUGHT " + e);
-		        e.printStackTrace(System.out);
-		        throw e;
-		    } finally {
-		        if (print) System.out.println("RAC CALL IN GHOST CODE-Z " + that);
-		    }
+        if (translatingJML && rac) {
+            if (print) System.out.println("RAC CALL IN GHOST CODE " + that);
+            try {
+                // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
+                currentEnv = currentEnv.pushEnvCopy();
+                if (currentEnv.stateLabel != null) {
+                    if (!utils.hasModifier(methsym, Modifiers.NO_STATE)) {
+                        currentEnv.localsForbidden = true;
+                        System.out.println("APPLY-IN-OLD " + currentEnv.stateLabel + " " + currentEnv);
+                    }
+                }
+                if (that.meth instanceof JCFieldAccess fa && fa.selected instanceof JCIdent id && id.name == names._super) {
+                    if (!types.isSubtype(methodDecl.sym.owner.type, enclosingClass.type)) {
+                        //System.out.println("BAD SUPER " + fa.sym.owner + " " + methodDecl.sym.owner +  " " + enclosingClass + " " + enclosingMethod + " " + currentEnv.methodSym);
+                        String message = "a super call in a specification clause within class "
+                                + enclosingClass + " that is tested from a method in a different class (" + methodDecl.sym.owner + "."+ methodDecl.sym +")";
+                        throw new Utils.JmlNotImplementedException(that, message);  // FIXME - should include the sourcefile: log.currentSourceFile()
+                    }
+                }
+                boolean inline = utils.hasModifier(methsym, Modifiers.INLINE);
+                var formals = methsym.type.asMethodType().argtypes;
+                List<JCExpression> typeargs = convertExprList(that.typeargs);
+                JCExpression meth = convertExpr(that.meth);
+                List<JCExpression> args = convertArgs(that, that.args, formals);
+                currentEnv = currentEnv.popEnv();
+                if (print) System.out.println("INLINE " + inline);
+                if (!inline) {
+                    JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
+                    app.varargsElement = that.varargsElement; // a Type
+                    result = eresult = app;
+                    if (splitExpressions && app.type != null && app.type != syms.voidType) {
+                        JCIdent id = newTemp(app);
+                        result = eresult = id;
+                    }
+                } else {
+                    var mspecs = specs.get(methsym);
+                    if (mspecs.modelBody == null) {
+                        String message = "Cannot inline a method that has no body; this error should have been reported during type-checking: " + methsym;
+                        utils.error(that, "jml.internal", message);
+                        throw new JmlInternalException(message);
+                    } else {
+                        //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
+                        if (print) System.out.println("INLINING FOR RAC " + methsym + " " + mspecs.modelBody);
+                        addStat(comment(that, "Inlining for rac: " + methsym, null));
+                        JCExpression savedRecv = currentEnv.currentReceiver;
+                        if (meth instanceof JCFieldAccess fa) currentEnv.currentReceiver = fa.selected;
+                        for (int i = 0; i<args.size(); i++) paramActuals_.put(mspecs.specDecl.params.get(i).sym, args.get(i));
+                        // FIXME - push arith mode?
+                        result = eresult = inlineConvertBlock(mspecs.modelBody, paramActuals_, that.type);
+                        for (int i = 0; i<args.size(); i++) paramActuals_.remove(mspecs.specDecl.params.get(i).sym);
+                        currentEnv.currentReceiver = savedRecv;
+
+                        // if (!splitExpressions) ... PROBLEM FIXME, also model methods
+                    }
+                }
+            } catch (JmlNotImplementedException e) {
+                throw e;
+            } catch (Exception e) {
+                System.out.println("CAUGHT " + e);
+                e.printStackTrace(System.out);
+                throw e;
+            } finally {
+                if (print) System.out.println("RAC CALL IN GHOST CODE-Z " + that);
+            }
 
 		} else {
 
@@ -9668,12 +9678,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				        convertedReceiver = currentEnv.currentReceiver;
 				        receiverType = currentEnv.currentReceiver.type;
 				    } else {
-                        receiverType = fa.selected.type;
-				        if (currentEnv.currentReceiver instanceof JCIdent id && id.name == names._this) {
-				            convertedReceiver = fa.selected;
+				        //System.out.println("FA SUPER " + rac + " " + translatingJML + " " + that + " " + currentEnv.currentReceiver + " " + currentEnv.enclosingClauseKind);
+				        if (!translatingJML) {
+				            receiverType = fa.selected.type;
+				            if (rac) {
+				                convertedReceiver = fa.selected;
+				            } else {
+				                convertedReceiver = M.at(fa.selected.pos).TypeCast(fa.selected.type, currentEnv.currentReceiver);
+				            }
 				        } else {
-	                        System.out.println("SUPER " + that + " " + currentEnv.currentReceiver);
-                            convertedReceiver = fa.selected; // FIXME - should this be the super of the current receiver???
+                            receiverType = fa.selected.type;
+                            if (rac) {
+                                // FIXME - this case handled in visitApply
+                                convertedReceiver = fa.selected;
+                            } else {
+                                convertedReceiver = M.at(fa.selected.pos).TypeCast(fa.selected.type, currentEnv.currentReceiver);
+                            }
+				            
 				        }
 				    }
 				} else if (calleeMethodSym.isStatic()) {
@@ -11729,11 +11750,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// methods again, this time putting in the post-condition checks
 
 				for (Pair<MethodSymbol, Type> pair : overridden) {
-					if (print) System.out.println("APPLYHELPER-X2");
 					MethodSymbol mpsym = pair.first;
-
 					Type classType = pair.second;
-					typevarMapping = typemapping(classType, calleeMethodSym, typeargs, meth == null ? null
+                    if (print) System.out.println("APPLYHELPER-X2 " + classType + " " + mpsym);
+
+                    typevarMapping = typemapping(classType, calleeMethodSym, typeargs, meth == null ? null
 							: meth.type instanceof Type.MethodType ? (Type.MethodType) meth.type : null, null);
 					if (apply != null)
 						typevarMapping = typemapping(apply, typevarMapping);
@@ -17012,11 +17033,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    result = eresult = that;
 		    return;
 		}
-		if (rac && that.sym.name == names._super) {
-		    // FIXME This translation of super will not work if the currentReceiver is not 'this' 
-		    result = eresult = that;
-		    return;
-		}
+        if (rac && that.sym.name == names._super) {
+            // FIXME This translation of super will not work if the currentReceiver is not 'this' 
+            result = eresult = that;
+            return;
+        }
+        if (esc && that.sym.name == names._super) {
+            // FIXME This translation of super will not work if the currentReceiver is not 'this' 
+            result = eresult = M.at(that.pos).TypeCast(that.type, copy(currentEnv.currentReceiver));
+            System.out.println("ESC SUPER " + that + " " + that.type + " " + eresult);
+            return;
+        }
 		if (translatingLambda && that.sym.name == names._this) {
 			copy(currentEnv.currentReceiver); // FIXME - needs to assign the copy to something?
 			return;
