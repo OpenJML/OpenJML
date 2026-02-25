@@ -1,8 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openjml.runners.ParameterizedWithNames;
 

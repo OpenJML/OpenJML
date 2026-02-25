@@ -1,11 +1,8 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.Collection;
-
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlOptions;
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Test;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
@@ -44,8 +41,8 @@ public class escoption extends EscBase {
         options.put(JmlOption.LANG, "openjml");
         Assert.assertEquals("I", "openjml",JmlOption.LANG.value(context));
         String out = output();
-        org.junit.Assert.assertEquals("J", "",out);
-        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+        Assert.assertEquals("J", "",out);
+        Assert.assertTrue(errorOutput().isEmpty());
     }
 
     // FIXME -- adjust JmlOption calls
@@ -87,11 +84,11 @@ public class escoption extends EscBase {
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",77
         );
         String out = output();
-        org.junit.Assert.assertEquals(
+        Assert.assertEquals(
               "Starting proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!!" + eol + 
               "Completed proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!! - with warnings" + eol
               ,out) ;
-        org.junit.Assert.assertTrue(errorOutput().isEmpty());
+        Assert.assertTrue(errorOutput().isEmpty());
     }
     
     @Test
