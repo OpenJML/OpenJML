@@ -1,8 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.ParseBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import static org.junit.Assert.*;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)

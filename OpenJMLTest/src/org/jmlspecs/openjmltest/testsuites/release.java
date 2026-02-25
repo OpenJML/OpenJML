@@ -1,17 +1,9 @@
 package org.jmlspecs.openjmltest.testsuites;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import org.jmlspecs.openjmltest.JmlTestSuite;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+
+import static org.junit.Assert.*;
+import org.junit.*;
 import org.junit.rules.TestName;
 
 
@@ -31,7 +23,6 @@ import org.junit.rules.TestName;
 public class release extends JmlTestSuite {
 
     public static final String relsrc = "releaseTests/src";
-    public static final String src = "test/compiler/";
 
     @Rule
     public TestName name = new TestName();
@@ -49,7 +40,6 @@ public class release extends JmlTestSuite {
 
     @After
     public void tearDown() {
-        // Do this just in case the test fails without having reset the streams
     }
 
     /** This is a helper method that runs the compiler on the given set of
@@ -116,7 +106,7 @@ public class release extends JmlTestSuite {
         }
     }
 
-    // The remaining tests are replicates of those executed by 'make release-test'
+    // These tests are replicates of those executed by 'make release-test'
     // FIXME - check the version
     // FIXME - testOK2, testOK3, testJmlBad2
     // FIXME - test RAC-OK, SIMPLE, etc.

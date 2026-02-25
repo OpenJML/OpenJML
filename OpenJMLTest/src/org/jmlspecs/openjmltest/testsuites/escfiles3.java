@@ -2,22 +2,12 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assume;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -87,6 +77,16 @@ public class escfiles3 extends EscBaseFiles {
     @Test
     public void gitbug814z() {
         helpEscSimple();
+    }
+    
+    @Test @Ignore // non-linear integer arithmetic times out
+    public void gitbug943() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug943a() {
+        helpEscName("gitbug943", "--check-feasibility=none", "--method=myGCD");
     }
     
     @Test
@@ -246,6 +246,11 @@ public class escfiles3 extends EscBaseFiles {
 
     @Test
     public void helper() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void argnullity() {
         helpEscSimple();
     }
 

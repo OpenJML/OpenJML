@@ -2008,12 +2008,6 @@ public class Utils {
         
     }
     
-    // FIXME - git rid of this one, in favor of the one below
-    public void unexpectedException(String msg, Exception e) {
-        error("jml.internal","Unexpected exception: " + msg + " " + e);
-        e.printStackTrace(System.out);
-    }
-
     public void unexpectedException(Throwable e, String msg) {
         error("jml.internal","Unexpected exception: " + msg + " " + e);
         e.printStackTrace(System.out);

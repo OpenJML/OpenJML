@@ -1,0 +1,37 @@
+Proving methods in sv_esc.Bag
+Starting proof of sv_esc.Bag.Bag(int[]) with prover !!!!
+Completed proof of sv_esc.Bag.Bag(int[]) with prover !!!! - no warnings
+Starting proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!!
+Completed proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!! - no warnings
+Starting proof of sv_esc.Bag.removeOnce(int) with prover !!!!
+test/bag/Bag.java:28: verify: The prover cannot establish an assertion (InvariantExit) in method removeOnce
+  void removeOnce(int elt) {
+       ^
+test/bag/Bag.java:13: verify: Associated declaration
+  //@ invariant n <= contents.length;
+      ^
+Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - with warnings
+Starting proof of sv_esc.Bag.removeAll(int) with prover !!!!
+test/bag/Bag.java:43: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method removeAll
+         contents[i] = contents[n];
+                               ^
+Completed proof of sv_esc.Bag.removeAll(int) with prover !!!! - with warnings
+Starting proof of sv_esc.Bag.getCount(int) with prover !!!!
+test/bag/Bag.java:53: verify: The prover cannot establish an assertion (LoopInvariant) in method getCount
+    //@ loop_invariant count >= 0;
+        ^
+Completed proof of sv_esc.Bag.getCount(int) with prover !!!! - with warnings
+Starting proof of sv_esc.Bag.add(int) with prover !!!!
+test/bag/Bag.java:61: verify: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
+       int[] new_contents = new int[2*n+1]; // error in code corrected
+                                       ^
+Completed proof of sv_esc.Bag.add(int) with prover !!!! - with warnings
+Starting proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!!
+test/bag/Bag.java:75: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method add: overflow in int sum
+    int[] new_contents = new int[n+b.n];
+                                  ^
+Completed proof of sv_esc.Bag.add(sv_esc.Bag) with prover !!!! - with warnings
+Starting proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!!
+Completed proof of sv_esc.Bag.arraycopy(int[],int,int[],int,int) with prover !!!! - no warnings
+Completed proving methods in sv_esc.Bag
+6 verification failures

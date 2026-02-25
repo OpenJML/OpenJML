@@ -1,8 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.TCBase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
 /** These tests do typechecking on all the aspects of JML types.
  * <BR> \TYPE - the type of types in JML, somewhat like, but not equivalent to Class<?>

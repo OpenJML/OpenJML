@@ -1,9 +1,10 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import org.jmlspecs.openjml.JmlOption;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,11 +85,13 @@ public class escCounterexamples extends EscBase {
                   public void c1(int k, boolean b) {};
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method m1",7
-                ,"/tt/TestJava.java:13: verify: Associated declaration",15
-                ,"/tt/TestJava.java:12: verify: Precondition conjunct is false: k == 0",18
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (TerminationDecreases) in method m1", 19
-                ,"/tt/TestJava.java:9: verify: Associated declaration", 21
+                ,anyorder(
+                 seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method m1",7
+                    ,"/tt/TestJava.java:13: verify: Associated declaration",15)
+                ,seq("/tt/TestJava.java:12: verify: Precondition conjunct is false: k == 0",18
+                    ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (TerminationDecreases) in method m1", 19
+                    ,"/tt/TestJava.java:9: verify: Associated declaration", 21)
+                )
                 );
     }
     

@@ -1192,6 +1192,13 @@ public class JmlTreeUtils {
         return lhs;
     }
 
+    /** Makes an attributed attributed AST for a non-short-circuit boolean AND expression */
+    public JCExpression makeBitAndSimp(int pos, JCExpression lhs, JCExpression rhs) {
+        if (lhs == null || isTrueLit(lhs)) return rhs;
+        if (rhs == null || isTrueLit(rhs)) return lhs;
+        return makeBinary(pos,JCTree.Tag.BITAND,bitandSymbol,lhs,rhs);
+    }
+
     /** Makes an attributed attributed AST for a non-short-circuit boolean OR expression */
     public JCExpression makeBitOr(int pos, JCExpression lhs, JCExpression ... rhs) {
         for (JCExpression r: rhs) {

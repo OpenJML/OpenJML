@@ -1,14 +1,12 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import org.jmlspecs.openjml.JmlAstPrinter;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.openjml.MockJavaFileObject;
+
+import static org.junit.Assert.*;
+import org.junit.*;
 
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.tree.JCTree;

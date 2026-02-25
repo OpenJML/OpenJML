@@ -4944,20 +4944,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				paramActuals_.putAll(specParamsToActuals(denestedSpecs, methodDecl, parentMethodSym));
 				Map<JmlMethodClause, JCExpression> clauseIds = new HashMap<>();
 				elseExpression = treeutils.falseLit;
+				JCExpression nullity = collectFormalNullity(parentMethodSym, specs.getAttrSpecs(parentMethodSym));
+				JmlMethodClause req = null;
+				if (!treeutils.isTrueLit(nullity)) req = M.at(methodDecl).JmlMethodClauseExpr("requires",requiresClauseKind, nullity);
+				//System.out.println("FORMAL NULLITY " + methodDecl.sym + " " + parentMethodSym + " " + req);
+				
 				for (JmlSpecificationCase scase : denestedSpecs.cases) {
 				    //System.out.println("ITER " + parentMethodSym + " " + scase);
 					if (!doSpecificationCase(methodDecl, methodDecl.sym, parentMethodSym, scase, false)) continue;
 					
-					for (JmlMethodClause clause: scase.clauses) {
-					    //if (clause.clauseKind == invariantsClauseKind) System.out.println("HAVE INVS CLAUSE " + ((JmlMethodClauseInvariants)clause).expressions);
-					}
                     //System.out.println("DOING " + parentMethodSym + " " + scase);
 					JavaFileObject prev = log.useSource(scase.source());
 					try {
 						JCExpression preexpr = null;
 						JCExpression diverges = null;
 						JmlSource divergesPosition = scase;
-						for (JmlMethodClause clause : scase.clauses) {
+						var clauses = scase.clauses;
+						if (req != null) {
+						    clauses = clauses.prepend(req);
+						}
+						for (JmlMethodClause clause : clauses) {
 							IJmlClauseKind ct = clause.clauseKind;
 							if (ct == MethodDeclClauseExtension.oldClause) {
 								if (clauseIds.containsKey(clause))
@@ -5247,13 +5253,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			initialStats.appendList(preStats);
 
 		} catch (Exception e) {
-			utils.unexpectedException("addPreCondition", e);
+			utils.unexpectedException(e, "addPreCondition");
 		} finally {
 			//paramActuals_ = null;
 			clearInvariants();
 
 			popBlock(null, check);
 		}
+	}
+	
+	public JCExpression collectFormalNullity(MethodSymbol msym, JmlSpecs.MethodSpecs msp) {
+	    JCExpression nnexpr = treeutils.trueLit;
+	    {
+	        int i = 0;
+	        var iter = msp.specDecl == null ? null : msp.specDecl.params.iterator(); // FIXME - under what circumstances is msp.specDecl null? What do we do if there are no specs at all and we are assuming some param are non-null?
+	        var syms = msp.specSym == null ? null : msp.specSym.params.iterator();
+	        for (var param: msym.params) {
+	            var p = iter == null ? null : iter.next();
+	            var pos = p == null ? Position.NOPOS : p.pos;
+	            var s = syms == null ? null : syms.next();
+	            boolean nn = specs.isCheckNonNullFormal(param.type, i, msp, msym, param.type, null);
+	            if (nn) {
+	                JCIdent e = treeutils.makeIdent(pos, s!=null ? s :p != null ? p.sym : param);
+	                //System.out.println("USING SYM " + e.name + " " + e.sym + " " + e.sym.hashCode() + " : " + Objects.hashCode(s) + " " + Objects.hashCode(p.sym) + " " + Objects.hashCode(param));
+	                JCExpression ee = treeutils.makeNotNull(pos, e);
+	                nnexpr = treeutils.makeAndSimp(pos, nnexpr, ee);
+	            }
+	            ++i;
+	        }
+	    }
+	    return nnexpr;
 	}
 
     public void handleFrameConditions(JmlMethodDecl methodDecl, ListBuffer<JCStatement> initialStatements) {
@@ -8784,7 +8813,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		return newlist.toList();
 //	}
 	
-	// This set records locations where warnings about missing mieasured_by clauses are given,
+	// This set records locations where warnings about missing measured_by clauses are given,
 	// so we don't repeat the same warning for the same location.
 	java.util.Set<Object> measuredByChecks = new java.util.HashSet<>();
 
@@ -8795,8 +8824,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        try {
 //        condition = treeutils.trueLit;
 
-	    boolean print = false; // that.toString().startsWith("s.");
-        //if (print) utils.warning(that, "jml.message", "APPLY " + that);
+	    boolean print = false; // that.toString().contains("super");
+        if (print) utils.warning(that, "jml.message", "APPLY " + that);
 
         var methsym = (MethodSymbol)treeutils.getSym(that.meth);
         var methtype = that.meth.type;
@@ -8874,60 +8903,70 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 		}
 
-		if (translatingJML && rac) {
-		    if (print) System.out.println("RAC CALL IN GHOST CODE " + that);
-		    try {
-		    // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
-		    currentEnv = currentEnv.pushEnvCopy();
-		    if (currentEnv.stateLabel != null) {
-		        if (!utils.hasModifier(methsym, Modifiers.NO_STATE)) {
-		            currentEnv.localsForbidden = true;
-	                System.out.println("APPLY-IN-OLD " + currentEnv.stateLabel + " " + currentEnv);
-		        }
-		    }
-		    boolean inline = utils.hasModifier(methsym, Modifiers.INLINE);
-            var formals = methsym.type.asMethodType().argtypes;
-            List<JCExpression> typeargs = convertExprList(that.typeargs);
-            JCExpression meth = convertExpr(that.meth);
-            List<JCExpression> args = convertArgs(that, that.args, formals);
-            currentEnv = currentEnv.popEnv();
-            if (print) System.out.println("INLINE " + inline);
-		    if (!inline) {
-		        JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
-		        app.varargsElement = that.varargsElement; // a Type
-		        result = eresult = app;
-		        if (splitExpressions && app.type != null && app.type != syms.voidType) {
-		            JCIdent id = newTemp(app);
-		            result = eresult = id;
-		        }
-		    } else {
-		        var mspecs = specs.get(methsym);
-		        if (mspecs.modelBody == null) {
-		            String message = "Cannot inline a method that has no body; this error should have been reported during type-checking: " + methsym;
-		            utils.error(that, "jml.internal", message);
-		            throw new JmlInternalException(message);
-		        } else {
-                    //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
-                    if (print) System.out.println("INLINING FOR RAC " + methsym + " " + mspecs.modelBody);
-		            addStat(comment(that, "Inlining for rac: " + methsym, null));
-		            JCExpression savedRecv = currentEnv.currentReceiver;
-		            if (meth instanceof JCFieldAccess fa) currentEnv.currentReceiver = fa.selected;
-                    for (int i = 0; i<args.size(); i++) paramActuals_.put(mspecs.specDecl.params.get(i).sym, args.get(i));
-                    // FIXME - push arith mode?
-                    result = eresult = inlineConvertBlock(mspecs.modelBody, paramActuals_, that.type);
-                    for (int i = 0; i<args.size(); i++) paramActuals_.remove(mspecs.specDecl.params.get(i).sym);
-		            currentEnv.currentReceiver = savedRecv;
-		            
-		            // if (!splitExpressions) ... PROBLEM FIXME, also model methods
-		        }
-		    }
-		    } catch (Exception e) {
-		        System.out.println("CAUGHT " + e);
-		        e.printStackTrace(System.out);
-		        throw e;
-		    } finally {
-		        if (print) System.out.println("RAC CALL IN GHOST CODE-Z " + that);
-		    }
+        if (translatingJML && rac) {
+            if (print) System.out.println("RAC CALL IN GHOST CODE " + that);
+            try {
+                // FIXME - need to check definedness by testing preconditions; check postconditions also? inline?
+                currentEnv = currentEnv.pushEnvCopy();
+                if (currentEnv.stateLabel != null) {
+                    if (!utils.hasModifier(methsym, Modifiers.NO_STATE)) {
+                        currentEnv.localsForbidden = true;
+                        System.out.println("APPLY-IN-OLD " + currentEnv.stateLabel + " " + currentEnv);
+                    }
+                }
+                if (that.meth instanceof JCFieldAccess fa && fa.selected instanceof JCIdent id && id.name == names._super) {
+                    if (!types.isSubtype(methodDecl.sym.owner.type, enclosingClass.type)) {
+                        //System.out.println("BAD SUPER " + fa.sym.owner + " " + methodDecl.sym.owner +  " " + enclosingClass + " " + enclosingMethod + " " + currentEnv.methodSym);
+                        String message = "a super call in a specification clause within class "
+                                + enclosingClass + " that is tested from a method in a different class (" + methodDecl.sym.owner + "."+ methodDecl.sym +")";
+                        throw new Utils.JmlNotImplementedException(that, message);  // FIXME - should include the sourcefile: log.currentSourceFile()
+                    }
+                }
+                boolean inline = utils.hasModifier(methsym, Modifiers.INLINE);
+                var formals = methsym.type.asMethodType().argtypes;
+                List<JCExpression> typeargs = convertExprList(that.typeargs);
+                JCExpression meth = convertExpr(that.meth);
+                List<JCExpression> args = convertArgs(that, that.args, formals);
+                currentEnv = currentEnv.popEnv();
+                if (print) System.out.println("INLINE " + inline);
+                if (!inline) {
+                    JCMethodInvocation app = M.at(that).Apply(typeargs, meth, args).setType(that.type);
+                    app.varargsElement = that.varargsElement; // a Type
+                    result = eresult = app;
+                    if (splitExpressions && app.type != null && app.type != syms.voidType) {
+                        JCIdent id = newTemp(app);
+                        result = eresult = id;
+                    }
+                } else {
+                    var mspecs = specs.get(methsym);
+                    if (mspecs.modelBody == null) {
+                        String message = "Cannot inline a method that has no body; this error should have been reported during type-checking: " + methsym;
+                        utils.error(that, "jml.internal", message);
+                        throw new JmlInternalException(message);
+                    } else {
+                        //for (int i = 0; i<args.size(); i++) System.out.println("  ARG " + mspecs.specDecl.params.get(i) + " :: " + args.get(i));
+                        if (print) System.out.println("INLINING FOR RAC " + methsym + " " + mspecs.modelBody);
+                        addStat(comment(that, "Inlining for rac: " + methsym, null));
+                        JCExpression savedRecv = currentEnv.currentReceiver;
+                        if (meth instanceof JCFieldAccess fa) currentEnv.currentReceiver = fa.selected;
+                        for (int i = 0; i<args.size(); i++) paramActuals_.put(mspecs.specDecl.params.get(i).sym, args.get(i));
+                        // FIXME - push arith mode?
+                        result = eresult = inlineConvertBlock(mspecs.modelBody, paramActuals_, that.type);
+                        for (int i = 0; i<args.size(); i++) paramActuals_.remove(mspecs.specDecl.params.get(i).sym);
+                        currentEnv.currentReceiver = savedRecv;
+
+                        // if (!splitExpressions) ... PROBLEM FIXME, also model methods
+                    }
+                }
+            } catch (JmlNotImplementedException e) {
+                throw e;
+            } catch (Exception e) {
+                System.out.println("CAUGHT " + e);
+                e.printStackTrace(System.out);
+                throw e;
+            } finally {
+                if (print) System.out.println("RAC CALL IN GHOST CODE-Z " + that);
+            }
 
 		} else {
 
@@ -9639,12 +9678,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				        convertedReceiver = currentEnv.currentReceiver;
 				        receiverType = currentEnv.currentReceiver.type;
 				    } else {
-                        receiverType = fa.selected.type;
-				        if (currentEnv.currentReceiver instanceof JCIdent id && id.name == names._this) {
-				            convertedReceiver = fa.selected;
+				        //System.out.println("FA SUPER " + rac + " " + translatingJML + " " + that + " " + currentEnv.currentReceiver + " " + currentEnv.enclosingClauseKind);
+				        if (!translatingJML) {
+				            receiverType = fa.selected.type;
+				            if (rac) {
+				                convertedReceiver = fa.selected;
+				            } else {
+				                convertedReceiver = M.at(fa.selected.pos).TypeCast(fa.selected.type, currentEnv.currentReceiver);
+				            }
 				        } else {
-	                        System.out.println("SUPER " + that + " " + currentEnv.currentReceiver);
-                            convertedReceiver = fa.selected; // FIXME - should this be the super of the current receiver???
+                            receiverType = fa.selected.type;
+                            if (rac) {
+                                // FIXME - this case handled in visitApply
+                                convertedReceiver = fa.selected;
+                            } else {
+                                convertedReceiver = M.at(fa.selected.pos).TypeCast(fa.selected.type, currentEnv.currentReceiver);
+                            }
+				            
 				        }
 				    }
 				} else if (calleeMethodSym.isStatic()) {
@@ -10307,41 +10357,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			int numCases = 0;
 			try { // In quantifications, splitExpressions is set to false
 				boolean combinedNoModel = false;
-				addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller", null));
+				addStat(comment(that, "Checking preconditions of callee " + calleeMethodSym + " by the caller " + methodDecl.sym, null));
 
 				var paramTypes = meth != null ? meth.type.getParameterTypes()
 						: newclass != null ? newclass.type.getParameterTypes() : null;
-				if (paramTypes != null) {
-					// Type checks (e.g. NonNull) on assignments to formal parameters
-					if (calleeMethodSym.params == null) {
-//						System.out.println(
-//								"NULL PARAMS " + calleeMethodSym.owner + " # " + calleeMethodSym.owner.members() + " # "
-//										+ calleeMethodSym.owner.members().getSymbols() + " # " + calleeMethodSym);
-					} else {
-						var calleeSpecs = specs.getDenestedSpecs(calleeMethodSym);
-						for (int i = 0; i < calleeMethodSym.params.size(); i++) {
-							VarSymbol v = calleeMethodSym.params.get(i);
-							boolean nn = specs.isCheckNonNullFormal(v.type, i, calleeSpecs, calleeMethodSym);
-							if (nn) {
-							    // FIXME - why this if?
-								if (calleeSpecs.decl == null) {
-									// There are no specs to point to
-									addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
-											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
-											v.name + " in " + calleeMethodSym);
-								} else {
-								    var formal = calleeSpecs.decl.params.get(i);
-								    var p = utils.locNonNullAnnotation(formal);
-								    if (p == Position.NOPOS) p = formal.getStartPosition();
-								    addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
-											treeutils.makeNotNull(trArgs.get(i).pos, trArgs.get(i)),
-											new JCDiagnostic.SimpleDiagnosticPosition(p), 
-											calleeSpecs.decl.sourcefile,
-											v.name + " in " + calleeMethodSym);
-								}
-							}
-						}
-					}
+				{
 				}
 
 				boolean anyVisibleSpecCases = false;
@@ -10361,57 +10381,79 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							classType = m.owner.type;
 						}
 					}
-					addStat(comment(that, "... Preconditions of callee " + calleeMethodSym.owner + " " + calleeMethodSym
-							+ " in " + classType.toString() + " " + mpsym.owner + " " + mpsym, null));
-					if (print)
-						System.out.println("... Preconditions of callee " + calleeMethodSym + " in "
-								+ classType.toString() + " " + mpsym.owner + " " + mpsym);
+					addStat(comment("... Preconditions of callee (" + calleeMethodSym.owner + ") " + mpsym.owner + "." + mpsym
+							+ " in " + classType.toString()));
+					
+	                   // Type checks (e.g. NonNull) on assignments to formal parameters
+                    var calleeSpecs = specs.getDenestedSpecs(mpsym);
+                    if (calleeSpecs == null)
+                        continue; // FIXME - not sure about this - should get a default?
+
+                    JCExpression nnFormals = treeutils.makeBooleanLiteral(calleeSpecs.pos, true);
+                    if (mpsym.params != null) { // Cases of no formal parameters can have params be null
+                        //System.out.println("SIZES " + trArgs.length() + " " + paramTypes.length() + " " + calleeMethodSym.params.size() + " " + calleeMethodSym + " " + that);
+                        for (int i = 0; i < mpsym.params.size(); i++) {
+                            VarSymbol v = mpsym.params.get(i);
+                            if (i >= paramTypes.length()) {
+                                //System.out.println("TYPEARGS " + typeargs);
+                                //System.out.println("PARAMTYPES " + paramTypes);
+                                
+                            }
+                            //System.out.println("NN-A " + v.type + " " + v + " " + trArgs.get(i) + " " + trArgs.get(i).type);
+                            //System.out.println("NN-ARGS " + (meth != null ? meth.type : newclass.type));
+                            Type ft;
+                            if (meth == null) {
+                                ft = ((Type.MethodType)newclass.constructorType).argtypes.get(i);
+                            } else if (meth.type instanceof Type.MethodType mt) {
+                                ft = mt.argtypes.get(i);
+                            } else if (meth.type instanceof Type.ForAll fat) {
+                                var mt = fat.asMethodType();
+                                ft = mt.argtypes.get(i);
+                            } else {
+                                System.out.println("UNIMPLEMENTED METHOD TYPE " + meth.type + " " + meth.type.getClass());
+                                Utils.dumpStack();
+                                ft = null;
+                            }
+                            boolean nn = specs.isCheckNonNullFormal(ft, i, calleeSpecs, mpsym, trArgs.get(i).type, methodDecl.sym); // FIXME - adjust for varargs
+                            //System.out.println("NN " + calleeMethodSym + " " + mpsym + " " + v.type + " " + v + " " + nn);
+                            if (nn) {
+                                var arg = trArgs.get(i);
+                                // FIXME - why this if?
+                                nnFormals = treeutils.makeBitAndSimp(nnFormals.pos, nnFormals, treeutils.makeNotNull(arg.pos, arg));
+//                                if (mpsym.decl == null) {
+//                                    // There are no specs to point to
+////                                    addAssert(arg, Label.NULL_ARGUMENT_LOC,
+////                                            treeutils.makeNotNull(arg.pos, arg),
+////                                            v.name + " in " + mpsym);
+//                                } else {
+//                                    var formal = calleeSpecs.decl.params.get(i);
+//                                    var p = utils.locNonNullAnnotation(formal);
+//                                    if (p == Position.NOPOS) p = formal.getStartPosition();
+////                                    addAssert(trArgs.get(i), Label.NULL_ARGUMENT_LOC,
+////                                            treeutils.makeNotNull(arg.pos,arg),
+////                                            new JCDiagnostic.SimpleDiagnosticPosition(p), 
+////                                            calleeSpecs.decl.sourcefile,
+////                                            v.name + " in " + mpsym);
+//                                }
+                                addStat(comment("Parameter " + (calleeSpecs.decl == null ? v : calleeSpecs.decl.params.get(i)) + " is non_null"));
+                            } else {
+                                addStat(comment("Parameter " + (calleeSpecs.decl == null ? v : calleeSpecs.decl.params.get(i)) + " is nullable"));
+                            }
+                        }
+                    }
+                    addStat(comment("Nullity: " + nnFormals));
+                    JmlMethodClauseExpr nnRequires = null;
+                    if (!treeutils.isTrueLit(nnFormals)) {
+                        nnRequires = M.at(nnFormals).JmlMethodClauseExpr("requires",requiresClauseKind, nnFormals);
+                    }
+
 					// FIXME - meth is null for constructors - fix that also; also generic types
 					typevarMapping = typemapping(classType, calleeMethodSym, typeargs, meth == null ? null
 							: meth.type instanceof Type.MethodType ? (Type.MethodType) meth.type : null, null);
 					if (apply != null)
 						typevarMapping = typemapping(apply, typevarMapping);
-					// This initial logic must match that below for postconditions
-
-					JmlMethodSpecs calleeSpecs = specs.getDenestedSpecs(mpsym);
-					if (calleeSpecs == null)
-						continue; // FIXME - not sure about this - should get a default?
-//					paramActuals_ = new HashMap<Object, JCExpression>();
-//					if (savedParamActuals != null)
-//						paramActuals_.putAll(savedParamActuals); // In cases that we are capturing the environment, such
-//																// as inlining lambdas or model programs, we still need
-//																// the mappings from the outer call // NOt sure this is
-//																// needed
-//					mapParamActuals.put(mpsym, paramActuals_);
 
 					var ssym = specs.getAttrSpecs(mpsym).specSym;
-//					if (ssym != null) {
-//						// Map the formals for this particular method to the corresponding translated
-//						// actual argument
-//						// The MethodSymbol used to iterate over the parameter VarSymbols must
-//						// correspond to the Env
-//						// used to attribute the specifications. We use the specSym because the javaSym
-//						// might belong to
-//						// a binary and thus have different parameter names (which it might if it has a
-//						// java declaration as well)
-//						if (ssym.params == null) {
-//							// For some reason, calls to clone() have ssym.params == null instead of an
-//							// empty parameter list
-//						} else {
-//							Iterator<VarSymbol> iter = ssym.params.iterator();
-//							for (JCExpression arg : trArgs) {
-//								VarSymbol v = null;
-//								if (iter.hasNext())
-//									paramActuals.put(v = iter.next(), arg);
-//								else {
-//									// FIXME - mismatch in number of arguments; what about varargs?
-//								}
-//								// if (v != null) System.out.println("MAPPED FORMAL SYM " + v + " " + arg + " "
-//								// + (arg!=null?arg.getClass().toString():"?") + " " + mpsym.owner + "." + mpsym
-//								// + " " + methodDecl.sym);
-//							}
-//						}
-//					}
                     pushArithMode(mpsym, true);
                     try {
 					if (esc) {
@@ -10474,21 +10516,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression savedElseExpression = elseExpression;
 					elseExpression = treeutils.falseLit;
 					for (JmlSpecificationCase cs : calleeSpecs.cases) {
-						// System.out.println("CALCPRE-A " + mpsym.owner + " " + mpsym + " " +
-						// cs.hashCode() + " " + cs);
 					    if (cs.callee_only) continue; 
                         if (!doSpecificationCase(methodDecl, calleeMethodSym, mpsym, cs, true)) continue;
-//						if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags,
-//								methodDecl != null ? methodDecl.mods.flags : Flags.PUBLIC)) // FIXME - review this for when not in a method
-//							continue;
-//						if (translatingJML && cs.token == exceptionalBehaviorClause)
-//							continue; // exceptional behavior clauses are not used for pure functions within JML
-//										// expressions
-//						if (mpsym != calleeMethodSym && cs.code)
-//							continue;
 						addStat(comment(cs, "Spec Case: " + cs, cs.sourcefile));
-						// System.out.println("CALCPRE " + mpsym.owner + " " + mpsym + " " +
-						// cs.hashCode() + " " + cs);
 						if (cs.block != null)
 							hasAModelProgram = true;
 						numCases++;
@@ -10517,7 +10547,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JmlMethodClauseExpr mcc = null; // Remember the first clause in the specification case
 							int preconditionDetailLocal3 = 0;
 							boolean skipRemainder = false;
-							for (JmlMethodClause clause : cs.clauses) {
+							var clauses = cs.clauses;
+							if (nnRequires != null) {
+							    clauses = clauses.prepend(nnRequires);
+							}
+							for (JmlMethodClause clause : clauses) {
                                 if (skipRemainder) continue;
 								IJmlClauseKind ct = clause.clauseKind;
 								if (ct == MethodDeclClauseExtension.oldClause) {
@@ -10816,7 +10850,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					addStat(wrapRuntimeException(that, bl, "JML undefined precondition - exception thrown", null));
 				}
 			} catch (Exception e) {
-				utils.unexpectedException("TETS", e);
+				utils.unexpectedException(e, "TEST-A");
 			}
 			if (print) System.out.println("APPLYHELPER-Q " + calleeMethodSym.owner + " " + calleeMethodSym);
 
@@ -11716,11 +11750,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// methods again, this time putting in the post-condition checks
 
 				for (Pair<MethodSymbol, Type> pair : overridden) {
-					if (print) System.out.println("APPLYHELPER-X2");
 					MethodSymbol mpsym = pair.first;
-
 					Type classType = pair.second;
-					typevarMapping = typemapping(classType, calleeMethodSym, typeargs, meth == null ? null
+                    if (print) System.out.println("APPLYHELPER-X2 " + classType + " " + mpsym);
+
+                    typevarMapping = typemapping(classType, calleeMethodSym, typeargs, meth == null ? null
 							: meth.type instanceof Type.MethodType ? (Type.MethodType) meth.type : null, null);
 					if (apply != null)
 						typevarMapping = typemapping(apply, typevarMapping);
@@ -16999,11 +17033,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    result = eresult = that;
 		    return;
 		}
-		if (rac && that.sym.name == names._super) {
-		    // FIXME This translation of super will not work if the currentReceiver is not 'this' 
-		    result = eresult = that;
-		    return;
-		}
+        if (rac && that.sym.name == names._super) {
+            // FIXME This translation of super will not work if the currentReceiver is not 'this' 
+            result = eresult = that;
+            return;
+        }
+        if (esc && that.sym.name == names._super) {
+            // FIXME This translation of super will not work if the currentReceiver is not 'this' 
+            result = eresult = M.at(that.pos).TypeCast(that.type, copy(currentEnv.currentReceiver));
+            System.out.println("ESC SUPER " + that + " " + that.type + " " + eresult);
+            return;
+        }
 		if (translatingLambda && that.sym.name == names._this) {
 			copy(currentEnv.currentReceiver); // FIXME - needs to assign the copy to something?
 			return;

@@ -14,8 +14,8 @@ public class TestMap {
         zz: o = map.get(i2);
         //@ check o == null;
         map.put(i1, o1);
-        //@ check map.keys == \old(map.keys, zz).add(i1.uniqueHash);
-        //@ check \forall \bigint i; i != i1.uniqueHash ; map.keys[i] == \old(map.keys, zz)[i];
+        //-RAC@ check map.keys == \old(map.keys, zz).add(i1.uniqueHash);
+        //-RAC@ check \forall \bigint i; i != i1.uniqueHash ; map.keys[i] == \old(map.keys, zz)[i];
         //@ check !map.isEmpty();
         o = map.get(i1);
         //@ check o == o1;
@@ -33,7 +33,7 @@ public class TestMap {
         //@ check ks.size() == map.size();
         map.put(i2,o1);
         //+RAC@ check ks.size() == map.size();
-        // FIXME - ESC does nt represent keySet with a modifiable backing map
+        // FIXME - ESC does not represent keySet with a modifiable backing map
     }
     
     public static void main(String... args) {

@@ -21,7 +21,7 @@ env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
   ## The github branch that was pushed
   BRANCH: ${{ github.ref_name }}
-  ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
+  ## Name of folder containing openjml code within OpenJML repo.
   FOLDER: OpenJMLsrc
 
 jobs:
