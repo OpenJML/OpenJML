@@ -159,17 +159,13 @@ escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
 
-escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
+# escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
 
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
-
-
-escfiles2.gitbug932 # mistranslation of super in specs
-racfiles.gitbug932  # mistranslation of super in specs
 
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
