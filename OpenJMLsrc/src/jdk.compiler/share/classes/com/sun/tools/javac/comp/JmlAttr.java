@@ -2603,6 +2603,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	// FIXME - where?
         var req = jmlMaker.at(cs.pos).JmlMethodClauseExpr(requiresID, requiresClauseKind, nnexpr);
         cs.clauses = cs.clauses.appendList(newClauseList).prepend(req);
+        for (var c: cs.clauses) { c.sourcefile = cs.sourcefile; }
     }
     
     
@@ -4344,7 +4345,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      */
     
     public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-        if (tree.sourcefile.toString().contains("Super.java")) System.out.println("SPECCASE " + tree.sourcefile + " " + tree);
+    	//if (org.jmlspecs.openjml.Main.useJML) System.out.println("SPECCASE " + tree);
         JavaFileObject old = log.useSource(tree.sourcefile);
         Env<AttrContext> localEnv = null;
         Env<AttrContext> prevEnv = env;

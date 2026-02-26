@@ -2333,14 +2333,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			if (associatedPos != null) {
 				var ds = new DiagnosticSource(associatedSource != null ? associatedSource : log.currentSourceFile(),
-						null);
+						log);
+				if (ds.getFile() == null) ds = DiagnosticSource.NO_SOURCE; // FIXME - Just in case; should not happen
 				int showSource = methodEnv.showRacSource;
 				diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
 				    showSource == 2 ? ds : DiagnosticSource.NO_SOURCE, associatedPos,
 						utils.testingMode && showSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
 						utils.locationString(codepos.getPreferredPosition()));
 				String loc = (showSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ");
-				String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim();
+				String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim(); 
 				emsg = treeutils.makeUtilsMethodCall(emsg.pos, "concat", emsg,
 						treeutils.makeStringLiteral(translatedExpr.pos, msg2));
 			}
@@ -8825,7 +8826,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //        condition = treeutils.trueLit;
 
 	    boolean print = false; // that.toString().contains("super");
-        if (print) utils.warning(that, "jml.message", "APPLY " + that);
+        //if (print) utils.warning(that, "jml.message", "APPLY " + that);
 
         var methsym = (MethodSymbol)treeutils.getSym(that.meth);
         var methtype = that.meth.type;
@@ -10834,7 +10835,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// treeutils.makeStringLiteral(that.pos, "D"), combinedPrecondition));
 						var prev = log.useSource(methodDecl != null ? methodDecl.sourcefile : classDecl.sourcefile); // FIXME - probably should be the containing clause sourcefile
 						//var prev = log.useSource(loc != null ? loc.source() : methodDecl != null ? methodDecl.sourcefile : classDecl.sourcefile);
-						//System.out.println("ADDASSERT " + (loc !=null ? loc.source() : "null") + " " + log.currentSourceFile().getName());
+						//if (loc != null) System.out.println("ADDASSERT " + loc + " " + loc.source());
 						JCStatement stat = loc != null
 								? addAssert(that, translatingJML ? Label.UNDEFINED_PRECONDITION : Label.PRECONDITION,
 										combinedPrecondition, (DiagnosticPosition) loc, loc.source())
@@ -11680,13 +11681,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			                addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeNotNull(that, resultExpr));
 			            }
 			            JCExpression nn = treeutils.makeEqNull(that.pos, resultExpr);
-			            nn = treeutils.makeOr(that.pos, nn, isAllocated(that, resultExpr));
-			            addAssume(that, Label.IMPLICIT_ASSUME, nn);
+			            JCExpression ex = treeutils.makeOr(that.pos, nn, isAllocated(that, resultExpr));
+			            addAssume(that, Label.IMPLICIT_ASSUME, ex);
 
-			            addAssume(that, Label.IMPLICIT_ASSUME, allocCounterLE(that.pos(), resultExpr, allocCounter));
+                        ex = treeutils.makeOr(that.pos, nn, allocCounterLE(that.pos(), resultExpr, allocCounter));
+			            addAssume(that, Label.IMPLICIT_ASSUME, ex);
 
-			            nn = treeutils.makeDynamicTypeInEquality(that, resultExpr, retType);
-			            addAssume(that, Label.IMPLICIT_ASSUME, nn);
+			            ex = treeutils.makeDynamicTypeInEquality(that, resultExpr, retType);
+			            addAssume(that, Label.IMPLICIT_ASSUME, ex);
 			        }
 
 			        currentStatements.add(comment(that,
@@ -17041,7 +17043,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         if (esc && that.sym.name == names._super) {
             // FIXME This translation of super will not work if the currentReceiver is not 'this' 
             result = eresult = M.at(that.pos).TypeCast(that.type, copy(currentEnv.currentReceiver));
-            System.out.println("ESC SUPER " + that + " " + that.type + " " + eresult);
+            //System.out.println("ESC SUPER " + that + " " + that.type + " " + eresult);
             return;
         }
 		if (translatingLambda && that.sym.name == names._this) {
@@ -23069,15 +23071,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (that.sym.owner instanceof MethodSymbol) {
                             // Local declaration
                             nnDecl = specs.isNonNullFormal(that.sym);
-                            //System.out.println("NN LOCAL " + that.name + " " + nnDecl);
+                            //System.out.println("NN LOCAL " + that.name + " " + nnDecl + " " + that.type + " " + that.sym + " " + that.sym.type);
                         } else {
                             // Field
                             nnDecl = specs.isNonNull(that.sym);
                             //System.out.println("NN FIELD " + that.name + " " + nnDecl);
                         }
 						// Regular method body
-						if (init == null || isKnownNonNull(that.init) || isKnownNonNull(init))
-							nn = null;
+						if (init == null) nn = null; // FIXME - used to use isKnownNonNull
 						JCBlock bl = popBlock(that, check);
 						currentStatements.addAll(bl.stats);
 						if (nn != null && nnDecl)
