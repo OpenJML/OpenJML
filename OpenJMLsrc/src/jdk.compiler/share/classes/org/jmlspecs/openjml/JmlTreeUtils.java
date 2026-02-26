@@ -413,6 +413,7 @@ public class JmlTreeUtils {
         if (tree instanceof JCFieldAccess) {
             return !(((JCFieldAccess)tree).sym instanceof VarSymbol);
         }
+        if (tree instanceof JCTree.JCTypeApply) return true;
         return false;
     }
 

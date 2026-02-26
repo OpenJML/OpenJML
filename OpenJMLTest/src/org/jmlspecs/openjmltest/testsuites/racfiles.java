@@ -533,6 +533,11 @@ public class racfiles extends RacBase {
         helpCompileRun("RR");
     }
     
+    @Test
+    public void returnNullity() {
+        helpCompileRun("ReturnNullable");
+    }
+    
     // Only these two textBlock tests have main methods (FIXME - is that OK?)
     @Test
     public void textBlock4() {

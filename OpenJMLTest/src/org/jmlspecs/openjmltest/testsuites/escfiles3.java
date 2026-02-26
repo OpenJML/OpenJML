@@ -253,6 +253,9 @@ public class escfiles3 extends EscBaseFiles {
     public void argnullity() {
         helpEscSimple();
     }
-
-
+    
+    @Test
+    public void returnNullity() {
+        helpEscSimple();
+    }
 }
