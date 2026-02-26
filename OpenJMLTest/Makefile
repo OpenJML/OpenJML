@@ -37,7 +37,7 @@ openjml-test-temp:
 	JOBS=10 time ${TEST}/unittests/runpar
 	JOBS=0 time ${TEST}/unittests/runpar
 	JOBS=1 time ${TEST}/unittests/runpar
-	#grep FAILED ${TEST}/unittests/log-* | grep -v Trace | grep -v Query
+	#grep FAILED $T_Nullness1.out.actual{TEST}/unittests/log-* | grep -v Trace | grep -v Query
 
 openjml-clean: .FORCE
 	make -C ${SRC} clean; make openjml
