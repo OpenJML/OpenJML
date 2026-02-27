@@ -1604,7 +1604,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
 
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitClassDef(JCClassDecl that)          { shouldNotBeCalled(that); } // should always be JmlClassDecl objects
+//    @Override public void visitClassDef(JCClassDecl that)          { shouldNotBeCalled(that); } // should always be JmlClassDecl objects
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitVarDef(JCVariableDecl that)         { notImpl(that); }
 
@@ -1783,7 +1783,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      */
     // FIXME - what about for anonymous classes or local classes or nested classes
     @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JCClassDecl that) {
         // Nested classes are found in JmlEsc.  We get to this point if there is a local
         // class declaration within method body.
         

@@ -32,7 +32,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlBinary(JmlBinary that, P p)                     ;
     R visitJmlChained(JmlChained that, P p)                   ;
     R visitJmlChoose(JmlChoose that, P p)                     ;
-    R visitJmlClassDecl(JmlClassDecl that, P p)               ;
+    //R visitJmlClassDecl(JmlClassDecl that, P p)               ;
     R visitJmlMethodSig(JmlMethodSig that, P p)               ;
     R visitJmlDoWhileLoop(JmlDoWhileLoop that, P p)           ;
     R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)   ;

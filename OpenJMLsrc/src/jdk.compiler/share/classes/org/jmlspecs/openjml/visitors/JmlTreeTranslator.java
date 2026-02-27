@@ -120,8 +120,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
 
     @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
-        visitClassDef(that);
+    public void visitClassDef(JCClassDecl jcthat) {
+        JmlClassDecl that = (JmlClassDecl)jcthat;
+        super.visitClassDef(that);
         JmlClassDecl r = (JmlClassDecl)result;
         r.docComment = that.docComment;
         r.toplevel = that.toplevel; // FIXME - need to adjust reference

@@ -95,7 +95,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitJmlSingleton(JmlSingleton that, P p)               ;
 
     public R visitJmlChoose(JmlChoose that, P p)                                        { return shouldNotBeCalled(that); }
-    public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }
+//    public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }
     public R visitJmlConstraintMethodSig(JmlMethodSig that, P p)                        { return shouldNotBeCalled(that); }  
     public R visitJmlDoWhileLoop(JmlDoWhileLoop that, P p)                              { return shouldNotBeCalled(that); }
     public R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)                      { return shouldNotBeCalled(that); }
@@ -117,7 +117,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlModelProgramStatement(JmlModelProgramStatement that, P p)          { return shouldNotBeCalled(that); }
     public R visitJmlSpecificationCase(JmlSpecificationCase that, P p)                  { return shouldNotBeCalled(that); }
     public R visitJmlStatement(JmlStatement that, P p)                                  { return shouldNotBeCalled(that); }
-    public R visitJmlStatementExprList(JmlStatementExprList that, P p)                          { return shouldNotBeCalled(that); }
+    public R visitJmlStatementExprList(JmlStatementExprList that, P p)                  { return shouldNotBeCalled(that); }
     public R visitJmlStatementDecls(JmlStatementDecls that, P p)                        { return shouldNotBeCalled(that); }
     public R visitJmlStatementExpr(JmlStatementExpr that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementHavoc(JmlStatementHavoc that, P p)                        { return shouldNotBeCalled(that); }

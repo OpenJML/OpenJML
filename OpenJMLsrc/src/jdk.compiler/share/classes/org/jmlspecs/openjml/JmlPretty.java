@@ -1258,7 +1258,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     // FIXME - clean this up
     JmlSpecs.TypeSpecs specsToPrint = null;
 
-    public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JmlClassDecl that) {
         if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
@@ -1282,7 +1282,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 println();
                 align();
                 print("}"); println();
-                visitClassDef(that);
+                super.visitClassDef(that);
             } catch (IOException e) {
                 perr(that,e);
             }
@@ -1298,7 +1298,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 perr(that,e);
             }
         } else {
-            visitClassDef(that);
+            super.visitClassDef(that);
         }
     }
 

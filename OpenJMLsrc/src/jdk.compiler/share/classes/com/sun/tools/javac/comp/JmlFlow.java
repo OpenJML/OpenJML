@@ -141,10 +141,10 @@ public class JmlFlow extends Flow  {
             scan(that.elseBlock);
         }
 
-        @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            visitClassDef(that);
-        }
+//        @Override
+//        public void visitJmlClassDecl(JmlClassDecl that) {
+//            visitClassDef(that);
+//        }
 
         @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
@@ -540,10 +540,10 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            var prev = log.useSource(that.sourcefile);
+        public void visitClassDef(JCClassDecl that) {
+            var prev = log.useSource(((JmlClassDecl)that).sourcefile);
             try {
-                visitClassDef(that);
+                super.visitClassDef(that);
             } finally {
                 log.useSource(prev);
             }
@@ -968,10 +968,10 @@ public class JmlFlow extends Flow  {
             scan(that.elseBlock);
         }
 
-        @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            visitClassDef(that);
-        }
+//        @Override
+//        public void visitJmlClassDecl(JmlClassDecl that) {
+//            visitClassDef(that);
+//        }
 
         @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
@@ -1296,6 +1296,11 @@ public class JmlFlow extends Flow  {
     		//System.out.println("ANNOT " + tree + " " + tree.type);
     		return;
     	}
+        public void visitJmlMethodSig(JmlMethodSig tree) {
+            // No flow tests for JmlMethodSig;
+            // FIXME -- if we allow this scan then we get crashes because a JCIdent as a JmlMethoSig does not ahve a symbol
+        }
+
     }
         
     // Overridden to call JML versions of visitors

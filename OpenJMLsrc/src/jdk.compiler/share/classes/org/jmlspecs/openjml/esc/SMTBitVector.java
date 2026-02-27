@@ -1510,7 +1510,7 @@ public class SMTBitVector extends JmlTreeScanner {
     @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlChoose(JmlChoose that)           { shouldNotBeCalled(that); }
-    @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }
+//    @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodSig(JmlMethodSig that) { shouldNotBeCalled(that); }
     @Override public void visitJmlDoWhileLoop(JmlDoWhileLoop that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) { shouldNotBeCalled(that); }
