@@ -140,17 +140,17 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
-        JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
-        copy.toplevel = that.toplevel;
-        copy.specsDecl = that.specsDecl;// FIXME - copy
-        copy.typeSpecs = that.typeSpecs;// FIXME - copy
-        copy.thisSymbol = that.thisSymbol;
-        copy.sym = that.sym;
-        copy.type = that.type;
-        copy.lineAnnotations = that.lineAnnotations;
-        return copy;
-    }
+//    public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
+//        JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
+//        copy.toplevel = that.toplevel;
+//        copy.specsDecl = that.specsDecl;// FIXME - copy
+//        copy.typeSpecs = that.typeSpecs;// FIXME - copy
+//        copy.thisSymbol = that.thisSymbol;
+//        copy.sym = that.sym;
+//        copy.type = that.type;
+//        copy.lineAnnotations = that.lineAnnotations;
+//        return copy;
+//    }
 
     public JCTree visitJmlMethodDecl(JmlMethodDecl that, Void p) {
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
@@ -917,9 +917,16 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitClass(ClassTree node, Void p) {
-        JCTree t = super.visitClass(node,p).setType(((JCClassDecl)node).type);
-        ((JCClassDecl)t).sym = ((JCClassDecl)node).sym;
-        return t;
+        JmlClassDecl copy = (JmlClassDecl)super.visitClass(node,p);
+        JmlClassDecl that = (JmlClassDecl)node;
+        copy.toplevel = that.toplevel;
+        copy.specsDecl = that.specsDecl;// FIXME - copy
+        copy.typeSpecs = that.typeSpecs;// FIXME - copy
+        copy.thisSymbol = that.thisSymbol;
+        copy.sym = that.sym;
+        copy.type = that.type;
+        copy.lineAnnotations = that.lineAnnotations;
+        return copy;
     }
 
     public JCTree visitConditionalExpression(ConditionalExpressionTree node, Void p) {
