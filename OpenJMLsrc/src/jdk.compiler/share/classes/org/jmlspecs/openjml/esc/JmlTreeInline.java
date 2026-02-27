@@ -231,14 +231,15 @@ public class JmlTreeInline extends JmlTreeCopier {
     // declaration (including loops), as well as statement labels.
 
     @Override
-    public JCTree visitJmlVariableDecl(JmlVariableDecl that, Void p) {
+    public JCTree visitVariable(VariableTree that, Void p) {
+        JmlVariableDecl jthat = (JmlVariableDecl)that;
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
-        copy.sourcefile = that.sourcefile;
-        copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
-        copy.fieldSpecs = (that.fieldSpecs);// FIXME - copy
+        copy.sourcefile = jthat.sourcefile;
+        copy.specsDecl = jthat.specsDecl; // FIXME - repoint to new reference?
+        copy.fieldSpecs = (jthat.fieldSpecs);// FIXME - copy
 //        copy.fieldSpecsCombined = (that.fieldSpecsCombined); // FIXME - need copy
-        copy.sym = that.sym;
-        copy.type = that.type;
+        copy.sym = jthat.sym;
+        copy.type = jthat.type;
         return copy;
     }
 

@@ -2933,7 +2933,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            jmlresolve.setAllowJML(prev);
 //        }
 //
-//        // These are checked later in visitJmlVariableDecl
+//        // These are checked later in visitVarDef
 ////        // Check the mods after the specs, because the modifier checks depend on
 ////        // the specification clauses being attributed
 ////        if (tree instanceof JmlVariableDecl) {
@@ -7947,7 +7947,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param that the AST node to attribute
      */
     @Override
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    public void visitVarDef(JCVariableDecl jcthat) {
+        var that = (JmlVariableDecl)jcthat;
         if (that.name == names.error) {
             utils.error(that.getStartPosition()+1, "jml.message", "Error in parsed declaration, or misspelled keyword: " + that.toString().replace("\r\n"," ").replace("\n"," ").replace("\r"," "));
             return; // This can happen if, for example, we are parsing 'require true' (with the typo)
@@ -7987,7 +7988,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     lintEnv = lintEnv.next;
                 env.info.lint = lintEnv.info.lint;
             }
-            visitVarDef(that);
+            super.visitVarDef(that);
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
@@ -9019,7 +9020,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree)     { visitTree(tree); }
         public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) { visitTree(tree); }
         public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) { visitTree(tree); }
-        public void visitJmlVariableDecl(JmlVariableDecl tree)         { visitTree(tree); }
         public void visitJmlWhileLoop(JmlWhileLoop tree)               { visitTree(tree); }
     }
     

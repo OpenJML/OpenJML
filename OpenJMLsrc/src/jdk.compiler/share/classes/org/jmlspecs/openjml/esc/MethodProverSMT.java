@@ -1865,7 +1865,7 @@ public class MethodProverSMT {
          * value of the newly declared variable anyway.
          */
         @Override
-        public void visitJmlVariableDecl(JmlVariableDecl e) {
+        public void visitVarDef(JCVariableDecl e) {
             scan(e.init);
             Name n = e.name;
             String sv = cemap.get(e);

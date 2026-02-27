@@ -1734,7 +1734,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     
     // Needs implementation in derived classes
     @Override public void visitJmlMethodInvocation(JmlMethodInvocation that)    { notImpl(that); }
-    @Override public void visitJmlVariableDecl(JmlVariableDecl that)            { notImpl(that); }
     @Override public void visitJmlRange(JmlRange that)                          { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)                  { notImpl(that); }
 

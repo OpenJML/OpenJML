@@ -6510,17 +6510,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// OK
 	@Override
-	public void visitVarDef(JCVariableDecl that) {
-		if (translatingJML) {
-			error(that, "Unexpected call of JmlAssertionAdder.visitVarDef while translating JML: " + that.getClass());
-		} else {
-			error(that, "Unexpected visit call in JmlAssertionAdder.visitVarDef: " + that.getClass());
-		}
-		return;
-	}
-
-	// OK
-	@Override
 	public void visitSkip(JCSkip that) {
 		addTraceableComment(that);
 		result = addStat(M.at(that).Skip());
@@ -22846,7 +22835,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// FIXME - needs review
 	@Override
-	public void visitJmlVariableDecl(JmlVariableDecl that) {
+	public void visitVarDef(JCVariableDecl jcthat) {
+	    var that = (JmlVariableDecl)jcthat;
 		specs.getAttrSpecs(that.sym);
 		if (!specs.statusOK(that.sym))
 			return; // FIXME - abort

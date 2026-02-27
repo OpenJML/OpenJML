@@ -1567,7 +1567,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlVariableDecl(this); 
+                v.visitVarDef(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1577,7 +1577,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlVariableDecl(this, d);
+                return v.visitVariable(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);
