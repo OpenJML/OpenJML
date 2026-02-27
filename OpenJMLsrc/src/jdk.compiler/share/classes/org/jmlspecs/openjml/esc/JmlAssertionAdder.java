@@ -6478,20 +6478,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = M.at(that).JmlImport(qualid, that.staticImport, ((JmlImport)that).isModel).setType(that.type);
 	}
 
-	// OK
-	@Override
-	public void visitClassDef(JCClassDecl that) {
-		// OpenJML should never call this, because JCClassDecl nodes should be
-		// replaced by JmlClassDecl nodes. We implement this just in case, but
-		// always produce a JmlClassDecl node.
-
-		if (translatingJML) {
-			error(that, "Unexpected call of JmlAssertionAdder.visitClassDef while translating JML: " + that.getClass());
-		} else {
-			error(that, "Unexpectedly calling JmlAssertionAdder.visitClassDef: " + that.getClass());
-		}
-		return;
-	}
+//	// OK
+//	@Override
+//	public void visitClassDef(JCClassDecl that) {
+//		// OpenJML should never call this, because JCClassDecl nodes should be
+//		// replaced by JmlClassDecl nodes. We implement this just in case, but
+//		// always produce a JmlClassDecl node.
+//
+//		if (translatingJML) {
+//			error(that, "Unexpected call of JmlAssertionAdder.visitClassDef while translating JML: " + that.getClass());
+//		} else {
+//			error(that, "Unexpectedly calling JmlAssertionAdder.visitClassDef: " + that.getClass());
+//		}
+//		return;
+//	}
 
 	// OK
 	@Override
@@ -18056,7 +18056,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// OK
 	@Override
-	public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JCClassDecl jcthat) {
+	    JmlClassDecl that = (JmlClassDecl)jcthat;
 
 		JmlOptions.instance(context).pushOptions(that.mods);
 

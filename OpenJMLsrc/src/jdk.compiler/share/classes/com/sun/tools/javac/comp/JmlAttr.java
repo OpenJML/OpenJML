@@ -7763,43 +7763,58 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - fill in
     }
 
-    public void visitJmlClassDecl(JmlClassDecl that) {
-    	//if (that.sym != null && (env.enclMethod==null) && utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-        // Typically, classes are attributed by calls to attribClass and
-        // then to attibClassBody and attribClassBodySpecs, but local
-        // classes do end up here.
-    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDECL " + that.sym);
-        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
-        var saved = jmlresolve.allowJML();
-        if (utils.isJML(that.mods)) jmlresolve.setAllowJML(true);
-
-        if (env.enclMethod != null) {
-        	// Local class
-        	that.specsDecl = that;
-        }        
-
-        visitClassDef(that);
-        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
-        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
-        	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
-        	// Note: We need that.sym in order to register a local class's specs, but the local class
-        	// is attributed as a method statement.
-        	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
-        	specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
-        	specs.getAttrSpecs(that.sym);
-        	//FIXME - not at all sure about correctness of this branch
-        }
-        jmlresolve.setAllowJML(saved);
-        
-    }
+//    public void visitJmlClassDecl(JmlClassDecl that) {
+//    	//if (that.sym != null && (env.enclMethod==null) && utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+//        // Typically, classes are attributed by calls to attribClass and
+//        // then to attibClassBody and attribClassBodySpecs, but local
+//        // classes do end up here.
+//    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDECL " + that.sym);
+//        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
+//        var saved = jmlresolve.allowJML();
+//        if (utils.isJML(that.mods)) jmlresolve.setAllowJML(true);
+//
+//        if (env.enclMethod != null) {
+//        	// Local class
+//        	that.specsDecl = that;
+//        }        
+//
+//        visitClassDef(that);
+//        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
+//        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
+//        	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
+//        	// Note: We need that.sym in order to register a local class's specs, but the local class
+//        	// is attributed as a method statement.
+//        	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
+//        	specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
+//        	specs.getAttrSpecs(that.sym);
+//        	//FIXME - not at all sure about correctness of this branch
+//        }
+//        jmlresolve.setAllowJML(saved);
+//        
+//    }
 
     @Override
     public void visitClassDef(JCClassDecl tree) {
+        var that = (JmlClassDecl)tree;
     	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDEF " + tree.sym);
         // The superclass calls classEnter if the env is owned by a VAR or MTH.
         // But JML has the case of an anonymous class that occurs in a class
         // specification (e.g. an invariant), or in a method clause (so it is
         // owned by the method)
+        //if (that.sym != null && (env.enclMethod==null) && utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+        // Typically, classes are attributed by calls to attribClass and
+        // then to attibClassBody and attribClassBodySpecs, but local
+        // classes do end up here.
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDECL " + that.sym);
+        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
+        var saved = jmlresolve.allowJML();
+        if (utils.isJML(that.mods)) jmlresolve.setAllowJML(true);
+
+        if (env.enclMethod != null) {
+            // Local class
+            that.specsDecl = that;
+        }        
+
         try {
             if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
                 enter.classEnter(tree, env);
@@ -7824,7 +7839,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             tree.defs = newlist.toList();
         } finally {
         }
-    }
+
+        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
+        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
+            utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
+            // Note: We need that.sym in order to register a local class's specs, but the local class
+            // is attributed as a method statement.
+            //((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
+            specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
+            specs.getAttrSpecs(that.sym);
+            //FIXME - not at all sure about correctness of this branch
+        }
+        jmlresolve.setAllowJML(saved);
+}
 
     public void addClassInferredSpecs(ClassSymbol csym) { // FIXME - should this really be in JmlAttr?
         // Add inferred/default clauses

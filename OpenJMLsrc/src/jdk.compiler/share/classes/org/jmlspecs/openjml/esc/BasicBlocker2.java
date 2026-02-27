@@ -1615,15 +1615,15 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         JmlEsc.instance(context).visitClassDef(that);
     }
 
-    // FIXME - review this, and compare to the above
-    @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
-        // Nested classes are found in JmlEsc.  We get to this point if there is a local
-        // class declaration within method body.
-        
-        System.out.println("GOT HERE TOO!");
-        JmlEsc.instance(context).visitClassDef(that);
-    }
+//    // FIXME - review this, and compare to the above
+//    @Override
+//    public void visitJmlClassDecl(JmlClassDecl that) {
+//        // Nested classes are found in JmlEsc.  We get to this point if there is a local
+//        // class declaration within method body.
+//        
+//        System.out.println("GOT HERE TOO!");
+//        JmlEsc.instance(context).visitClassDef(that);
+//    }
 
 
     
