@@ -3422,7 +3422,6 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlVariableDecl(JmlVariableDecl that) { shouldNotBeCalled(that); }
     @Override public void visitJmlWhileLoop(JmlWhileLoop that) { shouldNotBeCalled(that); }
 
     @Override public void visitClassDef(JCClassDecl that) { shouldNotBeCalled(that); }

@@ -164,13 +164,15 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    public JCTree visitJmlVariableDecl(JmlVariableDecl that, Void p) {
+    @Override
+    public JCTree visitVariable(VariableTree that, Void p) {
+        JmlVariableDecl jthat = (JmlVariableDecl)that;
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
-        copy.sourcefile = that.sourcefile;
-        copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
-        copy.fieldSpecs = that.fieldSpecs;
-        copy.sym = that.sym;
-        copy.type = that.type;
+        copy.sourcefile = jthat.sourcefile;
+        copy.specsDecl = jthat.specsDecl; // FIXME - repoint to new reference?
+        copy.fieldSpecs = jthat.fieldSpecs;
+        copy.sym = jthat.sym;
+        copy.type = jthat.type;
         return copy;
     }
 
@@ -1128,12 +1130,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitUnary(UnaryTree node, Void p) {
         JCTree t = super.visitUnary(node,p).setType(((JCTree)node).type);
         ((JCUnary)t).operator = ((JCUnary)node).operator;
-        return t;
-    }
-
-    public JCTree visitVariable(VariableTree node, Void p) {
-        JCTree t = super.visitVariable(node,p).setType(((JCTree)node).type);
-        ((JCVariableDecl)t).sym = ((JCVariableDecl)node).sym;
         return t;
     }
 

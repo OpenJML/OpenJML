@@ -332,7 +332,8 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.expression);
     }
 
-    default public void visitJmlVariableDecl(JmlVariableDecl tree)         {} // FIXME or comment
+    @Override
+    default public void visitVarDef(JCTree.JCVariableDecl tree)         {} // FIXME or comment
 
     default public void visitJmlWhileLoop(JmlWhileLoop tree) {
         scan(tree.loopSpecs);

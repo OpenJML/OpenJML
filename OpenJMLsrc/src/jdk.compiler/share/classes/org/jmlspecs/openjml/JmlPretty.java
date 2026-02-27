@@ -1397,22 +1397,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     	return (mods.flags & Utils.JMLBIT) != 0;
     }
 
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
         try {
         	if (isJML(that.mods)) print("//@ ");
-        	visitVarDef(that);
+            super.visitVarDef(that);
+            if (!(that instanceof JmlVariableDecl)) return;
+            JmlVariableDecl jmlthat = (JmlVariableDecl)that;
+//            if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
+            if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
         } catch (Exception e) {
         	perr(that,e);
         }
-    }
-
-    @Override
-    public void visitVarDef(JCVariableDecl that) {
-        super.visitVarDef(that);
-        if (!(that instanceof JmlVariableDecl)) return;
-        JmlVariableDecl jmlthat = (JmlVariableDecl)that;
-//        if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
-        if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
     }
 
     public void printFieldSpecs(JmlSpecs.FieldSpecs fspecs) {

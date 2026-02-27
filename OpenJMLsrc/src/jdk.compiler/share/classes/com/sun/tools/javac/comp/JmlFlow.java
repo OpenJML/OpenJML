@@ -233,16 +233,6 @@ public class JmlFlow extends Flow  {
         }
         
         @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
-        	try {
-            visitVarDef(that);
-        	} catch (Exception e) {
-        		System.out.println("Exception visiting " + that);
-        		throw e;
-        	}
-        }
-
-        @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
             visitWhileLoop(that);
         }
@@ -681,7 +671,7 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
+        public void visitVarDef(JCVariableDecl that) {
             try {
                 if (that.sym.kind == com.sun.tools.javac.code.Kinds.Kind.TYP 
                         && log.currentSourceFile().getKind() != JavaFileObject.Kind.SOURCE
@@ -691,7 +681,7 @@ public class JmlFlow extends Flow  {
                     // FIXME - are we allowed to have a declaration that mimics the Java value if compiled?
                     // FIXME - should we check this so that we catch duplicate initializations?
                 } else {
-                    visitVarDef(that);
+                    super.visitVarDef(that);
                 }
             } catch (Exception e) {
                 System.out.println("Exception flow-checking " + that);
@@ -1064,10 +1054,10 @@ public class JmlFlow extends Flow  {
             scan(that.storerefs);
         }
 
-        @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
-            visitVarDef(that);
-        }
+//        @Override
+//        public void visitJmlVariableDecl(JmlVariableDecl that) {
+//            visitVarDef(that);
+//        }
 
         @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
