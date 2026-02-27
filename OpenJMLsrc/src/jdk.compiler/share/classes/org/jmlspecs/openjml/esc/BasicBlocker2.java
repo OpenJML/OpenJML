@@ -2125,64 +2125,32 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         return null;
     }
 
-    // OK -= except FIXME - review newIdentIncarnation
-    public void visitVarDef(JCVariableDecl that) { 
-        currentBlock.statements.add(comment(that));
-        JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
-        isDefined.add(lhs.name);
-        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + lhs.sym + " " + lhs.name);
-        if (that.init != null) {
-            // Create and store the new lhs incarnation before translating the
-            // initializer because the initializer is in the scope of the newly
-            // declared variable.  Actually if there is such a situation, it 
-            // will likely generate an error about use of an uninitialized variable.
-            scan(that.init);
-            JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
-            addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
-        }
-    }
-
-//    public void visitJmlVariableDecl(JmlVariableDecl that) {
-//        JCIdent id;
-//        if (that.sym == null || that.sym.owner == null) {
-////            if (that.init != null) {
-////                scan(that.init);
-////                that.init = result;
-////            }
-//            Name n = encodedName(that.sym,0L);
-//            that.name = n;
-//            id = factory.at(0).Ident(n);
-//            id.sym = that.sym;
-//            id.type = that.type;
-//            if (isDefined.add(n)) {
-//                addDeclaration(id);
-//            }
-//
-//            currentMap.putSAVersion(that.sym,n,0);
-//            //currentBlock.statements.add(that);
-//        } else {
-//            // FIXME - why not make a declaration?
-//            id = newIdentIncarnation(that.sym,that.getPreferredPosition());
-//            isDefined.add(id.name);
-//            that.name = id.name;
-//        }
-//        scan(that.ident); // FIXME - is this needed since we already set the encodedname
+//    // OK -= except FIXME - review newIdentIncarnation
+//    public void visitVarDef(JCVariableDecl that) { 
+//        currentBlock.statements.add(comment(that));
+//        JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
+//        isDefined.add(lhs.name);
+//        if (utils.jmlverbose >= Utils.JMLDEBUG) log.getWriter(WriterKind.NOTICE).println("Added " + lhs.sym + " " + lhs.name);
 //        if (that.init != null) {
+//            // Create and store the new lhs incarnation before translating the
+//            // initializer because the initializer is in the scope of the newly
+//            // declared variable.  Actually if there is such a situation, it 
+//            // will likely generate an error about use of an uninitialized variable.
 //            scan(that.init);
-//            that.init = result;
-//            JCBinary expr = treeutils.makeBinary(that.pos,JCBinary.EQ, that.ident != null ? that.ident : id,that.init);
+//            JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ,lhs,that.init);
 //            addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
 //        }
 //    }
     
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
+        var jthat = (JmlVariableDecl)that;
         if (that.sym == null || that.sym.owner == null) {
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;
             }
             Name n = encodedName(that.sym,0L);
-            if (that.name.toString().equals("length")) System.out.println("DECLNAME " + that.name + " " + n);
             that.name = n;
             if (isDefined.add(n)) {
 //                JCIdent id = factory.at(0).Ident(n);
@@ -2193,17 +2161,17 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
 
             currentMap.putSAVersion(that.sym,n,0);
             currentBlock.statements.add(that);
-            scan(that.ident); // FIXME - is this needed since we already set the encodedname
+            scan(jthat.ident); // FIXME - is this needed since we already set the encodedname
         } else {
             // FIXME - why not make a declaration?
             JCIdent lhs = newIdentIncarnation(that.sym,that.getPreferredPosition());
             isDefined.add(lhs.name);
             that.name = lhs.name;
-            scan(that.ident); // FIXME - is this needed since we already set the encodedname
+            scan(jthat.ident); // FIXME - is this needed since we already set the encodedname
             if (that.init != null) {
                 scan(that.init);
                 that.init = result;
-                JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ, that.ident != null ? that.ident : lhs,that.init);
+                JCExpression expr = treeutils.makeBinary(that.pos,JCBinary.Tag.EQ, jthat.ident != null ? jthat.ident : lhs, that.init);
                 addAssume(that.getStartPosition(),Label.ASSIGNMENT,expr,currentBlock.statements);
             }
         }

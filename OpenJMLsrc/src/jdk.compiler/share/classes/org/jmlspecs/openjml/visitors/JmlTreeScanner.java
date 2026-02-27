@@ -404,18 +404,21 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(tree.expression);
 //    }
 //
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
-        visitVarDef(that);
-        if (scanMode == AST_SPEC_MODE) {
-//            if (that.fieldSpecsCombined != null) {
-//                scan(that.fieldSpecsCombined.mods);
-//                scan(that.fieldSpecsCombined.list);
-//            }
-        }
-        if (scanMode == AST_JML_MODE) {
-            if (that.fieldSpecs != null) {
-                scan(that.fieldSpecs.mods);
-                scan(that.fieldSpecs.list);
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
+        super.visitVarDef(that);
+        if (that instanceof JmlVariableDecl jthat) { // FIXME - check when this is needed -- first pass compilation?
+            if (scanMode == AST_SPEC_MODE) {
+                //            if (that.fieldSpecsCombined != null) {
+                //                scan(that.fieldSpecsCombined.mods);
+                //                scan(that.fieldSpecsCombined.list);
+                //            }
+            }
+            if (scanMode == AST_JML_MODE) {
+                if (jthat.fieldSpecs != null) {
+                    scan(jthat.fieldSpecs.mods);
+                    scan(jthat.fieldSpecs.list);
+                }
             }
         }
     }

@@ -1529,9 +1529,11 @@ public class modifiers extends TCBase {
         helpTCText("A.java",s);
     }
 
-    @Test public void testAnnotatedCast1() {  // FIXME: No warning on duplicate annotations -- would think that JDK itself would do that
+    @Test public void testAnnotatedCast1() {
         String s = "import org.jmlspecs.annotation.*; class A { void m() { var z = (@Nullable @Nullable Object)null; }}";
-        helpTCText("A.java",s);
+        helpTCText("A.java",s
+                ,"/A.java:1: error: org.jmlspecs.annotation.Nullable is not a repeatable annotation interface", 75
+                );
     }
 
     @Test public void testAnnotatedCast2() {

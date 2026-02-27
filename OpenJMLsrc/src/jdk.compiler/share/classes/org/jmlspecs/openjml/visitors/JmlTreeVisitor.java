@@ -85,6 +85,6 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlTypeClauseMaps(JmlTypeClauseMaps that, P p)     ;
     R visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that, P p) ;
     R visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that, P p) ;
-    R visitJmlVariableDecl(JmlVariableDecl that, P p)         ;
+//    R visitJmlVariableDecl(JmlVariableDecl that, P p)         ;
     R visitJmlWhileLoop(JmlWhileLoop that, P p)               ;
 }
