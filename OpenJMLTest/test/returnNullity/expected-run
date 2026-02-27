@@ -1,0 +1,16 @@
+OUT:
+test/returnNullity/ReturnNullable.java:35: verify: JML non-null field is null
+   /*@ non_null */ public static NZZ<Integer> ff = new NZZ<>();
+                                              ^
+test/returnNullity/ReturnNullable.java:10: verify: JML assertion is false
+            //@ check n.id(4,0) != null; // ERROR
+                ^
+test/returnNullity/ReturnNullable.java:11: verify: JML null initialization of non_null field kk
+            /*@ non_null */ Integer kk = n.id(4,0); // ERROR
+                                    ^
+test/returnNullity/ReturnNullable.java:12: verify: JML assertion is false
+            //@ check kk != null; // ERROR - RAC
+                ^
+END
+
+ERR:
