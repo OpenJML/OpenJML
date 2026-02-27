@@ -80,6 +80,9 @@ TEMP=release-temp
 ## Must be a simple name, not a multi-segment path, and not contain whitespace
 TEMPLIB=templib
 
+## Relative path to the tutorial source files
+TUT=../../openjml.github.io/tutorial
+
 ## A permanent folder that holds auxiliary material to be included in a release
 RELFILES=release-files
 
@@ -133,7 +136,7 @@ version-info: .FORCE
 tutorial: .FORCE
 	rm -rf $(RELFILES)/tutorial
 	mkdir $(RELFILES)/tutorial
-	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out $(RELFILES)/tutorial
+	cp -pR $(TUT)/*.java $(TUT)/*.out $(RELFILES)/tutorial
 
 ## Copies current annotation files into the development code
 annotation: .FORCE
@@ -145,6 +148,7 @@ post: .FORCE
 	rm -rf $(TEMP)
 	mkdir $(TEMP)
 	cp -pRL jmlruntime.jar $(TEMP)
+	cp -pRL jmlruntime.jar $(TUT)
 	cp -pRL build/*release/jdk $(TEMP)
 	(cd $(TEMP); rm -rf `find . -name .DS_Store`)
 	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
