@@ -3385,10 +3385,10 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
+ //   @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlChoose(JmlChoose that)           { shouldNotBeCalled(that); }
-    @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }
+//    @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlMethodSig(JmlMethodSig that) { shouldNotBeCalled(that); }
     @Override public void visitJmlDoWhileLoop(JmlDoWhileLoop that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlEnhancedForLoop(JmlEnhancedForLoop that) { shouldNotBeCalled(that); }
@@ -3422,7 +3422,6 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override public void visitJmlTypeClauseMaps(JmlTypeClauseMaps that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
     @Override public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that) { shouldNotBeCalled(that); }
-    @Override public void visitJmlVariableDecl(JmlVariableDecl that) { shouldNotBeCalled(that); }
     @Override public void visitJmlWhileLoop(JmlWhileLoop that) { shouldNotBeCalled(that); }
 
     @Override public void visitClassDef(JCClassDecl that) { shouldNotBeCalled(that); }

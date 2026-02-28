@@ -11,9 +11,7 @@ import org.jmlspecs.openjml.ext.RecommendsClause;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner.Continuation;
 
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCLambda;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
@@ -60,7 +58,7 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.elseBlock);
     }
 
-    default public void visitJmlClassDecl(JmlClassDecl tree)               {}
+    default public void visitClassDef(JCClassDecl tree)               {}
 
     default public void visitJmlMethodSig(JmlMethodSig tree) {
         scan(tree.expression);
@@ -164,7 +162,8 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.list);
     }
 
-    default public void visitJmlMethodDecl(JmlMethodDecl tree)             {}
+    default public void visitMethodDef(JCMethodDecl tree)             {} 
+    
     default public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
         scan(tree.args);
     }
@@ -332,7 +331,8 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.expression);
     }
 
-    default public void visitJmlVariableDecl(JmlVariableDecl tree)         {} // FIXME or comment
+    @Override
+    default public void visitVarDef(JCTree.JCVariableDecl tree)         {} // FIXME or comment
 
     default public void visitJmlWhileLoop(JmlWhileLoop tree) {
         scan(tree.loopSpecs);

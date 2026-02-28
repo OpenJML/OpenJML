@@ -6478,46 +6478,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         result = M.at(that).JmlImport(qualid, that.staticImport, ((JmlImport)that).isModel).setType(that.type);
 	}
 
-	// OK
-	@Override
-	public void visitClassDef(JCClassDecl that) {
-		// OpenJML should never call this, because JCClassDecl nodes should be
-		// replaced by JmlClassDecl nodes. We implement this just in case, but
-		// always produce a JmlClassDecl node.
+//	// OK
+//	@Override
+//	public void visitClassDef(JCClassDecl that) {
+//		// OpenJML should never call this, because JCClassDecl nodes should be
+//		// replaced by JmlClassDecl nodes. We implement this just in case, but
+//		// always produce a JmlClassDecl node.
+//
+//		if (translatingJML) {
+//			error(that, "Unexpected call of JmlAssertionAdder.visitClassDef while translating JML: " + that.getClass());
+//		} else {
+//			error(that, "Unexpectedly calling JmlAssertionAdder.visitClassDef: " + that.getClass());
+//		}
+//		return;
+//	}
 
-		if (translatingJML) {
-			error(that, "Unexpected call of JmlAssertionAdder.visitClassDef while translating JML: " + that.getClass());
-		} else {
-			error(that, "Unexpectedly calling JmlAssertionAdder.visitClassDef: " + that.getClass());
-		}
-		return;
-	}
-
-	// OK
-	@Override
-	public void visitMethodDef(JCMethodDecl that) {
-		// In OpenJML, we expect to always have JmlMethodDecl nodes, and so
-		// never to call this visit class
-		// However, just in case a user creates one, we translate it
-		if (translatingJML) {
-			error(that,
-					"Unexpected call of JmlAssertionAdder.visitMethodDef while translating JML: " + that.getClass());
-		} else {
-			error(that, "Unexpected visit call in JmlAssertionAdder.visitMethodDef: " + that.getClass());
-		}
-		return;
-	}
-
-	// OK
-	@Override
-	public void visitVarDef(JCVariableDecl that) {
-		if (translatingJML) {
-			error(that, "Unexpected call of JmlAssertionAdder.visitVarDef while translating JML: " + that.getClass());
-		} else {
-			error(that, "Unexpected visit call in JmlAssertionAdder.visitVarDef: " + that.getClass());
-		}
-		return;
-	}
+//	// OK
+//	@Override
+//	public void visitMethodDef(JCMethodDecl that) {
+//		// In OpenJML, we expect to always have JmlMethodDecl nodes, and so
+//		// never to call this visit class
+//		// However, just in case a user creates one, we translate it
+//		if (translatingJML) {
+//			error(that,
+//					"Unexpected call of JmlAssertionAdder.visitMethodDef while translating JML: " + that.getClass());
+//		} else {
+//			error(that, "Unexpected visit call in JmlAssertionAdder.visitMethodDef: " + that.getClass());
+//		}
+//		return;
+//	}
 
 	// OK
 	@Override
@@ -16345,6 +16334,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 		JCTree type = that.getType();
+		if (type.type == null) { System.out.println("NULL TYPE IN TYPETEST " + that + " # " + type); }
 		JCTree clazz = treeutils.makeType(type.pos, type.type);
 
 		// No checks needed - Java allows (null instanceof type)
@@ -18067,7 +18057,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// OK
 	@Override
-	public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JCClassDecl jcthat) {
+	    JmlClassDecl that = (JmlClassDecl)jcthat;
 
 		JmlOptions.instance(context).pushOptions(that.mods);
 
@@ -19656,7 +19647,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// OK
 	@Override
-	public void visitJmlMethodDecl(JmlMethodDecl that) {
+	public void visitMethodDef(JCMethodDecl jcthat) {
+	    var that = (JmlMethodDecl)jcthat;
 		// Checks whether there is a Skip annotation
 		if (esc && JmlEsc.instance(context).skip(that))
 			return;
@@ -22846,7 +22838,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// FIXME - needs review
 	@Override
-	public void visitJmlVariableDecl(JmlVariableDecl that) {
+	public void visitVarDef(JCVariableDecl jcthat) {
+	    var that = (JmlVariableDecl)jcthat;
 		specs.getAttrSpecs(that.sym);
 		if (!specs.statusOK(that.sym))
 			return; // FIXME - abort

@@ -140,19 +140,20 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
-        JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
-        copy.toplevel = that.toplevel;
-        copy.specsDecl = that.specsDecl;// FIXME - copy
-        copy.typeSpecs = that.typeSpecs;// FIXME - copy
-        copy.thisSymbol = that.thisSymbol;
-        copy.sym = that.sym;
-        copy.type = that.type;
-        copy.lineAnnotations = that.lineAnnotations;
-        return copy;
-    }
+//    public JCTree visitJmlClassDecl(JmlClassDecl that, Void p) {
+//        JmlClassDecl copy = (JmlClassDecl)super.visitClass(that,p);
+//        copy.toplevel = that.toplevel;
+//        copy.specsDecl = that.specsDecl;// FIXME - copy
+//        copy.typeSpecs = that.typeSpecs;// FIXME - copy
+//        copy.thisSymbol = that.thisSymbol;
+//        copy.sym = that.sym;
+//        copy.type = that.type;
+//        copy.lineAnnotations = that.lineAnnotations;
+//        return copy;
+//    }
 
-    public JCTree visitJmlMethodDecl(JmlMethodDecl that, Void p) {
+    public JCTree visitMethod(MethodTree node, Void p) {
+        var that = (JmlMethodDecl)node;
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;// FIXME - copy
@@ -164,13 +165,15 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return copy;
     }
 
-    public JCTree visitJmlVariableDecl(JmlVariableDecl that, Void p) {
+    @Override
+    public JCTree visitVariable(VariableTree that, Void p) {
+        JmlVariableDecl jthat = (JmlVariableDecl)that;
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
-        copy.sourcefile = that.sourcefile;
-        copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
-        copy.fieldSpecs = that.fieldSpecs;
-        copy.sym = that.sym;
-        copy.type = that.type;
+        copy.sourcefile = jthat.sourcefile;
+        copy.specsDecl = jthat.specsDecl; // FIXME - repoint to new reference?
+        copy.fieldSpecs = jthat.fieldSpecs;
+        copy.sym = jthat.sym;
+        copy.type = jthat.type;
         return copy;
     }
 
@@ -864,16 +867,24 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
     @Override
     public JCTree visitAnnotation(AnnotationTree node, Void p) {
-    	var prev = node instanceof JmlAnnotation ? log.useSource(((JmlAnnotation)node).sourcefile) : null;
+        var prev = node instanceof JmlAnnotation ? log.useSource(((JmlAnnotation)node).sourcefile) : null;
         JmlAnnotation a = (JmlAnnotation)super.visitAnnotation(node,p);
         a.setType(((JCAnnotation)node).type);
         if (node instanceof JmlAnnotation) {
-        	a.sourcefile = ((JmlAnnotation)node).sourcefile;
-        	a.kind = ((JmlAnnotation)node).kind;
+            a.sourcefile = ((JmlAnnotation)node).sourcefile;
+            a.kind = ((JmlAnnotation)node).kind;
             copyEndPos(a,(JCTree)node);
         }
         if (prev != null) log.useSource(prev);
         return a;
+    }
+    
+    @Override
+    public JCTree visitAnnotatedType(AnnotatedTypeTree node, Void p) {
+        var tree = super.visitAnnotatedType(node, p);
+        tree.type = ((JCTree)node).type;
+        if (node.toString().contains("TTT")) System.out.println("COPIER " + node + " " + ((JCTree)node).type + " " + ((JCAnnotatedType)node).underlyingType.type + " " + ((JCAnnotatedType)node).underlyingType.getClass());
+        return tree;
     }
 
     @Override
@@ -915,9 +926,16 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
 
     public JCTree visitClass(ClassTree node, Void p) {
-        JCTree t = super.visitClass(node,p).setType(((JCClassDecl)node).type);
-        ((JCClassDecl)t).sym = ((JCClassDecl)node).sym;
-        return t;
+        JmlClassDecl copy = (JmlClassDecl)super.visitClass(node,p);
+        JmlClassDecl that = (JmlClassDecl)node;
+        copy.toplevel = that.toplevel;
+        copy.specsDecl = that.specsDecl;// FIXME - copy
+        copy.typeSpecs = that.typeSpecs;// FIXME - copy
+        copy.thisSymbol = that.thisSymbol;
+        copy.sym = that.sym;
+        copy.type = that.type;
+        copy.lineAnnotations = that.lineAnnotations;
+        return copy;
     }
 
     public JCTree visitConditionalExpression(ConditionalExpressionTree node, Void p) {
@@ -1011,11 +1029,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return super.visitLiteral(node,p).setType(((JCTree)node).type);
     }
 
-    public JCTree visitMethod(MethodTree node, Void p) {
-        JCTree t = super.visitMethod(node,p).setType(((JCTree)node).type);
-        ((JCMethodDecl)t).sym = ((JCMethodDecl)node).sym;
-        return t;
-    }
+//    public JCTree visitMethod(MethodTree node, Void p) {
+//        JCTree t = super.visitMethod(node,p).setType(((JCTree)node).type);
+//        ((JCMethodDecl)t).sym = ((JCMethodDecl)node).sym;
+//        return t;
+//    }
 
     public JCTree visitMethodInvocation(MethodInvocationTree node, Void p) {
         JCMethodInvocation copy = (JCMethodInvocation)super.visitMethodInvocation(node,p).setType(((JCTree)node).type);
@@ -1128,12 +1146,6 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitUnary(UnaryTree node, Void p) {
         JCTree t = super.visitUnary(node,p).setType(((JCTree)node).type);
         ((JCUnary)t).operator = ((JCUnary)node).operator;
-        return t;
-    }
-
-    public JCTree visitVariable(VariableTree node, Void p) {
-        JCTree t = super.visitVariable(node,p).setType(((JCTree)node).type);
-        ((JCVariableDecl)t).sym = ((JCVariableDecl)node).sym;
         return t;
     }
 
