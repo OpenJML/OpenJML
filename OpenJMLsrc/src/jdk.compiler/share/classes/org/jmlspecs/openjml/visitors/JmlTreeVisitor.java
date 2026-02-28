@@ -32,7 +32,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlBinary(JmlBinary that, P p)                     ;
     R visitJmlChained(JmlChained that, P p)                   ;
     R visitJmlChoose(JmlChoose that, P p)                     ;
-    R visitJmlClassDecl(JmlClassDecl that, P p)               ;
+    //R visitJmlClassDecl(JmlClassDecl that, P p)               ;
     R visitJmlMethodSig(JmlMethodSig that, P p)               ;
     R visitJmlDoWhileLoop(JmlDoWhileLoop that, P p)           ;
     R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)   ;
@@ -53,7 +53,7 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlMethodClauseSignals(JmlMethodClauseSignals that, P p) ;
     R visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that, P p) ;
     R visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that, P p) ;
-    R visitJmlMethodDecl(JmlMethodDecl that, P p)             ;
+    //R visitJmlMethodDecl(JmlMethodDecl that, P p)             ;
     R visitJmlMethodInvocation(JmlMethodInvocation that, P p) ;
     R visitJmlMethodSpecs(JmlMethodSpecs that, P p)           ;
     //R visitNewClass(JCNewClass that, P p)                 ;
@@ -85,6 +85,6 @@ public interface JmlTreeVisitor<R,P> extends TreeVisitor<R,P> {
     R visitJmlTypeClauseMaps(JmlTypeClauseMaps that, P p)     ;
     R visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that, P p) ;
     R visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that, P p) ;
-    R visitJmlVariableDecl(JmlVariableDecl that, P p)         ;
+//    R visitJmlVariableDecl(JmlVariableDecl that, P p)         ;
     R visitJmlWhileLoop(JmlWhileLoop that, P p)               ;
 }

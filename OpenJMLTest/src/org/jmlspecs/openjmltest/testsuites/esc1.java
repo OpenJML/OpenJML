@@ -477,7 +477,7 @@ public class esc1 extends EscBase {
         expectedExit = 1;
         helpEsc("tt.TestJava", 
                 """
-                package tt; import java.util.*; import java.util.Map.Entry;
+                package tt; import java.util.*; import java.util.Map.Entry; import org.jmlspecs.annotation.*;
                 public class TestJava {
 
                   //@ public behavior  ensures true;
