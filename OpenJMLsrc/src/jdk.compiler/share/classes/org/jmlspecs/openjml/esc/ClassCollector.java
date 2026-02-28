@@ -90,18 +90,13 @@ class ClassCollector extends JmlTreeScanner {
     
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
-        if (!doMethods) return;
-        super.visitMethodDef(tree);
-    }
-    
-    @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
+        var that = (JmlMethodDecl)tree;
     	if (!doMethods) return;
     	JmlSpecs.MethodSpecs ms = JmlSpecs.instance(context).getAttrSpecs(that.sym);
     	// ms might be null if the method has no explicit specs and has not been given default or inferred
     	// specs -- constructors for anonymous methods, for example
     	if (ms != null) scan(ms.mods);
-        visitMethodDef(that);
+        super.visitMethodDef(that);
         if (ms != null) scan(ms.cases);
     }
 

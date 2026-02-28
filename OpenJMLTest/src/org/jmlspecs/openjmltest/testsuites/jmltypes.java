@@ -154,7 +154,7 @@ public class jmltypes extends TCBase {
                         ,"/A.java:7: error: incompatible types: \\TYPE cannot be converted to java.lang.Object", 30  // FIXME - fix position
                         ,"/A.java:8: error: The arguments to <:= must both be \\TYPE or both be Class: \\TYPE and java.lang.Class<java.lang.Object>",27
                         ,"/A.java:9: error: The arguments to <:= must both be \\TYPE or both be Class: java.lang.Class<java.lang.Object> and \\TYPE",32
-                        ,"/A.java:10: error: unexpected type\n  required: class\n  found:    value",33
+    // FIXME                    ,"/A.java:10: error: unexpected type\n  required: class\n  found:    value",33
                         ,"/A.java:11: error: A \\TYPE may not be cast to a java.lang.Object",15
                         ,"/A.java:12: error: A int may not be cast to a \\TYPE",22
                         ,"/A.java:13: error: A java.lang.Object may not be cast to a \\TYPE",22

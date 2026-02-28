@@ -297,8 +297,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-        visitMethodDef(that);
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        var that = (JmlMethodDecl)jcthat;
+        super.visitMethodDef(that);
         JmlMethodDecl r = (JmlMethodDecl)result;
         r.defaultValue = translate(that.defaultValue); // Should be in visitMethodDef - TODO
         r.methodSpecsCombined = that.methodSpecsCombined;
