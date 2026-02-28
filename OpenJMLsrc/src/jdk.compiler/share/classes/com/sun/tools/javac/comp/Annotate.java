@@ -1136,7 +1136,6 @@ public class Annotate {
                     scan(tree.mods);
                     scan(tree.vartype);
                 }
-                if (org.jmlspecs.openjml.Utils.isJML() && tree.init != null) System.out.println("ININT " + tree.init.toString()); // OPENJML - debugging
                 scan(tree.init);
             } finally {
                 deferPos = prevPos;

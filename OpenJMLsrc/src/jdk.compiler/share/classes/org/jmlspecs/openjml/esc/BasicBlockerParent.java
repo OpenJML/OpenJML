@@ -1604,7 +1604,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
 
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
-    @Override public void visitClassDef(JCClassDecl that)          { shouldNotBeCalled(that); } // should always be JmlClassDecl objects
+//    @Override public void visitClassDef(JCClassDecl that)          { shouldNotBeCalled(that); } // should always be JmlClassDecl objects
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
     @Override public void visitVarDef(JCVariableDecl that)         { notImpl(that); }
 
@@ -1734,7 +1734,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     
     // Needs implementation in derived classes
     @Override public void visitJmlMethodInvocation(JmlMethodInvocation that)    { notImpl(that); }
-    @Override public void visitJmlVariableDecl(JmlVariableDecl that)            { notImpl(that); }
     @Override public void visitJmlRange(JmlRange that)                          { notImpl(that); }
     @Override public void visitJmlSingleton(JmlSingleton that)                  { notImpl(that); }
 
@@ -1774,7 +1773,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     @Override public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that) { shouldNotBeCalled(that); }
 
     // These do not need to be implemented
-    @Override public void visitJmlMethodDecl(JmlMethodDecl that)                { shouldNotBeCalled(that); }
+//    @Override public void visitJmlMethodDecl(JmlMethodDecl that)                { shouldNotBeCalled(that); }
     @Override public void visitJmlStatementSpec(JmlStatementSpec that)          { shouldNotBeCalled(that); }
 
 
@@ -1784,7 +1783,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      */
     // FIXME - what about for anonymous classes or local classes or nested classes
     @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JCClassDecl that) {
         // Nested classes are found in JmlEsc.  We get to this point if there is a local
         // class declaration within method body.
         

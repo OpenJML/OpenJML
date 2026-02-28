@@ -1258,7 +1258,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     // FIXME - clean this up
     JmlSpecs.TypeSpecs specsToPrint = null;
 
-    public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JmlClassDecl that) {
         if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
@@ -1282,7 +1282,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 println();
                 align();
                 print("}"); println();
-                visitClassDef(that);
+                super.visitClassDef(that);
             } catch (IOException e) {
                 perr(that,e);
             }
@@ -1298,7 +1298,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 perr(that,e);
             }
         } else {
-            visitClassDef(that);
+            super.visitClassDef(that);
         }
     }
 
@@ -1372,7 +1372,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
     }
 
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        var that = (JmlMethodDecl)jcthat;
         // FIXME //@? model?
         if (that.methodSpecsCombined != null) {
             that.methodSpecsCombined.cases.accept(this);
@@ -1389,7 +1390,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.name == that.name.table.names.init &&
                 sourceOutput) sourceOutput = false;
 
-        visitMethodDef(that);
+        super.visitMethodDef(that);
         sourceOutput = wasSourceOutput;
     }
     
@@ -1397,22 +1398,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     	return (mods.flags & Utils.JMLBIT) != 0;
     }
 
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
         try {
         	if (isJML(that.mods)) print("//@ ");
-        	visitVarDef(that);
+            super.visitVarDef(that);
+            if (!(that instanceof JmlVariableDecl)) return;
+            JmlVariableDecl jmlthat = (JmlVariableDecl)that;
+//            if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
+            if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
         } catch (Exception e) {
         	perr(that,e);
         }
-    }
-
-    @Override
-    public void visitVarDef(JCVariableDecl that) {
-        super.visitVarDef(that);
-        if (!(that instanceof JmlVariableDecl)) return;
-        JmlVariableDecl jmlthat = (JmlVariableDecl)that;
-//        if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
-        if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
     }
 
     public void printFieldSpecs(JmlSpecs.FieldSpecs fspecs) {

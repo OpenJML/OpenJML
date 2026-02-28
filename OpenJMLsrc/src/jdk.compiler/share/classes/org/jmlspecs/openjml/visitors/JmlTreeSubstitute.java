@@ -214,7 +214,8 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
     // declaration (including loops), as well as statement labels.
 
     @Override
-    public JCTree visitJmlVariableDecl(JmlVariableDecl that, Void p) {
+    public JCTree visitVariable(VariableTree jcthat, Void p) {
+        var that = (JmlVariableDecl)jcthat;
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl; // FIXME - repoint to new reference?
@@ -503,12 +504,6 @@ public class JmlTreeSubstitute extends JmlTreeCopier {
 
     public JCTree visitInstanceOf(InstanceOfTree node, Void p) {
         return super.visitInstanceOf(node,p).setType(((JCTree)node).type);
-    }
-
-    public JCTree visitVariable(VariableTree node, Void p) {
-        JCTree t = super.visitVariable(node,p).setType(((JCTree)node).type);
-        ((JCVariableDecl)t).sym = ((JCVariableDecl)node).sym;
-        return t;
     }
 
     public JCTree visitWhileLoop(WhileLoopTree node, Void p) {

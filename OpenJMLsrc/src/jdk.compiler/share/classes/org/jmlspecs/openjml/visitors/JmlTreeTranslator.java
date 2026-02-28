@@ -120,8 +120,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
 
 
     @Override
-    public void visitJmlClassDecl(JmlClassDecl that) {
-        visitClassDef(that);
+    public void visitClassDef(JCClassDecl jcthat) {
+        JmlClassDecl that = (JmlClassDecl)jcthat;
+        super.visitClassDef(that);
         JmlClassDecl r = (JmlClassDecl)result;
         r.docComment = that.docComment;
         r.toplevel = that.toplevel; // FIXME - need to adjust reference
@@ -296,8 +297,9 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
     }
 
     @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-        visitMethodDef(that);
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        var that = (JmlMethodDecl)jcthat;
+        super.visitMethodDef(that);
         JmlMethodDecl r = (JmlMethodDecl)result;
         r.defaultValue = translate(that.defaultValue); // Should be in visitMethodDef - TODO
         r.methodSpecsCombined = that.methodSpecsCombined;
@@ -598,22 +600,22 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         result = r;
     }
 
-    @Override
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
-        visitVarDef(that);
-        JmlVariableDecl r = (JmlVariableDecl)result;
-//        if (that.fieldSpecsCombined == null) {
-//            r.fieldSpecsCombined = null;
-//        } else {
-//            // r.fieldSpecsCombined.mods = ??? FIXME
-//            // fieldSpecs???
-//            r.fieldSpecsCombined.mods = that.fieldSpecsCombined.mods;
-//            r.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list);
-//        }
-        // FIXME - specsDecl, fieldSpecs, mods
-        result = r;
-        // Not translating: sourcefile, docComment, name, sym
-    }
+//    @Override
+//    public void visitVarDef(JCVariableDecl that) {
+//        super.visitVarDef(that);
+//        JmlVariableDecl r = (JmlVariableDecl)result;
+////        if (that.fieldSpecsCombined == null) {
+////            r.fieldSpecsCombined = null;
+////        } else {
+////            // r.fieldSpecsCombined.mods = ??? FIXME
+////            // fieldSpecs???
+////            r.fieldSpecsCombined.mods = that.fieldSpecsCombined.mods;
+////            r.fieldSpecsCombined.list = translate(that.fieldSpecsCombined.list);
+////        }
+//        // FIXME - specsDecl, fieldSpecs, mods
+//        result = r;
+//        // Not translating: sourcefile, docComment, name, sym
+//    }
 
     @Override
     public void visitJmlWhileLoop(JmlWhileLoop that) {
