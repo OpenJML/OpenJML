@@ -1372,7 +1372,8 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
     }
 
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        var that = (JmlMethodDecl)jcthat;
         // FIXME //@? model?
         if (that.methodSpecsCombined != null) {
             that.methodSpecsCombined.cases.accept(this);
@@ -1389,7 +1390,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.name == that.name.table.names.init &&
                 sourceOutput) sourceOutput = false;
 
-        visitMethodDef(that);
+        super.visitMethodDef(that);
         sourceOutput = wasSourceOutput;
     }
     

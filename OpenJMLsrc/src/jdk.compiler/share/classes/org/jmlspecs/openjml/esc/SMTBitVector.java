@@ -1507,7 +1507,7 @@ public class SMTBitVector extends JmlTreeScanner {
     @Override public void visitTopLevel(JCCompilationUnit that)    { shouldNotBeCalled(that); }
     @Override public void visitImport(JCImport that)               { shouldNotBeCalled(that); }
     @Override public void visitMethodDef(JCMethodDecl that)        { shouldNotBeCalled(that); }
-    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
+//    @Override public void visitJmlMethodDecl(JmlMethodDecl that)  { shouldNotBeCalled(that); }
     @Override public void visitJmlBinary(JmlBinary that)           { shouldNotBeCalled(that); }
     @Override public void visitJmlChoose(JmlChoose that)           { shouldNotBeCalled(that); }
 //    @Override public void visitJmlClassDecl(JmlClassDecl that)           { shouldNotBeCalled(that); }

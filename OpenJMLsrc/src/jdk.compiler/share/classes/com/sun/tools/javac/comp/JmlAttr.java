@@ -180,13 +180,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void validateTypeAnnotations(JCTree tree, boolean sigOnly) {
         tree.accept(new JmlTypeAnnotationsValidator(sigOnly));
     }
-	public class JmlTypeAnnotationsValidator extends Attr.TypeAnnotationsValidator implements IJmlVisitor {
+    public class JmlTypeAnnotationsValidator extends Attr.TypeAnnotationsValidator implements IJmlVisitor {
 
-		public JmlTypeAnnotationsValidator(boolean sigOnly) {
-			super(sigOnly);
-		}
-		
-	}
+        public JmlTypeAnnotationsValidator(boolean sigOnly) {
+            super(sigOnly);
+        }
+
+        @Override
+        public void visitTypeTest(JCInstanceOf tree) {
+            //if (tree.toString().contains("TTT")) System.out.println("VTT " + tree + " " + tree.pattern.type);
+            if (tree.pattern instanceof JmlMethodInvocation jmi) {
+                scan(tree.expr);
+                scan(jmi.args);
+            } else {
+                super.visitTypeTest(tree);
+            }
+        }
+    }
 
     /** This is the compilation context for which this is the unique instance */
     /*@non_null*/ final public Context context;
@@ -1339,6 +1349,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
         var javaMethodDecl = (JmlMethodDecl)m;
+        var that = javaMethodDecl;
+        
+        var savedPurity = currentMethodPurity;
+        currentMethodPurity = specs.determinePurity(that.sym);
+        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
+        try {
+
         
     	//System.out.println("VISIT METHOD DEF " + m.name);
     	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + javaMethodDecl.name + " " + javaMethodDecl.sourcefile + " " + javaMethodDecl);
@@ -1454,6 +1471,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	if (utils.verbose()) utils.note("Completed Attributing method " + env.enclClass.sym + " " + m.name);
         	jmlenv = jmlenv.pop();
         }
+        if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+            utils.error(that, "jml.message", "a method return type may not be \\datagroup");
+        }
+    } catch (PropagatedException e) {
+        throw e;
+    } catch (Exception e) {
+        utils.error(that, "jml.internal", "Exception while attributing method: " + that);
+        e.printStackTrace(System.out);
+    } finally {
+        currentMethodPurity = savedPurity; 
+        JmlResolve.instance(context).setAllowJML(prev);
+    }
     }
     
     @Override
@@ -6645,9 +6674,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitTypeApply(JCTypeApply tree) {
         super.visitTypeApply(tree);
+        //var pr = tree.toString().contains("Class<");
+        //if (pr) System.out.println("VTA " + tree.toString());
         for (var a: tree.arguments) {
             var t = a.type;
             if (a instanceof JCAnnotatedType an) t = an.underlyingType.type;
+            //if (pr) System.out.println("   ARG " + a + " " + t + " " + t.getClass());
             if (t.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
                 utils.error(tree, "jml.message", "\\datatype is not allowed as a type argument");
             }            
@@ -7904,26 +7936,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JmlToken currentMethodPurity = null;
 
-    @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-        var savedPurity = currentMethodPurity;
-        currentMethodPurity = specs.determinePurity(that.sym);
-        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
-        try {
-            visitMethodDef(that);
-            if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
-                utils.error(that, "jml.message", "a method return type may not be \\datagroup");
-            }
-        } catch (PropagatedException e) {
-            throw e;
-        } catch (Exception e) {
-            utils.error(that, "jml.internal", "Exception while attributing method: " + that);
-            e.printStackTrace(System.out);
-        } finally {
-            currentMethodPurity = savedPurity; 
-            JmlResolve.instance(context).setAllowJML(prev);
-        }
-    }
+//    @Override
+//    public void visitJmlMethodDecl(JmlMethodDecl that) {
+//        var savedPurity = currentMethodPurity;
+//        currentMethodPurity = specs.determinePurity(that.sym);
+//        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
+//        try {
+//            visitMethodDef(that);
+//            if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+//                utils.error(that, "jml.message", "a method return type may not be \\datagroup");
+//            }
+//        } catch (PropagatedException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            utils.error(that, "jml.internal", "Exception while attributing method: " + that);
+//            e.printStackTrace(System.out);
+//        } finally {
+//            currentMethodPurity = savedPurity; 
+//            JmlResolve.instance(context).setAllowJML(prev);
+//        }
+//    }
     
     public static class SpecialDiagnosticPosition extends com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition {
         String message;
@@ -7945,6 +7977,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
             atype.annotations = atype.annotations.append(ann);
+            return tt;
+        } else if (tt instanceof JCWildcard) {
             return tt;
         } else {
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
@@ -8602,6 +8636,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Utils.dumpStack();
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
+        if (jmltypes.isJmlType(found) && resultInfo.pt == Type.noType) {
+            tree.type = found;
+            return found;
+        }
         if (jmltypes.isJmlType(resultInfo.pt)) {
             // These allow implicit casts
             
@@ -9017,7 +9055,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) { visitTree(tree); }
         public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) { visitTree(tree); }
         public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) { visitTree(tree); }
-        public void visitJmlMethodDecl(JmlMethodDecl tree)             { visitTree(tree); }
+        //public void visitJmlMethodDecl(JmlMethodDecl tree)             { visitTree(tree); }
         public void visitJmlMethodInvocation(JmlMethodInvocation tree) { visitTree(tree); }
         public void visitJmlMethodSpecs(JmlMethodSpecs tree)           { visitTree(tree); }
         public void visitJmlModelProgramStatement(JmlModelProgramStatement tree){ visitTree(tree); }

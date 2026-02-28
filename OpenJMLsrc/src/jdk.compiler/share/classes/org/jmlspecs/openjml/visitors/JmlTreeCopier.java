@@ -152,7 +152,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 //        return copy;
 //    }
 
-    public JCTree visitJmlMethodDecl(JmlMethodDecl that, Void p) {
+    public JCTree visitMethod(MethodTree node, Void p) {
+        var that = (JmlMethodDecl)node;
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;// FIXME - copy
@@ -866,16 +867,23 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     
     @Override
     public JCTree visitAnnotation(AnnotationTree node, Void p) {
-    	var prev = node instanceof JmlAnnotation ? log.useSource(((JmlAnnotation)node).sourcefile) : null;
+        var prev = node instanceof JmlAnnotation ? log.useSource(((JmlAnnotation)node).sourcefile) : null;
         JmlAnnotation a = (JmlAnnotation)super.visitAnnotation(node,p);
         a.setType(((JCAnnotation)node).type);
         if (node instanceof JmlAnnotation) {
-        	a.sourcefile = ((JmlAnnotation)node).sourcefile;
-        	a.kind = ((JmlAnnotation)node).kind;
+            a.sourcefile = ((JmlAnnotation)node).sourcefile;
+            a.kind = ((JmlAnnotation)node).kind;
             copyEndPos(a,(JCTree)node);
         }
         if (prev != null) log.useSource(prev);
         return a;
+    }
+    
+    @Override
+    public JCTree visitAnnotatedType(AnnotatedTypeTree node, Void p) {
+        var tree = super.visitAnnotatedType(node, p);
+        tree.type = ((JCTree)node).type;
+        return tree;
     }
 
     @Override
@@ -1020,11 +1028,11 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         return super.visitLiteral(node,p).setType(((JCTree)node).type);
     }
 
-    public JCTree visitMethod(MethodTree node, Void p) {
-        JCTree t = super.visitMethod(node,p).setType(((JCTree)node).type);
-        ((JCMethodDecl)t).sym = ((JCMethodDecl)node).sym;
-        return t;
-    }
+//    public JCTree visitMethod(MethodTree node, Void p) {
+//        JCTree t = super.visitMethod(node,p).setType(((JCTree)node).type);
+//        ((JCMethodDecl)t).sym = ((JCMethodDecl)node).sym;
+//        return t;
+//    }
 
     public JCTree visitMethodInvocation(MethodInvocationTree node, Void p) {
         JCMethodInvocation copy = (JCMethodInvocation)super.visitMethodInvocation(node,p).setType(((JCTree)node).type);

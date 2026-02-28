@@ -162,7 +162,8 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.list);
     }
 
-    default public void visitJmlMethodDecl(JmlMethodDecl tree)             {}
+    default public void visitMethodDef(JCMethodDecl tree)             {} 
+    
     default public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
         scan(tree.args);
     }
