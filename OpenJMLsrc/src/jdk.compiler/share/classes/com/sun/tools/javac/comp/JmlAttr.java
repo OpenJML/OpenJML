@@ -188,7 +188,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         @Override
         public void visitTypeTest(JCInstanceOf tree) {
-            //if (tree.toString().contains("TTT")) System.out.println("VTT " + tree + " " + tree.pattern.type);
             if (tree.pattern instanceof JmlMethodInvocation jmi) {
                 scan(tree.expr);
                 scan(jmi.args);
@@ -6674,12 +6673,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override
     public void visitTypeApply(JCTypeApply tree) {
         super.visitTypeApply(tree);
-        //var pr = tree.toString().contains("Class<");
-        //if (pr) System.out.println("VTA " + tree.toString());
         for (var a: tree.arguments) {
             var t = a.type;
             if (a instanceof JCAnnotatedType an) t = an.underlyingType.type;
-            //if (pr) System.out.println("   ARG " + a + " " + t + " " + t.getClass());
             if (t.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
                 utils.error(tree, "jml.message", "\\datatype is not allowed as a type argument");
             }            
