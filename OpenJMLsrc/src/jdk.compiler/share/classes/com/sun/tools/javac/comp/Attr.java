@@ -5857,7 +5857,7 @@ public class Attr extends JCTree.Visitor {
                 if (member.hasTag(Tag.CLASSDEF)) {
                     continue;
                 }
-                scan(member);
+                if (!(member instanceof org.jmlspecs.openjml.JmlTree.JmlTypeClause)) scan(member);  // OPENJML added guard
             }
         }
         public void visitBlock(JCBlock tree) {

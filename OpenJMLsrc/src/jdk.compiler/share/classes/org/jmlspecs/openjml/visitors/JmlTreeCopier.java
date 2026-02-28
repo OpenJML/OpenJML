@@ -883,6 +883,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitAnnotatedType(AnnotatedTypeTree node, Void p) {
         var tree = super.visitAnnotatedType(node, p);
         tree.type = ((JCTree)node).type;
+        if (node.toString().contains("TTT")) System.out.println("COPIER " + node + " " + ((JCTree)node).type + " " + ((JCAnnotatedType)node).underlyingType.type + " " + ((JCAnnotatedType)node).underlyingType.getClass());
         return tree;
     }
 
