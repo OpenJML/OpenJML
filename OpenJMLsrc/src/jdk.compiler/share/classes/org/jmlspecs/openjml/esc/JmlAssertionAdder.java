@@ -6493,20 +6493,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		return;
 //	}
 
-	// OK
-	@Override
-	public void visitMethodDef(JCMethodDecl that) {
-		// In OpenJML, we expect to always have JmlMethodDecl nodes, and so
-		// never to call this visit class
-		// However, just in case a user creates one, we translate it
-		if (translatingJML) {
-			error(that,
-					"Unexpected call of JmlAssertionAdder.visitMethodDef while translating JML: " + that.getClass());
-		} else {
-			error(that, "Unexpected visit call in JmlAssertionAdder.visitMethodDef: " + that.getClass());
-		}
-		return;
-	}
+//	// OK
+//	@Override
+//	public void visitMethodDef(JCMethodDecl that) {
+//		// In OpenJML, we expect to always have JmlMethodDecl nodes, and so
+//		// never to call this visit class
+//		// However, just in case a user creates one, we translate it
+//		if (translatingJML) {
+//			error(that,
+//					"Unexpected call of JmlAssertionAdder.visitMethodDef while translating JML: " + that.getClass());
+//		} else {
+//			error(that, "Unexpected visit call in JmlAssertionAdder.visitMethodDef: " + that.getClass());
+//		}
+//		return;
+//	}
 
 	// OK
 	@Override
@@ -16334,6 +16334,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
 		JCTree type = that.getType();
+		if (type.type == null) { System.out.println("NULL TYPE IN TYPETEST " + that + " # " + type); }
 		JCTree clazz = treeutils.makeType(type.pos, type.type);
 
 		// No checks needed - Java allows (null instanceof type)
@@ -19646,7 +19647,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// OK
 	@Override
-	public void visitJmlMethodDecl(JmlMethodDecl that) {
+	public void visitMethodDef(JCMethodDecl jcthat) {
+	    var that = (JmlMethodDecl)jcthat;
 		// Checks whether there is a Skip annotation
 		if (esc && JmlEsc.instance(context).skip(that))
 			return;

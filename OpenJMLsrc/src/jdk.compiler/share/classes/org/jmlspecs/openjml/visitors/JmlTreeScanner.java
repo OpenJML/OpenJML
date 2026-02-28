@@ -230,21 +230,27 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(tree.list);
 //    }
 //
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-    	var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
-		try {
-	        if (scanMode == AST_SPEC_MODE) {
-	            JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
-	            scan(ms.mods);
-	            scan(ms.cases);
-	        }
-	        if (scanMode == AST_JML_MODE) {
-	            scan(that.methodSpecs);
-	        }
-	        visitMethodDef(that);
-		} finally {
-			if (context != null) Log.instance(context).useSource(prev);
-		}
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        if (jcthat instanceof JmlMethodDecl that) {
+            var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
+            try {
+                if (scanMode == AST_SPEC_MODE) {
+                    JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
+                    if (ms != null) { // FIXME - explain why ms might be null
+                        scan(ms.mods);
+                        scan(ms.cases);
+                    }
+                }
+                if (scanMode == AST_JML_MODE) {
+                    scan(that.methodSpecs);
+                }
+                super.visitMethodDef(that);
+            } finally {
+                if (context != null) Log.instance(context).useSource(prev);
+            }
+        } else {
+            super.visitMethodDef(jcthat);
+        }
     }
 
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {

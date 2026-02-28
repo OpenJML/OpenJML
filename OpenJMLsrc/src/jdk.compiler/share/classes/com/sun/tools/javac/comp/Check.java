@@ -3340,8 +3340,7 @@ public class Check {
     }
 
     public void validateTypeAnnotation(JCAnnotation a, Symbol s, boolean isTypeParameter) {
-        if (a.type == null) log.error(a.pos, "jml.message", "Null annotation type: " + a); // OPENJML
-        try { Assert.checkNonNull(a.type); } catch (Throwable t) { System.out.println("NULL ANNOTATION TYPE: " + a); }
+        Assert.checkNonNull(a.type);
         // we just want to validate that the anotation doesn't have any wrong target
         if (s != null) getApplicableTargets(a, s);
         validateAnnotationTree(a);

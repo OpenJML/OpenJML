@@ -5857,7 +5857,7 @@ public class Attr extends JCTree.Visitor {
                 if (member.hasTag(Tag.CLASSDEF)) {
                     continue;
                 }
-                try { scan(member); } catch (Throwable t) { System.out.println("ASSERT IN " + member);  }
+                scan(member);
             }
         }
         public void visitBlock(JCBlock tree) {
