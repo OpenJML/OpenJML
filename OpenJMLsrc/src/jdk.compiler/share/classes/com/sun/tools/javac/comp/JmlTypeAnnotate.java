@@ -27,12 +27,12 @@ public class JmlTypeAnnotate extends Annotate.TypeAnnotate implements IJmlVisito
     	super.visitAnnotatedType(tree);
     }
 
-    // FIXME - do we really need this?
-    @Override
-    public void visitClassDef(JCClassDecl tree) {
-        for (var def: tree.defs) {
-            if (def instanceof JmlTree.JmlTypeClause) scan(def);
-        }
-    }
+//    // FIXME - do we really need this?
+//    @Override
+//    public void visitClassDef(JCClassDecl tree) {
+//        for (var def: tree.defs) {
+//            if (def instanceof JmlTree.JmlTypeClause) scan(def);
+//        }
+//    }
 
 }
