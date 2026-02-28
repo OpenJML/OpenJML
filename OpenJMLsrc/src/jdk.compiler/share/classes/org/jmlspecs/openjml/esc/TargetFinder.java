@@ -120,7 +120,7 @@ public class TargetFinder extends JmlTreeScanner {
     }
     
     @Override
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    public void visitVarDef(JCVariableDecl that) {
         nestedLocals.add(that.sym);
     }
 

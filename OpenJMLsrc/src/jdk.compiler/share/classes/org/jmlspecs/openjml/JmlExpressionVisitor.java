@@ -43,7 +43,6 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitTypeCast(TypeCastTree node, P p);
     abstract public R visitInstanceOf(InstanceOfTree node, P p);
     abstract public R visitUnary(UnaryTree node, P p);
-    abstract public R visitVariable(VariableTree node, P p);
     abstract public R visitLambdaExpression(LambdaExpressionTree node, P p);
     abstract public R visitJmlStoreRef(JmlStoreRef node, P p);
 
@@ -82,6 +81,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitAnnotatedType(AnnotatedTypeTree node, P p)                            { return shouldNotBeCalled(node); }
     public R visitMemberReference(MemberReferenceTree node, P p)                        { return shouldNotBeCalled(node); }
     public R visitIntersectionType(IntersectionTypeTree node, P p)                      { return shouldNotBeCalled(node); }
+    public R visitVariable(VariableTree node, P p)                                      { return shouldNotBeCalled(node); }
 
     public R visitOther(Tree node, P p) { return shouldNotBeCalled(node); }
     
@@ -95,7 +95,7 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     abstract public R visitJmlSingleton(JmlSingleton that, P p)               ;
 
     public R visitJmlChoose(JmlChoose that, P p)                                        { return shouldNotBeCalled(that); }
-    public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }
+//    public R visitJmlClassDecl(JmlClassDecl that, P p)                                  { return shouldNotBeCalled(that); }
     public R visitJmlConstraintMethodSig(JmlMethodSig that, P p)                        { return shouldNotBeCalled(that); }  
     public R visitJmlDoWhileLoop(JmlDoWhileLoop that, P p)                              { return shouldNotBeCalled(that); }
     public R visitJmlEnhancedForLoop(JmlEnhancedForLoop that, P p)                      { return shouldNotBeCalled(that); }
@@ -112,12 +112,12 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlMethodClauseSignals(JmlMethodClauseSignals that, P p)              { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly that, P p)          { return shouldNotBeCalled(that); }
     public R visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef that, P p)            { return shouldNotBeCalled(that); }
-    public R visitJmlMethodDecl(JmlMethodDecl that, P p)                                { return shouldNotBeCalled(that); }
+    //public R visitJmlMethodDecl(JmlMethodDecl that, P p)                                { return shouldNotBeCalled(that); }
     public R visitJmlMethodSpecs(JmlMethodSpecs that, P p)                              { return shouldNotBeCalled(that); }
     public R visitJmlModelProgramStatement(JmlModelProgramStatement that, P p)          { return shouldNotBeCalled(that); }
     public R visitJmlSpecificationCase(JmlSpecificationCase that, P p)                  { return shouldNotBeCalled(that); }
     public R visitJmlStatement(JmlStatement that, P p)                                  { return shouldNotBeCalled(that); }
-    public R visitJmlStatementExprList(JmlStatementExprList that, P p)                          { return shouldNotBeCalled(that); }
+    public R visitJmlStatementExprList(JmlStatementExprList that, P p)                  { return shouldNotBeCalled(that); }
     public R visitJmlStatementDecls(JmlStatementDecls that, P p)                        { return shouldNotBeCalled(that); }
     public R visitJmlStatementExpr(JmlStatementExpr that, P p)                          { return shouldNotBeCalled(that); }
     public R visitJmlStatementHavoc(JmlStatementHavoc that, P p)                        { return shouldNotBeCalled(that); }
@@ -135,6 +135,5 @@ public abstract class JmlExpressionVisitor<R,P> implements JmlTreeVisitor<R,P> {
     public R visitJmlTypeClauseMaps(JmlTypeClauseMaps that, P p)                        { return shouldNotBeCalled(that); }
     public R visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor that, P p)          { return shouldNotBeCalled(that); }
     public R visitJmlTypeClauseRepresents(JmlTypeClauseRepresents that, P p)            { return shouldNotBeCalled(that); }
-    public R visitJmlVariableDecl(JmlVariableDecl that, P p)                            { return shouldNotBeCalled(that); }
     public R visitJmlWhileLoop(JmlWhileLoop that, P p)                                  { return shouldNotBeCalled(that); }
 }

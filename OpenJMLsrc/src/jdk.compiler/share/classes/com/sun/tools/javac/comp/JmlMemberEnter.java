@@ -225,6 +225,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			}
         	}
             x: for (var t: specsDecl.defs) {
+                if (t instanceof JmlTree.JmlTypeClause tc) {
+                    annotate.annotateLater(tc.modifiers.annotations, env, env.enclClass.sym, tc.pos());
+                }
                 if (t instanceof JmlTree.JmlTypeClauseConditional tc) {
                     var nm = tc.identifier.name;
                     for (var v: specsDecl.defs) {
