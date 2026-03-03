@@ -601,7 +601,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     public JCTree visitJmlStatementExprList(JmlStatementExprList that, Void p) {
         ListBuffer<JCExpression> expressions = new ListBuffer<>();
         for (JCExpression e: that.expressions) expressions.add( copy(e,p));
-        JmlStatementExprList copy = M.JmlStatementShow(
+        JmlStatementExprList copy = M.JmlStatementExprList(
                 that.clauseType,
                 copy(that.expressions,p));
         copy.pos = that.pos;
@@ -622,7 +622,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
 
     @Override
     public JCTree visitJmlStatementExpr(JmlStatementExpr that, Void p) {
-        JmlStatementExpr copy = M.at(that.pos).JmlExpressionStatement(
+        JmlStatementExpr copy = M.at(that.pos).JmlStatementExpr(
                 that.keyword,
                 that.clauseType,
                 that.label,

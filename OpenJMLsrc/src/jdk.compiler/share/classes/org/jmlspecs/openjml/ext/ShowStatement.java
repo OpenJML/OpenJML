@@ -54,7 +54,7 @@ public class ShowStatement extends JmlExtension {
                     expressions.add(t);
                 } while (parser.acceptIf(TokenKind.COMMA));
             }
-            JmlStatementExprList st = toP(parser.maker().at(pp).JmlStatementShow(clauseType,expressions.toList()));
+            JmlStatementExprList st = toP(parser.maker().at(pp).JmlStatementExprList(clauseType,expressions.toList()));
             wrapup(st, clauseType, true, true);
             return st;
         }

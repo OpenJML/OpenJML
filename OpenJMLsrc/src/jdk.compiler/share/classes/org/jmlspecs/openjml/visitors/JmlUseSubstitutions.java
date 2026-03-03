@@ -220,7 +220,7 @@ public class JmlUseSubstitutions extends JmlTreeTranslator {
                 }
                 if (exprPrecondition != null && !treeutils.isTrueLit(exprPrecondition)) {
                     // Replace the use statement with the precondition check
-                    result = M.at(that).JmlExpressionStatement(assertID, assertClause,Label.UNDEFINED_LEMMA,exprPrecondition);
+                    result = M.at(that).JmlStatementExpr(assertID, assertClause,Label.UNDEFINED_LEMMA,exprPrecondition);
                 } else {
                     result = that;
                 }

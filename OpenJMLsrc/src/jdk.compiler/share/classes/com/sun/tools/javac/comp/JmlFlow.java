@@ -1284,12 +1284,12 @@ public class JmlFlow extends Flow  {
     
     public class JmlCaptureAnalyzer extends CaptureAnalyzer implements IJmlVisitor {
         @Override
-    	public void visitAnnotation(JCTree.JCAnnotation tree) {
-    		// FIXME - we skip annotations because some of them crash in CaptureAnalyzer.visitIdent, as they do 
-    		// not have sym set -- this is a bug of as yet undebugged cause
-    		//System.out.println("ANNOT " + tree + " " + tree.type);
-    		return;
-    	}
+        public void visitAnnotation(JCTree.JCAnnotation tree) {
+            // FIXME - we skip annotations because some of them crash in CaptureAnalyzer.visitIdent, as they do 
+            // not have sym set -- this is a bug of as yet undebugged cause
+            //System.out.println("ANNOT " + tree + " " + tree.type);
+            return;
+        }
 
         @Override
         public void visitJmlMethodSig(JmlMethodSig tree) {

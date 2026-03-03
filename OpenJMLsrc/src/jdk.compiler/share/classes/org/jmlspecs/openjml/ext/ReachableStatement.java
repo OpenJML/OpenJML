@@ -55,7 +55,7 @@ public class ReachableStatement extends JmlExtension {
             boolean noExpression = keyword.equals(haltID) || keyword.equals(reachableID) || keyword.equals(unreachableID);
             boolean semiWarning = !noExpression && JmlOption.langJML.equals(JmlOption.LANG.value(parser.context));
             parser.nextToken();
-            JmlStatementExpr st = parser.maker().at(pp).JmlExpressionStatement(keyword,clauseType,null,null);
+            JmlStatementExpr st = parser.maker().at(pp).JmlStatementExpr(keyword,clauseType,null,null);
             if (!noExpression) st.expression = JmlTreeUtils.instance(parser.context).makeBooleanLiteral(pp,true);
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();

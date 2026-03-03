@@ -657,7 +657,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * @param statements the list to add the new assume statement to
      */
     protected JmlStatementExpr addAssume(int pos, Label label, JCExpression that, List<JCStatement> statements) {
-        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(assumeID, assumeClause, label,that);
+        JmlStatementExpr st = M.at(pos).JmlStatementExpr(assumeID, assumeClause, label,that);
         copyEndPosition(st,that);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -682,7 +682,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      */
     protected JmlStatementExpr addAssume(int startpos, JCTree endpos, Label label, JCExpression that, List<JCStatement> statements) {
         if (startpos < 0) startpos = that.pos;
-        JmlStatementExpr st = M.at(startpos).JmlExpressionStatement(assumeID, assumeClause,label,that);
+        JmlStatementExpr st = M.at(startpos).JmlStatementExpr(assumeID, assumeClause,label,that);
         copyEndPosition(st,endpos);
         st.type = null; // statements do not have a type
         statements.add(st);
@@ -693,7 +693,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
      * given String.
      */
     public JmlStatementExpr comment(DiagnosticPosition pos, String s) {
-        return M.at(pos).JmlExpressionStatement(commentID, commentClause,null,M.Literal(s));
+        return M.at(pos).JmlStatementExpr(commentID, commentClause,null,M.Literal(s));
     }
     
     /** This generates a comment statement (not in any statement list) whose content is the
