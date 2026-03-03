@@ -99,7 +99,7 @@ public class StatementExprExtensions extends JmlExtension {
             } else {
                 st = parser.maker()
                         .at(pp)
-                        .JmlExpressionStatement(
+                        .JmlStatementExpr(
                                 nm,
                                 clauseType,
                                 nm == assumeID ? Label.EXPLICIT_ASSUME :

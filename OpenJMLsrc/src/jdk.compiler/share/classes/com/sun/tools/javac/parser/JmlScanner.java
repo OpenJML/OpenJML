@@ -91,21 +91,12 @@ public class JmlScanner extends Scanner {
          * @param context The common compilation context
          */
         public static void preRegister(final Context context) {
-        	context.put(scannerFactoryKey,
-        			new Context.Factory<ScannerFactory>() {
-        		public ScannerFactory make(Context context) {
-        			return new JmlScanner.JmlScannerFactory(context);
-        		}
-        	});
-        }
-
-        /** A convenience method to produce a new scanner on the given input,
-         * set to parse JML and javadoc comments as well.
-         * @param input the input to parse
-         * @return the new scanner, initialized at the beginning of the input
-         */
-        public JmlScanner newScanner(CharSequence input) {
-            return newScanner(input,true);
+            context.put(scannerFactoryKey,
+                    new Context.Factory<ScannerFactory>() {
+                public ScannerFactory make(Context context) {
+                    return new JmlScanner.JmlScannerFactory(context);
+                }
+            });
         }
 
         /*
@@ -231,7 +222,7 @@ public class JmlScanner extends Scanner {
     }
     
     public boolean isEndJml() {
-        return (token instanceof JmlToken jt) && jt.jmlclausekind == Operators.endjmlcommentKind;
+        return (token instanceof JmlToken jt && jt.jmlclausekind == Operators.endjmlcommentKind) || token.kind == TokenKind.EOF;
     }
     
     @Override
@@ -256,11 +247,11 @@ public class JmlScanner extends Scanner {
     				}
     				break;
     			}
-    			if (jmlForCurrentToken && isStartJml(token) && token(1).kind == TokenKind.IDENTIFIER 
-    					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {
-    				if (scannerDebug) System.out.println("See the beginning of a line annotation");
-    				continue outer;
-    			}
+//    			if (jmlForCurrentToken && isStartJml(token) && token(1).kind == TokenKind.IDENTIFIER 
+//    					&& org.jmlspecs.openjml.Extensions.allKinds.get(token(1).name().toString()) instanceof IJmlClauseKind.LineAnnotationKind) {
+//    				if (scannerDebug) System.out.println("See the beginning of a line annotation");
+//    				continue outer;
+//    			}
     			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
     				String id = token.name().toString();
     				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.allKinds.get(id);

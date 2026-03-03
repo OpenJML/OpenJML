@@ -169,6 +169,64 @@ public class parseErrors extends ParseBase {
                 );
     }
     
+    @Test public void badMods2() {
+        checkParseErrors(
+            """
+            class A {
+            /*@
+            public normal_behavior
+              requires true;
+            public for_example public normal_example
+              requires true;
+            @*/
+            public void m() {}
+            }
+            """
+            ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 1, 54, 54 ,54  // FIXME - why this error
+            ,"/TEST.java:5: warning: No modifiers are allowed prior to a for_example token", 1, 54, 54, 59
+            
+            );
+    }
+    
+    @Test public void badMods() {
+        checkParseErrors(
+            """
+            class A {
+            /*@
+            public normal_behavior
+              requires true;
+            also public implies_that
+              requires true;
+            @*/
+            public void m() {}
+            }
+            """
+            ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 6, 59, 59, 59 // FIXME - why these adiagnostics
+            //,"/TEST.java:5: warning: No modifiers are allowed prior to a implies_that token", 8, 61, 61, 72
+            
+            );
+    }
+    
+    
+    @Test public void orphanMethodSpecs() {
+        checkParseErrors(
+            """
+            class A {
+            /*@
+            public normal_behavior
+              requires true;
+            
+            @*/
+            //@ axiom true;
+            public void m() {}
+            }
+            """
+            ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 6, 59, 59, 59 // FIXME - why these adiagnostics
+            //,"/TEST.java:5: warning: No modifiers are allowed prior to a implies_that token", 8, 61, 61, 72
+            
+            );
+    }
+    
     // Test harness tests -- checking that test failures are properly reported
     
     /** This test allows the included harness tests to complete without an AssertionError, thereby

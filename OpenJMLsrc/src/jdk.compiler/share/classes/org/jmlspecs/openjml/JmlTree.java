@@ -107,7 +107,7 @@ public class JmlTree {
         JmlMethodSig JmlMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
-        JmlStatementExpr JmlExpressionStatement(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e);
+        JmlStatementExpr JmlStatementExpr(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e);
         JmlStatementHavoc JmlHavocStatement(List<JCTree.JCExpression> e);
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
@@ -141,7 +141,7 @@ public class JmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(IJmlClauseKind t, JCTree.JCStatement e);
-        JmlStatementExprList JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions);
+        JmlStatementExprList JmlStatementExprList(IJmlClauseKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementHavoc JmlStatementHavoc(List<JCTree.JCExpression> storerefs);
         JmlStatementLoopExpr JmlStatementLoopExpr(IJmlClauseKind t, JCTree.JCExpression e);
@@ -639,7 +639,7 @@ public class JmlTree {
         
         /** Creates a JML expression statement (e.g. assert) */
         @Override
-        public JmlStatementExpr JmlExpressionStatement(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e) {
+        public JmlStatementExpr JmlStatementExpr(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e) {
             return new JmlStatementExpr(pos,t,label,e);
         }
         
@@ -768,7 +768,7 @@ public class JmlTree {
         }
 
         @Override
-        public JmlStatementExprList JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions) {
+        public JmlStatementExprList JmlStatementExprList(IJmlClauseKind t, List<JCExpression> expressions) {
             return new JmlStatementExprList(pos,t,expressions);
         }
 
