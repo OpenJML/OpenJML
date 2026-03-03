@@ -214,7 +214,7 @@ public class racnew3 extends RacBase {
                 +"    }\n"
                 +"    {/*@ nullable */ Float s = null;\n"
                 +"    try { //@ assert 0 == (float)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { float d = (Float)null;} //@ forbid \n catch (NullPointerException e) {}   \n"
+                +"    try { float d = (Float)null; //@ forbid \n} catch (NullPointerException e) {}   \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Double s = null;\n"
                 +"    try { //@ assert 0 == (double)s;\n} catch (NullPointerException e) {}\n"
