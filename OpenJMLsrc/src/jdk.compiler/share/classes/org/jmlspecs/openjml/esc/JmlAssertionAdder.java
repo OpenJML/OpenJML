@@ -902,7 +902,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none)) {
             // This block is added to enable checking that perconditions are consistent in methods without bodies
-            JCStatement halt = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
+            JCStatement halt = M.at(methodDecl).JmlStatementExpr(ReachableStatement.haltID,
                     ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
             var block = M.Block(0L, com.sun.tools.javac.util.List.<JCTree.JCStatement>of(halt));
             pmethodDecl.body = block;
@@ -1256,7 +1256,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			if (methodDecl.body != null) {
 				continuation = Continuation.CONTINUE;
 		        if (feasibilityContains(Strings.feas_preOnly) && !feasibilityContains("debug")) {
-					JCStatement s = M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
+					JCStatement s = M.at(methodDecl).JmlStatementExpr(ReachableStatement.haltID,
 							ReachableStatement.haltClause, Label.IMPLICIT_ASSUME, null);
 					convert(s);
 					continuation = Continuation.HALT;
@@ -1362,7 +1362,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} finally {
 			if (continuation != Continuation.CONTINUE) {
 			    //System.out.println("ADDING FINAL HALT");
-				addStat(M.at(methodDecl).JmlExpressionStatement(ReachableStatement.haltID,
+				addStat(M.at(methodDecl).JmlStatementExpr(ReachableStatement.haltID,
 						ReachableStatement.haltClause, null, null));
 			}
 			if (undoLabels) {
@@ -2102,20 +2102,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
     /**
-     * This generates a JmlExpressionStatement comment statement with the given
+     * This generates a JmlStatementExpr comment statement with the given
      * string as text; the statement is not added to any statement list.
      */
     protected JmlStatementExpr comment(DiagnosticPosition pos, String s, /* @ nullable */JavaFileObject source) {
         if (s.contains("\n") || s.contains("\r")) {
             s = s.replace("\r\n", " ").replace('\r', ' ').replace('\n', ' ');
         }
-        JmlStatementExpr st = M.at(pos).JmlExpressionStatement(commentID, commentClause, null, M.at(pos).Literal(s));
+        JmlStatementExpr st = M.at(pos).JmlStatementExpr(commentID, commentClause, null, M.at(pos).Literal(s));
         st.associatedSource = source;
         return st;
     }
 
     /**
-     * This generates a JmlExpressionStatement comment statement with the given
+     * This generates a JmlStatementExpr comment statement with the given
      * string as text; the statement is not added to any statement list.
      */
     protected JmlStatementExpr comment(String s) {
@@ -12239,11 +12239,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            e1.type = e2.type = returnType;
 	            JCExpression ee = treeutils.makeEquality(pos.getPreferredPosition(), e1,  e2);
 	            ee = M.at(pos).JmlQuantifiedExpr(qforallKind, quantDecls.toList(), treeutils.trueLit, ee);
-	            JCStatement noChangeAxiom = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
+	            JCStatement noChangeAxiom = M.at(pos).JmlStatementExpr("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, ee);
 	            JCExpression e3 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(newCalleeSym), copy(args));
 	            JCExpression e4 = M.at(pos).Apply(List.<JCExpression>nil(), M.Ident(oldMethodSym), copy(args));
 	            e3.type = e4.type = returnType;
-	            JCStatement noChangeInstantiation = M.at(pos).JmlExpressionStatement("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, 
+	            JCStatement noChangeInstantiation = M.at(pos).JmlStatementExpr("assume", StatementExprExtensions.assumeClause, Label.METHODAXIOM, 
 	                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
 	            //System.out.println("NOCHANGEINST " + newCalleeSym + " " + noChangeInstantiation);
 
@@ -21989,7 +21989,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    // Do not translate, because we want to keep the string literal intact
 				JCExpression expr = that.expression;
 				{
-					JmlStatementExpr st = M.at(that).JmlExpressionStatement(that.keyword, that.clauseType, that.label,
+					JmlStatementExpr st = M.at(that).JmlStatementExpr(that.keyword, that.clauseType, that.label,
 							expr);
 					st.setType(that.type);
 					st.associatedSource = that.associatedSource;
@@ -22519,7 +22519,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     isRefiningBranch = true;
                     var p = that.statements.isEmpty() ? endpos(that) : endpos(that.statements.last());
                     addFeasibilityCheck(p, currentStatements, Strings.feas_summary, Strings.atNonSummaryFeasCheckDescription);
-                    addStat(M.at(that).JmlExpressionStatement(ReachableStatement.haltID, ReachableStatement.haltClause, null,
+                    addStat(M.at(that).JmlStatementExpr(ReachableStatement.haltID, ReachableStatement.haltClause, null,
                             null));
                     continuation = Continuation.HALT;
                     if (sspecs.cases.size() > 1) log.error(that.pos, "jml.message", "OpenJML only currently supports one specification case");

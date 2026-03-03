@@ -1394,5 +1394,5 @@ public class scanner extends JmlTestSuite {
         checkMessages(
                  "/TEST.java:1: error: illegal text block open delimiter sequence, missing line terminator",7
                 ,"/TEST.java:2: error: illegal text block open delimiter sequence, missing line terminator",5);
-    }    
+    }
 }

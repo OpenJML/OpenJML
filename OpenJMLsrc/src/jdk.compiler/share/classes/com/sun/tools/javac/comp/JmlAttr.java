@@ -7585,7 +7585,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            // assume $$values$ppp != null;
 //            // assume $$values$ppp.length == 0;
 //            JCExpression nn = factory.at(p).Binary(JCTree.NE, factory.Ident(tree.valuesDecl), nullLit );
-//            stats.append( factory.at(p).JmlExpressionStatement(JmlToken.ASSUME, Label.POSTCONDITION, nn));
+//            stats.append( factory.at(p).JmlStatementExpr(JmlToken.ASSUME, Label.POSTCONDITION, nn));
 //            nn = factory.at(p).Select(factory.Ident(tree.valuesDecl), names.fromString("size"));
 //            nn = factory.at(p).Apply(null,nn,List.<JCExpression>nil());
 //            nn = factory.at(p).Binary(JCTree.EQ, nn, zeroLit );

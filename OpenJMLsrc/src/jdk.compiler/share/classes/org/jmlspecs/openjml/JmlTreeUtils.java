@@ -820,7 +820,7 @@ public class JmlTreeUtils {
 
     /** Makes a JML assume statement */
     public JmlStatementExpr makeAssume(DiagnosticPosition pos, Label label, JCExpression expr) {
-        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(assumeID, assumeClause, label, expr);
+        JmlStatementExpr e = factory.at(pos).JmlStatementExpr(assumeID, assumeClause, label, expr);
         e.associatedPos = Position.NOPOS;
         e.associatedSource = null;
         return e;
@@ -828,7 +828,7 @@ public class JmlTreeUtils {
 
     /** Makes a JML assert statement */
     public JmlStatementExpr makeAssert(DiagnosticPosition pos, Label label, JCExpression expr) {
-        JmlStatementExpr e = factory.at(pos).JmlExpressionStatement(assertID, assertClause, label, expr);
+        JmlStatementExpr e = factory.at(pos).JmlStatementExpr(assertID, assertClause, label, expr);
         e.associatedPos = Position.NOPOS;
         e.associatedSource = null;
         return e;
