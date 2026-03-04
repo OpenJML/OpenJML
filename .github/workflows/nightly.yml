@@ -69,6 +69,7 @@ jobs:
 
     - name: Run userguide tests
       run: |
+        git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/620c2512d552cc226f5f4c94 ;
         PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
 
     - name: Build OpenJML
