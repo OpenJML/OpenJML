@@ -92,7 +92,7 @@ jobs:
 
     - name: Run userguide tests
       run: |
-        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-released || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
 
     - name: Report
       run: |
