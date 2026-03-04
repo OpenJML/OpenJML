@@ -88,18 +88,10 @@ tutorial-tests-git:
 USERGUIDE=./tempUserGuide
 OVERLEAFID=620c2512d552cc226f5f4c94
 TESTSCRIPT=${USERGUIDE}/${OVERLEAFID}/test-userguide-examples
-# Downloads the userguide (from Overleaf) and tests all the example files
+# Clones the userguide (from Overleaf) and tests all the example files
 # In a git action, this needs a password to login, and fails
 userguide-tests:
 	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${OVERLEAFID} ; )
-	@ if [ -e ${TESTSCRIPT} ] ; then \
-	    chmod +x ${TESTSCRIPT} ; \
-	    ${TESTSCRIPT} ; \
-	    rm -rf ${USERGUIDE}; \
-	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
-
-userguide-tests-nightly:
-	@ ( mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/${OVERLEAFID} ; )
 	@ if [ -e ${TESTSCRIPT} ] ; then \
 	    chmod +x ${TESTSCRIPT} ; \
 	    ${TESTSCRIPT} ; \
