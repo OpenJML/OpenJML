@@ -335,7 +335,7 @@ public class FunctionLikeExpressions extends JmlExtension {
                         "jml.args.required", this.keyword());
             } else {
                 parser.nextToken();
-            	var args = parser.parseTypeList();
+            	var args = parser.parseTypeList(RPAREN);
             	JmlMethodInvocation ee = toP(parser.maker().at(paren).JmlMethodInvocation(clauseKind, args));
             	ee.startpos = start;
                 if (parser.token().kind != RPAREN) {
