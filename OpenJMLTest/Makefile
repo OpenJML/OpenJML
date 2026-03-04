@@ -98,6 +98,14 @@ userguide-tests:
 	    rm -rf ${USERGUIDE}; \
 	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
 
+userguide-tests-nightly:
+	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git:${{secrets.OVERLEAF_TOKEN}}@git.overleaf.com/${OVERLEAFID} ; )
+	@ if [ -e ${TESTSCRIPT} ] ; then \
+	    chmod +x ${TESTSCRIPT} ; \
+	    ${TESTSCRIPT} ; \
+	    rm -rf ${USERGUIDE}; \
+	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
+
 # This target is used to run the userguide tests in a github action; it uses openjml and the examples that are in the release
 # Obtains the zip of released example files from openjml.org, and tests the contained examples
 # (MacOS has curl and does not have wget without manual install)
@@ -106,6 +114,7 @@ userguide-tests-released:
 	( cd ${USERGUIDE}; curl -s -S -o examples.zip http://www.openjml.org/examples/userguide-examples.zip; unzip -q *.zip )
 	chmod +x ${USERGUIDE}/test-userguide-examples
 	${USERGUIDE}/test-userguide-examples
+
 
 # The 'release tests' are a small set of tests that are used to verify that a openjml build is basically OK.
 # It is run as part of the github action that builds a release
