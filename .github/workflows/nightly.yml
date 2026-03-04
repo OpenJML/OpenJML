@@ -66,6 +66,11 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+
+    - name: Run userguide tests
+      run: |
+        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
