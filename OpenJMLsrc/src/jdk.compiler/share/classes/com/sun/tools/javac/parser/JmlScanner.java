@@ -237,7 +237,7 @@ public class JmlScanner extends Scanner {
     				var t1 = token(1);
     				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + t0.toStringDetail() + " :: " + savedJml.get(0) + " " + t1.toStringDetail());
                     if (scannerDebug) System.out.println("LOOKAHEADS-Z " + t0.toStringDetail() + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
-    				if (!savedJml.get(0)) break;
+    				//if (!savedJml.get(0)) break;
     				if (isStartJml(t1)) {
     					if (scannerDebug) System.out.println("SKIPPING START JML");
     					advance(); // gets the start token

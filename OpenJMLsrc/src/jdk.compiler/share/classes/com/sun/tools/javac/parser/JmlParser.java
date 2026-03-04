@@ -1356,13 +1356,11 @@ public class JmlParser extends JavacParser {
                             if (startsInJml) utils.setJML(vd.mods);
                             currentVariableDecl = vd;
                             currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
+                        } else if (tr instanceof JCErroneous) {
+                            // error messages already given; ignore any specs
+                            ttr = null;
                         } else {
-                            // FIXME - nt sure what gets here
-                            utils.warning(tr.pos, "jml.message", "What gets here? " + tr.getClass() + " " + tr);
-                            if (currentMethodSpecs != null) {
-                                utils.error(tr.pos, "jml.message", "Method specs that do not precede a method declaration are ignored");
-                                currentMethodSpecs = null;
-                            }
+                            utils.error(tr, "jml.internal.notsobad", "Unexpected code path for token " + tr + " (" + tr.getClass() +")");
                             ttr = null;
                         }
                         dc = null;
@@ -1491,30 +1489,24 @@ public class JmlParser extends JavacParser {
         return args.toList();
     }
     
-    public List<JCExpression> parseTypeList() {
+    public List<JCExpression> parseTypeList(TokenKind endToken) {
         ListBuffer<JCExpression> args = new ListBuffer<>();
         while (true) {
-        	var e = parseType();
-        	if (e != null) {
-        		if (e instanceof JCErroneous) {
-            		if (!(token.kind == COMMA || token.kind == SEMI || token.kind == RPAREN)) nextToken();
-            		// FIXME -- how does this terminate
-        		} else {
-            		args.append(e);
-        		}
-        	}
-        	if (token.kind == COMMA) {
-        		nextToken();
-        		continue;
-        	} else if (token.kind == SEMI || token.kind == RPAREN) {
-        		break;
-        	} else if (isEndJml()) {
-        		syntaxError(pos(), null, "jml.missing.comma.rp");
-        		break;
-        	} else {
-        		syntaxError(pos(), null, "jml.missing.comma.rp");
-        		if (e == null) break;
-        	}
+            var e = parseType();
+            if (e instanceof JCErroneous) {
+                skipTo(endToken);
+                break;
+            } else if (e != null) {
+                args.append(e);
+                if (token.kind == COMMA) {
+                    nextToken();
+                    continue;
+                }
+            }
+        }
+        if (token.kind != endToken) {
+            syntaxError(pos(), null, "jml.missing.comma.rp");
+            skipTo(endToken);
         }
         return args.toList();
     }
@@ -1950,27 +1942,15 @@ public class JmlParser extends JavacParser {
             } else {
                 list.append(g);
             }
-            if (isEndJml()) nextToken();
+            while (isEndJml()) nextToken();
         } while (token.kind == TokenKind.IDENTIFIER && (token.name().toString().equals(alsoID) || token.name().toString().equals(elseID)));
-        if (isEndJml()) nextToken();
+        while (isEndJml()) nextToken();
         if (jmlTokenClauseKind() != specGroupEndClause) {
             utils.error(pos(), endPos(), "jml.invalid.spec.group.end");
-            while (!isEndJml() && token.kind != EOF)
-                nextToken();
-            if (token.kind != EOF) nextToken();
+            skipThroughEndOfJML(); // Punting on any better recovery
         } else {
             nextToken();
         }
-//        System.out.println("TOKEN " + token);
-//        while (token.kind == TokenKind.IDENTIFIER && token.name().toString().equals(behaviorsID)) { // FIXME - alternate spelling? Use clause kind?
-//            nextToken();
-//            var id = ident();            
-//            if (java.util.Arrays.binarySearch(behaviorsCommands,id) < 0) { 
-//                utils.error(token.pos, "jml.message", "Unexpected keyword in a 'behaviors' clause: ", id);        
-//            }
-//            accept(SEMI);
-//            System.out.println("TOKEN " + token);
-//        }
         return toP(jmlF.at(p).JmlMethodClauseGroup(list.toList()));
     }
     
@@ -2043,10 +2023,10 @@ public class JmlParser extends JavacParser {
                 return list;
             }
         }
-        return parseStoreRefList();
+        return parseStoreRefList(SEMI);
     }
         
-    public ListBuffer<JCExpression> parseStoreRefList() {
+    public ListBuffer<JCExpression> parseStoreRefList(TokenKind endToken) {
         ListBuffer<JCExpression> list = new ListBuffer<JCExpression>();
         while (true) {
             JCExpression r = parseStoreRef(false);
@@ -2055,14 +2035,15 @@ public class JmlParser extends JavacParser {
             if (tk == COMMA) {
                 nextToken();
                 continue;
-            } else if (tk == SEMI || tk == RPAREN) {
+            } else if (tk == endToken) {
                 return list;
             } else if (isEndJml()) {
-                // The missing semi-colon is reported by the caller
+                // The missing endToken is reported by the caller
                 return list;
             } else {
                 syntaxError(pos(), null, "jml.missing.comma");
-                if (r == null) return list;
+                skipTo(endToken);
+                return list;
             }
         }
     }
@@ -3249,6 +3230,18 @@ public class JmlParser extends JavacParser {
     public void skipToCommaOrParenOrSemi() {
         while (token.kind != RPAREN && token.kind != COMMA
                 && token.kind != SEMI && token.kind != EOF
+                && !isEndJml())
+            nextToken();
+    }
+
+    public void skipTo(TokenKind k) {
+        while (token.kind != k && token.kind != EOF
+                && !isEndJml())
+            nextToken();
+    }
+
+    public void skipTo(TokenKind k, TokenKind kk) {
+        while (token.kind != k && token.kind != kk && token.kind != EOF
                 && !isEndJml())
             nextToken();
     }
