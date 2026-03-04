@@ -87,8 +87,7 @@ jobs:
         git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/620c2512d552cc226f5f4c94
         cd 620c2512d552cc226f5f4c94
         chmod +x test-userguide-examples
-        pwd; ls ../../OpenJMLsrc; echo ../../$FOLDER$sep$PATH
-        PATH="../../$FOLDER:$PATH" ./test-userguide-examples || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+        ./test-userguide-examples || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
 
     - name: Run release tests
       run: |
