@@ -62,10 +62,6 @@ jobs:
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
 
-    - name: Run userguide tests
-      run: |
-        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
-
     - name: Checkout OpenJML
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
@@ -83,13 +79,13 @@ jobs:
         PATH="../../OpenJML/$FOLDER$sepsemi$PATH" echo $PATH
         echo "failures= " >> $GITHUB_ENV
 
-    - name: Run userguide tests
-      run: |
-        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
-
     - name: Run release tests
       run: |
         PATH="../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
+
+    - name: Run userguide tests
+      run: |
+        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
 
     - name: Run tutorial tests
       run: |
