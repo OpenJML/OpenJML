@@ -99,7 +99,7 @@ userguide-tests:
 	else echo Userguide tests are not available at ${TESTSCRIPT}; fi
 
 userguide-tests-nightly:
-	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git:${{secrets.OVERLEAF_TOKEN}}@git.overleaf.com/${OVERLEAFID} ; )
+	@ ( rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://:${{secrets.OVERLEAF_TOKEN}}@:git.overleaf.com/${OVERLEAFID} ; )
 	@ if [ -e ${TESTSCRIPT} ] ; then \
 	    chmod +x ${TESTSCRIPT} ; \
 	    ${TESTSCRIPT} ; \
