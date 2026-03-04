@@ -67,14 +67,6 @@ jobs:
       with:
         branch: ${{ github.ref_name }}
 
-    - name: Run userguide tests
-      run: |
-        cd OpenJML/OpenJMLTest
-        git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/620c2512d552cc226f5f4c94
-        cd 620c2512d552cc226f5f4c94
-        chmod +x test-userguide-examples
-        PATH="../../$FOLDER$sep$PATH" ./test-userguide-examples || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
-
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
@@ -88,13 +80,17 @@ jobs:
         PATH="../../OpenJML/$FOLDER$sepsemi$PATH" echo $PATH
         echo "failures= " >> $GITHUB_ENV
 
+    - name: Run userguide tests
+      run: |
+        cd OpenJML/OpenJMLTest
+        git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/620c2512d552cc226f5f4c94
+        cd 620c2512d552cc226f5f4c94
+        chmod +x test-userguide-examples
+        PATH="../../$FOLDER$sep$PATH" ./test-userguide-examples || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+
     - name: Run release tests
       run: |
         PATH="../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
-
-    - name: Run userguide tests
-      run: |
-        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
 
     - name: Run tutorial tests
       run: |
