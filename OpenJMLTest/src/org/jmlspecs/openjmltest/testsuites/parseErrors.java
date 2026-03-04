@@ -207,6 +207,33 @@ public class parseErrors extends ParseBase {
             );
     }
     
+    @Test
+    public void specGroup1() {
+        checkParseErrors(
+                """
+                class A {
+                  //@ public normal_behavior {| |}
+                  public void m() {}
+                }
+                """
+                );
+    }
+    
+    @Test
+    public void specGroup2() {
+        checkParseErrors(
+                """
+                class A {
+                  //@ public normal_behavior {|
+                  public void m() {}
+                }
+                """
+                ,"/TEST.java:3: error: Invalid clause or missing end of specification group token ( |} )", 3, 44, 44, 49
+                ,"/TEST.java:2: error: Method specifications without a following method declaration", 14, 23, 23, 23  // FIXME - why this cascade of errors
+                ,"/TEST.java:4: error: reached end of file while parsing", 2, 64, 64, 64
+                );
+    }
+    
     // FIXME - does not trigger the desired error
     public void orphanMethodSpecs() {
         checkParseErrors(
