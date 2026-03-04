@@ -54,10 +54,6 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Run userguide tests
-      run: |
-        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
-
     - name: Checkout actions
       uses: actions/checkout@v6
       with:
@@ -65,6 +61,11 @@ jobs:
         path: ACTIONS
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
+
+    - name: Run userguide tests
+      run: |
+        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+
     - name: Checkout OpenJML
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
