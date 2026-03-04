@@ -30,7 +30,7 @@ env:
   BRANCH: ${{ github.ref_name }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJMLsrc
-  sep: :
+  sep: ":"
 
 jobs:
 
