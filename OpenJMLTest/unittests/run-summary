@@ -22,7 +22,7 @@ fi
 
 count=0
 while true; do
-  r=`( time ./runtests $* ) 2>&1 | tee $f | grep successes `
+  r=$(( time ./runtests "$@" ) 2>&1 | tee "$f" | grep successes )
   if [ -n "$r" ]; then break; fi
   sleep 5
   count=$(( $count + 1 ))

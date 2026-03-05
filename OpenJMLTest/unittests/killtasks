@@ -1,3 +1,4 @@
+#! /bin/bash
 
-echo `ps | egrep '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}'`
-kill `ps | egrep '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}'`
+echo $(ps | grep -E '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}')
+kill $(ps | grep -E '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}')
