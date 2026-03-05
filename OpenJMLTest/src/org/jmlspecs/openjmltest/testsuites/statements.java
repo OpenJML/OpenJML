@@ -59,7 +59,6 @@ public class statements extends TCBase {
     @Test public void testForWithModifies7() {
         helpTCText("A.java"," class A { int k; void m() { \n //@ loop_modifies k k k; \n for (int i=0; i<10; i++) {}  \n}}"
                 ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",22
-                ,"/A.java:2: error: Missing comma or otherwise ill-formed type name",24
                 );
     }
 
