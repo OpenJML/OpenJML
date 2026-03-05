@@ -6,7 +6,9 @@ runs:
     - name: Manually sync certs
       if: runner.name == 'ubuntu-22.04'
       shell: bash
-      run: cert-sync /etc/ssl/certs/ca-certificates.crt
+      run: |
+        ver=$(lsb_release -rs)
+        if [ "$ver" = "22.04" ]; then cert-sync /etc/ssl/certs/ca-certificates.crt; fi
     - name: MacOSX additions
       if: runner.os == 'MacOS'
       shell: bash

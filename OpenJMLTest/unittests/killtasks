@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 echo $(ps | grep -E '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}')
 kill $(ps | grep -E '(unittests|summary|runtests)' | grep -v grep | awk '{ print $1}')
