@@ -46,12 +46,16 @@ alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 10; do
 alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 10; done"
 
 if [ -z "$*" ]; then
-    testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/\.java//')
-    rm -rf log-*
+    if [ -n "$START" ]; then
+        testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | tail -n +$START | head -n $LINES | sed -e 's/\.java//')
+    else 
+        testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/\.java//')
+    fi
 else
     testlist=$@
-    for d in $testlist; do rm -f log-${d%.java}; done
 fi
+
+for d in $testlist; do rm -f log-${d%.java}; done
 
 if [ $numjobs -eq 0 ]; then
     echo Running $(echo $testlist | wc -w) testsuites sequentially
