@@ -15,7 +15,7 @@ INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file
 # mac-setup is needed to fix Mac security complaints, though it is only needed the first time this binary is executed
 # mac-setup is in the release files; it must be executed manually for the development environment
 if [ "$( uname )" = "Darwin" ] ; then
-  "${INSTALL}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
+  "${INSTALL}/mac-setup" > /dev/null 2>&1 ;
 fi
 
 ## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BINJAVAC PR
@@ -27,10 +27,7 @@ if [ -z "${OJ++}" ]; then export OJ= ; fi
 
 ## Uses OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS OPENJML_JVM OPENJML_EXPORTS
 if [ -z "$OPENJML_JVM" ]; then
-  ##echo "$BINJAVAC" "$@"
   "$BINJAVAC" "$@"
 else
-  #if [ ! -e "$INSTALL/RunOpenJML.class" ]; then ( cd "$INSTALL" ; "$INSTALL/openjml-compile" -cp . RunOpenJML.java ) ; fi
   "$BINJAVA" $OPENJML_JVM -cp ".:$INSTALL" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
 fi
-

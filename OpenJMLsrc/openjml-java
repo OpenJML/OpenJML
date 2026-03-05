@@ -13,7 +13,7 @@ INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, w
 
 # mac-setup is needed to fix Mac security complaints, though it is only needed the first time
 if [ "$( uname )" = "Darwin" ] ; then
-  "${INSTALL}/mac-setup" > /tmp/openjmlsetup 2>&1 ;
+  "${INSTALL}/mac-setup" > /dev/null 2>&1 ;
 fi
 
 ## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BINJAVA

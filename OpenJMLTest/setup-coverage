@@ -1,9 +1,8 @@
 
 ## Sets up coverage AND/OR profiling, depending on whether COV and PROF are set
 
-## Uses 
-
 ## Source this file
+
 if [ "$0" = "$BASH_SOURCE" ]; then
     echo "Error: setup-coverage script must be sourced"
     exit 1
@@ -33,7 +32,7 @@ export OPENJML_JVM=
 
 ## AGENT and PR are command-line arguments for **java**, not javac
 
-if [ -n "${COV++}" ]; then  ## Tests checks whether the variables are set, even if only to empty string
+if [ -n "${COV++}" ]; then  ## Checks whether COV is set, to any value including empty
     # COV set, but may be empty
     mkdir -p "$TEST/cov"
     export AGENT="-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$TEST/cov/$1.exec"
@@ -43,8 +42,9 @@ if [ -n "${COV++}" ]; then  ## Tests checks whether the variables are set, even 
 fi
 
 # setup any profiling -- $PR is a command-line argument for **java**, not javac
-if [ -n "${PROF++}" ]; then
-  ## PROF is set to something
+# This if block uses AGENT, which is set in the previous if
+if [ -n "${PROF++}" ]; then  ## Checks whether PROF is set, to any value including empty
+    # PROF set, but may be empty
     export PR=-agentpath:/Users/davidcok/profiler/lib/libasyncProfiler.dylib=start,event=cpu,file=profile.html
     export OJA="$BINJAVA -cp .:$TEST $PR $AGENT RunOpenJML"
     ## FIXME - OJA above will not work with spaces in paths
