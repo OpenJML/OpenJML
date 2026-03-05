@@ -93,6 +93,16 @@ JAR      := $(BUILDJDK)/bin/jar
 ## The zip tool used to assemble the release archive; override on the command line if needed
 ZIPCMD := zip
 
+## OS name used to select the correct Solvers subfolder
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+  OS_NAME := macos
+else ifeq ($(UNAME),Linux)
+  OS_NAME := linux
+else
+  OS_NAME := windows
+endif
+
 ## Used in both the github build.yml action and the development environment
 
 ## Builds a full release. Modify (and commit) ../version.txt to set the version number that will be builtin to the release
@@ -157,8 +167,7 @@ post: .FORCE
 	cp -pRL jmlruntime.jar $(TUT)
 	cp -pRL build/*release/jdk $(TEMP)
 	(cd $(TEMP); rm -rf `find . -name .DS_Store`)
-	S=$$(case "$$(uname)" in Darwin) echo macos;; Linux) echo linux;; *) echo windows;; esac); \
-	cp -pR ../../Solvers/Solvers-$$S $(TEMP)
+	cp -pR ../../Solvers/Solvers-$(OS_NAME) $(TEMP)
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
