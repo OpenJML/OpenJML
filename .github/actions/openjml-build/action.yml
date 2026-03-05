@@ -8,6 +8,10 @@ inputs:
     description: 'Whether to run the release test'
     type: boolean
     required: true
+  upload:
+    description: 'Whether to upload the built JDK as an artifact for use by test jobs'
+    type: boolean
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -34,3 +38,12 @@ runs:
       shell: bash
       run: |
         make -C OpenJML/OpenJMLsrc release-test
+    - name: Upload build artifact
+      if: inputs.upload == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: openjml-build-${{ runner.os }}
+        path: |
+          OpenJML/OpenJMLsrc/build/*/jdk
+          OpenJML/OpenJMLsrc/jmlruntime.jar
+        retention-days: 1

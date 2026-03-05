@@ -11,8 +11,8 @@ name: Nightly test of OpenJML
 ## either doing a full build for each of these test tasks, which is time consuming, or uploading and downloading a github artifact that
 ## contained the full built repo checkout. This latter 'worked' but frequently failed because the artifacts took too much space.
 ##
-## As a compromise, two jobs are used: one jobs builds OpenJLM and runs the very long-running unit tests; the other builds OpenJLM are runs 
-## the other, shorter running, test suites.
+## As a compromise, the workflow uses a build job (per OS) that uploads the built JDK as an artifact,
+## and separate test jobs (othertests, unittests1/2/3) that download the artifact instead of rebuilding.
 
 ## FIXME: The setting of PATH uses : where it might need ; for some OSes; it would be better if adjustments to PATH were not needed at all
 ## FIXME: debug use of the $sep variable
@@ -28,7 +28,7 @@ env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
   ## The github branch that was pushed
   BRANCH: ${{ github.ref_name }}
-  ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
+  ## Name of folder containing openjml code within OpenJML repo.
   FOLDER: OpenJMLsrc
 
 jobs:
@@ -43,10 +43,36 @@ jobs:
         ## Edit the list of OSes here
         echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
     
-  ## This job builds a development version of OpenJML as part of a trial release build
-  ## and then runs various unit and functionality tests
-  othertests:
+  ## This job builds OpenJML once per OS and uploads the built JDK as an artifact
+  build:
     needs: export-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+      fail-fast: false
+
+    steps:
+    - name: Checkout actions
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+    - name: Checkout OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
+      with:
+        branch: ${{ github.ref_name }}
+    - name: Build OpenJML and upload artifact
+      uses: ./ACTIONS/.github/actions/openjml-build/
+      with:
+        test: 'false'
+        upload: 'true'
+
+  ## This job downloads the pre-built artifact and runs various non-unit tests
+  othertests:
+    needs: [ export-matrix, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -67,11 +93,8 @@ jobs:
       with:
         branch: ${{ github.ref_name }}
 
-    - name: Build OpenJML
-      uses: ./ACTIONS/.github/actions/openjml-build/
-      with:
-        ## These tests of the release are performed in the build workflow
-        test: false
+    - name: Download build artifact
+      uses: ./ACTIONS/.github/actions/openjml-download/
 
     - name: Variable
       run: |
@@ -105,10 +128,9 @@ jobs:
         if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
         
 
-  ## This job builds a development version of OpenJML as part of a trial release build
-  ## and then runs various unit and functionality tests
+  ## These jobs download the pre-built artifact and run subsets of the unit tests in parallel
   unittests1:
-    needs: export-matrix
+    needs: [ export-matrix, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -127,17 +149,15 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
-    - name: Build OpenJML
-      uses: ./ACTIONS/.github/actions/openjml-build/
-      with:
-        test: false ## These tests of the release are performed in the build workflow
+    - name: Download build artifact
+      uses: ./ACTIONS/.github/actions/openjml-download/
 
     - name: Run unit tests
       run: |
         PATH="../../$FOLDER$sep$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
 
   unittests2:
-    needs: export-matrix
+    needs: [ export-matrix, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -156,17 +176,15 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
-    - name: Build OpenJML
-      uses: ./ACTIONS/.github/actions/openjml-build/
-      with:
-        test: false ## These tests of the release are performed in the build workflow
+    - name: Download build artifact
+      uses: ./ACTIONS/.github/actions/openjml-download/
 
     - name: Run unit tests
       run: |
         PATH="../../$FOLDER$sep$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
 
   unittests3:
-    needs: export-matrix
+    needs: [ export-matrix, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -185,10 +203,8 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
-    - name: Build OpenJML
-      uses: ./ACTIONS/.github/actions/openjml-build/
-      with:
-        test: false ## These tests of the release are performed in the build workflow
+    - name: Download build artifact
+      uses: ./ACTIONS/.github/actions/openjml-download/
 
     - name: Run unit tests
       run: |

@@ -1,0 +1,16 @@
+name: 'OpenJML Download Build'
+description: 'Downloads a previously uploaded OpenJML build artifact and overlays it into the checked-out repository'
+
+## Presumes OpenJML has been checked out via openjml-checkout (so OpenJML/OpenJMLsrc/ exists).
+## Downloads artifact openjml-build-<runner.os> and extracts it into the workspace root,
+## recreating OpenJML/OpenJMLsrc/build/*/jdk/ and OpenJML/OpenJMLsrc/jmlruntime.jar
+## in place — no build step required in the test job.
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: openjml-build-${{ runner.os }}
+        path: .
