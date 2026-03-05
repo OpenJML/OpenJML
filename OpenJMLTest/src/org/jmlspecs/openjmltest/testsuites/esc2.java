@@ -143,6 +143,24 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:32: error: The LHS in a set statement must be a ghost variable",15
                 );
     }
+    
+    @Test
+    public void testNonNullElements0() {
+//      Assume.assumeTrue(runLongTests);
+      helpEsc("tt.TestJava", "package tt; \n" 
+              + "public class TestJava { \n"
+
+              + "  public void m1x(Object[] a) {\n"
+              + "    //@ assume a == null;\n" 
+              + "    //@ check !\\nonnullelements(a);\n" // OK
+              + "    //@ check \\nonnullelements(a);\n"  // NO
+              + "  }\n"
+
+              + "}"
+              ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1x", 9
+              );
+  }
+    
 
     @Test
     public void testNonNullElements1() {
