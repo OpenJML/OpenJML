@@ -8,6 +8,6 @@ INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, w
 
 . "$INSTALL/setup-exports" ## Sets OPENJML_EXPORTS
 
-## Now run the compiled Test program
+## Now run the compiled program
 "$INSTALL/openjml-java" $OPENJML_EXPORTS "$@"
 

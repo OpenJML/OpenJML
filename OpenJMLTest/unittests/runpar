@@ -5,9 +5,9 @@
 ## executing the script as 'JOBS=n ./runpar' for a particular number 'n' (default is 5)
 ## If there are command-line arguments, they must be a list of
 ## specific testsuites to run. If the number of permitted JOBS is 0, then the testsuites are run
-## sequentially, without spwaning any subprocesses.
+## sequentially, without spawning any subprocesses.
 
-## The tests within a test suite are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRUnner).
+## The tests within a test suite are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRunner).
 
 ## If the environmental variable COV is set, then coverage measurements are reported
 
@@ -46,7 +46,7 @@ alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 10; do
 alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 10; done"
 
 if [ -z "$*" ]; then
-    testlist=`(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/.java//')`
+    testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/\.java//')
     rm -rf log-*
 else
     testlist=$@
