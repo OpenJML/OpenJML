@@ -79,6 +79,123 @@ public class escall3 extends EscBase {
     }
     
     @Test
+    public void testAbsentSpec1() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec2() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ also ensures true;
+                    public void m(int i) {}
+                }
+                """
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec3() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ pure
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec4() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ final
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec5() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt; //@ pure
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec6() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; pure */ public void m(int i) {} public int k; }
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ pure
+                    public void m(int i) { k = 0; }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: k", 30
+                ,"/tt/TestJava.java:2: verify: Associated declaration", 45
+                );
+    }
+    
+    @Test
     public void testSMTout() {
         expectedExit=0;
         addOptions("--smt=smt/testSMToutZ.smt");
