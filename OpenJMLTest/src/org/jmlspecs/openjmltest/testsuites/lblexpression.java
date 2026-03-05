@@ -64,4 +64,15 @@ public class lblexpression extends TCBase {
                 ,"/A.java:3: error: incompatible types: int cannot be converted to boolean",19
         );
     }
+
+    @Test
+    public void testlblany3() {
+        helpTCText("A.java",
+                " class A { int k;  \n" +
+                "   //@ invariant \\lbl(ghost,false);\n" + 
+                "   void m(double k) {}\n" +
+                "}"
+        );
+    }
+
 }
