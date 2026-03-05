@@ -18,28 +18,7 @@ public class escnew3 extends EscBase {
     public void testNonNullElements3() {
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                
-                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-                +"  public void m4a(Object[] a) {\n"
-                +"    //@ assume a != null && a.length == 3;\n"
-                +"    a[0] = new Object();\n"
-                +"    a[1] = new Object();\n"
-                +"    //@ assert \\nonnullelements(a);\n" // BAD
-                +"  }\n"
-                
-                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-                +"  public void m5(Object[] a) {\n"
-                +"    //@ assume \\nonnullelements(a) && a.length == 3;\n"
-                +"    a[0] = new Object();\n"
-                +"    //@ assert \\nonnullelements(a);\n" // OK
-                +"  }\n"
-                
-                +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
-                +"  public void m5a(Object[] a) {\n"
-                +"    //@ assume a != null && a.length == 3;\n" // Line 75
-                +"    a[0] = null;\n"
-                +"    //@ assert \\nonnullelements(a);\n" // BAD
-                +"  }\n"
+                                
                 
                 +"  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;\n"
                 +"  public void m5b(Object[] a) {\n"

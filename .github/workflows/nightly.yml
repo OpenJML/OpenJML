@@ -30,7 +30,6 @@ env:
   BRANCH: ${{ github.ref_name }}
   ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
   FOLDER: OpenJMLsrc
-  sep: ":"
 
 jobs:
 
@@ -79,7 +78,7 @@ jobs:
         echo $sep $sepsemi
         PATH="../../OpenJML/$FOLDER$sep$PATH" echo $PATH
         PATH="../../OpenJML/$FOLDER$sepsemi$PATH" echo $PATH
-        echo "failures= " >> $GITHUB_ENV
+        echo "failures=" >> $GITHUB_ENV
 
     - name: Run userguide tests
       run: |

@@ -902,8 +902,6 @@ public class JmlEnter extends Enter {
 		}
 		specDecl.defs = newdefs.toList();
 
-		var classIsPure = utils.findMod(specDecl.mods, Modifiers.PURE);
-
 		// Add specifications for Java declarations that do not have specification
 		// declarations
 		for (Symbol m : specDecl.sym.members().getSymbols(s -> s instanceof MethodSymbol)) {
