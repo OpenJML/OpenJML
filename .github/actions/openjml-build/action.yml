@@ -18,7 +18,7 @@ runs:
       shell: wsl-bash {0}
       run: |
         cd OpenJML/OpenJMLsrc
-        bash ./configure
+        ./configure
         make release
         cd ..
     - name: Build OpenJML release on non-Windows
@@ -26,11 +26,11 @@ runs:
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc
-        bash ./configure
+        ./configure
         make release
         cd ..
     - name: Test the build
-      if: ${{ inputs.test == true }}
+      if: inputs.test == 'true'
       shell: bash
       run: |
         make -C OpenJML/OpenJMLsrc release-test
