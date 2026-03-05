@@ -18,7 +18,7 @@ public class racJML extends RacBase {
         super.setUp();
         addOptions("-jmltesting");
     }
-
+        // FIXME - why are there no reports of failed assertions
     @Test
     public void testLBLObject() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -72,7 +72,7 @@ public class racJML extends RacBase {
         helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",args.length) == 0; \n"
+                +"     //@ assert \\lbl(AL,args.length) == 0; \n"
                 +"  }\n"
                 +"}"
                 ,"LABEL AL = 0"

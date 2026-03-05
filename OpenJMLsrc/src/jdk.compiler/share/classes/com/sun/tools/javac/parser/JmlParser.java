@@ -1498,10 +1498,8 @@ public class JmlParser extends JavacParser {
                 break;
             } else if (e != null) {
                 args.append(e);
-                if (token.kind == COMMA) {
-                    nextToken();
-                    continue;
-                }
+                if (token.kind != COMMA) break;
+                nextToken();
             }
         }
         if (token.kind != endToken) {
