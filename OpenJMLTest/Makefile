@@ -4,7 +4,7 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(dir $(mkfile_path))
 
 ## The folder containing this Makefile, namely .../OpenJMLTest
-TEST=${mkfile_dir}
+TEST := $(patsubst %/,%,$(mkfile_dir))
 
 ## The folder containing the source and builds, namely (currently) .../OpenJMLsrc
 SRC=${TEST}/../OpenJMLsrc
@@ -16,18 +16,18 @@ T=temp-release
 
 ### FIXME - not sure we need prep, even without release-tests
 openjml-test: prep
-	make release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
-	make userguide-tests
-	make json-tests
-	-make tutorial-tests
-	-make unittests-par
+	$(MAKE) release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
+	$(MAKE) userguide-tests
+	$(MAKE) json-tests
+	-$(MAKE) tutorial-tests
+	-$(MAKE) unittests-par
 
 ## This target is used when running tests as part of a github action
 openjml-test-git: prep
-	make -C ${TEST} release-tests
-	-make -C ${TEST} userguide-tests-released
-	make -C ${TEST} json-tests
-	-make tutorial-tests
+	$(MAKE) -C ${TEST} release-tests
+	-$(MAKE) -C ${TEST} userguide-tests-released
+	$(MAKE) -C ${TEST} json-tests
+	-$(MAKE) tutorial-tests
 	JOBS=4 time ${TEST}/unittests/runpar
 
 openjml-test-temp:
@@ -40,10 +40,10 @@ openjml-test-temp:
 	#grep FAILED $T_Nullness1.out.actual{TEST}/unittests/log-* | grep -v Trace | grep -v Query
 
 openjml-clean: .FORCE
-	make -C ${SRC} clean; make openjml
+	$(MAKE) -C ${SRC} clean; $(MAKE) openjml
 
 openjml: .FORCE
-	(cd ${SRC}; make version && make openjml && make jmlruntime.jar )
+	(cd ${SRC}; $(MAKE) version && $(MAKE) openjml && $(MAKE) jmlruntime.jar )
 
 ## Deletes all temporary files
 ## Many more to delete
@@ -53,18 +53,18 @@ clean: cov-clean
 	find . -name '*actual*' -delete
 	find . -name 'log*' -type f ! -path './test/gitbug785/guava/*' -delete
 	rm -f smt/*.smt*
-	rm -f tempUserGuide
+	rm -rf tempUserGuide
 	rm -rf testcompiles
 	rm -rf jsontests/json-loc/xx
 
 
 release: .FORCE
-	make -C ${SRC} release
+	$(MAKE) -C ${SRC} release
 
 
 prep: temp-release
 
-temp-release temp-release/D.java:
+temp-release:
 	rm -rf $T
 	mkdir $T
 	echo "public class A { /*@ invariant 0; */ }" > $T/A.java
@@ -103,7 +103,7 @@ userguide-tests:
 # (MacOS has curl and does not have wget without manual install)
 userguide-tests-released:
 	rm -rf ${USERGUIDE}; mkdir -p ${USERGUIDE};
-	( cd ${USERGUIDE}; curl -s -S -o examples.zip http://www.openjml.org/examples/userguide-examples.zip; unzip -q *.zip )
+	( cd ${USERGUIDE}; curl -s -S -o examples.zip https://www.openjml.org/examples/userguide-examples.zip; unzip -q *.zip )
 	chmod +x ${USERGUIDE}/test-userguide-examples
 	${USERGUIDE}/test-userguide-examples
 
@@ -154,13 +154,14 @@ cov-clean:
 	find . -name '*.class' -delete
 	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 
-# Runs all tests to produce coverage data
-# One can also run individual tests and individual unit tests, e.g. COV= runtests escfiles
+# Runs all tests to produce coverage data.
+# Setting COV to any value (including empty) enables coverage measurement; leaving COV unset disables it.
+# One can also run individual tests with coverage, e.g.: COV= ./unittests/runtests escfiles
 cov-test:
-	- COV= time make json-tests
-	- COV= time make release-tests
-	- COV= time make tutorial-tests
-	- COV= time make userguide-tests
+	- COV= time $(MAKE) json-tests
+	- COV= time $(MAKE) release-tests
+	- COV= time $(MAKE) tutorial-tests
+	- COV= time $(MAKE) userguide-tests
 	- COV= time ./unittests/runpar 
 
 # Creates or updates html files based on coverage data
