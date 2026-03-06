@@ -107,9 +107,6 @@ jobs:
 
     - name: Variable
       run: |
-        echo $sep $sepsemi
-        PATH="../../OpenJML/$FOLDER$sep$PATH" echo $PATH
-        PATH="../../OpenJML/$FOLDER$sepsemi$PATH" echo $PATH
         echo "failures=" >> $GITHUB_ENV
 
     - name: Run userguide tests
