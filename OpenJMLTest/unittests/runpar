@@ -57,25 +57,30 @@ fi
 
 for d in $testlist; do rm -f log-${d%.java}; done
 
+RUNERR=0
 if [ $numjobs -eq 0 ]; then
     echo Running $(echo $testlist | wc -w) testsuites sequentially
     sync
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ./run-summary log-$nm $nm
+        ./run-summary log-$nm $nm || RUNERR=1
     done
 else
     echo Running $(echo $testlist | wc -w) testsuites with $numjobs concurrent jobs
     sync
+    pids=()
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ./run-summary log-$nm $nm & 
+        ( ./run-summary log-$nm $nm || { cat log-$nm; exit 1; } ) &
+        pids+=($!)
         sleep 1
         wt
     done
-    wait
+    for pid in "${pids[@]}"; do
+        wait "$pid" || RUNERR=1
+    done
 fi
 echo Completed
 sync
@@ -92,4 +97,4 @@ else
     grep -E 'FAILED' logretry
     echo "LIST:" `grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
 fi
-exit $ERR
+exit $(( ERR || RUNERR ))
