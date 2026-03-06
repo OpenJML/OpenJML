@@ -69,6 +69,7 @@ jobs:
       with:
         test: 'false'
         upload: 'true'
+        os-label: ${{ matrix.os }}
 
   ## This job downloads the pre-built artifact and runs various non-unit tests
   othertests:
@@ -101,6 +102,8 @@ jobs:
     #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
+      with:
+        os-label: ${{ matrix.os }}
 
     - name: Variable
       run: |
@@ -163,6 +166,8 @@ jobs:
     #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
+      with:
+        os-label: ${{ matrix.os }}
 
     - name: Run unit tests
       run: |
@@ -196,6 +201,8 @@ jobs:
     #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
+      with:
+        os-label: ${{ matrix.os }}
 
     - name: Run unit tests
       run: |
@@ -229,6 +236,8 @@ jobs:
     #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
+      with:
+        os-label: ${{ matrix.os }}
 
     - name: Run unit tests
       run: |
