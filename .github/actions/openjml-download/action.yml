@@ -27,9 +27,10 @@ runs:
       run: |
         echo "=== Archive size ==="
         ls -lh openjml-build.tar.gz
+        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
         echo "=== First 30 archive entries ==="
-        tar -tzf openjml-build.tar.gz | head -30
+        head -30 /tmp/archive-contents.txt
         echo "=== jvm.cfg in archive? ==="
-        tar -tzf openjml-build.tar.gz | grep jvm.cfg || echo "NOT FOUND IN ARCHIVE"
+        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND IN ARCHIVE"
         echo "=== jvm.cfg on filesystem? ==="
         find . -name jvm.cfg 2>/dev/null || echo "NOT FOUND ON FILESYSTEM"
