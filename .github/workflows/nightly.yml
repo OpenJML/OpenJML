@@ -241,4 +241,4 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER$sep$PATH" START=71 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="../../$FOLDER$sep$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 
