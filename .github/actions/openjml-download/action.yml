@@ -19,3 +19,6 @@ runs:
       with:
         name: openjml-build-${{ inputs.os-label }}
         path: .
+    - name: Extract build artifact
+      shell: bash
+      run: tar -xzf openjml-build.tar.gz

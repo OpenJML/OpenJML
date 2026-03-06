@@ -41,12 +41,14 @@ runs:
       shell: bash
       run: |
         make -C OpenJML/OpenJMLsrc release-test
+    - name: Archive build artifact
+      if: inputs.upload == 'true'
+      shell: bash
+      run: tar -czf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
     - name: Upload build artifact
       if: inputs.upload == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: openjml-build-${{ inputs.os-label }}
-        path: |
-          OpenJML/OpenJMLsrc/build/*/jdk
-          OpenJML/OpenJMLsrc/jmlruntime.jar
+        path: openjml-build.tar.gz
         retention-days: 1
