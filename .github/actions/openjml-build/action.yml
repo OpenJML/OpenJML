@@ -49,7 +49,7 @@ runs:
         df -h .
         echo "=== JDK directory size ==="
         du -sh OpenJML/OpenJMLsrc/build/*/jdk
-        tar -czf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
+        tar -czhf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
     - name: Diagnose archive (debug)
       if: inputs.upload == 'true'
       shell: bash
