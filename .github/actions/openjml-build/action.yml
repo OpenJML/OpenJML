@@ -44,7 +44,12 @@ runs:
     - name: Archive build artifact
       if: inputs.upload == 'true'
       shell: bash
-      run: tar -czf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
+      run: |
+        echo "=== Disk space before archive ==="
+        df -h .
+        echo "=== JDK directory size ==="
+        du -sh OpenJML/OpenJMLsrc/build/*/jdk
+        tar -czf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
     - name: Diagnose archive (debug)
       if: inputs.upload == 'true'
       shell: bash
@@ -53,10 +58,11 @@ runs:
         ls OpenJML/OpenJMLsrc/build/
         echo "=== Archive size ==="
         ls -lh openjml-build.tar.gz
+        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
         echo "=== First 30 archive entries ==="
-        tar -tzf openjml-build.tar.gz | head -30
+        head -30 /tmp/archive-contents.txt
         echo "=== jvm.cfg in archive? ==="
-        tar -tzf openjml-build.tar.gz | grep jvm.cfg || echo "NOT FOUND"
+        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND"
     - name: Upload build artifact
       if: inputs.upload == 'true'
       uses: actions/upload-artifact@v4
