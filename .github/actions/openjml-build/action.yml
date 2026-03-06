@@ -12,6 +12,9 @@ inputs:
     description: 'Whether to upload the built JDK as an artifact for use by test jobs'
     type: boolean
     default: 'false'
+  os-label:
+    description: 'Unique OS label for naming the artifact (pass matrix.os to avoid collisions between e.g. ubuntu-22.04 and ubuntu-latest)'
+    default: ${{ runner.os }}
 
 runs:
   using: 'composite'
@@ -42,7 +45,7 @@ runs:
       if: inputs.upload == 'true'
       uses: actions/upload-artifact@v4
       with:
-        name: openjml-build-${{ runner.os }}
+        name: openjml-build-${{ inputs.os-label }}
         path: |
           OpenJML/OpenJMLsrc/build/*/jdk
           OpenJML/OpenJMLsrc/jmlruntime.jar
