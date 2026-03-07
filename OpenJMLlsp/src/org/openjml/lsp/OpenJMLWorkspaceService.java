@@ -3,6 +3,8 @@ package org.openjml.lsp;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
@@ -59,7 +61,11 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if ("openjml.runEsc".equals(params.getCommand()) && escRequester != null) {
             List<?> args = params.getArguments();
             if (args != null && !args.isEmpty()) {
-                String uri = String.valueOf(args.get(0));
+                // LSP4J deserializes arguments as JsonElement; extract string value.
+                Object arg = args.get(0);
+                String uri = (arg instanceof JsonPrimitive)
+                        ? ((JsonPrimitive) arg).getAsString()
+                        : String.valueOf(arg);
                 escRequester.accept(uri);
             }
         }

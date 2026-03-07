@@ -13,8 +13,7 @@
       {
         "command": "openjml.runEsc",
         "title": "Run ESC",
-        "category": "OpenJML",
-        "icon": "$(play)"
+        "category": "OpenJML"
       }
     ],
     "menus": {
@@ -22,7 +21,7 @@
         {
           "command": "openjml.runEsc",
           "when": "resourceLangId == java",
-          "group": "navigation"
+          "group": "1_openjml"
         }
       ],
       "commandPalette": [
