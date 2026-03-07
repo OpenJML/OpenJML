@@ -34,6 +34,12 @@
     "configuration": {
       "title": "OpenJML",
       "properties": {
+        "openjml.serverPath": {
+          "type": "string",
+          "default": "",
+          "order": 0,
+          "description": "Path to the openjml-lsp launcher script. Leave empty to use the script bundled with this extension (development) or the one found via the extension's default location."
+        },
         "openjml.checkTriggerOn": {
           "type": "string",
           "enum": ["edit", "save"],
