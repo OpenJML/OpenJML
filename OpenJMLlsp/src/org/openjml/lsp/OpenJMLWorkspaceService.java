@@ -74,6 +74,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.specsPath   != null) settings.specsPath   = src.specsPath;
         if (src.solversPath != null) settings.solversPath = src.solversPath;
         if (src.mode        != null) settings.mode        = src.mode;
+        if (src.triggerOn   != null) settings.triggerOn   = src.triggerOn;
     }
 
     @Override
