@@ -10,8 +10,8 @@ NJAVA    := $(BUILDJDK)/bin/java
 JAR      := $(BUILDJDK)/bin/jar
 
 ## LSP4J and Gson jars (downloaded into libs/ on first build)
-LSP4J_VERSION := 0.21.1
-GSON_VERSION  := 2.10.1
+LSP4J_VERSION := 1.0.0
+GSON_VERSION  := 2.11.0
 LIBS          := $(LSPROOT)/libs
 LSP4J_JAR     := $(LIBS)/org.eclipse.lsp4j-$(LSP4J_VERSION).jar
 LSP4J_RPC_JAR := $(LIBS)/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar

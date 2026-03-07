@@ -10,17 +10,13 @@ NJAVAC   := $(BUILDJDK)/bin/javac
 NJAVA    := $(BUILDJDK)/bin/java
 
 ## LSP4J version must match the one in OpenJMLlsp/Makefile
-LSP4J_VERSION := 0.21.1
-GSON_VERSION  := 2.10.1
+LSP4J_VERSION := 1.0.0
+GSON_VERSION  := 2.11.0
 
 ## Classpath components
 JUNITDIR  := $(LSPTEST)/../libs
 JUNIT_CP  := $(JUNITDIR)/junit-4.13.2.jar:$(JUNITDIR)/hamcrest-core-1.3.jar:$(JUNITDIR)/junit-jupiter-api-5.5.2.jar:$(JUNITDIR)/apiguardian-api-1.1.0.jar:$(JUNITDIR)/opentest4j-1.3.0.jar
-## LSP4J jars are needed at compile time (for LSP Diagnostic types) and at run
-## time (for type references).  The Gson jar is included but Gson classes are
-## never loaded at runtime because tests call CheckRunner directly rather than
-## going through the LSP4J JSON-RPC Launcher — avoiding the conflict between
-## the Gson jar and the Gson 2.11.0 bundled inside jdk.compiler.
+## LSP4J jars needed at compile time (for LSP Diagnostic types) and at runtime.
 LSP4J_CP  := $(LSPROOT)/libs/org.eclipse.lsp4j-$(LSP4J_VERSION).jar:$(LSPROOT)/libs/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar:$(LSPROOT)/libs/gson-$(GSON_VERSION).jar
 LSP_JAR   := $(LSPROOT)/build/openjml-lsp.jar
 
@@ -52,8 +48,6 @@ compile: $(LSP_JAR)
 	     $(INFRA_SRCS) $(TEST_SRCS) )
 
 ## Run the LSP tests with JUnit's built-in console runner.
-## Tests call CheckRunner directly; the LSP4J JSON-RPC Launcher is not used,
-## so Gson classes are never loaded and the jdk.compiler Gson conflict is avoided.
 run-tests: compile
 	@( cd $(LSPTEST); \
 	   . $(SRC)/setup-exports; \
