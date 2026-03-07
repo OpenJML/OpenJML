@@ -1,7 +1,7 @@
 {
   "name": "openjml",
   "displayName": "OpenJML",
-  "description": "JML specification type-checking for Java via OpenJML",
+  "description": "JML specification type-checking and static verification for Java via OpenJML",
   "version": "0.0.1",
   "publisher": "openjml",
   "engines": { "vscode": "^1.75.0" },
@@ -9,22 +9,45 @@
   "activationEvents": ["onLanguage:java"],
   "main": "./extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "openjml.runEsc",
+        "title": "Run ESC",
+        "category": "OpenJML",
+        "icon": "$(play)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "openjml.runEsc",
+          "when": "resourceLangId == java",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "openjml.runEsc",
+          "when": "resourceLangId == java"
+        }
+      ]
+    },
     "configuration": {
       "title": "OpenJML",
       "properties": {
-        "openjml.mode": {
-          "type": "string",
-          "enum": ["check", "esc"],
-          "default": "check",
-          "order": 1,
-          "markdownDescription": "Check mode:\n- `check` — JML type-checking only (fast)\n- `esc` — extended static checking via SMT solver (thorough but slow)"
-        },
-        "openjml.triggerOn": {
+        "openjml.checkTriggerOn": {
           "type": "string",
           "enum": ["edit", "save"],
           "default": "edit",
+          "order": 1,
+          "markdownDescription": "When to run the JML type-check (`--check`):\n- `edit` — check on every change (instant feedback)\n- `save` — check only when the file is saved"
+        },
+        "openjml.escTriggerOn": {
+          "type": "string",
+          "enum": ["manual", "save", "edit"],
+          "default": "manual",
           "order": 2,
-          "markdownDescription": "When to run OpenJML:\n- `edit` — check on every change (instant feedback, higher CPU)\n- `save` — check only when the file is saved (lower overhead, good for large projects)"
+          "markdownDescription": "When to run extended static checking (`--esc`):\n- `manual` — only via the **OpenJML: Run ESC** command or editor button\n- `save` — on every save\n- `edit` — on every change (expensive; not recommended for large files)"
         },
         "openjml.specsPath": {
           "type": "string",

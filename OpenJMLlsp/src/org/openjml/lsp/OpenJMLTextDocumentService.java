@@ -9,9 +9,9 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,46 +20,55 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Handles text document lifecycle notifications with a hybrid check strategy.
+ * Handles text document lifecycle notifications.
  *
- * <p>Two trigger modes are supported via {@link OpenJMLSettings#triggerOn}:
+ * <p>Two independent checks are run per document: a fast {@code --check} pass
+ * and a slower {@code --esc} pass.  Each has its own trigger setting and its
+ * own debounce delay.  Their diagnostics are merged before publishing so that
+ * neither pass's results overwrite the other's.
+ *
+ * <p><b>--check trigger</b> ({@link OpenJMLSettings#checkTriggerOn}):
  * <ul>
- *   <li><b>edit</b> (default) — a check is scheduled on every {@code didChange};
- *       the current editor buffer (possibly unsaved) is written to a temp file
- *       and passed to OpenJML.  The file on disk is used for {@code didOpen}
- *       and {@code didSave}.</li>
- *   <li><b>save</b> — checks only on {@code didOpen} and {@code didSave}, using
- *       the file on disk directly.  {@code didChange} marks the document dirty
- *       so the editor knows diagnostics may be stale, but does not run OpenJML.
- *       This avoids per-keystroke overhead for large projects.</li>
+ *   <li>{@code "edit"} (default) — check on open and every change (debounced {@value #CHECK_DEBOUNCE_MS} ms)</li>
+ *   <li>{@code "save"} — check on open and save only</li>
  * </ul>
+ * In both modes check always runs on open and save.
  *
- * <p>In both modes {@code didOpen} and {@code didSave} always trigger a check
- * using the file on disk (no temp file needed, no content transfer).
+ * <p><b>--esc trigger</b> ({@link OpenJMLSettings#escTriggerOn}):
+ * <ul>
+ *   <li>{@code "manual"} (default) — only on explicit {@code openjml.runEsc} command</li>
+ *   <li>{@code "save"} — on every save</li>
+ *   <li>{@code "edit"} — on every change (debounced {@value #ESC_DEBOUNCE_MS} ms; expensive)</li>
+ * </ul>
+ * In "edit" and "save" modes ESC also runs when the file is first opened.
  *
- * <p>Text document sync mode is {@code Full}: each change notification carries
- * the complete current content so that the temp-file path is always accurate.
- *
- * <p>In edit mode, {@code didChange} notifications are <em>debounced</em>:
- * the check is scheduled with a {@value #DEBOUNCE_MS}-millisecond delay and
- * any preceding pending check for the same URI is cancelled.  This avoids
- * spawning a full OpenJML invocation on every keystroke.
+ * <p>Text document sync mode is {@code Full}.
  */
 public class OpenJMLTextDocumentService implements TextDocumentService {
 
-    /** Delay before an edit-mode check fires after the last keystroke. */
-    static final long DEBOUNCE_MS = 500;
+    /** Debounce delay for --check in edit mode. */
+    static final long CHECK_DEBOUNCE_MS = 500;
+
+    /** Debounce delay for --esc in edit mode (longer — ESC is expensive). */
+    static final long ESC_DEBOUNCE_MS = 2000;
 
     private final OpenJMLSettings settings;
     private LanguageClient client;
+
     private final ExecutorService          executor  = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    /** Pending debounce futures, keyed by URI. */
-    private final Map<String, ScheduledFuture<?>> pending = new ConcurrentHashMap<>();
+    /** Pending debounce futures for --check, keyed by URI. */
+    private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
 
-    /** URIs that have unsaved edits since the last save or open. */
-    private final Set<String> dirtyUris = ConcurrentHashMap.newKeySet();
+    /** Pending debounce futures for --esc, keyed by URI. */
+    private final Map<String, ScheduledFuture<?>> pendingEsc   = new ConcurrentHashMap<>();
+
+    /** Latest --check diagnostics per URI. */
+    private final Map<String, List<Diagnostic>> checkDiags = new ConcurrentHashMap<>();
+
+    /** Latest --esc diagnostics per URI. */
+    private final Map<String, List<Diagnostic>> escDiags   = new ConcurrentHashMap<>();
 
     public OpenJMLTextDocumentService(OpenJMLSettings settings) {
         this.settings = settings;
@@ -73,14 +82,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
-        dirtyUris.remove(uri);
-        // Prefer disk when the file exists (normal case); fall back to the
-        // content provided in the notification for untitled or in-memory files.
-        String filePath = CheckRunner.uriToPath(uri);
-        if (filePath != null && new java.io.File(filePath).exists()) {
-            scheduleCheckFile(uri);
-        } else {
-            scheduleCheckContent(uri, content);
+
+        // --check: always on open
+        scheduleCheckNow(uri, content);
+
+        // --esc: on open if not manual
+        if (!settings.isEscManual()) {
+            scheduleEscNow(uri, content);
         }
     }
 
@@ -89,63 +97,136 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
         String content = params.getContentChanges().get(0).getText();
-        dirtyUris.add(uri);
-        if (settings.isEditTriggered()) {
-            // edit mode: debounce — cancel any prior pending check and reschedule.
-            ScheduledFuture<?> prev = pending.put(uri,
-                    scheduler.schedule(() -> {
-                        pending.remove(uri);
-                        List<Diagnostic> diags = CheckRunner.check(uri, content, settings);
-                        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
-                    }, DEBOUNCE_MS, TimeUnit.MILLISECONDS));
-            if (prev != null) prev.cancel(false);
+
+        // --check: debounced if in edit mode
+        if (settings.isCheckOnEdit()) {
+            debounce(pendingCheck, uri,
+                    () -> runCheckContent(uri, content),
+                    CHECK_DEBOUNCE_MS);
         }
-        // save mode: do nothing until didSave fires.
+
+        // --esc: debounced if in edit mode
+        if (settings.isEscOnEdit()) {
+            debounce(pendingEsc, uri,
+                    () -> runEscContent(uri, content),
+                    ESC_DEBOUNCE_MS);
+        }
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
-        dirtyUris.remove(uri);
         cancelPending(uri);
-        // File just saved: disk now matches editor — use disk directly.
+
+        // --check: always on save
         scheduleCheckFile(uri);
+
+        // --esc: on save if escTriggerOn == "save"
+        if (settings.isEscOnSave()) {
+            scheduleEscFile(uri);
+        }
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
-        dirtyUris.remove(uri);
         cancelPending(uri);
+        checkDiags.remove(uri);
+        escDiags.remove(uri);
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+    }
+
+    /**
+     * Run ESC on the given URI immediately (for the {@code openjml.runEsc} command).
+     * Uses the file on disk; if the file does not exist the call is a no-op.
+     */
+    void scheduleEscForUri(String uri) {
+        scheduleEscFile(uri);
     }
 
     // --- scheduling helpers ---
 
-    /** Check the file on disk (no temp file). Used for open and save. */
+    private void scheduleCheckNow(String uri, String content) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath != null && new java.io.File(filePath).exists()) {
+            scheduleCheckFile(uri);
+        } else {
+            executor.submit(() -> runCheckContent(uri, content));
+        }
+    }
+
+    private void scheduleEscNow(String uri, String content) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath != null && new java.io.File(filePath).exists()) {
+            scheduleEscFile(uri);
+        } else {
+            executor.submit(() -> runEscContent(uri, content));
+        }
+    }
+
     private void scheduleCheckFile(String uri) {
         String filePath = CheckRunner.uriToPath(uri);
-        if (filePath == null) {
-            // Non-file URI (e.g. untitled:) — fall back to content-based check.
-            return;
-        }
-        executor.submit(() -> {
-            List<Diagnostic> diagnostics = CheckRunner.checkFile(filePath, uri, settings);
-            client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
-        });
+        if (filePath == null) return;
+        executor.submit(() -> runCheckFile(filePath, uri));
     }
 
-    /** Check in-memory content via a temp file. Used for untitled/in-memory files on open. */
-    private void scheduleCheckContent(String uri, String content) {
-        executor.submit(() -> {
-            List<Diagnostic> diagnostics = CheckRunner.check(uri, content, settings);
-            client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
-        });
+    private void scheduleEscFile(String uri) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath == null) return;
+        executor.submit(() -> runEscFile(filePath, uri));
     }
 
-    /** Cancel any pending debounced check for the given URI (e.g. on save or close). */
+    // --- runners (execute on the thread pool) ---
+
+    private void runCheckContent(String uri, String content) {
+        List<Diagnostic> diags = CheckRunner.check(uri, content, settings);
+        checkDiags.put(uri, diags);
+        publishMerged(uri);
+    }
+
+    private void runEscContent(String uri, String content) {
+        List<Diagnostic> diags = CheckRunner.runEsc(uri, content, settings);
+        escDiags.put(uri, diags);
+        publishMerged(uri);
+    }
+
+    private void runCheckFile(String filePath, String uri) {
+        List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings);
+        checkDiags.put(uri, diags);
+        publishMerged(uri);
+    }
+
+    private void runEscFile(String filePath, String uri) {
+        List<Diagnostic> diags = CheckRunner.runEscFile(filePath, uri, settings);
+        escDiags.put(uri, diags);
+        publishMerged(uri);
+    }
+
+    // --- diagnostic merging ---
+
+    private void publishMerged(String uri) {
+        List<Diagnostic> merged = new ArrayList<>();
+        merged.addAll(checkDiags.getOrDefault(uri, List.of()));
+        merged.addAll(escDiags.getOrDefault(uri, List.of()));
+        client.publishDiagnostics(new PublishDiagnosticsParams(uri, merged));
+    }
+
+    // --- debounce / cancel helpers ---
+
+    private void debounce(Map<String, ScheduledFuture<?>> map, String uri,
+                          Runnable task, long delayMs) {
+        ScheduledFuture<?> prev = map.put(uri,
+                scheduler.schedule(() -> {
+                    map.remove(uri);
+                    executor.submit(task);
+                }, delayMs, TimeUnit.MILLISECONDS));
+        if (prev != null) prev.cancel(false);
+    }
+
     private void cancelPending(String uri) {
-        ScheduledFuture<?> f = pending.remove(uri);
-        if (f != null) f.cancel(false);
+        ScheduledFuture<?> c = pendingCheck.remove(uri);
+        if (c != null) c.cancel(false);
+        ScheduledFuture<?> e = pendingEsc.remove(uri);
+        if (e != null) e.cancel(false);
     }
 }

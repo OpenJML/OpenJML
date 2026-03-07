@@ -1,5 +1,6 @@
 package org.openjml.lsp;
 
+import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -11,38 +12,46 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Top-level LSP server for OpenJML.
  *
- * Initial capabilities:
- *   - textDocumentSync: Full (complete document text on each change)
+ * Capabilities:
+ * <ul>
+ *   <li>textDocumentSync: Full</li>
+ *   <li>executeCommandProvider: {@code openjml.runEsc}</li>
+ * </ul>
  *
  * Configuration is received via {@code initialize} ({@code initializationOptions})
- * and {@code workspace/didChangeConfiguration}, and is forwarded to
- * {@link CheckRunner} on every check invocation.
+ * and {@code workspace/didChangeConfiguration}.
  *
  * Future capabilities (not yet implemented):
- *   - semanticTokens (JML keyword/clause highlighting)
- *   - hover (JML spec for method under cursor)
- *   - completion (JML keywords)
- *   - codeAction ("Run ESC on this method")
+ * <ul>
+ *   <li>semanticTokens — JML keyword/clause highlighting</li>
+ *   <li>hover — JML spec for method under cursor</li>
+ *   <li>completion — JML keywords</li>
+ * </ul>
  */
 public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAware {
 
-    private final OpenJMLSettings settings                       = new OpenJMLSettings();
-    private final OpenJMLTextDocumentService textDocumentService = new OpenJMLTextDocumentService(settings);
-    private final OpenJMLWorkspaceService workspaceService       = new OpenJMLWorkspaceService(settings);
-    private LanguageClient client;
+    private final OpenJMLSettings             settings            = new OpenJMLSettings();
+    private final OpenJMLTextDocumentService  textDocumentService = new OpenJMLTextDocumentService(settings);
+    private final OpenJMLWorkspaceService     workspaceService    =
+            new OpenJMLWorkspaceService(settings, textDocumentService::scheduleEscForUri);
+
     private int exitCode = 1;
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        // Apply any settings supplied in initializationOptions.
         workspaceService.applyRaw(params.getInitializationOptions());
+
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
+        caps.setExecuteCommandProvider(
+                new ExecuteCommandOptions(List.of("openjml.runEsc")));
+
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }
 
@@ -72,7 +81,6 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     @Override
     public void connect(LanguageClient client) {
-        this.client = client;
         textDocumentService.connect(client);
     }
 }

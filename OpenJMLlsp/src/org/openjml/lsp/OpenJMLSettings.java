@@ -19,61 +19,57 @@ public class OpenJMLSettings {
 
     /**
      * Path to the OpenJML specs directory, passed as {@code --specs-path}.
-     * {@code null} or empty means use the server's default (the
-     * {@code OPENJML_SPECS} environment variable set by the launcher script).
+     * {@code null} or empty means use the server's default.
      */
     public volatile String specsPath;
 
     /**
      * Path to the SMT solvers directory, passed as {@code --solvers-path}.
-     * {@code null} or empty means use the server's default (the
-     * {@code OPENJML_SOLVERS} environment variable set by the launcher script).
+     * {@code null} or empty means use the server's default.
      */
     public volatile String solversPath;
 
     /**
      * Source root(s) for resolving cross-file references, passed as
-     * {@code -sourcepath}.  Multiple roots may be separated by the OS path
-     * separator ({@code :} on Unix, {@code ;} on Windows).
-     * {@code null} or empty means no {@code -sourcepath} is passed.
+     * {@code -sourcepath}.  Colon-separated on Unix, semicolon on Windows.
      */
     public volatile String sourcePath;
 
     /**
-     * Classpath for resolving pre-compiled dependencies, passed as
-     * {@code -classpath}.  Multiple entries may be separated by the OS path
-     * separator ({@code :} on Unix, {@code ;} on Windows).
-     * {@code null} or empty means no {@code -classpath} is passed.
+     * Classpath for pre-compiled dependencies, passed as {@code -classpath}.
+     * Colon-separated on Unix, semicolon on Windows.
      */
     public volatile String classPath;
 
     /**
-     * Check mode: {@code "check"} (default, JML type-checking only) or
-     * {@code "esc"} (extended static checking via SMT solver — slower).
+     * When to run the {@code --check} pass:
+     * <ul>
+     *   <li>{@code "edit"} (default) — check on every document change (debounced)</li>
+     *   <li>{@code "save"} — check only when the file is saved</li>
+     * </ul>
+     * In both modes a check always runs when the file is first opened or saved.
      */
-    public volatile String mode = "check";
+    public volatile String checkTriggerOn = "edit";
 
     /**
-     * When to run the check:
+     * When to run the {@code --esc} pass:
      * <ul>
-     *   <li>{@code "edit"} (default) — check on every document change; the
-     *       current editor buffer (possibly unsaved) is written to a temp file
-     *       and passed to OpenJML.</li>
-     *   <li>{@code "save"} — check only when the file is saved; the file on
-     *       disk is passed directly to OpenJML, avoiding temp-file overhead.
-     *       Diagnostics update when you save, not as you type.</li>
+     *   <li>{@code "manual"} (default) — only on explicit command ({@code openjml.runEsc})</li>
+     *   <li>{@code "save"} — on every save</li>
+     *   <li>{@code "edit"} — on every document change (debounced; expensive)</li>
      * </ul>
-     * In both modes the file is also checked when it is first opened.
      */
-    public volatile String triggerOn = "edit";
+    public volatile String escTriggerOn = "manual";
 
-    /** Returns the OpenJML command-line flag for the configured mode. */
-    public String modeFlag() {
-        return "esc".equalsIgnoreCase(mode) ? "--esc" : "--check";
-    }
+    /** Returns {@code true} if --check should fire on every edit. */
+    public boolean isCheckOnEdit() { return !"save".equalsIgnoreCase(checkTriggerOn); }
 
-    /** Returns {@code true} if checks should fire on every edit. */
-    public boolean isEditTriggered() {
-        return !"save".equalsIgnoreCase(triggerOn);
-    }
+    /** Returns {@code true} if --esc should fire on every edit. */
+    public boolean isEscOnEdit()   { return "edit".equalsIgnoreCase(escTriggerOn); }
+
+    /** Returns {@code true} if --esc should fire on save. */
+    public boolean isEscOnSave()   { return "save".equalsIgnoreCase(escTriggerOn); }
+
+    /** Returns {@code true} if --esc should only fire on explicit command. */
+    public boolean isEscManual()   { return "manual".equalsIgnoreCase(escTriggerOn); }
 }

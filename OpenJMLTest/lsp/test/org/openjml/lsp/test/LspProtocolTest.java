@@ -226,7 +226,7 @@ public class LspProtocolTest {
      */
     @Test
     public void testDidChangeInSaveModeNoCheck() throws Exception {
-        setTriggerOn("save");
+        setCheckTriggerOn("save");
         // Allow the configuration change to be processed before sending didChange.
         Thread.sleep(200);
 
@@ -276,9 +276,9 @@ public class LspProtocolTest {
         client.sendNotification("textDocument/didSave", params);
     }
 
-    /** Send workspace/didChangeConfiguration to change the triggerOn setting. */
-    private void setTriggerOn(String mode) throws Exception {
-        String params = "{\"settings\":{\"openjml\":{\"triggerOn\":\"" + mode + "\"}}}";
+    /** Send workspace/didChangeConfiguration to change the checkTriggerOn setting. */
+    private void setCheckTriggerOn(String mode) throws Exception {
+        String params = "{\"settings\":{\"openjml\":{\"checkTriggerOn\":\"" + mode + "\"}}}";
         client.sendNotification("workspace/didChangeConfiguration", params);
     }
 
