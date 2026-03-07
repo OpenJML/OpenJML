@@ -2369,6 +2369,11 @@ public class JmlTreeUtils {
         return a;
      }
 
+    public JmlAnnotation makeAnnotation(int pos, ModifierKind kind) {
+        JmlAnnotation a = tokenToAnnotationAST(kind.fullAnnotation, pos, pos, null);
+        return a;
+     }
+
     public JCExpression makeLocsetUnion(DiagnosticPosition pos, List<JCExpression> locsetExprs) {
         return makeJmlMethodInvocation(pos, LocsetExtensions.unionKind, JmlPrimitiveTypes.locsetTypeKind.getType(context), locsetExprs);
     }

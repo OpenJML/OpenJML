@@ -246,7 +246,7 @@ public class escfiles3 extends EscBaseFiles {
 
     @Test
     public void helper() {
-        helpEscSimple();
+        helpEscSimple("--warn=implicit-helper");
     }
 
     @Test

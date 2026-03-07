@@ -41,6 +41,7 @@ public class WarningCategory {
     public static final Key LITERAL_DIV_BY_ZERO = new Key("literal-divide-by-zero");
     public static final Key STRICT_JML = new Key("strict-jml");
     public static final Key JML_LINT = new Key("jml-lint");
+    public static final Key HELPER = new Key("implicit-helper");
     public static final Key DEPRECATED = new Key("deprecated");
 
     public static enum WarnAction { QUIET, WARN, ERROR };
@@ -54,6 +55,7 @@ public class WarningCategory {
         map.put(LITERAL_DIV_BY_ZERO, WarnAction.WARN);
         map.put(STRICT_JML, WarnAction.WARN);
         map.put(JML_LINT, WarnAction.WARN);
+        map.put(HELPER, WarnAction.QUIET);
         map.put(DEPRECATED, WarnAction.WARN);
         return map;
     }
