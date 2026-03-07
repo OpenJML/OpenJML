@@ -8,7 +8,35 @@
   "categories": ["Linters"],
   "activationEvents": ["onLanguage:java"],
   "main": "./extension.js",
-  "contributes": {},
+  "contributes": {
+    "configuration": {
+      "title": "OpenJML",
+      "properties": {
+        "openjml.triggerOn": {
+          "type": "string",
+          "enum": ["edit", "save"],
+          "default": "edit",
+          "markdownDescription": "When to run OpenJML:\n- `edit` — check on every change (instant feedback, higher CPU)\n- `save` — check only when the file is saved (lower overhead, good for large projects)"
+        },
+        "openjml.mode": {
+          "type": "string",
+          "enum": ["check", "esc"],
+          "default": "check",
+          "markdownDescription": "Check mode:\n- `check` — JML type-checking only (fast)\n- `esc` — extended static checking via SMT solver (thorough but slow)"
+        },
+        "openjml.specsPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the OpenJML specs directory. Leave empty to use the default from the launcher script."
+        },
+        "openjml.solversPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
+        }
+      }
+    }
+  },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   }

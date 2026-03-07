@@ -37,8 +37,27 @@ public class OpenJMLSettings {
      */
     public volatile String mode = "check";
 
+    /**
+     * When to run the check:
+     * <ul>
+     *   <li>{@code "edit"} (default) — check on every document change; the
+     *       current editor buffer (possibly unsaved) is written to a temp file
+     *       and passed to OpenJML.</li>
+     *   <li>{@code "save"} — check only when the file is saved; the file on
+     *       disk is passed directly to OpenJML, avoiding temp-file overhead.
+     *       Diagnostics update when you save, not as you type.</li>
+     * </ul>
+     * In both modes the file is also checked when it is first opened.
+     */
+    public volatile String triggerOn = "edit";
+
     /** Returns the OpenJML command-line flag for the configured mode. */
     public String modeFlag() {
         return "esc".equalsIgnoreCase(mode) ? "--esc" : "--check";
+    }
+
+    /** Returns {@code true} if checks should fire on every edit. */
+    public boolean isEditTriggered() {
+        return !"save".equalsIgnoreCase(triggerOn);
     }
 }

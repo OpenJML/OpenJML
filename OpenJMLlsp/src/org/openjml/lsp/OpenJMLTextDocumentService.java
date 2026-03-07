@@ -10,28 +10,40 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Handles text document lifecycle notifications.
+ * Handles text document lifecycle notifications with a hybrid check strategy.
  *
- * On {@code didOpen} and {@code didChange}, a fresh OpenJML check is
- * scheduled asynchronously; results are published back to the client
- * via {@code textDocument/publishDiagnostics}.
+ * <p>Two trigger modes are supported via {@link OpenJMLSettings#triggerOn}:
+ * <ul>
+ *   <li><b>edit</b> (default) — a check is scheduled on every {@code didChange};
+ *       the current editor buffer (possibly unsaved) is written to a temp file
+ *       and passed to OpenJML.  The file on disk is used for {@code didOpen}
+ *       and {@code didSave}.</li>
+ *   <li><b>save</b> — checks only on {@code didOpen} and {@code didSave}, using
+ *       the file on disk directly.  {@code didChange} marks the document dirty
+ *       so the editor knows diagnostics may be stale, but does not run OpenJML.
+ *       This avoids per-keystroke overhead for large projects.</li>
+ * </ul>
  *
- * Text document sync mode is {@code Full}: each change notification
- * carries the complete current content of the document.
+ * <p>In both modes {@code didOpen} and {@code didSave} always trigger a check
+ * using the file on disk (no temp file needed, no content transfer).
  *
- * The {@link OpenJMLSettings} reference is shared with the language server
- * and workspace service; any configuration update is visible to the next
- * scheduled check.
+ * <p>Text document sync mode is {@code Full}: each change notification carries
+ * the complete current content so that the temp-file path is always accurate.
  */
 public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private final OpenJMLSettings settings;
     private LanguageClient client;
     private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    /** URIs that have unsaved edits since the last save or open. */
+    private final Set<String> dirtyUris = ConcurrentHashMap.newKeySet();
 
     public OpenJMLTextDocumentService(OpenJMLSettings settings) {
         this.settings = settings;
@@ -45,7 +57,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
-        scheduleCheck(uri, content);
+        dirtyUris.remove(uri);
+        // Prefer disk when the file exists (normal case); fall back to the
+        // content provided in the notification for untitled or in-memory files.
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath != null && new java.io.File(filePath).exists()) {
+            scheduleCheckFile(uri);
+        } else {
+            scheduleCheckContent(uri, content);
+        }
     }
 
     @Override
@@ -53,22 +73,46 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
         String content = params.getContentChanges().get(0).getText();
-        scheduleCheck(uri, content);
-    }
-
-    @Override
-    public void didClose(DidCloseTextDocumentParams params) {
-        // Clear diagnostics when the editor closes the document.
-        client.publishDiagnostics(
-                new PublishDiagnosticsParams(params.getTextDocument().getUri(), List.of()));
+        dirtyUris.add(uri);
+        if (settings.isEditTriggered()) {
+            // edit mode: check on every change using the editor buffer.
+            scheduleCheckContent(uri, content);
+        }
+        // save mode: do nothing until didSave fires.
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
-        // The check is already triggered by didChange; nothing extra on save.
+        String uri = params.getTextDocument().getUri();
+        dirtyUris.remove(uri);
+        // File just saved: disk now matches editor — use disk directly.
+        scheduleCheckFile(uri);
     }
 
-    private void scheduleCheck(String uri, String content) {
+    @Override
+    public void didClose(DidCloseTextDocumentParams params) {
+        String uri = params.getTextDocument().getUri();
+        dirtyUris.remove(uri);
+        client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+    }
+
+    // --- scheduling helpers ---
+
+    /** Check the file on disk (no temp file). Used for open and save. */
+    private void scheduleCheckFile(String uri) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath == null) {
+            // Non-file URI (e.g. untitled:) — fall back to content-based check.
+            return;
+        }
+        executor.submit(() -> {
+            List<Diagnostic> diagnostics = CheckRunner.checkFile(filePath, uri, settings);
+            client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
+        });
+    }
+
+    /** Check in-memory content via a temp file. Used for unsaved edits. */
+    private void scheduleCheckContent(String uri, String content) {
         executor.submit(() -> {
             List<Diagnostic> diagnostics = CheckRunner.check(uri, content, settings);
             client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
