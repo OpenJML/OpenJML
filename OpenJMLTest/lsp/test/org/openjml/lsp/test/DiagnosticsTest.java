@@ -88,6 +88,39 @@ public class DiagnosticsTest extends LspTestBase {
         assertFalse("Expected at least one diagnostic for malformed JML", diags.isEmpty());
     }
 
+    /**
+     * A method whose postcondition is provably satisfied must produce no ESC diagnostics.
+     * Uses only primitive int parameters to avoid spec-loading issues with class types.
+     */
+    @Test
+    public void testEscCleanMethodProducesNoDiagnostics() throws Exception {
+        String source =
+                "public class EscOk {\n" +
+                "    //@ requires x >= 0;\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int identity(int x) { return x; }\n" +
+                "}\n";
+        List<Diagnostic> diags = runEscContent("file:///EscOk.java", source);
+        assertEquals("Expected no ESC diagnostics for a provably correct method", 0, diags.size());
+    }
+
+    /**
+     * A method whose postcondition is NOT satisfied must produce at least one ESC diagnostic.
+     * The method returns x but the postcondition requires the result to be strictly greater
+     * than x, which is always false.
+     */
+    @Test
+    public void testEscPostconditionViolationProducesDiagnostic() throws Exception {
+        String source =
+                "public class EscFail {\n" +
+                "    //@ ensures \\result > x;\n" +
+                "    public int noOp(int x) { return x; }\n" +
+                "}\n";
+        List<Diagnostic> diags = runEscContent("file:///EscFail.java", source);
+        assertFalse("Expected at least one ESC diagnostic for postcondition violation",
+                diags.isEmpty());
+    }
+
     /** Diagnostics carry a non-null source field identifying OpenJML. */
     @Test
     public void testDiagnosticSourceIsOpenjml() throws Exception {

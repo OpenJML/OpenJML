@@ -64,11 +64,27 @@ function activate(context) {
     });
     context.subscriptions.push(client);
 
-    // Note: vscode-languageclient's ExecuteCommandFeature automatically registers
-    // 'openjml.runEsc' as a VS Code command when the server declares it in
-    // executeCommandProvider.  That handler forwards clicks to the server via
-    // workspace/executeCommand.  We must NOT call registerCommand here — doing so
-    // causes "command already exists" which crashes activate() and kills the connection.
+    // Register the Run ESC command manually so we can inject the active file's URI.
+    // The server does NOT advertise openjml.runEsc in executeCommandProvider; if it did,
+    // vscode-languageclient's ExecuteCommandFeature would auto-register the command and
+    // invoke it with no arguments, so the URI would never reach the server.
+    const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.languageId !== 'java') {
+            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+            return;
+        }
+        const uri = editor.document.uri.toString();
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEsc',
+                arguments: [uri],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(escCmd);
 }
 
 function deactivate() {

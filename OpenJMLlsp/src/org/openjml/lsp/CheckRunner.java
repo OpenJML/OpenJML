@@ -47,6 +47,11 @@ public class CheckRunner {
 
     // --- public API: --esc ---
 
+    /** Run {@code --esc} on in-memory content with default settings. */
+    public static List<org.eclipse.lsp4j.Diagnostic> runEsc(String uri, String content) {
+        return runEsc(uri, content, new OpenJMLSettings());
+    }
+
     /** Run {@code --esc} on in-memory content. */
     public static List<org.eclipse.lsp4j.Diagnostic> runEsc(String uri, String content,
                                                              OpenJMLSettings settings) {
