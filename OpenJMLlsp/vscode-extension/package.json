@@ -1,0 +1,15 @@
+{
+  "name": "openjml",
+  "displayName": "OpenJML",
+  "description": "JML specification type-checking for Java via OpenJML",
+  "version": "0.0.1",
+  "publisher": "openjml",
+  "engines": { "vscode": "^1.75.0" },
+  "categories": ["Linters"],
+  "activationEvents": ["onLanguage:java"],
+  "main": "./extension.js",
+  "contributes": {},
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}
