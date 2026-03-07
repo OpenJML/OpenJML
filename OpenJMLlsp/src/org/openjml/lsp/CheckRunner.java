@@ -5,6 +5,7 @@ import org.openjml.IAPI;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -60,16 +61,7 @@ public class CheckRunner {
             Path tempFile = tempDir.resolve(baseName);
             Files.writeString(tempFile, content);
 
-            List<String> args = new ArrayList<>();
-            args.add(settings.modeFlag());
-            if (settings.specsPath != null && !settings.specsPath.isEmpty()) {
-                args.add("--specs-path");
-                args.add(settings.specsPath);
-            }
-            if (settings.solversPath != null && !settings.solversPath.isEmpty()) {
-                args.add("--solvers-path");
-                args.add(settings.solversPath);
-            }
+            List<String> args = buildArgs(settings);
             args.add(tempFile.toString());
             api.execute(args.toArray(new String[0]));
 
@@ -85,6 +77,54 @@ public class CheckRunner {
                 } catch (IOException ignored) {}
             }
         }
+    }
+
+    /**
+     * Check a file that is already on disk (e.g., just opened or just saved).
+     * Passes the real file path to OpenJML — no temp file needed.
+     *
+     * @param filePath absolute path of the file on disk
+     * @param uri      the LSP document URI (used to label diagnostics)
+     * @param settings user-configured options
+     * @return list of LSP Diagnostic objects; empty on error
+     */
+    public static List<org.eclipse.lsp4j.Diagnostic> checkFile(String filePath, String uri,
+                                                                OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out = new PrintWriter(new StringWriter());
+        var api = IAPI.make(out, listener);
+
+        List<String> args = buildArgs(settings);
+        args.add(filePath);
+        api.execute(args.toArray(new String[0]));
+
+        return listener.toLspDiagnostics(filePath, uri);
+    }
+
+    /**
+     * Convert a {@code file://} URI to an absolute file path, or {@code null}
+     * if the URI is not a file URI or cannot be parsed.
+     */
+    public static String uriToPath(String uri) {
+        try {
+            return URI.create(uri).getPath();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static List<String> buildArgs(OpenJMLSettings settings) {
+        List<String> args = new ArrayList<>();
+        args.add(settings.modeFlag());
+        if (settings.specsPath != null && !settings.specsPath.isEmpty()) {
+            args.add("--specs-path");
+            args.add(settings.specsPath);
+        }
+        if (settings.solversPath != null && !settings.solversPath.isEmpty()) {
+            args.add("--solvers-path");
+            args.add(settings.solversPath);
+        }
+        return args;
     }
 
     private static String extractBaseName(String uri) {

@@ -3,22 +3,35 @@
 /**
  * OpenJML VS Code extension.
  *
- * Starts the OpenJML LSP server (openjml-lsp) as a child process and
- * connects to it via stdio.  The server performs JML type-checking
- * (--check) on every Java file that is opened or edited.
+ * Starts the OpenJML LSP server (openjml-lsp) as a child process connected
+ * via stdio, and passes user settings (triggerOn, mode, specsPath,
+ * solversPath) to the server both at startup (initializationOptions) and
+ * whenever they change (workspace/didChangeConfiguration).
  *
- * The server script is resolved relative to this extension file so that
- * the extension works from any working directory.
+ * Settings are in VS Code's settings.json under the "openjml" key, e.g.:
+ *   "openjml.triggerOn": "save"
+ *   "openjml.mode": "check"
  */
 
 const path   = require('path');
+const vscode = require('vscode');
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
 
 let client;
 
+function getSettings() {
+    const cfg = vscode.workspace.getConfiguration('openjml');
+    return {
+        triggerOn:   cfg.get('triggerOn',   'edit'),
+        mode:        cfg.get('mode',        'check'),
+        specsPath:   cfg.get('specsPath',   ''),
+        solversPath: cfg.get('solversPath', ''),
+    };
+}
+
 function activate(context) {
-    // openjml-lsp lives one directory up from the extension folder.
     const serverScript = path.join(__dirname, '..', 'openjml-lsp');
+    console.log('OpenJML: activating, server script =', serverScript);
 
     const serverOptions = {
         command:   serverScript,
@@ -26,8 +39,13 @@ function activate(context) {
     };
 
     const clientOptions = {
-        // Attach to all Java files in any workspace folder.
         documentSelector: [{ scheme: 'file', language: 'java' }],
+        // Send current settings to the server on startup.
+        initializationOptions: getSettings(),
+        // Re-send settings whenever the openjml configuration section changes.
+        synchronize: {
+            configurationSection: 'openjml',
+        },
     };
 
     client = new LanguageClient(
@@ -37,7 +55,11 @@ function activate(context) {
         clientOptions
     );
 
-    client.start();
+    try {
+        client.start();
+    } catch (err) {
+        console.error('OpenJML: failed to start language client:', err);
+    }
     context.subscriptions.push(client);
 }
 

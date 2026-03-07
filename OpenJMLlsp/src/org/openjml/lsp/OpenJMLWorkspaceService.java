@@ -40,28 +40,34 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     public void didChangeConfiguration(DidChangeConfigurationParams params) {
         Object raw = params.getSettings();
         if (raw == null) return;
-        // LSP4J deserializes JSON payloads as JsonElement; handle both cases.
-        JsonElement element = (raw instanceof JsonElement)
-                ? (JsonElement) raw
-                : GSON.toJsonTree(raw);
+        JsonElement element = toJsonElement(raw);
         if (!element.isJsonObject()) return;
-        JsonElement openjml = element.getAsJsonObject().get("openjml");
-        if (openjml == null || !openjml.isJsonObject()) return;
-        applyUpdate(GSON.fromJson(openjml, OpenJMLSettings.class));
+        JsonObject obj = element.getAsJsonObject();
+
+        // VS Code sends the configurationSection value directly, so the object
+        // contains the settings fields (triggerOn, mode, …) at the top level.
+        // Manual/test clients wrap them under an "openjml" key.  Handle both.
+        JsonElement nested = obj.get("openjml");
+        OpenJMLSettings src = (nested != null && nested.isJsonObject())
+                ? GSON.fromJson(nested, OpenJMLSettings.class)
+                : GSON.fromJson(obj,    OpenJMLSettings.class);
+        applyUpdate(src);
     }
 
     /**
-     * Apply settings from a raw JSON object (used by {@code initializationOptions}).
+     * Apply settings from a raw object (used by {@code initializationOptions}).
      * The object is deserialized directly as {@link OpenJMLSettings} — no
      * enclosing {@code "openjml"} key is expected.
      */
     void applyRaw(Object raw) {
         if (raw == null) return;
-        JsonElement element = (raw instanceof JsonElement)
-                ? (JsonElement) raw
-                : GSON.toJsonTree(raw);
+        JsonElement element = toJsonElement(raw);
         if (!element.isJsonObject()) return;
         applyUpdate(GSON.fromJson(element, OpenJMLSettings.class));
+    }
+
+    private static JsonElement toJsonElement(Object raw) {
+        return (raw instanceof JsonElement) ? (JsonElement) raw : GSON.toJsonTree(raw);
     }
 
     private void applyUpdate(OpenJMLSettings src) {
