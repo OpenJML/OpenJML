@@ -28,7 +28,10 @@ JARFILE := $(LSPROOT)/build/openjml-lsp.jar
 ## incompatible with the classpath-based build)
 JAVASRC := $(shell find $(LSPROOT)/src -name '*.java' ! -name 'module-info.java')
 
-.PHONY: all jar compile libs clean .FORCE
+## Staging directory used by the release target
+RELEASE_STAGE := $(LSPROOT)/release-stage
+
+.PHONY: all jar compile libs release clean .FORCE
 
 all: jar
 
@@ -65,7 +68,18 @@ jar: compile
 	       --main-class=org.openjml.lsp.ServerLauncher \
 	       -C $(CLASSES) .
 
+## Stage LSP files for inclusion in an OpenJML release zip.
+## Produces $(RELEASE_STAGE)/openjml-lsp  (launcher, goes to release root)
+##      and $(RELEASE_STAGE)/lsp/          (jars, goes to release root as lsp/)
+release: jar
+	rm -rf $(RELEASE_STAGE)
+	mkdir -p $(RELEASE_STAGE)/lsp
+	cp $(LSPROOT)/openjml-lsp $(RELEASE_STAGE)/
+	chmod ugo+x $(RELEASE_STAGE)/openjml-lsp
+	cp $(JARFILE) $(RELEASE_STAGE)/lsp/
+	cp $(LSP4J_JAR) $(LSP4J_RPC_JAR) $(RELEASE_STAGE)/lsp/
+
 clean: .FORCE
-	rm -rf $(LSPROOT)/build
+	rm -rf $(LSPROOT)/build $(RELEASE_STAGE)
 
 .FORCE:

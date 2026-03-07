@@ -33,7 +33,8 @@ function getSettings() {
 }
 
 function activate(context) {
-    const serverScript = path.join(__dirname, '..', 'openjml-lsp');
+    const cfg = vscode.workspace.getConfiguration('openjml');
+    const serverScript = cfg.get('serverPath', '') || path.join(__dirname, '..', 'openjml-lsp');
     console.log('OpenJML: activating, server script =', serverScript);
 
     const serverOptions = {
