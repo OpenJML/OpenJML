@@ -64,23 +64,29 @@ function activate(context) {
     context.subscriptions.push(client);
 
     // Command: Run ESC on the currently active Java file.
-    const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
-            return;
-        }
-        const uri = editor.document.uri.toString();
-        try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEsc',
-                arguments: [uri],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
-        }
-    });
-    context.subscriptions.push(escCmd);
+    // Wrapped in try-catch because VS Code throws if the command is already registered
+    // (e.g., when both a development instance and an installed instance are active).
+    try {
+        const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.languageId !== 'java') {
+                vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+                return;
+            }
+            const uri = editor.document.uri.toString();
+            try {
+                await client.sendRequest('workspace/executeCommand', {
+                    command:   'openjml.runEsc',
+                    arguments: [uri],
+                });
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+            }
+        });
+        context.subscriptions.push(escCmd);
+    } catch (err) {
+        console.warn('OpenJML: openjml.runEsc already registered (two instances active?):', err.message);
+    }
 }
 
 function deactivate() {
