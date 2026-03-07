@@ -1,6 +1,5 @@
 package org.openjml.lsp;
 
-import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -12,7 +11,6 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -49,8 +47,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
-        caps.setExecuteCommandProvider(
-                new ExecuteCommandOptions(List.of("openjml.runEsc")));
+        // Do NOT advertise openjml.runEsc in executeCommandProvider.
+        // If we did, vscode-languageclient's ExecuteCommandFeature would auto-register
+        // the VS Code command and invoke it with no arguments, so the URI would never
+        // be passed to the server.  Instead the extension registers the command manually
+        // and sends workspace/executeCommand with the active file's URI explicitly.
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

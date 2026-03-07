@@ -30,4 +30,16 @@ public abstract class LspTestBase {
     protected List<Diagnostic> checkContent(String uri, String content) {
         return CheckRunner.check(uri, content);
     }
+
+    /**
+     * Run an OpenJML {@code --esc} pass on the given source content and
+     * return the resulting LSP diagnostics.
+     *
+     * @param uri     a document URI, e.g. {@code "file:///com/example/MyClass.java"}
+     * @param content Java/JML source text
+     * @return the list of LSP Diagnostics reported by OpenJML
+     */
+    protected List<Diagnostic> runEscContent(String uri, String content) {
+        return CheckRunner.runEsc(uri, content);
+    }
 }
