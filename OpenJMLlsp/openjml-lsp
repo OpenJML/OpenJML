@@ -20,6 +20,12 @@ fi
 # Set OPENJML_EXPORTS and optionally OPENJML_JVM
 . "$SRC/setup-exports"
 
+# Tell OpenJML where to find the built JDK (installation root), specs, and solvers.
+# Allow environment overrides so users can point to alternate installations.
+export OPENJML_INSTALL="${OPENJML_INSTALL:-$BUILDJDK}"
+export OPENJML_SPECS="${OPENJML_SPECS:-$DIR/../../Specs/specs}"
+export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$DIR/../../Solvers}"
+
 JARFILE="$DIR/build/openjml-lsp.jar"
 if [ ! -f "$JARFILE" ]; then
     echo "ERROR: $JARFILE not found; run 'make' in $DIR first." >&2
@@ -45,6 +51,14 @@ GSON_EXPORTS="\
 # Use explicit filenames; globs in -cp are not expanded by the JVM.
 LSP4J_VERSION=1.0.0
 LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
+
+# Sanity-check key paths and log to stderr (visible in VS Code Output panel).
+echo "openjml-lsp: DIR=$DIR" >&2
+echo "openjml-lsp: BUILDJDK=$BUILDJDK" >&2
+echo "openjml-lsp: JARFILE=$JARFILE" >&2
+echo "openjml-lsp: LSP4J_CP=$LSP4J_CP" >&2
+[ -f "$JARFILE" ]          || { echo "ERROR: missing $JARFILE" >&2; exit 1; }
+[ -f "${LSP4J_CP%%:*}" ]   || { echo "ERROR: missing ${LSP4J_CP%%:*}" >&2; exit 1; }
 
 exec "$BUILDJDK/bin/java" \
      $OPENJML_JVM \
