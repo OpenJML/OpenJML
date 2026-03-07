@@ -73,6 +73,7 @@ run-tests: compile
 	   OPENJML_SPECS="$(SRC)/../../Specs/specs" \
 	   OPENJML_SOLVERS="$(SRC)/../../Solvers" \
 	   "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	     -Dlsp.testdata=$(LSPTEST)/testdata \
 	     -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
 	     org.junit.runner.JUnitCore \
 	     org.openjml.lsp.test.DiagnosticsTest \
