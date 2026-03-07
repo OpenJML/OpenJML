@@ -37,6 +37,18 @@
           "default": "",
           "order": 4,
           "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
+        },
+        "openjml.sourcePath": {
+          "type": "string",
+          "default": "",
+          "order": 5,
+          "description": "Source root(s) for resolving cross-file references (-sourcepath). Separate multiple roots with ':' (Unix) or ';' (Windows). Leave empty for single-file projects."
+        },
+        "openjml.classPath": {
+          "type": "string",
+          "default": "",
+          "order": 6,
+          "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
         }
       }
     }
