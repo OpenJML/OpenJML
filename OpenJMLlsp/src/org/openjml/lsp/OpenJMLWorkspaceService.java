@@ -5,35 +5,36 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.WorkspaceService;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Handles LSP workspace-level notifications.
  *
- * {@code workspace/didChangeConfiguration} is handled: the settings object
- * is expected to have an {@code "openjml"} key whose value maps to
- * {@link OpenJMLSettings} fields.  Example VS Code settings.json fragment:
- * <pre>
- * {
- *   "openjml": {
- *     "specsPath":   "/path/to/Specs/specs",
- *     "solversPath": "/path/to/Solvers",
- *     "mode":        "check"
- *   }
- * }
- * </pre>
+ * <p>{@code workspace/didChangeConfiguration} applies updated settings.
+ * Only non-null fields in the incoming JSON overwrite current settings.
  *
- * Only non-null fields in the incoming JSON object overwrite the current
- * settings, so a partial update (e.g., just {@code mode}) is safe.
+ * <p>{@code workspace/executeCommand} with command {@code "openjml.runEsc"}
+ * and a single URI argument triggers an immediate ESC check on that file.
  */
 public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private static final Gson GSON = new Gson();
 
     private final OpenJMLSettings settings;
+    private final Consumer<String> escRequester;
 
-    public OpenJMLWorkspaceService(OpenJMLSettings settings) {
-        this.settings = settings;
+    /**
+     * @param settings      shared settings object
+     * @param escRequester  called with the URI when {@code openjml.runEsc} is requested
+     */
+    public OpenJMLWorkspaceService(OpenJMLSettings settings, Consumer<String> escRequester) {
+        this.settings     = settings;
+        this.escRequester = escRequester;
     }
 
     @Override
@@ -44,8 +45,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (!element.isJsonObject()) return;
         JsonObject obj = element.getAsJsonObject();
 
-        // VS Code sends the configurationSection value directly, so the object
-        // contains the settings fields (triggerOn, mode, …) at the top level.
+        // VS Code sends the configurationSection value directly (fields at top level).
         // Manual/test clients wrap them under an "openjml" key.  Handle both.
         JsonElement nested = obj.get("openjml");
         OpenJMLSettings src = (nested != null && nested.isJsonObject())
@@ -54,10 +54,20 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         applyUpdate(src);
     }
 
+    @Override
+    public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
+        if ("openjml.runEsc".equals(params.getCommand()) && escRequester != null) {
+            List<?> args = params.getArguments();
+            if (args != null && !args.isEmpty()) {
+                String uri = String.valueOf(args.get(0));
+                escRequester.accept(uri);
+            }
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
     /**
      * Apply settings from a raw object (used by {@code initializationOptions}).
-     * The object is deserialized directly as {@link OpenJMLSettings} — no
-     * enclosing {@code "openjml"} key is expected.
      */
     void applyRaw(Object raw) {
         if (raw == null) return;
@@ -71,12 +81,12 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     }
 
     private void applyUpdate(OpenJMLSettings src) {
-        if (src.specsPath   != null) settings.specsPath   = src.specsPath;
-        if (src.solversPath != null) settings.solversPath = src.solversPath;
-        if (src.sourcePath  != null) settings.sourcePath  = src.sourcePath;
-        if (src.classPath   != null) settings.classPath   = src.classPath;
-        if (src.mode        != null) settings.mode        = src.mode;
-        if (src.triggerOn   != null) settings.triggerOn   = src.triggerOn;
+        if (src.specsPath       != null) settings.specsPath       = src.specsPath;
+        if (src.solversPath     != null) settings.solversPath     = src.solversPath;
+        if (src.sourcePath      != null) settings.sourcePath      = src.sourcePath;
+        if (src.classPath       != null) settings.classPath       = src.classPath;
+        if (src.checkTriggerOn  != null) settings.checkTriggerOn  = src.checkTriggerOn;
+        if (src.escTriggerOn    != null) settings.escTriggerOn    = src.escTriggerOn;
     }
 
     @Override
