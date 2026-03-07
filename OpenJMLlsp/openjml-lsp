@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+## Launch the OpenJML LSP server.
+## Communicates with the editor client via stdin/stdout.
+## Invoke from your editor's LSP client configuration, e.g.:
+##   "command": ["path/to/OpenJMLlsp/openjml-lsp"]
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC="$DIR/../OpenJMLsrc"
+
+# Locate the built JDK (build/*/jdk)
+BUILDJDK=$(echo "$SRC"/build/*/jdk)
+if [ ! -d "$BUILDJDK" ]; then
+    echo "ERROR: OpenJML build not found at $SRC/build/*/jdk" >&2
+    echo "Run 'make openjml' in $SRC first." >&2
+    exit 1
+fi
+
+# Set OPENJML_EXPORTS and optionally OPENJML_JVM
+. "$SRC/setup-exports"
+
+JARFILE="$DIR/build/openjml-lsp.jar"
+if [ ! -f "$JARFILE" ]; then
+    echo "ERROR: $JARFILE not found; run 'make' in $DIR first." >&2
+    exit 1
+fi
+
+# jdk.compiler bundles Gson internally (not exported by default).
+# LSP4J uses Gson for JSON-RPC serialisation, so we must export jdk.compiler's
+# Gson packages to the unnamed module.  Do NOT put a separate Gson jar on the
+# classpath — that would create a split-package the JVM refuses.
+GSON_EXPORTS="\
+  --add-exports=jdk.compiler/com.google.gson=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.annotations=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.bind=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.bind.util=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.reflect=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.sql=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.reflect=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED"
+
+# LSP4J jars only — no Gson jar (using jdk.compiler's bundled Gson instead)
+LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-*.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-*.jar"
+
+exec "$BUILDJDK/bin/java" \
+     $OPENJML_JVM \
+     $OPENJML_EXPORTS \
+     $GSON_EXPORTS \
+     -cp "$JARFILE:$LSP4J_CP" \
+     org.openjml.lsp.ServerLauncher "$@"
