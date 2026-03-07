@@ -56,11 +56,11 @@ function activate(context) {
         clientOptions
     );
 
-    try {
-        client.start();
-    } catch (err) {
-        console.error('OpenJML: failed to start language client:', err);
-    }
+    client.start().then(() => {
+        console.log('OpenJML: server started successfully');
+    }).catch(err => {
+        console.error('OpenJML: server failed to start:', err?.message ?? err);
+    });
     context.subscriptions.push(client);
 
     // Command: Run ESC on the currently active Java file.
