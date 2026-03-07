@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 
+import java.io.PrintStream;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -15,8 +16,14 @@ import java.util.concurrent.ExecutionException;
 public class ServerLauncher {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
+        // OpenJML (javac) writes diagnostics and other output to System.out.
+        // Capture the real stdout for the LSP stream BEFORE redirecting System.out
+        // to stderr, so that OpenJML output never corrupts the LSP wire protocol.
+        PrintStream lspOut = System.out;
+        System.setOut(System.err);
+
         var server   = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, System.in, System.out);
+        var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut);
 
         LanguageClient client = launcher.getRemoteProxy();
         server.connect(client);
