@@ -22,11 +22,20 @@ import java.util.concurrent.Executors;
  *
  * Text document sync mode is {@code Full}: each change notification
  * carries the complete current content of the document.
+ *
+ * The {@link OpenJMLSettings} reference is shared with the language server
+ * and workspace service; any configuration update is visible to the next
+ * scheduled check.
  */
 public class OpenJMLTextDocumentService implements TextDocumentService {
 
+    private final OpenJMLSettings settings;
     private LanguageClient client;
     private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    public OpenJMLTextDocumentService(OpenJMLSettings settings) {
+        this.settings = settings;
+    }
 
     public void connect(LanguageClient client) {
         this.client = client;
@@ -61,7 +70,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void scheduleCheck(String uri, String content) {
         executor.submit(() -> {
-            List<Diagnostic> diagnostics = CheckRunner.check(uri, content);
+            List<Diagnostic> diagnostics = CheckRunner.check(uri, content, settings);
             client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
         });
     }
