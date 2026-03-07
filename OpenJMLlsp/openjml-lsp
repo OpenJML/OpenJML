@@ -41,8 +41,10 @@ GSON_EXPORTS="\
   --add-exports=jdk.compiler/com.google.gson.reflect=ALL-UNNAMED \
   --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED"
 
-# LSP4J jars only — no Gson jar (using jdk.compiler's bundled Gson instead)
-LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-*.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-*.jar"
+# LSP4J jars only — no Gson jar (using jdk.compiler's bundled Gson instead).
+# Use explicit filenames; globs in -cp are not expanded by the JVM.
+LSP4J_VERSION=1.0.0
+LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 
 exec "$BUILDJDK/bin/java" \
      $OPENJML_JVM \
