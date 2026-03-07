@@ -1,10 +1,4 @@
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Hashtable.jml:83: warning: A method that overrides a helper method must be marked helper
-    public synchronized int size();
-    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Map.jml:101: warning: Associated declaration: /Users/davidcok/projects/OpenJML21/Specs/specs/java/util/Hashtable.jml:83:
-    /*@ spec_pure helper @*/
-                  ^
-test/helper/Helper.java:15: warning: A method that overrides a helper method must be marked helper
+test/helper/Helper.java:15: warning: [implicit-helper] A method that overrides a helper method is implicitly helper
   @Override
   ^
 test/helper/Helper.java:4: warning: Associated declaration: test/helper/Helper.java:15:
@@ -42,5 +36,5 @@ test/helper/Helper.java:13: verify: Associated declaration
              ^
 Completed proof of A.mm() with prover !!!! - with warnings
 Completed proving methods in A
-4 warnings
+2 warnings
 4 verification failures

@@ -1223,12 +1223,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
                     "jml.message", "Array allocations are not permitted in strictly_pure methods");
         }
-        super.visitNewArray(tree);
-        if (!quantifiedExprs.isEmpty()) {
-            // FIXME - it appears this gets triggered when specs with constructors
-            //    		System.out.println("QUANTIFIERS " + Arrays.toString(quantifiedExprs.toArray()));
-            //        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
+        var hasNullable = tree.elemtype instanceof JCAnnotatedType at ? hasAnnotation(at.annotations, Modifiers.NULLABLE) : false;
+        var hasNonNull = tree.elemtype instanceof JCAnnotatedType at ? hasAnnotation(at.annotations, Modifiers.NON_NULL) : false;
+        var defNullity = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
+        //System.out.println("HAS " + hasNullable + " " + hasNonNull + " " + defNullity);
+        if (tree.elems == null) {
+            if (hasNonNull && !(tree.elemtype instanceof JCPrimitiveTypeTree )) {
+                utils.error(tree.elemtype, "jml.message", "The element type must be @Nullable");
+            }
+            var ann = treeutils.makeAnnotation(tree.elemtype.pos, Modifiers.NON_NULL);
+            var a = treeutils.makeAnnotation(tree.elemtype.pos, Modifiers.NULLABLE);
+            attribAnnotationTypes(List.<JCAnnotation>of(a, ann), env);
+            //System.out.println("ANNS " + a + " " + ann + " " + a.type + " " + ann.type + " " + hasNonNull + " " + tree.elemtype + " " + tree.elemtype.getClass());
+            if (!hasNullable && !hasNonNull) tree.elemtype = jmlMaker.AnnotatedType(List.<JCAnnotation>of(a), tree.elemtype);
+            // FIXME - need also to handle multi-dimensional arrays
         }
+        super.visitNewArray(tree);
+        //System.out.println("NEWARRAY " + tree.type + " " + tree.elemtype + " " + tree.dims);
     }
     
     @Override
@@ -1856,15 +1867,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     );
                             
                     }
-//                    var parentSpecs = specs.getAttrSpecs(ms);  // FIXME - this line causes unchecked cast warnings in List.jml??
-//                    if (parentSpecs != null) { // FIXME - why might the parent not have specs?
-//                        var th = utils.findModifier(parentSpecs.mods, HELPER);
-//                        if (th != null && utils.findModifier(mods,HELPER) == null) {
-//                            //utils.warningAndAssociatedDeclaration(log.currentSourceFile(), mods.pos, th.source, th.pos,
-//                            //        "jml.message", "A method that overrides a helper method must be marked helper");
-//                            mods.jmlmods.add(th);
-//                        }
-//                    }
+                    var pmods = specs.getSpecsModifiers(ms);  // FIXME - this line causes unchecked cast warnings in List.jml??
+                    if (pmods != null) { // FIXME - why might the parent not have specs?
+                        var th = utils.findModifier(pmods, HELPER);
+                        if (th != null && utils.findModifier(mods,HELPER) == null) {
+                            utils.warning(WarningCategory.HELPER, log.currentSourceFile(), mods.pos, th.source, th.pos,
+                                    "jml.message", "A method that overrides a helper method is implicitly helper");
+                            mods.jmlmods.add(th);
+                        }
+                    }
                 }
 
             } else { // Constructor
