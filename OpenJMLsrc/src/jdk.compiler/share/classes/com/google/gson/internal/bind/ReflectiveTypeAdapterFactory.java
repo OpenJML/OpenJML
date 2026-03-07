@@ -109,8 +109,6 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     if (!Object.class.isAssignableFrom(raw)) {
       return null; // it's a primitive!
     }
-    System.out.println("NO CUSTOM ADAPTER FOR " + type);
-    if (true) return null;
 
     // Don't allow using reflection on anonymous and local classes because synthetic fields for
     // captured enclosing values make this unreliable

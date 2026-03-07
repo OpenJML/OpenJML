@@ -19,6 +19,10 @@ import java.util.concurrent.CompletableFuture;
  * Initial capabilities:
  *   - textDocumentSync: Full (complete document text on each change)
  *
+ * Configuration is received via {@code initialize} ({@code initializationOptions})
+ * and {@code workspace/didChangeConfiguration}, and is forwarded to
+ * {@link CheckRunner} on every check invocation.
+ *
  * Future capabilities (not yet implemented):
  *   - semanticTokens (JML keyword/clause highlighting)
  *   - hover (JML spec for method under cursor)
@@ -27,13 +31,16 @@ import java.util.concurrent.CompletableFuture;
  */
 public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAware {
 
-    private final OpenJMLTextDocumentService textDocumentService = new OpenJMLTextDocumentService();
-    private final OpenJMLWorkspaceService workspaceService       = new OpenJMLWorkspaceService();
+    private final OpenJMLSettings settings                       = new OpenJMLSettings();
+    private final OpenJMLTextDocumentService textDocumentService = new OpenJMLTextDocumentService(settings);
+    private final OpenJMLWorkspaceService workspaceService       = new OpenJMLWorkspaceService(settings);
     private LanguageClient client;
     private int exitCode = 1;
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+        // Apply any settings supplied in initializationOptions.
+        workspaceService.applyRaw(params.getInitializationOptions());
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         return CompletableFuture.completedFuture(new InitializeResult(caps));

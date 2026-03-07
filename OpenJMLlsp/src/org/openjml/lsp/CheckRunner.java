@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -25,13 +26,26 @@ import java.util.List;
 public class CheckRunner {
 
     /**
-     * Check the given source content and return LSP diagnostics.
+     * Check the given source content using default settings and return LSP diagnostics.
      *
      * @param uri     the LSP document URI (used to label diagnostics)
      * @param content the current source text
      * @return list of LSP Diagnostic objects; empty on I/O failure
      */
     public static List<org.eclipse.lsp4j.Diagnostic> check(String uri, String content) {
+        return check(uri, content, new OpenJMLSettings());
+    }
+
+    /**
+     * Check the given source content and return LSP diagnostics.
+     *
+     * @param uri      the LSP document URI (used to label diagnostics)
+     * @param content  the current source text
+     * @param settings user-configured options (specs path, solvers path, mode)
+     * @return list of LSP Diagnostic objects; empty on I/O failure
+     */
+    public static List<org.eclipse.lsp4j.Diagnostic> check(String uri, String content,
+                                                            OpenJMLSettings settings) {
         var listener = new LspDiagnosticListener();
         // Discard non-diagnostic output; diagnostics come through the listener.
         var out = new PrintWriter(new StringWriter());
@@ -46,7 +60,18 @@ public class CheckRunner {
             Path tempFile = tempDir.resolve(baseName);
             Files.writeString(tempFile, content);
 
-            api.execute("--check", tempFile.toString());
+            List<String> args = new ArrayList<>();
+            args.add(settings.modeFlag());
+            if (settings.specsPath != null && !settings.specsPath.isEmpty()) {
+                args.add("--specs-path");
+                args.add(settings.specsPath);
+            }
+            if (settings.solversPath != null && !settings.solversPath.isEmpty()) {
+                args.add("--solvers-path");
+                args.add(settings.solversPath);
+            }
+            args.add(tempFile.toString());
+            api.execute(args.toArray(new String[0]));
 
             return listener.toLspDiagnostics(tempFile.toString(), uri);
         } catch (IOException e) {
