@@ -24,8 +24,9 @@ MAVEN := https://repo1.maven.org/maven2
 CLASSES := $(LSPROOT)/build/classes
 JARFILE := $(LSPROOT)/build/openjml-lsp.jar
 
-## All Java source files in the server
-JAVASRC := $(shell find $(LSPROOT)/src -name '*.java')
+## All Java source files in the server (exclude module-info.java — Eclipse artifact,
+## incompatible with the classpath-based build)
+JAVASRC := $(shell find $(LSPROOT)/src -name '*.java' ! -name 'module-info.java')
 
 .PHONY: all jar compile libs clean .FORCE
 
