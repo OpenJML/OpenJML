@@ -21,7 +21,10 @@ public class escall3 extends EscBase {
         addOptions("--prover=Z");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
-                ,"/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-macos/Z.X",-1
+                ,oneof(
+                        seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-macos/Z.X",-1)
+                        ,seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-linux/Z.X",-1)
+                    )
                 ,"/tt/TestJava.java: error: The executable for prover Z is not specified - use -exec or define an openjml.prover.... property",-1
                 );
     }

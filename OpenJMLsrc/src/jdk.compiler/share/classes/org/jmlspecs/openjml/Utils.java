@@ -1817,6 +1817,11 @@ public class Utils {
     public void warning(WarningCategory.Key category, String key, Object ... args) {
         warning(category, (JavaFileObject)null, null, key, args);
     }
+    
+    public void warning(WarningCategory.Key category, JavaFileObject source, int pos, JavaFileObject asource, int apos, String key, String... args) {
+        warning(category, source, new DiagnosticPositionSE(pos, pos), asource, new DiagnosticPositionSE(apos, apos), args[0]); // FIXME
+    }
+
 
     public void warning(WarningCategory.Key category, JavaFileObject source, DiagnosticPosition pos, JavaFileObject asource, DiagnosticPosition apos, String message) {
         var wt = WarningCategory.instance(context).action(category);

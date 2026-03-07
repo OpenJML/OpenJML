@@ -1,6 +1,7 @@
 Value	Default	Key
 WARN	WARN	deprecated
 WARN	WARN	implicit-everything
+QUIET	QUIET	implicit-helper
 WARN	WARN	jml-lint
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
@@ -12,6 +13,7 @@ error: no source files
 Value	Default	Key
 WARN	WARN	deprecated
 WARN	WARN	implicit-everything
+QUIET	QUIET	implicit-helper
 WARN	WARN	jml-lint
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
@@ -23,6 +25,7 @@ error: no source files
 Value	Default	Key
 WARN	WARN	deprecated
 WARN	WARN	implicit-everything
+QUIET	QUIET	implicit-helper
 WARN	WARN	jml-lint
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
@@ -34,6 +37,7 @@ error: no source files
 Value	Default	Key
 WARN	WARN	deprecated
 WARN	WARN	implicit-everything
+QUIET	QUIET	implicit-helper
 WARN	WARN	jml-lint
 WARN	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
@@ -45,6 +49,7 @@ error: no source files
 Value	Default	Key
 WARN	WARN	deprecated
 WARN	WARN	implicit-everything
+WARN	QUIET	implicit-helper
 WARN	WARN	jml-lint
 WARN	WARN	literal-divide-by-zero
 WARN	QUIET	missing-measured-by
@@ -56,6 +61,7 @@ error: no source files
 Value	Default	Key
 QUIET	WARN	deprecated
 QUIET	WARN	implicit-everything
+QUIET	QUIET	implicit-helper
 QUIET	WARN	jml-lint
 QUIET	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
@@ -67,6 +73,7 @@ error: no source files
 Value	Default	Key
 QUIET	WARN	deprecated
 QUIET	WARN	implicit-everything
+QUIET	QUIET	implicit-helper
 QUIET	WARN	jml-lint
 QUIET	WARN	literal-divide-by-zero
 QUIET	QUIET	missing-measured-by
@@ -81,4 +88,4 @@ warning: In --(no-)warn, ' ' is not a valid warning key; see --help=warn
 error: no source files
 error: no source files
 Help: --help=warn   Subcommands: none all list reset
-Implemented warning keys: [deprecated, implicit-everything, jml-lint, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path, strict-jml]
+Implemented warning keys: [deprecated, implicit-everything, implicit-helper, jml-lint, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path, strict-jml]

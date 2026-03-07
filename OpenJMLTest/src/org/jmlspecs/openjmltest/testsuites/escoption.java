@@ -613,7 +613,7 @@ public class escoption extends EscBase {
         addOptions("--help=warn");
         helpEsc("tt.TestJava", "package tt; public class TestJava {}"
         );
-        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [deprecated, implicit-everything, jml-lint, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path, strict-jml]\n",output());
+        org.junit.Assert.assertEquals("Help: --help=warn   Subcommands: none all list reset\nImplemented warning keys: [deprecated, implicit-everything, implicit-helper, jml-lint, literal-divide-by-zero, missing-measured-by, missing-semicolon, missing-specs, missing-specs-path, strict-jml]\n",output());
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 

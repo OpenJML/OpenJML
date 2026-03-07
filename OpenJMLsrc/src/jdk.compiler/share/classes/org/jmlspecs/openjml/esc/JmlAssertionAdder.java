@@ -16001,6 +16001,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		newexpr.type = newTypeTree.type; // FIXME - why does the line above not do this, e.g. if the cast is (T[])
 		//System.out.println("TYPECAST-NE " + newexpr + " " + newexpr.type + " " + arg.type + " " + newTypeTree + " " + newTypeTree.type);
 
+		boolean nn = isNonNullExplicit(that.clazz.type);
+		if (nn) {
+		    if (splitExpressions) {
+		        addAssert(that.clazz, Label.POSSIBLY_NULL_VALUE, treeutils.makeNotNull(newexpr, newexpr));
+		    } else {
+		        // FIXME - need to test for non-null without splitting expression
+		    }
+		}
 		//		if (types.isSameType(that.type, STRING)) {
 //			var e = addImplicitConversion(that, that.type, that.expr);
 //			result = eresult = convertExpr(e);
