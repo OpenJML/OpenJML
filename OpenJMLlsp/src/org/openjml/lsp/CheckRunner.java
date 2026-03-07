@@ -124,6 +124,14 @@ public class CheckRunner {
             args.add("--solvers-path");
             args.add(settings.solversPath);
         }
+        if (settings.sourcePath != null && !settings.sourcePath.isEmpty()) {
+            args.add("-sourcepath");
+            args.add(settings.sourcePath);
+        }
+        if (settings.classPath != null && !settings.classPath.isEmpty()) {
+            args.add("-classpath");
+            args.add(settings.classPath);
+        }
         return args;
     }
 

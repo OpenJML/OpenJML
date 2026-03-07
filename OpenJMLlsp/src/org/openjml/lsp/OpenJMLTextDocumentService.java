@@ -10,10 +10,14 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Handles text document lifecycle notifications with a hybrid check strategy.
@@ -35,12 +39,24 @@ import java.util.concurrent.Executors;
  *
  * <p>Text document sync mode is {@code Full}: each change notification carries
  * the complete current content so that the temp-file path is always accurate.
+ *
+ * <p>In edit mode, {@code didChange} notifications are <em>debounced</em>:
+ * the check is scheduled with a {@value #DEBOUNCE_MS}-millisecond delay and
+ * any preceding pending check for the same URI is cancelled.  This avoids
+ * spawning a full OpenJML invocation on every keystroke.
  */
 public class OpenJMLTextDocumentService implements TextDocumentService {
 
+    /** Delay before an edit-mode check fires after the last keystroke. */
+    static final long DEBOUNCE_MS = 500;
+
     private final OpenJMLSettings settings;
     private LanguageClient client;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ExecutorService          executor  = Executors.newCachedThreadPool();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    /** Pending debounce futures, keyed by URI. */
+    private final Map<String, ScheduledFuture<?>> pending = new ConcurrentHashMap<>();
 
     /** URIs that have unsaved edits since the last save or open. */
     private final Set<String> dirtyUris = ConcurrentHashMap.newKeySet();
@@ -75,8 +91,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = params.getContentChanges().get(0).getText();
         dirtyUris.add(uri);
         if (settings.isEditTriggered()) {
-            // edit mode: check on every change using the editor buffer.
-            scheduleCheckContent(uri, content);
+            // edit mode: debounce — cancel any prior pending check and reschedule.
+            ScheduledFuture<?> prev = pending.put(uri,
+                    scheduler.schedule(() -> {
+                        pending.remove(uri);
+                        List<Diagnostic> diags = CheckRunner.check(uri, content, settings);
+                        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
+                    }, DEBOUNCE_MS, TimeUnit.MILLISECONDS));
+            if (prev != null) prev.cancel(false);
         }
         // save mode: do nothing until didSave fires.
     }
@@ -85,6 +107,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didSave(DidSaveTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         dirtyUris.remove(uri);
+        cancelPending(uri);
         // File just saved: disk now matches editor — use disk directly.
         scheduleCheckFile(uri);
     }
@@ -93,6 +116,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didClose(DidCloseTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         dirtyUris.remove(uri);
+        cancelPending(uri);
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
     }
 
@@ -111,11 +135,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         });
     }
 
-    /** Check in-memory content via a temp file. Used for unsaved edits. */
+    /** Check in-memory content via a temp file. Used for untitled/in-memory files on open. */
     private void scheduleCheckContent(String uri, String content) {
         executor.submit(() -> {
             List<Diagnostic> diagnostics = CheckRunner.check(uri, content, settings);
             client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
         });
+    }
+
+    /** Cancel any pending debounced check for the given URI (e.g. on save or close). */
+    private void cancelPending(String uri) {
+        ScheduledFuture<?> f = pending.remove(uri);
+        if (f != null) f.cancel(false);
     }
 }

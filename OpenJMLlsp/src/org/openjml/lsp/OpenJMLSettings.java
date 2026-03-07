@@ -32,6 +32,22 @@ public class OpenJMLSettings {
     public volatile String solversPath;
 
     /**
+     * Source root(s) for resolving cross-file references, passed as
+     * {@code -sourcepath}.  Multiple roots may be separated by the OS path
+     * separator ({@code :} on Unix, {@code ;} on Windows).
+     * {@code null} or empty means no {@code -sourcepath} is passed.
+     */
+    public volatile String sourcePath;
+
+    /**
+     * Classpath for resolving pre-compiled dependencies, passed as
+     * {@code -classpath}.  Multiple entries may be separated by the OS path
+     * separator ({@code :} on Unix, {@code ;} on Windows).
+     * {@code null} or empty means no {@code -classpath} is passed.
+     */
+    public volatile String classPath;
+
+    /**
      * Check mode: {@code "check"} (default, JML type-checking only) or
      * {@code "esc"} (extended static checking via SMT solver — slower).
      */
