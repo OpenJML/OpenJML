@@ -212,6 +212,13 @@ public class PreferencesPage extends FieldEditorPreferencePage implements IWorkb
         addStringEditorField(Options.optionalKeysKey,   Messages.OpenJMLUI_PreferencesPage_OptionalAnnotationKeys);
         addStringEditorField(Options.otherOptionsKey,   Messages.OpenJMLUI_PreferencesPage_OtherOptions);
 
+        // LSP server
+
+        addSpace();
+        addLabel("LSP Server", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        addStringEditorField(Options.lspServerPathKey, Messages.OpenJMLUI_PreferencesPage_LspServerPath);
+
         // ESC
 
         addSpace();

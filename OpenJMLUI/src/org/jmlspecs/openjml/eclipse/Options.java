@@ -170,6 +170,9 @@ public class Options {
     /** The preference store key for the list of other options */
     final static public String otherOptionsKey = key("otherOptions"); //$NON-NLS-1$
 
+    /** The preference store key for the path to the openjml-lsp launcher script. */
+    final static public String lspServerPathKey = "openjml.lspServerPath"; //$NON-NLS-1$
+
     // The next set correspond to OpenJML options
 
     /** The preference store key for the checkSpecsPath option. */

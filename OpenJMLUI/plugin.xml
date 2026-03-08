@@ -1646,4 +1646,17 @@
             name="%quickFixProcessor.name">
        </quickFixProcessor>
    </extension>
+
+   <!-- LSP4E integration: connect Java source files to the openjml-lsp server -->
+   <extension point="org.eclipse.lsp4e.languageServer">
+      <languageServer
+            class="org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider"
+            id="org.jmlspecs.openjml.lsp.server"
+            label="OpenJML Language Server">
+         <contentTypeMapping
+               contentTypeId="org.eclipse.jdt.core.javaSource"
+               priority="low"/>
+      </languageServer>
+   </extension>
+
 </plugin>

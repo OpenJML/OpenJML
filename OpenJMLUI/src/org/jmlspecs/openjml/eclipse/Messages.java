@@ -88,6 +88,7 @@ public class Messages extends NLS {
 	public static String OpenJMLUI_PreferencesPage_ShowErrorPopups;
 	public static String OpenJMLUI_OpenSpecsEditor_DialogTitle;
 	public static String OpenJMLUI_PreferencesPage_OtherOptions;
+	public static String OpenJMLUI_PreferencesPage_LspServerPath;
 	public static String OpenJMLUI_RACDialog_AddFile;
 	public static String OpenJMLUI_RACDialog_AddFolder;
 	public static String OpenJMLUI_RACDialog_Clear;
