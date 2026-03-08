@@ -86,23 +86,34 @@ function activate(context) {
             const wasManual = pendingManualSave.delete(uri); // always clear, even on auto-save
 
             // Detect formatter mangling: //@ changed to // @ disables JML.
-            // Warn once per session and offer to fix workspace settings.
+            // Warn once per session and offer to fix the relevant setting.
             if (!jmlFormatterWarningShown && doc.getText().includes('// @')) {
                 jmlFormatterWarningShown = true;
+                const javaFormatEnabled = vscode.workspace
+                    .getConfiguration('java').get('format.enabled', true);
+                const settingLabel = javaFormatEnabled
+                    ? 'Disable java.format.enabled' : 'Disable format-on-save for Java';
                 const choice = await vscode.window.showWarningMessage(
-                    'OpenJML: A formatter changed //@ to // @, which disables JML annotations. ' +
-                    'Disable format-on-save for Java to prevent this.',
-                    'Disable for this workspace', 'Ignore'
+                    'OpenJML: A formatter changed //@ to // @, which disables JML annotations.',
+                    settingLabel, 'Ignore'
                 );
-                if (choice === 'Disable for this workspace') {
+                if (choice === settingLabel) {
                     try {
-                        const cfg = vscode.workspace.getConfiguration('editor',
-                                                                       { languageId: 'java' });
-                        await cfg.update('formatOnSave', false,
-                                         vscode.ConfigurationTarget.Workspace, true);
-                        vscode.window.showInformationMessage(
-                            'OpenJML: Disabled editor.formatOnSave for Java in workspace settings. ' +
-                            'You can still format manually with Shift+Alt+F.');
+                        if (javaFormatEnabled) {
+                            await vscode.workspace.getConfiguration('java')
+                                .update('format.enabled', false,
+                                        vscode.ConfigurationTarget.Workspace);
+                            vscode.window.showInformationMessage(
+                                'OpenJML: Disabled java.format.enabled in workspace settings. ' +
+                                'You can still format manually with Shift+Alt+F.');
+                        } else {
+                            const cfg = vscode.workspace.getConfiguration('editor',
+                                                                           { languageId: 'java' });
+                            await cfg.update('formatOnSave', false,
+                                             vscode.ConfigurationTarget.Workspace, true);
+                            vscode.window.showInformationMessage(
+                                'OpenJML: Disabled editor.formatOnSave for Java in workspace settings.');
+                        }
                     } catch (err) {
                         vscode.window.showErrorMessage(
                             'OpenJML: Could not update settings: ' + err);
