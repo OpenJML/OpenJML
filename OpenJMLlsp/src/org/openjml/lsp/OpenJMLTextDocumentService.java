@@ -346,6 +346,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         Future<?> f = executor.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
+                System.err.println("[OpenJML] ESC-method done: exit=" + result.exitCode()
+                        + " diags=" + result.diagnostics().size() + " uri=" + uri);
                 if (escGen.get(uri).get() != myGen) return; // superseded
 
                 if (result.isInternalError()) {
@@ -458,6 +460,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         Future<?> f = executor.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
+                System.err.println("[OpenJML] ESC done: exit=" + result.exitCode()
+                        + " diags=" + result.diagnostics().size() + " uri=" + uri);
                 // Only publish if this task is still the latest for this URI.
                 if (escGen.get(uri).get() == myGen) {
                     if (result.isInternalError()) {
