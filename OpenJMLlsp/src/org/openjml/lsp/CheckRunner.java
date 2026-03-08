@@ -135,6 +135,8 @@ public class CheckRunner {
             args.add(tempFile.toString());
             logInvocation("runOnContent", args, content);
             int rc = api.execute(args.toArray(new String[0]));
+            System.err.println("[CheckRunner.runOnContent] exit code " + rc
+                    + " (" + modeFlag + ")");
 
             return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc);
         } catch (IOException e) {
@@ -165,6 +167,8 @@ public class CheckRunner {
         args.add(filePath);
         logInvocation("runOnFile", args);
         int rc = api.execute(args.toArray(new String[0]));
+        System.err.println("[CheckRunner.runOnFile] exit code " + rc
+                + " (" + modeFlag + ")");
 
         return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc);
     }
@@ -204,8 +208,12 @@ public class CheckRunner {
         if (content != null) {
             int nl = content.indexOf('\n');
             String firstLine = nl >= 0 ? content.substring(0, nl) : content;
+            String preview = content.length() <= 1000
+                    ? content
+                    : content.substring(0, 1000) + "...[truncated]";
             sb.append("  content: ").append(content.length()).append(" chars, first line: ")
               .append(firstLine).append('\n');
+            sb.append("  content preview:\n").append(preview).append('\n');
         }
         sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
         sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
