@@ -1,23 +1,37 @@
 package org.openjml.lsp;
 
+import org.eclipse.lsp4j.CodeLens;
+import org.eclipse.lsp4j.CodeLensParams;
+import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 /**
  * Handles text document lifecycle notifications.
@@ -42,6 +56,11 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  * In "edit" and "save" modes ESC also runs when the file is first opened.
  *
+ * <p>Multiple ESC operations may run concurrently on different files.  Within
+ * a single file, starting a new ESC cancels the previous one (via
+ * {@link Future#cancel(boolean)}) and a generation counter ensures stale
+ * results are silently discarded when they arrive late.
+ *
  * <p>Text document sync mode is {@code Full}.
  */
 public class OpenJMLTextDocumentService implements TextDocumentService {
@@ -51,6 +70,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /** Debounce delay for --esc in edit mode (longer — ESC is expensive). */
     static final long ESC_DEBOUNCE_MS = 2000;
+
+    // --- ESC status per method (for code lens) ---
+
+    enum EscPhase { UNKNOWN, CHECKING, DONE }
+
+    record MethodStatus(EscPhase phase, int issueCount) {
+        static final MethodStatus UNKNOWN  = new MethodStatus(EscPhase.UNKNOWN,  0);
+        static final MethodStatus CHECKING = new MethodStatus(EscPhase.CHECKING, 0);
+        static MethodStatus done(int n) { return new MethodStatus(EscPhase.DONE, n); }
+
+        String label() {
+            return switch (phase) {
+                case UNKNOWN  -> "OpenJML: \u2014";            // —
+                case CHECKING -> "OpenJML: \u29d7 Checking\u2026"; // ⧗
+                case DONE     -> issueCount == 0
+                        ? "OpenJML: \u2713 Verified"            // ✓
+                        : "OpenJML: \u2717 " + issueCount + " issue(s)"; // ✗
+            };
+        }
+    }
 
     private final OpenJMLSettings settings;
     private LanguageClient client;
@@ -70,6 +109,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Latest --esc diagnostics per URI. */
     private final Map<String, List<Diagnostic>> escDiags   = new ConcurrentHashMap<>();
 
+    /** Per-URI generation counter: incremented on each new ESC submission. */
+    private final Map<String, AtomicLong> escGen = new ConcurrentHashMap<>();
+
+    /** Currently running ESC Future per URI (for cancellation). */
+    private final Map<String, Future<?>> runningEscTasks = new ConcurrentHashMap<>();
+
+    /** Per-method ESC status, keyed by URI then method start line. */
+    private final Map<String, Map<Integer, MethodStatus>> methodEscStatus = new ConcurrentHashMap<>();
+
+    /** Last-seen source content per URI (for code lens and hover). */
+    private final Map<String, String> lastContent = new ConcurrentHashMap<>();
+
     public OpenJMLTextDocumentService(OpenJMLSettings settings) {
         this.settings = settings;
     }
@@ -82,6 +133,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
+        lastContent.put(uri, content);
 
         // --check: always on open
         scheduleCheckNow(uri, content);
@@ -97,6 +149,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
         String content = params.getContentChanges().get(0).getText();
+        lastContent.put(uri, content);
 
         // --check: debounced if in edit mode
         if (settings.isCheckOnEdit()) {
@@ -108,7 +161,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // --esc: debounced if in edit mode
         if (settings.isEscOnEdit()) {
             debounce(pendingEsc, uri,
-                    () -> runEscContent(uri, content),
+                    () -> startEscContent(uri, content),
                     ESC_DEBOUNCE_MS);
         }
     }
@@ -133,7 +186,82 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         cancelPending(uri);
         checkDiags.remove(uri);
         escDiags.remove(uri);
+        lastContent.remove(uri);
+        methodEscStatus.remove(uri);
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+    }
+
+    // --- code lens ---
+
+    @Override
+    public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
+        String uri = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(List.of());
+
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        Map<Integer, MethodStatus> statuses = methodEscStatus.getOrDefault(uri, Map.of());
+
+        List<CodeLens> lenses = new ArrayList<>(methods.size());
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            MethodStatus s = statuses.getOrDefault(m.startLine(), MethodStatus.UNKNOWN);
+            var range = new Range(new Position(m.startLine(), 0),
+                                  new Position(m.startLine(), 0));
+            // Informational lens — no executable command, just a status label.
+            var cmd = new Command(s.label(), "");
+            lenses.add(new CodeLens(range, cmd, null));
+        }
+        return CompletableFuture.completedFuture(lenses);
+    }
+
+    // --- hover ---
+
+    @Override
+    public CompletableFuture<Hover> hover(HoverParams params) {
+        String uri = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(null);
+
+        int line = params.getPosition().getLine();
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+
+        // Find the innermost method containing the cursor line.
+        JavaSourceScanner.MethodInfo method = null;
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            if (line >= m.startLine() && line <= m.endLine()) {
+                method = m;
+                break;
+            }
+        }
+        if (method == null) return CompletableFuture.completedFuture(null);
+
+        String spec = extractJmlSpec(content, method.startLine());
+        if (spec.isBlank()) return CompletableFuture.completedFuture(null);
+
+        var hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN,
+                "**JML spec for `" + method.name() + "`**\n```java\n" + spec + "\n```"));
+        return CompletableFuture.completedFuture(hover);
+    }
+
+    /**
+     * Extract consecutive {@code //@ } annotation lines immediately preceding
+     * {@code methodLine} in {@code content}.
+     */
+    private static String extractJmlSpec(String content, int methodLine) {
+        String[] lines = content.split("\n", -1);
+        List<String> specLines = new ArrayList<>();
+        for (int i = methodLine - 1; i >= 0; i--) {
+            String t = lines[i].trim();
+            if (t.startsWith("//@")) {
+                specLines.add(0, t);
+            } else if (t.isEmpty() || t.startsWith("//") || t.startsWith("*")
+                    || t.startsWith("/*") || t.startsWith("@")) {
+                // skip blank lines, non-JML comments, annotations between spec and method
+            } else {
+                break;
+            }
+        }
+        return String.join("\n", specLines);
     }
 
     /**
@@ -160,7 +288,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (filePath != null && new java.io.File(filePath).exists()) {
             scheduleEscFile(uri);
         } else {
-            executor.submit(() -> runEscContent(uri, content));
+            startEscContent(uri, content);
         }
     }
 
@@ -173,7 +301,47 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void scheduleEscFile(String uri) {
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
-        executor.submit(() -> runEscFile(filePath, uri));
+        submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, settings));
+    }
+
+    private void startEscContent(String uri, String content) {
+        submitEsc(uri, () -> CheckRunner.runEsc(uri, content, settings));
+    }
+
+    /**
+     * Submit an ESC task for {@code uri}.
+     *
+     * <ul>
+     *   <li>Cancels any running ESC task for the same URI.</li>
+     *   <li>Marks all methods as CHECKING and requests a code-lens refresh.</li>
+     *   <li>On completion, updates method statuses, publishes diagnostics, and
+     *       refreshes code lenses.  Stale results from a superseded run are
+     *       silently discarded via a generation counter.</li>
+     * </ul>
+     */
+    private void submitEsc(String uri, Supplier<List<Diagnostic>> task) {
+        // Cancel the previous ESC task for this URI (may not interrupt CPU-bound work,
+        // but removes it from the task queue if it hasn't started yet).
+        Future<?> prev = runningEscTasks.remove(uri);
+        if (prev != null) prev.cancel(true);
+
+        long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
+        markEscChecking(uri);
+
+        Future<?> f = executor.submit(() -> {
+            try {
+                List<Diagnostic> diags = task.get();
+                // Only publish if this task is still the latest for this URI.
+                if (escGen.get(uri).get() == myGen) {
+                    escDiags.put(uri, diags);
+                    updateEscStatus(uri, diags);
+                    publishMerged(uri);
+                }
+            } finally {
+                runningEscTasks.remove(uri);
+            }
+        });
+        runningEscTasks.put(uri, f);
     }
 
     // --- runners (execute on the thread pool) ---
@@ -184,22 +352,50 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         publishMerged(uri);
     }
 
-    private void runEscContent(String uri, String content) {
-        List<Diagnostic> diags = CheckRunner.runEsc(uri, content, settings);
-        escDiags.put(uri, diags);
-        publishMerged(uri);
-    }
-
     private void runCheckFile(String filePath, String uri) {
         List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings);
         checkDiags.put(uri, diags);
         publishMerged(uri);
     }
 
-    private void runEscFile(String filePath, String uri) {
-        List<Diagnostic> diags = CheckRunner.runEscFile(filePath, uri, settings);
-        escDiags.put(uri, diags);
-        publishMerged(uri);
+    // --- ESC code-lens status helpers ---
+
+    /** Mark all detected methods in {@code uri} as currently being checked. */
+    private void markEscChecking(String uri) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        if (methods.isEmpty()) return;
+        Map<Integer, MethodStatus> statuses = new HashMap<>();
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            statuses.put(m.startLine(), MethodStatus.CHECKING);
+        }
+        methodEscStatus.put(uri, statuses);
+        refreshCodeLenses();
+    }
+
+    /** Update per-method ESC status based on the diagnostics returned for {@code uri}. */
+    private void updateEscStatus(String uri, List<Diagnostic> diags) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        if (methods.isEmpty()) return;
+        Map<Integer, MethodStatus> statuses = new HashMap<>();
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            long issues = diags.stream()
+                    .filter(d -> {
+                        int diagLine = d.getRange().getStart().getLine();
+                        return diagLine >= m.startLine() && diagLine <= m.endLine();
+                    })
+                    .count();
+            statuses.put(m.startLine(), MethodStatus.done((int) issues));
+        }
+        methodEscStatus.put(uri, statuses);
+        refreshCodeLenses();
+    }
+
+    private void refreshCodeLenses() {
+        if (client != null) client.refreshCodeLenses();
     }
 
     // --- diagnostic merging ---
