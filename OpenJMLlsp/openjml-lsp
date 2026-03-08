@@ -19,7 +19,7 @@ if [ -d "$DIR/jdk" ]; then
     ## ── Release layout (installed from openjml.zip) ──────────────────────────
     BUILDJDK="$DIR/jdk"
     . "$DIR/setup-exports"
-    export OPENJML_INSTALL="${OPENJML_INSTALL:-$BUILDJDK}"
+    export OPENJML_INSTALL="${OPENJML_INSTALL:-$DIR}"
     export OPENJML_SPECS="${OPENJML_SPECS:-$DIR/specs}"
     # Solvers directory has an OS-specific suffix (e.g. Solvers-mac, Solvers-linux)
     DEFAULT_SOLVERS=$(echo "$DIR"/Solvers-*)
