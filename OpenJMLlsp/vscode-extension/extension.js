@@ -64,6 +64,38 @@ function activate(context) {
     });
     context.subscriptions.push(client);
 
+    // Track which Java file URIs are about to be saved manually (not by auto-save).
+    // onWillSaveTextDocument fires before the save and carries the reason; we use it
+    // to mark URIs so that onDidSaveTextDocument can decide whether to trigger ESC.
+    const pendingManualSave = new Set();
+    context.subscriptions.push(
+        vscode.workspace.onWillSaveTextDocument(e => {
+            if (e.document.languageId === 'java'
+                    && e.reason === vscode.TextDocumentSaveReason.Manual) {
+                pendingManualSave.add(e.document.uri.toString());
+            }
+        })
+    );
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(async doc => {
+            if (doc.languageId !== 'java') return;
+            const uri = doc.uri.toString();
+            const wasManual = pendingManualSave.delete(uri); // always clear, even on auto-save
+            if (!wasManual) return;
+            const escTriggerOn = vscode.workspace.getConfiguration('openjml')
+                                                 .get('escTriggerOn', 'manual');
+            if (escTriggerOn !== 'save') return;
+            try {
+                await client.sendRequest('workspace/executeCommand', {
+                    command:   'openjml.runEsc',
+                    arguments: [uri],
+                });
+            } catch (err) {
+                // ESC errors are surfaced by the server via diagnostics; ignore here.
+            }
+        })
+    );
+
     // Register the Run ESC command manually so we can inject the active file's URI.
     // The server does NOT advertise openjml.runEsc in executeCommandProvider; if it did,
     // vscode-languageclient's ExecuteCommandFeature would auto-register the command and
