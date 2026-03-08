@@ -14,12 +14,27 @@
  * Settings are in VS Code's settings.json under the "openjml" key.
  */
 
+const cp     = require('child_process');
 const fs     = require('fs');
 const path   = require('path');
 const vscode = require('vscode');
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
 
 let client;
+
+/**
+ * Return the absolute path of `name` if it is found on the system PATH,
+ * or null if it is not.  Uses `which` on Unix/macOS and `where` on Windows.
+ */
+function findOnPath(name) {
+    const cmd = process.platform === 'win32' ? `where ${name}` : `which ${name}`;
+    try {
+        return cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+                 .trim().split('\n')[0].trim() || null;
+    } catch (_) {
+        return null;
+    }
+}
 
 /**
  * Given Java source content and a 0-based cursor line, return the
@@ -132,12 +147,14 @@ async function activate(context) {
     const cfg = vscode.workspace.getConfiguration('openjml');
     const configuredPath = cfg.get('serverPath', '').trim();
 
-    // When no path is configured, look for openjml-lsp next to the extension directory.
-    // In a development layout (extension.js lives inside the openjml-lsp release tree)
-    // the script is one level up.  When installed from a vsix that sibling does not exist;
-    // in that case we require the user to set openjml.serverPath explicitly.
+    // Resolution order (first match wins):
+    //   1. openjml.serverPath setting (explicit user config)
+    //   2. openjml-lsp one directory above the extension (dev / release-zip layout)
+    //   3. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
     const defaultScript = path.join(__dirname, '..', 'openjml-lsp');
-    const serverScript  = configuredPath || (fs.existsSync(defaultScript) ? defaultScript : null);
+    const serverScript  = configuredPath
+        || (fs.existsSync(defaultScript) ? defaultScript : null)
+        || findOnPath('openjml-lsp');
 
     console.log('OpenJML: activating, server script =', serverScript);
 
