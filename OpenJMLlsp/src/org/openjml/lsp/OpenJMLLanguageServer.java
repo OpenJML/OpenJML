@@ -35,14 +35,25 @@ import java.util.concurrent.CompletableFuture;
  */
 public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAware {
 
-    private final OpenJMLSettings             settings            = new OpenJMLSettings();
-    private final OpenJMLTextDocumentService  textDocumentService = new OpenJMLTextDocumentService(settings);
-    private final OpenJMLWorkspaceService     workspaceService    =
-            new OpenJMLWorkspaceService(settings,
-                    textDocumentService::scheduleEscForUri,
-                    textDocumentService::scheduleEscForMethod);
+    private final OpenJMLSettings             settings;
+    private final OpenJMLTextDocumentService  textDocumentService;
+    private final OpenJMLWorkspaceService     workspaceService;
 
     private int exitCode = 1;
+
+    /**
+     * @param escCommand           command name for full-file ESC (passed to WorkspaceService)
+     * @param escForMethodCommand  command name for per-method ESC (passed to WorkspaceService and TextDocumentService)
+     */
+    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand) {
+        this.settings            = new OpenJMLSettings();
+        this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
+        this.workspaceService    = new OpenJMLWorkspaceService(settings,
+                textDocumentService::scheduleEscForUri,
+                textDocumentService::scheduleEscForMethod,
+                escCommand,
+                escForMethodCommand);
+    }
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
@@ -50,11 +61,6 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
-        // Do NOT advertise openjml.runEsc in executeCommandProvider.
-        // If we did, vscode-languageclient's ExecuteCommandFeature would auto-register
-        // the VS Code command and invoke it with no arguments, so the URI would never
-        // be passed to the server.  Instead the extension registers the command manually
-        // and sends workspace/executeCommand with the active file's URI explicitly.
         caps.setCodeLensProvider(new CodeLensOptions(false));
         caps.setHoverProvider(Boolean.TRUE);
 

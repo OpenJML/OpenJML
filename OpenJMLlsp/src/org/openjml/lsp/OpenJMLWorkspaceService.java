@@ -20,10 +20,13 @@ import java.util.function.Consumer;
  * <p>{@code workspace/didChangeConfiguration} applies updated settings.
  * Only non-null fields in the incoming JSON overwrite current settings.
  *
- * <p>{@code workspace/executeCommand} with command {@code "openjml.runEsc"}
+ * <p>{@code workspace/executeCommand} with the configured ESC command name
  * and a single URI argument triggers an immediate ESC check on that file.
- * With command {@code "openjml.runEscForMethod"} and arguments {@code [uri, methodName]},
+ * With the configured ESC-for-method command name and arguments {@code [uri, methodName]},
  * triggers ESC on a single method.
+ *
+ * <p>Command names are supplied by the caller; they are not hardcoded here.
+ * Use {@code org.openjml.vscode.VsCodeCommands} for the VS Code command names.
  */
 public class OpenJMLWorkspaceService implements WorkspaceService {
 
@@ -32,18 +35,26 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final OpenJMLSettings settings;
     private final Consumer<String> escRequester;
     private final BiConsumer<String, String> escMethodRequester;
+    private final String escCommand;
+    private final String escForMethodCommand;
 
     /**
-     * @param settings            shared settings object
-     * @param escRequester        called with the URI when {@code openjml.runEsc} is requested
-     * @param escMethodRequester  called with (uri, methodName) when {@code openjml.runEscForMethod} is requested
+     * @param settings             shared settings object
+     * @param escRequester         called with the URI when the ESC command is requested
+     * @param escMethodRequester   called with (uri, methodName) when the ESC-for-method command is requested
+     * @param escCommand           the {@code workspace/executeCommand} command name for full-file ESC
+     * @param escForMethodCommand  the {@code workspace/executeCommand} command name for per-method ESC
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    Consumer<String> escRequester,
-                                   BiConsumer<String, String> escMethodRequester) {
+                                   BiConsumer<String, String> escMethodRequester,
+                                   String escCommand,
+                                   String escForMethodCommand) {
         this.settings            = settings;
         this.escRequester        = escRequester;
         this.escMethodRequester  = escMethodRequester;
+        this.escCommand          = escCommand;
+        this.escForMethodCommand = escForMethodCommand;
     }
 
     @Override
@@ -68,12 +79,12 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         String cmd = params.getCommand();
         List<?> args = params.getArguments();
 
-        if ("openjml.runEsc".equals(cmd) && escRequester != null) {
+        if (escCommand.equals(cmd) && escRequester != null) {
             if (args != null && !args.isEmpty()) {
                 String uri = extractString(args.get(0));
                 if (uri != null) escRequester.accept(uri);
             }
-        } else if ("openjml.runEscForMethod".equals(cmd) && escMethodRequester != null) {
+        } else if (escForMethodCommand.equals(cmd) && escMethodRequester != null) {
             if (args != null && args.size() >= 2) {
                 String uri        = extractString(args.get(0));
                 String methodName = extractString(args.get(1));

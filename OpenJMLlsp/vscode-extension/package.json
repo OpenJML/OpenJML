@@ -4,9 +4,20 @@
   "description": "JML specification type-checking and static verification for Java via OpenJML",
   "version": "0.0.1",
   "publisher": "openjml",
-  "engines": { "vscode": "^1.75.0" },
-  "categories": ["Linters"],
-  "activationEvents": ["onLanguage:java"],
+  "license": "GPL-2.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenJML/OpenJML.git"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:java"
+  ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
@@ -84,14 +95,21 @@
         },
         "openjml.checkTriggerOn": {
           "type": "string",
-          "enum": ["edit", "save"],
+          "enum": [
+            "edit",
+            "save"
+          ],
           "default": "edit",
           "order": 1,
           "markdownDescription": "When to run the JML type-check (`--check`):\n- `edit` — check on every change (instant feedback)\n- `save` — check only when the file is saved"
         },
         "openjml.escTriggerOn": {
           "type": "string",
-          "enum": ["manual", "save", "edit"],
+          "enum": [
+            "manual",
+            "save",
+            "edit"
+          ],
           "default": "manual",
           "order": 2,
           "markdownDescription": "When to run extended static checking (`--esc`):\n- `manual` — only via the **OpenJML: Run ESC** command or editor button\n- `save` — on every save\n- `edit` — on every change (expensive; not recommended for large files)"
@@ -122,7 +140,11 @@
         },
         "openjml.dirtyFileAction": {
           "type": "string",
-          "enum": ["ask", "save", "run"],
+          "enum": [
+            "ask",
+            "save",
+            "run"
+          ],
           "default": "ask",
           "order": 7,
           "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"

@@ -95,6 +95,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private final OpenJMLSettings settings;
+    private final String codeLensCommand;
     private LanguageClient client;
 
     private final ExecutorService          executor  = Executors.newCachedThreadPool();
@@ -124,8 +125,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Last-seen source content per URI (for code lens and hover). */
     private final Map<String, String> lastContent = new ConcurrentHashMap<>();
 
-    public OpenJMLTextDocumentService(OpenJMLSettings settings) {
-        this.settings = settings;
+    /**
+     * @param settings        shared settings object
+     * @param codeLensCommand the command name to embed in code-lens actions (e.g. run ESC for method)
+     */
+    public OpenJMLTextDocumentService(OpenJMLSettings settings, String codeLensCommand) {
+        this.settings       = settings;
+        this.codeLensCommand = codeLensCommand;
     }
 
     public void connect(LanguageClient client) {
@@ -206,7 +212,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
             String fqn = JavaSourceScanner.methodFqn(content, m.name());
-            var cmd = new Command(s.label(), "openjml.runEscForMethod",
+            var cmd = new Command(s.label(), codeLensCommand,
                                   List.<Object>of(uri, fqn));
             lenses.add(new CodeLens(range, cmd, null));
         }
