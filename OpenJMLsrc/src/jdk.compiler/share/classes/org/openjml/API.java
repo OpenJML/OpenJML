@@ -192,6 +192,11 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
     @Override
+    public void setProofResultListener(/*@nullable*/ IAPI.IProofResultListener p) {
+        main.setProofResultListener(p);
+    }
+
+    @Override
     public int execute(/*@ non_null*/ String ... args) {
         int x = main.compile(args, main.context()).exitCode;
         return x;

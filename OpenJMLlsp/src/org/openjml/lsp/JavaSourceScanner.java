@@ -19,8 +19,22 @@ import java.util.regex.Pattern;
  */
 public class JavaSourceScanner {
 
-    /** Immutable description of one method found in a source file. */
-    public record MethodInfo(String name, int startLine, int endLine) {}
+    /**
+     * Immutable description of one method found in a source file.
+     *
+     * <ul>
+     *   <li>{@code startLine}    — line of the method declaration (used for code-lens placement)</li>
+     *   <li>{@code specStartLine} — first JML {@code //@} annotation line immediately before
+     *       the declaration; equals {@code startLine} if there are no spec lines.
+     *       Use this as the lower bound when matching diagnostics to a method, because
+     *       OpenJML reports verification failures on the spec line, not the declaration.</li>
+     *   <li>{@code endLine}      — last line attributed to this method (exclusive of next method's spec)</li>
+     * </ul>
+     */
+    public record MethodInfo(String name, int startLine, int specStartLine, int endLine) {
+        /** Convenience: does the given 0-based line fall within this method's full range? */
+        public boolean contains(int line) { return line >= specStartLine && line <= endLine; }
+    }
 
     private static final Pattern PACKAGE_DECL = Pattern.compile(
             "^\\s*package\\s+([\\w.]+)\\s*;", Pattern.MULTILINE);
@@ -95,8 +109,18 @@ public class JavaSourceScanner {
 
         List<MethodInfo> result = new ArrayList<>(starts.size());
         for (int i = 0; i < starts.size(); i++) {
+            int declLine = starts.get(i);
             int end = (i + 1 < starts.size()) ? starts.get(i + 1) - 1 : lines.length - 1;
-            result.add(new MethodInfo(names.get(i), starts.get(i), end));
+            // Walk backwards to find the first consecutive JML spec line before the declaration.
+            int specStart = declLine;
+            for (int j = declLine - 1; j >= 0; j--) {
+                String t = lines[j].trim();
+                if (t.startsWith("//@")) specStart = j;
+                else if (t.isEmpty() || t.startsWith("//") || t.startsWith("*")
+                        || t.startsWith("/*") || t.startsWith("@")) { /* skip */ }
+                else break;
+            }
+            result.add(new MethodInfo(names.get(i), declLine, specStart, end));
         }
         return result;
     }
