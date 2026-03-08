@@ -14,6 +14,19 @@
         "command": "openjml.runEsc",
         "title": "Run ESC",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.saveAndRunEsc",
+        "title": "Save and Run ESC",
+        "category": "OpenJML"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "openjml.saveAndRunEsc",
+        "key": "ctrl+k ctrl+e",
+        "mac": "cmd+k cmd+e",
+        "when": "editorLangId == java && editorFocus"
       }
     ],
     "menus": {
@@ -27,6 +40,10 @@
       "commandPalette": [
         {
           "command": "openjml.runEsc",
+          "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.saveAndRunEsc",
           "when": "resourceLangId == java"
         }
       ]
@@ -77,6 +94,12 @@
           "default": "",
           "order": 6,
           "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
+        },
+        "openjml.warnEscOnDirtyFile": {
+          "type": "boolean",
+          "default": true,
+          "order": 7,
+          "description": "Warn when 'OpenJML: Run ESC' is invoked on a file with unsaved changes. ESC runs on the saved file on disk, so results may not match the editor contents."
         }
       }
     }
