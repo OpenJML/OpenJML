@@ -1,6 +1,8 @@
 package org.openjml.lsp;
 
 import org.openjml.IAPI;
+import org.openjml.IProverResult;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,8 +11,11 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Runs OpenJML {@code --check} or {@code --esc} passes on Java/JML source
@@ -41,12 +46,42 @@ public class CheckRunner {
      *
      * @param diagnostics  LSP diagnostics collected by the listener
      * @param exitCode     raw exit code returned by {@code IAPI.execute()}
+     * @param proofResults per-method ESC results keyed by simple method name;
+     *                     empty map when running {@code --check} or when no
+     *                     methods were verified
      */
-    public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode) {
+    public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode,
+                               Map<String, IProverResult.Kind> proofResults) {
         /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
         public boolean isInternalError() { return exitCode == 4; }
         /** Returns {@code true} when OpenJML rejected the command line — indicates a server bug. */
         public boolean isCommandLineError() { return exitCode == 2; }
+    }
+
+    /**
+     * Collects per-method ESC proof results from OpenJML's
+     * {@code IProofResultListener}.  Transient states (RUNNING, COMPLETED,
+     * CANCELLED) are ignored; only the final result per method is kept.
+     */
+    private static class ProofResultCollector implements IAPI.IProofResultListener {
+        private final Map<String, IProverResult.Kind> results = new LinkedHashMap<>();
+
+        @Override
+        public void reportProofResult(MethodSymbol msym, IProverResult result) {
+            IProverResult.Kind kind = result.result();
+            // Ignore transient lifecycle events — only record final outcomes.
+            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED
+                    || kind == IProverResult.CANCELLED) {
+                return;
+            }
+            String name = msym.getSimpleName().toString();
+            System.err.println("[ProofResultCollector] " + name + " -> " + kind);
+            results.put(name, kind);
+        }
+
+        Map<String, IProverResult.Kind> getResults() {
+            return Collections.unmodifiableMap(results);
+        }
     }
 
     // --- public API: --check ---
@@ -58,12 +93,12 @@ public class CheckRunner {
 
     /** Run {@code --check} on in-memory content. */
     public static CheckResult check(String uri, String content, OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--check", null);
+        return runOnContent(uri, content, settings, "--check", null, false);
     }
 
     /** Run {@code --check} on a file already on disk. */
     public static CheckResult checkFile(String filePath, String uri, OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--check", null);
+        return runOnFile(filePath, uri, settings, "--check", null, false);
     }
 
     // --- public API: --esc ---
@@ -75,7 +110,7 @@ public class CheckRunner {
 
     /** Run {@code --esc} on in-memory content. */
     public static CheckResult runEsc(String uri, String content, OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--esc", null);
+        return runOnContent(uri, content, settings, "--esc", null, true);
     }
 
     /** Run {@code --esc} on a single method in in-memory content with default settings. */
@@ -86,18 +121,18 @@ public class CheckRunner {
     /** Run {@code --esc} on a single method in in-memory content. */
     public static CheckResult runEscMethod(String uri, String content, String methodName,
                                            OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--esc", methodName);
+        return runOnContent(uri, content, settings, "--esc", methodName, true);
     }
 
     /** Run {@code --esc} on a file already on disk. */
     public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--esc", null);
+        return runOnFile(filePath, uri, settings, "--esc", null, true);
     }
 
     /** Run {@code --esc} on a single method in a file already on disk. */
     public static CheckResult runEscFileMethod(String filePath, String uri, String methodName,
                                                OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--esc", methodName);
+        return runOnFile(filePath, uri, settings, "--esc", methodName, true);
     }
 
     // --- utility ---
@@ -118,10 +153,16 @@ public class CheckRunner {
 
     private static CheckResult runOnContent(
             String uri, String content, OpenJMLSettings settings, String modeFlag,
-            String methodName) {
+            String methodName, boolean collectProofResults) {
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
+
+        ProofResultCollector prc = null;
+        if (collectProofResults) {
+            prc = new ProofResultCollector();
+            api.setProofResultListener(prc);
+        }
 
         Path tempDir = null;
         try {
@@ -141,9 +182,12 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runOnContent] exit code " + rc
                     + " (" + modeFlag + ")");
 
-            return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc);
+            Map<String, IProverResult.Kind> proofResults =
+                    prc != null ? prc.getResults() : Map.of();
+            return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc,
+                    proofResults);
         } catch (IOException e) {
-            return new CheckResult(List.of(), -1);
+            return new CheckResult(List.of(), -1, Map.of());
         } finally {
             if (tempDir != null) {
                 try {
@@ -157,10 +201,16 @@ public class CheckRunner {
 
     private static CheckResult runOnFile(
             String filePath, String uri, OpenJMLSettings settings, String modeFlag,
-            String methodName) {
+            String methodName, boolean collectProofResults) {
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
+
+        ProofResultCollector prc = null;
+        if (collectProofResults) {
+            prc = new ProofResultCollector();
+            api.setProofResultListener(prc);
+        }
 
         List<String> args = buildArgs(settings, modeFlag);
         if (methodName != null && !methodName.isEmpty()) {
@@ -173,7 +223,9 @@ public class CheckRunner {
         System.err.println("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
 
-        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc);
+        Map<String, IProverResult.Kind> proofResults =
+                prc != null ? prc.getResults() : Map.of();
+        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc, proofResults);
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {

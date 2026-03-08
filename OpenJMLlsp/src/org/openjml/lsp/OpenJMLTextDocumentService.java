@@ -17,6 +17,7 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
+import org.openjml.IProverResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,22 +75,34 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- ESC status per method (for code lens) ---
 
-    enum EscPhase { UNKNOWN, CHECKING, DONE, ERROR }
+    enum EscPhase { UNKNOWN, CHECKING, VERIFIED, INFEASIBLE, NOT_VERIFIED, SKIPPED, TIMEOUT, CANCELLED, CHECK_ERROR }
 
     record MethodStatus(EscPhase phase, int issueCount) {
-        static final MethodStatus UNKNOWN  = new MethodStatus(EscPhase.UNKNOWN,  0);
-        static final MethodStatus CHECKING = new MethodStatus(EscPhase.CHECKING, 0);
-        static final MethodStatus ERROR    = new MethodStatus(EscPhase.ERROR,    0);
-        static MethodStatus done(int n) { return new MethodStatus(EscPhase.DONE, n); }
+        static final MethodStatus UNKNOWN      = new MethodStatus(EscPhase.UNKNOWN,      0);
+        static final MethodStatus CHECKING     = new MethodStatus(EscPhase.CHECKING,     0);
+        static final MethodStatus VERIFIED     = new MethodStatus(EscPhase.VERIFIED,     0);
+        static final MethodStatus INFEASIBLE   = new MethodStatus(EscPhase.INFEASIBLE,   0);
+        static final MethodStatus SKIPPED      = new MethodStatus(EscPhase.SKIPPED,      0);
+        static final MethodStatus TIMEOUT      = new MethodStatus(EscPhase.TIMEOUT,      0);
+        static final MethodStatus CANCELLED    = new MethodStatus(EscPhase.CANCELLED,    0);
+        static final MethodStatus CHECK_ERROR  = new MethodStatus(EscPhase.CHECK_ERROR,  0);
+        static MethodStatus notVerified(int n) { return new MethodStatus(EscPhase.NOT_VERIFIED, n); }
+        static MethodStatus done(int n) {
+            return n == 0 ? VERIFIED : notVerified(n);
+        }
 
         String label() {
             return switch (phase) {
-                case UNKNOWN  -> "OpenJML: \u2014";                 // —
-                case CHECKING -> "OpenJML: \u29d7 Checking\u2026";  // ⧗
-                case DONE     -> issueCount == 0
-                        ? "OpenJML: \u2713 Verified"                // ✓
-                        : "OpenJML: \u2717 " + issueCount + " issue(s)"; // ✗
-                case ERROR    -> "OpenJML: \u26a0 Error";           // ⚠
+                case UNKNOWN      -> "OpenJML: \u2014";                 // —
+                case CHECKING     -> "OpenJML: \u29d7 Checking\u2026";  // ⧗
+                case VERIFIED     -> "OpenJML: \u2713 Verified";
+                case INFEASIBLE   -> "OpenJML: Infeasible";
+                case NOT_VERIFIED -> "OpenJML: \u2717 Not verified"     // ✗
+                        + (issueCount > 0 ? " (" + issueCount + " issue(s))" : "");
+                case SKIPPED      -> "OpenJML: Skipped";
+                case TIMEOUT      -> "OpenJML: Timeout";
+                case CANCELLED    -> "OpenJML: Cancelled";
+                case CHECK_ERROR  -> "OpenJML: Check error";
             };
         }
     }
@@ -357,7 +370,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     if (target != null) {
                         Map<Integer, MethodStatus> statuses =
                                 new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
-                        statuses.put(target.startLine(), MethodStatus.ERROR);
+                        statuses.put(target.startLine(), MethodStatus.CHECK_ERROR);
                         methodEscStatus.put(uri, statuses);
                         refreshCodeLenses();
                     }
@@ -371,26 +384,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     int end   = target.endLine();
                     List<Diagnostic> kept = new ArrayList<>(
                             escDiags.getOrDefault(uri, List.of()));
-                    kept.removeIf(d -> {
-                        int line = d.getRange().getStart().getLine();
-                        return line >= start && line <= end;
-                    });
+                    kept.removeIf(d -> target.contains(d.getRange().getStart().getLine()));
                     kept.addAll(diags);
                     escDiags.put(uri, kept);
 
-                    // Update only the target method's code-lens status.
-                    long issues = diags.stream()
-                            .filter(d -> {
-                                int line = d.getRange().getStart().getLine();
-                                return line >= start && line <= end;
-                            }).count();
+                    // Update only the target method's code-lens status using
+                    // the proof result if available, else fall back to diag count.
+                    String simpleName = target.name();
+                    IProverResult.Kind kind = result.proofResults().get(simpleName);
+                    MethodStatus ms = proofResultToStatus(kind, diags, start, end, result.exitCode());
                     Map<Integer, MethodStatus> statuses =
                             new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
-                    statuses.put(start, MethodStatus.done((int) issues));
+                    statuses.put(start, ms);
                     methodEscStatus.put(uri, statuses);
                 } else {
                     escDiags.put(uri, diags);
-                    updateEscStatus(uri, diags);
+                    updateEscStatus(uri, diags, result.proofResults(), result.exitCode());
                 }
                 publishMerged(uri);
                 refreshCodeLenses();
@@ -470,18 +479,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (escGen.get(uri).get() == myGen) {
                     if (result.isInternalError()) {
                         System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
-                        markAllMethodStatus(uri, MethodStatus.ERROR);
+                        markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
                         refreshCodeLenses();
                     } else {
                         escDiags.put(uri, result.diagnostics());
-                        updateEscStatus(uri, result.diagnostics());
+                        updateEscStatus(uri, result.diagnostics(), result.proofResults(), result.exitCode());
                         publishMerged(uri);
                     }
                 }
             } catch (Throwable t) {
                 System.err.println("[OpenJML] ESC failed: " + t);
                 if (escGen.get(uri).get() == myGen) {
-                    updateEscStatus(uri, List.of());
+                    updateEscStatus(uri, List.of(), Map.of(), -1);
                     refreshCodeLenses();
                 }
             } finally {
@@ -533,24 +542,63 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         refreshCodeLenses();
     }
 
-    /** Update per-method ESC status based on the diagnostics returned for {@code uri}. */
-    private void updateEscStatus(String uri, List<Diagnostic> diags) {
+    /**
+     * Update per-method ESC status for {@code uri}.
+     *
+     * <p>Exit codes: 0 = success (UNSAT/INFEASIBLE expected), 1 = syntax/type
+     * errors (CHECK_ERROR for any method with no proof result), 6 = verification
+     * failures (SAT/POSSIBLY_SAT/SKIPPED/TIMEOUT/CANCELLED/UNKNOWN/ERROR).
+     */
+    private void updateEscStatus(String uri, List<Diagnostic> diags,
+                                 Map<String, IProverResult.Kind> proofResults, int exitCode) {
         String content = lastContent.get(uri);
         if (content == null) return;
         List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
         if (methods.isEmpty()) return;
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
-            long issues = diags.stream()
-                    .filter(d -> {
-                        int diagLine = d.getRange().getStart().getLine();
-                        return diagLine >= m.startLine() && diagLine <= m.endLine();
-                    })
-                    .count();
-            statuses.put(m.startLine(), MethodStatus.done((int) issues));
+            IProverResult.Kind kind = proofResults.get(m.name());
+            statuses.put(m.startLine(),
+                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(), exitCode));
         }
         methodEscStatus.put(uri, statuses);
         refreshCodeLenses();
+    }
+
+    /**
+     * Convert a proof result kind to a {@link MethodStatus}.
+     *
+     * @param kind     proof result kind, or {@code null} if none was recorded
+     * @param diags    all diagnostics from the ESC run (used for issue count)
+     * @param start    first line of the method (inclusive)
+     * @param end      last line of the method (inclusive)
+     * @param exitCode OpenJML exit code: 0=ok, 1=syntax/type errors, 6=verification failures
+     */
+    private static MethodStatus proofResultToStatus(IProverResult.Kind kind,
+                                                     List<Diagnostic> diags,
+                                                     int start, int end, int exitCode) {
+        if (kind == IProverResult.UNSAT) {
+            return MethodStatus.VERIFIED;
+        } else if (kind == IProverResult.INFEASIBLE) {
+            return MethodStatus.INFEASIBLE;
+        } else if (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT
+                || kind == IProverResult.UNKNOWN || kind == IProverResult.ERROR) {
+            long issues = diags.stream()
+                    .filter(d -> { int l = d.getRange().getStart().getLine(); return l >= start && l <= end; })
+                    .count();
+            return MethodStatus.notVerified((int) Math.max(kind == IProverResult.SAT
+                    || kind == IProverResult.POSSIBLY_SAT ? 1 : 0, issues));
+        } else if (kind == IProverResult.TIMEOUT) {
+            return MethodStatus.TIMEOUT;
+        } else if (kind == IProverResult.CANCELLED) {
+            return MethodStatus.CANCELLED;
+        } else if (kind == IProverResult.SKIPPED) {
+            return MethodStatus.SKIPPED;
+        } else {
+            // null: no proof result recorded.
+            // exitCode 1 means syntax/type errors prevented ESC from running.
+            return exitCode == 1 ? MethodStatus.CHECK_ERROR : MethodStatus.UNKNOWN;
+        }
     }
 
     private void refreshCodeLenses() {
