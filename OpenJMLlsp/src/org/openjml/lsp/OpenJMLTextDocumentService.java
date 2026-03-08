@@ -485,16 +485,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- runners (execute on the thread pool) ---
 
+    // INVARIANT: the check runners below update checkDiags and publish merged
+    // diagnostics, but they MUST NOT touch methodEscStatus or call
+    // refreshCodeLenses().  Partially-typed code during editing must not disturb
+    // the ESC code-lens status that the user sees.
+
     private void runCheckContent(String uri, String content) {
         List<Diagnostic> diags = CheckRunner.check(uri, content, settings).diagnostics();
         checkDiags.put(uri, diags);
         publishMerged(uri);
+        // Do NOT call refreshCodeLenses() here.
     }
 
     private void runCheckFile(String filePath, String uri) {
         List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings).diagnostics();
         checkDiags.put(uri, diags);
         publishMerged(uri);
+        // Do NOT call refreshCodeLenses() here.
     }
 
     // --- ESC code-lens status helpers ---
