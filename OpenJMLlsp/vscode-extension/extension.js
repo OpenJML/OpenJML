@@ -14,6 +14,7 @@
  * Settings are in VS Code's settings.json under the "openjml" key.
  */
 
+const fs     = require('fs');
 const path   = require('path');
 const vscode = require('vscode');
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
@@ -129,8 +130,32 @@ function getSettings() {
 
 async function activate(context) {
     const cfg = vscode.workspace.getConfiguration('openjml');
-    const serverScript = cfg.get('serverPath', '') || path.join(__dirname, '..', 'openjml-lsp');
+    const configuredPath = cfg.get('serverPath', '').trim();
+
+    // When no path is configured, look for openjml-lsp next to the extension directory.
+    // In a development layout (extension.js lives inside the openjml-lsp release tree)
+    // the script is one level up.  When installed from a vsix that sibling does not exist;
+    // in that case we require the user to set openjml.serverPath explicitly.
+    const defaultScript = path.join(__dirname, '..', 'openjml-lsp');
+    const serverScript  = configuredPath || (fs.existsSync(defaultScript) ? defaultScript : null);
+
     console.log('OpenJML: activating, server script =', serverScript);
+
+    if (!serverScript) {
+        vscode.window.showErrorMessage(
+            'OpenJML: cannot find the openjml-lsp server script. ' +
+            'Please install OpenJML (https://github.com/OpenJML/OpenJML/releases) ' +
+            'and set the "openjml.serverPath" setting to the full path of the ' +
+            'openjml-lsp script from your installation.',
+            'Open Settings'
+        ).then(choice => {
+            if (choice === 'Open Settings') {
+                vscode.commands.executeCommand(
+                    'workbench.action.openSettings', 'openjml.serverPath');
+            }
+        });
+        return;  // do not start the language client
+    }
 
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
