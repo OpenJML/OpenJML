@@ -37,6 +37,13 @@ function findOnPath(name) {
 }
 
 /**
+ * Return p if it exists and is a regular file, otherwise null.
+ */
+function fileIfExists(p) {
+    try { return fs.statSync(p).isFile() ? p : null; } catch (_) { return null; }
+}
+
+/**
  * Given Java source content and a 0-based cursor line, return the
  * fully-qualified method name (pkg.Class.method) of the method that
  * contains that line, or null if not found.
@@ -149,11 +156,13 @@ async function activate(context) {
 
     // Resolution order (first match wins):
     //   1. openjml.serverPath setting (explicit user config)
-    //   2. openjml-lsp one directory above the extension (dev / release-zip layout)
-    //   3. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
-    const defaultScript = path.join(__dirname, '..', 'openjml-lsp');
-    const serverScript  = configuredPath
-        || (fs.existsSync(defaultScript) ? defaultScript : null)
+    //   2. openjml-lsp file one directory above the extension  (dev / release-zip layout)
+    //   3. openjml-lsp/openjml-lsp  — if that sibling is a directory containing the script
+    //   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
+    const siblingDir = path.join(__dirname, '..');
+    const serverScript = configuredPath
+        || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
+        || fileIfExists(path.join(siblingDir, 'openjml-lsp', 'openjml-lsp'))
         || findOnPath('openjml-lsp');
 
     console.log('OpenJML: activating, server script =', serverScript);
