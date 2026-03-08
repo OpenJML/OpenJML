@@ -74,6 +74,27 @@ function activate(context) {
             vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
             return;
         }
+
+        // Warn if the file has unsaved changes — ESC runs on the disk file,
+        // so results may not reflect what is currently in the editor.
+        if (editor.document.isDirty) {
+            const warnSetting = vscode.workspace.getConfiguration('openjml')
+                                               .get('warnEscOnDirtyFile', true);
+            if (warnSetting) {
+                const choice = await vscode.window.showWarningMessage(
+                    'OpenJML: the file has unsaved changes. ESC runs on the saved file on disk and may not reflect your edits.',
+                    'Run anyway', 'Cancel', "Don't warn again"
+                );
+                if (choice === 'Cancel' || choice === undefined) return;
+                if (choice === "Don't warn again") {
+                    await vscode.workspace.getConfiguration('openjml')
+                        .update('warnEscOnDirtyFile', false,
+                                vscode.ConfigurationTarget.Global);
+                }
+                // 'Run anyway' or "Don't warn again" both fall through to run ESC.
+            }
+        }
+
         const uri = editor.document.uri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
@@ -85,6 +106,29 @@ function activate(context) {
         }
     });
     context.subscriptions.push(escCmd);
+
+    // "Save and Run ESC" — saves the active file first, then runs ESC.
+    // Useful as a keyboard shortcut so a single key gesture persists changes
+    // and immediately verifies them.  The dirty-file warning is skipped because
+    // the save happens before ESC starts.
+    const saveAndEscCmd = vscode.commands.registerCommand('openjml.saveAndRunEsc', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.languageId !== 'java') {
+            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+            return;
+        }
+        await vscode.commands.executeCommand('workbench.action.files.save');
+        const uri = editor.document.uri.toString();
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEsc',
+                arguments: [uri],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(saveAndEscCmd);
 }
 
 function deactivate() {
