@@ -24,8 +24,8 @@
     "keybindings": [
       {
         "command": "openjml.saveAndRunEsc",
-        "key": "ctrl+k ctrl+e",
-        "mac": "cmd+k cmd+e",
+        "key": "ctrl+e",
+        "mac": "cmd+e",
         "when": "editorLangId == java && editorFocus"
       }
     ],
