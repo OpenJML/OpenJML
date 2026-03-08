@@ -1,2 +1,5 @@
-node_modules/**
+.vscode/**
+.gitignore
 .vscodeignore
+package-lock.json
+node_modules/@vscode/vsce/**

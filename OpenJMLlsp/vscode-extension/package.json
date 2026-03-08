@@ -130,7 +130,16 @@
       }
     }
   },
+  "scripts": {
+    "package": "vsce package --no-yarn"
+  },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "2.15.0"
+  },
+  "overrides": {
+    "cheerio": "1.0.0-rc.12"
   }
 }
