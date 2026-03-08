@@ -348,6 +348,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 CheckRunner.CheckResult result = task.get();
                 System.err.println("[OpenJML] ESC-method done: exit=" + result.exitCode()
                         + " diags=" + result.diagnostics().size() + " uri=" + uri);
+                if (result.isCommandLineError())
+                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC-method for " + uri);
                 if (escGen.get(uri).get() != myGen) return; // superseded
 
                 if (result.isInternalError()) {
@@ -462,6 +464,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 CheckRunner.CheckResult result = task.get();
                 System.err.println("[OpenJML] ESC done: exit=" + result.exitCode()
                         + " diags=" + result.diagnostics().size() + " uri=" + uri);
+                if (result.isCommandLineError())
+                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
                 // Only publish if this task is still the latest for this URI.
                 if (escGen.get(uri).get() == myGen) {
                     if (result.isInternalError()) {

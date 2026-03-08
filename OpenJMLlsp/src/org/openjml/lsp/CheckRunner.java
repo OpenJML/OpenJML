@@ -21,6 +21,7 @@ import java.util.List;
  * <ul>
  *   <li>0 — success, no issues</li>
  *   <li>1 — syntax or type errors (--check or --esc)</li>
+ *   <li>2 — bad command-line arguments (indicates a bug in this server)</li>
  *   <li>6 — verification failures (--esc postcondition / assertion violations)</li>
  *   <li>4 — internal / catastrophic error</li>
  * </ul>
@@ -44,6 +45,8 @@ public class CheckRunner {
     public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode) {
         /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
         public boolean isInternalError() { return exitCode == 4; }
+        /** Returns {@code true} when OpenJML rejected the command line — indicates a server bug. */
+        public boolean isCommandLineError() { return exitCode == 2; }
     }
 
     // --- public API: --check ---
