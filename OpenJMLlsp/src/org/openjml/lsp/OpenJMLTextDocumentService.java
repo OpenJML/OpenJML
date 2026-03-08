@@ -74,20 +74,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- ESC status per method (for code lens) ---
 
-    enum EscPhase { UNKNOWN, CHECKING, DONE }
+    enum EscPhase { UNKNOWN, CHECKING, DONE, ERROR }
 
     record MethodStatus(EscPhase phase, int issueCount) {
         static final MethodStatus UNKNOWN  = new MethodStatus(EscPhase.UNKNOWN,  0);
         static final MethodStatus CHECKING = new MethodStatus(EscPhase.CHECKING, 0);
+        static final MethodStatus ERROR    = new MethodStatus(EscPhase.ERROR,    0);
         static MethodStatus done(int n) { return new MethodStatus(EscPhase.DONE, n); }
 
         String label() {
             return switch (phase) {
-                case UNKNOWN  -> "OpenJML: \u2014";            // —
-                case CHECKING -> "OpenJML: \u29d7 Checking\u2026"; // ⧗
+                case UNKNOWN  -> "OpenJML: \u2014";                 // —
+                case CHECKING -> "OpenJML: \u29d7 Checking\u2026";  // ⧗
                 case DONE     -> issueCount == 0
-                        ? "OpenJML: \u2713 Verified"            // ✓
+                        ? "OpenJML: \u2713 Verified"                // ✓
                         : "OpenJML: \u2717 " + issueCount + " issue(s)"; // ✗
+                case ERROR    -> "OpenJML: \u26a0 Error";           // ⚠
             };
         }
     }
@@ -203,8 +205,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             MethodStatus s = statuses.getOrDefault(m.startLine(), MethodStatus.UNKNOWN);
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
-            // Informational lens — no executable command, just a status label.
-            var cmd = new Command(s.label(), "");
+            String fqn = JavaSourceScanner.methodFqn(content, m.name());
+            var cmd = new Command(s.label(), "openjml.runEscForMethod",
+                                  List.<Object>of(uri, fqn));
             lenses.add(new CodeLens(range, cmd, null));
         }
         return CompletableFuture.completedFuture(lenses);
@@ -268,6 +271,135 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         scheduleEscFile(uri);
     }
 
+    /**
+     * Run ESC on a single method in the given URI (for the {@code openjml.runEscForMethod}
+     * command).  {@code methodName} is the fully-qualified name passed to {@code --method}.
+     *
+     * <p>Unlike a full-file ESC, only the target method's code-lens status and its
+     * diagnostics (within its line range) are updated; other methods are left unchanged.
+     */
+    void scheduleEscForMethod(String uri, String methodName) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath == null) return;
+
+        // Resolve the method's line range now (on the calling thread) so we can
+        // do per-method status updates after the task completes.
+        String content = lastContent.get(uri);
+        JavaSourceScanner.MethodInfo target = findMethodByFqn(content, methodName);
+
+        submitEscForMethod(uri, target,
+                () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings));
+    }
+
+    /**
+     * Extract the simple name from a possibly-qualified method name
+     * ({@code "pkg.Class.method"} → {@code "method"}) and find the matching
+     * {@link JavaSourceScanner.MethodInfo} in {@code content}.
+     * Returns {@code null} if the content is absent or no match is found.
+     */
+    private static JavaSourceScanner.MethodInfo findMethodByFqn(String content, String fqn) {
+        if (content == null || fqn == null) return null;
+        int dot = fqn.lastIndexOf('.');
+        String simpleName = dot >= 0 ? fqn.substring(dot + 1) : fqn;
+        for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+            if (simpleName.equals(m.name())) return m;
+        }
+        return null;
+    }
+
+    /**
+     * Submit an ESC task that targets a single method.
+     *
+     * <ul>
+     *   <li>Cancels any running ESC task for the same URI.</li>
+     *   <li>Marks only the target method as CHECKING (others are left as-is).</li>
+     *   <li>On completion, replaces only the diagnostics within the target method's
+     *       line range and updates only that method's code-lens status.</li>
+     *   <li>Falls back to full-file behaviour if {@code target} is {@code null}.</li>
+     *   <li>Exceptions from the task are logged to stderr so they are not silently lost.</li>
+     * </ul>
+     */
+    private void submitEscForMethod(String uri, JavaSourceScanner.MethodInfo target,
+                                    Supplier<CheckRunner.CheckResult> task) {
+        Future<?> prev = runningEscTasks.remove(uri);
+        if (prev != null) prev.cancel(true);
+
+        long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
+
+        // Mark only the target method as CHECKING.
+        if (target != null) {
+            Map<Integer, MethodStatus> statuses =
+                    new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+            statuses.put(target.startLine(), MethodStatus.CHECKING);
+            methodEscStatus.put(uri, statuses);
+            refreshCodeLenses();
+        } else {
+            markEscChecking(uri);
+        }
+
+        Future<?> f = executor.submit(() -> {
+            try {
+                CheckRunner.CheckResult result = task.get();
+                if (escGen.get(uri).get() != myGen) return; // superseded
+
+                if (result.isInternalError()) {
+                    System.err.println("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
+                    if (target != null) {
+                        Map<Integer, MethodStatus> statuses =
+                                new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+                        statuses.put(target.startLine(), MethodStatus.ERROR);
+                        methodEscStatus.put(uri, statuses);
+                        refreshCodeLenses();
+                    }
+                    return;
+                }
+
+                List<Diagnostic> diags = result.diagnostics();
+                if (target != null) {
+                    // Replace only the diagnostics inside the target method's line range.
+                    int start = target.startLine();
+                    int end   = target.endLine();
+                    List<Diagnostic> kept = new ArrayList<>(
+                            escDiags.getOrDefault(uri, List.of()));
+                    kept.removeIf(d -> {
+                        int line = d.getRange().getStart().getLine();
+                        return line >= start && line <= end;
+                    });
+                    kept.addAll(diags);
+                    escDiags.put(uri, kept);
+
+                    // Update only the target method's code-lens status.
+                    long issues = diags.stream()
+                            .filter(d -> {
+                                int line = d.getRange().getStart().getLine();
+                                return line >= start && line <= end;
+                            }).count();
+                    Map<Integer, MethodStatus> statuses =
+                            new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+                    statuses.put(start, MethodStatus.done((int) issues));
+                    methodEscStatus.put(uri, statuses);
+                } else {
+                    escDiags.put(uri, diags);
+                    updateEscStatus(uri, diags);
+                }
+                publishMerged(uri);
+                refreshCodeLenses();
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] ESC for method failed unexpectedly: " + t);
+                if (target != null && escGen.get(uri).get() == myGen) {
+                    Map<Integer, MethodStatus> statuses =
+                            new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+                    statuses.put(target.startLine(), MethodStatus.UNKNOWN);
+                    methodEscStatus.put(uri, statuses);
+                    refreshCodeLenses();
+                }
+            } finally {
+                runningEscTasks.remove(uri);
+            }
+        });
+        runningEscTasks.put(uri, f);
+    }
+
     // --- scheduling helpers ---
 
     private void scheduleCheckNow(String uri, String content) {
@@ -295,6 +427,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         submitEsc(uri, () -> CheckRunner.runEsc(uri, content, settings));
     }
 
+
+
     /**
      * Submit an ESC task for {@code uri}.
      *
@@ -306,7 +440,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *       silently discarded via a generation counter.</li>
      * </ul>
      */
-    private void submitEsc(String uri, Supplier<List<Diagnostic>> task) {
+    private void submitEsc(String uri, Supplier<CheckRunner.CheckResult> task) {
         // Cancel the previous ESC task for this URI (may not interrupt CPU-bound work,
         // but removes it from the task queue if it hasn't started yet).
         Future<?> prev = runningEscTasks.remove(uri);
@@ -317,12 +451,24 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         Future<?> f = executor.submit(() -> {
             try {
-                List<Diagnostic> diags = task.get();
+                CheckRunner.CheckResult result = task.get();
                 // Only publish if this task is still the latest for this URI.
                 if (escGen.get(uri).get() == myGen) {
-                    escDiags.put(uri, diags);
-                    updateEscStatus(uri, diags);
-                    publishMerged(uri);
+                    if (result.isInternalError()) {
+                        System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
+                        markAllMethodStatus(uri, MethodStatus.ERROR);
+                        refreshCodeLenses();
+                    } else {
+                        escDiags.put(uri, result.diagnostics());
+                        updateEscStatus(uri, result.diagnostics());
+                        publishMerged(uri);
+                    }
+                }
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] ESC failed: " + t);
+                if (escGen.get(uri).get() == myGen) {
+                    updateEscStatus(uri, List.of());
+                    refreshCodeLenses();
                 }
             } finally {
                 runningEscTasks.remove(uri);
@@ -334,30 +480,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // --- runners (execute on the thread pool) ---
 
     private void runCheckContent(String uri, String content) {
-        List<Diagnostic> diags = CheckRunner.check(uri, content, settings);
+        List<Diagnostic> diags = CheckRunner.check(uri, content, settings).diagnostics();
         checkDiags.put(uri, diags);
         publishMerged(uri);
     }
 
     private void runCheckFile(String filePath, String uri) {
-        List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings);
+        List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings).diagnostics();
         checkDiags.put(uri, diags);
         publishMerged(uri);
     }
 
     // --- ESC code-lens status helpers ---
 
-    /** Mark all detected methods in {@code uri} as currently being checked. */
-    private void markEscChecking(String uri) {
+    /** Set all detected methods in {@code uri} to the given {@code status}. */
+    private void markAllMethodStatus(String uri, MethodStatus status) {
         String content = lastContent.get(uri);
         if (content == null) return;
         List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
         if (methods.isEmpty()) return;
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
-            statuses.put(m.startLine(), MethodStatus.CHECKING);
+            statuses.put(m.startLine(), status);
         }
         methodEscStatus.put(uri, statuses);
+    }
+
+    /** Mark all detected methods in {@code uri} as currently being checked. */
+    private void markEscChecking(String uri) {
+        markAllMethodStatus(uri, MethodStatus.CHECKING);
         refreshCodeLenses();
     }
 

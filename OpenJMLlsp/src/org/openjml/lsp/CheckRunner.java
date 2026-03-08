@@ -14,7 +14,16 @@ import java.util.List;
 
 /**
  * Runs OpenJML {@code --check} or {@code --esc} passes on Java/JML source
- * and returns LSP diagnostics.
+ * and returns a {@link CheckResult} containing the LSP diagnostics and the
+ * OpenJML exit code.
+ *
+ * <p>OpenJML exit codes:
+ * <ul>
+ *   <li>0 — success, no issues</li>
+ *   <li>1 — warnings only</li>
+ *   <li>2 — errors (type or verification failures)</li>
+ *   <li>4 — internal / catastrophic error</li>
+ * </ul>
  *
  * Each call creates a fresh OpenJML compilation context (fresh {@code IAPI})
  * to avoid shared state between checks.
@@ -26,42 +35,66 @@ import java.util.List;
  */
 public class CheckRunner {
 
+    /**
+     * Result of a single OpenJML invocation.
+     *
+     * @param diagnostics  LSP diagnostics collected by the listener
+     * @param exitCode     raw exit code returned by {@code IAPI.execute()}
+     */
+    public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode) {
+        /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
+        public boolean isInternalError() { return exitCode == 4; }
+    }
+
     // --- public API: --check ---
 
     /** Run {@code --check} on in-memory content with default settings. */
-    public static List<org.eclipse.lsp4j.Diagnostic> check(String uri, String content) {
+    public static CheckResult check(String uri, String content) {
         return check(uri, content, new OpenJMLSettings());
     }
 
     /** Run {@code --check} on in-memory content. */
-    public static List<org.eclipse.lsp4j.Diagnostic> check(String uri, String content,
-                                                            OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--check");
+    public static CheckResult check(String uri, String content, OpenJMLSettings settings) {
+        return runOnContent(uri, content, settings, "--check", null);
     }
 
     /** Run {@code --check} on a file already on disk. */
-    public static List<org.eclipse.lsp4j.Diagnostic> checkFile(String filePath, String uri,
-                                                                OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--check");
+    public static CheckResult checkFile(String filePath, String uri, OpenJMLSettings settings) {
+        return runOnFile(filePath, uri, settings, "--check", null);
     }
 
     // --- public API: --esc ---
 
     /** Run {@code --esc} on in-memory content with default settings. */
-    public static List<org.eclipse.lsp4j.Diagnostic> runEsc(String uri, String content) {
+    public static CheckResult runEsc(String uri, String content) {
         return runEsc(uri, content, new OpenJMLSettings());
     }
 
     /** Run {@code --esc} on in-memory content. */
-    public static List<org.eclipse.lsp4j.Diagnostic> runEsc(String uri, String content,
-                                                             OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--esc");
+    public static CheckResult runEsc(String uri, String content, OpenJMLSettings settings) {
+        return runOnContent(uri, content, settings, "--esc", null);
+    }
+
+    /** Run {@code --esc} on a single method in in-memory content with default settings. */
+    public static CheckResult runEscMethod(String uri, String content, String methodName) {
+        return runEscMethod(uri, content, methodName, new OpenJMLSettings());
+    }
+
+    /** Run {@code --esc} on a single method in in-memory content. */
+    public static CheckResult runEscMethod(String uri, String content, String methodName,
+                                           OpenJMLSettings settings) {
+        return runOnContent(uri, content, settings, "--esc", methodName);
     }
 
     /** Run {@code --esc} on a file already on disk. */
-    public static List<org.eclipse.lsp4j.Diagnostic> runEscFile(String filePath, String uri,
-                                                                 OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--esc");
+    public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings) {
+        return runOnFile(filePath, uri, settings, "--esc", null);
+    }
+
+    /** Run {@code --esc} on a single method in a file already on disk. */
+    public static CheckResult runEscFileMethod(String filePath, String uri, String methodName,
+                                               OpenJMLSettings settings) {
+        return runOnFile(filePath, uri, settings, "--esc", methodName);
     }
 
     // --- utility ---
@@ -80,8 +113,9 @@ public class CheckRunner {
 
     // --- private implementation ---
 
-    private static List<org.eclipse.lsp4j.Diagnostic> runOnContent(
-            String uri, String content, OpenJMLSettings settings, String modeFlag) {
+    private static CheckResult runOnContent(
+            String uri, String content, OpenJMLSettings settings, String modeFlag,
+            String methodName) {
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
@@ -94,13 +128,17 @@ public class CheckRunner {
             Files.writeString(tempFile, content);
 
             List<String> args = buildArgs(settings, modeFlag);
+            if (methodName != null && !methodName.isEmpty()) {
+                args.add("--method");
+                args.add(methodName);
+            }
             args.add(tempFile.toString());
             logInvocation("runOnContent", args);
-            api.execute(args.toArray(new String[0]));
+            int rc = api.execute(args.toArray(new String[0]));
 
-            return listener.toLspDiagnostics(tempFile.toString(), uri);
+            return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc);
         } catch (IOException e) {
-            return List.of();
+            return new CheckResult(List.of(), -1);
         } finally {
             if (tempDir != null) {
                 try {
@@ -112,18 +150,23 @@ public class CheckRunner {
         }
     }
 
-    private static List<org.eclipse.lsp4j.Diagnostic> runOnFile(
-            String filePath, String uri, OpenJMLSettings settings, String modeFlag) {
+    private static CheckResult runOnFile(
+            String filePath, String uri, OpenJMLSettings settings, String modeFlag,
+            String methodName) {
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
 
         List<String> args = buildArgs(settings, modeFlag);
+        if (methodName != null && !methodName.isEmpty()) {
+            args.add("--method");
+            args.add(methodName);
+        }
         args.add(filePath);
         logInvocation("runOnFile", args);
-        api.execute(args.toArray(new String[0]));
+        int rc = api.execute(args.toArray(new String[0]));
 
-        return listener.toLspDiagnostics(filePath, uri);
+        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc);
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {

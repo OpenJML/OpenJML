@@ -121,6 +121,79 @@ public class DiagnosticsTest extends LspTestBase {
                 diags.isEmpty());
     }
 
+    /**
+     * Source with two methods, both with provably false postconditions.
+     * Used by the per-method ESC tests below.
+     *
+     * <pre>
+     * line 0: public class TwoFailing {
+     * line 1:     //@ ensures \result > x;       // methodA spec
+     * line 2:     public int methodA(int x) { return x; }
+     * line 3:
+     * line 4:     //@ ensures \result < x;       // methodB spec
+     * line 5:     public int methodB(int x) { return x; }
+     * line 6: }
+     * </pre>
+     *
+     * methodA occupies lines 1–3, methodB occupies lines 4–6.
+     * Running full ESC produces diagnostics for both; running with
+     * {@code --method TwoFailing.methodA} or {@code .methodB} restricts results
+     * to one method.
+     */
+    private static final String TWO_FAILING_SOURCE =
+            "public class TwoFailing {\n" +
+            "    //@ ensures \\result > x;\n" +
+            "    public int methodA(int x) { return x; }\n" +
+            "\n" +
+            "    //@ ensures \\result < x;\n" +
+            "    public int methodB(int x) { return x; }\n" +
+            "}\n";
+
+    // methodA occupies lines 1–3 (0-based); methodB occupies lines 4–6.
+    private static final int METHOD_B_FIRST_LINE = 4;
+
+    /**
+     * When {@code --method} is not used, full ESC on {@code TwoFailing} should
+     * report diagnostics for both methods.
+     */
+    @Test
+    public void testEscBothMethodsFailWithoutMethodFilter() throws Exception {
+        List<Diagnostic> diags = runEscContent("file:///TwoFailing.java", TWO_FAILING_SOURCE);
+        assertFalse("Expected ESC diagnostics for both failing methods", diags.isEmpty());
+        boolean hasMethodA = diags.stream()
+                .anyMatch(d -> d.getRange().getStart().getLine() < METHOD_B_FIRST_LINE);
+        boolean hasMethodB = diags.stream()
+                .anyMatch(d -> d.getRange().getStart().getLine() >= METHOD_B_FIRST_LINE);
+        assertTrue("Expected at least one diagnostic in methodA's line range", hasMethodA);
+        assertTrue("Expected at least one diagnostic in methodB's line range", hasMethodB);
+    }
+
+    /**
+     * Running ESC with {@code --method TwoFailing.methodA} should return diagnostics
+     * only for {@code methodA} (lines 1–3), not for {@code methodB} (lines 4–6).
+     */
+    @Test
+    public void testEscForMethodAReturnsOnlyMethodAErrors() throws Exception {
+        List<Diagnostic> diags = runEscContentMethod(
+                "file:///TwoFailing.java", TWO_FAILING_SOURCE, "TwoFailing.methodA");
+        assertFalse("Expected at least one ESC diagnostic for methodA", diags.isEmpty());
+        assertTrue("Expected all diagnostics to be within methodA's line range (< line " + METHOD_B_FIRST_LINE + ")",
+                diags.stream().allMatch(d -> d.getRange().getStart().getLine() < METHOD_B_FIRST_LINE));
+    }
+
+    /**
+     * Running ESC with {@code --method TwoFailing.methodB} should return diagnostics
+     * only for {@code methodB} (lines 4–6), not for {@code methodA} (lines 1–3).
+     */
+    @Test
+    public void testEscForMethodBReturnsOnlyMethodBErrors() throws Exception {
+        List<Diagnostic> diags = runEscContentMethod(
+                "file:///TwoFailing.java", TWO_FAILING_SOURCE, "TwoFailing.methodB");
+        assertFalse("Expected at least one ESC diagnostic for methodB", diags.isEmpty());
+        assertTrue("Expected all diagnostics to be within methodB's line range (>= line " + METHOD_B_FIRST_LINE + ")",
+                diags.stream().allMatch(d -> d.getRange().getStart().getLine() >= METHOD_B_FIRST_LINE));
+    }
+
     /** Diagnostics carry a non-null source field identifying OpenJML. */
     @Test
     public void testDiagnosticSourceIsOpenjml() throws Exception {

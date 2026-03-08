@@ -3,7 +3,6 @@ package org.openjml.lsp;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
@@ -12,6 +11,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -22,6 +22,8 @@ import java.util.function.Consumer;
  *
  * <p>{@code workspace/executeCommand} with command {@code "openjml.runEsc"}
  * and a single URI argument triggers an immediate ESC check on that file.
+ * With command {@code "openjml.runEscForMethod"} and arguments {@code [uri, methodName]},
+ * triggers ESC on a single method.
  */
 public class OpenJMLWorkspaceService implements WorkspaceService {
 
@@ -29,14 +31,19 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private final OpenJMLSettings settings;
     private final Consumer<String> escRequester;
+    private final BiConsumer<String, String> escMethodRequester;
 
     /**
-     * @param settings      shared settings object
-     * @param escRequester  called with the URI when {@code openjml.runEsc} is requested
+     * @param settings            shared settings object
+     * @param escRequester        called with the URI when {@code openjml.runEsc} is requested
+     * @param escMethodRequester  called with (uri, methodName) when {@code openjml.runEscForMethod} is requested
      */
-    public OpenJMLWorkspaceService(OpenJMLSettings settings, Consumer<String> escRequester) {
-        this.settings     = settings;
-        this.escRequester = escRequester;
+    public OpenJMLWorkspaceService(OpenJMLSettings settings,
+                                   Consumer<String> escRequester,
+                                   BiConsumer<String, String> escMethodRequester) {
+        this.settings            = settings;
+        this.escRequester        = escRequester;
+        this.escMethodRequester  = escMethodRequester;
     }
 
     @Override
@@ -58,18 +65,30 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     @Override
     public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
-        if ("openjml.runEsc".equals(params.getCommand()) && escRequester != null) {
-            List<?> args = params.getArguments();
+        String cmd = params.getCommand();
+        List<?> args = params.getArguments();
+
+        if ("openjml.runEsc".equals(cmd) && escRequester != null) {
             if (args != null && !args.isEmpty()) {
-                // LSP4J deserializes arguments as JsonElement; extract string value.
-                Object arg = args.get(0);
-                String uri = (arg instanceof JsonPrimitive)
-                        ? ((JsonPrimitive) arg).getAsString()
-                        : String.valueOf(arg);
-                escRequester.accept(uri);
+                String uri = extractString(args.get(0));
+                if (uri != null) escRequester.accept(uri);
+            }
+        } else if ("openjml.runEscForMethod".equals(cmd) && escMethodRequester != null) {
+            if (args != null && args.size() >= 2) {
+                String uri        = extractString(args.get(0));
+                String methodName = extractString(args.get(1));
+                if (uri != null && methodName != null) {
+                    escMethodRequester.accept(uri, methodName);
+                }
             }
         }
         return CompletableFuture.completedFuture(null);
+    }
+
+    private static String extractString(Object arg) {
+        if (arg instanceof JsonPrimitive jp) return jp.getAsString();
+        if (arg != null) return String.valueOf(arg);
+        return null;
     }
 
     /**

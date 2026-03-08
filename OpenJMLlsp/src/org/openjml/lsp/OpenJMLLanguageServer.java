@@ -38,7 +38,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private final OpenJMLSettings             settings            = new OpenJMLSettings();
     private final OpenJMLTextDocumentService  textDocumentService = new OpenJMLTextDocumentService(settings);
     private final OpenJMLWorkspaceService     workspaceService    =
-            new OpenJMLWorkspaceService(settings, textDocumentService::scheduleEscForUri);
+            new OpenJMLWorkspaceService(settings,
+                    textDocumentService::scheduleEscForUri,
+                    textDocumentService::scheduleEscForMethod);
 
     private int exitCode = 1;
 

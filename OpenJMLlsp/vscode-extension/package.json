@@ -19,13 +19,24 @@
         "command": "openjml.saveAndRunEsc",
         "title": "Save and Run ESC",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.runEscForMethod",
+        "title": "Run ESC for Method",
+        "category": "OpenJML"
       }
     ],
     "keybindings": [
       {
-        "command": "openjml.saveAndRunEsc",
+        "command": "openjml.runEsc",
         "key": "ctrl+e",
         "mac": "cmd+e",
+        "when": "editorLangId == java && editorFocus"
+      },
+      {
+        "command": "openjml.runEscForMethod",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
         "when": "editorLangId == java && editorFocus"
       }
     ],
@@ -34,7 +45,17 @@
         {
           "command": "openjml.runEsc",
           "when": "resourceLangId == java",
-          "group": "1_openjml"
+          "group": "1_openjml@1"
+        },
+        {
+          "command": "openjml.runEscForMethod",
+          "when": "resourceLangId == java",
+          "group": "1_openjml@2"
+        },
+        {
+          "command": "openjml.saveAndRunEsc",
+          "when": "resourceLangId == java",
+          "group": "1_openjml@3"
         }
       ],
       "commandPalette": [
@@ -44,6 +65,10 @@
         },
         {
           "command": "openjml.saveAndRunEsc",
+          "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.runEscForMethod",
           "when": "resourceLangId == java"
         }
       ]
@@ -95,11 +120,12 @@
           "order": 6,
           "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
         },
-        "openjml.warnEscOnDirtyFile": {
-          "type": "boolean",
-          "default": true,
+        "openjml.dirtyFileAction": {
+          "type": "string",
+          "enum": ["ask", "save", "run"],
+          "default": "ask",
           "order": 7,
-          "description": "Warn when 'OpenJML: Run ESC' is invoked on a file with unsaved changes. ESC runs on the saved file on disk, so results may not match the editor contents."
+          "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
         }
       }
     }

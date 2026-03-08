@@ -28,7 +28,7 @@ public abstract class LspTestBase {
      * @return the list of LSP Diagnostics reported by OpenJML
      */
     protected List<Diagnostic> checkContent(String uri, String content) {
-        return CheckRunner.check(uri, content);
+        return CheckRunner.check(uri, content).diagnostics();
     }
 
     /**
@@ -40,6 +40,20 @@ public abstract class LspTestBase {
      * @return the list of LSP Diagnostics reported by OpenJML
      */
     protected List<Diagnostic> runEscContent(String uri, String content) {
-        return CheckRunner.runEsc(uri, content);
+        return CheckRunner.runEsc(uri, content).diagnostics();
+    }
+
+    /**
+     * Run an OpenJML {@code --esc} pass restricted to a single method and
+     * return the resulting LSP diagnostics.
+     *
+     * @param uri        a document URI
+     * @param content    Java/JML source text
+     * @param methodName fully-qualified method name for {@code --method}
+     *                   (e.g. {@code "ClassName.methodName"})
+     * @return the list of LSP Diagnostics reported by OpenJML for that method only
+     */
+    protected List<Diagnostic> runEscContentMethod(String uri, String content, String methodName) {
+        return CheckRunner.runEscMethod(uri, content, methodName).diagnostics();
     }
 }
