@@ -20,8 +20,8 @@ import java.util.List;
  * <p>OpenJML exit codes:
  * <ul>
  *   <li>0 — success, no issues</li>
- *   <li>1 — warnings only</li>
- *   <li>2 — errors (type or verification failures)</li>
+ *   <li>1 — syntax or type errors (--check or --esc)</li>
+ *   <li>6 — verification failures (--esc postcondition / assertion violations)</li>
  *   <li>4 — internal / catastrophic error</li>
  * </ul>
  *
