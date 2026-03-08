@@ -54,7 +54,8 @@ import java.util.function.Supplier;
  *   <li>{@code "save"} — on every save</li>
  *   <li>{@code "edit"} — on every change (debounced {@value #ESC_DEBOUNCE_MS} ms; expensive)</li>
  * </ul>
- * In "edit" and "save" modes ESC also runs when the file is first opened.
+ * ESC is never triggered automatically on open — only on save, edit (per the setting),
+ * or the explicit {@code openjml.runEsc} command.
  *
  * <p>Multiple ESC operations may run concurrently on different files.  Within
  * a single file, starting a new ESC cancels the previous one (via
@@ -137,11 +138,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // --check: always on open
         scheduleCheckNow(uri, content);
-
-        // --esc: on open if not manual
-        if (!settings.isEscManual()) {
-            scheduleEscNow(uri, content);
-        }
+        // ESC is never triggered on open — only on save/edit (per trigger setting)
+        // or the explicit openjml.runEsc command.
     }
 
     @Override
@@ -280,15 +278,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             scheduleCheckFile(uri);
         } else {
             executor.submit(() -> runCheckContent(uri, content));
-        }
-    }
-
-    private void scheduleEscNow(String uri, String content) {
-        String filePath = CheckRunner.uriToPath(uri);
-        if (filePath != null && new java.io.File(filePath).exists()) {
-            scheduleEscFile(uri);
-        } else {
-            startEscContent(uri, content);
         }
     }
 

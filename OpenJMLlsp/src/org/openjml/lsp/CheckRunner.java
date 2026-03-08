@@ -95,6 +95,7 @@ public class CheckRunner {
 
             List<String> args = buildArgs(settings, modeFlag);
             args.add(tempFile.toString());
+            logInvocation("runOnContent", args);
             api.execute(args.toArray(new String[0]));
 
             return listener.toLspDiagnostics(tempFile.toString(), uri);
@@ -119,6 +120,7 @@ public class CheckRunner {
 
         List<String> args = buildArgs(settings, modeFlag);
         args.add(filePath);
+        logInvocation("runOnFile", args);
         api.execute(args.toArray(new String[0]));
 
         return listener.toLspDiagnostics(filePath, uri);
@@ -144,6 +146,18 @@ public class CheckRunner {
             args.add(settings.classPath);
         }
         return args;
+    }
+
+    /** Log an OpenJML invocation to stderr (captured in /tmp/openjml-lsp-debug.log). */
+    private static void logInvocation(String caller, List<String> args) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[CheckRunner.").append(caller).append("] args:");
+        for (String a : args) sb.append(' ').append(a);
+        sb.append('\n');
+        sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
+        sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
+        sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
+        System.err.print(sb);
     }
 
     private static String extractBaseName(String uri) {
