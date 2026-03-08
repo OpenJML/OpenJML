@@ -169,13 +169,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String uri = params.getTextDocument().getUri();
         cancelPending(uri);
 
-        // --check: always on save
+        // --check: always on save.
+        // ESC on save is handled by the VS Code extension (onDidSaveTextDocument),
+        // which can distinguish manual saves from auto-saves.  The server never
+        // triggers ESC from didSave.
         scheduleCheckFile(uri);
-
-        // --esc: on save if escTriggerOn == "save"
-        if (settings.isEscOnSave()) {
-            scheduleEscFile(uri);
-        }
     }
 
     @Override
