@@ -22,6 +22,44 @@ public class JavaSourceScanner {
     /** Immutable description of one method found in a source file. */
     public record MethodInfo(String name, int startLine, int endLine) {}
 
+    private static final Pattern PACKAGE_DECL = Pattern.compile(
+            "^\\s*package\\s+([\\w.]+)\\s*;", Pattern.MULTILINE);
+
+    private static final Pattern CLASS_DECL = Pattern.compile(
+            "(?:^|\\n)[ \\t]*(?:public|protected)\\s+(?:(?:abstract|final|sealed|non-sealed)\\s+)*"
+            + "(?:class|interface|enum|record)\\s+(\\w+)");
+
+    /**
+     * Extract the package name declared in {@code content}, or {@code ""} if none.
+     */
+    public static String findPackage(String content) {
+        if (content == null) return "";
+        Matcher m = PACKAGE_DECL.matcher(content);
+        return m.find() ? m.group(1) : "";
+    }
+
+    /**
+     * Extract the top-level public/protected class (or interface/enum/record) name
+     * from {@code content}, or {@code ""} if not found.
+     */
+    public static String findClassName(String content) {
+        if (content == null) return "";
+        Matcher m = CLASS_DECL.matcher(content);
+        return m.find() ? m.group(1) : "";
+    }
+
+    /**
+     * Build the fully-qualified method name {@code pkg.ClassName.methodName}
+     * suitable for passing to OpenJML's {@code --method} flag.
+     */
+    public static String methodFqn(String content, String methodName) {
+        String pkg = findPackage(content);
+        String cls = findClassName(content);
+        if (cls.isEmpty()) return methodName;
+        if (pkg.isEmpty()) return cls + "." + methodName;
+        return pkg + "." + cls + "." + methodName;
+    }
+
     // Requires ≥1 modifier keyword to avoid matching calls and field declarations.
     // Uses a reluctant .*? so the first "word(" after the modifiers is captured
     // as the method/constructor name rather than something inside the parameter list.

@@ -20,6 +20,101 @@ const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
 
 let client;
 
+/**
+ * Given Java source content and a 0-based cursor line, return the
+ * fully-qualified method name (pkg.Class.method) of the method that
+ * contains that line, or null if not found.
+ *
+ * Uses the same heuristic regex as JavaSourceScanner on the server side.
+ */
+function findMethodFqnAtLine(content, cursorLine) {
+    const lines = content.split('\n');
+
+    // Extract package name.
+    let pkg = '';
+    for (const line of lines) {
+        const m = line.match(/^\s*package\s+([\w.]+)\s*;/);
+        if (m) { pkg = m[1]; break; }
+    }
+
+    // Extract top-level public/protected class name.
+    let cls = '';
+    for (const line of lines) {
+        const m = line.match(/(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
+        if (m) { cls = m[1]; break; }
+    }
+
+    // Find all method declaration start lines.
+    const METHOD_RE = /^[ \t]*(?:public|private|protected|static|final|synchronized|abstract|native|default|strictfp).*?(\w+)[ \t]*\(/;
+    const methodStarts = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (/^\s*(?:\/\/|\*|\/\*|@)/.test(lines[i])) continue;
+        const m = METHOD_RE.exec(lines[i]);
+        if (m) methodStarts.push({ name: m[1], line: i });
+    }
+
+    // Find the method whose range contains cursorLine.
+    let methodName = null;
+    for (let i = 0; i < methodStarts.length; i++) {
+        const start = methodStarts[i].line;
+        const end = i + 1 < methodStarts.length ? methodStarts[i + 1].line - 1 : lines.length - 1;
+        if (cursorLine >= start && cursorLine <= end) {
+            methodName = methodStarts[i].name;
+            break;
+        }
+    }
+    if (!methodName) return null;
+    if (!cls) return methodName;
+    if (!pkg) return cls + '.' + methodName;
+    return pkg + '.' + cls + '.' + methodName;
+}
+
+/**
+ * Handle unsaved changes before running ESC.  Returns true if ESC should
+ * proceed, false to abort.
+ *
+ * Behaviour is controlled by the openjml.dirtyFileAction setting:
+ *   "ask"  — prompt with Save / Run anyway / Cancel / Always save / Never save
+ *   "save" — silently save first, then proceed
+ *   "run"  — proceed without saving (ESC sees the last saved disk content)
+ *
+ * "Always save" and "Never save" update the setting globally so the dialog
+ * is not shown again.
+ */
+async function checkDirtyAndProceed(document) {
+    if (!document.isDirty) return true;
+    const action = vscode.workspace.getConfiguration('openjml')
+                                   .get('dirtyFileAction', 'ask');
+    if (action === 'save') {
+        await vscode.commands.executeCommand('workbench.action.files.save');
+        return true;
+    }
+    if (action === 'run') {
+        return true;
+    }
+    // action === 'ask'
+    const choice = await vscode.window.showWarningMessage(
+        'OpenJML: the file has unsaved changes. ESC runs on the saved file on disk and may not reflect your edits.',
+        'Save and Run ESC', 'Run anyway', 'Cancel', 'Always save', 'Never save'
+    );
+    if (choice === 'Cancel' || choice === undefined) return false;
+    if (choice === 'Always save') {
+        await vscode.workspace.getConfiguration('openjml')
+            .update('dirtyFileAction', 'save', vscode.ConfigurationTarget.Global);
+        await vscode.commands.executeCommand('workbench.action.files.save');
+        return true;
+    }
+    if (choice === 'Never save') {
+        await vscode.workspace.getConfiguration('openjml')
+            .update('dirtyFileAction', 'run', vscode.ConfigurationTarget.Global);
+        return true;
+    }
+    if (choice === 'Save and Run ESC') {
+        await vscode.commands.executeCommand('workbench.action.files.save');
+    }
+    return true;
+}
+
 function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
     return {
@@ -136,28 +231,7 @@ async function activate(context) {
             return;
         }
 
-        // Warn if the file has unsaved changes — ESC runs on the disk file,
-        // so results may not reflect what is currently in the editor.
-        if (editor.document.isDirty) {
-            const warnSetting = vscode.workspace.getConfiguration('openjml')
-                                               .get('warnEscOnDirtyFile', true);
-            if (warnSetting) {
-                const choice = await vscode.window.showWarningMessage(
-                    'OpenJML: the file has unsaved changes. ESC runs on the saved file on disk and may not reflect your edits.',
-                    'Save and Run ESC', 'Run anyway', 'Cancel', "Don't warn again"
-                );
-                if (choice === 'Cancel' || choice === undefined) return;
-                if (choice === "Don't warn again") {
-                    await vscode.workspace.getConfiguration('openjml')
-                        .update('warnEscOnDirtyFile', false,
-                                vscode.ConfigurationTarget.Global);
-                }
-                if (choice === 'Save and Run ESC') {
-                    await vscode.commands.executeCommand('workbench.action.files.save');
-                }
-                // All non-Cancel choices fall through to run ESC.
-            }
-        }
+        if (!await checkDirtyAndProceed(editor.document)) return;
 
         const uri = editor.document.uri.toString();
         try {
@@ -170,6 +244,43 @@ async function activate(context) {
         }
     });
     context.subscriptions.push(escCmd);
+
+    // Register "Run ESC for Method" — runs ESC restricted to a single method.
+    // When invoked via code lens the uri and methodName args are provided by the lens Command.
+    // When invoked via keyboard the active file and cursor position are used to find the method.
+    const runEscForMethodCmd = vscode.commands.registerCommand(
+            'openjml.runEscForMethod', async (uri, methodName) => {
+
+        if (!uri || !methodName) {
+            // Keyboard invocation — derive uri and method from the active editor.
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.languageId !== 'java') {
+                vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC on a method.');
+                return;
+            }
+            uri = editor.document.uri.toString();
+            const cursorLine = editor.selection.active.line;
+            methodName = findMethodFqnAtLine(editor.document.getText(), cursorLine);
+            if (!methodName) {
+                vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method.');
+                return;
+            }
+        }
+
+        // Warn if the file has unsaved changes (same behaviour as Run ESC).
+        const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri);
+        if (doc && !await checkDirtyAndProceed(doc)) return;
+
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEscForMethod',
+                arguments: [uri, methodName],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(runEscForMethodCmd);
 
     // "Save and Run ESC" — saves the active file first, then runs ESC.
     // Uses a normal save (with formatting) so the file is in the same state
