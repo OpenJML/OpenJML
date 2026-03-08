@@ -115,7 +115,7 @@ function activate(context) {
             if (warnSetting) {
                 const choice = await vscode.window.showWarningMessage(
                     'OpenJML: the file has unsaved changes. ESC runs on the saved file on disk and may not reflect your edits.',
-                    'Run anyway', 'Cancel', "Don't warn again"
+                    'Save and Run ESC', 'Run anyway', 'Cancel', "Don't warn again"
                 );
                 if (choice === 'Cancel' || choice === undefined) return;
                 if (choice === "Don't warn again") {
@@ -123,7 +123,10 @@ function activate(context) {
                         .update('warnEscOnDirtyFile', false,
                                 vscode.ConfigurationTarget.Global);
                 }
-                // 'Run anyway' or "Don't warn again" both fall through to run ESC.
+                if (choice === 'Save and Run ESC') {
+                    await vscode.commands.executeCommand('workbench.action.files.save');
+                }
+                // All non-Cancel choices fall through to run ESC.
             }
         }
 
