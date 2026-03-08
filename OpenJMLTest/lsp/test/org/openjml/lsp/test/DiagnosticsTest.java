@@ -2,6 +2,7 @@ package org.openjml.lsp.test;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.Range;
 import org.junit.Test;
 
 import java.util.List;
@@ -192,6 +193,54 @@ public class DiagnosticsTest extends LspTestBase {
         assertFalse("Expected at least one ESC diagnostic for methodB", diags.isEmpty());
         assertTrue("Expected all diagnostics to be within methodB's line range (>= line " + METHOD_B_FIRST_LINE + ")",
                 diags.stream().allMatch(d -> d.getRange().getStart().getLine() >= METHOD_B_FIRST_LINE));
+    }
+
+    /**
+     * Diagnostics must carry a non-trivial range covering the offending token,
+     * not just a single-character point.
+     *
+     * <p>Source layout (0-indexed lines/columns):
+     * <pre>
+     * line 0: public class RangeCheck {
+     * line 1:     public int m() { return "oops"; }
+     *                                      ^----^  cols 28–33  (span = 6 = len("oops"))
+     * line 2: }
+     * </pre>
+     * The type-mismatch diagnostic must land on line 1 with startCol == 28 and
+     * endCol == 34 (startCol + spanLength, exclusive).  Both start and end must
+     * be on the same line (the range does not span newlines).
+     */
+    @Test
+    public void testDiagnosticRangeCoversToken() throws Exception {
+        // Line 1: "    public int m() { return "oops"; }"
+        //          0123456789012345678901234567890123456
+        //          0         1         2         3
+        // "oops" starts at col 28 (0-indexed), length 6.
+        String source =
+                "public class RangeCheck {\n" +
+                "    public int m() { return \"oops\"; }\n" +
+                "}\n";
+        List<Diagnostic> diags = checkContent("file:///RangeCheck.java", source);
+        assertFalse("Expected at least one diagnostic", diags.isEmpty());
+
+        // Find the type-error diagnostic on line 1.
+        Diagnostic d = diags.stream()
+                .filter(x -> x.getRange().getStart().getLine() == 1)
+                .findFirst()
+                .orElse(null);
+        assertNotNull("Expected a diagnostic on line 1", d);
+
+        Range range = d.getRange();
+        int startLine = range.getStart().getLine();
+        int endLine   = range.getEnd().getLine();
+        int startCol  = range.getStart().getCharacter();
+        int endCol    = range.getEnd().getCharacter();
+
+        assertEquals("Range must not span multiple lines", startLine, endLine);
+        assertTrue("Range end column must be greater than start column (non-point range)",
+                endCol > startCol);
+        assertEquals("startCol: \"oops\" starts at column 28", 28, startCol);
+        assertEquals("endCol: \"oops\" ends at column 34 (28 + len(\"oops\"))", 34, endCol);
     }
 
     /** Diagnostics carry a non-null source field identifying OpenJML. */
