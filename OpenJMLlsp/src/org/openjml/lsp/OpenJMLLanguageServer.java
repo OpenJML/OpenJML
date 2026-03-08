@@ -1,5 +1,6 @@
 package org.openjml.lsp;
 
+import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -19,7 +20,8 @@ import java.util.concurrent.CompletableFuture;
  * Capabilities:
  * <ul>
  *   <li>textDocumentSync: Full</li>
- *   <li>executeCommandProvider: {@code openjml.runEsc}</li>
+ *   <li>codeLens: per-method ESC status (verified / issues / checking)</li>
+ *   <li>hover: JML spec for the method under the cursor</li>
  * </ul>
  *
  * Configuration is received via {@code initialize} ({@code initializationOptions})
@@ -28,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
  * Future capabilities (not yet implemented):
  * <ul>
  *   <li>semanticTokens — JML keyword/clause highlighting</li>
- *   <li>hover — JML spec for method under cursor</li>
  *   <li>completion — JML keywords</li>
  * </ul>
  */
@@ -52,6 +53,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // the VS Code command and invoke it with no arguments, so the URI would never
         // be passed to the server.  Instead the extension registers the command manually
         // and sends workspace/executeCommand with the active file's URI explicitly.
+        caps.setCodeLensProvider(new CodeLensOptions(false));
+        caps.setHoverProvider(Boolean.TRUE);
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }
