@@ -76,11 +76,41 @@ function activate(context) {
             }
         })
     );
+    // Track whether we have already warned about formatter mangling in this session.
+    let jmlFormatterWarningShown = false;
+
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(async doc => {
             if (doc.languageId !== 'java') return;
             const uri = doc.uri.toString();
             const wasManual = pendingManualSave.delete(uri); // always clear, even on auto-save
+
+            // Detect formatter mangling: //@ changed to // @ disables JML.
+            // Warn once per session and offer to fix workspace settings.
+            if (!jmlFormatterWarningShown && doc.getText().includes('// @')) {
+                jmlFormatterWarningShown = true;
+                const choice = await vscode.window.showWarningMessage(
+                    'OpenJML: A formatter changed //@ to // @, which disables JML annotations. ' +
+                    'Disable format-on-save for Java to prevent this.',
+                    'Disable for this workspace', 'Ignore'
+                );
+                if (choice === 'Disable for this workspace') {
+                    try {
+                        const cfg = vscode.workspace.getConfiguration('editor',
+                                                                       { languageId: 'java' });
+                        await cfg.update('formatOnSave', false,
+                                         vscode.ConfigurationTarget.Workspace, true);
+                        vscode.window.showInformationMessage(
+                            'OpenJML: Disabled editor.formatOnSave for Java in workspace settings. ' +
+                            'You can still format manually with Shift+Alt+F.');
+                    } catch (err) {
+                        vscode.window.showErrorMessage(
+                            'OpenJML: Could not update settings: ' + err);
+                    }
+                }
+            }
+
+            // Trigger ESC on manual save if escTriggerOn == "save".
             if (!wasManual) return;
             const escTriggerOn = vscode.workspace.getConfiguration('openjml')
                                                  .get('escTriggerOn', 'manual');
