@@ -133,7 +133,7 @@ public class CheckRunner {
                 args.add(methodName);
             }
             args.add(tempFile.toString());
-            logInvocation("runOnContent", args);
+            logInvocation("runOnContent", args, content);
             int rc = api.execute(args.toArray(new String[0]));
 
             return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc);
@@ -193,10 +193,20 @@ public class CheckRunner {
 
     /** Log an OpenJML invocation to stderr (captured in /tmp/openjml-lsp-debug.log). */
     private static void logInvocation(String caller, List<String> args) {
+        logInvocation(caller, args, null);
+    }
+
+    private static void logInvocation(String caller, List<String> args, String content) {
         StringBuilder sb = new StringBuilder();
         sb.append("[CheckRunner.").append(caller).append("] args:");
         for (String a : args) sb.append(' ').append(a);
         sb.append('\n');
+        if (content != null) {
+            int nl = content.indexOf('\n');
+            String firstLine = nl >= 0 ? content.substring(0, nl) : content;
+            sb.append("  content: ").append(content.length()).append(" chars, first line: ")
+              .append(firstLine).append('\n');
+        }
         sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
         sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
         sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
