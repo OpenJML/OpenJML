@@ -172,11 +172,10 @@ post: .FORCE
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
 	$(MAKE) -C ../OpenJMLlsp release
-	mkdir -p $(TEMP)/openjml-lsp
-	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)/openjml-lsp/
+	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)
 	cp -pR ../OpenJMLlsp/release-stage/lsp $(TEMP)
 	cp ../OpenJMLlsp/release-stage/openjml.vsix $(TEMP)
-	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/openjml-lsp/openjml-lsp
+	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 
 #RunOpenJML.class: RunOpenJML.java
