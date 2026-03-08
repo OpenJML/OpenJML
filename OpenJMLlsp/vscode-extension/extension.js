@@ -153,7 +153,7 @@ async function activate(context) {
                                 vscode.ConfigurationTarget.Global);
                 }
                 if (choice === 'Save and Run ESC') {
-                    await vscode.commands.executeCommand('workbench.action.files.saveWithoutFormatting');
+                    await vscode.commands.executeCommand('workbench.action.files.save');
                 }
                 // All non-Cancel choices fall through to run ESC.
             }
@@ -172,8 +172,9 @@ async function activate(context) {
     context.subscriptions.push(escCmd);
 
     // "Save and Run ESC" — saves the active file first, then runs ESC.
-    // Uses saveWithoutFormatting so that formatters (e.g. java.format.enabled)
-    // cannot mangle //@ JML annotations before ESC sees them.
+    // Uses a normal save (with formatting) so the file is in the same state
+    // as any other save.  The java.format.enabled warning at activation
+    // handles disabling the one formatter that mangles //@ annotations.
     // The dirty-file warning is skipped because the save happens before ESC starts.
     const saveAndEscCmd = vscode.commands.registerCommand('openjml.saveAndRunEsc', async () => {
         const editor = vscode.window.activeTextEditor;
@@ -181,7 +182,7 @@ async function activate(context) {
             vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
             return;
         }
-        await vscode.commands.executeCommand('workbench.action.files.saveWithoutFormatting');
+        await vscode.commands.executeCommand('workbench.action.files.save');
         const uri = editor.document.uri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
