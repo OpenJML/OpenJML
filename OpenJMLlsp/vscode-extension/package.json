@@ -162,6 +162,7 @@
     "@vscode/vsce": "2.15.0"
   },
   "overrides": {
-    "cheerio": "1.0.0-rc.12"
+    "cheerio": "1.0.0-rc.12",
+    "xml2js": ">=0.5.0"
   }
 }
