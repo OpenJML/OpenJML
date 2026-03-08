@@ -11,9 +11,18 @@ import java.util.Locale;
 /**
  * Converts a {@code javax.tools.Diagnostic} to an LSP {@code Diagnostic}.
  *
- * Position conventions:
- *   - javax.tools.Diagnostic: 1-indexed lines and columns; -1 means unknown
- *   - LSP: 0-indexed lines and columns
+ * <p>Position conventions:
+ * <ul>
+ *   <li>javax.tools.Diagnostic: 1-indexed line/column; {@code NOPOS} (-1) means unknown</li>
+ *   <li>LSP: 0-indexed lines and columns</li>
+ * </ul>
+ *
+ * <p>When the diagnostic carries valid {@code startPosition} and {@code endPosition}
+ * character offsets, the end column is computed as
+ * {@code startColumn + (endPosition - startPosition)}, keeping the range on the
+ * same line as the start.  This gives editors a squiggly underline covering the
+ * offending token or expression without requiring the source text.
+ * If the offsets are unavailable, a point range at the reported line/column is used.
  */
 public class DiagnosticConverter {
 
@@ -38,8 +47,21 @@ public class DiagnosticConverter {
         int lspLine = line > 0 ? (int)(line - 1) : 0;
         int lspCol  = col  > 0 ? (int)(col  - 1) : 0;
 
-        var position = new Position(lspLine, lspCol);
-        var range    = new Range(position, position);  // point range
+        long startPos = d.getStartPosition();
+        long endPos   = d.getEndPosition();
+
+        Range range;
+        if (startPos != javax.tools.Diagnostic.NOPOS
+                && endPos   != javax.tools.Diagnostic.NOPOS
+                && endPos   >= startPos) {
+            // Expand the end column by the span length, staying on the same line.
+            int endCol = (int)(lspCol + (endPos - startPos));
+            range = new Range(new Position(lspLine, lspCol),
+                              new Position(lspLine, endCol));
+        } else {
+            var pt = new Position(lspLine, lspCol);
+            range = new Range(pt, pt);
+        }
 
         DiagnosticSeverity severity = switch (d.getKind()) {
             case ERROR            -> DiagnosticSeverity.Error;
