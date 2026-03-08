@@ -157,12 +157,10 @@ async function activate(context) {
     // Resolution order (first match wins):
     //   1. openjml.serverPath setting (explicit user config)
     //   2. openjml-lsp file one directory above the extension  (dev / release-zip layout)
-    //   3. openjml-lsp/openjml-lsp  — if that sibling is a directory containing the script
-    //   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
+    //   3. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
     const siblingDir = path.join(__dirname, '..');
     const serverScript = configuredPath
         || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
-        || fileIfExists(path.join(siblingDir, 'openjml-lsp', 'openjml-lsp'))
         || findOnPath('openjml-lsp');
 
     console.log('OpenJML: activating, server script =', serverScript);
