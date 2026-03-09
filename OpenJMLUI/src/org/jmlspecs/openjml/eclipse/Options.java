@@ -91,6 +91,8 @@ public class Options {
     public static void initialize() {
         IPreferenceStore store = Activator.getDefault().getPreferenceStore();
         store.setDefault(Options.showJobControlDialogKey, true);
+        store.setDefault(Options.checkTriggerOnKey, "edit");
+        store.setDefault(Options.escTriggerOnKey,   "manual");
         boolean b = store.getBoolean(Options.alreadyInitializedKey);
         boolean bb = store.getBoolean(Options.initializeOnStartupKey);
         if (!b || bb) {
@@ -244,4 +246,21 @@ public class Options {
 
     // TODO: Check that all of the options are used
     // TODO: The inference keys do not ed with 'Key'
+
+    // ---------------------------------------------------------------
+    // LSP-aligned settings — mirror the keys in VS Code package.json
+    // ---------------------------------------------------------------
+
+    /** When to run --check: "edit" (default) or "save" */
+    final static public String checkTriggerOnKey = "openjml.checkTriggerOn";
+    /** When to run --esc: "manual" (default), "save", or "edit" */
+    final static public String escTriggerOnKey   = "openjml.escTriggerOn";
+    /** Path to OpenJML specs directory (blank = use launcher default) */
+    final static public String specsPathKey      = "openjml.specsPath";
+    /** Source root(s) for -sourcepath (blank = single-file mode) */
+    final static public String sourcePathKey     = "openjml.sourcePath";
+    /** Classpath for pre-compiled dependencies (blank = none) */
+    final static public String classPathKey      = "openjml.classPath";
+    /** Path to SMT solvers directory (blank = use launcher default) */
+    final static public String solversPathKey    = "openjml.solversPath";
 }

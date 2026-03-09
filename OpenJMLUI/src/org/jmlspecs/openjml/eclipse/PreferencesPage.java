@@ -219,6 +219,25 @@ public class PreferencesPage extends FieldEditorPreferencePage implements IWorkb
 
         addStringEditorField(Options.lspServerPathKey, Messages.OpenJMLUI_PreferencesPage_LspServerPath);
 
+        // Analysis settings (mirror VS Code package.json)
+
+        addSpace();
+        addLabel("Analysis Settings", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        addComboFieldEditor(Options.checkTriggerOnKey, "JML check trigger",
+                new String[][] { { "On edit (instant feedback)", "edit" },
+                                 { "On save only",               "save" } });
+
+        addComboFieldEditor(Options.escTriggerOnKey, "ESC trigger",
+                new String[][] { { "Manual only",  "manual" },
+                                 { "On save",       "save" },
+                                 { "On edit (expensive)", "edit" } });
+
+        addStringEditorField(Options.specsPathKey,   "Specs path (blank = default from launcher)");
+        addStringEditorField(Options.sourcePathKey,  "Source path for -sourcepath (blank = single-file)");
+        addStringEditorField(Options.classPathKey,   "Classpath for -classpath (blank = none)");
+        addStringEditorField(Options.solversPathKey, "Solvers path (blank = default from launcher)");
+
         // ESC
 
         addSpace();

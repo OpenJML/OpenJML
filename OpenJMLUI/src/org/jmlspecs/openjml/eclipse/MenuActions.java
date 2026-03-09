@@ -410,6 +410,74 @@ abstract public class MenuActions extends AbstractHandler {
     	}
     }
 
+    /**
+     * Runs ESC restricted to the method at the cursor position in the active
+     * Java editor.  Equivalent to the VS Code "Run ESC for Method" command.
+     */
+    public static class RunEscForMethod extends MenuActions {
+        @Override
+        public void action() {
+            IEditorPart editor = window.getActivePage().getActiveEditor();
+            if (editor == null) {
+                utils.showMessage(shell, "OpenJML", "No active editor.");
+                return;
+            }
+            org.eclipse.core.resources.IFile file =
+                    (org.eclipse.core.resources.IFile) editor.getEditorInput()
+                                                             .getAdapter(org.eclipse.core.resources.IFile.class);
+            if (file == null || !file.getName().endsWith(".java")) {
+                utils.showMessage(shell, "OpenJML", "Active editor is not a Java file.");
+                return;
+            }
+
+            // Use JDT to find the method at the cursor.
+            org.eclipse.jdt.core.ICompilationUnit cu =
+                    (org.eclipse.jdt.core.ICompilationUnit)
+                    org.eclipse.jdt.core.JavaCore.create(file);
+            if (cu == null) {
+                utils.showMessage(shell, "OpenJML", "Cannot resolve compilation unit.");
+                return;
+            }
+            int offset = 0;
+            if (selection instanceof org.eclipse.jface.text.ITextSelection) {
+                offset = ((org.eclipse.jface.text.ITextSelection) selection).getOffset();
+            }
+            String methodFqn = null;
+            try {
+                org.eclipse.jdt.core.IJavaElement[] elements = cu.codeSelect(offset, 0);
+                for (org.eclipse.jdt.core.IJavaElement el : elements) {
+                    if (el instanceof IType) {
+                        // cursor is on a type — skip
+                    } else if (el instanceof org.eclipse.jdt.core.IMethod) {
+                        org.eclipse.jdt.core.IMethod m = (org.eclipse.jdt.core.IMethod) el;
+                        methodFqn = m.getDeclaringType().getFullyQualifiedName('.')
+                                  + "." + m.getElementName();
+                        break;
+                    }
+                }
+                if (methodFqn == null) {
+                    // Fall back: find enclosing method by walking up element hierarchy
+                    org.eclipse.jdt.core.IJavaElement el = cu.getElementAt(offset);
+                    while (el != null && !(el instanceof org.eclipse.jdt.core.IMethod)) {
+                        el = el.getParent();
+                    }
+                    if (el instanceof org.eclipse.jdt.core.IMethod) {
+                        org.eclipse.jdt.core.IMethod m = (org.eclipse.jdt.core.IMethod) el;
+                        methodFqn = m.getDeclaringType().getFullyQualifiedName('.')
+                                  + "." + m.getElementName();
+                    }
+                }
+            } catch (org.eclipse.jdt.core.JavaModelException e) {
+                Log.errorlog("RunEscForMethod: could not resolve method at cursor", e);
+            }
+            if (methodFqn == null) {
+                utils.showMessage(shell, "OpenJML", "Cursor is not inside a recognizable method.");
+                return;
+            }
+            utils.checkESCForMethodViaLsp(file, methodFqn);
+        }
+    }
+
 	static public class CreateJmlTemplate extends MenuActions {
 	    // This is all done in the UI thread with no progress monitor
 	    @Override

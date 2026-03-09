@@ -6,8 +6,11 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
@@ -48,6 +51,26 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
             // Fall back to expecting it on PATH
             return "openjml-lsp";
         }
+    }
+
+    /**
+     * Sends OpenJML analysis settings to the server as initialization options,
+     * matching the settings sent by the VS Code extension via initializationOptions.
+     */
+    @Override
+    public Object getInitializationOptions(URI rootUri) {
+        Map<String, Object> opts = new LinkedHashMap<>();
+        opts.put("checkTriggerOn", nonBlank(Options.value(Options.checkTriggerOnKey), "edit"));
+        opts.put("escTriggerOn",   nonBlank(Options.value(Options.escTriggerOnKey),   "manual"));
+        opts.put("specsPath",      Options.value(Options.specsPathKey));
+        opts.put("sourcePath",     Options.value(Options.sourcePathKey));
+        opts.put("classPath",      Options.value(Options.classPathKey));
+        opts.put("solversPath",    Options.value(Options.solversPathKey));
+        return opts;
+    }
+
+    private static String nonBlank(String s, String fallback) {
+        return (s == null || s.isBlank()) ? fallback : s;
     }
 
     @Override

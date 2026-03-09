@@ -104,6 +104,9 @@ import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
+import org.eclipse.lsp4e.LSPEclipseUtils;
+import org.eclipse.lsp4e.LanguageServers;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.osgi.framework.Bundle;
 
 import com.sun.tools.javac.tree.JCTree;
@@ -402,25 +405,82 @@ public class Utils {
      */
     public void checkESCSelection(ISelection selection,
                             @Nullable IWorkbenchWindow window, @Nullable final Shell shell) {
-        if (!checkForDirtyEditors()) return;
         if (selection == null) {
             showMessage(shell, "ESC", "Nothing selected to check");
             return;
         }
-        final List<Object> res = getSelectedElements(selection, window, shell);
-        if (res.size() == 0) {
+        List<IResource> res = getSelectedResources(selection, window, shell);
+        if (res.isEmpty()) {
             showMessage(shell, "ESC", "Nothing selected or applicable to check");
             return;
         }
-        final Map<IJavaProject, List<Object>> sorted = sortByProject(res);
-        for (IJavaProject jp: sorted.keySet()) JMLNature.autoJMLEnable(jp.getProject());
-        deleteMarkers(res, shell); // FIXME - does this trigger a rebuild?
-        JobControl.JobParameters jobParameters = JobControl.launchJobControlDialog(selection,window,shell);
-        if (jobParameters == null) return;
-        if (jobParameters.alwaysSave) jobParameters.save();
+        List<IFile> files = collectJavaFiles(res);
+        if (files.isEmpty()) {
+            showMessage(shell, "ESC", "No Java files found in selection");
+            return;
+        }
+        checkESCViaLsp(files);
+    }
 
-        for (final IJavaProject jp : sorted.keySet()) {
-            checkESCProject(jp,sorted.get(jp),shell,"Static Checks - Manual",jobParameters);
+    /**
+     * Sends an {@code openjml.runEsc} LSP command to the OpenJML language server
+     * for each of the given Java files.
+     */
+    public void checkESCViaLsp(List<IFile> files) {
+        for (IFile file : files) {
+            String uri = file.getLocationURI().toString();
+            org.eclipse.jface.text.IDocument doc = LSPEclipseUtils.getDocument(file);
+            if (doc == null) {
+                Log.log("checkESCViaLsp: no document for " + uri + " — skipping");
+                continue;
+            }
+            LanguageServers.forDocument(doc)
+                .computeFirst((server, d) ->
+                    server.getWorkspaceService().executeCommand(
+                        new ExecuteCommandParams("openjml.runEsc", java.util.List.of(uri))));
+        }
+    }
+
+    /**
+     * Sends an {@code openjml.runEscForMethod} LSP command for the given file and method FQN.
+     */
+    public void checkESCForMethodViaLsp(IFile file, String methodFqn) {
+        String uri = file.getLocationURI().toString();
+        org.eclipse.jface.text.IDocument doc = LSPEclipseUtils.getDocument(file);
+        if (doc == null) {
+            Log.log("checkESCForMethodViaLsp: no document for " + uri);
+            return;
+        }
+        LanguageServers.forDocument(doc)
+            .computeFirst((server, d) ->
+                server.getWorkspaceService().executeCommand(
+                    new ExecuteCommandParams("openjml.runEscForMethod",
+                        java.util.List.of(uri, methodFqn))));
+    }
+
+    /**
+     * Collects all .java IFiles reachable from the given list of resources,
+     * expanding projects and folders recursively.
+     */
+    public List<IFile> collectJavaFiles(List<IResource> resources) {
+        List<IFile> files = new ArrayList<>();
+        for (IResource r : resources) {
+            collectJavaFilesFrom(r, files);
+        }
+        return files;
+    }
+
+    private void collectJavaFilesFrom(IResource r, List<IFile> out) {
+        if (r instanceof IFile) {
+            if (r.getName().endsWith(dotJava)) out.add((IFile) r);
+        } else if (r instanceof org.eclipse.core.resources.IContainer) {
+            try {
+                for (IResource child : ((org.eclipse.core.resources.IContainer) r).members()) {
+                    collectJavaFilesFrom(child, out);
+                }
+            } catch (CoreException e) {
+                Log.errorlog("collectJavaFilesFrom: " + e.getMessage(), e);
+            }
         }
     }
 

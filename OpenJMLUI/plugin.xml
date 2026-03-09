@@ -1485,9 +1485,36 @@
             id="org.openjml.commands.InsertResult"
             defaultHandler="org.jmlspecs.openjml.eclipse.InsertActions"
             >
-      </command> 
+      </command>
   </extension>
-  
+
+  <!-- Run ESC for Method command -->
+  <extension point="org.eclipse.ui.commands">
+    <command
+          name="Run ESC for Method"
+          description="Run extended static checking on the method at the cursor"
+          categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
+          id="org.jmlspecs.eclipse.commands.RunEscForMethod"
+          defaultHandler="org.jmlspecs.openjml.eclipse.MenuActions$RunEscForMethod">
+    </command>
+  </extension>
+
+  <!-- Keybindings for ESC commands (M1=Ctrl/Cmd, M3=Alt) -->
+  <extension point="org.eclipse.ui.bindings">
+    <!-- Ctrl+E / Cmd+E: Run ESC on current file -->
+    <key
+          sequence="M1+E"
+          contextId="org.eclipse.ui.textEditorScope"
+          commandId="org.jmlspecs.eclipse.commands.CheckESC"
+          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+    <!-- Ctrl+Alt+E / Cmd+Alt+E: Run ESC for method at cursor -->
+    <key
+          sequence="M1+M3+E"
+          contextId="org.eclipse.ui.textEditorScope"
+          commandId="org.jmlspecs.eclipse.commands.RunEscForMethod"
+          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+  </extension>
+
   <!-- Views -->
   <!-- Views without a category cannot be opened by the user.
        -->
