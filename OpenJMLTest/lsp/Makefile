@@ -76,10 +76,7 @@ run-tests: compile
 	     -Dlsp.testdata=$(LSPTEST)/testdata \
 	     -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
 	     org.junit.runner.JUnitCore \
-	     org.openjml.lsp.test.DiagnosticsTest \
-	     org.openjml.lsp.test.EscStatusTest \
-	     org.openjml.lsp.test.MultiFileEscTest \
-	     org.openjml.lsp.test.LspProtocolTest )
+	     org.openjml.lsp.test.AllLspTests )
 
 clean: .FORCE
 	rm -rf $(LSPTEST)/build
