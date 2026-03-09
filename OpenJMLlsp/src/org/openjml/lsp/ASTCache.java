@@ -76,6 +76,11 @@ public class ASTCache {
         return declarationIndex.get(sym);
     }
 
+    /** Iterate over all cached entries (URI → Entry). */
+    public void forEach(java.util.function.BiConsumer<String, Entry> action) {
+        cache.forEach(action);
+    }
+
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------

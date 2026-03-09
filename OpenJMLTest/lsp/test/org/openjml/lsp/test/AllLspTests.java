@@ -16,5 +16,6 @@ import org.junit.runners.Suite;
     MultiFileEscTest.class,
     LspProtocolTest.class,
     DefinitionFinderTest.class,
+    ReferenceFinderTest.class,
 })
 public class AllLspTests {}

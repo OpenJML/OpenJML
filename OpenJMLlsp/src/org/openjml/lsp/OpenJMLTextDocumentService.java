@@ -5,6 +5,7 @@ import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.DeclarationParams;
 import org.eclipse.lsp4j.DefinitionParams;
+import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -297,6 +298,40 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         List<Location> result = loc != null ? List.of(loc) : List.of();
         return CompletableFuture.completedFuture(Either.forLeft(result));
+    }
+
+    // --- find references ---
+
+    /**
+     * Find all references to the symbol under the cursor.
+     *
+     * <p>Searches every AST currently in the cache.  Symbol identity ({@code ==})
+     * is used to match references, which is correct within a single IAPI compilation
+     * context.
+     *
+     * <p>Optimisation opportunity (not yet applied): scope analysis via
+     * {@code Symbol.owner} could restrict the search to the relevant file(s)
+     * (e.g., private members need only be searched in their declaring class's file).
+     */
+    @Override
+    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(List.of());
+
+        boolean includeDecl = params.getContext() != null
+                && params.getContext().isIncludeDeclaration();
+
+        List<? extends Location> refs = ReferenceFinder.findReferences(
+                uri,
+                params.getPosition().getLine(),
+                params.getPosition().getCharacter(),
+                lastContent,
+                CheckRunner.getASTCache(),
+                includeDecl);
+
+        return CompletableFuture.completedFuture(refs);
     }
 
     // --- go to declaration ---
