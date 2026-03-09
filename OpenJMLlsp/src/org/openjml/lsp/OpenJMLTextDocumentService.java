@@ -367,6 +367,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
                 if (result.isInternalError()) {
                     System.err.println("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
+                    escDiags.put(uri, result.diagnostics());
+                    publishMerged(uri);
                     if (target != null) {
                         Map<Integer, MethodStatus> statuses =
                                 new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
@@ -477,15 +479,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
                 // Only publish if this task is still the latest for this URI.
                 if (escGen.get(uri).get() == myGen) {
+                    escDiags.put(uri, result.diagnostics());
                     if (result.isInternalError()) {
                         System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
                         markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
                         refreshCodeLenses();
                     } else {
-                        escDiags.put(uri, result.diagnostics());
                         updateEscStatus(uri, result.diagnostics(), result.proofResults(), result.exitCode());
-                        publishMerged(uri);
                     }
+                    publishMerged(uri);
                 }
             } catch (Throwable t) {
                 System.err.println("[OpenJML] ESC failed: " + t);
@@ -555,6 +557,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (content == null) return;
         List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
         if (methods.isEmpty()) return;
+
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
             IProverResult.Kind kind = proofResults.get(m.name());
@@ -596,7 +599,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             return MethodStatus.SKIPPED;
         } else {
             // null: no proof result recorded.
-            // exitCode 1 means syntax/type errors prevented ESC from running.
+            // exitCode 1 means syntax/type errors (including solver failures) prevented ESC.
             return exitCode == 1 ? MethodStatus.CHECK_ERROR : MethodStatus.UNKNOWN;
         }
     }
