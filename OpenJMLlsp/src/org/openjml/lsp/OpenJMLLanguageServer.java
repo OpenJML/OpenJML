@@ -64,6 +64,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setCodeLensProvider(new CodeLensOptions(false));
         caps.setHoverProvider(Boolean.TRUE);
         caps.setDefinitionProvider(Boolean.TRUE);
+        caps.setDeclarationProvider(Boolean.TRUE);
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.DeclarationParams;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
@@ -282,6 +283,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
             definition(DefinitionParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+
+        Location loc = DefinitionFinder.findDefinition(
+                uri,
+                params.getPosition().getLine(),
+                params.getPosition().getCharacter(),
+                lastContent,
+                CheckRunner.getASTCache());
+
+        List<Location> result = loc != null ? List.of(loc) : List.of();
+        return CompletableFuture.completedFuture(Either.forLeft(result));
+    }
+
+    // --- go to declaration ---
+
+    /**
+     * Resolve the declaration of the identifier under the cursor.
+     *
+     * <p>For Java and JML identifiers the declaration and definition are the same
+     * location (the {@code JCVariableDecl} / {@code JCMethodDecl} node).  This
+     * method therefore delegates to the same {@link DefinitionFinder} as
+     * {@link #definition}.
+     */
+    @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
+            declaration(DeclarationParams params) {
         String uri = params.getTextDocument().getUri();
         String source = lastContent.get(uri);
         if (source == null)
