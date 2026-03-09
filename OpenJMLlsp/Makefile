@@ -33,9 +33,12 @@ RELEASE_STAGE  := $(LSPROOT)/release-stage
 VSIX_DIR       := $(LSPROOT)/vscode-extension
 VSIX_NAME      := openjml-0.0.1.vsix
 
-.PHONY: all jar compile libs release vsix clean .FORCE
+.PHONY: all jar compile libs run-tests release vsix clean .FORCE
 
-all: jar
+all: release run-tests
+
+run-tests: jar
+	$(MAKE) -C $(LSPROOT)/../OpenJMLTest/lsp run-tests
 
 ## Download LSP4J and Gson from Maven Central if not already present
 libs: $(LSP4J_JAR) $(LSP4J_RPC_JAR) $(GSON_JAR)

@@ -155,11 +155,13 @@ async function activate(context) {
     const configuredPath = cfg.get('serverPath', '').trim();
 
     // Resolution order (first match wins):
-    //   1. openjml.serverPath setting (explicit user config)
-    //   2. openjml-lsp file one directory above the extension  (dev / release-zip layout)
-    //   3. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
+    //   1. OPENJML_SERVER_PATH env var (set by launch.json for extension development)
+    //   2. openjml.serverPath setting (explicit user config)
+    //   3. openjml-lsp file one directory above the extension  (dev / release-zip layout)
+    //   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
     const siblingDir = path.join(__dirname, '..');
-    const serverScript = configuredPath
+    const serverScript = (process.env.OPENJML_SERVER_PATH || '')
+        || configuredPath
         || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
         || findOnPath('openjml-lsp');
 
@@ -217,8 +219,8 @@ async function activate(context) {
             'openjml.runEscForMethod', async (uri, methodName) => {
         if (!client) { requireServer(); return; }
 
-        if (!uri || !methodName) {
-            // Keyboard invocation — derive uri and method from the active editor.
+        if (typeof uri !== 'string' || typeof methodName !== 'string') {
+            // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
             const editor = vscode.window.activeTextEditor;
             if (!editor || editor.document.languageId !== 'java') {
                 vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC on a method.');
