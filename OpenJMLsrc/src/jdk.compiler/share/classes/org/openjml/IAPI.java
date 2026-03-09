@@ -7,11 +7,14 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.JmlTree;
+import org.openjml.IAPI.IASTListener;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.util.Context;
 
 public interface IAPI {
     
@@ -54,6 +57,17 @@ public interface IAPI {
 //    /*@pure*/
 //    public Main main();
 //
+    
+    public final static java.util.List<IASTListener> astListeners = new java.util.LinkedList<>();
+    
+    public static void setASTListener(IASTListener listener) {
+        synchronized (astListeners) { astListeners.add(listener); }
+    }
+
+    public static void removeASTListener(IASTListener listener) {
+        synchronized (astListeners) { astListeners.remove(listener); }
+    }
+
     /** An interface for progress information; the implementation reports progress
      * by calling report(...); clients will receive notification of progress
      * events by implementing this interface and registering the listener with
@@ -93,6 +107,12 @@ public interface IAPI {
         @SuppressWarnings("exports")
         void reportProofResult(MethodSymbol msym, IProverResult result);
         default IProofResultListener setListener(IProofResultListener listener) { return null; }
+    }
+
+    public static interface IASTListener {
+        
+        @SuppressWarnings("exports")
+        void notify(Context context, javax.tools.JavaFileObject absoluteFileName, org.jmlspecs.openjml.JmlTree.JmlCompilationUnit ast);
     }
 
 //    /** Sets a progress listener that hears any progress reports (e.g. names of
@@ -310,7 +330,7 @@ public interface IAPI {
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
 //    public /*@non_null*/
-//    JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo);
+//    JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo);
 //
 //    /** Produces a parse tree for a single file without any specifications; the
 //     * file may be either a .java or a specification file.  The trees are not
@@ -322,7 +342,7 @@ public interface IAPI {
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
 //    default public /*@non_null*/
-//    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) { return null; }
+//    JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) { return null; }
 //    
 //    /** Produces a parse tree for the given text; the text must represent a
 //     * compilation unit for a .java file or a specification file.  The name 
@@ -341,7 +361,7 @@ public interface IAPI {
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
 //    public /*@non_null*/
-//    JmlCompilationUnit parseString(/*@non_null*/ String name,
+//    JmlTree.JmlCompilationUnit parseCompilationUnitString(/*@non_null*/ String name,
 //            /*@non_null*/ String content) throws Exception;
 //
 //    /** Parse input text as a Java/JML expression; the isJML parameter must
@@ -400,10 +420,10 @@ public interface IAPI {
 //     */ // FIXME - comment on whether the package path is needed
 //    public JavaFileObject makeJFOfromString(String name, String content) throws Exception;
 //    
-    /** Creates a JavaFileObject instance from a real file, by name
-     * @param filepath the path to the file, either absolute or relative to the current working directory
-     * @return the resulting JavaFileObject
-     */
+//    /** Creates a JavaFileObject instance from a real file, by name
+//     * @param filepath the path to the file, either absolute or relative to the current working directory
+//     * @return the resulting JavaFileObject
+//     */
 //    default public JavaFileObject makeJFOfromFilename(String filepath) {
 //        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
 //        return dfm.getFileForInput(filepath);

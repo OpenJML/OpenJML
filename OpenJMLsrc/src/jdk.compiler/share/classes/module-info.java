@@ -233,7 +233,13 @@ module jdk.compiler {
 
 //    exports org.jmlspecs.openjml;
 //    exports org.jmlspecs.openjml.visitors;
-
+    exports org.openjml;
+//    exports com.sun.tools.javac.tree;
+//    exports com.sun.tools.javac.util;
+//    exports com.sun.tools.javac.api;
+//    exports com.sun.tools.javac.code;
+//    exports com.sun.tools.javac.comp;
+    
     exports com.sun.tools.doclint to
         jdk.javadoc;
     exports com.sun.tools.javac.api to
@@ -272,8 +278,6 @@ module jdk.compiler {
     exports jdk.internal.shellsupport.doc to
         jdk.jshell;
     
-    exports org.openjml;
-
     uses javax.annotation.processing.Processor;
     uses com.sun.source.util.Plugin;
     uses com.sun.tools.doclint.DocLint;
