@@ -23,7 +23,7 @@ public class Primary {
     //@ requires x >= 0;
     //@ pure
     public int pJavaMethod(int x) { return x; }
-    //@ model public int pModelMethod(int x) { return x; }
+    //@ pure model public int pModelMethod(int x) { return x; }
 
     //@ requires (\forall int i; i >= 0; i < pJavaField);
     //@ requires (\let int letVar = pJavaField; letVar >= 0);

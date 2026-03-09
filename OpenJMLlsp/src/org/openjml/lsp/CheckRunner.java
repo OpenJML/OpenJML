@@ -117,6 +117,57 @@ public class CheckRunner {
         return runOnFile(filePath, uri, settings, "--check", null, false);
     }
 
+    /**
+     * Check a set of modified source files together for rename validation.
+     *
+     * <p>Writes all modified content to a shared temp directory (named by their
+     * original basenames), then runs {@code --check} on each file with
+     * {@code -sourcepath} pointing to that directory so cross-file references
+     * are resolved against the modified versions.
+     *
+     * @return merged diagnostics from all checked files (empty = rename is valid)
+     */
+    public static List<org.eclipse.lsp4j.Diagnostic> checkModifiedFiles(
+            Map<String, String> modifiedContent, OpenJMLSettings settings) {
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("openjml-lsp-rename-");
+
+            // Write all modified files to the temp directory.
+            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
+                String baseName = extractBaseName(e.getKey());
+                Files.writeString(tempDir.resolve(baseName), e.getValue());
+            }
+
+            // Build a modified settings copy with sourcePath = tempDir.
+            OpenJMLSettings modifiedSettings = new OpenJMLSettings();
+            modifiedSettings.sourcePath  = tempDir.toString();
+            modifiedSettings.specsPath   = settings.specsPath;
+            modifiedSettings.solversPath = settings.solversPath;
+            modifiedSettings.classPath   = settings.classPath;
+
+            // Run --check on each file and collect all diagnostics.
+            List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
+                String uri     = e.getKey();
+                String content = e.getValue();
+                CheckResult result = runOnContent(uri, content, modifiedSettings, "--check", null, false);
+                allDiags.addAll(result.diagnostics());
+            }
+            return allDiags;
+        } catch (IOException e) {
+            return List.of();
+        } finally {
+            if (tempDir != null) {
+                try {
+                    Files.walk(tempDir)
+                         .sorted(Comparator.reverseOrder())
+                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+                } catch (IOException ignored) {}
+            }
+        }
+    }
+
     // --- public API: --esc (multi-source) ---
 
     /**

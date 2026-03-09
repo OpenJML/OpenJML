@@ -17,5 +17,6 @@ import org.junit.runners.Suite;
     LspProtocolTest.class,
     DefinitionFinderTest.class,
     ReferenceFinderTest.class,
+    RenameTest.class,
 })
 public class AllLspTests {}

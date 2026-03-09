@@ -321,6 +321,21 @@ async function activate(context) {
         synchronize: {
             configurationSection: 'openjml',
         },
+        middleware: {
+            // Override prepareRename so our server's rename provider takes priority
+            // over the Red Hat Java extension for both JML comment positions and
+            // regular Java identifiers.  We return the word range at the cursor
+            // immediately (without a server round-trip) whenever the cursor is on
+            // a Java identifier character; otherwise we fall back to the server.
+            prepareRename: (document, position, token, next) => {
+                const wordRange = document.getWordRangeAtPosition(
+                    position, /[a-zA-Z_$][a-zA-Z0-9_$]*/);
+                if (wordRange && !wordRange.isEmpty) {
+                    return { range: wordRange, placeholder: document.getText(wordRange) };
+                }
+                return next(document, position, token);
+            },
+        },
     };
 
     client = new LanguageClient(
