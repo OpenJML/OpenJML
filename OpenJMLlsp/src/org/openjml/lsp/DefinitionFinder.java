@@ -78,6 +78,31 @@ public class DefinitionFinder {
         return new Location(decl.uri(), new Range(pos, pos));
     }
 
+    /**
+     * Find the {@code Symbol} at ({@code line}, {@code col}) in the given URI's
+     * cached AST.  Used by {@link ReferenceFinder} to obtain the target symbol
+     * before scanning all cached ASTs for its uses.
+     *
+     * @return the resolved Symbol, or {@code null} if the cursor is not on a
+     *         recognized identifier node
+     */
+    static com.sun.tools.javac.code.Symbol findSymbolAt(
+            String uri, int line, int col,
+            Map<String, String> openContent, ASTCache cache) {
+        ASTCache.Entry entry = cache.get(uri);
+        if (entry == null) return null;
+
+        String source = openContent.get(uri);
+        if (source == null) source = readFromAst(entry);
+        if (source == null) return null;
+
+        int targetOffset = lineColToOffset(source, line, col);
+        if (targetOffset < 0) return null;
+
+        NodeMatch match = findNodeAt(entry.ast(), targetOffset, source);
+        return match != null ? match.sym() : null;
+    }
+
     // -----------------------------------------------------------------------
     // Position arithmetic
     // -----------------------------------------------------------------------
@@ -132,25 +157,75 @@ public class DefinitionFinder {
             this.source = source;
         }
 
+        /**
+         * Find {@code word} as a whole identifier (word-boundary check) in
+         * {@code source} between {@code from} and {@code from + limit}.
+         * Returns the character offset, or -1 if not found.
+         */
+        private int findDeclName(String word, int from, int limit) {
+            int pos = from;
+            int end = Math.min(from + limit, source.length());
+            while (pos < end) {
+                int found = source.indexOf(word, pos);
+                if (found < 0 || found >= end) return -1;
+                boolean beforeOk = found == 0
+                        || !Character.isJavaIdentifierPart(source.charAt(found - 1));
+                boolean afterOk = found + word.length() >= source.length()
+                        || !Character.isJavaIdentifierPart(source.charAt(found + word.length()));
+                if (beforeOk && afterOk) return found;
+                pos = found + 1;
+            }
+            return -1;
+        }
+
+        /** Check whether {@code targetOffset} falls within [{@code namePos}, {@code namePos+len}]. */
+        private boolean cursorOn(int namePos, int len) {
+            return namePos >= 0 && namePos <= targetOffset && targetOffset <= namePos + len;
+        }
+
         @Override
         public void visitClassDef(com.sun.tools.javac.tree.JCTree.JCClassDecl tree) {
             // Handle cursor on the class name in its own declaration:
             //   public class Foo { ... }  or  //@ model public class Bar {}
-            // JCClassDecl has no child JCIdent for the name, so we search the source
-            // text forward from tree.pos for the first occurrence of the name.
             if (tree.pos >= 0 && tree.name != null && tree.sym != null) {
                 String nameStr = tree.name.toString();
                 if (!nameStr.isEmpty()) {
-                    int namePos = source.indexOf(nameStr, tree.pos);
-                    if (namePos >= 0 && namePos <= tree.pos + 200) {
-                        int nameLen = nameStr.length();
-                        if (namePos <= targetOffset && targetOffset <= namePos + nameLen) {
-                            best = new NodeMatch(tree.sym);
-                        }
+                    int namePos = findDeclName(nameStr, tree.pos, 200);
+                    if (cursorOn(namePos, nameStr.length())) {
+                        best = new NodeMatch(tree.sym);
                     }
                 }
             }
             super.visitClassDef(tree);
+        }
+
+        @Override
+        public void visitMethodDef(com.sun.tools.javac.tree.JCTree.JCMethodDecl tree) {
+            // Handle cursor on the method name in its own declaration.
+            if (tree.pos >= 0 && tree.sym != null && tree.name != null
+                    && !tree.name.toString().equals("<init>")) {
+                String nameStr = tree.name.toString();
+                int namePos = findDeclName(nameStr, tree.pos, 200);
+                if (cursorOn(namePos, nameStr.length())) {
+                    best = new NodeMatch(tree.sym);
+                }
+            }
+            super.visitMethodDef(tree);
+        }
+
+        @Override
+        public void visitVarDef(com.sun.tools.javac.tree.JCTree.JCVariableDecl tree) {
+            // Handle cursor on the variable/field/parameter name in its own declaration.
+            if (tree.pos >= 0 && tree.sym != null && tree.name != null) {
+                String nameStr = tree.name.toString();
+                if (!nameStr.isEmpty()) {
+                    int namePos = findDeclName(nameStr, tree.pos, 300);
+                    if (cursorOn(namePos, nameStr.length())) {
+                        best = new NodeMatch(tree.sym);
+                    }
+                }
+            }
+            super.visitVarDef(tree);
         }
 
         @Override
