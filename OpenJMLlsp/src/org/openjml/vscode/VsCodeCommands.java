@@ -16,6 +16,16 @@ public final class VsCodeCommands {
     public static final String RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
     /**
+     * Multi-path ESC command: {@code openjml.runEscDir}.
+     *
+     * <p>Arguments: one or more file-system paths (files or directories).
+     * Each path is passed to OpenJML via {@code --dirs}; directory paths are
+     * processed recursively.  This command is IDE-independent and is used
+     * (at least) by the Eclipse plugin for project- and folder-level ESC.
+     */
+    public static final String RUN_ESC_DIR        = "openjml.runEscDir";
+
+    /**
      * Focus notification: sent by the extension when the user switches focus to
      * an already-open Java file.  Triggers a --check recheck so stale diagnostics
      * from fixed dependencies are cleared.

@@ -101,6 +101,46 @@ public class CheckRunner {
         }
     }
 
+    /**
+     * Result of a multi-path {@code --dirs} ESC invocation.
+     *
+     * @param diagnosticsByUri  LSP diagnostics grouped by the {@code file://} URI of
+     *                          each source file that produced at least one diagnostic;
+     *                          files with no issues are absent from the map
+     * @param exitCode          raw exit code from {@code IAPI.execute()}
+     * @param proofResults      per-method ESC results keyed by simple method name
+     */
+    public record DirCheckResult(
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagnosticsByUri,
+            int exitCode,
+            Map<String, IProverResult.Kind> proofResults) {}
+
+    /**
+     * Run {@code --esc --dirs path1 path2 ...} on one or more files or directories.
+     *
+     * <p>Each path may be a {@code .java} file or a directory; OpenJML processes
+     * directory arguments recursively (same behaviour as repeated {@code --dir}).
+     * Diagnostics are returned grouped by source-file URI so the caller can
+     * publish them to the correct LSP document.
+     */
+    public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out = new PrintWriter(new StringWriter());
+        var api = IAPI.make(out, listener);
+        var prc = new ProofResultCollector();
+        api.setProofResultListener(prc);
+
+        List<String> args = buildArgs(settings, "--esc");
+        args.add("--dirs");
+        args.addAll(paths);
+        logInvocation("runEscDir", args);
+        int rc = api.execute(args.toArray(new String[0]));
+        System.err.println("[CheckRunner.runEscDir] exit code " + rc
+                + " for " + paths.size() + " path(s)");
+
+        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, prc.getResults());
+    }
+
     // --- public API: --check ---
 
     /** Run {@code --check} on in-memory content with default settings. */
