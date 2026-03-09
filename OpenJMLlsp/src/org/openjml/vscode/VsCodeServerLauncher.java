@@ -33,6 +33,7 @@ public class VsCodeServerLauncher {
 
         var server   = new OpenJMLLanguageServer(VsCodeCommands.RUN_ESC,
                                                   VsCodeCommands.RUN_ESC_FOR_METHOD,
+                                                  VsCodeCommands.RUN_ESC_DIR,
                                                   VsCodeCommands.FOCUS_FILE,
                                                   VsCodeCommands.GET_SEMANTIC_TOKENS);
         var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut);

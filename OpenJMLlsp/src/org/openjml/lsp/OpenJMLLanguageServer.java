@@ -45,22 +45,26 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private String rootUri  = null;
 
     /**
-     * @param escCommand           command name for full-file ESC (passed to WorkspaceService)
-     * @param escForMethodCommand  command name for per-method ESC (passed to WorkspaceService and TextDocumentService)
+     * @param escCommand           command name for full-file ESC
+     * @param escForMethodCommand  command name for per-method ESC
+     * @param escDirCommand        command name for multi-path ESC via {@code --dirs} (may be {@code null})
      * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
+     * @param getSemanticTokensCommand command name for semantic tokens
      */
-    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand,
+    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
                                   String focusFileCommand, String getSemanticTokensCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
                 textDocumentService::scheduleEscForUri,
                 textDocumentService::scheduleEscForMethod,
+                textDocumentService::scheduleEscForPaths,
                 textDocumentService::recheckUri,
                 textDocumentService::getSemanticTokens,
                 textDocumentService::symbols,
                 escCommand,
                 escForMethodCommand,
+                escDirCommand,
                 focusFileCommand,
                 getSemanticTokensCommand);
     }
