@@ -197,6 +197,173 @@ public class DefinitionFinderTest {
     }
 
     // -----------------------------------------------------------------------
+    // Class type references in JML (instanceof)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testClassRefInJml() {
+        // cursor in the middle of "Helper" in //@ requires helper instanceof Helper;
+        Location loc = defAt(primaryUri, primarySrc, "requires helper instanceof Helper", "Helper");
+        assertNotNull("Expected definition for Helper class reference", loc);
+        assertEquals("Helper must be in Helper.java", helperUri, loc.getUri());
+        assertEquals("Helper class declaration line",
+                lineOf(helperSrc, "public class Helper"),
+                loc.getRange().getStart().getLine());
+    }
+
+    @Test
+    public void testClassRefCursorAtEnd() {
+        // cursor at the position immediately AFTER the last character of "Helper"
+        // (i.e., col = start + len).  Previously this returned null; the fix
+        // extends the match range to be inclusive on the right.
+        String ctx = "end-of-name cursor test";
+        int lineStart = primarySrc.indexOf(ctx);
+        assertTrue("Context string not found", lineStart >= 0);
+        // find the start of "Helper" on that line
+        int idPos = primarySrc.lastIndexOf("Helper", lineStart);
+        assertTrue("Helper not found before context comment", idPos >= 0);
+        // position cursor one past the last character
+        int endPos = idPos + "Helper".length();
+        int[] lc = DefinitionFinder.offsetToLineCol(primarySrc, endPos);
+        Location loc = DefinitionFinder.findDefinition(primaryUri, lc[0], lc[1],
+                Map.of(primaryUri, primarySrc, helperUri, helperSrc),
+                CheckRunner.getASTCache());
+        assertNotNull("Cursor at end of identifier must still resolve", loc);
+        assertEquals("Helper class declaration line",
+                lineOf(helperSrc, "public class Helper"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Model class declaration (same-file)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testModelClassSameFile() {
+        // ghost field: //@ ghost public PModelClass pModelInst = null;
+        // "PModelClass" there is a type reference — cursor on it should go to the model class declaration.
+        Location loc = defAt(primaryUri, primarySrc, "ghost public PModelClass", "PModelClass");
+        assertNotNull("Expected definition for PModelClass", loc);
+        assertEquals("PModelClass must be in Primary.java", primaryUri, loc.getUri());
+        assertEquals("PModelClass declaration line",
+                lineOf(primarySrc, "model public class PModelClass"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Model class declaration (cross-file) - HModelClass declared in Helper
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testModelClassCrossFile() {
+        // //@ ghost public HModelClass hModelInst = null; — type mention of HModelClass
+        // in Helper.java; should resolve to the model class declaration.
+        Location loc = defAt(helperUri, helperSrc, "ghost public HModelClass", "HModelClass");
+        assertNotNull("Expected definition for HModelClass", loc);
+        assertEquals("HModelClass must be in Helper.java", helperUri, loc.getUri());
+        assertEquals("HModelClass declaration line",
+                lineOf(helperSrc, "model public class HModelClass"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Class name at its own declaration (visitClassDef)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testClassDeclSelf() {
+        // cursor on "Helper" in "public class Helper {" — the class name at its own declaration
+        Location loc = defAt(helperUri, helperSrc, "public class Helper", "Helper");
+        assertNotNull("Expected definition for Helper at its own declaration", loc);
+        assertEquals("must resolve to Helper.java", helperUri, loc.getUri());
+        assertEquals("Helper class declaration line",
+                lineOf(helperSrc, "public class Helper"),
+                loc.getRange().getStart().getLine());
+    }
+
+    @Test
+    public void testModelClassDeclSelf() {
+        // cursor on "PModelClass" in "//@ model public class PModelClass {}"
+        Location loc = defAt(primaryUri, primarySrc, "model public class PModelClass", "PModelClass");
+        assertNotNull("Expected definition for PModelClass at its own declaration", loc);
+        assertEquals("must resolve to Primary.java", primaryUri, loc.getUri());
+        assertEquals("PModelClass declaration line",
+                lineOf(primarySrc, "model public class PModelClass"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // \forall bound variable referenced in its body
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testForallBoundVar() {
+        // //@ requires (\forall int i; i >= 0; i < pJavaField);
+        // "i" in the value expression "i < pJavaField" should resolve to the bound decl "int i".
+        Location loc = defAt(primaryUri, primarySrc, "i < pJavaField", "i");
+        assertNotNull("Expected definition for forall bound variable i", loc);
+        assertEquals("i must be in Primary.java", primaryUri, loc.getUri());
+        assertEquals("i bound declaration line",
+                lineOf(primarySrc, "\\forall int i"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // \let bound variable referenced in its body
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testLetBoundVar() {
+        // //@ requires (\let int letVar = pJavaField; letVar >= 0);
+        // "letVar" in the body expression "letVar >= 0" should resolve to the \let decl.
+        Location loc = defAt(primaryUri, primarySrc, "letVar >= 0", "letVar");
+        assertNotNull("Expected definition for let bound variable letVar", loc);
+        assertEquals("letVar must be in Primary.java", primaryUri, loc.getUri());
+        assertEquals("letVar bound declaration line",
+                lineOf(primarySrc, "\\let int letVar"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // \exists with two bound variables — both must resolve independently
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testExistsBothVars() {
+        // //@ requires (\exists int qi, qj; qi >= 0 && qj >= 0; qi < qj);
+        // "qi" in the value "qi < qj" must resolve to the first bound decl.
+        Location locI = defAt(primaryUri, primarySrc, "qi < qj", "qi");
+        assertNotNull("Expected definition for qi", locI);
+        assertEquals("qi must be in Primary.java", primaryUri, locI.getUri());
+        assertEquals("qi bound declaration line",
+                lineOf(primarySrc, "\\exists int qi, qj"),
+                locI.getRange().getStart().getLine());
+
+        // "qj" in the value "qi < qj" must resolve to the second bound decl.
+        Location locJ = defAt(primaryUri, primarySrc, "qi < qj", "qj");
+        assertNotNull("Expected definition for qj", locJ);
+        assertEquals("qj must be in Primary.java", primaryUri, locJ.getUri());
+        assertEquals("qj bound declaration line",
+                lineOf(primarySrc, "\\exists int qi, qj"),
+                locJ.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Formal parameter referenced in JML
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testFormalParameter() {
+        // //@ requires x >= 0; on pJavaMethod(int x) — "x" in spec refs the parameter
+        Location loc = defAt(primaryUri, primarySrc, "requires x >= 0", "x");
+        assertNotNull("Expected definition for parameter x", loc);
+        assertEquals("x must be in Primary.java", primaryUri, loc.getUri());
+        assertEquals("x declaration line",
+                lineOf(primarySrc, "public int pJavaMethod(int x)"),
+                loc.getRange().getStart().getLine());
+    }
+
+    // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
 

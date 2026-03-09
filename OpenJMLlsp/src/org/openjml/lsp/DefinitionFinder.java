@@ -133,10 +133,31 @@ public class DefinitionFinder {
         }
 
         @Override
+        public void visitClassDef(com.sun.tools.javac.tree.JCTree.JCClassDecl tree) {
+            // Handle cursor on the class name in its own declaration:
+            //   public class Foo { ... }  or  //@ model public class Bar {}
+            // JCClassDecl has no child JCIdent for the name, so we search the source
+            // text forward from tree.pos for the first occurrence of the name.
+            if (tree.pos >= 0 && tree.name != null && tree.sym != null) {
+                String nameStr = tree.name.toString();
+                if (!nameStr.isEmpty()) {
+                    int namePos = source.indexOf(nameStr, tree.pos);
+                    if (namePos >= 0 && namePos <= tree.pos + 200) {
+                        int nameLen = nameStr.length();
+                        if (namePos <= targetOffset && targetOffset <= namePos + nameLen) {
+                            best = new NodeMatch(tree.sym);
+                        }
+                    }
+                }
+            }
+            super.visitClassDef(tree);
+        }
+
+        @Override
         public void visitIdent(JCIdent tree) {
             if (tree.pos >= 0) {
                 int len = tree.name.toString().length();
-                if (tree.pos <= targetOffset && targetOffset < tree.pos + len) {
+                if (tree.pos <= targetOffset && targetOffset <= tree.pos + len) {
                     best = new NodeMatch(tree.sym);
                 }
             }
@@ -161,7 +182,7 @@ public class DefinitionFinder {
                 }
                 if (dotPos >= 0) {
                     int nameStart = dotPos + 1;
-                    if (nameStart <= targetOffset && targetOffset < nameStart + nameLen) {
+                    if (nameStart <= targetOffset && targetOffset <= nameStart + nameLen) {
                         best = new NodeMatch(tree.sym);
                     }
                 }
