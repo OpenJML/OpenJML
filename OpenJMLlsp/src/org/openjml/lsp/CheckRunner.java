@@ -318,10 +318,11 @@ public class CheckRunner {
         args.add(filePath);
         logInvocation("runOnFile", args);
 
-        // Register an AST listener that stores the attributed AST under the caller's URI.
-        final String callerUri = uri;
+        // Register an AST listener that stores each attributed file under its own URI.
+        // When additional files are compiled via -sourcepath, each gets its own cache
+        // entry — enabling cross-file go-to-definition within the same IAPI context.
         IAPI.IASTListener astListener = (ctx, jfo, ast) ->
-                AST_CACHE.put(callerUri, ctx, (JmlCompilationUnit) ast);
+                AST_CACHE.put(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
         IAPI.setASTListener(astListener);
         int rc;
         try {

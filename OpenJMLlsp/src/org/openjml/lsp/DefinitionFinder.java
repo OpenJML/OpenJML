@@ -94,7 +94,7 @@ public class DefinitionFinder {
     }
 
     /** Convert a character offset to 0-indexed (line, col). */
-    static int[] offsetToLineCol(String source, int offset) {
+    public static int[] offsetToLineCol(String source, int offset) {
         int line = 0, col = 0;
         int end = Math.min(offset, source.length());
         for (int i = 0; i < end; i++) {
