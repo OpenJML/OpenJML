@@ -49,6 +49,12 @@
         "key": "ctrl+alt+e",
         "mac": "cmd+alt+e",
         "when": "editorLangId == java && editorFocus"
+      },
+      {
+        "command": "openjml.saveAndRunEsc",
+        "key": "ctrl+shift+e",
+        "mac": "ctrl+cmd+e",
+        "when": "editorLangId == java && editorFocus"
       }
     ],
     "menus": {
