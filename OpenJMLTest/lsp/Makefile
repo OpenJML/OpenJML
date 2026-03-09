@@ -78,6 +78,7 @@ run-tests: compile
 	     org.junit.runner.JUnitCore \
 	     org.openjml.lsp.test.DiagnosticsTest \
 	     org.openjml.lsp.test.EscStatusTest \
+	     org.openjml.lsp.test.MultiFileEscTest \
 	     org.openjml.lsp.test.LspProtocolTest )
 
 clean: .FORCE
