@@ -6,7 +6,10 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.DeclarationParams;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.ReferenceParams;
+import org.eclipse.lsp4j.RenameParams;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -20,9 +23,13 @@ import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
+import org.eclipse.lsp4j.PrepareRenameParams;
+import org.eclipse.lsp4j.PrepareRenameResult;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.openjml.IProverResult;
@@ -361,6 +368,71 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         List<Location> result = loc != null ? List.of(loc) : List.of();
         return CompletableFuture.completedFuture(Either.forLeft(result));
+    }
+
+    // --- prepareRename / rename ---
+
+    /**
+     * Validate that a rename is possible at the cursor position.
+     *
+     * <p>Returns {@code defaultBehavior=true} (let the client infer the rename
+     * range from the identifier word) whenever the cursor sits on a valid Java
+     * identifier character, so that VS Code prefers our rename provider over
+     * other competing providers (e.g. the Red Hat Java extension) for positions
+     * inside JML annotations.
+     */
+    @Override
+    public CompletableFuture<Either3<Range, PrepareRenameResult, PrepareRenameDefaultBehavior>>
+            prepareRename(PrepareRenameParams params) {
+        String uri    = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source != null) {
+            int offset = DefinitionFinder.lineColToOffset(
+                    source, params.getPosition().getLine(), params.getPosition().getCharacter());
+            if (offset >= 0 && offset < source.length()) {
+                char ch = source.charAt(offset);
+                if (Character.isJavaIdentifierPart(ch) && !Character.isDigit(ch)
+                        || (offset > 0 && Character.isJavaIdentifierPart(source.charAt(offset - 1)))) {
+                    // Cursor is on or just after an identifier — signal that rename is supported.
+                    return CompletableFuture.completedFuture(
+                            Either3.forThird(new PrepareRenameDefaultBehavior(true)));
+                }
+            }
+        }
+        return CompletableFuture.failedFuture(
+                new Exception("No renameable symbol at this position"));
+    }
+
+    /**
+     * Rename the symbol under the cursor to {@code params.getNewName()}.
+     *
+     * <p>Delegates to {@link Renamer#rename}, which validates the new name,
+     * finds all references, applies the edits in memory, validates the result
+     * with a {@code --check} pass, and returns a {@link WorkspaceEdit}.
+     *
+     * <p>If the rename would introduce errors or the new name is invalid a
+     * {@link ResponseErrorException} is propagated as a failed future so that
+     * the LSP client receives a proper JSON-RPC error response.
+     */
+    @Override
+    public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(null);
+        try {
+            WorkspaceEdit edit = Renamer.rename(
+                    uri,
+                    params.getPosition().getLine(),
+                    params.getPosition().getCharacter(),
+                    params.getNewName(),
+                    lastContent,
+                    CheckRunner.getASTCache(),
+                    settings);
+            return CompletableFuture.completedFuture(edit);
+        } catch (ResponseErrorException e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     /**

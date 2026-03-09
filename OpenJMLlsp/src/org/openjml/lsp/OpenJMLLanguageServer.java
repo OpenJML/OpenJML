@@ -1,6 +1,7 @@
 package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
+import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -66,6 +67,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setDefinitionProvider(Boolean.TRUE);
         caps.setDeclarationProvider(Boolean.TRUE);
         caps.setReferencesProvider(Boolean.TRUE);
+        caps.setRenameProvider(new RenameOptions(true));  // prepareProvider=true
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }
