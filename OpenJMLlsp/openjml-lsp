@@ -19,11 +19,9 @@ if [ -d "$DIR/jdk" ]; then
     ## ── Release layout (installed from openjml.zip) ──────────────────────────
     BUILDJDK="$DIR/jdk"
     . "$DIR/setup-exports"
-    export OPENJML_INSTALL="${OPENJML_INSTALL:-$BUILDJDK}"
+    export OPENJML_INSTALL="${OPENJML_INSTALL:-$DIR}"
     export OPENJML_SPECS="${OPENJML_SPECS:-$DIR/specs}"
-    # Solvers directory has an OS-specific suffix (e.g. Solvers-mac, Solvers-linux)
-    DEFAULT_SOLVERS=$(echo "$DIR"/Solvers-*)
-    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$DEFAULT_SOLVERS}"
+    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$OPENJML_INSTALL}"
     JARFILE="$DIR/lsp/openjml-lsp.jar"
     LSP4J_CP="$DIR/lsp/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/lsp/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 else
@@ -36,7 +34,7 @@ else
         exit 1
     fi
     . "$SRC/setup-exports"
-    export OPENJML_INSTALL="${OPENJML_INSTALL:-$BUILDJDK}"
+    export OPENJML_INSTALL="${OPENJML_INSTALL:-$SRC}"
     export OPENJML_SPECS="${OPENJML_SPECS:-$DIR/../../Specs/specs}"
     export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$DIR/../../Solvers}"
     JARFILE="$DIR/build/openjml-lsp.jar"

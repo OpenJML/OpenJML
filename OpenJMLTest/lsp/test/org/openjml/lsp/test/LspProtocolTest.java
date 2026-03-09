@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLLanguageServer;
+import org.openjml.vscode.VsCodeCommands;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -63,7 +64,7 @@ public class LspProtocolTest {
         PipedInputStream  clientIn  = new PipedInputStream(65536);
         PipedOutputStream serverOut = new PipedOutputStream(clientIn);
 
-        server = new OpenJMLLanguageServer();
+        server = new OpenJMLLanguageServer(VsCodeCommands.RUN_ESC, VsCodeCommands.RUN_ESC_FOR_METHOD);
         var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
         server.connect(launcher.getRemoteProxy());
         launcher.startListening();

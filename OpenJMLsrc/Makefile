@@ -174,6 +174,7 @@ post: .FORCE
 	$(MAKE) -C ../OpenJMLlsp release
 	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)
 	cp -pR ../OpenJMLlsp/release-stage/lsp $(TEMP)
+	cp ../OpenJMLlsp/release-stage/openjml.vsix $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 

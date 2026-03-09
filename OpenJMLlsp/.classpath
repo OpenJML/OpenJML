@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="build/openjml-lsp.jar"/>
+	<classpathentry kind="lib" path="libs/gson-2.11.0.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.lsp4j.jsonrpc-1.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/org.eclipse.lsp4j-1.0.0.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

@@ -14,11 +14,34 @@
  * Settings are in VS Code's settings.json under the "openjml" key.
  */
 
+const cp     = require('child_process');
+const fs     = require('fs');
 const path   = require('path');
 const vscode = require('vscode');
-const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
+const { LanguageClient, TransportKind, RevealOutputChannelOn } = require('vscode-languageclient/node');
 
 let client;
+
+/**
+ * Return the absolute path of `name` if it is found on the system PATH,
+ * or null if it is not.  Uses `which` on Unix/macOS and `where` on Windows.
+ */
+function findOnPath(name) {
+    const cmd = process.platform === 'win32' ? `where ${name}` : `which ${name}`;
+    try {
+        return cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+                 .trim().split('\n')[0].trim() || null;
+    } catch (_) {
+        return null;
+    }
+}
+
+/**
+ * Return p if it exists and is a regular file, otherwise null.
+ */
+function fileIfExists(p) {
+    try { return fs.statSync(p).isFile() ? p : null; } catch (_) { return null; }
+}
 
 /**
  * Given Java source content and a 0-based cursor line, return the
@@ -129,8 +152,135 @@ function getSettings() {
 
 async function activate(context) {
     const cfg = vscode.workspace.getConfiguration('openjml');
-    const serverScript = cfg.get('serverPath', '') || path.join(__dirname, '..', 'openjml-lsp');
+    const configuredPath = cfg.get('serverPath', '').trim();
+
+    // Resolution order (first match wins):
+    //   1. OPENJML_SERVER_PATH env var (set by launch.json for extension development)
+    //   2. openjml.serverPath setting (explicit user config)
+    //   3. openjml-lsp file one directory above the extension  (dev / release-zip layout)
+    //   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
+    const siblingDir = path.join(__dirname, '..');
+    const serverScript = (process.env.OPENJML_SERVER_PATH || '')
+        || configuredPath
+        || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
+        || findOnPath('openjml-lsp');
+
     console.log('OpenJML: activating, server script =', serverScript);
+
+    // Helper: show error and open settings when the server is not configured.
+    function requireServer() {
+        vscode.window.showErrorMessage(
+            'OpenJML: cannot find the openjml-lsp server script. ' +
+            'Please install OpenJML (https://github.com/OpenJML/OpenJML/releases) ' +
+            'and set the "openjml.serverPath" setting to the full path of the ' +
+            'openjml-lsp script from your installation.',
+            'Open Settings'
+        ).then(choice => {
+            if (choice === 'Open Settings') {
+                vscode.commands.executeCommand(
+                    'workbench.action.openSettings', 'openjml.serverPath');
+            }
+        });
+    }
+
+    // Always register commands so VS Code can find them regardless of server state.
+    // Each command checks whether the client is available before sending a request.
+
+    // Register the Run ESC command manually so we can inject the active file's URI.
+    // The server does NOT advertise openjml.runEsc in executeCommandProvider; if it did,
+    // vscode-languageclient's ExecuteCommandFeature would auto-register the command and
+    // invoke it with no arguments, so the URI would never reach the server.
+    const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
+        if (!client) { requireServer(); return; }
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.languageId !== 'java') {
+            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+            return;
+        }
+
+        if (!await checkDirtyAndProceed(editor.document)) return;
+
+        const uri = editor.document.uri.toString();
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEsc',
+                arguments: [uri],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(escCmd);
+
+    // Register "Run ESC for Method" — runs ESC restricted to a single method.
+    // When invoked via code lens the uri and methodName args are provided by the lens Command.
+    // When invoked via keyboard the active file and cursor position are used to find the method.
+    const runEscForMethodCmd = vscode.commands.registerCommand(
+            'openjml.runEscForMethod', async (uri, methodName) => {
+        if (!client) { requireServer(); return; }
+
+        if (typeof uri !== 'string' || typeof methodName !== 'string') {
+            // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.languageId !== 'java') {
+                vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC on a method.');
+                return;
+            }
+            uri = editor.document.uri.toString();
+            const cursorLine = editor.selection.active.line;
+            methodName = findMethodFqnAtLine(editor.document.getText(), cursorLine);
+            if (!methodName) {
+                vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method.');
+                return;
+            }
+        }
+
+        // Warn if the file has unsaved changes (same behaviour as Run ESC).
+        const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri);
+        if (doc && !await checkDirtyAndProceed(doc)) return;
+
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEscForMethod',
+                arguments: [uri, methodName],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(runEscForMethodCmd);
+
+    // "Save and Run ESC" — saves the active file first, then runs ESC.
+    // Uses a normal save (with formatting) so the file is in the same state
+    // as any other save.  The java.format.enabled warning at activation
+    // handles disabling the one formatter that mangles //@ annotations.
+    // The dirty-file warning is skipped because the save happens before ESC starts.
+    const saveAndEscCmd = vscode.commands.registerCommand('openjml.saveAndRunEsc', async () => {
+        if (!client) { requireServer(); return; }
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.languageId !== 'java') {
+            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+            return;
+        }
+        await vscode.commands.executeCommand('workbench.action.files.save');
+        const uri = editor.document.uri.toString();
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEsc',
+                arguments: [uri],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(saveAndEscCmd);
+
+    // If no server script is available, stop here — commands are registered above so
+    // VS Code can find them; they will show a helpful error when invoked.
+    if (!serverScript) {
+        requireServer();
+        return;
+    }
 
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
@@ -166,6 +316,7 @@ async function activate(context) {
 
     const clientOptions = {
         documentSelector: [{ scheme: 'file', language: 'java' }],
+        revealOutputChannelOn: RevealOutputChannelOn.Warn,
         initializationOptions: getSettings(),
         synchronize: {
             configurationSection: 'openjml',
@@ -219,92 +370,6 @@ async function activate(context) {
             }
         })
     );
-
-    // Register the Run ESC command manually so we can inject the active file's URI.
-    // The server does NOT advertise openjml.runEsc in executeCommandProvider; if it did,
-    // vscode-languageclient's ExecuteCommandFeature would auto-register the command and
-    // invoke it with no arguments, so the URI would never reach the server.
-    const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
-            return;
-        }
-
-        if (!await checkDirtyAndProceed(editor.document)) return;
-
-        const uri = editor.document.uri.toString();
-        try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEsc',
-                arguments: [uri],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
-        }
-    });
-    context.subscriptions.push(escCmd);
-
-    // Register "Run ESC for Method" — runs ESC restricted to a single method.
-    // When invoked via code lens the uri and methodName args are provided by the lens Command.
-    // When invoked via keyboard the active file and cursor position are used to find the method.
-    const runEscForMethodCmd = vscode.commands.registerCommand(
-            'openjml.runEscForMethod', async (uri, methodName) => {
-
-        if (!uri || !methodName) {
-            // Keyboard invocation — derive uri and method from the active editor.
-            const editor = vscode.window.activeTextEditor;
-            if (!editor || editor.document.languageId !== 'java') {
-                vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC on a method.');
-                return;
-            }
-            uri = editor.document.uri.toString();
-            const cursorLine = editor.selection.active.line;
-            methodName = findMethodFqnAtLine(editor.document.getText(), cursorLine);
-            if (!methodName) {
-                vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method.');
-                return;
-            }
-        }
-
-        // Warn if the file has unsaved changes (same behaviour as Run ESC).
-        const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri);
-        if (doc && !await checkDirtyAndProceed(doc)) return;
-
-        try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEscForMethod',
-                arguments: [uri, methodName],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
-        }
-    });
-    context.subscriptions.push(runEscForMethodCmd);
-
-    // "Save and Run ESC" — saves the active file first, then runs ESC.
-    // Uses a normal save (with formatting) so the file is in the same state
-    // as any other save.  The java.format.enabled warning at activation
-    // handles disabling the one formatter that mangles //@ annotations.
-    // The dirty-file warning is skipped because the save happens before ESC starts.
-    const saveAndEscCmd = vscode.commands.registerCommand('openjml.saveAndRunEsc', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
-            return;
-        }
-        await vscode.commands.executeCommand('workbench.action.files.save');
-        const uri = editor.document.uri.toString();
-        try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEsc',
-                arguments: [uri],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
-        }
-    });
-    context.subscriptions.push(saveAndEscCmd);
 }
 
 function deactivate() {
