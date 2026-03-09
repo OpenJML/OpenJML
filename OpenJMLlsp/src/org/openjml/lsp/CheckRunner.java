@@ -44,18 +44,24 @@ public class CheckRunner {
     /**
      * Result of a single OpenJML invocation.
      *
-     * @param diagnostics  LSP diagnostics collected by the listener
-     * @param exitCode     raw exit code returned by {@code IAPI.execute()}
-     * @param proofResults per-method ESC results keyed by simple method name;
-     *                     empty map when running {@code --check} or when no
-     *                     methods were verified
+     * @param diagnostics      LSP diagnostics for the primary (focus) file
+     * @param exitCode         raw exit code returned by {@code IAPI.execute()}
+     * @param proofResults     per-method ESC results keyed by simple method name;
+     *                         empty map when running {@code --check} or when no
+     *                         methods were verified
+     * @param foreignMessages  formatted messages from files other than the primary
+     *                         file (e.g. dependency type errors); empty when there
+     *                         are no cross-file issues
      */
     public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode,
-                               Map<String, IProverResult.Kind> proofResults) {
+                               Map<String, IProverResult.Kind> proofResults,
+                               List<String> foreignMessages) {
         /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
         public boolean isInternalError() { return exitCode == 4; }
         /** Returns {@code true} when OpenJML rejected the command line — indicates a server bug. */
         public boolean isCommandLineError() { return exitCode == 2; }
+        /** Returns {@code true} when errors in other files (dependencies) prevented ESC. */
+        public boolean hasForeignErrors() { return !foreignMessages.isEmpty(); }
     }
 
     /**
@@ -154,9 +160,10 @@ public class CheckRunner {
 
             return new CheckResult(
                     listener.toLspDiagnostics(tempFile.toString(), primaryUri),
-                    rc, prc.getResults());
+                    rc, prc.getResults(),
+                    listener.toForeignMessages(tempFile.toString()));
         } catch (IOException e) {
-            return new CheckResult(List.of(), -1, Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of());
         } finally {
             if (tempDir != null) {
                 try {
@@ -252,9 +259,9 @@ public class CheckRunner {
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
             return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc,
-                    proofResults);
+                    proofResults, listener.toForeignMessages(tempFile.toString()));
         } catch (IOException e) {
-            return new CheckResult(List.of(), -1, Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of());
         } finally {
             if (tempDir != null) {
                 try {
@@ -292,7 +299,8 @@ public class CheckRunner {
 
         Map<String, IProverResult.Kind> proofResults =
                 prc != null ? prc.getResults() : Map.of();
-        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc, proofResults);
+        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc,
+                proofResults, listener.toForeignMessages(filePath));
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {

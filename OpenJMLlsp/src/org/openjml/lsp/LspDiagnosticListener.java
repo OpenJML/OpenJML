@@ -31,6 +31,31 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
      * @param sourcePath the temp-file path actually passed to OpenJML (for filtering)
      * @param targetUri  the LSP document URI to report diagnostics against
      */
+    /**
+     * Return the names of files OTHER than the primary {@code sourcePath} that
+     * produced at least one diagnostic (i.e. dependency files whose errors
+     * prevented compilation).  Each entry is a plain filename such as
+     * {@code "B.java"}, in the order first seen, without duplicates.
+     */
+    public List<String> toForeignMessages(String sourcePath) {
+        String base = baseName(sourcePath);
+        List<String> files = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+        for (var d : collected) {
+            if (d.getSource() == null) continue;
+            String srcName = d.getSource().getName();
+            if (srcName.isEmpty() || srcName.endsWith(base)) continue;
+            String fileName = baseName(srcName);
+            if (seen.add(fileName)) files.add(fileName);
+        }
+        return files;
+    }
+
+    private static String baseName(String path) {
+        int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        return path.substring(i + 1);
+    }
+
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
         System.err.println("[LspDiagnosticListener] " + collected.size()
                 + " raw diagnostic(s) for " + sourcePath);
