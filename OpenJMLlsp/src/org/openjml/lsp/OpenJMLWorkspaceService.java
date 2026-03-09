@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Handles LSP workspace-level notifications.
@@ -33,28 +34,36 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private static final Gson GSON = new Gson();
 
     private final OpenJMLSettings settings;
-    private final Consumer<String> escRequester;
+    private final Consumer<String>       escRequester;
     private final BiConsumer<String, String> escMethodRequester;
+    private final Consumer<List<String>> escDirRequester;
     private final String escCommand;
     private final String escForMethodCommand;
+    private final String escDirCommand;
 
     /**
      * @param settings             shared settings object
      * @param escRequester         called with the URI when the ESC command is requested
      * @param escMethodRequester   called with (uri, methodName) when the ESC-for-method command is requested
-     * @param escCommand           the {@code workspace/executeCommand} command name for full-file ESC
-     * @param escForMethodCommand  the {@code workspace/executeCommand} command name for per-method ESC
+     * @param escDirRequester      called with a list of paths when the ESC-dir command is requested
+     * @param escCommand           command name for full-file ESC
+     * @param escForMethodCommand  command name for per-method ESC
+     * @param escDirCommand        command name for multi-path ESC via {@code --dirs}
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
-                                   Consumer<String> escRequester,
+                                   Consumer<String>       escRequester,
                                    BiConsumer<String, String> escMethodRequester,
+                                   Consumer<List<String>> escDirRequester,
                                    String escCommand,
-                                   String escForMethodCommand) {
+                                   String escForMethodCommand,
+                                   String escDirCommand) {
         this.settings            = settings;
         this.escRequester        = escRequester;
         this.escMethodRequester  = escMethodRequester;
+        this.escDirRequester     = escDirRequester;
         this.escCommand          = escCommand;
         this.escForMethodCommand = escForMethodCommand;
+        this.escDirCommand       = escDirCommand;
     }
 
     @Override
@@ -91,6 +100,14 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                 if (uri != null && methodName != null) {
                     escMethodRequester.accept(uri, methodName);
                 }
+            }
+        } else if (escDirCommand != null && escDirCommand.equals(cmd) && escDirRequester != null) {
+            if (args != null && !args.isEmpty()) {
+                List<String> paths = args.stream()
+                        .map(OpenJMLWorkspaceService::extractString)
+                        .filter(s -> s != null && !s.isEmpty())
+                        .collect(Collectors.toList());
+                if (!paths.isEmpty()) escDirRequester.accept(paths);
             }
         }
         return CompletableFuture.completedFuture(null);

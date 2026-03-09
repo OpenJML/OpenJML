@@ -104,7 +104,6 @@ import org.jmlspecs.openjml.esc.MethodProverSMT.Counterexample;
 import org.jmlspecs.openjml.proverinterface.IProverResult;
 import org.jmlspecs.openjml.proverinterface.IProverResult.ICounterexample;
 import org.jmlspecs.openjml.vistors.JmlTreeScanner;
-import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.osgi.framework.Bundle;
@@ -414,31 +413,36 @@ public class Utils {
             showMessage(shell, "ESC", "Nothing selected or applicable to check");
             return;
         }
-        List<IFile> files = collectJavaFiles(res);
-        if (files.isEmpty()) {
-            showMessage(shell, "ESC", "No Java files found in selection");
-            return;
-        }
-        checkESCViaLsp(files);
+        // Pass resources directly — the server uses --dirs which handles both
+        // individual .java files and directories (processed recursively).
+        checkESCViaLsp(res);
     }
 
     /**
-     * Sends an {@code openjml.runEsc} LSP command to the OpenJML language server
-     * for each of the given Java files.
+     * Sends a single {@code openjml.runEscDir} LSP command to the OpenJML language
+     * server for each resource in the list.  Each resource path (file or directory)
+     * is passed as an argument; the server uses OpenJML's {@code --dirs} option so
+     * directories are processed recursively in one JVM invocation.
      */
-    public void checkESCViaLsp(List<IFile> files) {
-        for (IFile file : files) {
-            String uri = file.getLocationURI().toString();
-            org.eclipse.jface.text.IDocument doc = LSPEclipseUtils.getDocument(file);
-            if (doc == null) {
-                Log.log("checkESCViaLsp: no document for " + uri + " — skipping");
-                continue;
-            }
-            LanguageServers.forDocument(doc)
-                .computeFirst((server, d) ->
-                    server.getWorkspaceService().executeCommand(
-                        new ExecuteCommandParams("openjml.runEsc", java.util.List.of(uri))));
+    public void checkESCViaLsp(List<IResource> resources) {
+        if (resources.isEmpty()) return;
+
+        List<Object> paths = new ArrayList<>();
+        IProject project = null;
+        for (IResource r : resources) {
+            org.eclipse.core.runtime.IPath loc = r.getLocation();
+            if (loc == null) continue;
+            paths.add(loc.toOSString());
+            if (project == null) project = r.getProject();
         }
+        if (paths.isEmpty() || project == null) return;
+
+        IProject finalProject = project;
+        List<Object> finalPaths = paths;
+        LanguageServers.forProject(finalProject)
+            .computeFirst(server ->
+                server.getWorkspaceService().executeCommand(
+                    new ExecuteCommandParams("openjml.runEscDir", finalPaths)));
     }
 
     /**
@@ -446,13 +450,8 @@ public class Utils {
      */
     public void checkESCForMethodViaLsp(IFile file, String methodFqn) {
         String uri = file.getLocationURI().toString();
-        org.eclipse.jface.text.IDocument doc = LSPEclipseUtils.getDocument(file);
-        if (doc == null) {
-            Log.log("checkESCForMethodViaLsp: no document for " + uri);
-            return;
-        }
-        LanguageServers.forDocument(doc)
-            .computeFirst((server, d) ->
+        LanguageServers.forProject(file.getProject())
+            .computeFirst(server ->
                 server.getWorkspaceService().executeCommand(
                     new ExecuteCommandParams("openjml.runEscForMethod",
                         java.util.List.of(uri, methodFqn))));

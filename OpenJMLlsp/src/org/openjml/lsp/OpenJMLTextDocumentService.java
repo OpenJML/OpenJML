@@ -287,6 +287,48 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
+     * Run {@code --esc --dirs path1 path2 ...} on one or more files or directories
+     * (for the {@code openjml.runEscDir} command from the Eclipse plugin).
+     *
+     * <p>Each path may be a {@code .java} file or a directory processed recursively.
+     * Diagnostics are published per source file.  Code-lens status is updated for
+     * any URIs that are currently open in the editor.
+     */
+    void scheduleEscForPaths(List<String> paths) {
+        if (paths == null || paths.isEmpty()) return;
+        executor.submit(() -> {
+            try {
+                CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, settings);
+                if (client == null) return;
+                // Publish diagnostics for every file that had diagnostics.
+                for (var entry : result.diagnosticsByUri().entrySet()) {
+                    client.publishDiagnostics(
+                            new PublishDiagnosticsParams(entry.getKey(), entry.getValue()));
+                }
+                // Clear diagnostics for files that had none but are currently open.
+                for (String path : paths) {
+                    String uri;
+                    try { uri = java.nio.file.Path.of(path).toUri().toString(); }
+                    catch (Exception e) { continue; }
+                    if (!result.diagnosticsByUri().containsKey(uri) && lastContent.containsKey(uri)) {
+                        client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+                    }
+                }
+                // Update code-lens status for any files currently open.
+                for (var entry : result.diagnosticsByUri().entrySet()) {
+                    String uri = entry.getKey();
+                    if (lastContent.containsKey(uri)) {
+                        updateEscStatus(uri, entry.getValue(),
+                                result.proofResults(), result.exitCode(), List.of());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
      * Run ESC on the given URI immediately (for the {@code openjml.runEsc} command).
      * Uses the file on disk; if the file does not exist the call is a no-op.
      */

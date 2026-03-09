@@ -42,17 +42,21 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private int exitCode = 1;
 
     /**
-     * @param escCommand           command name for full-file ESC (passed to WorkspaceService)
-     * @param escForMethodCommand  command name for per-method ESC (passed to WorkspaceService and TextDocumentService)
+     * @param escCommand           command name for full-file ESC
+     * @param escForMethodCommand  command name for per-method ESC
+     * @param escDirCommand        command name for multi-path ESC via {@code --dirs}
+     *                             (may be {@code null} to disable the command)
      */
-    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand) {
+    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
                 textDocumentService::scheduleEscForUri,
                 textDocumentService::scheduleEscForMethod,
+                textDocumentService::scheduleEscForPaths,
                 escCommand,
-                escForMethodCommand);
+                escForMethodCommand,
+                escDirCommand);
     }
 
     @Override

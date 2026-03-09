@@ -5,7 +5,9 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Collects all diagnostics emitted by OpenJML during a check pass,
@@ -54,6 +56,36 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     private static String baseName(String path) {
         int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
         return path.substring(i + 1);
+    }
+
+    /**
+     * Convert collected diagnostics for ALL source files, grouped by their
+     * {@code file://} URI.  Used for multi-path {@code --dirs} invocations where
+     * diagnostics may come from many files.
+     *
+     * <p>Passing {@code null} as {@code sourcePath} to
+     * {@link DiagnosticConverter#convert} disables the single-file source filter,
+     * so every diagnostic is included under its actual source file's URI.
+     */
+    public Map<String, List<org.eclipse.lsp4j.Diagnostic>> toLspDiagnosticsByFile() {
+        Map<String, List<org.eclipse.lsp4j.Diagnostic>> result = new LinkedHashMap<>();
+        for (var d : collected) {
+            if (d.getSource() == null) continue;
+            String srcPath = d.getSource().getName();
+            if (srcPath.isEmpty()) continue;
+            String uri;
+            try {
+                uri = java.nio.file.Path.of(srcPath).toUri().toString();
+            } catch (Exception e) {
+                continue;
+            }
+            // null sourcePath → no source filter; all diagnostics are included
+            var lsp = DiagnosticConverter.convert(d, null, uri);
+            if (lsp != null) {
+                result.computeIfAbsent(uri, k -> new ArrayList<>()).add(lsp);
+            }
+        }
+        return result;
     }
 
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
