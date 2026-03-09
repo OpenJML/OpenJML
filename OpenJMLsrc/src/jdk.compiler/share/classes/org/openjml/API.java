@@ -10,7 +10,11 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.*;
+import org.openjml.IAPI.IASTListener;
 
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.parser.ScannerFactory;
@@ -77,6 +81,8 @@ public class API implements IAPI {
     public String getOption(String key) {
         return com.sun.tools.javac.util.Options.instance(main.context()).get(key);
     }
+    
+
 
     
 //    @Override @SuppressWarnings("exports")
@@ -356,18 +362,18 @@ public class API implements IAPI {
 //     * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
 //     */
 //    @Override
-//    public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) {
+//    public /*@non_null*/ JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) {
 //        return parseSingleFile(makeJFOfromFilename(filename));
 //    }
-//    
-//    
+    
+    
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
 //     */
-////    @Override
-//    public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
-//        JmlCompiler c = JmlCompiler.instance(main.context);
-//        JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
+//    @Override
+//    public /*@non_null*/ JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
+//        JmlCompiler c = JmlCompiler.instance(main.context());
+//        JmlTree.JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
 //        return specscu;
 //    }
 //
@@ -375,12 +381,11 @@ public class API implements IAPI {
 //     * @see org.jmlspecs.openjml.IAPI#parseString(java.lang.String, java.lang.String)
 //     */
 //    @Override
-//    public /*@non_null*/ JmlCompilationUnit parseString(/*@non_null*/ String name, /*@non_null*/ String content) throws Exception {
+//    public /*@non_null*/ JmlTree.JmlCompilationUnit parseCompilationUnitString(/*@non_null*/ String name, /*@non_null*/ String content) throws Exception {
 //        if (name == null || name.length() == 0) throw new IllegalArgumentException();
-//        JmlCompiler c = JmlCompiler.instance(context());
+//        JmlCompiler c = JmlCompiler.instance(main.context());
 //        JavaFileObject file = makeJFOfromString(name,content);
-//        Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
-//        JmlCompilationUnit jcu = ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+//        JmlTree.JmlCompilationUnit jcu = (JmlCompilationUnit)c.parse(file);
 //        if (name.endsWith(".java")) jcu.specsCompilationUnit = jcu;
 //        return jcu;
 //    }
@@ -448,9 +453,9 @@ public class API implements IAPI {
 //     */
 //    @Override
 //    public JavaFileObject makeJFOfromFile(File file) {
-////        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
-////        return dfm.getJavaFileForInput(file);
-//    	return null; // FIXME
+//        JavacFileManager dfm = (JavacFileManager)main.context().get(JavaFileManager.class);
+//        return dfm.getJavaFileForInput(file);
+////    	return null; // FIXME
 //    }
 //    
 //    // TODO: need an easier way to find out if there are errors from parseAndCheck or enterAndCheck
