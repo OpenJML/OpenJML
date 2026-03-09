@@ -101,6 +101,73 @@ public class CheckRunner {
         return runOnFile(filePath, uri, settings, "--check", null, false);
     }
 
+    // --- public API: --esc (multi-source) ---
+
+    /**
+     * Run {@code --esc} on a primary in-memory source file with additional
+     * source files written to the same temporary directory.
+     *
+     * <p>All files are compiled together; only diagnostics from the primary file
+     * are returned.  Type errors in any of the extra files will cause exit code 1
+     * and prevent ESC from running (resulting in empty proof results).
+     *
+     * @param primaryUri     URI of the primary file (e.g. {@code "file:///A.java"})
+     * @param primaryContent source text of the primary file
+     * @param extraSources   map of filename → source text for context files
+     *                       (e.g. dependencies with errors)
+     */
+    public static CheckResult runEscWithSources(String primaryUri, String primaryContent,
+                                                 Map<String, String> extraSources) {
+        return runEscWithSources(primaryUri, primaryContent, extraSources, new OpenJMLSettings());
+    }
+
+    /** Run {@code --esc} on a primary file with additional context sources. */
+    public static CheckResult runEscWithSources(String primaryUri, String primaryContent,
+                                                 Map<String, String> extraSources,
+                                                 OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out = new PrintWriter(new StringWriter());
+        var api = IAPI.make(out, listener);
+        var prc = new ProofResultCollector();
+        api.setProofResultListener(prc);
+
+        Path tempDir = null;
+        try {
+            String baseName = extractBaseName(primaryUri);
+            tempDir = Files.createTempDirectory("openjml-lsp-");
+            Path tempFile = tempDir.resolve(baseName);
+            Files.writeString(tempFile, primaryContent);
+
+            for (Map.Entry<String, String> e : extraSources.entrySet()) {
+                Files.writeString(tempDir.resolve(e.getKey()), e.getValue());
+            }
+
+            List<String> args = buildArgs(settings, "--esc");
+            args.add(tempFile.toString());
+            for (String fname : extraSources.keySet()) {
+                args.add(tempDir.resolve(fname).toString());
+            }
+
+            logInvocation("runEscWithSources", args, primaryContent);
+            int rc = api.execute(args.toArray(new String[0]));
+            System.err.println("[CheckRunner.runEscWithSources] exit code " + rc);
+
+            return new CheckResult(
+                    listener.toLspDiagnostics(tempFile.toString(), primaryUri),
+                    rc, prc.getResults());
+        } catch (IOException e) {
+            return new CheckResult(List.of(), -1, Map.of());
+        } finally {
+            if (tempDir != null) {
+                try {
+                    Files.walk(tempDir)
+                         .sorted(Comparator.reverseOrder())
+                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+                } catch (IOException ignored) {}
+            }
+        }
+    }
+
     // --- public API: --esc ---
 
     /** Run {@code --esc} on in-memory content with default settings. */

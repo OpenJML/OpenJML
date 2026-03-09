@@ -4,6 +4,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.openjml.lsp.CheckRunner;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for LSP diagnostic tests.
@@ -41,6 +42,19 @@ public abstract class LspTestBase {
      */
     protected List<Diagnostic> runEscContent(String uri, String content) {
         return CheckRunner.runEsc(uri, content).diagnostics();
+    }
+
+    /**
+     * Run an OpenJML {@code --esc} pass on a primary file together with
+     * additional context source files (e.g. dependencies), and return the
+     * full {@link CheckRunner.CheckResult}.  Only diagnostics from the
+     * primary file are included; type errors in the extra files cause
+     * exit code 1 and prevent ESC from running.
+     */
+    protected CheckRunner.CheckResult runEscWithSources(String primaryUri,
+                                                         String primaryContent,
+                                                         Map<String, String> extraSources) {
+        return CheckRunner.runEscWithSources(primaryUri, primaryContent, extraSources);
     }
 
     /**
