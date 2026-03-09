@@ -575,6 +575,21 @@ public class JmlCompiler extends JavaCompiler {
 
         return stopIfError(CompileState.ATTR, results);
     }
+    
+    public Env<AttrContext> attribute(Env<AttrContext> env) {
+        try {
+            return super.attribute(env);
+        } finally {
+            if (!env.toplevel.sourcefile.toString().contains(".jml")) {
+                synchronized (org.openjml.API.astListeners) { 
+                    for (var listener: org.openjml.API.astListeners) {
+                        listener.notify(context, env.toplevel.sourcefile, (JmlCompilationUnit)env.toplevel);
+                    }
+                }
+            }
+        }
+    }
+
 
     /** Overridden in order to insert ESC and RAC (or other) processing after the OpenJDK flow processing */
     @Override
