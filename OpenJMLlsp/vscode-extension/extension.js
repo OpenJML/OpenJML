@@ -18,7 +18,7 @@ const cp     = require('child_process');
 const fs     = require('fs');
 const path   = require('path');
 const vscode = require('vscode');
-const { LanguageClient, TransportKind } = require('vscode-languageclient/node');
+const { LanguageClient, TransportKind, RevealOutputChannelOn } = require('vscode-languageclient/node');
 
 let client;
 
@@ -316,6 +316,7 @@ async function activate(context) {
 
     const clientOptions = {
         documentSelector: [{ scheme: 'file', language: 'java' }],
+        revealOutputChannelOn: RevealOutputChannelOn.Warn,
         initializationOptions: getSettings(),
         synchronize: {
             configurationSection: 'openjml',

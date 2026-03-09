@@ -12,6 +12,8 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.MessageParams;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
@@ -75,7 +77,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- ESC status per method (for code lens) ---
 
-    enum EscPhase { UNKNOWN, CHECKING, VERIFIED, INFEASIBLE, NOT_VERIFIED, SKIPPED, TIMEOUT, CANCELLED, CHECK_ERROR }
+    enum EscPhase { UNKNOWN, CHECKING, VERIFIED, INFEASIBLE, NOT_VERIFIED, SKIPPED, TIMEOUT, CANCELLED, CHECK_ERROR, CHECK_ERROR_DEPS }
 
     record MethodStatus(EscPhase phase, int issueCount) {
         static final MethodStatus UNKNOWN      = new MethodStatus(EscPhase.UNKNOWN,      0);
@@ -85,7 +87,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         static final MethodStatus SKIPPED      = new MethodStatus(EscPhase.SKIPPED,      0);
         static final MethodStatus TIMEOUT      = new MethodStatus(EscPhase.TIMEOUT,      0);
         static final MethodStatus CANCELLED    = new MethodStatus(EscPhase.CANCELLED,    0);
-        static final MethodStatus CHECK_ERROR  = new MethodStatus(EscPhase.CHECK_ERROR,  0);
+        static final MethodStatus CHECK_ERROR       = new MethodStatus(EscPhase.CHECK_ERROR,       0);
+        static final MethodStatus CHECK_ERROR_DEPS  = new MethodStatus(EscPhase.CHECK_ERROR_DEPS,  0);
         static MethodStatus notVerified(int n) { return new MethodStatus(EscPhase.NOT_VERIFIED, n); }
         static MethodStatus done(int n) {
             return n == 0 ? VERIFIED : notVerified(n);
@@ -102,7 +105,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 case SKIPPED      -> "OpenJML: Skipped";
                 case TIMEOUT      -> "OpenJML: Timeout";
                 case CANCELLED    -> "OpenJML: Cancelled";
-                case CHECK_ERROR  -> "OpenJML: Check error";
+                case CHECK_ERROR       -> "OpenJML: Check error";
+                case CHECK_ERROR_DEPS  -> "OpenJML: Check error in other files";
             };
         }
     }
@@ -394,14 +398,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     // the proof result if available, else fall back to diag count.
                     String simpleName = target.name();
                     IProverResult.Kind kind = result.proofResults().get(simpleName);
-                    MethodStatus ms = proofResultToStatus(kind, diags, start, end, result.exitCode());
+                    MethodStatus ms = proofResultToStatus(kind, diags, start, end,
+                                                          result.exitCode(), result.hasForeignErrors());
                     Map<Integer, MethodStatus> statuses =
                             new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
                     statuses.put(start, ms);
                     methodEscStatus.put(uri, statuses);
                 } else {
                     escDiags.put(uri, diags);
-                    updateEscStatus(uri, diags, result.proofResults(), result.exitCode());
+                    updateEscStatus(uri, diags, result.proofResults(), result.exitCode(),
+                                        result.foreignMessages());
                 }
                 publishMerged(uri);
                 refreshCodeLenses();
@@ -485,14 +491,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
                         refreshCodeLenses();
                     } else {
-                        updateEscStatus(uri, result.diagnostics(), result.proofResults(), result.exitCode());
+                        updateEscStatus(uri, result.diagnostics(), result.proofResults(), result.exitCode(),
+                                            result.foreignMessages());
                     }
                     publishMerged(uri);
                 }
             } catch (Throwable t) {
                 System.err.println("[OpenJML] ESC failed: " + t);
                 if (escGen.get(uri).get() == myGen) {
-                    updateEscStatus(uri, List.of(), Map.of(), -1);
+                    updateEscStatus(uri, List.of(), Map.of(), -1, List.of());
                     refreshCodeLenses();
                 }
             } finally {
@@ -552,34 +559,46 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * failures (SAT/POSSIBLY_SAT/SKIPPED/TIMEOUT/CANCELLED/UNKNOWN/ERROR).
      */
     private void updateEscStatus(String uri, List<Diagnostic> diags,
-                                 Map<String, IProverResult.Kind> proofResults, int exitCode) {
+                                 Map<String, IProverResult.Kind> proofResults, int exitCode,
+                                 List<String> foreignFiles) {
         String content = lastContent.get(uri);
         if (content == null) return;
         List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
         if (methods.isEmpty()) return;
 
+        boolean hasForeignErrors = !foreignFiles.isEmpty();
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
             IProverResult.Kind kind = proofResults.get(m.name());
             statuses.put(m.startLine(),
-                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(), exitCode));
+                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
+                                        exitCode, hasForeignErrors));
         }
         methodEscStatus.put(uri, statuses);
         refreshCodeLenses();
+
+        if (hasForeignErrors && client != null) {
+            String fileName = uri.substring(uri.lastIndexOf('/') + 1);
+            String msg = "OpenJML: ESC on " + fileName
+                    + " could not run — type errors in: " + String.join(", ", foreignFiles);
+            client.logMessage(new MessageParams(MessageType.Warning, msg));
+        }
     }
 
     /**
      * Convert a proof result kind to a {@link MethodStatus}.
      *
-     * @param kind     proof result kind, or {@code null} if none was recorded
-     * @param diags    all diagnostics from the ESC run (used for issue count)
-     * @param start    first line of the method (inclusive)
-     * @param end      last line of the method (inclusive)
-     * @param exitCode OpenJML exit code: 0=ok, 1=syntax/type errors, 6=verification failures
+     * @param kind            proof result kind, or {@code null} if none was recorded
+     * @param diags           all diagnostics from the ESC run (used for issue count)
+     * @param start           first line of the method (inclusive)
+     * @param end             last line of the method (inclusive)
+     * @param exitCode        OpenJML exit code: 0=ok, 1=syntax/type errors, 6=verification failures
+     * @param hasForeignErrors true when errors in other files (not the focus file) caused the failure
      */
     private static MethodStatus proofResultToStatus(IProverResult.Kind kind,
                                                      List<Diagnostic> diags,
-                                                     int start, int end, int exitCode) {
+                                                     int start, int end, int exitCode,
+                                                     boolean hasForeignErrors) {
         if (kind == IProverResult.UNSAT) {
             return MethodStatus.VERIFIED;
         } else if (kind == IProverResult.INFEASIBLE) {
@@ -599,8 +618,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             return MethodStatus.SKIPPED;
         } else {
             // null: no proof result recorded.
-            // exitCode 1 means syntax/type errors (including solver failures) prevented ESC.
-            return exitCode == 1 ? MethodStatus.CHECK_ERROR : MethodStatus.UNKNOWN;
+            // exitCode 1 means syntax/type errors prevented ESC.
+            // Distinguish: errors in the focus file vs. errors only in other files.
+            if (exitCode == 1) {
+                return hasForeignErrors ? MethodStatus.CHECK_ERROR_DEPS : MethodStatus.CHECK_ERROR;
+            }
+            return MethodStatus.UNKNOWN;
         }
     }
 

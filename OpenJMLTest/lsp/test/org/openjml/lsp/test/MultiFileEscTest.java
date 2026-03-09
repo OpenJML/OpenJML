@@ -80,5 +80,10 @@ public class MultiFileEscTest extends LspTestBase {
         // A.java itself is well-typed, so no diagnostics should remain.
         assertTrue("Expected no diagnostics for A.java (B's error is in B.java, not A.java)",
                 result.diagnostics().isEmpty());
+
+        // The foreign file list should identify B.java as the source of the problem.
+        assertFalse("Expected foreign file list to be non-empty", result.foreignMessages().isEmpty());
+        assertTrue("Expected B.java to be reported as a foreign file with errors",
+                result.foreignMessages().contains("B.java"));
     }
 }
