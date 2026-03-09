@@ -120,17 +120,22 @@
           "order": 2,
           "markdownDescription": "When to run extended static checking (`--esc`):\n- `manual` — only via the **OpenJML: Run ESC** command or editor button\n- `save` — on every save\n- `edit` — on every change (expensive; not recommended for large files)"
         },
+        "openjml.dirtyFileAction": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "save",
+            "run"
+          ],
+          "default": "ask",
+          "order": 3,
+          "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
+        },
         "openjml.specsPath": {
           "type": "string",
           "default": "",
-          "order": 3,
-          "description": "Path to the OpenJML specs directory. Leave empty to use the default from the launcher script."
-        },
-        "openjml.solversPath": {
-          "type": "string",
-          "default": "",
           "order": 4,
-          "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
+          "description": "Path to the OpenJML specs directory. Leave empty to use the default from the launcher script."
         },
         "openjml.sourcePath": {
           "type": "string",
@@ -144,16 +149,11 @@
           "order": 6,
           "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
         },
-        "openjml.dirtyFileAction": {
+        "openjml.solversPath": {
           "type": "string",
-          "enum": [
-            "ask",
-            "save",
-            "run"
-          ],
-          "default": "ask",
+          "default": "",
           "order": 7,
-          "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
+          "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
         }
       }
     }
