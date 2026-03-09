@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -10,6 +11,8 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
@@ -17,6 +20,7 @@ import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.openjml.IProverResult;
@@ -209,6 +213,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         escDiags.remove(uri);
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
+        CheckRunner.getASTCache().remove(uri);
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
     }
 
@@ -263,6 +268,34 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         var hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN,
                 "**JML spec for `" + method.name() + "`**\n```java\n" + spec + "\n```"));
         return CompletableFuture.completedFuture(hover);
+    }
+
+    // --- go to definition ---
+
+    /**
+     * Resolve the declaration of the identifier under the cursor.
+     *
+     * <p>Works for identifiers in both regular Java code and JML clauses
+     * ({@code //@ requires}, {@code //@ ensures}, etc.).  The AST must have
+     * been cached by a prior {@code --check} run for the same URI.
+     */
+    @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
+            definition(DefinitionParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+
+        Location loc = DefinitionFinder.findDefinition(
+                uri,
+                params.getPosition().getLine(),
+                params.getPosition().getCharacter(),
+                lastContent,
+                CheckRunner.getASTCache());
+
+        List<Location> result = loc != null ? List.of(loc) : List.of();
+        return CompletableFuture.completedFuture(Either.forLeft(result));
     }
 
     /**

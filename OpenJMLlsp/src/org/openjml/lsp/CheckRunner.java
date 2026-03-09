@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.openjml.IAPI;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,6 +41,15 @@ import java.util.Map;
  * directly to OpenJML — no temp file needed.
  */
 public class CheckRunner {
+
+    /**
+     * Shared AST cache populated by every check run.
+     * Accessed by {@link OpenJMLTextDocumentService} for go-to-definition.
+     */
+    private static final ASTCache AST_CACHE = new ASTCache();
+
+    /** Return the shared AST cache. */
+    public static ASTCache getASTCache() { return AST_CACHE; }
 
     /**
      * Result of a single OpenJML invocation.
@@ -252,7 +262,21 @@ public class CheckRunner {
             }
             args.add(tempFile.toString());
             logInvocation("runOnContent", args, content);
-            int rc = api.execute(args.toArray(new String[0]));
+
+            // Register an AST listener that remaps the temp-file URI to the caller's URI.
+            final String tempUriStr = tempFile.toUri().toString();
+            final String callerUri  = uri;
+            IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+                if (jfo.toUri().toString().equals(tempUriStr))
+                    AST_CACHE.put(callerUri, ctx, (JmlCompilationUnit) ast);
+            };
+            IAPI.setASTListener(astListener);
+            int rc;
+            try {
+                rc = api.execute(args.toArray(new String[0]));
+            } finally {
+                IAPI.removeASTListener(astListener);
+            }
             System.err.println("[CheckRunner.runOnContent] exit code " + rc
                     + " (" + modeFlag + ")");
 
@@ -293,7 +317,18 @@ public class CheckRunner {
         }
         args.add(filePath);
         logInvocation("runOnFile", args);
-        int rc = api.execute(args.toArray(new String[0]));
+
+        // Register an AST listener that stores the attributed AST under the caller's URI.
+        final String callerUri = uri;
+        IAPI.IASTListener astListener = (ctx, jfo, ast) ->
+                AST_CACHE.put(callerUri, ctx, (JmlCompilationUnit) ast);
+        IAPI.setASTListener(astListener);
+        int rc;
+        try {
+            rc = api.execute(args.toArray(new String[0]));
+        } finally {
+            IAPI.removeASTListener(astListener);
+        }
         System.err.println("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
 
