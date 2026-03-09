@@ -1,6 +1,7 @@
 package org.openjml.lsp.test;
 
 import org.junit.Test;
+import org.openjml.IProverResult;
 import org.openjml.lsp.CheckRunner;
 
 import java.util.Map;
@@ -85,5 +86,59 @@ public class MultiFileEscTest extends LspTestBase {
         assertFalse("Expected foreign file list to be non-empty", result.foreignMessages().isEmpty());
         assertTrue("Expected B.java to be reported as a foreign file with errors",
                 result.foreignMessages().contains("B.java"));
+    }
+
+    /**
+     * A.java and B.java are both clean; C.java has a type error but is NOT
+     * a dependency of A and is NOT passed to OpenJML.
+     *
+     * Expected:
+     * <ul>
+     *   <li>exit code 0 — no errors</li>
+     *   <li>proof result for A.m is UNSAT (verified)</li>
+     *   <li>no diagnostics</li>
+     *   <li>no foreign messages — C.java was excluded and has no influence</li>
+     * </ul>
+     */
+    @Test
+    public void testEscSucceedsWhenUnrelatedFileHasErrors() throws Exception {
+        // A.java: valid postcondition; calls B.value() which simply returns x.
+        String sourceA =
+                "public class A {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int m(int x) { return new B().value(x); }\n" +
+                "}\n";
+
+        // B.java: clean — value() correctly returns x; spec lets OpenJML verify A.m.
+        String sourceB =
+                "public class B {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int value(int x) { return x; }\n" +
+                "}\n";
+
+        // C.java: has a type error, but A does not depend on C and C is excluded.
+        @SuppressWarnings("unused")
+        String sourceC =
+                "public class C {\n" +
+                "    public int bad() { return \"not an int\"; }\n" +
+                "}\n";
+
+        // Run ESC on A.java + B.java only.  C.java is excluded.
+        CheckRunner.CheckResult result = runEscWithSources(
+                "file:///A.java", sourceA,
+                Map.of("B.java", sourceB));
+
+        // Both files compile cleanly → ESC runs → A.m is verified
+        assertEquals("Expected exit code 0 (both A and B are clean)", 0, result.exitCode());
+
+        IProverResult.Kind kind = result.proofResults().get("m");
+        assertNotNull("Expected a proof result for method m", kind);
+        assertEquals("Expected UNSAT for verified method m", IProverResult.UNSAT, kind);
+
+        assertTrue("Expected no diagnostics for clean ESC", result.diagnostics().isEmpty());
+
+        // C.java was excluded — its error must not appear as a foreign message.
+        assertTrue("Expected no foreign messages when unrelated C.java is excluded",
+                result.foreignMessages().isEmpty());
     }
 }
