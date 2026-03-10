@@ -25,5 +25,20 @@ public final class VsCodeCommands {
      */
     public static final String RUN_ESC_DIR        = "openjml.runEscDir";
 
+    /**
+     * Focus notification: sent by the extension when the user switches focus to
+     * an already-open Java file.  Triggers a --check recheck so stale diagnostics
+     * from fixed dependencies are cleared.
+     */
+    public static final String FOCUS_FILE = "openjml.focusFile";
+
+    /**
+     * Semantic tokens request: sent by the extension's directly-registered
+     * {@code DocumentSemanticTokensProvider}.  Returns the flat integer token
+     * data for the given URI so VS Code can apply JML highlighting independently
+     * of (and additively with) the Red Hat Java extension's semantic tokens.
+     */
+    public static final String GET_SEMANTIC_TOKENS = "openjml.getSemanticTokens";
+
     private VsCodeCommands() {}
 }

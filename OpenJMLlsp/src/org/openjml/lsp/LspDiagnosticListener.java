@@ -5,6 +5,7 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,37 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             var lsp = DiagnosticConverter.convert(d, null, uri);
             if (lsp != null) {
                 result.computeIfAbsent(uri, k -> new ArrayList<>()).add(lsp);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Extract diagnostics for ALL files compiled in this pass.
+     *
+     * <p>Returns a map from real URI → LSP diagnostic list.  Every URI in
+     * {@code tempPathToRealUri} gets an entry (possibly an empty list), so
+     * callers can clear markers on files that compiled without errors.
+     *
+     * @param tempPathToRealUri  maps each temp file path (as returned by
+     *                           {@link java.nio.file.Path#toString()}) to its
+     *                           real LSP document URI
+     */
+    public Map<String, List<org.eclipse.lsp4j.Diagnostic>> toLspDiagnosticsAll(
+            Map<String, String> tempPathToRealUri) {
+        Map<String, List<org.eclipse.lsp4j.Diagnostic>> result = new HashMap<>();
+        // Pre-populate with empty lists so files with no errors get their markers cleared.
+        for (String realUri : tempPathToRealUri.values()) {
+            result.put(realUri, new ArrayList<>());
+        }
+        for (var d : collected) {
+            if (d.getSource() == null) continue;
+            for (Map.Entry<String, String> entry : tempPathToRealUri.entrySet()) {
+                var lsp = DiagnosticConverter.convert(d, entry.getKey(), entry.getValue());
+                if (lsp != null) {
+                    result.get(entry.getValue()).add(lsp);
+                    break;
+                }
             }
         }
         return result;

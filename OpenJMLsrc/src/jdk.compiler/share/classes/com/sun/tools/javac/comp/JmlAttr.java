@@ -1367,7 +1367,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         try {
 
         
-    	//System.out.println("VISIT METHOD DEF " + m.name);
+        // System.out.println("JML ATTR VISIT METHOD DEF " + m.name + " " + env.enclClass.sym);
     	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + javaMethodDecl.name + " " + javaMethodDecl.sourcefile + " " + javaMethodDecl);
 
         // Setting relax to true keeps super.visitMethodDef from complaining

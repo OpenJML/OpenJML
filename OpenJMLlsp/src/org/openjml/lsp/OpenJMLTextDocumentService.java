@@ -3,20 +3,35 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.SymbolKind;
+import org.eclipse.lsp4j.DeclarationParams;
+import org.eclipse.lsp4j.DefinitionParams;
+import org.eclipse.lsp4j.ReferenceParams;
+import org.eclipse.lsp4j.RenameParams;
+import org.eclipse.lsp4j.WorkspaceEdit;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
+import org.eclipse.lsp4j.PrepareRenameParams;
+import org.eclipse.lsp4j.PrepareRenameResult;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.openjml.IProverResult;
@@ -209,6 +224,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         escDiags.remove(uri);
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
+        CheckRunner.getASTCache().remove(uri);
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
     }
 
@@ -263,6 +279,162 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         var hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN,
                 "**JML spec for `" + method.name() + "`**\n```java\n" + spec + "\n```"));
         return CompletableFuture.completedFuture(hover);
+    }
+
+    // --- go to definition ---
+
+    /**
+     * Resolve the declaration of the identifier under the cursor.
+     *
+     * <p>Works for identifiers in both regular Java code and JML clauses
+     * ({@code //@ requires}, {@code //@ ensures}, etc.).  The AST must have
+     * been cached by a prior {@code --check} run for the same URI.
+     */
+    @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
+            definition(DefinitionParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+
+        Location loc = DefinitionFinder.findDefinition(
+                uri,
+                params.getPosition().getLine(),
+                params.getPosition().getCharacter(),
+                lastContent,
+                CheckRunner.getASTCache());
+
+        List<Location> result = loc != null ? List.of(loc) : List.of();
+        return CompletableFuture.completedFuture(Either.forLeft(result));
+    }
+
+    // --- find references ---
+
+    /**
+     * Find all references to the symbol under the cursor.
+     *
+     * <p>Searches every AST currently in the cache.  Symbol identity ({@code ==})
+     * is used to match references, which is correct within a single IAPI compilation
+     * context.
+     *
+     * <p>Optimisation opportunity (not yet applied): scope analysis via
+     * {@code Symbol.owner} could restrict the search to the relevant file(s)
+     * (e.g., private members need only be searched in their declaring class's file).
+     */
+    @Override
+    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(List.of());
+
+        boolean includeDecl = params.getContext() != null
+                && params.getContext().isIncludeDeclaration();
+
+        List<? extends Location> refs = ReferenceFinder.findReferences(
+                uri,
+                params.getPosition().getLine(),
+                params.getPosition().getCharacter(),
+                lastContent,
+                CheckRunner.getASTCache(),
+                includeDecl);
+
+        return CompletableFuture.completedFuture(refs);
+    }
+
+    // --- go to declaration ---
+
+    /**
+     * Resolve the declaration of the identifier under the cursor.
+     *
+     * <p>For Java and JML identifiers the declaration and definition are the same
+     * location (the {@code JCVariableDecl} / {@code JCMethodDecl} node).  This
+     * method therefore delegates to the same {@link DefinitionFinder} as
+     * {@link #definition}.
+     */
+    @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
+            declaration(DeclarationParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+
+        Location loc = DefinitionFinder.findDefinition(
+                uri,
+                params.getPosition().getLine(),
+                params.getPosition().getCharacter(),
+                lastContent,
+                CheckRunner.getASTCache());
+
+        List<Location> result = loc != null ? List.of(loc) : List.of();
+        return CompletableFuture.completedFuture(Either.forLeft(result));
+    }
+
+    // --- prepareRename / rename ---
+
+    /**
+     * Validate that a rename is possible at the cursor position.
+     *
+     * <p>Returns {@code defaultBehavior=true} (let the client infer the rename
+     * range from the identifier word) whenever the cursor sits on a valid Java
+     * identifier character, so that VS Code prefers our rename provider over
+     * other competing providers (e.g. the Red Hat Java extension) for positions
+     * inside JML annotations.
+     */
+    @Override
+    public CompletableFuture<Either3<Range, PrepareRenameResult, PrepareRenameDefaultBehavior>>
+            prepareRename(PrepareRenameParams params) {
+        String uri    = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source != null) {
+            int offset = DefinitionFinder.lineColToOffset(
+                    source, params.getPosition().getLine(), params.getPosition().getCharacter());
+            if (offset >= 0 && offset < source.length()) {
+                char ch = source.charAt(offset);
+                if (Character.isJavaIdentifierPart(ch) && !Character.isDigit(ch)
+                        || (offset > 0 && Character.isJavaIdentifierPart(source.charAt(offset - 1)))) {
+                    // Cursor is on or just after an identifier — signal that rename is supported.
+                    return CompletableFuture.completedFuture(
+                            Either3.forThird(new PrepareRenameDefaultBehavior(true)));
+                }
+            }
+        }
+        return CompletableFuture.failedFuture(
+                new Exception("No renameable symbol at this position"));
+    }
+
+    /**
+     * Rename the symbol under the cursor to {@code params.getNewName()}.
+     *
+     * <p>Delegates to {@link Renamer#rename}, which validates the new name,
+     * finds all references, applies the edits in memory, validates the result
+     * with a {@code --check} pass, and returns a {@link WorkspaceEdit}.
+     *
+     * <p>If the rename would introduce errors or the new name is invalid a
+     * {@link ResponseErrorException} is propagated as a failed future so that
+     * the LSP client receives a proper JSON-RPC error response.
+     */
+    @Override
+    public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(null);
+        try {
+            WorkspaceEdit edit = Renamer.rename(
+                    uri,
+                    params.getPosition().getLine(),
+                    params.getPosition().getCharacter(),
+                    params.getNewName(),
+                    lastContent,
+                    CheckRunner.getASTCache(),
+                    settings);
+            return CompletableFuture.completedFuture(edit);
+        } catch (ResponseErrorException e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     /**
@@ -332,6 +504,138 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Run ESC on the given URI immediately (for the {@code openjml.runEsc} command).
      * Uses the file on disk; if the file does not exist the call is a no-op.
      */
+    /**
+     * Return the flat semantic token integer data for {@code uri}, or an empty
+     * list if the file is not currently open.  Called by the workspace service
+     * in response to the {@code openjml.getSemanticTokens} command so the VS
+     * Code extension can register a direct {@code DocumentSemanticTokensProvider}
+     * that merges additively with the Red Hat Java extension's tokens.
+     */
+    List<Integer> getSemanticTokens(String uri) {
+        String content = lastContent.get(uri);
+        if (content == null) return List.of();
+        // Prefer the AST-based approach (no false positives for identifiers
+        // that share a name with a JML keyword); fall back to regex when no
+        // attributed AST is available yet.
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        if (entry != null) {
+            return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
+        }
+        return SemanticTokensProvider.computeTokens(content).getData();
+    }
+
+    /**
+     * Return all indexed declarations whose simple name contains {@code query}
+     * (case-insensitive).  An empty query returns all declarations.
+     *
+     * <p>Only declarations in currently-open files (present in {@code lastContent})
+     * are returned, since their source is needed for offset→line:col conversion.
+     *
+     * <p>Called by {@link OpenJMLWorkspaceService} in response to
+     * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
+     */
+    List<SymbolInformation> symbols(String query) {
+        if (CheckRunner.getASTCache().isIndexing() && client != null) {
+            client.logMessage(new MessageParams(MessageType.Info,
+                    "workspace/symbol: background index still running — results may be incomplete"));
+        }
+        String lowerQuery = query == null ? "" : query.toLowerCase(java.util.Locale.ROOT);
+        List<SymbolInformation> result = new ArrayList<>();
+        CheckRunner.getASTCache().forEachDeclaration((sym, loc) -> {
+            String name = sym.name.toString();
+            // Skip synthetic names (<init>, <clinit>, empty).
+            if (name.isEmpty() || name.startsWith("<")) return;
+            // Filter by query (case-insensitive substring match; empty = accept all).
+            if (!lowerQuery.isEmpty()
+                    && !name.toLowerCase(java.util.Locale.ROOT).contains(lowerQuery)) return;
+            // Offset → Position requires source content.
+            // Prefer in-memory content (for unsaved edits); fall back to disk.
+            String content = lastContent.get(loc.uri());
+            if (content == null) {
+                String path = CheckRunner.uriToPath(loc.uri());
+                if (path != null) {
+                    try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (java.io.IOException ignored) {}
+                }
+            }
+            if (content == null) return;
+            Position pos = offsetToPosition(content, loc.charOffset());
+            var location = new Location(loc.uri(), new Range(pos, pos));
+            result.add(new SymbolInformation(name, symbolKind(sym), location));
+        });
+        return result;
+    }
+
+    /**
+     * Schedule a background workspace index pass on all {@code .java} files
+     * under {@code rootUri}.  Called once after the LSP {@code initialized}
+     * handshake so that {@code workspace/symbol} can find symbols in files
+     * that have not been opened by the user.
+     *
+     * @param rootUri the workspace root URI from {@code InitializeParams}
+     */
+    void scheduleWorkspaceIndex(String rootUri) {
+        String rootPath = CheckRunner.uriToPath(rootUri);
+        if (rootPath == null) return;
+        executor.submit(() -> {
+            try {
+                List<String> filePaths;
+                try (var stream = java.nio.file.Files.walk(java.nio.file.Path.of(rootPath))) {
+                    filePaths = stream
+                            .filter(p -> p.toString().endsWith(".java"))
+                            .map(java.nio.file.Path::toString)
+                            .collect(java.util.stream.Collectors.toList());
+                }
+                if (filePaths.isEmpty()) return;
+                System.err.println("[OpenJML] Background index: " + filePaths.size()
+                        + " .java files under " + rootPath);
+                CheckRunner.indexWorkspaceFiles(filePaths, settings);
+                System.err.println("[OpenJML] Background index complete");
+            } catch (Exception e) {
+                System.err.println("[OpenJML] Background index failed: " + e);
+            }
+        });
+    }
+
+    /** Convert a character offset to a 0-based LSP {@link Position}. */
+    private static Position offsetToPosition(String content, int offset) {
+        int line = 0, col = 0;
+        int end = Math.min(offset, content.length());
+        for (int i = 0; i < end; i++) {
+            if (content.charAt(i) == '\n') { line++; col = 0; }
+            else col++;
+        }
+        return new Position(line, col);
+    }
+
+    /** Map a javac {@link com.sun.tools.javac.code.Symbol} to an LSP {@link SymbolKind}. */
+    private static SymbolKind symbolKind(com.sun.tools.javac.code.Symbol sym) {
+        if (sym instanceof com.sun.tools.javac.code.Symbol.ClassSymbol cs) {
+            if (cs.isEnum())      return SymbolKind.Enum;
+            if (cs.isInterface()) return SymbolKind.Interface;
+            return SymbolKind.Class;
+        }
+        if (sym instanceof com.sun.tools.javac.code.Symbol.MethodSymbol ms) {
+            return ms.isConstructor() ? SymbolKind.Constructor : SymbolKind.Method;
+        }
+        if (sym instanceof com.sun.tools.javac.code.Symbol.VarSymbol vs) {
+            return (vs.owner instanceof com.sun.tools.javac.code.Symbol.MethodSymbol)
+                    ? SymbolKind.Variable : SymbolKind.Field;
+        }
+        return SymbolKind.Object;
+    }
+
+    /**
+     * Trigger a --check recheck of an already-open file (e.g. when focus returns
+     * to it after its dependencies were edited).  Uses in-memory content so that
+     * unsaved edits are included.  No-op if the file is not currently open.
+     */
+    void recheckUri(String uri) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        executor.submit(() -> runCheckContent(uri, content));
+    }
+
     void scheduleEscForUri(String uri) {
         scheduleEscFile(uri);
     }
@@ -559,16 +863,28 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // the ESC code-lens status that the user sees.
 
     private void runCheckContent(String uri, String content) {
-        List<Diagnostic> diags = CheckRunner.check(uri, content, settings).diagnostics();
-        checkDiags.put(uri, diags);
+        // Pass all open (possibly unsaved) files so cross-file dependencies use
+        // their current in-memory versions rather than the on-disk saved versions.
+        CheckRunner.CheckResult result = CheckRunner.checkWithContext(
+                uri, content, lastContent, settings);
+        checkDiags.put(uri, result.diagnostics());
         publishMerged(uri);
+        // Update diagnostics for all dependency files that were actually attributed
+        // during this compilation run (the compiler's own AST list, not O(n) re-checks).
+        result.companionDiagnostics().forEach((otherUri, diags) -> {
+            if (lastContent.containsKey(otherUri)) {
+                checkDiags.put(otherUri, diags);
+                publishMerged(otherUri);
+            }
+        });
         // Do NOT call refreshCodeLenses() here.
     }
 
     private void runCheckFile(String filePath, String uri) {
-        List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings).diagnostics();
-        checkDiags.put(uri, diags);
+        CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
+        checkDiags.put(uri, result.diagnostics());
         publishMerged(uri);
+        // runOnFile does not use the context path so no companion diagnostics.
         // Do NOT call refreshCodeLenses() here.
     }
 

@@ -321,6 +321,28 @@ async function activate(context) {
         synchronize: {
             configurationSection: 'openjml',
         },
+        middleware: {
+            // Override prepareRename so our server's rename provider takes priority
+            // over the Red Hat Java extension for both JML comment positions and
+            // regular Java identifiers.  We return the word range at the cursor
+            // immediately (without a server round-trip) whenever the cursor is on
+            // a Java identifier character; otherwise we fall back to the server.
+            prepareRename: (document, position, token, next) => {
+                const wordRange = document.getWordRangeAtPosition(
+                    position, /[a-zA-Z_$][a-zA-Z0-9_$]*/);
+                if (wordRange && !wordRange.isEmpty) {
+                    return { range: wordRange, placeholder: document.getText(wordRange) };
+                }
+                return next(document, position, token);
+            },
+            // Suppress the LSP-channel semantic tokens in VS Code.  We register a
+            // direct DocumentSemanticTokensProvider below so that our JML tokens
+            // merge additively with Red Hat's Java tokens instead of competing with
+            // them via the LSP provider race.
+            provideDocumentSemanticTokens: (_document, _token, _next) => {
+                return new vscode.SemanticTokens(new Uint32Array([]));
+            },
+        },
     };
 
     client = new LanguageClient(
@@ -336,6 +358,54 @@ async function activate(context) {
         console.error('OpenJML: server failed to start:', err?.message ?? err);
     });
     context.subscriptions.push(client);
+
+    // Register a direct DocumentSemanticTokensProvider for JML syntax colouring.
+    // This runs independently of (and merges additively with) the Red Hat Java
+    // extension's semantic tokens, avoiding the LSP-channel provider race.
+    // Token types must match SemanticTokensProvider.TOKEN_TYPES on the server.
+    const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro'], []);
+    const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
+        { language: 'java' },
+        {
+            async provideDocumentSemanticTokens(document) {
+                if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
+                try {
+                    const data = await client.sendRequest('workspace/executeCommand', {
+                        command:   'openjml.getSemanticTokens',
+                        arguments: [document.uri.toString()],
+                    });
+                    if (!Array.isArray(data) || data.length === 0)
+                        return new vscode.SemanticTokens(new Uint32Array([]));
+                    return new vscode.SemanticTokens(new Uint32Array(data));
+                } catch (_) {
+                    return new vscode.SemanticTokens(new Uint32Array([]));
+                }
+            },
+        },
+        jmlLegend
+    );
+    context.subscriptions.push(jmlTokensProvider);
+
+    // When focus returns to an already-open Java file, trigger a --check recheck so
+    // that stale diagnostics from fixed dependencies are cleared without requiring
+    // the user to make an edit.  A short debounce (200 ms) avoids spurious requests
+    // during rapid tab switches.
+    let focusDebounceTimer = null;
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (!editor || editor.document.languageId !== 'java') return;
+            const uri = editor.document.uri.toString();
+            if (focusDebounceTimer) clearTimeout(focusDebounceTimer);
+            focusDebounceTimer = setTimeout(() => {
+                focusDebounceTimer = null;
+                if (!client) return;
+                client.sendRequest('workspace/executeCommand', {
+                    command:   'openjml.focusFile',
+                    arguments: [uri],
+                }).catch(() => {});  // ignore errors (server may not be ready)
+            }, 200);
+        })
+    );
 
     // Track which Java file URIs are about to be saved manually (not by auto-save).
     // onWillSaveTextDocument fires before the save and carries the reason; we use it

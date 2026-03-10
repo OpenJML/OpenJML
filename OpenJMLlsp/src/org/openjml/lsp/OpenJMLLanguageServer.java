@@ -1,6 +1,9 @@
 package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
+import org.eclipse.lsp4j.RenameOptions;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -29,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
  *
  * Future capabilities (not yet implemented):
  * <ul>
- *   <li>semanticTokens — JML keyword/clause highlighting</li>
  *   <li>completion — JML keywords</li>
  * </ul>
  */
@@ -39,40 +41,67 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private final OpenJMLTextDocumentService  textDocumentService;
     private final OpenJMLWorkspaceService     workspaceService;
 
-    private int exitCode = 1;
+    private int    exitCode = 1;
+    private String rootUri  = null;
 
     /**
      * @param escCommand           command name for full-file ESC
      * @param escForMethodCommand  command name for per-method ESC
-     * @param escDirCommand        command name for multi-path ESC via {@code --dirs}
-     *                             (may be {@code null} to disable the command)
+     * @param escDirCommand        command name for multi-path ESC via {@code --dirs} (may be {@code null})
+     * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
+     * @param getSemanticTokensCommand command name for semantic tokens
      */
-    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand) {
+    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
+                                  String focusFileCommand, String getSemanticTokensCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
                 textDocumentService::scheduleEscForUri,
                 textDocumentService::scheduleEscForMethod,
                 textDocumentService::scheduleEscForPaths,
+                textDocumentService::recheckUri,
+                textDocumentService::getSemanticTokens,
+                textDocumentService::symbols,
                 escCommand,
                 escForMethodCommand,
-                escDirCommand);
+                escDirCommand,
+                focusFileCommand,
+                getSemanticTokensCommand);
     }
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         workspaceService.applyRaw(params.getInitializationOptions());
+        rootUri = params.getRootUri();
 
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
         caps.setHoverProvider(Boolean.TRUE);
+        caps.setWorkspaceSymbolProvider(Boolean.TRUE);
+        caps.setDefinitionProvider(Boolean.TRUE);
+        caps.setDeclarationProvider(Boolean.TRUE);
+        caps.setReferencesProvider(Boolean.TRUE);
+        caps.setRenameProvider(new RenameOptions(true));  // prepareProvider=true
+
+        // Semantic tokens for non-VS Code clients (Neovim, Eclipse LSP4E, etc.).
+        // In VS Code the extension uses a directly-registered provider instead to
+        // avoid being overwritten by the Red Hat Java extension's semantic tokens.
+        var stLegend = new SemanticTokensLegend(
+                SemanticTokensProvider.TOKEN_TYPES,
+                SemanticTokensProvider.TOKEN_MODIFIERS);
+        caps.setSemanticTokensProvider(
+                new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE));
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }
 
     @Override
-    public void initialized(InitializedParams params) {}
+    public void initialized(InitializedParams params) {
+        // Kick off a background pass over all .java files in the workspace so
+        // that workspace/symbol can find symbols in files not yet opened.
+        if (rootUri != null) textDocumentService.scheduleWorkspaceIndex(rootUri);
+    }
 
     @Override
     public CompletableFuture<Object> shutdown() {

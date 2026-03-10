@@ -90,6 +90,15 @@
         }
       ]
     },
+    "grammars": [
+      {
+        "scopeName": "source.jml.injection",
+        "path": "./syntaxes/jml.tmLanguage.json",
+        "injectTo": [
+          "source.java"
+        ]
+      }
+    ],
     "configuration": {
       "title": "OpenJML",
       "properties": {
