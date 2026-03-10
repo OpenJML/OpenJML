@@ -18,6 +18,17 @@ package org.openjml.lsp;
 public class OpenJMLSettings {
 
     /**
+     * Path to an OpenJML {@code .properties} file, passed as {@code --properties}.
+     * Options in this file are read before command-line args, so IDE settings
+     * (specsPath, solversPath, etc.) and invocation-specific flags ({@code --esc},
+     * {@code --method}) override it.
+     *
+     * <p>If {@code null} or empty the server auto-discovers {@code openjml.properties}
+     * in the workspace root (set during the LSP {@code initialize} handshake).
+     */
+    public volatile String propertiesFile;
+
+    /**
      * Path to the OpenJML specs directory, passed as {@code --specs-path}.
      * {@code null} or empty means use the server's default.
      */
