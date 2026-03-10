@@ -34,6 +34,8 @@ import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
 import org.eclipse.lsp4j.PrepareRenameResult;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.FoldingRange;
+import org.eclipse.lsp4j.FoldingRangeRequestParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
@@ -331,6 +333,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         List<Either<SymbolInformation, DocumentSymbol>> result = buildSymbolResult(uri, entry, content);
         return CompletableFuture.completedFuture(result);
+    }
+
+    @Override
+    public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(List.of());
+        return CompletableFuture.completedFuture(FoldingRangeProvider.fromSource(content));
     }
 
     @Override

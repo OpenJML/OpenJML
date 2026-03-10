@@ -99,6 +99,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setCompletionProvider(new CompletionOptions(false, List.of("\\", "@")));
         caps.setHoverProvider(Boolean.TRUE);
         caps.setDocumentSymbolProvider(Boolean.TRUE);
+        caps.setFoldingRangeProvider(Boolean.TRUE);
         caps.setWorkspaceSymbolProvider(Boolean.TRUE);
         caps.setDefinitionProvider(Boolean.TRUE);
         caps.setDeclarationProvider(Boolean.TRUE);
