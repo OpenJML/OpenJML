@@ -6,6 +6,8 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.DeclarationParams;
@@ -266,6 +268,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<CompletionItem> items =
                 JmlCompletionProvider.complete(content, params.getPosition());
         return CompletableFuture.completedFuture(Either.forLeft(items));
+    }
+
+    @Override
+    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
+            DocumentSymbolParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null)
+            return CompletableFuture.completedFuture(List.of());
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        if (entry == null)
+            return CompletableFuture.completedFuture(List.of());
+        List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content);
+        List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
+        for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
+        return CompletableFuture.completedFuture(result);
     }
 
     @Override

@@ -19,5 +19,6 @@ import org.junit.runners.Suite;
     ReferenceFinderTest.class,
     RenameTest.class,
     SemanticTokensTest.class,
+    DocumentSymbolTest.class,
 })
 public class AllLspTests {}
