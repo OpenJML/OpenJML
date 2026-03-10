@@ -171,7 +171,9 @@ public class DocumentSymbolTest extends LspTestBase {
         DocumentSymbol ghost = findSymbol(syms, "ghostField");
         assertNotNull("Ghost field must appear in document symbols", ghost);
         assertEquals(SymbolKind.Field, ghost.getKind());
+        assertEquals("ghost", ghost.getDetail());
         DocumentSymbol real = findSymbol(syms, "realField");
         assertNotNull("Real field must appear in document symbols", real);
+        assertNull("Regular field must have no detail", real.getDetail());
     }
 }
