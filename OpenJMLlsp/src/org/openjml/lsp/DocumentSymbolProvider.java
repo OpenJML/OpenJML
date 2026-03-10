@@ -141,8 +141,9 @@ public class DocumentSymbolProvider {
             String name = isCtor ? classNameStack.peek() : rawName;
             if (name == null || name.isEmpty()) return;
             SymbolKind kind = isCtor ? SymbolKind.Constructor : SymbolKind.Method;
+            Range sel = nameRange(tree.pos, name);
             DocumentSymbol sym = new DocumentSymbol(name, kind,
-                    fullRange(tree), nameRange(tree.pos, name));
+                    fullRange(tree, sel), sel);
             setJmlDetail(sym, tree.mods);
             addChild(sym);
 
@@ -159,8 +160,9 @@ public class DocumentSymbolProvider {
             String name = tree.name.toString();
             if (name.isEmpty() || name.startsWith("this$") || name.startsWith("val$")) return;
 
+            Range sel = nameRange(tree.pos, name);
             DocumentSymbol sym = new DocumentSymbol(name, SymbolKind.Field,
-                    fullRange(tree), nameRange(tree.pos, name));
+                    fullRange(tree, sel), sel);
             setJmlDetail(sym, tree.mods);
             addChild(sym);
 
@@ -200,20 +202,34 @@ public class DocumentSymbolProvider {
             } else {
                 kind = SymbolKind.Class;
             }
+            Range sel = nameRange(tree.pos, name);
             DocumentSymbol sym = new DocumentSymbol(name, kind,
-                    fullRange(tree), nameRange(tree.pos, name));
+                    fullRange(tree, sel), sel);
             if (tree instanceof JmlClassDecl jmlCd) {
                 setJmlDetail(sym, jmlCd.mods);
             }
             return sym;
         }
 
-        private Range fullRange(JCTree tree) {
+        private Range fullRange(JCTree tree, Range selectionRange) {
             Position start = offsetToPos(tree.pos);
             int endOffset  = cu.endPositions != null
                     ? tree.getEndPosition(cu.endPositions) : -1;
             Position end = (endOffset > tree.pos) ? offsetToPos(endOffset) : start;
+            // LSP requires selectionRange ⊆ fullRange.  If endPositions has no
+            // entry for this node (common for JML ghost/model nodes parsed from
+            // comments), fullRange degenerates to a point.  Extend it to cover
+            // at least the selectionRange in that case.
+            if (posLe(end, selectionRange.getEnd())) {
+                end = selectionRange.getEnd();
+            }
             return new Range(start, end);
+        }
+
+        /** Returns true if a ≤ b in document order. */
+        private static boolean posLe(Position a, Position b) {
+            if (a.getLine() != b.getLine()) return a.getLine() < b.getLine();
+            return a.getCharacter() <= b.getCharacter();
         }
 
         private Range nameRange(int nodePos, String name) {
