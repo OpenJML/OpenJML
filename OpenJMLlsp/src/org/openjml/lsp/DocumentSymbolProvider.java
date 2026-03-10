@@ -9,8 +9,6 @@ import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolKind;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
-import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
-import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +19,9 @@ import java.util.List;
  * <p>Used for {@code textDocument/documentSymbol} (the VS Code Outline panel).
  *
  * <p>Top-level classes are roots; their fields, constructors, methods, and nested
- * classes are children.  JML ghost/model declarations (which live inside JML
- * comment regions) and synthetic names are omitted.
+ * classes are children.  JML ghost/model declarations are included alongside
+ * regular Java members — they are the extra value over VS Code's built-in Java
+ * outline.  Only synthetic names (e.g. {@code this$0}, {@code <clinit>}) are omitted.
  *
  * <p>Full ranges use the AST's end-position table ({@link JmlCompilationUnit#endPositions});
  * selection ranges (the highlighted portion when the symbol is selected in the outline)
@@ -93,8 +92,6 @@ public class DocumentSymbolProvider {
     private static DocumentSymbol methodSymbol(JCMethodDecl md, JCClassDecl owner,
                                                 JmlCompilationUnit ast,
                                                 String source, int[] lineOffsets) {
-        // Skip JML ghost/model method declarations.
-        if (md instanceof JmlMethodDecl jmlMd && jmlMd.isJML()) return null;
         if (md.pos < 0) return null;
 
         String rawName = md.name != null ? md.name.toString() : "";
@@ -112,8 +109,6 @@ public class DocumentSymbolProvider {
 
     private static DocumentSymbol fieldSymbol(JCVariableDecl vd, JmlCompilationUnit ast,
                                                String source, int[] lineOffsets) {
-        // Skip JML ghost/model field declarations.
-        if (vd instanceof JmlVariableDecl jmlVd && jmlVd.isJML()) return null;
         if (vd.name == null || vd.pos < 0) return null;
         String name = vd.name.toString();
         // Skip synthetic captures (e.g. this$0 in inner classes).
