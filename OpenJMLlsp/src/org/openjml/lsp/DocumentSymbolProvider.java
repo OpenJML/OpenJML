@@ -50,15 +50,26 @@ public class DocumentSymbolProvider {
     /**
      * Build a document-symbol tree for {@code ast}.
      *
-     * @param ast    attributed {@link JmlCompilationUnit} from the {@link ASTCache}
-     * @param source full source text (for offset → line/col conversion)
+     * @param ast     attributed {@link JmlCompilationUnit} from the {@link ASTCache}
+     * @param source  full source text (for offset → line/col conversion)
+     * @param jmlOnly if {@code true}, emit only JML-specific symbols (ghost, model) so
+     *                the OpenJML outline complements rather than duplicates the Java
+     *                outline provided by the Red Hat Java extension.  If {@code false},
+     *                emit all symbols (full outline mode for editors without a competing
+     *                Java provider).
      * @return top-level symbols (classes, enums, interfaces) with children
      */
-    public static List<DocumentSymbol> fromAst(JmlCompilationUnit ast, String source) {
+    public static List<DocumentSymbol> fromAst(JmlCompilationUnit ast, String source,
+                                                boolean jmlOnly) {
         int[] lineOffsets = buildLineOffsets(source);
-        SymbolWalker walker = new SymbolWalker(ast, source, lineOffsets);
+        SymbolWalker walker = new SymbolWalker(ast, source, lineOffsets, jmlOnly);
         walker.scan(ast);
         return walker.roots;
+    }
+
+    /** Convenience overload — defaults to JML-only mode. */
+    public static List<DocumentSymbol> fromAst(JmlCompilationUnit ast, String source) {
+        return fromAst(ast, source, true);
     }
 
     // -----------------------------------------------------------------------
@@ -89,11 +100,19 @@ public class DocumentSymbolProvider {
         /** The name of the class at the top of the class stack (used for constructors). */
         private final Deque<String> classNameStack = new ArrayDeque<>();
 
-        SymbolWalker(JmlCompilationUnit cu, String source, int[] lineOffsets) {
+        /**
+         * When {@code true}, emit only JML-specific symbols (ghost, model) so the
+         * OpenJML outline complements rather than duplicates a competing Java outline.
+         * When {@code false}, emit all symbols for a full standalone outline.
+         */
+        private final boolean jmlOnly;
+
+        SymbolWalker(JmlCompilationUnit cu, String source, int[] lineOffsets, boolean jmlOnly) {
             super(null);   // null context → AST_JML_MODE by default
             this.cu          = cu;
             this.source      = source;
             this.lineOffsets = lineOffsets;
+            this.jmlOnly     = jmlOnly;
         }
 
         // ---- classes --------------------------------------------------------
@@ -107,12 +126,22 @@ public class DocumentSymbolProvider {
             // Anonymous / local classes inside method bodies are not shown.
             if (bodyDepth > 0) return;
 
+            // Always create a class symbol and recurse so we can discover JML
+            // members inside regular Java classes.  makeClassSymbol returns null
+            // for non-JML classes; we use a placeholder in that case and decide
+            // whether to keep it after recursion.
             DocumentSymbol sym = makeClassSymbol(tree);
-            if (classStack.isEmpty()) {
-                roots.add(sym);
-            } else {
-                addChild(sym);
+            boolean isJmlClass = (sym != null);
+            if (sym == null) {
+                // Placeholder: create an undecorated symbol so visitVarDef /
+                // visitMethodDef have a parent to attach JML children to.
+                Range sel = nameRange(tree.pos, name);
+                sym = new DocumentSymbol(name, SymbolKind.Class, fullRange(tree, sel), sel);
             }
+
+            List<DocumentSymbol> parentList = classStack.isEmpty() ? roots : null;
+            if (classStack.isEmpty()) roots.add(sym);
+            else addChild(sym);
             classStack.push(sym);
             classNameStack.push(name);
 
@@ -124,6 +153,20 @@ public class DocumentSymbolProvider {
 
             classNameStack.pop();
             classStack.pop();
+
+            // In jmlOnly mode: drop plain Java classes that ended up with no JML
+            // children — the Red Hat Java extension already covers them.
+            if (jmlOnly && !isJmlClass) {
+                boolean hasJmlChildren = sym.getChildren() != null && !sym.getChildren().isEmpty();
+                if (!hasJmlChildren) {
+                    if (classStack.isEmpty()) {
+                        roots.remove(sym);
+                    } else {
+                        DocumentSymbol parent = classStack.peek();
+                        if (parent.getChildren() != null) parent.getChildren().remove(sym);
+                    }
+                }
+            }
         }
 
         // ---- methods / constructors -----------------------------------------
@@ -144,7 +187,8 @@ public class DocumentSymbolProvider {
             Range sel = nameRange(tree.pos, name);
             DocumentSymbol sym = new DocumentSymbol(name, kind,
                     fullRange(tree, sel), sel);
-            setJmlDetail(sym, tree.mods);
+            if (jmlOnly && !setJmlDetail(sym, tree.mods)) return;  // skip non-JML members
+            else if (!jmlOnly) setJmlDetail(sym, tree.mods);
             addChild(sym);
 
             // Do NOT recurse into the method body — local variables and
@@ -163,7 +207,8 @@ public class DocumentSymbolProvider {
             Range sel = nameRange(tree.pos, name);
             DocumentSymbol sym = new DocumentSymbol(name, SymbolKind.Field,
                     fullRange(tree, sel), sel);
-            setJmlDetail(sym, tree.mods);
+            if (jmlOnly && !setJmlDetail(sym, tree.mods)) return;  // skip non-JML members
+            else if (!jmlOnly) setJmlDetail(sym, tree.mods);
             addChild(sym);
 
             // Do NOT recurse into the field initializer.
@@ -192,6 +237,7 @@ public class DocumentSymbolProvider {
             parent.getChildren().add(sym);
         }
 
+        /** Returns null if the class is not a JML model class (should be skipped). */
         private DocumentSymbol makeClassSymbol(JCClassDecl tree) {
             String name = tree.name.toString();
             SymbolKind kind;
@@ -206,7 +252,10 @@ public class DocumentSymbolProvider {
             DocumentSymbol sym = new DocumentSymbol(name, kind,
                     fullRange(tree, sel), sel);
             if (tree instanceof JmlClassDecl jmlCd) {
-                setJmlDetail(sym, jmlCd.mods);
+                boolean isJml = setJmlDetail(sym, jmlCd.mods);
+                if (jmlOnly && !isJml) return null;  // not a model class; filtered in jmlOnly mode
+            } else if (jmlOnly) {
+                return null;  // plain JCClassDecl — filtered in jmlOnly mode
             }
             return sym;
         }
@@ -261,16 +310,21 @@ public class DocumentSymbolProvider {
         }
 
         /**
-         * Set the {@link DocumentSymbol#setDetail detail} to {@code "ghost"} or
-         * {@code "model"} when the JML modifiers contain those keywords.
-         * The detail appears in lighter text next to the symbol name in the outline,
-         * making JML declarations visually distinct from regular Java members.
+         * Set the {@link DocumentSymbol#setDetail detail} to {@code "(ghost)"} or
+         * {@code "(model)"} when the JML modifiers contain those keywords, and
+         * return {@code true}.  Returns {@code false} for non-JML declarations so
+         * callers can skip them (the Java outline from the Red Hat extension already
+         * covers regular Java members; we only show JML additions here).
+         *
+         * <p>To switch to full-symbol mode (all Java + JML members in one outline),
+         * change callers to ignore the return value and remove the {@code return} guards.
          */
-        private static void setJmlDetail(DocumentSymbol sym,
-                                          com.sun.tools.javac.tree.JCTree.JCModifiers mods) {
-            if (!(mods instanceof JmlModifiers jmlMods)) return;
-            if (jmlMods.has(Modifiers.GHOST))  { sym.setDetail("ghost");  return; }
-            if (jmlMods.has(Modifiers.MODEL))  { sym.setDetail("model");  return; }
+        private static boolean setJmlDetail(DocumentSymbol sym,
+                                             com.sun.tools.javac.tree.JCTree.JCModifiers mods) {
+            if (!(mods instanceof JmlModifiers jmlMods)) return false;
+            if (jmlMods.has(Modifiers.GHOST))  { sym.setDetail("(ghost)");  return true; }
+            if (jmlMods.has(Modifiers.MODEL))  { sym.setDetail("(model)");  return true; }
+            return false;
         }
     }
 

@@ -15,9 +15,9 @@ import static org.junit.Assert.*;
 /**
  * Tests for {@link DocumentSymbolProvider}: textDocument/documentSymbol (Outline panel).
  *
- * <p>Calls {@link CheckRunner#check} to attribute the AST (populates {@link ASTCache}),
- * then calls {@link DocumentSymbolProvider#fromAst} directly and asserts on the
- * hierarchical symbol tree.
+ * <p>The provider returns only JML-specific symbols (ghost, model) so the OpenJML
+ * outline complements rather than duplicates the Java outline from the Red Hat extension.
+ * A regular Java class appears as a container only when it has JML children.
  */
 public class DocumentSymbolTest extends LspTestBase {
 
@@ -50,116 +50,19 @@ public class DocumentSymbolTest extends LspTestBase {
     // Tests
     // -----------------------------------------------------------------------
 
-    /** A simple class must appear as a top-level Class symbol. */
+    /** A plain Java class with no JML members produces no symbols. */
     @Test
-    public void testClassSymbol() {
+    public void testPlainClassProducesNoSymbols() {
         String source =
                 "public class DocSymTest {\n" +
-                "}\n";
-        List<DocumentSymbol> syms = symbolsFor(source);
-        assertEquals("Expected exactly one top-level symbol", 1, syms.size());
-        DocumentSymbol cls = syms.get(0);
-        assertEquals("DocSymTest", cls.getName());
-        assertEquals(SymbolKind.Class, cls.getKind());
-    }
-
-    /** Methods and fields should appear as children of the enclosing class. */
-    @Test
-    public void testMethodAndFieldChildren() {
-        String source =
-                "public class DocSymTest {\n" +
-                "    private int value;\n" +
+                "    public int value;\n" +
                 "    public int getValue() { return value; }\n" +
-                "    public void setValue(int v) { this.value = v; }\n" +
                 "}\n";
         List<DocumentSymbol> syms = symbolsFor(source);
-        assertEquals(1, syms.size());
-        DocumentSymbol cls = syms.get(0);
-        List<DocumentSymbol> children = cls.getChildren();
-        assertNotNull("Class must have children", children);
-
-        Optional<DocumentSymbol> field = children.stream()
-                .filter(c -> "value".equals(c.getName())).findFirst();
-        assertTrue("Field 'value' must appear", field.isPresent());
-        assertEquals(SymbolKind.Field, field.get().getKind());
-
-        Optional<DocumentSymbol> getter = children.stream()
-                .filter(c -> "getValue".equals(c.getName())).findFirst();
-        assertTrue("Method 'getValue' must appear", getter.isPresent());
-        assertEquals(SymbolKind.Method, getter.get().getKind());
-
-        Optional<DocumentSymbol> setter = children.stream()
-                .filter(c -> "setValue".equals(c.getName())).findFirst();
-        assertTrue("Method 'setValue' must appear", setter.isPresent());
-        assertEquals(SymbolKind.Method, setter.get().getKind());
+        assertTrue("Plain Java class with no JML members must produce no symbols", syms.isEmpty());
     }
 
-    /** Constructors must appear as Constructor symbols using the class name. */
-    @Test
-    public void testConstructorSymbol() {
-        String source =
-                "public class DocSymTest {\n" +
-                "    public DocSymTest() {}\n" +
-                "}\n";
-        List<DocumentSymbol> syms = symbolsFor(source);
-        DocumentSymbol cls = syms.get(0);
-        List<DocumentSymbol> children = cls.getChildren();
-        assertNotNull("Class must have children", children);
-        Optional<DocumentSymbol> ctor = children.stream()
-                .filter(c -> "DocSymTest".equals(c.getName())
-                          && c.getKind() == SymbolKind.Constructor)
-                .findFirst();
-        assertTrue("Constructor must appear as Constructor kind with class name", ctor.isPresent());
-    }
-
-    /** An interface must appear with SymbolKind.Interface. */
-    @Test
-    public void testInterfaceSymbol() {
-        String source =
-                "public interface DocSymTest {\n" +
-                "    int compute(int x);\n" +
-                "}\n";
-        List<DocumentSymbol> syms = symbolsFor(source);
-        assertEquals(1, syms.size());
-        assertEquals(SymbolKind.Interface, syms.get(0).getKind());
-
-        DocumentSymbol method = findSymbol(syms, "compute");
-        assertNotNull("Abstract method 'compute' must appear", method);
-        assertEquals(SymbolKind.Method, method.getKind());
-    }
-
-    /** An enum must appear with SymbolKind.Enum. */
-    @Test
-    public void testEnumSymbol() {
-        String source =
-                "public enum DocSymTest {\n" +
-                "    A, B, C;\n" +
-                "    public int ordinalPlusOne() { return ordinal() + 1; }\n" +
-                "}\n";
-        List<DocumentSymbol> syms = symbolsFor(source);
-        assertEquals(1, syms.size());
-        assertEquals(SymbolKind.Enum, syms.get(0).getKind());
-
-        DocumentSymbol method = findSymbol(syms, "ordinalPlusOne");
-        assertNotNull("Method in enum must appear", method);
-        assertEquals(SymbolKind.Method, method.getKind());
-    }
-
-    /** Selection range must correctly identify the symbol name position. */
-    @Test
-    public void testSelectionRangePointsToName() {
-        String source =
-                "public class DocSymTest {\n" +  // "DocSymTest" starts at col 13, line 0
-                "}\n";
-        List<DocumentSymbol> syms = symbolsFor(source);
-        assertEquals(1, syms.size());
-        DocumentSymbol cls = syms.get(0);
-        // selectionRange must start at the 'D' of "DocSymTest" (line 0, col 13)
-        assertEquals(0, cls.getSelectionRange().getStart().getLine());
-        assertEquals(13, cls.getSelectionRange().getStart().getCharacter());
-    }
-
-    /** JML ghost declarations should appear alongside regular Java declarations. */
+    /** A class with a ghost field appears as a container with the ghost field as a child. */
     @Test
     public void testGhostFieldIncluded() {
         String source =
@@ -168,21 +71,102 @@ public class DocumentSymbolTest extends LspTestBase {
                 "    public int realField;\n" +
                 "}\n";
         List<DocumentSymbol> syms = symbolsFor(source);
-        assertEquals("Expected exactly one top-level symbol", 1, syms.size());
+        assertEquals("Expected exactly one top-level symbol (class container)", 1, syms.size());
         DocumentSymbol cls = syms.get(0);
         List<DocumentSymbol> children = cls.getChildren();
         assertNotNull("Class must have children", children);
 
-        // Ghost field must be a DIRECT CHILD of the class (not just findable via recursive search)
+        // Ghost field must be a DIRECT CHILD of the class
         Optional<DocumentSymbol> ghost = children.stream()
                 .filter(c -> "ghostField".equals(c.getName())).findFirst();
         assertTrue("Ghost field must be a direct child of the class", ghost.isPresent());
         assertEquals(SymbolKind.Field, ghost.get().getKind());
-        assertEquals("ghost", ghost.get().getDetail());
+        assertEquals("(ghost)", ghost.get().getDetail());
 
+        // Regular field must NOT appear (Red Hat Java outline covers it)
         Optional<DocumentSymbol> real = children.stream()
                 .filter(c -> "realField".equals(c.getName())).findFirst();
-        assertTrue("Real field must be a direct child of the class", real.isPresent());
-        assertNull("Regular field must have no detail", real.get().getDetail());
+        assertFalse("Regular field must not appear in JML-only outline", real.isPresent());
+    }
+
+    /** A class with a model method appears as a container with the method as a child. */
+    @Test
+    public void testModelMethodIncluded() {
+        String source =
+                "public class DocSymTest {\n" +
+                "    //@ model int modelMethod() { return 0; }\n" +
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        assertEquals("Expected exactly one top-level symbol (class container)", 1, syms.size());
+        DocumentSymbol cls = syms.get(0);
+        List<DocumentSymbol> children = cls.getChildren();
+        assertNotNull("Class must have children", children);
+
+        Optional<DocumentSymbol> model = children.stream()
+                .filter(c -> "modelMethod".equals(c.getName())).findFirst();
+        assertTrue("Model method must be a direct child of the class", model.isPresent());
+        assertEquals(SymbolKind.Method, model.get().getKind());
+        assertEquals("(model)", model.get().getDetail());
+    }
+
+    /** Selection range must correctly identify the ghost field name position. */
+    @Test
+    public void testSelectionRangePointsToGhostName() {
+        String source =
+                "public class DocSymTest {\n" +    // line 0
+                "    //@ ghost int ghostField;\n" + // line 1: "ghostField" starts at col 19
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        DocumentSymbol ghost = findSymbol(syms, "ghostField");
+        assertNotNull("Ghost field must appear in symbols", ghost);
+        assertEquals(1, ghost.getSelectionRange().getStart().getLine());
+        assertEquals(18, ghost.getSelectionRange().getStart().getCharacter());
+    }
+
+    /** selectionRange must be contained within fullRange. */
+    @Test
+    public void testSelectionRangeContainedInFullRange() {
+        String source =
+                "public class DocSymTest {\n" +
+                "    //@ ghost int ghostField;\n" +
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        DocumentSymbol ghost = findSymbol(syms, "ghostField");
+        assertNotNull(ghost);
+        // fullRange.start <= selectionRange.start
+        assertTrue(ghost.getRange().getStart().getLine()
+                <= ghost.getSelectionRange().getStart().getLine());
+        // fullRange.end >= selectionRange.end
+        int fullEndLine = ghost.getRange().getEnd().getLine();
+        int selEndLine  = ghost.getSelectionRange().getEnd().getLine();
+        assertTrue(fullEndLine > selEndLine
+                || (fullEndLine == selEndLine
+                    && ghost.getRange().getEnd().getCharacter()
+                       >= ghost.getSelectionRange().getEnd().getCharacter()));
+    }
+
+    /** Both ghost and model members are shown; plain Java members are omitted. */
+    @Test
+    public void testMixedJmlAndJavaMembers() {
+        String source =
+                "public class DocSymTest {\n" +
+                "    public int javaField;\n" +
+                "    //@ ghost int ghostField;\n" +
+                "    //@ model int modelField;\n" +
+                "    public void javaMethod() {}\n" +
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        assertEquals(1, syms.size());
+        List<DocumentSymbol> children = syms.get(0).getChildren();
+        assertNotNull(children);
+
+        assertTrue("ghostField must appear",
+                children.stream().anyMatch(c -> "ghostField".equals(c.getName())));
+        assertTrue("modelField must appear",
+                children.stream().anyMatch(c -> "modelField".equals(c.getName())));
+        assertFalse("javaField must NOT appear",
+                children.stream().anyMatch(c -> "javaField".equals(c.getName())));
+        assertFalse("javaMethod must NOT appear",
+                children.stream().anyMatch(c -> "javaMethod".equals(c.getName())));
     }
 }
