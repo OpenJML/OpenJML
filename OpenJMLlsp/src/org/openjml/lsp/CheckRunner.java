@@ -202,12 +202,14 @@ public class CheckRunner {
                 writeToTempDir(tempDir, e.getKey(), e.getValue());
             }
 
-            // Build a modified settings copy with sourcePath = tempDir.
+            // Build effective sourcepath: tempDir first, then workspace folders,
+            // then user sourcePath (or classPath fallback).
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
-            modifiedSettings.sourcePath  = tempDir.toString();
-            modifiedSettings.specsPath   = settings.specsPath;
-            modifiedSettings.solversPath = settings.solversPath;
-            modifiedSettings.classPath   = settings.classPath;
+            modifiedSettings.sourcePath      = buildEffectiveSourcePath(tempDir, settings);
+            modifiedSettings.specsPath       = settings.specsPath;
+            modifiedSettings.solversPath     = settings.solversPath;
+            modifiedSettings.classPath       = settings.classPath;
+            // workspaceFolderPaths already baked into sourcePath above.
 
             // Run --check on each file and collect all diagnostics.
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
@@ -389,15 +391,19 @@ public class CheckRunner {
             // Write target file at its package-relative path.
             Path tempFile = writeToTempDir(tempDir, uri, content);
 
-            // Prepend tempDir to sourcePath so in-memory versions take priority.
+            // Build effective sourcepath: tempDir first (in-memory priority),
+            // then workspace folders, then user sourcePath (or classPath fallback).
             OpenJMLSettings ctx = new OpenJMLSettings();
-            ctx.specsPath   = settings.specsPath;
-            ctx.solversPath = settings.solversPath;
-            ctx.classPath   = settings.classPath;
-            String orig     = settings.sourcePath != null ? settings.sourcePath : "";
-            ctx.sourcePath  = orig.isEmpty()
-                    ? tempDir.toString()
-                    : tempDir + java.io.File.pathSeparator + orig;
+            ctx.specsPath            = settings.specsPath;
+            ctx.solversPath          = settings.solversPath;
+            ctx.classPath            = settings.classPath;
+            ctx.workspaceFolderPaths = settings.workspaceFolderPaths;
+            ctx.sourcePath           = settings.sourcePath;
+            // Override sourcePath with the fully assembled value; buildArgs will
+            // call buildEffectiveSourcePath(null, ctx) but we pre-bake tempDir here.
+            ctx.sourcePath = buildEffectiveSourcePath(tempDir, settings);
+            // Clear workspaceFolderPaths so buildArgs doesn't double-append them.
+            ctx.workspaceFolderPaths = null;
 
             List<String> args = buildArgs(ctx, modeFlag);
             if (methodName != null && !methodName.isEmpty()) {
@@ -614,15 +620,45 @@ public class CheckRunner {
             args.add("--solvers-path");
             args.add(settings.solversPath);
         }
-        if (settings.sourcePath != null && !settings.sourcePath.isEmpty()) {
+        String sp = buildEffectiveSourcePath(null, settings);
+        if (!sp.isEmpty()) {
             args.add("-sourcepath");
-            args.add(settings.sourcePath);
+            args.add(sp);
         }
         if (settings.classPath != null && !settings.classPath.isEmpty()) {
             args.add("-classpath");
             args.add(settings.classPath);
         }
         return args;
+    }
+
+    /**
+     * Build the effective {@code -sourcepath} value.
+     *
+     * <p>Concatenates (path-separator-separated, omitting empty parts):
+     * <ol>
+     *   <li>{@code prefixDir} — temp directory holding in-memory file contents
+     *       (may be {@code null} when there is no temp dir, e.g. for on-disk checks)</li>
+     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — workspace folders
+     *       reported by the editor at {@code initialize} time</li>
+     *   <li>{@link OpenJMLSettings#sourcePath} — explicit user setting, if non-empty</li>
+     *   <li>{@link OpenJMLSettings#classPath} — only appended when
+     *       {@link OpenJMLSettings#sourcePath} is absent, so compiled dependencies
+     *       can serve as a source fallback when no explicit source root is configured</li>
+     * </ol>
+     */
+    static String buildEffectiveSourcePath(Path prefixDir, OpenJMLSettings settings) {
+        List<String> parts = new ArrayList<>();
+        if (prefixDir != null) parts.add(prefixDir.toString());
+        if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
+            parts.add(settings.workspaceFolderPaths);
+        boolean hasSourcePath = settings.sourcePath != null && !settings.sourcePath.isEmpty();
+        if (hasSourcePath) {
+            parts.add(settings.sourcePath);
+        } else if (settings.classPath != null && !settings.classPath.isEmpty()) {
+            parts.add(settings.classPath);
+        }
+        return String.join(java.io.File.pathSeparator, parts);
     }
 
     /** Log an OpenJML invocation to stderr (captured in /tmp/openjml-lsp-debug.log). */
