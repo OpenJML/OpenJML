@@ -45,15 +45,18 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     /**
      * @param escCommand           command name for full-file ESC (passed to WorkspaceService)
      * @param escForMethodCommand  command name for per-method ESC (passed to WorkspaceService and TextDocumentService)
+     * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
      */
-    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand) {
+    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String focusFileCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
                 textDocumentService::scheduleEscForUri,
                 textDocumentService::scheduleEscForMethod,
+                textDocumentService::recheckUri,
                 escCommand,
-                escForMethodCommand);
+                escForMethodCommand,
+                focusFileCommand);
     }
 
     @Override

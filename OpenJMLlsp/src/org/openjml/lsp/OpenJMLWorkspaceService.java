@@ -35,26 +35,34 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final OpenJMLSettings settings;
     private final Consumer<String> escRequester;
     private final BiConsumer<String, String> escMethodRequester;
+    private final Consumer<String> checkRequester;
     private final String escCommand;
     private final String escForMethodCommand;
+    private final String focusFileCommand;
 
     /**
      * @param settings             shared settings object
      * @param escRequester         called with the URI when the ESC command is requested
      * @param escMethodRequester   called with (uri, methodName) when the ESC-for-method command is requested
+     * @param checkRequester       called with the URI when a focus-triggered recheck is requested
      * @param escCommand           the {@code workspace/executeCommand} command name for full-file ESC
      * @param escForMethodCommand  the {@code workspace/executeCommand} command name for per-method ESC
+     * @param focusFileCommand     the {@code workspace/executeCommand} command name for focus-triggered recheck
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    Consumer<String> escRequester,
                                    BiConsumer<String, String> escMethodRequester,
+                                   Consumer<String> checkRequester,
                                    String escCommand,
-                                   String escForMethodCommand) {
+                                   String escForMethodCommand,
+                                   String focusFileCommand) {
         this.settings            = settings;
         this.escRequester        = escRequester;
         this.escMethodRequester  = escMethodRequester;
+        this.checkRequester      = checkRequester;
         this.escCommand          = escCommand;
         this.escForMethodCommand = escForMethodCommand;
+        this.focusFileCommand    = focusFileCommand;
     }
 
     @Override
@@ -91,6 +99,12 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                 if (uri != null && methodName != null) {
                     escMethodRequester.accept(uri, methodName);
                 }
+            }
+        } else if (focusFileCommand != null && focusFileCommand.equals(cmd)
+                && checkRequester != null) {
+            if (args != null && !args.isEmpty()) {
+                String uri = extractString(args.get(0));
+                if (uri != null) checkRequester.accept(uri);
             }
         }
         return CompletableFuture.completedFuture(null);

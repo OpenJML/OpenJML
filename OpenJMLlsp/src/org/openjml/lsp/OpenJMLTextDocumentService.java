@@ -460,6 +460,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Run ESC on the given URI immediately (for the {@code openjml.runEsc} command).
      * Uses the file on disk; if the file does not exist the call is a no-op.
      */
+    /**
+     * Trigger a --check recheck of an already-open file (e.g. when focus returns
+     * to it after its dependencies were edited).  Uses in-memory content so that
+     * unsaved edits are included.  No-op if the file is not currently open.
+     */
+    void recheckUri(String uri) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        executor.submit(() -> runCheckContent(uri, content));
+    }
+
     void scheduleEscForUri(String uri) {
         scheduleEscFile(uri);
     }

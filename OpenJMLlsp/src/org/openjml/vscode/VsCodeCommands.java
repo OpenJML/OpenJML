@@ -15,5 +15,12 @@ public final class VsCodeCommands {
     /** Per-method ESC command: {@code openjml.runEscForMethod}. */
     public static final String RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
+    /**
+     * Focus notification: sent by the extension when the user switches focus to
+     * an already-open Java file.  Triggers a --check recheck so stale diagnostics
+     * from fixed dependencies are cleared.
+     */
+    public static final String FOCUS_FILE = "openjml.focusFile";
+
     private VsCodeCommands() {}
 }
