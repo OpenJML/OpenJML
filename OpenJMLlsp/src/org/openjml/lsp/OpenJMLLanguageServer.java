@@ -41,7 +41,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private final OpenJMLTextDocumentService  textDocumentService;
     private final OpenJMLWorkspaceService     workspaceService;
 
-    private int exitCode = 1;
+    private int    exitCode = 1;
+    private String rootUri  = null;
 
     /**
      * @param escCommand           command name for full-file ESC (passed to WorkspaceService)
@@ -67,6 +68,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         workspaceService.applyRaw(params.getInitializationOptions());
+        rootUri = params.getRootUri();
 
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
@@ -91,7 +93,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     }
 
     @Override
-    public void initialized(InitializedParams params) {}
+    public void initialized(InitializedParams params) {
+        // Kick off a background pass over all .java files in the workspace so
+        // that workspace/symbol can find symbols in files not yet opened.
+        if (rootUri != null) textDocumentService.scheduleWorkspaceIndex(rootUri);
+    }
 
     @Override
     public CompletableFuture<Object> shutdown() {
