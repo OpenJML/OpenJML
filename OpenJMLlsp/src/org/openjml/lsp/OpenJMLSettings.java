@@ -47,6 +47,15 @@ public class OpenJMLSettings {
     public volatile String sourcePath;
 
     /**
+     * Workspace folder paths supplied by the editor at {@code initialize} time,
+     * path-separator-separated.  Not part of the client JSON settings — set
+     * programmatically by {@code OpenJMLLanguageServer.initialize()}.
+     * These are appended to the effective {@code -sourcepath} after any temp
+     * directory but before the user-supplied {@link #sourcePath}.
+     */
+    public volatile String workspaceFolderPaths;
+
+    /**
      * Classpath for pre-compiled dependencies, passed as {@code -classpath}.
      * Colon-separated on Unix, semicolon on Windows.
      */

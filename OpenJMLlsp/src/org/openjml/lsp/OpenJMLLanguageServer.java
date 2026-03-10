@@ -76,6 +76,26 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         workspaceService.applyRaw(params.getInitializationOptions());
         rootUri = params.getRootUri();
 
+        // Collect workspace folder paths so CheckRunner can append them to -sourcepath.
+        if (params.getWorkspaceFolders() != null) {
+            String joined = params.getWorkspaceFolders().stream()
+                    .map(f -> f.getUri())
+                    .filter(u -> u != null && u.startsWith("file:"))
+                    .map(u -> { try { return java.nio.file.Path.of(java.net.URI.create(u)).toString(); }
+                                catch (Exception e) { return null; } })
+                    .filter(p -> p != null)
+                    .collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
+            if (!joined.isEmpty()) settings.workspaceFolderPaths = joined;
+        }
+        // Fall back to rootUri if no workspace folders list was provided.
+        if ((settings.workspaceFolderPaths == null || settings.workspaceFolderPaths.isEmpty())
+                && rootUri != null && rootUri.startsWith("file:")) {
+            try {
+                settings.workspaceFolderPaths =
+                        java.nio.file.Path.of(java.net.URI.create(rootUri)).toString();
+            } catch (Exception ignored) {}
+        }
+
         // Auto-discover openjml.properties at the workspace root unless the
         // client already supplied an explicit propertiesFile setting.
         if ((settings.propertiesFile == null || settings.propertiesFile.isEmpty())
