@@ -335,6 +335,13 @@ async function activate(context) {
                 }
                 return next(document, position, token);
             },
+            // Suppress the LSP-channel semantic tokens in VS Code.  We register a
+            // direct DocumentSemanticTokensProvider below so that our JML tokens
+            // merge additively with Red Hat's Java tokens instead of competing with
+            // them via the LSP provider race.
+            provideDocumentSemanticTokens: (_document, _token, _next) => {
+                return new vscode.SemanticTokens(new Uint32Array([]));
+            },
         },
     };
 
@@ -351,6 +358,33 @@ async function activate(context) {
         console.error('OpenJML: server failed to start:', err?.message ?? err);
     });
     context.subscriptions.push(client);
+
+    // Register a direct DocumentSemanticTokensProvider for JML syntax colouring.
+    // This runs independently of (and merges additively with) the Red Hat Java
+    // extension's semantic tokens, avoiding the LSP-channel provider race.
+    // Token types must match SemanticTokensProvider.TOKEN_TYPES on the server.
+    const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro'], []);
+    const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
+        { language: 'java' },
+        {
+            async provideDocumentSemanticTokens(document) {
+                if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
+                try {
+                    const data = await client.sendRequest('workspace/executeCommand', {
+                        command:   'openjml.getSemanticTokens',
+                        arguments: [document.uri.toString()],
+                    });
+                    if (!Array.isArray(data) || data.length === 0)
+                        return new vscode.SemanticTokens(new Uint32Array([]));
+                    return new vscode.SemanticTokens(new Uint32Array(data));
+                } catch (_) {
+                    return new vscode.SemanticTokens(new Uint32Array([]));
+                }
+            },
+        },
+        jmlLegend
+    );
+    context.subscriptions.push(jmlTokensProvider);
 
     // When focus returns to an already-open Java file, trigger a --check recheck so
     // that stale diagnostics from fixed dependencies are cleared without requiring

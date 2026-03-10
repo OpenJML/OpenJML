@@ -65,7 +65,7 @@ public class LspProtocolTest {
         PipedOutputStream serverOut = new PipedOutputStream(clientIn);
 
         server = new OpenJMLLanguageServer(VsCodeCommands.RUN_ESC, VsCodeCommands.RUN_ESC_FOR_METHOD,
-                VsCodeCommands.FOCUS_FILE);
+                VsCodeCommands.FOCUS_FILE, VsCodeCommands.GET_SEMANTIC_TOKENS);
         var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
         server.connect(launcher.getRemoteProxy());
         launcher.startListening();

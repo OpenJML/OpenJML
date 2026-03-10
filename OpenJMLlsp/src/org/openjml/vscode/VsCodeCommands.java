@@ -22,5 +22,13 @@ public final class VsCodeCommands {
      */
     public static final String FOCUS_FILE = "openjml.focusFile";
 
+    /**
+     * Semantic tokens request: sent by the extension's directly-registered
+     * {@code DocumentSemanticTokensProvider}.  Returns the flat integer token
+     * data for the given URI so VS Code can apply JML highlighting independently
+     * of (and additively with) the Red Hat Java extension's semantic tokens.
+     */
+    public static final String GET_SEMANTIC_TOKENS = "openjml.getSemanticTokens";
+
     private VsCodeCommands() {}
 }

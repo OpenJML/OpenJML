@@ -32,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
  *
  * Future capabilities (not yet implemented):
  * <ul>
- *   <li>semanticTokens — JML keyword/clause highlighting</li>
  *   <li>completion — JML keywords</li>
  * </ul>
  */
@@ -49,16 +48,19 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
      * @param escForMethodCommand  command name for per-method ESC (passed to WorkspaceService and TextDocumentService)
      * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
      */
-    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String focusFileCommand) {
+    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand,
+                                  String focusFileCommand, String getSemanticTokensCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
                 textDocumentService::scheduleEscForUri,
                 textDocumentService::scheduleEscForMethod,
                 textDocumentService::recheckUri,
+                textDocumentService::getSemanticTokens,
                 escCommand,
                 escForMethodCommand,
-                focusFileCommand);
+                focusFileCommand,
+                getSemanticTokensCommand);
     }
 
     @Override
@@ -74,11 +76,14 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setReferencesProvider(Boolean.TRUE);
         caps.setRenameProvider(new RenameOptions(true));  // prepareProvider=true
 
+        // Semantic tokens for non-VS Code clients (Neovim, Eclipse LSP4E, etc.).
+        // In VS Code the extension uses a directly-registered provider instead to
+        // avoid being overwritten by the Red Hat Java extension's semantic tokens.
         var stLegend = new SemanticTokensLegend(
                 SemanticTokensProvider.TOKEN_TYPES,
                 SemanticTokensProvider.TOKEN_MODIFIERS);
-        var stOpts = new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE);
-        caps.setSemanticTokensProvider(stOpts);
+        caps.setSemanticTokensProvider(
+                new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE));
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }
