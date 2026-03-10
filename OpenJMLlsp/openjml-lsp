@@ -35,8 +35,8 @@ else
     fi
     . "$SRC/setup-exports"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$SRC}"
-    # OPENJML_SPECS and OPENJML_SOLVERS: not defaulted here — OpenJML derives
-    # them from OPENJML_INSTALL internally.  Set them only for custom locations.
+    export OPENJML_SPECS="${OPENJML_SPECS:-$OPENJML_INSTALL/../../Specs/specs}"
+    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$OPENJML_INSTALL/../../Solvers}"
     JARFILE="$DIR/build/openjml-lsp.jar"
     LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 fi

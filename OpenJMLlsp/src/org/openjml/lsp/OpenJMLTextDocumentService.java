@@ -309,21 +309,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             System.err.println("[documentSymbol] no content for " + uri + " → returning empty");
             return CompletableFuture.completedFuture(List.of());
         }
+        // If a check is in flight (first open OR edit), wait for it so the
+        // outline reflects the current source rather than the previous AST.
+        CompletableFuture<Void> pending = lastCheckFuture.get(uri);
+        if (pending != null && !pending.isDone()) {
+            System.err.println("[documentSymbol] check in flight, waiting before building symbols for " + uri);
+            final String finalContent = content;
+            return pending.thenApply(_v -> {
+                ASTCache.Entry e2 = CheckRunner.getASTCache().get(uri);
+                if (e2 == null) {
+                    System.err.println("[documentSymbol] check completed but no ASTCache entry for " + uri);
+                    return List.<Either<SymbolInformation, DocumentSymbol>>of();
+                }
+                return buildSymbolResult(uri, e2, finalContent);
+            });
+        }
         ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
         if (entry == null) {
-            CompletableFuture<Void> pending = lastCheckFuture.get(uri);
-            if (pending != null) {
-                System.err.println("[documentSymbol] no ASTCache entry, waiting for pending check of " + uri);
-                final String finalContent = content;
-                return pending.thenApply(_v -> {
-                    ASTCache.Entry e2 = CheckRunner.getASTCache().get(uri);
-                    if (e2 == null) {
-                        System.err.println("[documentSymbol] check completed but still no ASTCache entry for " + uri);
-                        return List.<Either<SymbolInformation, DocumentSymbol>>of();
-                    }
-                    return buildSymbolResult(uri, e2, finalContent);
-                });
-            }
             System.err.println("[documentSymbol] no ASTCache entry and no pending check for " + uri + " → returning empty");
             return CompletableFuture.completedFuture(List.of());
         }
