@@ -18,5 +18,6 @@ import org.junit.runners.Suite;
     DefinitionFinderTest.class,
     ReferenceFinderTest.class,
     RenameTest.class,
+    SemanticTokensTest.class,
 })
 public class AllLspTests {}

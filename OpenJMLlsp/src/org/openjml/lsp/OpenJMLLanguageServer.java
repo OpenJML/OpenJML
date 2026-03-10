@@ -2,6 +2,8 @@ package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.RenameOptions;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -71,6 +73,12 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setDeclarationProvider(Boolean.TRUE);
         caps.setReferencesProvider(Boolean.TRUE);
         caps.setRenameProvider(new RenameOptions(true));  // prepareProvider=true
+
+        var stLegend = new SemanticTokensLegend(
+                SemanticTokensProvider.TOKEN_TYPES,
+                SemanticTokensProvider.TOKEN_MODIFIERS);
+        var stOpts = new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE);
+        caps.setSemanticTokensProvider(stOpts);
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

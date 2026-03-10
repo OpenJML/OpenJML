@@ -23,6 +23,8 @@ import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
 import org.eclipse.lsp4j.PrepareRenameResult;
@@ -277,6 +279,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         var hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN,
                 "**JML spec for `" + method.name() + "`**\n```java\n" + spec + "\n```"));
         return CompletableFuture.completedFuture(hover);
+    }
+
+    // --- semantic tokens ---
+
+    /**
+     * Return semantic tokens for the entire document.
+     *
+     * <p>Only JML constructs inside line comments ({@code //@}) and block comments
+     * ({@code /*@}) are highlighted; Java syntax is handled by VS Code's built-in grammar.
+     */
+    @Override
+    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
+        String uri    = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null)
+            return CompletableFuture.completedFuture(new SemanticTokens(List.of()));
+        return CompletableFuture.completedFuture(SemanticTokensProvider.computeTokens(source));
     }
 
     // --- go to definition ---
