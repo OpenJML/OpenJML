@@ -599,6 +599,12 @@ public class CheckRunner {
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {
         List<String> args = new ArrayList<>();
+        // --properties must come first: options in the file are read before
+        // subsequent args, so IDE settings and invocation flags override it.
+        if (settings.propertiesFile != null && !settings.propertiesFile.isEmpty()) {
+            args.add("--properties");
+            args.add(settings.propertiesFile);
+        }
         args.add(modeFlag);
         if (settings.specsPath != null && !settings.specsPath.isEmpty()) {
             args.add("--specs-path");

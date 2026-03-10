@@ -74,6 +74,20 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         workspaceService.applyRaw(params.getInitializationOptions());
         rootUri = params.getRootUri();
 
+        // Auto-discover openjml.properties at the workspace root unless the
+        // client already supplied an explicit propertiesFile setting.
+        if ((settings.propertiesFile == null || settings.propertiesFile.isEmpty())
+                && rootUri != null) {
+            try {
+                java.nio.file.Path candidate = java.nio.file.Path.of(
+                        java.net.URI.create(rootUri)).resolve("openjml.properties");
+                if (java.nio.file.Files.isRegularFile(candidate)) {
+                    settings.propertiesFile = candidate.toString();
+                    System.err.println("[OpenJML] Auto-discovered properties file: " + candidate);
+                }
+            } catch (Exception ignored) {}
+        }
+
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
