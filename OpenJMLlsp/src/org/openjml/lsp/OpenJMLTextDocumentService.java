@@ -23,8 +23,6 @@ import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.SemanticTokens;
-import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
 import org.eclipse.lsp4j.PrepareRenameResult;
@@ -281,23 +279,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return CompletableFuture.completedFuture(hover);
     }
 
-    // --- semantic tokens ---
-
-    /**
-     * Return semantic tokens for the entire document.
-     *
-     * <p>Only JML constructs inside line comments ({@code //@}) and block comments
-     * ({@code /*@}) are highlighted; Java syntax is handled by VS Code's built-in grammar.
-     */
-    @Override
-    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        String uri    = params.getTextDocument().getUri();
-        String source = lastContent.get(uri);
-        if (source == null)
-            return CompletableFuture.completedFuture(new SemanticTokens(List.of()));
-        return CompletableFuture.completedFuture(SemanticTokensProvider.computeTokens(source));
-    }
-
     // --- go to definition ---
 
     /**
@@ -479,6 +460,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Run ESC on the given URI immediately (for the {@code openjml.runEsc} command).
      * Uses the file on disk; if the file does not exist the call is a no-op.
      */
+    /**
+     * Return the flat semantic token integer data for {@code uri}, or an empty
+     * list if the file is not currently open.  Called by the workspace service
+     * in response to the {@code openjml.getSemanticTokens} command so the VS
+     * Code extension can register a direct {@code DocumentSemanticTokensProvider}
+     * that merges additively with the Red Hat Java extension's tokens.
+     */
+    List<Integer> getSemanticTokens(String uri) {
+        String content = lastContent.get(uri);
+        if (content == null) return List.of();
+        return SemanticTokensProvider.computeTokens(content).getData();
+    }
+
     /**
      * Trigger a --check recheck of an already-open file (e.g. when focus returns
      * to it after its dependencies were edited).  Uses in-memory content so that

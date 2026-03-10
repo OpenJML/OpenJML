@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Handles LSP workspace-level notifications.
@@ -36,33 +37,41 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final Consumer<String> escRequester;
     private final BiConsumer<String, String> escMethodRequester;
     private final Consumer<String> checkRequester;
+    private final Function<String, List<Integer>> semanticTokensRequester;
     private final String escCommand;
     private final String escForMethodCommand;
     private final String focusFileCommand;
+    private final String getSemanticTokensCommand;
 
     /**
      * @param settings             shared settings object
      * @param escRequester         called with the URI when the ESC command is requested
      * @param escMethodRequester   called with (uri, methodName) when the ESC-for-method command is requested
-     * @param checkRequester       called with the URI when a focus-triggered recheck is requested
-     * @param escCommand           the {@code workspace/executeCommand} command name for full-file ESC
-     * @param escForMethodCommand  the {@code workspace/executeCommand} command name for per-method ESC
-     * @param focusFileCommand     the {@code workspace/executeCommand} command name for focus-triggered recheck
+     * @param checkRequester           called with the URI when a focus-triggered recheck is requested
+     * @param semanticTokensRequester  called with a URI; returns the flat semantic token integer data
+     * @param escCommand               the {@code workspace/executeCommand} command name for full-file ESC
+     * @param escForMethodCommand      the {@code workspace/executeCommand} command name for per-method ESC
+     * @param focusFileCommand         the {@code workspace/executeCommand} command name for focus-triggered recheck
+     * @param getSemanticTokensCommand the {@code workspace/executeCommand} command name for semantic tokens
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    Consumer<String> escRequester,
                                    BiConsumer<String, String> escMethodRequester,
                                    Consumer<String> checkRequester,
+                                   Function<String, List<Integer>> semanticTokensRequester,
                                    String escCommand,
                                    String escForMethodCommand,
-                                   String focusFileCommand) {
-        this.settings            = settings;
-        this.escRequester        = escRequester;
-        this.escMethodRequester  = escMethodRequester;
-        this.checkRequester      = checkRequester;
-        this.escCommand          = escCommand;
-        this.escForMethodCommand = escForMethodCommand;
-        this.focusFileCommand    = focusFileCommand;
+                                   String focusFileCommand,
+                                   String getSemanticTokensCommand) {
+        this.settings                  = settings;
+        this.escRequester              = escRequester;
+        this.escMethodRequester        = escMethodRequester;
+        this.checkRequester            = checkRequester;
+        this.semanticTokensRequester   = semanticTokensRequester;
+        this.escCommand                = escCommand;
+        this.escForMethodCommand       = escForMethodCommand;
+        this.focusFileCommand          = focusFileCommand;
+        this.getSemanticTokensCommand  = getSemanticTokensCommand;
     }
 
     @Override
@@ -105,6 +114,15 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             if (args != null && !args.isEmpty()) {
                 String uri = extractString(args.get(0));
                 if (uri != null) checkRequester.accept(uri);
+            }
+        } else if (getSemanticTokensCommand != null && getSemanticTokensCommand.equals(cmd)
+                && semanticTokensRequester != null) {
+            if (args != null && !args.isEmpty()) {
+                String uri = extractString(args.get(0));
+                if (uri != null) {
+                    return CompletableFuture.completedFuture(
+                            (Object) semanticTokensRequester.apply(uri));
+                }
             }
         }
         return CompletableFuture.completedFuture(null);
