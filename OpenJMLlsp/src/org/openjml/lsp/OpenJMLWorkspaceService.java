@@ -7,6 +7,9 @@ import com.google.gson.JsonPrimitive;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
+import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.WorkspaceSymbolParams;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
 import java.util.List;
@@ -38,6 +41,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final BiConsumer<String, String> escMethodRequester;
     private final Consumer<String> checkRequester;
     private final Function<String, List<Integer>> semanticTokensRequester;
+    private final Function<String, List<SymbolInformation>> symbolsRequester;
     private final String escCommand;
     private final String escForMethodCommand;
     private final String focusFileCommand;
@@ -49,6 +53,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      * @param escMethodRequester   called with (uri, methodName) when the ESC-for-method command is requested
      * @param checkRequester           called with the URI when a focus-triggered recheck is requested
      * @param semanticTokensRequester  called with a URI; returns the flat semantic token integer data
+     * @param symbolsRequester         called with a query string; returns matching {@link SymbolInformation} list
      * @param escCommand               the {@code workspace/executeCommand} command name for full-file ESC
      * @param escForMethodCommand      the {@code workspace/executeCommand} command name for per-method ESC
      * @param focusFileCommand         the {@code workspace/executeCommand} command name for focus-triggered recheck
@@ -59,6 +64,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                                    BiConsumer<String, String> escMethodRequester,
                                    Consumer<String> checkRequester,
                                    Function<String, List<Integer>> semanticTokensRequester,
+                                   Function<String, List<SymbolInformation>> symbolsRequester,
                                    String escCommand,
                                    String escForMethodCommand,
                                    String focusFileCommand,
@@ -68,6 +74,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         this.escMethodRequester        = escMethodRequester;
         this.checkRequester            = checkRequester;
         this.semanticTokensRequester   = semanticTokensRequester;
+        this.symbolsRequester          = symbolsRequester;
         this.escCommand                = escCommand;
         this.escForMethodCommand       = escForMethodCommand;
         this.focusFileCommand          = focusFileCommand;
@@ -155,6 +162,21 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.classPath       != null) settings.classPath       = src.classPath;
         if (src.checkTriggerOn  != null) settings.checkTriggerOn  = src.checkTriggerOn;
         if (src.escTriggerOn    != null) settings.escTriggerOn    = src.escTriggerOn;
+    }
+
+    /**
+     * Handle {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
+     *
+     * <p>Delegates to the text document service's indexed declarations, filtered
+     * by a case-insensitive substring match on the symbol name.
+     */
+    @Override
+    public CompletableFuture<Either<List<? extends SymbolInformation>, List<? extends org.eclipse.lsp4j.WorkspaceSymbol>>>
+            symbol(WorkspaceSymbolParams params) {
+        String query = params.getQuery() != null ? params.getQuery() : "";
+        List<SymbolInformation> results =
+                symbolsRequester != null ? symbolsRequester.apply(query) : List.of();
+        return CompletableFuture.completedFuture(Either.forLeft(results));
     }
 
     @Override

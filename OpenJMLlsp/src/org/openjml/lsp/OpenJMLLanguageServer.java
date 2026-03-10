@@ -57,6 +57,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 textDocumentService::scheduleEscForMethod,
                 textDocumentService::recheckUri,
                 textDocumentService::getSemanticTokens,
+                textDocumentService::symbols,
                 escCommand,
                 escForMethodCommand,
                 focusFileCommand,
@@ -71,6 +72,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
         caps.setHoverProvider(Boolean.TRUE);
+        caps.setWorkspaceSymbolProvider(Boolean.TRUE);
         caps.setDefinitionProvider(Boolean.TRUE);
         caps.setDeclarationProvider(Boolean.TRUE);
         caps.setReferencesProvider(Boolean.TRUE);

@@ -81,6 +81,11 @@ public class ASTCache {
         cache.forEach(action);
     }
 
+    /** Iterate over all indexed declarations (Symbol → SymbolLocation). */
+    public void forEachDeclaration(java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
+        declarationIndex.forEach(action);
+    }
+
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------

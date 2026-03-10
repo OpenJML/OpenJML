@@ -3,6 +3,8 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.DeclarationParams;
 import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.ReferenceParams;
@@ -478,6 +480,64 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
         }
         return SemanticTokensProvider.computeTokens(content).getData();
+    }
+
+    /**
+     * Return all indexed declarations whose simple name contains {@code query}
+     * (case-insensitive).  An empty query returns all declarations.
+     *
+     * <p>Only declarations in currently-open files (present in {@code lastContent})
+     * are returned, since their source is needed for offset→line:col conversion.
+     *
+     * <p>Called by {@link OpenJMLWorkspaceService} in response to
+     * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
+     */
+    List<SymbolInformation> symbols(String query) {
+        String lowerQuery = query == null ? "" : query.toLowerCase(java.util.Locale.ROOT);
+        List<SymbolInformation> result = new ArrayList<>();
+        CheckRunner.getASTCache().forEachDeclaration((sym, loc) -> {
+            String name = sym.name.toString();
+            // Skip synthetic names (<init>, <clinit>, empty).
+            if (name.isEmpty() || name.startsWith("<")) return;
+            // Filter by query (case-insensitive substring match; empty = accept all).
+            if (!lowerQuery.isEmpty()
+                    && !name.toLowerCase(java.util.Locale.ROOT).contains(lowerQuery)) return;
+            // Offset → Position requires source content.
+            String content = lastContent.get(loc.uri());
+            if (content == null) return;
+            Position pos = offsetToPosition(content, loc.charOffset());
+            var location = new Location(loc.uri(), new Range(pos, pos));
+            result.add(new SymbolInformation(name, symbolKind(sym), location));
+        });
+        return result;
+    }
+
+    /** Convert a character offset to a 0-based LSP {@link Position}. */
+    private static Position offsetToPosition(String content, int offset) {
+        int line = 0, col = 0;
+        int end = Math.min(offset, content.length());
+        for (int i = 0; i < end; i++) {
+            if (content.charAt(i) == '\n') { line++; col = 0; }
+            else col++;
+        }
+        return new Position(line, col);
+    }
+
+    /** Map a javac {@link com.sun.tools.javac.code.Symbol} to an LSP {@link SymbolKind}. */
+    private static SymbolKind symbolKind(com.sun.tools.javac.code.Symbol sym) {
+        if (sym instanceof com.sun.tools.javac.code.Symbol.ClassSymbol cs) {
+            if (cs.isEnum())      return SymbolKind.Enum;
+            if (cs.isInterface()) return SymbolKind.Interface;
+            return SymbolKind.Class;
+        }
+        if (sym instanceof com.sun.tools.javac.code.Symbol.MethodSymbol ms) {
+            return ms.isConstructor() ? SymbolKind.Constructor : SymbolKind.Method;
+        }
+        if (sym instanceof com.sun.tools.javac.code.Symbol.VarSymbol vs) {
+            return (vs.owner instanceof com.sun.tools.javac.code.Symbol.MethodSymbol)
+                    ? SymbolKind.Variable : SymbolKind.Field;
+        }
+        return SymbolKind.Object;
     }
 
     /**
