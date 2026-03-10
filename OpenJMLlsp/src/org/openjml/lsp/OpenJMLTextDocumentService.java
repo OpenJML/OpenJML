@@ -163,6 +163,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final Map<String, String> lastContent = new ConcurrentHashMap<>();
 
     /**
+     * The most recently submitted --check future (per URI).  Set just before
+     * the check task is submitted to the executor; completed when the check
+     * finishes.  {@link #documentSymbol} chains off this so it can return
+     * populated symbols even when the outline is requested before the first
+     * check completes.
+     */
+    private final Map<String, CompletableFuture<Void>> lastCheckFuture = new ConcurrentHashMap<>();
+
+    /**
      * @param settings        shared settings object
      * @param codeLensCommand the command name to embed in code-lens actions (e.g. run ESC for method)
      */
@@ -270,19 +279,55 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return CompletableFuture.completedFuture(Either.forLeft(items));
     }
 
+    private List<Either<SymbolInformation, DocumentSymbol>> buildSymbolResult(
+            String uri, ASTCache.Entry entry, String content) {
+        List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content);
+        System.err.println("[documentSymbol] returning " + symbols.size() + " top-level symbol(s) for " + uri);
+        for (DocumentSymbol ds : symbols) {
+            int nChildren = ds.getChildren() == null ? 0 : ds.getChildren().size();
+            System.err.println("[documentSymbol]   " + ds.getKind() + " " + ds.getName()
+                    + " (" + nChildren + " children)");
+            if (ds.getChildren() != null) {
+                for (DocumentSymbol ch : ds.getChildren()) {
+                    System.err.println("[documentSymbol]     " + ch.getKind() + " " + ch.getName()
+                            + (ch.getDetail() != null ? " [" + ch.getDetail() + "]" : ""));
+                }
+            }
+        }
+        List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
+        for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
+        return result;
+    }
+
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
             DocumentSymbolParams params) {
         String uri     = params.getTextDocument().getUri();
+        System.err.println("[documentSymbol] called for " + uri);
         String content = lastContent.get(uri);
-        if (content == null)
+        if (content == null) {
+            System.err.println("[documentSymbol] no content for " + uri + " → returning empty");
             return CompletableFuture.completedFuture(List.of());
+        }
         ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
-        if (entry == null)
+        if (entry == null) {
+            CompletableFuture<Void> pending = lastCheckFuture.get(uri);
+            if (pending != null) {
+                System.err.println("[documentSymbol] no ASTCache entry, waiting for pending check of " + uri);
+                final String finalContent = content;
+                return pending.thenApply(_v -> {
+                    ASTCache.Entry e2 = CheckRunner.getASTCache().get(uri);
+                    if (e2 == null) {
+                        System.err.println("[documentSymbol] check completed but still no ASTCache entry for " + uri);
+                        return List.<Either<SymbolInformation, DocumentSymbol>>of();
+                    }
+                    return buildSymbolResult(uri, e2, finalContent);
+                });
+            }
+            System.err.println("[documentSymbol] no ASTCache entry and no pending check for " + uri + " → returning empty");
             return CompletableFuture.completedFuture(List.of());
-        List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content);
-        List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
-        for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
+        }
+        List<Either<SymbolInformation, DocumentSymbol>> result = buildSymbolResult(uri, entry, content);
         return CompletableFuture.completedFuture(result);
     }
 
@@ -809,10 +854,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void scheduleCheckNow(String uri, String content) {
         String filePath = CheckRunner.uriToPath(uri);
+        CompletableFuture<Void> cf = new CompletableFuture<>();
+        lastCheckFuture.put(uri, cf);
         if (filePath != null && new java.io.File(filePath).exists()) {
-            scheduleCheckFile(uri);
+            executor.submit(() -> { try { runCheckFile(filePath, uri); } finally { cf.complete(null); } });
         } else {
-            executor.submit(() -> runCheckContent(uri, content));
+            executor.submit(() -> { try { runCheckContent(uri, content); } finally { cf.complete(null); } });
         }
     }
 
