@@ -524,6 +524,37 @@ public class CheckRunner {
                 proofResults, listener.toForeignMessages(filePath), Map.of());
     }
 
+    /**
+     * Run {@code --check} on all {@code filePaths} in a single OpenJML invocation,
+     * populating the AST cache for every successfully attributed file.
+     *
+     * <p>Diagnostics are discarded — the purpose is to build the workspace symbol
+     * index so that {@code workspace/symbol} can find declarations in non-open files.
+     * Called in a background thread after the LSP {@code initialized} handshake.
+     *
+     * @param filePaths absolute paths of all {@code .java} files to index
+     * @param settings  current OpenJML settings (specs path, solvers path, etc.)
+     */
+    public static void indexWorkspaceFiles(List<String> filePaths, OpenJMLSettings settings) {
+        if (filePaths.isEmpty()) return;
+        var out      = new PrintWriter(new StringWriter());
+        var listener = new LspDiagnosticListener();  // diagnostics discarded
+        var api      = IAPI.make(out, listener);
+
+        List<String> args = buildArgs(settings, "--check");
+        filePaths.forEach(args::add);
+        logInvocation("indexWorkspaceFiles", args);
+
+        IAPI.IASTListener astListener = (ctx, jfo, ast) ->
+                AST_CACHE.put(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
+        IAPI.setASTListener(astListener);
+        try {
+            api.execute(args.toArray(new String[0]));
+        } finally {
+            IAPI.removeASTListener(astListener);
+        }
+    }
+
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {
         List<String> args = new ArrayList<>();
         args.add(modeFlag);

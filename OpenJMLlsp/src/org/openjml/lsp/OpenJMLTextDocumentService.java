@@ -503,13 +503,52 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (!lowerQuery.isEmpty()
                     && !name.toLowerCase(java.util.Locale.ROOT).contains(lowerQuery)) return;
             // Offset → Position requires source content.
+            // Prefer in-memory content (for unsaved edits); fall back to disk.
             String content = lastContent.get(loc.uri());
+            if (content == null) {
+                String path = CheckRunner.uriToPath(loc.uri());
+                if (path != null) {
+                    try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (java.io.IOException ignored) {}
+                }
+            }
             if (content == null) return;
             Position pos = offsetToPosition(content, loc.charOffset());
             var location = new Location(loc.uri(), new Range(pos, pos));
             result.add(new SymbolInformation(name, symbolKind(sym), location));
         });
         return result;
+    }
+
+    /**
+     * Schedule a background workspace index pass on all {@code .java} files
+     * under {@code rootUri}.  Called once after the LSP {@code initialized}
+     * handshake so that {@code workspace/symbol} can find symbols in files
+     * that have not been opened by the user.
+     *
+     * @param rootUri the workspace root URI from {@code InitializeParams}
+     */
+    void scheduleWorkspaceIndex(String rootUri) {
+        String rootPath = CheckRunner.uriToPath(rootUri);
+        if (rootPath == null) return;
+        executor.submit(() -> {
+            try {
+                List<String> filePaths;
+                try (var stream = java.nio.file.Files.walk(java.nio.file.Path.of(rootPath))) {
+                    filePaths = stream
+                            .filter(p -> p.toString().endsWith(".java"))
+                            .map(java.nio.file.Path::toString)
+                            .collect(java.util.stream.Collectors.toList());
+                }
+                if (filePaths.isEmpty()) return;
+                System.err.println("[OpenJML] Background index: " + filePaths.size()
+                        + " .java files under " + rootPath);
+                CheckRunner.indexWorkspaceFiles(filePaths, settings);
+                System.err.println("[OpenJML] Background index complete");
+            } catch (Exception e) {
+                System.err.println("[OpenJML] Background index failed: " + e);
+            }
+        });
     }
 
     /** Convert a character offset to a 0-based LSP {@link Position}. */
