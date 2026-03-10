@@ -687,16 +687,28 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // the ESC code-lens status that the user sees.
 
     private void runCheckContent(String uri, String content) {
-        List<Diagnostic> diags = CheckRunner.check(uri, content, settings).diagnostics();
-        checkDiags.put(uri, diags);
+        // Pass all open (possibly unsaved) files so cross-file dependencies use
+        // their current in-memory versions rather than the on-disk saved versions.
+        CheckRunner.CheckResult result = CheckRunner.checkWithContext(
+                uri, content, lastContent, settings);
+        checkDiags.put(uri, result.diagnostics());
         publishMerged(uri);
+        // Update diagnostics for all dependency files that were actually attributed
+        // during this compilation run (the compiler's own AST list, not O(n) re-checks).
+        result.companionDiagnostics().forEach((otherUri, diags) -> {
+            if (lastContent.containsKey(otherUri)) {
+                checkDiags.put(otherUri, diags);
+                publishMerged(otherUri);
+            }
+        });
         // Do NOT call refreshCodeLenses() here.
     }
 
     private void runCheckFile(String filePath, String uri) {
-        List<Diagnostic> diags = CheckRunner.checkFile(filePath, uri, settings).diagnostics();
-        checkDiags.put(uri, diags);
+        CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
+        checkDiags.put(uri, result.diagnostics());
         publishMerged(uri);
+        // runOnFile does not use the context path so no companion diagnostics.
         // Do NOT call refreshCodeLenses() here.
     }
 
