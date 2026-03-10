@@ -175,7 +175,7 @@ post: .FORCE
 	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)
 	cp -pR ../OpenJMLlsp/release-stage/lsp $(TEMP)
 	cp ../OpenJMLlsp/release-stage/openjml.vsix $(TEMP)
-	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
+	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 
 #RunOpenJML.class: RunOpenJML.java
