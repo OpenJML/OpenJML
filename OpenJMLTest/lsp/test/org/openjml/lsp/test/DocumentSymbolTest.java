@@ -168,12 +168,21 @@ public class DocumentSymbolTest extends LspTestBase {
                 "    public int realField;\n" +
                 "}\n";
         List<DocumentSymbol> syms = symbolsFor(source);
-        DocumentSymbol ghost = findSymbol(syms, "ghostField");
-        assertNotNull("Ghost field must appear in document symbols", ghost);
-        assertEquals(SymbolKind.Field, ghost.getKind());
-        assertEquals("ghost", ghost.getDetail());
-        DocumentSymbol real = findSymbol(syms, "realField");
-        assertNotNull("Real field must appear in document symbols", real);
-        assertNull("Regular field must have no detail", real.getDetail());
+        assertEquals("Expected exactly one top-level symbol", 1, syms.size());
+        DocumentSymbol cls = syms.get(0);
+        List<DocumentSymbol> children = cls.getChildren();
+        assertNotNull("Class must have children", children);
+
+        // Ghost field must be a DIRECT CHILD of the class (not just findable via recursive search)
+        Optional<DocumentSymbol> ghost = children.stream()
+                .filter(c -> "ghostField".equals(c.getName())).findFirst();
+        assertTrue("Ghost field must be a direct child of the class", ghost.isPresent());
+        assertEquals(SymbolKind.Field, ghost.get().getKind());
+        assertEquals("ghost", ghost.get().getDetail());
+
+        Optional<DocumentSymbol> real = children.stream()
+                .filter(c -> "realField".equals(c.getName())).findFirst();
+        assertTrue("Real field must be a direct child of the class", real.isPresent());
+        assertNull("Regular field must have no detail", real.get().getDetail());
     }
 }
