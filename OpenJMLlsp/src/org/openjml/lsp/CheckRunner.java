@@ -65,7 +65,8 @@ public class CheckRunner {
      */
     public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode,
                                Map<String, IProverResult.Kind> proofResults,
-                               List<String> foreignMessages) {
+                               List<String> foreignMessages,
+                               Map<String, List<org.eclipse.lsp4j.Diagnostic>> companionDiagnostics) {
         /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
         public boolean isInternalError() { return exitCode == 4; }
         /** Returns {@code true} when OpenJML rejected the command line — indicates a server bug. */
@@ -112,6 +113,29 @@ public class CheckRunner {
         return runOnContent(uri, content, settings, "--check", null, false);
     }
 
+    /**
+     * Run {@code --check} on {@code content} for {@code uri}, but also make all
+     * other open (possibly unsaved) files in {@code openContent} visible to the
+     * compiler as in-memory source.
+     *
+     * <p>Each open file is written to a shared temp directory (using its base
+     * name).  The temp directory is prepended to {@code settings.sourcePath} so
+     * the compiler finds the in-memory versions instead of the on-disk ones.
+     * This ensures that if a dependency is edited but not yet saved, checking
+     * the current file still uses the up-to-date in-memory content.
+     *
+     * <p><b>Limitation</b>: files with identical base names but different
+     * directories (e.g. two {@code Main.java} in separate packages) will collide
+     * in the flat temp directory.  This is the same limitation as the single-file
+     * {@link #check} path; multi-package projects require a configured
+     * {@code sourcePath} with the proper directory tree.
+     */
+    public static CheckResult checkWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings) {
+        return runOnContentWithContext(uri, content, openContent, settings, "--check", null, false);
+    }
+
     /** Run {@code --check} on a file already on disk. */
     public static CheckResult checkFile(String filePath, String uri, OpenJMLSettings settings) {
         return runOnFile(filePath, uri, settings, "--check", null, false);
@@ -133,10 +157,9 @@ public class CheckRunner {
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
 
-            // Write all modified files to the temp directory.
+            // Write all modified files at their package-relative paths.
             for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
-                String baseName = extractBaseName(e.getKey());
-                Files.writeString(tempDir.resolve(baseName), e.getValue());
+                writeToTempDir(tempDir, e.getKey(), e.getValue());
             }
 
             // Build a modified settings copy with sourcePath = tempDir.
@@ -222,9 +245,9 @@ public class CheckRunner {
             return new CheckResult(
                     listener.toLspDiagnostics(tempFile.toString(), primaryUri),
                     rc, prc.getResults(),
-                    listener.toForeignMessages(tempFile.toString()));
+                    listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
-            return new CheckResult(List.of(), -1, Map.of(), List.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
             if (tempDir != null) {
                 try {
@@ -286,6 +309,119 @@ public class CheckRunner {
 
     // --- private implementation ---
 
+    /**
+     * Like {@link #runOnContent} but writes all {@code openContent} files into
+     * the same temp directory so the compiler resolves cross-file references
+     * against their current in-memory versions rather than the on-disk files.
+     */
+    private static CheckResult runOnContentWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            String modeFlag, String methodName, boolean collectProofResults) {
+
+        var listener = new LspDiagnosticListener();
+        var out      = new PrintWriter(new StringWriter());
+        var api      = IAPI.make(out, listener);
+
+        ProofResultCollector prc = null;
+        if (collectProofResults) {
+            prc = new ProofResultCollector();
+            api.setProofResultListener(prc);
+        }
+
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("openjml-lsp-");
+
+            // Write companion open files at their package-relative paths so the
+            // compiler resolves them correctly via -sourcepath.
+            // tempUriToRealUri (URI-keyed) is used in the AST listener for cache updates.
+            // compiledPathToRealUri (path-keyed) is built by the AST listener and used
+            // for diagnostic extraction — it contains ONLY files that were actually
+            // attributed by the compiler (the true set of dependencies).
+            Map<String, String> tempUriToRealUri  = new java.util.HashMap<>();
+            for (Map.Entry<String, String> e : openContent.entrySet()) {
+                if (e.getKey().equals(uri)) continue;
+                Path p = writeToTempDir(tempDir, e.getKey(), e.getValue());
+                tempUriToRealUri.put(p.toUri().toString(), e.getKey());
+            }
+
+            // Write target file at its package-relative path.
+            Path tempFile = writeToTempDir(tempDir, uri, content);
+
+            // Prepend tempDir to sourcePath so in-memory versions take priority.
+            OpenJMLSettings ctx = new OpenJMLSettings();
+            ctx.specsPath   = settings.specsPath;
+            ctx.solversPath = settings.solversPath;
+            ctx.classPath   = settings.classPath;
+            String orig     = settings.sourcePath != null ? settings.sourcePath : "";
+            ctx.sourcePath  = orig.isEmpty()
+                    ? tempDir.toString()
+                    : tempDir + java.io.File.pathSeparator + orig;
+
+            List<String> args = buildArgs(ctx, modeFlag);
+            if (methodName != null && !methodName.isEmpty()) {
+                args.add("--method");
+                args.add(methodName);
+            }
+            args.add(tempFile.toString());
+            logInvocation("runOnContentWithContext", args, content);
+
+            // compiledPathToRealUri is populated by the AST listener — only files
+            // that were actually attributed get an entry.  Start with the target.
+            final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
+            compiledPathToRealUri.put(tempFile.toString(), uri);
+
+            final String tempTargetUri = tempFile.toUri().toString();
+            IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
+                String jfoUri = jfo.toUri().toString();
+                if (jfoUri.equals(tempTargetUri)) {
+                    AST_CACHE.put(uri, astCtx, (JmlCompilationUnit) ast);
+                } else {
+                    String realUri = tempUriToRealUri.get(jfoUri);
+                    if (realUri != null) {
+                        AST_CACHE.put(realUri, astCtx, (JmlCompilationUnit) ast);
+                        // Record that this file was compiled so we can extract its diags.
+                        try {
+                            Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
+                            compiledPathToRealUri.put(p.toString(), realUri);
+                        } catch (Exception ignored) {}
+                    }
+                }
+            };
+            IAPI.setASTListener(astListener);
+            int rc;
+            try {
+                rc = api.execute(args.toArray(new String[0]));
+            } finally {
+                IAPI.removeASTListener(astListener);
+            }
+            System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc
+                    + " (" + modeFlag + ")");
+
+            Map<String, IProverResult.Kind> proofResults =
+                    prc != null ? prc.getResults() : Map.of();
+            // Extract diagnostics for the target AND all files that were actually compiled.
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiags =
+                    listener.toLspDiagnosticsAll(compiledPathToRealUri);
+            List<org.eclipse.lsp4j.Diagnostic> primaryDiags =
+                    allDiags.getOrDefault(uri, List.of());
+            allDiags.remove(uri);   // companions = everything except the primary
+            return new CheckResult(primaryDiags, rc, proofResults,
+                    listener.toForeignMessages(tempFile.toString()), allDiags);
+        } catch (IOException e) {
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        } finally {
+            if (tempDir != null) {
+                try {
+                    Files.walk(tempDir)
+                         .sorted(Comparator.reverseOrder())
+                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+                } catch (IOException ignored) {}
+            }
+        }
+    }
+
     private static CheckResult runOnContent(
             String uri, String content, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults) {
@@ -301,10 +437,8 @@ public class CheckRunner {
 
         Path tempDir = null;
         try {
-            String baseName = extractBaseName(uri);
             tempDir = Files.createTempDirectory("openjml-lsp-");
-            Path tempFile = tempDir.resolve(baseName);
-            Files.writeString(tempFile, content);
+            Path tempFile = writeToTempDir(tempDir, uri, content);
 
             List<String> args = buildArgs(settings, modeFlag);
             if (methodName != null && !methodName.isEmpty()) {
@@ -334,9 +468,9 @@ public class CheckRunner {
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
             return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc,
-                    proofResults, listener.toForeignMessages(tempFile.toString()));
+                    proofResults, listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
-            return new CheckResult(List.of(), -1, Map.of(), List.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
             if (tempDir != null) {
                 try {
@@ -387,7 +521,7 @@ public class CheckRunner {
         Map<String, IProverResult.Kind> proofResults =
                 prc != null ? prc.getResults() : Map.of();
         return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc,
-                proofResults, listener.toForeignMessages(filePath));
+                proofResults, listener.toForeignMessages(filePath), Map.of());
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {
@@ -443,5 +577,43 @@ public class CheckRunner {
         String name = slash >= 0 ? uri.substring(slash + 1) : uri;
         if (!name.endsWith(".java")) name = name.replaceAll("[^A-Za-z0-9_]", "_") + ".java";
         return name;
+    }
+
+    /**
+     * Extract the package name from Java/JML source content, or {@code ""} for
+     * the default package.  Only the first {@code package} keyword is examined;
+     * the search stops at the first {@code class} or {@code interface} keyword so
+     * that {@code package} appearing in a string literal or comment after the
+     * class declaration is ignored.
+     */
+    static String extractPackage(String source) {
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("(?s)^.*?(?=class|interface|enum|@interface)")
+                .matcher(source);
+        String header = m.find() ? m.group() : source;
+        java.util.regex.Matcher pkg = java.util.regex.Pattern
+                .compile("\\bpackage\\s+([\\w.]+)\\s*;")
+                .matcher(header);
+        return pkg.find() ? pkg.group(1) : "";
+    }
+
+    /**
+     * Write {@code content} to {@code tempDir} at the path implied by its
+     * package declaration and base name, creating intermediate directories.
+     * Returns the {@link Path} of the written file.
+     *
+     * <p>Example: {@code package com.example; class Foo} in {@code Foo.java}
+     * → {@code tempDir/com/example/Foo.java}.
+     */
+    static Path writeToTempDir(Path tempDir, String uri, String content) throws IOException {
+        String pkg      = extractPackage(content);
+        String baseName = extractBaseName(uri);
+        Path   dir      = pkg.isEmpty()
+                ? tempDir
+                : tempDir.resolve(pkg.replace('.', java.io.File.separatorChar));
+        Files.createDirectories(dir);
+        Path file = dir.resolve(baseName);
+        Files.writeString(file, content);
+        return file;
     }
 }
