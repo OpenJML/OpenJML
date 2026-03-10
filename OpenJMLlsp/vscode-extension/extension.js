@@ -352,6 +352,27 @@ async function activate(context) {
     });
     context.subscriptions.push(client);
 
+    // When focus returns to an already-open Java file, trigger a --check recheck so
+    // that stale diagnostics from fixed dependencies are cleared without requiring
+    // the user to make an edit.  A short debounce (200 ms) avoids spurious requests
+    // during rapid tab switches.
+    let focusDebounceTimer = null;
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (!editor || editor.document.languageId !== 'java') return;
+            const uri = editor.document.uri.toString();
+            if (focusDebounceTimer) clearTimeout(focusDebounceTimer);
+            focusDebounceTimer = setTimeout(() => {
+                focusDebounceTimer = null;
+                if (!client) return;
+                client.sendRequest('workspace/executeCommand', {
+                    command:   'openjml.focusFile',
+                    arguments: [uri],
+                }).catch(() => {});  // ignore errors (server may not be ready)
+            }, 200);
+        })
+    );
+
     // Track which Java file URIs are about to be saved manually (not by auto-save).
     // onWillSaveTextDocument fires before the save and carries the reason; we use it
     // to mark URIs so that onDidSaveTextDocument can decide whether to trigger ESC.

@@ -32,7 +32,8 @@ public class VsCodeServerLauncher {
         System.setOut(System.err);
 
         var server   = new OpenJMLLanguageServer(VsCodeCommands.RUN_ESC,
-                                                  VsCodeCommands.RUN_ESC_FOR_METHOD);
+                                                  VsCodeCommands.RUN_ESC_FOR_METHOD,
+                                                  VsCodeCommands.FOCUS_FILE);
         var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut);
 
         LanguageClient client = launcher.getRemoteProxy();
