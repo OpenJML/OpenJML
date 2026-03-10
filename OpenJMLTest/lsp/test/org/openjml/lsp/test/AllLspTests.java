@@ -20,5 +20,6 @@ import org.junit.runners.Suite;
     RenameTest.class,
     SemanticTokensTest.class,
     DocumentSymbolTest.class,
+    FoldingRangeTest.class,
 })
 public class AllLspTests {}
