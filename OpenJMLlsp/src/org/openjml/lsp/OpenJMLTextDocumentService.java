@@ -493,6 +493,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
      */
     List<SymbolInformation> symbols(String query) {
+        if (CheckRunner.getASTCache().isIndexing() && client != null) {
+            client.logMessage(new MessageParams(MessageType.Info,
+                    "workspace/symbol: background index still running — results may be incomplete"));
+        }
         String lowerQuery = query == null ? "" : query.toLowerCase(java.util.Locale.ROOT);
         List<SymbolInformation> result = new ArrayList<>();
         CheckRunner.getASTCache().forEachDeclaration((sym, loc) -> {
