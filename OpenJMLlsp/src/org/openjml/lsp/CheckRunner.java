@@ -545,13 +545,15 @@ public class CheckRunner {
         filePaths.forEach(args::add);
         logInvocation("indexWorkspaceFiles", args);
 
+        AST_CACHE.setIndexing(true);
         IAPI.IASTListener astListener = (ctx, jfo, ast) ->
-                AST_CACHE.put(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
+                AST_CACHE.putInit(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
         IAPI.setASTListener(astListener);
         try {
             api.execute(args.toArray(new String[0]));
         } finally {
             IAPI.removeASTListener(astListener);
+            AST_CACHE.setIndexing(false);
         }
     }
 
