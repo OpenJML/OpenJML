@@ -159,9 +159,9 @@ public class DocumentSymbolTest extends LspTestBase {
         assertEquals(13, cls.getSelectionRange().getStart().getCharacter());
     }
 
-    /** JML ghost declarations must not appear in document symbols. */
+    /** JML ghost declarations should appear alongside regular Java declarations. */
     @Test
-    public void testGhostFieldOmitted() {
+    public void testGhostFieldIncluded() {
         String source =
                 "public class DocSymTest {\n" +
                 "    //@ ghost int ghostField;\n" +
@@ -169,7 +169,8 @@ public class DocumentSymbolTest extends LspTestBase {
                 "}\n";
         List<DocumentSymbol> syms = symbolsFor(source);
         DocumentSymbol ghost = findSymbol(syms, "ghostField");
-        assertNull("Ghost field must not appear in document symbols", ghost);
+        assertNotNull("Ghost field must appear in document symbols", ghost);
+        assertEquals(SymbolKind.Field, ghost.getKind());
         DocumentSymbol real = findSymbol(syms, "realField");
         assertNotNull("Real field must appear in document symbols", real);
     }
