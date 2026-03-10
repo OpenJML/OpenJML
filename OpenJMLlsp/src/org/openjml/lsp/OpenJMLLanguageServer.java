@@ -1,6 +1,7 @@
 package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
+import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
@@ -15,6 +16,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -91,6 +93,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
+        // Trigger on '\' (backslash tokens) and '@' (entering a JML annotation).
+        // The handler filters out non-JML contexts, so '@' in Java annotations
+        // silently returns an empty list.
+        caps.setCompletionProvider(new CompletionOptions(false, List.of("\\", "@")));
         caps.setHoverProvider(Boolean.TRUE);
         caps.setWorkspaceSymbolProvider(Boolean.TRUE);
         caps.setDefinitionProvider(Boolean.TRUE);

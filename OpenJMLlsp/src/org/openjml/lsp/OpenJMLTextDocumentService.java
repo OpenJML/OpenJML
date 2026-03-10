@@ -3,6 +3,9 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.DeclarationParams;
@@ -253,6 +256,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     // --- hover ---
+
+    @Override
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(
+            CompletionParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+        List<CompletionItem> items =
+                JmlCompletionProvider.complete(content, params.getPosition());
+        return CompletableFuture.completedFuture(Either.forLeft(items));
+    }
 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
