@@ -3,6 +3,9 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.TextEdit;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,7 +113,20 @@ public class JmlCompletionProvider {
     public static List<CompletionItem> complete(String content, Position pos) {
         if (!isInJmlContext(content, pos)) return List.of();
         String prefix = wordBeforeCursor(content, pos);
-        if (prefix.startsWith("\\")) return ALL_BACKSLASH_ITEMS;
+        if (prefix.startsWith("\\")) {
+            // VS Code does not treat '\' as a word character, so without a TextEdit
+            // it would insert the completion after the '\', producing '\\result'.
+            // Supply an explicit replace-range covering from the '\' to the cursor.
+            Range replaceRange = wordBeforeCursorRange(content, pos);
+            List<CompletionItem> items = new ArrayList<>(ALL_BACKSLASH_ITEMS.size());
+            for (CompletionItem tmpl : ALL_BACKSLASH_ITEMS) {
+                CompletionItem item = new CompletionItem(tmpl.getLabel());
+                item.setKind(tmpl.getKind());
+                item.setTextEdit(Either.forLeft(new TextEdit(replaceRange, tmpl.getLabel())));
+                items.add(item);
+            }
+            return items;
+        }
         return ALL_KEYWORD_ITEMS;
     }
 
@@ -171,6 +187,27 @@ public class JmlCompletionProvider {
             else break;
         }
         return line.substring(i + 1, col);
+    }
+
+    /**
+     * Return the LSP {@link Range} that covers the partial word (including a
+     * leading {@code \}) immediately before the cursor — i.e. the range a
+     * TextEdit should replace.
+     */
+    static Range wordBeforeCursorRange(String content, Position pos) {
+        String[] lines = content.split("\n", -1);
+        if (pos.getLine() >= lines.length) return new Range(pos, pos);
+        String line = lines[pos.getLine()];
+        int col = Math.min(pos.getCharacter(), line.length());
+        int i = col - 1;
+        while (i >= 0) {
+            char c = line.charAt(i);
+            if (c == '\\' || Character.isLetterOrDigit(c) || c == '_') i--;
+            else break;
+        }
+        Position start = new Position(pos.getLine(), i + 1);
+        Position end   = new Position(pos.getLine(), col);
+        return new Range(start, end);
     }
 
     /** Convert a 0-based LSP {@link Position} to a character offset in {@code content}. */
