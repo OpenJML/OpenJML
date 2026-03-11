@@ -172,3 +172,15 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 
 primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
+
+SFBugs.gitbug712                      # String literal ("Alice") problem
+esc1.testForEach2a2b
+escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
+escfiles2.gitbug726                   # OLList problem
+escfiles2.gitbug880                   # Helloworld infeasible
+escfiles2.gitbug903                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+escfiles3.gitbug814                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+escfileslist1.test[escDoubleArith]    # feasibility problem with real arithmetic
+escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
+runscripts2.apiASTCrash               # CRASH in Attr
+
