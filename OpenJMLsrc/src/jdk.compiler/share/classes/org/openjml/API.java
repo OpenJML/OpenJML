@@ -12,6 +12,7 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.JmlEsc;
 import org.openjml.IAPI.IASTListener;
 
 import com.sun.tools.javac.main.JmlCompiler;
@@ -19,6 +20,8 @@ import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.*;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -197,6 +200,11 @@ public class API implements IAPI {
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
+    @Override
+    public IAPI.IProofResultListener setProofResultListener(/*@nullable*/ IAPI.IProofResultListener p) {
+        return main.setProofResultListener(p);
+    }
+
     @Override
     public int execute(/*@ non_null*/ String ... args) {
         int x = main.compile(args, main.context()).exitCode;
@@ -755,44 +763,41 @@ public class API implements IAPI {
 //        return finder;
 //    }
 //    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.MethodSymbol)
-//     */
-//    @Override
-//    public IProverResult doESC(MethodSymbol msym) {
-//        JmlMethodDecl decl = getMethodDecl(msym);
-//        JmlEsc esc = JmlEsc.instance(context());
-//        class L implements IProofResultListener { 
-//        	public L(IProofResultListener chained) { this.chained = chained; }
-//        	public IProofResultListener chained;
-//        	public IProverResult result; 
-//        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
-//                if (result.result() == IProverResult.COMPLETED) return;
-//                if (result.result() == IProverResult.RUNNING) return;
-//        		this.result = result; 
-//        		if (chained != null) chained.reportProofResult(msym, result);
-//        	}
-//        };
-//        
-//        IProofResultListener p = setProofResultListener(null);
-//        L l = new L(p);
-//        setProofResultListener(l);
-//        esc.check(decl);
-//        setProofResultListener(p);
-//        return l.result; 
-//    }
-//    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.ClassSymbol)
-//     */
-//    @Override
-//    public void doESC(ClassSymbol csym) {
-//        //if (!isTypechecked(csym)) typecheck(csym);
-////        mostRecentProofMethod = null;
-////        mostRecentProgram = null;
-//        JmlClassDecl decl = getClassDecl(csym);
-//        JmlEsc.instance(context()).check(decl);
-//    }
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.MethodSymbol)
+     */
+    @SuppressWarnings("exports")
+    @Override
+    public IProverResult doESC(JmlMethodDecl decl) {
+        JmlEsc esc = JmlEsc.instance(main.context());
+        class L implements IProofResultListener { 
+        	public L(IProofResultListener chained) { this.chained = chained; }
+        	public IProofResultListener chained;
+        	public IProverResult result; 
+        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+                if (result.result() == IProverResult.COMPLETED) return;
+                if (result.result() == IProverResult.RUNNING) return;
+        		this.result = result; 
+        		if (chained != null) chained.reportProofResult(msym, result);
+        	}
+        };
+        
+        IProofResultListener p = setProofResultListener(null);
+        L l = new L(p);
+        setProofResultListener(l);
+        esc.check(decl);
+        setProofResultListener(p);
+        return l.result; 
+    }
+    
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.ClassSymbol)
+     */
+    @SuppressWarnings("exports")
+    @Override
+    public void doESC(JmlClassDecl decl) {
+        JmlEsc.instance(main.context()).check(decl);
+    }
 //    
 ////    /* (non-Javadoc)
 ////     * @see org.jmlspecs.openjml.IAPI#getProofResult(com.sun.tools.javac.code.Symbol.MethodSymbol)

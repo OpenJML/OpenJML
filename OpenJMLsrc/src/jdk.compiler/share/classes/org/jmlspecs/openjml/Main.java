@@ -631,8 +631,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     /** Sets the listener to which reports of proof results are sent. */
-    public void setProofResultListener(IAPI.IProofResultListener listener) {
-        context().get(IAPI.IProofResultListener.class).setListener(listener);
+    public IAPI.IProofResultListener setProofResultListener(IAPI.IProofResultListener listener) {
+        return context().get(IAPI.IProofResultListener.class).setListener(listener);
     }
 
     /** This is overridden so that serious internal bugs are reported as OpenJML

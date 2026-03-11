@@ -48,7 +48,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
      * placed, and ignoring the specs CU; <BR>
      * AST_JML_MODE scans the tree as an individual compilation unit
      * (no specs in other files, but including the specs that are part of that file)<BR>
-     * SPEC_MODE ignores parsed specs and instead scans through the
+     * AST_SPEC_MODE ignores parsed specs and instead scans through the
      * summaries of specs (that come from the specification files).
      */
     public int scanMode;
@@ -111,7 +111,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
                     if (ms != null) {
                         scan(ms.modifiers);
                         scan(ms.clauses);
-                        //scan(ms.decls);
                     } else {
                         // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
                     }
@@ -120,7 +119,6 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
                     JmlSpecs.TypeSpecs ms = that.typeSpecs;
                     // already done - scan(ms.modifiers);
                     if (ms != null) scan(ms.clauses);
-                    //if (ms != null) scan(ms.decls);
                 }
             } finally {
                 if (context != null) Log.instance(context).useSource(prev);
