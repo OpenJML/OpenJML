@@ -1,4 +1,6 @@
-warning: Method Test.m() inherits purity spec_pure but has default purity pure from enclosing class; specify purity explicitly to avoid confusion
+test/gitbug895/Test.java:1: warning: Method Test.m() inherits purity spec_pure but has default purity pure from enclosing class; specify purity explicitly to avoid confusion
+//@ pure
+    ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
