@@ -73,7 +73,7 @@ else
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ( ./run-summary log-$nm $nm || { cat log-$nm; exit 1; } ) &
+        ./run-summary log-$nm $nm &
         pids+=($!)
         sleep 1
         wt

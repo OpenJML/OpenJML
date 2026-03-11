@@ -24,5 +24,4 @@ OPENJML_EXPORTS="\
 --add-exports=jdk.compiler/org.jmlspecs.openjml.ext=ALL-UNNAMED \
 --add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED \
 --add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED \
---add-exports=jdk.compiler.interim/org.jmlspecs.openjml=ALL-UNNAMED \
 "
