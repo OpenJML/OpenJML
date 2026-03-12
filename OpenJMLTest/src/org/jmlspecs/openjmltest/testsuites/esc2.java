@@ -1769,11 +1769,20 @@ public class esc2 extends EscBase {
     @Test
     public void testConstraint11() {
         helpEsc("tt.TestJava",
-                "package tt; \n" + "interface A { \n" + "  //@ ghost static public int i = 0;\n"
-                        + "  //@ public static constraint i > \\old(i);\n" + "}\n"
-                        + "public class TestJava implements A { \n" + "  public TestJava() {\n" + "  }\n" + "}",
-                "/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method TestJava",
-                10, "/tt/TestJava.java:4: verify: Associated declaration", 21);
+                """
+                package tt;
+                interface A {
+                  //@ ghost static public int i = 0;
+                  //@ public static constraint i > \\old(i);
+                }
+                public class TestJava implements A {
+                   public TestJava() {
+                   }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method TestJava", 10
+                ,"/tt/TestJava.java:4: verify: Associated declaration", 21
+                );
     }
 
     @Test
@@ -1783,6 +1792,52 @@ public class esc2 extends EscBase {
                         + "  //@ public constraint i > \\old(i);\n" + "}\n" + "public class TestJava implements A { \n"
                         + "  public TestJava() {\n" + "  }\n" + "}");
     }
+
+    @Test
+    public void testConstraint12() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava  {
+                   public int i;
+                   public int j;
+                   //@ public constraint i > \\old(i) for m;
+                   public void m() {
+                   }
+                   public void q() {
+                   }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Constraint) in method m", 16
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
+                //,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Constraint) in method q", 16
+                //,"/tt/TestJava.java:5: verify: Associated declaration", 15
+                );
+    }
+
+    @Test
+    public void testConstraint12a() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava  {
+                   public int i;
+                   public int j;
+                   //@ public constraint j > \\old(j) for ! m;
+                   public void m() {
+                   }
+                   public void q() {
+                   }
+                }
+                """
+                //,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Constraint) in method m", 16
+                //,"/tt/TestJava.java:5: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Constraint) in method q", 16
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
+                );
+    }
+    
+    // FIXME - test duplicate matches for signatures; no matches; sigs with type names
 
     @Test // FIXME - for reasons unknown, this test appears to be
             // non-deterministic - sometimes succeeding sometimes failing
