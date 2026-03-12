@@ -623,4 +623,9 @@ public class racfiles extends RacBase {
     public void gitbug940() {
         helpCompileRun("Test");
     }
+    
+    @Test
+    public void textRac() {
+        helpCompileRun("BL");
+    }
 }
