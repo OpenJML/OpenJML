@@ -1344,7 +1344,7 @@ public class typechecking extends TCBase {
                 }
                 """
                 ,"/Test.java:3: error: unclosed string literal",24
-                ,"/Test.java:3: error: ';' expected", 29
+                ,"/Test.java:3: error: ';' expected", 28
             );
     }
     
