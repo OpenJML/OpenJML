@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.RenameOptions;
+import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.InitializeParams;
@@ -118,6 +119,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // silently returns an empty list.
         caps.setCompletionProvider(new CompletionOptions(false, List.of("\\", "@")));
         caps.setHoverProvider(Boolean.TRUE);
+        caps.setSignatureHelpProvider(new SignatureHelpOptions(List.of("(", ",")));
         caps.setDocumentSymbolProvider(Boolean.TRUE);
         caps.setFoldingRangeProvider(Boolean.TRUE);
         caps.setWorkspaceSymbolProvider(Boolean.TRUE);

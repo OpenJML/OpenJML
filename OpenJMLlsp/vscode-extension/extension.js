@@ -44,6 +44,53 @@ function fileIfExists(p) {
 }
 
 /**
+ * Returns true when {@code position} is inside a JML annotation in
+ * {@code document}: either a {@code //@} single-line annotation or an
+ * unclosed {@code /*@} block annotation.
+ */
+function isInJmlContext(document, position) {
+    const line  = document.lineAt(position.line).text;
+    const col   = Math.min(position.character, line.length);
+    const linePrefix = line.substring(0, col);
+
+    // Single-line: //  optional-spaces  @  before cursor on this line
+    if (/\/\/\s*@/.test(linePrefix)) return true;
+
+    // Block comment: /*  optional-spaces  @  opened before cursor, not yet closed
+    const offset     = document.offsetAt(position);
+    const textBefore = document.getText().substring(0, offset);
+    const lastOpen   = textBefore.search(/\/\*\s*@[^]*$/);
+    if (lastOpen < 0) return false;
+    const closePos = document.getText().indexOf('*/', lastOpen + 2);
+    return closePos < 0 || closePos >= offset;
+}
+
+/**
+ * Convert an LSP {@code SignatureHelp} JSON object (as returned by the server)
+ * to a {@code vscode.SignatureHelp} instance.
+ */
+function convertSignatureHelp(lsp) {
+    if (!lsp || !Array.isArray(lsp.signatures) || lsp.signatures.length === 0)
+        return null;
+    const help = new vscode.SignatureHelp();
+    help.signatures = lsp.signatures.map(sig => {
+        const si = new vscode.SignatureInformation(
+            sig.label,
+            sig.documentation ? sig.documentation.value ?? sig.documentation : undefined);
+        si.parameters = (sig.parameters || []).map(p => {
+            const lbl = Array.isArray(p.label) ? p.label : p.label;
+            const doc = p.documentation
+                ? (p.documentation.value ?? p.documentation) : undefined;
+            return new vscode.ParameterInformation(lbl, doc);
+        });
+        return si;
+    });
+    help.activeSignature = lsp.activeSignature ?? 0;
+    help.activeParameter = lsp.activeParameter ?? 0;
+    return help;
+}
+
+/**
  * Given Java source content and a 0-based cursor line, return the
  * fully-qualified method name (pkg.Class.method) of the method that
  * contains that line, or null if not found.
@@ -287,28 +334,33 @@ async function activate(context) {
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
     // Use workspace state so the user is only asked once per workspace.
-    const JAVA_FORMAT_KEY = 'javaFormatWarningHandled';
-    if (!context.workspaceState.get(JAVA_FORMAT_KEY)
-            && vscode.workspace.getConfiguration('java').get('format.enabled', true)) {
-        const choice = await vscode.window.showWarningMessage(
-            'OpenJML: java.format.enabled is on. It may change //@ to // @, ' +
-            'silently disabling JML annotations.',
-            'Disable for this workspace', 'Ignore'
-        );
-        await context.workspaceState.update(JAVA_FORMAT_KEY, true);
-        if (choice === 'Disable for this workspace') {
-            try {
-                await vscode.workspace.getConfiguration('java')
-                    .update('format.enabled', false,
-                            vscode.ConfigurationTarget.Workspace);
-                vscode.window.showInformationMessage(
-                    'OpenJML: Disabled java.format.enabled in workspace settings. ' +
-                    'You can still format manually with Shift+Alt+F.');
-            } catch (err) {
-                vscode.window.showErrorMessage(
-                    'OpenJML: Could not update settings: ' + err);
+    // Wrap the entire block so that a missing workspace never aborts activation.
+    try {
+        const JAVA_FORMAT_KEY = 'javaFormatWarningHandled';
+        if (!context.workspaceState.get(JAVA_FORMAT_KEY)
+                && vscode.workspace.getConfiguration('java').get('format.enabled', true)) {
+            const choice = await vscode.window.showWarningMessage(
+                'OpenJML: java.format.enabled is on. It may change //@ to // @, ' +
+                'silently disabling JML annotations.',
+                'Disable for this workspace', 'Ignore'
+            );
+            await context.workspaceState.update(JAVA_FORMAT_KEY, true);
+            if (choice === 'Disable for this workspace') {
+                try {
+                    await vscode.workspace.getConfiguration('java')
+                        .update('format.enabled', false,
+                                vscode.ConfigurationTarget.Workspace);
+                    vscode.window.showInformationMessage(
+                        'OpenJML: Disabled java.format.enabled in workspace settings. ' +
+                        'You can still format manually with Shift+Alt+F.');
+                } catch (err) {
+                    vscode.window.showErrorMessage(
+                        'OpenJML: Could not update settings: ' + err);
+                }
             }
         }
+    } catch (_) {
+        // No workspace open — skip the java.format.enabled check silently.
     }
 
     const serverOptions = {
@@ -343,6 +395,11 @@ async function activate(context) {
             // them via the LSP provider race.
             provideDocumentSemanticTokens: (_document, _token, _next) => {
                 return new vscode.SemanticTokens(new Uint32Array([]));
+            },
+            // Suppress the LSP-channel signatureHelp provider.  The direct provider
+            // registered below (with a higher-specificity selector) handles JML positions.
+            provideSignatureHelp: (_document, _position, _context, _token, _next) => {
+                return null;
             },
         },
     };
@@ -387,6 +444,42 @@ async function activate(context) {
         jmlLegend
     );
     context.subscriptions.push(jmlTokensProvider);
+
+    // Register a direct SignatureHelpProvider as a fallback.
+    // Note: middleware provideSignatureHelp above is the primary handler for JML positions.
+    // Use pattern: '**/*.java' to boost selector score above Red Hat Java's
+    // { scheme:'file', language:'java' } (score 15) to score 16, ensuring VS Code
+    // calls our provider FIRST before Red Hat Java's "first non-null wins" check.
+    console.log('[OpenJML] registering direct signatureHelp provider');
+    const jmlSigHelpProvider = vscode.languages.registerSignatureHelpProvider(
+        { scheme: 'file', language: 'java', pattern: '**/*.java' },
+        {
+            async provideSignatureHelp(document, position) {
+                console.log('[OpenJML sigHelp] ENTRY line=' + position.line + ' col=' + position.character);
+                const inJml = isInJmlContext(document, position);
+                console.log('[OpenJML sigHelp] inJml=' + inJml);
+                if (!client) { console.log('[OpenJML sigHelp] no client'); return null; }
+                if (!inJml) return null;
+                try {
+                    const response = await client.sendRequest(
+                        'textDocument/signatureHelp', {
+                            textDocument: { uri: document.uri.toString() },
+                            position: {
+                                line:      position.line,
+                                character: position.character,
+                            },
+                        });
+                    console.log('[OpenJML sigHelp] response=' + JSON.stringify(response));
+                    return convertSignatureHelp(response);
+                } catch (e) {
+                    console.log('[OpenJML sigHelp] error: ' + e);
+                    return null;
+                }
+            },
+        },
+        '(', ','
+    );
+    context.subscriptions.push(jmlSigHelpProvider);
 
     // When focus returns to an already-open Java file, trigger a --check recheck so
     // that stale diagnostics from fixed dependencies are cleared without requiring

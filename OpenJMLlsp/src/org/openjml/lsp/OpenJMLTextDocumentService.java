@@ -23,6 +23,8 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.SignatureHelp;
+import org.eclipse.lsp4j.SignatureHelpParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
@@ -370,6 +372,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return CompletableFuture.completedFuture(hover);
     }
 
+    // --- signature help ---
+
+    @Override
+    public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
+        String uri = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(null);
+
+        int line = params.getPosition().getLine();
+        int col  = params.getPosition().getCharacter();
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        System.err.println("[signatureHelp] line=" + line + " col=" + col
+                + " entry=" + (entry != null ? "yes" : "null"));
+        if (entry == null) {
+            // No cached AST yet — kick off a background check and return null
+            // for now.  VS Code re-triggers signatureHelp on the next keystroke,
+            // at which point the entry will be ready.
+            executor.submit(() -> runCheckContent(uri, content));
+            return CompletableFuture.completedFuture(null);
+        }
+        int offset = org.openjml.lsp.DefinitionFinder.lineColToOffset(content, line, col);
+        SignatureHelpProvider.CallSite site = SignatureHelpProvider.findCallSite(content, offset);
+        System.err.println("[signatureHelp] callSite=" + site);
+        SignatureHelp result = SignatureHelpProvider.compute(content, line, col, entry);
+        System.err.println("[signatureHelp] result=" + result);
+        return CompletableFuture.completedFuture(result);
+    }
+
     // --- go to definition ---
 
     /**
@@ -668,7 +699,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleWorkspaceIndex(String rootUri) {
         String rootPath = CheckRunner.uriToPath(rootUri);
         if (rootPath == null) return;
-        executor.submit(() -> {
+        // Delay the workspace index by 10 s so the initial didOpen check and
+        // LSP handshake can complete before we add more heavy JVM work.
+        scheduler.schedule(() -> executor.submit(() -> {
             try {
                 List<String> filePaths;
                 try (var stream = java.nio.file.Files.walk(java.nio.file.Path.of(rootPath))) {
@@ -685,7 +718,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             } catch (Exception e) {
                 System.err.println("[OpenJML] Background index failed: " + e);
             }
-        });
+        }), 10, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     /** Convert a character offset to a 0-based LSP {@link Position}. */

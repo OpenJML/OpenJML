@@ -265,10 +265,12 @@ public class DocumentSymbolProvider {
             int endOffset  = cu.endPositions != null
                     ? tree.getEndPosition(cu.endPositions) : -1;
             Position end = (endOffset > tree.pos) ? offsetToPos(endOffset) : start;
-            // LSP requires selectionRange ⊆ fullRange.  If endPositions has no
-            // entry for this node (common for JML ghost/model nodes parsed from
-            // comments), fullRange degenerates to a point.  Extend it to cover
-            // at least the selectionRange in that case.
+            // LSP requires selectionRange ⊆ fullRange.  Clamp both ends so
+            // the invariant holds even when AST positions are imprecise (e.g.
+            // JML ghost/model nodes parsed from comment text).
+            if (posLe(selectionRange.getStart(), start)) {
+                start = selectionRange.getStart();
+            }
             if (posLe(end, selectionRange.getEnd())) {
                 end = selectionRange.getEnd();
             }

@@ -2382,6 +2382,24 @@ public class JmlParser extends JavacParser {
     }
 
 
+    /** Guard against tokens that do not support {@code name()} (e.g. JML-related tokens
+     *  whose kind has been set to IDENTIFIER but that are not NamedTokens).
+     *  Sealed-class syntax can never appear in a JML context, so returning false is safe. */
+    @Override
+    protected boolean isSealedClassStart(boolean local) {
+        try {
+            return super.isSealedClassStart(local);
+        } catch (UnsupportedOperationException e) {
+            System.err.println("[JmlParser.isSealedClassStart] caught UnsupportedOperationException for token: "
+                    + "kind=" + token.kind
+                    + " class=" + token.getClass().getName()
+                    + " pos=" + token.pos
+                    + " toString=" + token);
+            new RuntimeException("isSealedClassStart token stack trace").printStackTrace(System.err);
+            return false;
+        }
+    }
+
     @Override
     public JCPrimitiveTypeTree basicType() {
         var jtk = jmlTokenClauseKind();

@@ -3710,7 +3710,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                         if (t instanceof JCMethodDecl m) {
                             String s = sig.expression.toString();
                             if (s.equals(m.name.toString()) || s.equals(m.sym.owner.toString() + "." + m.name)) {
-                                if (sig,methodSymbol != null) {
+                                if (sig.methodSymbol != null) {
                                     utils.error(sig, "jml.message", "Duplicate match for " + sig + " in " + env.enclClass.sym);
                                     // FIXME - point to duplicate declarations?
                                 } else {
