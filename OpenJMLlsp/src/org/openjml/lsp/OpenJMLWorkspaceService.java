@@ -178,8 +178,9 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.solversPath     != null) settings.solversPath     = src.solversPath;
         if (src.sourcePath      != null) settings.sourcePath      = src.sourcePath;
         if (src.classPath       != null) settings.classPath       = src.classPath;
-        if (src.checkTriggerOn  != null) settings.checkTriggerOn  = src.checkTriggerOn;
-        if (src.escTriggerOn    != null) settings.escTriggerOn    = src.escTriggerOn;
+        if (src.checkTriggerOn         != null) settings.checkTriggerOn         = src.checkTriggerOn;
+        if (src.escTriggerOn           != null) settings.escTriggerOn           = src.escTriggerOn;
+        if (src.syntaxColoringStrategy != null) settings.syntaxColoringStrategy = src.syntaxColoringStrategy;
     }
 
     /**

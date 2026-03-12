@@ -169,6 +169,16 @@
           "default": "",
           "order": 8,
           "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
+        },
+        "openjml.syntaxColoringStrategy": {
+          "type": "string",
+          "enum": [
+            "ast",
+            "regex"
+          ],
+          "default": "regex",
+          "order": 9,
+          "markdownDescription": "Strategy for JML syntax coloring:\n- `ast` (default) — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check\n- `regex` — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)"
         }
       }
     }
