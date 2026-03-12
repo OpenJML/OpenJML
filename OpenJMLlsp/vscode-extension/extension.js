@@ -141,13 +141,14 @@ async function checkDirtyAndProceed(document) {
 function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
     return {
-        checkTriggerOn:  cfg.get('checkTriggerOn',  'edit'),
-        escTriggerOn:    cfg.get('escTriggerOn',    'manual'),
-        propertiesFile:  cfg.get('propertiesFile',  ''),
-        specsPath:       cfg.get('specsPath',        ''),
-        solversPath:     cfg.get('solversPath',      ''),
-        sourcePath:      cfg.get('sourcePath',       ''),
-        classPath:       cfg.get('classPath',        ''),
+        checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
+        escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
+        propertiesFile:          cfg.get('propertiesFile',          ''),
+        specsPath:               cfg.get('specsPath',               ''),
+        solversPath:             cfg.get('solversPath',             ''),
+        sourcePath:              cfg.get('sourcePath',              ''),
+        classPath:               cfg.get('classPath',               ''),
+        syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'regex'),
     };
 }
 

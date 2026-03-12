@@ -603,12 +603,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     List<Integer> getSemanticTokens(String uri) {
         String content = lastContent.get(uri);
         if (content == null) return List.of();
-        // Prefer the AST-based approach (no false positives for identifiers
-        // that share a name with a JML keyword); fall back to regex when no
-        // attributed AST is available yet.
-        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
-        if (entry != null) {
-            return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
+        // "regex" strategy: always use regex (instant, works before first --check).
+        // "ast" strategy (default): prefer AST-based when an attributed AST is
+        // available (no false positives), fall back to regex before first --check.
+        if (!settings.isRegexColoring()) {
+            ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+            if (entry != null) {
+                return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
+            }
         }
         return SemanticTokensProvider.computeTokens(content).getData();
     }

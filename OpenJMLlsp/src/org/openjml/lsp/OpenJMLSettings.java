@@ -92,4 +92,19 @@ public class OpenJMLSettings {
 
     /** Returns {@code true} if --esc should only fire on explicit command. */
     public boolean isEscManual()   { return "manual".equalsIgnoreCase(escTriggerOn); }
+
+    /**
+     * Syntax coloring strategy for JML tokens:
+     * <ul>
+     *   <li>{@code "ast"} (default) — AST-based coloring when an attributed AST is
+     *       available (no false positives for identifiers that share a JML keyword name),
+     *       with regex fallback before the first {@code --check}.</li>
+     *   <li>{@code "regex"} — always use the regex-based approach (instant, but may
+     *       color non-JML identifiers that happen to match JML keywords).</li>
+     * </ul>
+     */
+    public volatile String syntaxColoringStrategy = "regex";
+
+    /** Returns {@code true} if the regex-only coloring strategy is selected. */
+    public boolean isRegexColoring() { return "regex".equalsIgnoreCase(syntaxColoringStrategy); }
 }
