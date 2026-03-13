@@ -1,0 +1,216 @@
+{
+  "name": "openjml",
+  "displayName": "OpenJML",
+  "description": "JML specification type-checking and static verification for Java via OpenJML",
+  "version": "0.0.1",
+  "publisher": "openjml",
+  "license": "GPL-2.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenJML/OpenJML.git"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:java"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "openjml.runEsc",
+        "title": "Run ESC",
+        "category": "OpenJML"
+      },
+      {
+        "command": "openjml.saveAndRunEsc",
+        "title": "Save and Run ESC",
+        "category": "OpenJML"
+      },
+      {
+        "command": "openjml.runEscForMethod",
+        "title": "Run ESC for Method",
+        "category": "OpenJML"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "openjml.runEsc",
+        "key": "ctrl+e",
+        "mac": "cmd+e",
+        "when": "editorLangId == java && editorFocus"
+      },
+      {
+        "command": "openjml.runEscForMethod",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorLangId == java && editorFocus"
+      },
+      {
+        "command": "openjml.saveAndRunEsc",
+        "key": "ctrl+shift+e",
+        "mac": "ctrl+cmd+e",
+        "when": "editorLangId == java && editorFocus"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "openjml.runEsc",
+          "when": "resourceLangId == java",
+          "group": "1_openjml@1"
+        },
+        {
+          "command": "openjml.runEscForMethod",
+          "when": "resourceLangId == java",
+          "group": "1_openjml@2"
+        },
+        {
+          "command": "openjml.saveAndRunEsc",
+          "when": "resourceLangId == java",
+          "group": "1_openjml@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "openjml.runEsc",
+          "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.saveAndRunEsc",
+          "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.runEscForMethod",
+          "when": "resourceLangId == java"
+        }
+      ]
+    },
+    "grammars": [
+      {
+        "scopeName": "source.jml.injection",
+        "path": "./syntaxes/jml.tmLanguage.json",
+        "injectTo": [
+          "source.java"
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "OpenJML",
+      "properties": {
+        "openjml.serverPath": {
+          "type": "string",
+          "default": "",
+          "order": 0,
+          "description": "Path to the openjml-lsp launcher script. Leave empty to use the script bundled with this extension (development) or the one found via the extension's default location."
+        },
+        "openjml.checkTriggerOn": {
+          "type": "string",
+          "enum": [
+            "edit",
+            "save"
+          ],
+          "default": "edit",
+          "order": 1,
+          "markdownDescription": "When to run the JML type-check (`--check`):\n- `edit` — check on every change (instant feedback)\n- `save` — check only when the file is saved"
+        },
+        "openjml.escTriggerOn": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "save",
+            "edit"
+          ],
+          "default": "manual",
+          "order": 2,
+          "markdownDescription": "When to run extended static checking (`--esc`):\n- `manual` — only via the **OpenJML: Run ESC** command or editor button\n- `save` — on every save\n- `edit` — on every change (expensive; not recommended for large files)"
+        },
+        "openjml.dirtyFileAction": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "save",
+            "run"
+          ],
+          "default": "ask",
+          "order": 3,
+          "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
+        },
+        "openjml.propertiesFile": {
+          "type": "string",
+          "default": "",
+          "order": 4,
+          "markdownDescription": "Path to an OpenJML `.properties` file containing project-level options (prover, timeout, nullable-by-default, etc.). Leave empty to auto-discover `openjml.properties` in the workspace root. Options in this file are overridden by the settings below and by invocation-specific flags."
+        },
+        "openjml.specsPath": {
+          "type": "string",
+          "default": "",
+          "order": 5,
+          "description": "Path to the OpenJML specs directory. Leave empty to use the default from the launcher script."
+        },
+        "openjml.sourcePath": {
+          "type": "string",
+          "default": "",
+          "order": 6,
+          "description": "Source root(s) for resolving cross-file references (-sourcepath). Separate multiple roots with ':' (Unix) or ';' (Windows). Leave empty for single-file projects."
+        },
+        "openjml.classPath": {
+          "type": "string",
+          "default": "",
+          "order": 7,
+          "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
+        },
+        "openjml.solversPath": {
+          "type": "string",
+          "default": "",
+          "order": 8,
+          "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
+        },
+        "openjml.escEngine": {
+          "type": "string",
+          "enum": [
+            "subprocess",
+            "api"
+          ],
+          "default": "subprocess",
+          "order": 9,
+          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `api` — calls `IAPI.doESC` in-process on the AST from the last successful `--check`; no re-typechecking, faster per-method verification"
+        },
+        "openjml.escThreads": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "order": 10,
+          "description": "Maximum number of concurrent ESC threads (api engine only). Each thread verifies one method at a time; the actual doESC calls within a single file are still serialized by an internal lock."
+        },
+        "openjml.syntaxColoringStrategy": {
+          "type": "string",
+          "enum": [
+            "ast",
+            "regex"
+          ],
+          "default": "regex",
+          "order": 9,
+          "markdownDescription": "Strategy for JML syntax coloring:\n- `ast` (default) — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check\n- `regex` — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "package": "vsce package --no-yarn"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "2.15.0"
+  },
+  "overrides": {
+    "cheerio": "1.0.0-rc.12",
+    "xml2js": ">=0.5.0"
+  }
+}

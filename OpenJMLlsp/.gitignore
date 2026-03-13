@@ -1,0 +1,4 @@
+build/
+libs/
+release-stage/
+vscode-extension/node_modules/

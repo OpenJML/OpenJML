@@ -8,7 +8,6 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlTree;
-import org.jmlspecs.openjml.esc.JmlEsc;
 import org.openjml.IAPI.IASTListener;
 
 import com.sun.tools.javac.code.Symbol;
