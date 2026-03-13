@@ -485,7 +485,7 @@ public class racnew extends RacBase {
                    try { m(1); } catch (Exception e) {} System.out.println("END");
                 }
                 static int k = 0;
-                \s
+
                 static void m(int i)
                     throws java.io.FileNotFoundException
                    { throw new RuntimeException(); }
