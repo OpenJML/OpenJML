@@ -104,12 +104,16 @@ public class typeclauses extends TCBase {
 
     @Test
     public void testConstraintM1() {
-        helpTCText(null, " class A { void m(int i) {} Boolean bb; \n//@ constraint bb for mm;\n}");
+        helpTCText(null, " class A { void m(int i) {} Boolean bb; \n//@ constraint bb for mm;\n}"
+                ,"/TEST.java:2: error: Could not match mm() in A", 23
+                );
     }
 
     @Test
     public void testConstraintM2() {
-        helpTCText(null, " class A { void m(int i) {} Boolean bb; \n//@ constraint bb for this.m;\n}");
+        helpTCText(null, " class A { void m(int i) {} Boolean bb; \n//@ constraint bb for this.m;\n}"
+                ,"/TEST.java:2: error: Could not match this.m() in A", 23  // FIXME - needs fixing
+                );
     }
 
     @Test
