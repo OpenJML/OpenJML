@@ -153,7 +153,8 @@ public class bugs extends TCBase {
     public void testMisc18() {
         // FIXME - this sort of thing ought to fail - all Java keywords need to be in Java land
         // Actually - public can be in a model method or ghost field declaration...
-        helpTCText("A.java","public class A { /*@ public non_null */ Object j;  \n} "
+        helpTCText("A.java",
+                "public class A { /*@ public non_null */ Object j;  \n} "
                 );
     }
 
