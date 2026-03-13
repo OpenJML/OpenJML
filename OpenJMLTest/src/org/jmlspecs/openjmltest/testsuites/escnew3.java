@@ -486,7 +486,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ requires true;\s
+                  //@ requires true;
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -502,7 +502,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ requires true; pure\s
+                  //@ requires true; pure
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -518,7 +518,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ pure\s
+                  //@ pure
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -534,7 +534,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  \s
+
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -550,7 +550,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  //@ pure\s
+                  //@ pure
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -582,7 +582,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  //@ requires true; pure\s
+                  //@ requires true; pure
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -630,7 +630,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  \s
+
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -646,7 +646,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ requires true;\s
+                  //@ requires true;
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -662,7 +662,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ pure\s
+                  //@ pure
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -678,7 +678,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ requires true; pure\s
+                  //@ requires true; pure
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -1014,9 +1014,9 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ requires i > -10 && i < 10;
                   public void m(int i) {
-                     if (i < 0)\s
+                     if (i < 0)
                         //@ assert i < 0;
-                        i = -i;\s
+                        i = -i;
                      //@ assert i >= 0;
                     }
                 }
@@ -1034,8 +1034,8 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ requires i > -10 && i < 10;
                   public void m(int i) {
-                     if (i < 0)\s
-                        i = -i;\s
+                     if (i < 0)
+                        i = -i;
                         //@ assert i < 0;
                      //@ assert i >= 0;
                     }
@@ -1055,8 +1055,8 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ requires i > -10 && i < 10;
                   public void m(int i) {
-                     if (i < 0)\s
-                        i = -i;\s
+                     if (i < 0)
+                        i = -i;
                         //@ assert i > 0;
                      //@ assert i >= 0;
                     }
@@ -1076,9 +1076,9 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   static public int k = 5;
                   //@ old int kk = k;
-                  //@ {| requires i < 10 && i > kk; assignable k; ensures k == i+1;\s
+                  //@ {| requires i < 10 && i > kk; assignable k; ensures k == i+1;
                   //@ also
-                  //@    requires i > -10 && i < kk; assignable k; ensures k == i-1;\s
+                  //@    requires i > -10 && i < kk; assignable k; ensures k == i-1;
                   //@ |}
                   static public void m(int i) {
                      if (i>k) k = i+1; else k = i-1;
@@ -1097,7 +1097,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   public String y = "";
-                 \s
+
                   public int[] foo() {
                      int[] result1 = new int[]{1};
                      int[] result2 = result1.clone();
@@ -1115,7 +1115,7 @@ public class escnew3 extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                  //@ ensures \\result == i>=0;\s
+                  //@ ensures \\result == i>=0;
                   //@ pure
                   public boolean bb(int i) { return i >= 0; }
                   public void foo() { int j;
@@ -1475,7 +1475,7 @@ public class escnew3 extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                  Object[] oo = new String[10];  //@ invariant oo.length > 1;\s
+                  Object[] oo = new String[10];  //@ invariant oo.length > 1;
                   //@ public normal_behavior
                   public void foo(int a) {
                      oo[0] = 1;
@@ -1919,7 +1919,7 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ A a) {
                      try { int j = a.x; } catch (NullPointerException e) {}
                   }
-                  public void fooAA(/*@ nullable */ A a, NullPointerException en) {//@ assume a == null & en != null;\s
+                  public void fooAA(/*@ nullable */ A a, NullPointerException en) {//@ assume a == null & en != null;
                      try { int j = a.x; } catch (NullPointerException e) {/*@ assert a == null; */ }
                      int k = a.x;
                   }

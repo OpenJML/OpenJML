@@ -17,7 +17,7 @@ public class escnew extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                 \s
+
                   public void m1bad(int i) {
                     //@ assert i>0 ;
                   }
@@ -52,7 +52,7 @@ public class escnew extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                 \s
+
                   public void m1bad(int i) {
                     //@ assert i>0 ;
                   }
@@ -429,7 +429,7 @@ public class escnew extends EscBase {
                        //@ assert \\old(j,b) == 1;
                        //@ assert \\old(i,b) == 1;
                        //@ assert \\pre(i) == 0;
-                       \s
+
                   }
                 }
                 """
@@ -758,12 +758,12 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava {
                   public void m2good(int i) {
-                      //@ ghost int k = 0;      //@\s
+                      //@ ghost int k = 0;      //@
                       //@ assert k == 0;
                   }
                   //@ requires i != 0;
                   public void m2bad(int i) {
-                      //@ ghost int k = 0;      //@\s
+                      //@ ghost int k = 0;      //@
                       //@ assert k == 1;
                   }
                 }
