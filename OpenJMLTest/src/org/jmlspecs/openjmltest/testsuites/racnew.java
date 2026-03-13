@@ -1152,7 +1152,8 @@ public class racnew extends RacBase {
                  //@ ensures 10/(i-1) == 0;
                  static public void m(int i) {
                    System.out.println("VALUE " + i);
-                } }
+                 }
+                }
                 """
                 ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"JML undefined precondition - exception thrown" // FIXME - this should have a line number

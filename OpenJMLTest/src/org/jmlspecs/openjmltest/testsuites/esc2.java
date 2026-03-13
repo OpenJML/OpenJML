@@ -84,32 +84,32 @@ public class esc2 extends EscBase {
                     long[] a = { 1,2,3,4};
                     for (long k: a) {
                     }
-                    //@ ghost int i = \\count;
+                    //@ ghost int i = \\count; // Out of scope
                   }
                   public void m2() {
                     long[] a = { 1,2,3,4};
-                    //@ ghost int i = \\count;
+                    //@ ghost int i = \\count; // Out of scope
                   }
                   public void m4() {
                     long[] a = { 1,2,3,4};
                     for (long k: a) {
-                      //@ set \\count = 6;
+                      //@ set \\count = 6;  // Syntax error
                     }
                   }
                   public void v1a() {
                     Integer[] a = { 1,2,3,4};
                     for (Integer k: a) {
                     }
-                    //@ ghost org.jmlspecs.lang.JMLList i = \\values;
+                    //@ ghost org.jmlspecs.lang.JMLList i = \\values; // Out of scope
                   }
                   public void v2() {
                     long[] a = { 1,2,3,4};
-                    //@ ghost org.jmlspecs.lang.JMLList i = \\values;
+                    //@ ghost org.jmlspecs.lang.JMLList i = \\values; // Out of scope
                     }
                   public void v4() {
                     Integer[] a = { 1,2,3,4};
                     for (Integer k: a) {
-                      //@ set \\values = null;
+                      //@ set \\values = null; // Syntax error
                     }
                   }
                   public void v10a() {
@@ -142,8 +142,8 @@ public class esc2 extends EscBase {
               public class TestJava {
                 public void m1x(Object[] a) {
                   //@ assume a == null;
-                  //@ check !\\nonnullelements(a);
-                  //@ check \\nonnullelements(a);
+                  //@ check !\\nonnullelements(a); // OK
+                  //@ check \\nonnullelements(a);  // NO
                 }
               }
               """
@@ -163,17 +163,17 @@ public class esc2 extends EscBase {
                   public void m1x(Object[] a) {
                     //@ assume \\nonnullelements(a);
                     //@ assume a.length > 1;
-                    //@ assert a[0] != null;
+                    //@ assert a[0] != null; // OK
                   }
                   //@ modifies \\everything;
                   public void m11(Object[] a) {
                     //@ assume \\nonnullelements(a);
-                    //@ assert a != null;
+                    //@ assert a != null;   // OK
                   }
                   //@ modifies \\everything;
                   public void m11a(/*@ non_null */ Object[] a) {
                     //@ assume \\nonnullelements(a);
-                    //@ assert a == null;
+                    //@ assert a == null;   // BAD
                   }
                 }
                 """
@@ -190,7 +190,7 @@ public class esc2 extends EscBase {
                   //@ modifies \\everything;
                   public void m1a(Object[] a) {
                     //@ assume a != null && a.length > 1;
-                    //@ assert a[0] != null;
+                    //@ assert a[0] != null; // ERROR
                   }
                 }
                 """
@@ -208,7 +208,7 @@ public class esc2 extends EscBase {
                   //@ modifies \\everything;
                   public void m2(Object[] a) {
                     //@ assume a != null && a.length == 0;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                 }
                 """
@@ -224,7 +224,7 @@ public class esc2 extends EscBase {
                   //@ modifies \\everything;
                   public void m22(Object[] a) {
                     //@ assume a != null && a.length == 0;
-                    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);
+                    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null); // OK
                   }
                 }
                 """
@@ -242,20 +242,20 @@ public class esc2 extends EscBase {
                   //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
                   public void m3(Object[] a) {
                     a[0] = new Object();
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                   //@ requires a != null && a.length == 1;
                   //@ modifies \\everything;
                   public void m33(Object[] a) {
                     //@ assume a[0] != null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a);  // OK
                   }
                   //@ requires a != null && a.length == 2;
                   //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
                   public void m4(Object[] a) {
                     a[0] = new Object();
                     a[1] = new Object();
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a);   // OK
                   }
                 }
                 """
@@ -273,26 +273,26 @@ public class esc2 extends EscBase {
                     //@ assume a != null && a.length == 2;
                     //@ assume a[0] != null;
                     //@ assume a[1] != null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                   //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
                   public void m4a(Object[] a) {
                     //@ assume a != null && a.length == 3;
                     a[0] = new Object();
                     a[1] = new Object();
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // BAD -- FIXME cannot infer a forall quantifier from the individual statements
                   }
                   //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
                   public void m5(Object[] a) {
                     //@ assume \\nonnullelements(a) && a.length == 3;
                     a[0] = new Object();
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a);  // OK
                   }
                   //@ modifies \\everything;
                   public void m5a(Object[] a) {
                     //@ assume a != null && a.length == 3;
                     a[0] = null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // ERROR
                   }
                 }
                 """
@@ -315,12 +315,12 @@ public class esc2 extends EscBase {
                   //@ modifies \\everything;
                   public void m1(int i) {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // OK
                   }
                   //@ modifies \\everything;
                   public void m1a(int i) {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // ERROR
                   }
                   public int i;
                   public static int si;
@@ -329,34 +329,34 @@ public class esc2 extends EscBase {
                   //@ modifies \\everything;
                   public void m2() {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // OK
                   }
                   //@ modifies \\everything;
                   public void m2a() {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // ERROR
                   }
                   //@ requires si == 5;
                   //@ modifies \\everything;
                   public void m3() {
                     si = 5;
-                    //@ assert \\not_modified(si);
+                    //@ assert \\not_modified(si);  // OK
                   }
                   //@ modifies \\everything;
                   public void m3a() {
                     si = 5;
-                    //@ assert \\not_modified(si);
+                    //@ assert \\not_modified(si);  // ERROR
                   }
                   //@ requires gi == 5;
                   //@ modifies \\everything;
                   public void m4() {
                     //@ set gi = 5;
-                    //@ assert \\not_modified(gi);
+                    //@ assert \\not_modified(gi);   // OK
                   }
                   //@ modifies \\everything;
                   public void m4a() {
                     //@ set gi = 5;
-                    //@ assert \\not_modified(gi);
+                    //@ assert \\not_modified(gi);   // ERROR
                   }
                 }
                 """
@@ -379,23 +379,23 @@ public class esc2 extends EscBase {
                   //@ requires t != null;
                   //@ modifies \\everything;
                   public void m0() {
-                    //@ assert \\not_modified(t.i);
+                    //@ assert \\not_modified(t.i); // OK
                   }
                   //@ requires t != null;
                   //@ modifies \\everything;
                   public void m1a() {
                     t = null;
-                    //@ assert \\not_modified(t.i) ? true: true;
+                    //@ assert \\not_modified(t.i) ? true: true;  // ERROR
                   }
                   //@ requires t == null;
                   //@ modifies \\everything;
                   public void m1b() {
                     t = new TestJava();
-                    //@ assert \\not_modified(t.i) ? true: true;
+                    //@ assert \\not_modified(t.i) ? true: true;   // OK
                   }
                   //@ modifies \\everything;
                   public void m1c() {
-                    //@ assert \\not_modified(t.i) ? true: true;
+                    //@ assert \\not_modified(t.i) ? true: true;   // ERROR
                   }
                 }
                 """
@@ -511,12 +511,14 @@ public class esc2 extends EscBase {
                 """
                 ,anyorder(
                 seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69)
-                
+                // ,"/tt/TestJava.java:4: verify: Associated declaration",69
                 ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (LoopDecreases) in method instc",69)
-                
+                // ,"/tt/TestJava.java:5: verify: Associated declaration",69                
                 ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (LoopInvariant) in method instc",40)
                 ,seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (LoopInvariant) in method instd",40)
                 )
+                // ,"/tt/TestJava.java:6: verify: Associated declaration",40
+                // FIXME - adjust to have the location + associated declaration
                 );
     }
 
@@ -777,6 +779,12 @@ public class esc2 extends EscBase {
                 }
                 """
                 );
+        // +" public static void m2(int a, int b) { /*@ assert a * b ==
+        // a *(b-1) + a; */ }\n"
+        // +" public static void m6(int a, int b) { /*@ assert (a >= 0
+        // && b > 0) ==> (a%b) >= 0; */ }\n"
+        // +" public static void m7(int a, int b) { /*@ assert (a >= 0
+        // && b > 0) ==> ((a*b)%b) == 0; */ }\n"
     }
 
     @Test
@@ -1341,17 +1349,14 @@ public class esc2 extends EscBase {
                   }
                 }
                 """
-                ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m",
-                        14,
+                ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m", 14,
                         anyorder(
                                 seq("/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",
                                         14),
                                 seq("/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1",
                                         14)),
-                        "/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2",
-                        14,
-                        "/tt/TestJava.java:17: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3",
-                        14,
+                        "/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m2", 14,
+                        "/tt/TestJava.java:17: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m3", 14,
                         "/tt/TestJava.java:20: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m4",
                         14,
                         "/tt/TestJava.java:23: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m5",
@@ -1480,28 +1485,28 @@ public class esc2 extends EscBase {
                   public int j = 1;
                   public static @Nullable TestJava t;
                   public static void m(TestJava o) {
-                    //@ assume o.j == 1;
+                    //@ assume o.j == 1;  // ERROR
                   }
                     public static void m1(TestJava o) {
-                    //@ assert o.j == 1 ? true : true;
+                    //@ assert o.j == 1 ? true : true; // ERROR
                   }
                     public static void m2(TestJava o) {
-                    //@ ghost int i = o.j;
+                    //@ ghost int i = o.j;  // ERROR
                   }
                     public static void m3(TestJava o) {
-                    //@ ghost int i; set   i = o.j;
+                    //@ ghost int i; set   i = o.j;  // ERROR
                   }
-                    //@ requires o.j == 1;
+                    //@ requires o.j == 1;          // ERROR
                   public static void m4(@Nullable TestJava o) {
                   }
-                    //@ ensures t.j == 1 ? true : true;
+                    //@ ensures t.j == 1 ? true : true;  // ERROR
                   public static void m5(TestJava o) {
                   }
-                    public static void m6(TestJava o) {
+                    public static void m6(TestJava o) { // ERROR
                     //@ ghost int i; set i = o.j;
                   }
                   }
-                """
+                """    // FIXME - all of these should be PossiblylNullDereference
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m", 17
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1", 17
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2", 24
@@ -1597,7 +1602,7 @@ public class esc2 extends EscBase {
                   public static TestJava t;
                   public void m(TestJava o) {
                   }
-                    // @ axiom (\\forall TestJava q;; q.j ==1);
+                    // @ axiom (\\forall TestJava q;; q.j ==1); // FIXME
                 }
                 """
                 );
@@ -1643,6 +1648,10 @@ public class esc2 extends EscBase {
                   }
                   }
                 """
+                // TODO for, while, foreach, do, switch, case, if,
+                // throw, method call, index, conditional,
+                // annotation, binary, unary, conditional, new array,
+                // new class, return, synchronized
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1", 14
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2", 6
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3", 6
@@ -1795,6 +1804,11 @@ public class esc2 extends EscBase {
                 """
                 ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assert) in method ma", 9
                 );
+        // FIXME - enventually rejuvenate dead branch detection
+        // ,"/tt/TestJava.java:42: verify: else branch apparently never taken
+        // in method tt.TestJava.m1(int)",14
+        // ,"/tt/TestJava.java:59: verify: else branch apparently never taken
+        // in method tt.TestJava.m11(int)",14
     }
 
     @Test
@@ -2544,7 +2558,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testArrayLength() {
-        addOptions("-nonnullByDefault");
+        addOptions("--nonnull-by-default");
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -2702,7 +2716,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testVarargs2() {
-        addOptions("-nonnullByDefault");
+        addOptions("--nonnull-by-default");
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -2746,7 +2760,7 @@ public class esc2 extends EscBase {
 
     @Test
     public void testVarargs2X() {
-        addOptions("-nonnullByDefault");
+        addOptions("--nonnull-by-default");
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -2791,7 +2805,7 @@ public class esc2 extends EscBase {
     @Test // Incorrect syntax for \lbl produced an exception, but I could not reproduce that behavior here
     public void testLblError() {
         expectedExit = 1;
-        addOptions("-nonnullByDefault");
+        addOptions("--nonnull-by-default");
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -2846,7 +2860,7 @@ public class esc2 extends EscBase {
                           }
                         }
                         """
-                        ,anyorder(seq(
+                ,anyorder(seq(
                  "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:5: verify: Associated declaration",41
                 ,"/tt/TestJava.java:12: verify: Associated method exit",29
@@ -2914,7 +2928,7 @@ public class esc2 extends EscBase {
 
 
     @Test
-    public void testFinalInvariant3() {
+    public void testFinalInvariant3() { 
         expectedExit = 0;
         helpEsc("tt.TestJava",
                 """
@@ -2943,6 +2957,8 @@ public class esc2 extends EscBase {
                 """
                 ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii (translating tt.TestJava.TestJava())", 27
                 ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii (translating tt.TestJava.mm())", 27
+//              ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (InvariantExit) in method TestJava",8
+//              ,"/tt/TestJava.java:4: verify: Associated declaration",20
                 );
     }
 
@@ -3289,7 +3305,7 @@ public class esc2 extends EscBase {
                   public int iii;
                   //@ signals_only NullPointerException;
                   public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {
-                    int i = t.iii;
+                    int i = t.iii;   // OK NullPointerException permitted
                     i = t.iii;
                   }
                 }
@@ -3306,7 +3322,7 @@ public class esc2 extends EscBase {
                   public int iii;
                   public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {
                     try {
-                      int i = t.iii;
+                      int i = t.iii;    // OK NullPointerException permitted
                       i = t.iii;
                  } catch (NullPointerException e) {}
                   }

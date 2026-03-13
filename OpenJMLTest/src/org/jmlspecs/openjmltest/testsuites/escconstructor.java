@@ -39,7 +39,7 @@ public class escconstructor extends EscBase {
                   //@ assignable \\nothing;
                   public TestJava() {
                     a = 10;
-                    b = 10;
+                    b = 10;  // Not allowed
                   }
                 }
                 """
@@ -60,7 +60,7 @@ public class escconstructor extends EscBase {
 
                   public TestJava() {
                     a = 10;
-                    b = 10;
+                    b = 10; // Not allowed
                   }
                 }
                 """
@@ -80,7 +80,7 @@ public class escconstructor extends EscBase {
                   //@ assignable \\nothing;
                   public TestJava() {
                     a = 10;
-                    b = 10;
+                    b = 10; // Not allowed
                   }
                 }
                 """
