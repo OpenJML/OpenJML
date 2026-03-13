@@ -1146,7 +1146,7 @@ public class typechecking extends TCBase {
     
     @Test public void testBadModelImport2() {
         helpTCText("A.java","/*@ model */ import java.util.List;\n public class A {\n  \n }"
-                ,"/A.java:1: error: A model import declaration must be completely within a JML comment",14,13,13,34
+                ,"/A.java:1: error: A model import declaration must be completely within a JML comment",14,13,13,35
         );
     }
     
