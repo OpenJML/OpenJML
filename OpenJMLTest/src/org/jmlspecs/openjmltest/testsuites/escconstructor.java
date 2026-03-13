@@ -31,18 +31,20 @@ public class escconstructor extends EscBase {
     @Test
     public void testAssignable() {
         helpEsc("tt.TestJava",
-                          "package tt; \n"
-                        + "public class TestJava { \n"
-                        + "  public int a;\n"
-                        + "  static public int b;\n"
-                        + "  //@ assignable \\nothing; \n"
-                        + "  public TestJava() {\n"
-                        + "    a = 10; \n"
-                        + "    b = 10; \n" // Not allowed
-                        + "  }\n" 
-                        + "}\n"
-                        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-                        ,"/tt/TestJava.java:5: verify: Associated declaration", 7
+                """
+                package tt;
+                public class TestJava {
+                  public int a;
+                  static public int b;
+                  //@ assignable \\nothing;
+                  public TestJava() {
+                    a = 10;
+                    b = 10;  // Not allowed
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 7
                 );
     }
 
@@ -50,75 +52,82 @@ public class escconstructor extends EscBase {
     public void testAssignableDefault() {
         main.addOptions("-defaults=constructor:pure");
         helpEsc("tt.TestJava",
-                          "package tt; \n"
-                        + "public class TestJava { \n"
-                        + "   int a;\n"
-                        + "  static  int b;\n"
-                        + "   \n"
-                        + "  public TestJava() {\n"
-                        + "    a = 10; \n"
-                        + "    b = 10; \n" // Not allowed
-                        + "  }\n" 
-                        + "}\n"
-                        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-                        ,"/tt/TestJava.java:6: verify: Associated declaration", 10
+                """
+                package tt;
+                public class TestJava {
+                   int a;
+                  static  int b;
+
+                  public TestJava() {
+                    a = 10;
+                    b = 10; // Not allowed
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 10
                 );
     }
 
     @Test
     public void testAssignableDefault2() {
         helpEsc("tt.TestJava",
-                          "package tt; \n"
-                        + "public class TestJava { \n"
-                        + "   int a;\n"
-                        + "  static  int b;\n"
-                        + "  //@ assignable \\nothing; \n"
-                        + "  public TestJava() {\n"
-                        + "    a = 10; \n"
-                        + "    b = 10; \n" // Not allowed
-                        + "  }\n" 
-                        + "}\n"
-                        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-                        ,"/tt/TestJava.java:5: verify: Associated declaration", 7
+                """
+                package tt;
+                public class TestJava {
+                   int a;
+                  static  int b;
+                  //@ assignable \\nothing;
+                  public TestJava() {
+                    a = 10;
+                    b = 10; // Not allowed
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 7
                 );
     }
 
     @Test
     public void testCheckFields() {
         helpEsc("tt.TestJava",
-                          "package tt; \n"
-                        + "public class TestJava { \n"
-                        + "   public int a;\n"
-                        + "   public int b = 0;\n"
-                        + "   public int c = 10;\n"
-                        + "   public int cc; { cc = 15; }\n"
-                        + "   //@ ghost public int d = 20;\n"
-                        + "   //@ initially a == 0 && b == 0 && c == 10 && cc == 15 && d == 20;"
-                        + "  //@ assignable \\nothing; \n"
-                        + "  //@ ensures a == 0 && b == 0 && c == 10 && cc == 15; \n"
-                        + "  public TestJava() {\n"
-                        + "    //@ assert a == 0; \n"
-                        + "    //@ assert b == 0; \n"
-                        + "    //@ assert c == 10; \n"
-                        + "  }\n" 
-                        + "}\n"
+                """
+                package tt;
+                public class TestJava {
+                   public int a;
+                   public int b = 0;
+                   public int c = 10;
+                   public int cc; { cc = 15; }
+                   //@ ghost public int d = 20;
+                   //@ initially a == 0 && b == 0 && c == 10 && cc == 15 && d == 20;  //@ assignable \\nothing;
+                  //@ ensures a == 0 && b == 0 && c == 10 && cc == 15;
+                  public TestJava() {
+                    //@ assert a == 0;
+                    //@ assert b == 0;
+                    //@ assert c == 10;
+                  }
+                }
+                """
                 );
     }
 
     @Test
     public void testInvariants() {
         helpEsc("tt.TestJava",
-                          "package tt; \n"
-                        + "public class TestJava { \n"
-                        + "   public int b = 10;\n"
-                        + "   //@ public invariant b == 10;\n"
-                        + "  //@ assignable \\nothing; \n"
-                        + "  public TestJava(TestJava arg) {\n"
-                        + "    //@ assert arg != this; \n"
-                        + "    //@ assert b == 10; \n"
-                        + "    //@ assert arg.b == 10; \n"
-                        + "  }\n" 
-                        + "}\n"
+                """
+                package tt;
+                public class TestJava {
+                   public int b = 10;
+                   //@ public invariant b == 10;
+                  //@ assignable \\nothing;
+                  public TestJava(TestJava arg) {
+                    //@ assert arg != this;
+                    //@ assert b == 10;
+                    //@ assert arg.b == 10;
+                  }
+                }
+                """
                 );
     }
 }

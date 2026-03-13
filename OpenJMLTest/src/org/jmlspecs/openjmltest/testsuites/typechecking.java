@@ -460,17 +460,27 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testResult2() {
-        String s = " class A { int k; Boolean b;\n/*@ ensures \\result >= 1; */\nboolean m() { \n return true;\n}}";
-        helpTCText("A.java",s,
-                "/A.java:2: error: bad operand types for binary operator '>='\n"
+        helpTCText("A.java",
+                """
+                 class A { int k; Boolean b;
+                /*@ ensures \\result >= 1; */
+                boolean m() {
+                 return true;
+                }}
+                """
+                ,"/A.java:2: error: bad operand types for binary operator '>='\n"
                 + "  first type:  boolean\n"
                 + "  second type: int",21);
     }
 
     @Test public void testResult5() {
-        String s = " class A { int k; Boolean b;\n/*@ ensures \\result == 1; */\n void m() { }}";
-        helpTCText("A.java",s,
-                "/A.java:2: error: A \\result expression may not be used in the specification of a method that returns void",14);
+        helpTCText("A.java",
+                """
+                 class A { int k; Boolean b;
+                /*@ ensures \\result == 1; */
+                 void m() { }}
+                """
+                ,"/A.java:2: error: A \\result expression may not be used in the specification of a method that returns void",14);
     }
 
     /** Tests an input that gave bugs once before */
@@ -1025,9 +1035,11 @@ public class typechecking extends TCBase {
     
     @Test public void testFreshWeirdError() {
         helpTCText("WeirdError.java",
-                "public class WeirdError {\n" +
-                " public Foo getFoo() { return null; }\n" +
-                "}\n"
+                """
+                public class WeirdError {
+                 public Foo getFoo() { return null; }
+                }
+                """
                 ,"/WeirdError.java:2: error: cannot find symbol\n  symbol:   class Foo\n  location: class WeirdError",9
                // ,"/WeirdError.java:2: error: A \\result expression may not be used in the specification of a method that returns void",14
                 );
@@ -1223,64 +1235,71 @@ public class typechecking extends TCBase {
     
     // Bug: 3377329
     @Test public void testBug5() {
-        helpTCText("A.java","public class A {\n"
-                +"  public void test1(Object[] blub) {\n"
-                +"    //@ loop_invariant 0<=i && i <= blub.length;\n"
-                +"    for(int i=0; i< blub.length; i++) {\n"
-                +"      /*@nullable @*/ Object b = blub[i];\n"
-                +"      if (b == null)\n"
-                +"        continue;\n"
-                +"    }\n"
-                +"  }\n"
-                +"  public void test2(Object[] blub) {\n"
-                +"    for(Object b : blub) {\n"
-                +"      if (b == null)\n"
-                +"        continue;\n"
-                +"    }\n"
-                +"  }\n"
-                +"}"
+        helpTCText("A.java",
+                """
+                public class A {
+                  public void test1(Object[] blub) {
+                    //@ loop_invariant 0<=i && i <= blub.length;
+                    for(int i=0; i< blub.length; i++) {
+                      /*@nullable @*/ Object b = blub[i];
+                      if (b == null)
+                        continue;
+                    }
+                  }
+                  public void test2(Object[] blub) {
+                    for(Object b : blub) {
+                      if (b == null)
+                        continue;
+                    }
+                  }
+                }
+                """
                 );
     }
     
     // Bug: 3377329
     @Test public void testBug5a() {
-        helpTCText("A.java","public class A {\n"
-                +"  public void test1(Object[] blub) {\n"
-                +"    //@ loop_invariant 0<=i && i <= blub.length;\n"
-                +"    for(int i=0; i< blub.length; i++) {\n"
-                +"      /*@nullable @*/ Object b = blub[i];\n"
-                +"      if (b == null)\n"
-                +"        break;\n"
-                +"    }\n"
-                +"  }\n"
-                +"  public void test2(Object[] blub) {\n"
-                +"    for(Object b : blub) {\n"
-                +"      if (b == null)\n"
-                +"        break;\n"
-                +"    }\n"
-                +"  }\n"
-                +"}"
+        helpTCText("A.java",
+                """
+                public class A {
+                  public void test1(Object[] blub) {
+                    //@ loop_invariant 0<=i && i <= blub.length;
+                    for(int i=0; i< blub.length; i++) {
+                      /*@nullable @*/ Object b = blub[i];
+                      if (b == null)
+                        break;
+                    }
+                  }
+                  public void test2(Object[] blub) {
+                    for(Object b : blub) {
+                      if (b == null)
+                        break;
+                    }
+                  }
+                }
+                """
                 );
     }
     
     // Bug: 3388690
     @Test public void testBug6() {
         expectedExit = 0;
-        helpTCText("Test.java","public class Test {\n"
-                +"private final int my_height; /*@ in height; @*/\n"
-  
-                +"  /*@ public model int height;\n"
-                +"      in_redundantly height;\n"
-                +"      public invariant 0 < height;\n"
-                +"      public constraint \\old(height) == height;\n"
-                +"      private represents height = my_height;\n"
-                +"      private invariant 0 < my_height;\n"
-                +"  @*/\n"
-  
-                +"  public Test() {\n"
-                +"    my_height = 1;\n"
-                +"  }\n"
-                +"}\n"
+        helpTCText("Test.java",
+                """
+                public class Test {
+                private final int my_height; /*@ in height; @*/
+                  /*@ public model int height;
+                      in_redundantly height;
+                      public invariant 0 < height;
+                      public constraint \\old(height) == height;
+                      private represents height = my_height;
+                      private invariant 0 < my_height;
+                  @*/
+                  public Test() {
+                    my_height = 1;
+                  }
+                }
+                """
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
                 ,"/Test.java:4: warning: Do not include a datagroup in itself: height",22
         );
@@ -1289,9 +1308,11 @@ public class typechecking extends TCBase {
     @Test public void testComment() {
         expectedExit = 1;
         helpTCText("Test.java",
-                "public class Test {\n"+
-                "  /*@ ghost String s = \"asdf */\"; */\n"+
-                "}\n"
+                """
+                public class Test {
+                  /*@ ghost String s = "asdf */"; */
+                }
+                """
                 ,"/Test.java:2: error: Unclosed string literal at end of JML annotation",30
                 ,"/Test.java:2: error: unclosed string literal",32
                 ,"/Test.java:4: error: reached end of file while parsing",1
@@ -1301,11 +1322,13 @@ public class typechecking extends TCBase {
     @Test public void testComment2() {
         expectedExit = 1;
         helpTCText("Test.java",
-                "public class Test {\n"+
-                        "  /*@ ghost int i = 0; /* comment */\n"+
-                        "  /*@ ghost int j = 0; */\n"+
-                        "  /*@ ghost int k = 0; */\n"+
-                "}\n"
+                """
+                public class Test {
+                  /*@ ghost int i = 0; /* comment */
+                  /*@ ghost int j = 0; */
+                  /*@ ghost int k = 0; */
+                }
+                """
                 ,"/Test.java:2: error: Block comments may not be embedded inside JML block comments",24
             );
     }
@@ -1313,65 +1336,71 @@ public class typechecking extends TCBase {
     @Test public void testComment3() {
         expectedExit = 1;
         helpTCText("Test.java",
-                "public class Test {\n"+
-                        "  /*@ ghost int i = 0;\n"+
-                        "    @ ghost String j = \"  ; \n"+
-                        "    @ ghost int k = 0; */\n"+
-                "}\n"
+                """
+                public class Test {
+                  /*@ ghost int i = 0;
+                    @ ghost String j = "  ;
+                    @ ghost int k = 0; */
+                }
+                """
                 ,"/Test.java:3: error: unclosed string literal",24
-                ,"/Test.java:3: error: ';' expected", 29
+                ,"/Test.java:3: error: ';' expected", 28
             );
     }
     
     @Test public void testSpillover1() {
         expectedExit = 0;
         helpTCText("Test.java",
-                "public class Test {\n"+
-                "//@ requires i \n"+
-                "//@    > 0\n"+
-                "//@   ; ensures \\result > \n"+
-                "//@   0\n"+
-                "  public int m(int i) { return i;} \n"+
-                "}\n"
+                """
+                public class Test {
+                //@ requires i
+                //@    > 0
+                //@   ; ensures \\result >
+                //@   0
+                  public int m(int i) { return i;}
+                }
+                """
                 ,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
             );
     }
     
     @Test public void testSpillover2() {
         helpTCText("Test.java",
-                "public class Test {\n"+
-                "//@ requires i \n"+
-                "//@    > 0\n"+
-                "//@   ensures \\result > \n"+
-                "//@   0\n"+
-                "  public int m(int i) { return i;} \n"+
-                "}\n"
+                """
+                public class Test {
+                //@ requires i
+                //@    > 0
+                //@   ensures \\result >
+                //@   0
+                  public int m(int i) { return i;}
+                }
+                """
                 ,"/Test.java:3: error: Incorrectly formed or terminated requires statement near here -- perhaps a missing semicolon",11
                 ,"/Test.java:5: warning: Inserting missing semicolon at the end of a ensures statement",8
             );
     }
     
     @Test public void testBug6a() {
-        helpTCText("Test.java","public class Test {\n"
-                +"private final int my_height; /*@ in height; @*/\n"
-  
-                +"  /*@ public model int height;\n"
-                +"      in_redundantly height2;\n"
-                +"  @*/\n"
-  
-                +"  /*@ public model int height2;\n"
-                +"      in_redundantly height;\n"
-                +"  @*/\n"
-  
-                +"  public Test() {\n"
-                +"    my_height = 1;\n"
-                +"  }\n"
-                +"}\n"
+        helpTCText("Test.java",
+                """
+                public class Test {
+                private final int my_height; /*@ in height; @*/
+                  /*@ public model int height;
+                      in_redundantly height2;
+                  @*/
+                  /*@ public model int height2;
+                      in_redundantly height;
+                  @*/
+                  public Test() {
+                    my_height = 1;
+                  }
+                }
+                """
                 ,"/Test.java:6: error: This field participates in a circular datagroup inclusion chain: height2 -> height -> height2",24
                 ,"/Test.java:3: error: This field participates in a circular datagroup inclusion chain: height -> height2 -> height",24
                 ,"/Test.java:2: error: This field participates in a circular datagroup inclusion chain: my_height -> height -> height2 -> height",19
         );
-        
+
     }
     
     @Test
@@ -1424,23 +1453,29 @@ public class typechecking extends TCBase {
     }
 
     @Test public void testJmlLabelExpression() {
-        helpTCText("TestJava.java","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public int m1bad(boolean b, int k) {\n"
-                +"    int j = 0;\n"
-                +"    //@ ghost boolean bb = (\\forall int i; 0<=i && i <=4; 0!=(\\lbl LBL i));\n"
-                +"    return 1;\n"
-                +"  }\n"
-                +"}"
+        helpTCText("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1bad(boolean b, int k) {
+                    int j = 0;
+                    //@ ghost boolean bb = (\\forall int i; 0<=i && i <=4; 0!=(\\lbl LBL i));
+                    return 1;
+                  }
+                }
+                """
                 ,"/TestJava.java:5: error: A JML label expression may not be within a quantified or set-comprehension expression",63
                 );
     }
 
     @Test public void testKeywords() {
-        helpTCText("TestJava.java","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ model public void m1bad(java.util.function.Function<Integer,Integer> f) ;\n"                
-                +"}"
+        helpTCText("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ model public void m1bad(java.util.function.Function<Integer,Integer> f) ;
+                }
+                """
                 );
     }
 
@@ -1720,90 +1755,72 @@ public class typechecking extends TCBase {
 
     @Test public void testSpecCaseVisibility() {
         expectedExit = 0; // Only warnings
-        helpTCText("TestJava.java","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ public behavior requires true;\n"
-                +"  public void m1p() {\n"
-                +"  }\n"
-                
-                +"  //@ protected behavior requires true;\n"
-                +"  public void m1r() {\n"
-                +"  }\n"
-                
-                +"  //@ behavior requires true;\n"
-                +"  public void m1k() {\n"
-                +"  }\n"
-                
-                +"  //@ private behavior requires true;\n"
-                +"  public void m1v() {\n"
-                +"  }\n"
-                
-                +"  //@ requires true;\n"
-                +"  public void m1() {\n"
-                +"  }\n"
-                
-                +"  //@ public behavior requires true;\n"  // Warning
-                +"  protected void m2p() {\n"
-                +"  }\n"
-                
-                +"  //@ protected behavior requires true;\n"
-                +"  protected void m2r() {\n"
-                +"  }\n"
-                
-                +"  //@ behavior requires true;\n"
-                +"  protected void m2k() {\n"
-                +"  }\n"
-                
-                +"  //@ private behavior requires true;\n"
-                +"  protected void m2v() {\n"
-                +"  }\n"
-                
-                +"  //@ requires true;\n"
-                +"  protected void m2() {\n"
-                +"  }\n"
-                
-                +"  //@ public behavior requires true;\n" // Warning
-                +"  private void m3p() {\n"
-                +"  }\n"
-                
-                +"  //@ protected behavior requires true;\n" // Warning
-                +"  private void m3r() {\n"
-                +"  }\n"
-                
-                +"  //@ behavior requires true;\n"  // Warning
-                +"  private void m3k() {\n"
-                +"  }\n"
-                
-                +"  //@ private behavior requires true;\n"
-                +"  private void m3v() {\n"
-                +"  }\n"
-                
-                +"  //@ requires true;\n"
-                +"  private void m3() {\n"
-                +"  }\n"
-                
-                +"  //@ public behavior requires true;\n" // Warning
-                +"  void m4p() {\n"
-                +"  }\n"
-                
-                +"  //@ protected behavior requires true;\n" // Warning
-                +"  void m4r() {\n"
-                +"  }\n"
-                
-                +"  //@ behavior requires true;\n"
-                +"  void m4k() {\n"
-                +"  }\n"
-                
-                +"  //@ private behavior requires true;\n"
-                +"  void m4v() {\n"
-                +"  }\n"
-                
-                +"  //@ requires true;\n"
-                +"  void m4() {\n"
-                +"  }\n"
-                
-
-                +"}"
+        helpTCText("TestJava.java",
+                """
+                package tt;
+                public class TestJava {
+                  //@ public behavior requires true;
+                  public void m1p() {
+                  }
+                  //@ protected behavior requires true;
+                  public void m1r() {
+                  }
+                  //@ behavior requires true;
+                  public void m1k() {
+                  }
+                  //@ private behavior requires true;
+                  public void m1v() {
+                  }
+                  //@ requires true;
+                  public void m1() {
+                  }
+                  //@ public behavior requires true;
+                  protected void m2p() {
+                  }
+                  //@ protected behavior requires true;
+                  protected void m2r() {
+                  }
+                  //@ behavior requires true;
+                  protected void m2k() {
+                  }
+                  //@ private behavior requires true;
+                  protected void m2v() {
+                  }
+                  //@ requires true;
+                  protected void m2() {
+                  }
+                  //@ public behavior requires true;
+                  private void m3p() {
+                  }
+                  //@ protected behavior requires true;
+                  private void m3r() {
+                  }
+                  //@ behavior requires true;
+                  private void m3k() {
+                  }
+                  //@ private behavior requires true;
+                  private void m3v() {
+                  }
+                  //@ requires true;
+                  private void m3() {
+                  }
+                  //@ public behavior requires true;
+                  void m4p() {
+                  }
+                  //@ protected behavior requires true;
+                  void m4r() {
+                  }
+                  //@ behavior requires true;
+                  void m4k() {
+                  }
+                  //@ private behavior requires true;
+                  void m4v() {
+                  }
+                  //@ requires true;
+                  void m4() {
+                  }
+                }
+                """
                 ,"/TestJava.java:18: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
                 ,"/TestJava.java:33: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
                 ,"/TestJava.java:36: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
