@@ -2341,7 +2341,7 @@ public class esc2 extends EscBase {
                    }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method TestJava", 10
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method TestJava", 11
                 ,"/tt/TestJava.java:4: verify: Associated declaration", 21
                 );
     }
