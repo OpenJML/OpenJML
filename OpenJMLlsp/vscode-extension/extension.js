@@ -149,6 +149,8 @@ function getSettings() {
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
         syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'regex'),
+        escEngine:               cfg.get('escEngine',               'subprocess'),
+        escThreads:              cfg.get('escThreads',              5),
     };
 }
 
