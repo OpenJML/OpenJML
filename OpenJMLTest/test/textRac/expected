@@ -1,0 +1,10 @@
+Proving methods in BL
+Starting proof of BL.BL() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BL.BL() with prover !!!! - no warnings
+Starting proof of BL.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BL.main(String...) with prover !!!! - no warnings
+Completed proving methods in BL
