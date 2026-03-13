@@ -207,8 +207,8 @@ public class namelookup extends TCBase {
                  class A {  \s
                    //@ ghost double k;
                    void m() {
-                      boolean kk = k;
-                      //@ assert k;
+                      boolean kk = k; // ERROR - no symbol k
+                      //@ assert k;  // ERROR - double to boolean
                    }
                 }
                 """
@@ -226,8 +226,8 @@ public class namelookup extends TCBase {
                  class A {  \s
                    //@ model double k;
                    void m() {
-                      boolean kk = k;
-                      //@ assert k;
+                      boolean kk = k; // ERROR - no symbol k
+                      //@ assert k; // ERROR - double to boolean
                    }
                 }
                 """,
@@ -256,7 +256,7 @@ public class namelookup extends TCBase {
         helpTCText("A.java",
                 """
                  class A {   int k() { return 0; }
-                   //@ model double k() { return 1; }
+                   //@ model double k() { return 1; } // ERROR - duplicate
                    void m() {
                       boolean kk = k();
                    }
@@ -273,8 +273,8 @@ public class namelookup extends TCBase {
                 """
                  class A { /*@ pure*/  int k(int i) { return 0; }
                    //@ model pure double k(boolean d) { return 0; }
-                   //@ requires k(true);
-                   //@ requires k(0);
+                   //@ requires k(true); // ERROR - double to boolean
+                   //@ requires k(0); // ERROR - int to boolean
                    void m() {
                    }
                 }
@@ -290,11 +290,11 @@ public class namelookup extends TCBase {
                  class A {   static /*@pure*/int k(int i) { return 0; }
                    static class B {
                       //@ model pure static double k(int i) { return 0; }
-                      boolean b = k(0);
-                      //@ requires k(0);
+                      boolean b = k(0);  // TYPE ERROR
+                      //@ requires k(0);  // TYPE ERROR
                       void m() {
-                         boolean kk = k(0);
-                         //@ assume k(0);
+                         boolean kk = k(0);  // TYPE ERROR
+                         //@ assume k(0);  // TYPE ERROR
                       }
                    }
                 }
@@ -312,9 +312,9 @@ public class namelookup extends TCBase {
                 """
                  class A {  \s
                       //@ model pure static double k(int i);
-                      //@ requires k(0);
+                      //@ requires k(0);  // TYPE ERROR
                       void m() {
-                         //@ assume k(0);
+                         //@ assume k(0);  // TYPE ERROR
                       }
                 }
                 """
@@ -333,8 +333,8 @@ public class namelookup extends TCBase {
                       B b;
                       //@ ghost B bb;
                       void m() {
-                         boolean kk = B.i;
-                         //@ assert B.i;
+                         boolean kk = B.i; // ERROR - int to boolean (top-level B)
+                         //@ assert B.i; // ERROR - double to boolean (A.AA.B)
                       }
                    }
                 }
@@ -352,11 +352,11 @@ public class namelookup extends TCBase {
                  class AXYZ {  \s
                    static class AAXYZ {
                       //@ model static class B { static double i; } \s
-                      B bxyz;
-                      //@ ghost B bb;
+                      B bxyz;  // ERROR - no B
+                      //@ ghost B bb; // OK - A.AA.B
                       void mxyz() {
-                         boolean kk = B.i;
-                         //@ assert B.i;
+                         boolean kk = B.i; // ERROR - no B
+                         //@ assert B.i;   // ERROR - found B, B.i is wrong type
                       }
                    }
                 }
@@ -418,13 +418,13 @@ public class namelookup extends TCBase {
     public void testToplevelModel() {
         addMockFile("$A/A.jml",
                 """
-                public class A {  \s
+                public class A {
                 }
-                //@ model class A {}
+                //@ model class A {} // ERROR - duplicates a Java declaration
                 //@ model class B {}
-                //@ model class B {}
+                //@ model class B {} // ERROR - duplicates a JML declaration
                 /*@ model class C {}*/
-                 class D {}
+                 class D {}          // ERROR - does not match
                 """
         );
         helpTCText("A.java",

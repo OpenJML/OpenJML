@@ -108,7 +108,7 @@ public class escCounterexamples extends EscBase {
                 public class TestJava {
                   public int j; static public int sj; static public TestJava t;
                   public TestJava(int i) {}
-
+                
                   //@ requires t != null; requires \\elemtype(\\typeof(c)) == \\type(Object);
                   public void m1(Object[] c) {
                     int k; boolean b;
@@ -197,16 +197,16 @@ public class escCounterexamples extends EscBase {
                 package tt;
                 public class TestJava {
                   public void m1() {
-                      //@ assert c(2) != -2;
+                      //@ assert c(2) != -2; // ERROR - c(2) can be any negative number
                   }
                   public void m2() {
-                      //@ assert cc(2) != -3;
+                      //@ assert cc(2) != -3; // OK - we know cc(2) is -2
                   }
                   public void m3() {
-                      //@ assert b();
+                      //@ assert b(); // ERROR - b() can be anything
                   }
                   public void m4() {
-                      //@ assert bb(0);
+                      //@ assert bb(0); // ERROR - bb(0) ncan be anything - is this any different from m3?
                   }
                   //@ normal_behavior requires z > 0; ensures \\result < 0;
                   /*@ pure */ public int c(int z) {
@@ -344,7 +344,7 @@ public class escCounterexamples extends EscBase {
     /** Tests method calls in expressions */
     @Test
     public void testCE11() {
-        main.addOptions("-code-math=math");
+        main.addOptions("-code-math=math");  // FIXME - bigint?
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -446,7 +446,7 @@ public class escCounterexamples extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-
+                
                   //@ ensures false;
                   public void m1(int i) {
                     int k = 9 - 9;
@@ -463,7 +463,7 @@ public class escCounterexamples extends EscBase {
                        return;
                     }
                   }
-
+                  
                   //@ requires i != 0; ensures false; //Line 19
                   public void m2(int i) throws Exception {
                     int k = 0;
@@ -485,7 +485,7 @@ public class escCounterexamples extends EscBase {
                        k = 13;
                     }
                   }
-
+                  
                   //@ requires i == 0; ensures false; // Line 40
                   public void m3(int i) throws Exception {
                     int k = 0;
