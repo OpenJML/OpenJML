@@ -107,4 +107,33 @@ public class OpenJMLSettings {
 
     /** Returns {@code true} if the regex-only coloring strategy is selected. */
     public boolean isRegexColoring() { return "regex".equalsIgnoreCase(syntaxColoringStrategy); }
+
+    /**
+     * Which engine to use for ESC:
+     * <ul>
+     *   <li>{@code "subprocess"} (default) — spawn a fresh OpenJML process with {@code --esc}</li>
+     *   <li>{@code "api"} — call {@link org.openjml.IAPI#doESC} in-process on the cached AST
+     *       from the last successful {@code --check}.  No re-typechecking; faster per-method
+     *       verification.  Falls back to subprocess if no cached IAPI is available.</li>
+     * </ul>
+     */
+    public volatile String escEngine = "subprocess";
+
+    /** Returns {@code true} if the in-process doESC engine is selected. */
+    public boolean isEscApiMode() { return "api".equalsIgnoreCase(escEngine); }
+
+    /**
+     * Maximum number of concurrent doESC threads used by the {@code api} engine.
+     * Limits how many methods (across all files) can be verified in parallel.
+     */
+    public volatile int escThreads = 5;
+
+    /**
+     * Fixed thread pool used by the {@code api} engine to run per-method doESC calls
+     * concurrently.  {@code transient} so Gson never touches it.  Recreated by
+     * {@link org.openjml.lsp.OpenJMLWorkspaceService} whenever {@link #escThreads}
+     * is updated via a configuration change.
+     */
+    public transient java.util.concurrent.ExecutorService escPool =
+            java.util.concurrent.Executors.newFixedThreadPool(5);
 }

@@ -170,6 +170,23 @@
           "order": 8,
           "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
         },
+        "openjml.escEngine": {
+          "type": "string",
+          "enum": [
+            "subprocess",
+            "api"
+          ],
+          "default": "subprocess",
+          "order": 9,
+          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `api` — calls `IAPI.doESC` in-process on the AST from the last successful `--check`; no re-typechecking, faster per-method verification"
+        },
+        "openjml.escThreads": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "order": 10,
+          "description": "Maximum number of concurrent ESC threads (api engine only). Each thread verifies one method at a time; the actual doESC calls within a single file are still serialized by an internal lock."
+        },
         "openjml.syntaxColoringStrategy": {
           "type": "string",
           "enum": [

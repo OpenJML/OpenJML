@@ -3,7 +3,10 @@ package org.openjml.lsp;
 import org.openjml.IAPI;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.tree.JCTree;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,6 +20,11 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 /**
  * Runs OpenJML {@code --check} or {@code --esc} passes on Java/JML source
@@ -418,11 +426,15 @@ public class CheckRunner {
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
             compiledPathToRealUri.put(tempFile.toString(), uri);
 
+            // Capture target AST locally so we can store with IAPI after execution.
             final String tempTargetUri = tempFile.toUri().toString();
+            final JmlCompilationUnit[] capturedAst = { null };
+            final com.sun.tools.javac.util.Context[] capturedCtx = { null };
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
                 String jfoUri = jfo.toUri().toString();
                 if (jfoUri.equals(tempTargetUri)) {
-                    AST_CACHE.put(uri, astCtx, (JmlCompilationUnit) ast);
+                    capturedAst[0] = (JmlCompilationUnit) ast;
+                    capturedCtx[0] = astCtx;
                 } else {
                     String realUri = tempUriToRealUri.get(jfoUri);
                     if (realUri != null) {
@@ -444,6 +456,16 @@ public class CheckRunner {
             }
             System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc
                     + " (" + modeFlag + ")");
+
+            // Only --check runs update the target AST cache entry; --esc discards.
+            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+                if (rc == 0) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                  api, listener, tempFile.toString());
+                } else {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                }
+            }
 
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
@@ -494,12 +516,15 @@ public class CheckRunner {
             args.add(tempFile.toString());
             logInvocation("runOnContent", args, content);
 
-            // Register an AST listener that remaps the temp-file URI to the caller's URI.
+            // Capture AST in local vars so we can store with IAPI after execution.
             final String tempUriStr = tempFile.toUri().toString();
-            final String callerUri  = uri;
+            final JmlCompilationUnit[] capturedAst = { null };
+            final com.sun.tools.javac.util.Context[] capturedCtx = { null };
             IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
-                if (jfo.toUri().toString().equals(tempUriStr))
-                    AST_CACHE.put(callerUri, ctx, (JmlCompilationUnit) ast);
+                if (jfo.toUri().toString().equals(tempUriStr)) {
+                    capturedAst[0] = (JmlCompilationUnit) ast;
+                    capturedCtx[0] = ctx;
+                }
             };
             IAPI.setASTListener(astListener);
             int rc;
@@ -510,6 +535,18 @@ public class CheckRunner {
             }
             System.err.println("[CheckRunner.runOnContent] exit code " + rc
                     + " (" + modeFlag + ")");
+
+            // Only --check runs update the AST cache.  --esc runs do not redo attribution;
+            // any AST they happen to produce is discarded to preserve the --check entry
+            // (and its stored IAPI for the doESC API path).
+            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+                if (rc == 0) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                  api, listener, tempFile.toString());
+                } else {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);  // failed check: basic entry
+                }
+            }
 
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
@@ -549,11 +586,20 @@ public class CheckRunner {
         args.add(filePath);
         logInvocation("runOnFile", args);
 
-        // Register an AST listener that stores each attributed file under its own URI.
-        // When additional files are compiled via -sourcepath, each gets its own cache
-        // entry — enabling cross-file go-to-definition within the same IAPI context.
-        IAPI.IASTListener astListener = (ctx, jfo, ast) ->
-                AST_CACHE.put(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
+        // Capture the primary file's AST locally; store with IAPI on successful --check.
+        final String fileUriStr = new java.io.File(filePath).toURI().toString();
+        final JmlCompilationUnit[] capturedAst = { null };
+        final com.sun.tools.javac.util.Context[] capturedCtx = { null };
+        IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+            String jfoUri = jfo.toUri().toString();
+            if (jfoUri.equals(fileUriStr)) {
+                capturedAst[0] = (JmlCompilationUnit) ast;
+                capturedCtx[0] = ctx;
+            } else {
+                // Additional files pulled in via -sourcepath: store basic entry.
+                AST_CACHE.put(jfoUri, ctx, (JmlCompilationUnit) ast);
+            }
+        };
         IAPI.setASTListener(astListener);
         int rc;
         try {
@@ -563,6 +609,16 @@ public class CheckRunner {
         }
         System.err.println("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
+
+        // Only --check runs update the AST cache; --esc discards to preserve the --check entry.
+        if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+            if (rc == 0) {
+                AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                              api, listener, filePath);
+            } else {
+                AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+            }
+        }
 
         Map<String, IProverResult.Kind> proofResults =
                 prc != null ? prc.getResults() : Map.of();
@@ -601,6 +657,230 @@ public class CheckRunner {
             IAPI.removeASTListener(astListener);
             AST_CACHE.setIndexing(false);
         }
+    }
+
+    // --- public API: in-process doESC via cached IAPI ---
+
+    /**
+     * Run ESC on a single method using the IAPI instance from the last successful
+     * {@code --check} run for {@code uri}.
+     *
+     * <p>Falls back to the subprocess {@code --esc --method} path when:
+     * <ul>
+     *   <li>No cache entry exists yet (file not yet checked), or</li>
+     *   <li>The last check had errors ({@link ASTCache.Entry#supportsDoEsc()} is false), or</li>
+     *   <li>The method name is not found in the cached AST.</li>
+     * </ul>
+     *
+     * <p>Concurrent doESC calls on the same or different URIs proceed in parallel;
+     * {@link IAPI#doESC} is thread-safe.  Only {@code setProofResultListener} is
+     * briefly synchronized on the {@code api} object.
+     *
+     * @param uri        LSP document URI (used for cache lookup and diagnostic mapping)
+     * @param methodName fully-qualified or simple method name
+     */
+    public static CheckResult runDoEscMethod(String uri, String methodName,
+                                              OpenJMLSettings settings) {
+        ASTCache.Entry entry = AST_CACHE.get(uri);
+        if (entry == null || !entry.supportsDoEsc()) {
+            System.err.println("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
+                    + " — falling back to subprocess");
+            String filePath = uriToPath(uri);
+            if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        }
+
+        String simple = simpleName(methodName);
+        List<JmlTree.JmlMethodDecl> methods = findMethodsBySimpleName(entry.ast(), simple);
+        if (methods.isEmpty()) {
+            System.err.println("[CheckRunner.runDoEscMethod] method '" + simple
+                    + "' not found in cached AST for " + uri + " — falling back to subprocess");
+            String filePath = uriToPath(uri);
+            if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        }
+
+        List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+        Map<String, IProverResult.Kind> proofResults = new LinkedHashMap<>();
+        int exitCode = 0;
+        for (JmlTree.JmlMethodDecl method : methods) {
+            SingleEscResult r = doEscOneMethod(uri, method, entry);
+            if (r.kind() != null) proofResults.put(r.name(), r.kind());
+            allDiags.addAll(r.diags());
+            if (r.exitCode() != 0) exitCode = r.exitCode();
+        }
+        return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+    }
+
+    /** Holds the result of a single-method doESC call. */
+    public record MethodEscResult(String name, IProverResult.Kind kind,
+                                   List<org.eclipse.lsp4j.Diagnostic> diags, int exitCode) {}
+
+    /**
+     * Run ESC on all methods in the file for {@code uri} using the cached IAPI.
+     *
+     * <p>Builds a work list of all methods, submits them to {@link OpenJMLSettings#escPool}
+     * (N concurrent, where N = pool size = {@code escThreads}), and fires
+     * {@code onMethodComplete} on the calling thread as each method finishes.
+     * Returns a {@link CompletableFuture} that completes with the merged
+     * {@link CheckResult} after all methods are done.
+     *
+     * <p>Falls back to a subprocess {@code --esc} run (synchronous, wrapped in a
+     * completed future) when no cached IAPI is available.
+     *
+     * @param onMethodComplete called on the pool thread as each method finishes;
+     *                         may be {@code null} if no per-method callback is needed
+     */
+    public static CompletableFuture<CheckResult> runDoEscFileAsync(
+            String uri, OpenJMLSettings settings,
+            Consumer<MethodEscResult> onMethodComplete) {
+        ASTCache.Entry entry = AST_CACHE.get(uri);
+        if (entry == null || !entry.supportsDoEsc()) {
+            System.err.println("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
+                    + " — falling back to subprocess");
+            String filePath = uriToPath(uri);
+            CheckResult result = (filePath != null)
+                    ? runEscFile(filePath, uri, settings)
+                    : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return CompletableFuture.completedFuture(result);
+        }
+
+        List<JmlTree.JmlMethodDecl> methods = findAllMethods(entry.ast());
+        if (methods.isEmpty()) {
+            return CompletableFuture.completedFuture(
+                    new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of()));
+        }
+
+        // Submit each method to the pool; fire the callback as each completes.
+        List<CompletableFuture<MethodEscResult>> futures = new ArrayList<>(methods.size());
+        for (JmlTree.JmlMethodDecl method : methods) {
+            CompletableFuture<MethodEscResult> f = CompletableFuture
+                    .supplyAsync(() -> {
+                        var r = doEscOneMethod(uri, method, entry);
+                        return new MethodEscResult(r.name(), r.kind(), r.diags(), r.exitCode());
+                    }, settings.escPool)
+                    .whenComplete((r, ex) -> {
+                        if (r != null && onMethodComplete != null) onMethodComplete.accept(r);
+                        if (ex != null) System.err.println(
+                                "[CheckRunner.runDoEscFileAsync] task failed: " + ex);
+                    });
+            futures.add(f);
+        }
+
+        // Merge all results into a single CheckResult when all methods are done.
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> {
+                    List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+                    Map<String, IProverResult.Kind> proofResults = new LinkedHashMap<>();
+                    int exitCode = 0;
+                    for (CompletableFuture<MethodEscResult> f : futures) {
+                        MethodEscResult r = f.getNow(null);
+                        if (r == null) continue;
+                        if (r.kind() != null) proofResults.put(r.name(), r.kind());
+                        allDiags.addAll(r.diags());
+                        if (r.exitCode() != 0) exitCode = r.exitCode();
+                    }
+                    System.err.println("[CheckRunner.runDoEscFileAsync] done, exitCode="
+                            + exitCode + " diags=" + allDiags.size() + " uri=" + uri);
+                    return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+                });
+    }
+
+    /** Blocking wrapper around {@link #runDoEscFileAsync} (used by tests). */
+    public static CheckResult runDoEscFile(String uri, OpenJMLSettings settings) {
+        try {
+            return runDoEscFileAsync(uri, settings, null).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        } catch (ExecutionException e) {
+            System.err.println("[CheckRunner.runDoEscFile] failed: " + e.getCause());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        }
+    }
+
+    /** Holds the result of a single-method doESC call (internal alias for MethodEscResult). */
+    private record SingleEscResult(String name, IProverResult.Kind kind,
+                                    List<org.eclipse.lsp4j.Diagnostic> diags, int exitCode) {}
+
+    /**
+     * Run doESC on one method.
+     *
+     * <p>{@link IAPI#doESC} is not thread-safe on the same IAPI instance; calls for
+     * the same entry are serialized via the entry's {@code escLock}.  Methods from
+     * different files (different IAPI instances, different locks) proceed in parallel.
+     * The lock is held only for the duration of the single-method call, so all methods
+     * of a file are queued individually — each releases the lock as soon as it finishes,
+     * allowing the next queued method to start while results are being processed.
+     *
+     * <p>Diagnostic capture uses a {@link ThreadLocal} in {@link LspDiagnosticListener}
+     * and is safe to start/stop outside the lock.
+     */
+    private static SingleEscResult doEscOneMethod(String uri,
+                                                   JmlTree.JmlMethodDecl method,
+                                                   ASTCache.Entry entry) {
+        System.err.println("[CheckRunner.doEscOneMethod] doESC on " + method.name + " in " + uri);
+        entry.diagListener().startCapture();
+        IProverResult result;
+        entry.escLock().lock();
+        try {
+            result = entry.api().doESC(method);
+        } finally {
+            entry.escLock().unlock();
+        }
+        var rawDiags = entry.diagListener().stopCapture();
+
+        List<org.eclipse.lsp4j.Diagnostic> lspDiags =
+                LspDiagnosticListener.toLspDiagnosticsFromList(
+                        rawDiags, entry.sourcePath(), uri);
+        IProverResult.Kind kind = result != null ? result.result() : null;
+        int exitCode = (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) ? 6 : 0;
+        System.err.println("[CheckRunner.doEscOneMethod] " + method.name
+                + " -> " + kind + ", exitCode=" + exitCode);
+        return new SingleEscResult(method.name.toString(), kind, lspDiags, exitCode);
+    }
+
+    // --- AST method-scanning helpers ---
+
+    /** Extract the simple (unqualified) method name from a possibly-qualified name. */
+    private static String simpleName(String fqn) {
+        int dot = fqn.lastIndexOf('.');
+        return dot >= 0 ? fqn.substring(dot + 1) : fqn;
+    }
+
+    /** Find all non-synthetic methods with the given simple name in the AST. */
+    private static List<JmlTree.JmlMethodDecl> findMethodsBySimpleName(
+            JmlCompilationUnit ast, String simpleName) {
+        List<JmlTree.JmlMethodDecl> result = new ArrayList<>();
+        new JmlTreeScanner(null) {
+            @Override
+            public void visitMethodDef(JCTree.JCMethodDecl tree) {
+                if (tree instanceof JmlTree.JmlMethodDecl md
+                        && simpleName.equals(tree.name.toString())) {
+                    result.add(md);
+                }
+                // do NOT recurse into the method body (no local classes)
+            }
+            @Override public void visitBlock(JCTree.JCBlock b) { /* skip */ }
+        }.scan(ast);
+        return result;
+    }
+
+    /** Find all non-synthetic methods (excluding {@code <clinit>}) in the AST. */
+    private static List<JmlTree.JmlMethodDecl> findAllMethods(JmlCompilationUnit ast) {
+        List<JmlTree.JmlMethodDecl> result = new ArrayList<>();
+        new JmlTreeScanner(null) {
+            @Override
+            public void visitMethodDef(JCTree.JCMethodDecl tree) {
+                if (tree instanceof JmlTree.JmlMethodDecl md) {
+                    String name = tree.name.toString();
+                    if (!"<clinit>".equals(name)) result.add(md);  // include constructors
+                }
+                // do NOT recurse into the method body (no local classes)
+            }
+            @Override public void visitBlock(JCTree.JCBlock b) { /* skip */ }
+        }.scan(ast);
+        return result;
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {

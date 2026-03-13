@@ -728,7 +728,82 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     void scheduleEscForUri(String uri) {
-        scheduleEscFile(uri);
+        if (settings.isEscApiMode()) {
+            submitEscApiWorkList(uri);
+        } else {
+            scheduleEscFile(uri);
+        }
+    }
+
+    /**
+     * Submit the api-engine ESC work list for {@code uri}.
+     *
+     * <p>Each method in the file is submitted as a separate task to
+     * {@link OpenJMLSettings#escPool}.  As each method completes its code-lens
+     * status is updated immediately so the user sees progress.  After all
+     * methods finish a final {@link #publishMerged} flushes the accumulated
+     * diagnostics.
+     */
+    private void submitEscApiWorkList(String uri) {
+        Future<?> prev = runningEscTasks.remove(uri);
+        if (prev != null) prev.cancel(true);
+
+        long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
+        markEscChecking(uri);
+
+        CompletableFuture<CheckRunner.CheckResult> cf =
+                CheckRunner.runDoEscFileAsync(uri, settings, methodResult -> {
+                    // Called on a pool thread as each method finishes — update its
+                    // code-lens status immediately so the user sees progress.
+                    if (escGen.get(uri).get() != myGen) return;
+                    updateSingleMethodEscStatus(uri, methodResult);
+                    refreshCodeLenses();
+                });
+
+        cf.thenAccept(result -> {
+            if (escGen.get(uri).get() != myGen) return;
+            escDiags.put(uri, result.diagnostics());
+            if (result.isInternalError()) {
+                System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
+                markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
+                refreshCodeLenses();
+            } else {
+                updateEscStatus(uri, result.diagnostics(), result.proofResults(),
+                        result.exitCode(), result.foreignMessages());
+            }
+            publishMerged(uri);
+        }).exceptionally(t -> {
+            System.err.println("[OpenJML] ESC (api) failed: " + t);
+            if (escGen.get(uri).get() == myGen) {
+                updateEscStatus(uri, List.of(), Map.of(), -1, List.of());
+                refreshCodeLenses();
+            }
+            return null;
+        }).whenComplete((v, t) -> runningEscTasks.remove(uri));
+
+        runningEscTasks.put(uri, cf);
+    }
+
+    /**
+     * Update the code-lens status for a single method that completed doESC.
+     * Diagnostics for that method are applied; other methods' statuses are
+     * unchanged and will be overwritten by the final {@link #updateEscStatus} call.
+     */
+    private void updateSingleMethodEscStatus(String uri,
+                                              CheckRunner.MethodEscResult r) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.name().equals(r.name())) continue;
+            Map<Integer, MethodStatus> statuses =
+                    new HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+            statuses.put(m.startLine(),
+                    proofResultToStatus(r.kind(), r.diags(),
+                            m.startLine(), m.endLine(), r.exitCode(), false));
+            methodEscStatus.put(uri, statuses);
+            break;
+        }
     }
 
     /**
@@ -739,16 +814,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * diagnostics (within its line range) are updated; other methods are left unchanged.
      */
     void scheduleEscForMethod(String uri, String methodName) {
-        String filePath = CheckRunner.uriToPath(uri);
-        if (filePath == null) return;
-
-        // Resolve the method's line range now (on the calling thread) so we can
-        // do per-method status updates after the task completes.
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethodByFqn(content, methodName);
 
-        submitEscForMethod(uri, target,
-                () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings));
+        if (settings.isEscApiMode()) {
+            // Submit through escPool so this request joins the same shared queue
+            // as any in-flight runDoEscFileAsync tasks for the same URI.
+            submitEscForMethod(uri, target,
+                    () -> CheckRunner.runDoEscMethod(uri, methodName, settings),
+                    settings.escPool);
+        } else {
+            String filePath = CheckRunner.uriToPath(uri);
+            if (filePath == null) return;
+            submitEscForMethod(uri, target,
+                    () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings),
+                    executor);
+        }
     }
 
     /**
@@ -780,7 +861,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * </ul>
      */
     private void submitEscForMethod(String uri, JavaSourceScanner.MethodInfo target,
-                                    Supplier<CheckRunner.CheckResult> task) {
+                                    Supplier<CheckRunner.CheckResult> task,
+                                    ExecutorService pool) {
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(true);
 
@@ -797,7 +879,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             markEscChecking(uri);
         }
 
-        Future<?> f = executor.submit(() -> {
+        Future<?> f = pool.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
                 System.err.println("[OpenJML] ESC-method done: exit=" + result.exitCode()

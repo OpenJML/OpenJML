@@ -2,6 +2,7 @@ package org.openjml.lsp.test;
 
 import org.eclipse.lsp4j.Diagnostic;
 import org.openjml.lsp.CheckRunner;
+import org.openjml.lsp.OpenJMLSettings;
 
 import java.util.List;
 import java.util.Map;
@@ -75,5 +76,31 @@ public abstract class LspTestBase {
      */
     protected List<Diagnostic> runEscContentMethod(String uri, String content, String methodName) {
         return CheckRunner.runEscMethod(uri, content, methodName).diagnostics();
+    }
+
+    // --- doESC API path helpers ---
+
+    /**
+     * Run {@code --check} on the given content, populating the AST cache with an IAPI,
+     * then run in-process doESC on all methods via {@link CheckRunner#runDoEscFile}.
+     */
+    protected CheckRunner.CheckResult runDoEscFileResult(String uri, String content) {
+        // --check must succeed first so the IAPI is stored in the cache.
+        CheckRunner.CheckResult check = CheckRunner.check(uri, content);
+        if (check.exitCode() != 0) return check;
+        return CheckRunner.runDoEscFile(uri, new OpenJMLSettings());
+    }
+
+    /**
+     * Run {@code --check} on the given content, then run in-process doESC on a
+     * single method via {@link CheckRunner#runDoEscMethod}.
+     *
+     * @param methodName simple or fully-qualified method name
+     */
+    protected CheckRunner.CheckResult runDoEscMethodResult(String uri, String content,
+                                                            String methodName) {
+        CheckRunner.CheckResult check = CheckRunner.check(uri, content);
+        if (check.exitCode() != 0) return check;
+        return CheckRunner.runDoEscMethod(uri, methodName, new OpenJMLSettings());
     }
 }

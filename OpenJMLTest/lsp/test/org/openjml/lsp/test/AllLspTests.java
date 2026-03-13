@@ -21,5 +21,6 @@ import org.junit.runners.Suite;
     SemanticTokensTest.class,
     DocumentSymbolTest.class,
     FoldingRangeTest.class,
+    DoEscTest.class,
 })
 public class AllLspTests {}
