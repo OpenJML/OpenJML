@@ -10,7 +10,7 @@ public class namelookup extends TCBase {
     public void testLookup() {
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    //@ invariant k;
                    //@ requires k;
                    void m(double k) {}
@@ -25,7 +25,7 @@ public class namelookup extends TCBase {
     public void testLookup2() {
         helpTCText("A.java",
                 """
-                 public class A { int k; float d; \s
+                 public class A { int k; float d;
                    //@ constraint \\old(k); constraint \\old(d);
                    void m(double d) {
                         //@ assert k;
@@ -49,7 +49,7 @@ public class namelookup extends TCBase {
     public void testLookup3() {
         helpTCText("A.java",
                 """
-                 public class A { int k; Object o; \s
+                 public class A { int k; Object o;
                    void m() {
                       //@ ghost Object k;
                       boolean b = k;
@@ -72,7 +72,7 @@ public class namelookup extends TCBase {
     public void testDupField() {
         helpTCText("A.java",
                 """
-                 class A { //@ ghost int k; \s
+                 class A { //@ ghost int k;
                    //@ ghost double k;
                    int m;
                    int m;
@@ -87,14 +87,14 @@ public class namelookup extends TCBase {
     public void testDupField1() {
         addMockFile("$A/A.jml",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    double k;
                    void m(double k) {}
                 }
                 """);
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    void m(double k) {}
                 }
                 """
@@ -108,13 +108,13 @@ public class namelookup extends TCBase {
     public void testDupField1a() {
         addMockFile("$A/A.jml",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    int k;
                 }
                 """);
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                 }
                 """
         ,"/$A/A.jml:2: error: This specification declaration of field A.k has the same name as a previous field declaration",8
@@ -126,14 +126,14 @@ public class namelookup extends TCBase {
     public void testDupField1b() {
         addMockFile("$A/A.jml",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    //@ ghost double k;
                    void m(double k);
                 }
                 """);
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    void m(double k) {}
                 }
                 """
@@ -146,13 +146,13 @@ public class namelookup extends TCBase {
     public void testDupField1c() {
         addMockFile("$A/A.jml",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    int k;
                 }
                 """);
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    void m(double k) {}
                 }
                 """
@@ -165,7 +165,7 @@ public class namelookup extends TCBase {
     public void testDupField2() {
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    //@ ghost double k;
                    void m(double k) {}
                 }
@@ -178,7 +178,7 @@ public class namelookup extends TCBase {
     public void testDupVar() {
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    void m(double d) {
                       int d;
                    }
@@ -191,7 +191,7 @@ public class namelookup extends TCBase {
     public void testDupVar2() {
         helpTCText("A.java",
                 """
-                 class A { int k; \s
+                 class A { int k;
                    void m(double d) {
                       //@ ghost int d;
                    }
@@ -204,7 +204,7 @@ public class namelookup extends TCBase {
     public void testGhostField() {
         helpTCText("A.java",
                 """
-                 class A {  \s
+                 class A {
                    //@ ghost double k;
                    void m() {
                       boolean kk = k; // ERROR - no symbol k
@@ -223,7 +223,7 @@ public class namelookup extends TCBase {
     public void testModelField() {
         helpTCText("A.java",
                 """
-                 class A {  \s
+                 class A {
                    //@ model double k;
                    void m() {
                       boolean kk = k; // ERROR - no symbol k
@@ -239,7 +239,7 @@ public class namelookup extends TCBase {
     public void testModelMethod() {
         helpTCText("A.java",
                 """
-                 class A {  \s
+                 class A {
                    //@ model pure double k() { return 0; }
                    void m() {
                       boolean kk = k();
@@ -310,7 +310,7 @@ public class namelookup extends TCBase {
     public void testModelMethod5() {
         helpTCText("A.java",
                 """
-                 class A {  \s
+                 class A {
                       //@ model pure static double k(int i);
                       //@ requires k(0);  // TYPE ERROR
                       void m() {
@@ -327,9 +327,9 @@ public class namelookup extends TCBase {
     public void testModelClass() {
         helpTCText("A.java",
                 """
-                 public class A {  \s
+                 public class A {
                    static class AA {
-                      //@ model static class B { static double i; } \s
+                      //@ model static class B { static double i; }
                       B b;
                       //@ ghost B bb;
                       void m() {
@@ -338,7 +338,7 @@ public class namelookup extends TCBase {
                       }
                    }
                 }
-                 class B { static int i; } \s
+                 class B { static int i; }
                 """
         ,"/A.java:7: error: incompatible types: int cannot be converted to boolean",24
         ,"/A.java:8: error: incompatible types: double cannot be converted to boolean",22
@@ -349,9 +349,9 @@ public class namelookup extends TCBase {
     public void testModelClass2() {
         helpTCText("A.java",
                 """
-                 class AXYZ {  \s
+                 class AXYZ {
                    static class AAXYZ {
-                      //@ model static class B { static double i; } \s
+                      //@ model static class B { static double i; }
                       B bxyz;  // ERROR - no B
                       //@ ghost B bb; // OK - A.AA.B
                       void mxyz() {
@@ -429,7 +429,7 @@ public class namelookup extends TCBase {
         );
         helpTCText("A.java",
                 """
-                public class A {  \s
+                public class A {
                 }
                 """
         ,"/$A/A.jml:3: error: This JML class declaration conflicts with an existing Java class with the same name: A", 11
