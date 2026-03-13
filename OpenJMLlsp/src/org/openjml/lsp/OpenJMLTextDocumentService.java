@@ -949,6 +949,24 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // --- scheduling helpers ---
 
     private void scheduleCheckNow(String uri, String content) {
+        // .jml files are spec files; redirect check to companion .java
+        if (uri.endsWith(".jml")) {
+            String javaUri = uri.substring(0, uri.length() - 4) + ".java";
+            String javaContent = lastContent.get(javaUri);
+            if (javaContent != null) {
+                CompletableFuture<Void> cf = new CompletableFuture<>();
+                lastCheckFuture.put(javaUri, cf);
+                executor.submit(() -> { try { runCheckContent(javaUri, javaContent); } finally { cf.complete(null); } });
+            } else {
+                String filePath = CheckRunner.uriToPath(javaUri);
+                if (filePath != null && new java.io.File(filePath).exists()) {
+                    CompletableFuture<Void> cf = new CompletableFuture<>();
+                    lastCheckFuture.put(javaUri, cf);
+                    executor.submit(() -> { try { runCheckFile(filePath, javaUri); } finally { cf.complete(null); } });
+                }
+            }
+            return;
+        }
         String filePath = CheckRunner.uriToPath(uri);
         CompletableFuture<Void> cf = new CompletableFuture<>();
         lastCheckFuture.put(uri, cf);
@@ -960,6 +978,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleCheckFile(String uri) {
+        // .jml files are spec files; redirect check to companion .java
+        if (uri.endsWith(".jml")) {
+            scheduleCheckFile(uri.substring(0, uri.length() - 4) + ".java");
+            return;
+        }
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
         executor.submit(() -> runCheckFile(filePath, uri));
@@ -1038,6 +1061,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // the ESC code-lens status that the user sees.
 
     private void runCheckContent(String uri, String content) {
+        // .jml files are spec files; should not be passed to OpenJML on command line.
+        // scheduleCheckNow redirects to the companion .java, but guard here as well.
+        if (uri.endsWith(".jml")) return;
         // Pass all open (possibly unsaved) files so cross-file dependencies use
         // their current in-memory versions rather than the on-disk saved versions.
         CheckRunner.CheckResult result = CheckRunner.checkWithContext(

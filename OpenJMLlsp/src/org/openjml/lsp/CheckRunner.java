@@ -425,6 +425,15 @@ public class CheckRunner {
             // that were actually attributed get an entry.  Start with the target.
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
             compiledPathToRealUri.put(tempFile.toString(), uri);
+            // Pre-populate .jml spec files because the AST listener does not fire for them.
+            for (Map.Entry<String, String> e : tempUriToRealUri.entrySet()) {
+                if (e.getKey().endsWith(".jml")) {
+                    try {
+                        Path p = java.nio.file.Paths.get(java.net.URI.create(e.getKey()));
+                        compiledPathToRealUri.put(p.toString(), e.getValue());
+                    } catch (Exception ignored) {}
+                }
+            }
 
             // Capture target AST locally so we can store with IAPI after execution.
             final String tempTargetUri = tempFile.toUri().toString();
@@ -970,7 +979,8 @@ public class CheckRunner {
     private static String extractBaseName(String uri) {
         int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
         String name = slash >= 0 ? uri.substring(slash + 1) : uri;
-        if (!name.endsWith(".java")) name = name.replaceAll("[^A-Za-z0-9_]", "_") + ".java";
+        if (!name.endsWith(".java") && !name.endsWith(".jml"))
+            name = name.replaceAll("[^A-Za-z0-9_]", "_") + ".java";
         return name;
     }
 

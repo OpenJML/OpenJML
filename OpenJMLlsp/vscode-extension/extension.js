@@ -37,6 +37,14 @@ function findOnPath(name) {
 }
 
 /**
+ * Return true if the language ID is Java or JML (both are handled by this extension).
+ * ESC commands only operate on Java files; the document selector covers both.
+ */
+function isJmlLike(langId) {
+    return langId === 'java' || langId === 'jml';
+}
+
+/**
  * Return p if it exists and is a regular file, otherwise null.
  */
 function fileIfExists(p) {
@@ -319,7 +327,7 @@ async function activate(context) {
     };
 
     const clientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'java' }],
+        documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
         revealOutputChannelOn: RevealOutputChannelOn.Warn,
         initializationOptions: getSettings(),
         synchronize: {
@@ -369,7 +377,7 @@ async function activate(context) {
     // Token types must match SemanticTokensProvider.TOKEN_TYPES on the server.
     const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro'], []);
     const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
-        { language: 'java' },
+        [{ language: 'java' }, { language: 'jml' }],
         {
             async provideDocumentSemanticTokens(document) {
                 if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
@@ -397,7 +405,7 @@ async function activate(context) {
     let focusDebounceTimer = null;
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (!editor || editor.document.languageId !== 'java') return;
+            if (!editor || !isJmlLike(editor.document.languageId)) return;
             const uri = editor.document.uri.toString();
             if (focusDebounceTimer) clearTimeout(focusDebounceTimer);
             focusDebounceTimer = setTimeout(() => {
@@ -425,7 +433,7 @@ async function activate(context) {
     );
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(async doc => {
-            if (doc.languageId !== 'java') return;
+            if (!isJmlLike(doc.languageId)) return;
             const uri = doc.uri.toString();
             const wasManual = pendingManualSave.delete(uri); // always clear, even on auto-save
 

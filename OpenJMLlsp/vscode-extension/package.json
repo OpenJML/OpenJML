@@ -10,13 +10,14 @@
     "url": "https://github.com/OpenJML/OpenJML.git"
   },
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.79.0"
   },
   "categories": [
     "Linters"
   ],
   "activationEvents": [
-    "onLanguage:java"
+    "onLanguage:java",
+    "onLanguage:jml"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -90,12 +91,29 @@
         }
       ]
     },
+    "languages": [
+      {
+        "id": "jml",
+        "extensions": [".jml"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/jml.svg",
+          "dark": "./icons/jml.svg"
+        }
+      }
+    ],
     "grammars": [
+      {
+        "language": "jml",
+        "scopeName": "source.jml",
+        "path": "./syntaxes/jml-file.tmLanguage.json"
+      },
       {
         "scopeName": "source.jml.injection",
         "path": "./syntaxes/jml.tmLanguage.json",
         "injectTo": [
-          "source.java"
+          "source.java",
+          "source.jml"
         ]
       }
     ],

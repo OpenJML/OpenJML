@@ -198,12 +198,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     }
     final boolean jsonAdapterPresent = mapped != null;
     if (mapped == null) {
-      try {
       mapped = context.getAdapter(fieldType);
-      } catch (Exception e) {
-        System.out.println("Failed to get adaptor for " + fieldType);
-        throw e;
-      }
     }
 
     @SuppressWarnings("unchecked")
