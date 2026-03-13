@@ -335,7 +335,7 @@ public class escnew extends EscBase {
                          inc();
                          inc();
                   }
-                  // Default is assignable \everything
+                  // Default is assignable \\everything
                   //@ public normal_behavior ensures i == \\old(i) + 1;
                   public void inc()  {
                          ++i;
@@ -397,7 +397,7 @@ public class escnew extends EscBase {
                          inc();
                          inc();
                   }
-                  // Default is assignable \everything
+                  // Default is assignable \\everything
                   //@ public normal_behavior ensures i == \\old(i) + 1;
                   public void inc()  {
                          ++i;
@@ -733,19 +733,18 @@ public class escnew extends EscBase {
                       //@ assert k == 1;
                   }
                 }
+                """
                 // FIXME - need to handle jml constructs in set, debug statements
 //                +"  public void m3bad() {\n"
 //                +"      //@ ghost boolean k = true;"
 //                +"      //@ set k = (k <=!=> k);\n"
 //                +"      //@ assert k; \n"
 //                +"  }\n"
-//                
 //                +"  public void m3good() {\n"
 //                +"      //@ ghost boolean k = true;"
 //                +"      //@ set k = (k <==> k);\n"
 //                +"      //@ assert k; \n"
 //                +"  }\n"
-                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m1bad",11
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method m2bad",11
                 );

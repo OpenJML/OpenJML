@@ -463,7 +463,7 @@ public class escCounterexamples extends EscBase {
                        return;
                     }
                   }
-                  
+
                   //@ requires i != 0; ensures false; //Line 19
                   public void m2(int i) throws Exception {
                     int k = 0;
@@ -485,7 +485,7 @@ public class escCounterexamples extends EscBase {
                        k = 13;
                     }
                   }
-                  
+
                   //@ requires i == 0; ensures false; // Line 40
                   public void m3(int i) throws Exception {
                     int k = 0;
