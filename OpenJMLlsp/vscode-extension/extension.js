@@ -21,6 +21,7 @@ const vscode = require('vscode');
 const { LanguageClient, TransportKind, RevealOutputChannelOn } = require('vscode-languageclient/node');
 
 let client;
+let outputChannel;
 
 /**
  * Return the absolute path of `name` if it is found on the system PATH,
@@ -162,7 +163,15 @@ function getSettings() {
     };
 }
 
+function ts() {
+    return new Date().toTimeString().slice(0, 8);
+}
+
 async function activate(context) {
+    outputChannel = vscode.window.createOutputChannel('OpenJML');
+    context.subscriptions.push(outputChannel);
+    outputChannel.appendLine(ts() + ' OpenJML extension started');
+
     const cfg = vscode.workspace.getConfiguration('openjml');
     const configuredPath = cfg.get('serverPath', '').trim();
 
@@ -328,6 +337,7 @@ async function activate(context) {
 
     const clientOptions = {
         documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
+        outputChannel,          // reuse our named channel; suppresses the auto-created one
         revealOutputChannelOn: RevealOutputChannelOn.Warn,
         initializationOptions: getSettings(),
         synchronize: {
@@ -353,6 +363,13 @@ async function activate(context) {
             // them via the LSP provider race.
             provideDocumentSemanticTokens: (_document, _token, _next) => {
                 return new vscode.SemanticTokens(new Uint32Array([]));
+            },
+            window: {
+                // Route window/logMessage notifications from the server to our
+                // dedicated OpenJML output channel instead of the generic LSP log.
+                logMessage: (params, _next) => {
+                    outputChannel.appendLine(params.message);
+                },
             },
         },
     };

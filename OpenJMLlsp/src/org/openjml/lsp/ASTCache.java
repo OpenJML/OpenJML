@@ -12,7 +12,6 @@ import org.openjml.IAPI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Caches the latest type-attributed AST for each open document URI.
@@ -54,18 +53,19 @@ public class ASTCache {
      * <p>The {@code api}, {@code diagListener}, {@code sourcePath}, and {@code escLock}
      * fields are non-null only when the entry was produced by a successful
      * {@code --check} run (exit code 0) on in-memory or on-disk content.
-     * They are used by the in-process {@code doESC} path ({@code escEngine=api}).
+     * They are used by the in-process {@code doESC} path ({@code escEngine=concurrent}).
      * Init-tier entries (background workspace index) always have them null.
      *
-     * <p>{@link IAPI#doESC} is not thread-safe on the same IAPI instance; concurrent
+     * <p>{@link IAPI#doESC} is NOT thread-safe on the same IAPI instance; concurrent
      * calls for the same URI are serialized via {@code escLock}.  Calls on different
-     * URIs use different IAPI instances and proceed in parallel.
+     * URIs use different IAPI instances and proceed in parallel, bounded by
+     * the {@code escThreads} pool size.
      */
     public record Entry(JmlCompilationUnit ast, Context context,
                         IAPI api,
                         LspDiagnosticListener diagListener,
                         String sourcePath,
-                        ReentrantLock escLock) {
+                        java.util.concurrent.locks.ReentrantLock escLock) {
 
         /** Create a basic entry without IAPI (for init-tier or failed checks). */
         static Entry basic(JmlCompilationUnit ast, Context ctx) {
@@ -75,7 +75,8 @@ public class ASTCache {
         /** Create an entry with a stored IAPI for in-process doESC (successful checks only). */
         static Entry withApi(JmlCompilationUnit ast, Context ctx,
                              IAPI api, LspDiagnosticListener listener, String sourcePath) {
-            return new Entry(ast, ctx, api, listener, sourcePath, new ReentrantLock());
+            return new Entry(ast, ctx, api, listener, sourcePath,
+                             new java.util.concurrent.locks.ReentrantLock());
         }
 
         /** Returns true if this entry supports in-process doESC via {@link IAPI#doESC}. */

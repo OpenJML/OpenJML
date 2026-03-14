@@ -112,19 +112,21 @@ public class OpenJMLSettings {
      * Which engine to use for ESC:
      * <ul>
      *   <li>{@code "subprocess"} (default) — spawn a fresh OpenJML process with {@code --esc}</li>
-     *   <li>{@code "api"} — call {@link org.openjml.IAPI#doESC} in-process on the cached AST
-     *       from the last successful {@code --check}.  No re-typechecking; faster per-method
-     *       verification.  Falls back to subprocess if no cached IAPI is available.</li>
+     *   <li>{@code "concurrent"} — call {@link org.openjml.IAPI#doESC} in-process on the cached AST
+     *       from the last successful {@code --check}.  No re-typechecking; ESC attempts on methods
+     *       are done concurrently according to the number of threads setting.
+     *       Falls back to subprocess if no cached IAPI is available.</li>
      * </ul>
      */
     public volatile String escEngine = "subprocess";
 
-    /** Returns {@code true} if the in-process doESC engine is selected. */
-    public boolean isEscApiMode() { return "api".equalsIgnoreCase(escEngine); }
+    /** Returns {@code true} if the concurrent in-process doESC engine is selected. */
+    public boolean isEscApiMode() { return "concurrent".equalsIgnoreCase(escEngine); }
 
     /**
-     * Maximum number of concurrent doESC threads used by the {@code api} engine.
-     * Limits how many methods (across all files) can be verified in parallel.
+     * Maximum number of concurrent doESC threads used by the {@code concurrent} engine.
+     * Methods from different files run concurrently up to this limit;
+     * methods within the same file are serialized (IAPI.doESC is not thread-safe per instance).
      */
     public volatile int escThreads = 5;
 

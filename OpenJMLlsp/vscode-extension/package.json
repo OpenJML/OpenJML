@@ -192,18 +192,18 @@
           "type": "string",
           "enum": [
             "subprocess",
-            "api"
+            "concurrent"
           ],
           "default": "subprocess",
           "order": 9,
-          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `api` — calls `IAPI.doESC` in-process on the AST from the last successful `--check`; no re-typechecking, faster per-method verification"
+          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the AST from the last successful `--check`; ESC attempts on methods are done concurrently according to the number of threads setting; no re-typechecking, faster per-method verification"
         },
         "openjml.escThreads": {
           "type": "integer",
           "default": 5,
           "minimum": 1,
           "order": 10,
-          "description": "Maximum number of concurrent ESC threads (api engine only). Each thread verifies one method at a time; the actual doESC calls within a single file are still serialized by an internal lock."
+          "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `subprocess`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
         },
         "openjml.syntaxColoringStrategy": {
           "type": "string",
@@ -212,7 +212,7 @@
             "regex"
           ],
           "default": "regex",
-          "order": 9,
+          "order": 11,
           "markdownDescription": "Strategy for JML syntax coloring:\n- `ast` (default) — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check\n- `regex` — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)"
         }
       }

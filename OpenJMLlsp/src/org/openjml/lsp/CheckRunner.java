@@ -59,6 +59,49 @@ public class CheckRunner {
     /** Return the shared AST cache. */
     public static ASTCache getASTCache() { return AST_CACHE; }
 
+    // ---- Output-channel logging ----
+
+    private static volatile java.util.function.Consumer<String> logCallback = null;
+
+    /** Set the callback that receives user-visible log lines (routed to the VS Code Output channel). */
+    public static void setLogCallback(java.util.function.Consumer<String> cb) { logCallback = cb; }
+
+    private static void log(String msg) {
+        java.util.function.Consumer<String> cb = logCallback;
+        if (cb != null) cb.accept(msg);
+    }
+
+    private static String ts() {
+        return java.time.LocalTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+    }
+
+    /** Return just the file name portion of a URI or path (no directory). */
+    private static String fileName(String uri) {
+        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
+        return slash >= 0 ? uri.substring(slash + 1) : uri;
+    }
+
+    /** Translate a raw proof-result kind to a user-friendly label. */
+    private static String kindLabel(IProverResult.Kind kind) {
+        if (kind == null)              return "unknown";
+        if (kind == IProverResult.UNSAT) return "Verified";
+        if (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) return "Not Verified";
+        return kind.toString();
+    }
+
+    /** Log ESC proof results from a subprocess (--esc) run. */
+    private static void logEscResults(String fname,
+                                      Map<String, IProverResult.Kind> proofResults,
+                                      int numDiags) {
+        if (!proofResults.isEmpty()) {
+            for (Map.Entry<String, IProverResult.Kind> e : proofResults.entrySet())
+                log(ts() + " --esc " + fname + " " + e.getKey() + ": " + kindLabel(e.getValue()));
+        } else {
+            log(ts() + " --esc " + fname + ": " + numDiags + " diagnostic(s)");
+        }
+    }
+
     /**
      * Result of a single OpenJML invocation.
      *
@@ -421,6 +464,11 @@ public class CheckRunner {
             args.add(tempFile.toString());
             logInvocation("runOnContentWithContext", args, content);
 
+            String fname = fileName(uri);
+            String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+            else log(ts() + " --esc " + fname + methodDesc);
+
             // compiledPathToRealUri is populated by the AST listener — only files
             // that were actually attributed get an entry.  Start with the target.
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
@@ -439,6 +487,7 @@ public class CheckRunner {
             final String tempTargetUri = tempFile.toUri().toString();
             final JmlCompilationUnit[] capturedAst = { null };
             final com.sun.tools.javac.util.Context[] capturedCtx = { null };
+            final String tempDirPrefix = tempDir.toUri().toString();
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
                 String jfoUri = jfo.toUri().toString();
                 if (jfoUri.equals(tempTargetUri)) {
@@ -446,6 +495,11 @@ public class CheckRunner {
                     capturedCtx[0] = astCtx;
                 } else {
                     String realUri = tempUriToRealUri.get(jfoUri);
+                    if (realUri == null && !jfoUri.startsWith(tempDirPrefix)) {
+                        // Disk file found via sourcepath (e.g. B.jml not currently open).
+                        // Map it directly so its diagnostics appear as companion diagnostics.
+                        realUri = jfoUri;
+                    }
                     if (realUri != null) {
                         AST_CACHE.put(realUri, astCtx, (JmlCompilationUnit) ast);
                         // Record that this file was compiled so we can extract its diags.
@@ -484,6 +538,16 @@ public class CheckRunner {
             List<org.eclipse.lsp4j.Diagnostic> primaryDiags =
                     allDiags.getOrDefault(uri, List.of());
             allDiags.remove(uri);   // companions = everything except the primary
+            if ("--check".equals(modeFlag)) {
+                int companionFiles  = compiledPathToRealUri.size() - 1;  // minus primary
+                int companionTotal  = allDiags.values().stream().mapToInt(List::size).sum();
+                String companionNote = companionFiles > 0
+                        ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
+                        : "";
+                log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
+            } else {
+                logEscResults(fname, proofResults, primaryDiags.size());
+            }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(tempFile.toString()), allDiags);
         } catch (IOException e) {
@@ -525,6 +589,11 @@ public class CheckRunner {
             args.add(tempFile.toString());
             logInvocation("runOnContent", args, content);
 
+            String fname = fileName(uri);
+            String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+            else log(ts() + " --esc " + fname + methodDesc);
+
             // Capture AST in local vars so we can store with IAPI after execution.
             final String tempUriStr = tempFile.toUri().toString();
             final JmlCompilationUnit[] capturedAst = { null };
@@ -559,7 +628,13 @@ public class CheckRunner {
 
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
-            return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc,
+            List<org.eclipse.lsp4j.Diagnostic> diags =
+                    listener.toLspDiagnostics(tempFile.toString(), uri);
+            if ("--check".equals(modeFlag))
+                log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+            else
+                logEscResults(fname, proofResults, diags.size());
+            return new CheckResult(diags, rc,
                     proofResults, listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
@@ -594,6 +669,11 @@ public class CheckRunner {
         }
         args.add(filePath);
         logInvocation("runOnFile", args);
+
+        String fname = fileName(uri);
+        String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+        if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+        else log(ts() + " --esc " + fname + methodDesc);
 
         // Capture the primary file's AST locally; store with IAPI on successful --check.
         final String fileUriStr = new java.io.File(filePath).toURI().toString();
@@ -631,7 +711,12 @@ public class CheckRunner {
 
         Map<String, IProverResult.Kind> proofResults =
                 prc != null ? prc.getResults() : Map.of();
-        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc,
+        List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
+        if ("--check".equals(modeFlag))
+            log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+        else
+            logEscResults(fname, proofResults, diags.size());
+        return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath), Map.of());
     }
 
@@ -815,7 +900,7 @@ public class CheckRunner {
     /**
      * Run doESC on one method.
      *
-     * <p>{@link IAPI#doESC} is not thread-safe on the same IAPI instance; calls for
+     * <p>{@link IAPI#doESC} is NOT thread-safe on the same IAPI instance; calls for
      * the same entry are serialized via the entry's {@code escLock}.  Methods from
      * different files (different IAPI instances, different locks) proceed in parallel.
      * The lock is held only for the duration of the single-method call, so all methods
@@ -828,7 +913,11 @@ public class CheckRunner {
     private static SingleEscResult doEscOneMethod(String uri,
                                                    JmlTree.JmlMethodDecl method,
                                                    ASTCache.Entry entry) {
+        String msig = method.sym != null
+                ? method.sym.owner.toString() + " " + method.sym.toString()
+                : method.name.toString();
         System.err.println("[CheckRunner.doEscOneMethod] doESC on " + method.name + " in " + uri);
+        log(ts() + " --esc " + msig + " starting");
         entry.diagListener().startCapture();
         IProverResult result;
         entry.escLock().lock();
@@ -846,6 +935,7 @@ public class CheckRunner {
         int exitCode = (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) ? 6 : 0;
         System.err.println("[CheckRunner.doEscOneMethod] " + method.name
                 + " -> " + kind + ", exitCode=" + exitCode);
+        log(ts() + " --esc " + msig + ": " + kindLabel(kind));
         return new SingleEscResult(method.name.toString(), kind, lspDiags, exitCode);
     }
 

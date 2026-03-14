@@ -164,6 +164,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Last-seen source content per URI (for code lens and hover). */
     private final Map<String, String> lastContent = new ConcurrentHashMap<>();
 
+    /** Content (by identity hash) of the last successfully submitted --check, per URI. */
+    private final Map<String, String> lastCheckedContent = new ConcurrentHashMap<>();
+
     /**
      * The most recently submitted --check future (per URI).  Set just before
      * the check task is submitted to the executor; completed when the check
@@ -184,6 +187,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     public void connect(LanguageClient client) {
         this.client = client;
+        CheckRunner.setLogCallback(msg -> {
+            if (client != null)
+                client.logMessage(new MessageParams(MessageType.Log, msg));
+        });
     }
 
     @Override
@@ -204,6 +211,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String uri     = params.getTextDocument().getUri();
         String content = params.getContentChanges().get(0).getText();
         lastContent.put(uri, content);
+        // Invalidate cached check state for all other open files so that focus-triggered
+        // rechecks pick up this change in their cross-file context.  When the primary
+        // check completes, companion files that were actually compiled will be re-marked
+        // as up-to-date, so only truly-uncompiled files will be rechecked on focus.
+        lastCheckedContent.keySet().removeIf(k -> !k.equals(uri));
 
         // --check: debounced if in edit mode
         if (settings.isCheckOnEdit()) {
@@ -724,6 +736,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void recheckUri(String uri) {
         String content = lastContent.get(uri);
         if (content == null) return;
+        // Skip if nothing has changed since the last completed check.
+        if (content.equals(lastCheckedContent.get(uri))) return;
+        // Skip if a check is already queued or running for this URI (e.g. didOpen
+        // schedules a check, then onDidChangeActiveTextEditor fires 200ms later).
+        CompletableFuture<Void> pending = lastCheckFuture.get(uri);
+        if (pending != null && !pending.isDone()) return;
         executor.submit(() -> runCheckContent(uri, content));
     }
 
@@ -1064,6 +1082,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // .jml files are spec files; should not be passed to OpenJML on command line.
         // scheduleCheckNow redirects to the companion .java, but guard here as well.
         if (uri.endsWith(".jml")) return;
+        lastCheckedContent.put(uri, content);
         // Pass all open (possibly unsaved) files so cross-file dependencies use
         // their current in-memory versions rather than the on-disk saved versions.
         CheckRunner.CheckResult result = CheckRunner.checkWithContext(
@@ -1076,6 +1095,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (lastContent.containsKey(otherUri)) {
                 checkDiags.put(otherUri, diags);
                 publishMerged(otherUri);
+                // Mark companion as checked so focus-triggered rechecks skip it
+                // (it was already compiled alongside the primary file with up-to-date content).
+                String companionContent = lastContent.get(otherUri);
+                if (companionContent != null) lastCheckedContent.put(otherUri, companionContent);
             }
         });
         // Do NOT call refreshCodeLenses() here.
