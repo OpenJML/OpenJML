@@ -49,18 +49,22 @@ TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 ## All test classes — each runs in its own JVM process.
 ## ESC-heavy classes (DoEscTest, EscStatusTest, MultiFileEscTest, DiagnosticsTest)
 ## each run alone so that running with -j5 never starts more than 5 ESC processes.
+## Ordered longest-first so -j5 keeps the pool busy and finishes sooner.
+## Timings (approximate, single run): RenameTest[1-3] ~41s each, DefinitionFinderTest 37s,
+## DoEscTest 31s, ReferenceFinderTest 28s, DiagnosticsTest 26s, DocumentSymbolTest 24s,
+## EscStatusTest 17s, MultiFileEscTest 15s, FastTests (FoldingRange+LspProtocol+SemanticTokens) 6s.
 TEST_CLASSES := \
+  RenameTest1 \
+  RenameTest2 \
+  RenameTest3 \
+  DefinitionFinderTest \
+  DoEscTest \
+  ReferenceFinderTest \
   DiagnosticsTest \
+  DocumentSymbolTest \
   EscStatusTest \
   MultiFileEscTest \
-  LspProtocolTest \
-  DefinitionFinderTest \
-  ReferenceFinderTest \
-  RenameTest \
-  SemanticTokensTest \
-  DocumentSymbolTest \
-  FoldingRangeTest \
-  DoEscTest
+  FastTests
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
@@ -120,29 +124,11 @@ run-tests: $(RESULT_DIR)/.compiled
 	@$(MAKE) --no-print-directory -j5 _run-logs
 	@echo "All LSP tests passed."
 
-## Sequential fallback — useful for debugging; quiet by default.
-## Set VERBOSE=1 to see full output: make run-tests-seq VERBOSE=1
-SEQ_LOG := $(RESULT_DIR)/seq.log
+## Sequential fallback — useful for debugging; shows [PASS]/[FAIL] per class.
 run-tests-seq: $(RESULT_DIR)/.compiled
-	@if ( cd $(LSPTEST); \
-	      . $(SRC)/setup-exports; \
-	      OPENJML_INSTALL="$(BUILDJDK)" \
-	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
-	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
-	      "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
-	        -Dlsp.testdata=$(LSPTEST)/testdata \
-	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
-	        org.junit.runner.JUnitCore \
-	        org.openjml.lsp.test.AllLspTests \
-	    ) > $(SEQ_LOG) 2>&1; \
-	then \
-	  if [ "$(VERBOSE)" = "1" ]; then cat $(SEQ_LOG); fi; \
-	  grep -E "^OK|Tests run" $(SEQ_LOG) | tail -1 | sed "s/^/[PASS] AllLspTests: /"; \
-	else \
-	  echo "[FAIL] AllLspTests — log: $(SEQ_LOG)"; \
-	  cat $(SEQ_LOG); \
-	  exit 1; \
-	fi
+	@rm -f $(LOG_FILES)
+	@$(MAKE) --no-print-directory -j1 _run-logs
+	@echo "All LSP tests passed (sequential)."
 
 clean: .FORCE
 	rm -rf $(LSPTEST)/build
