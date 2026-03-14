@@ -524,21 +524,7 @@ public class CheckRunner {
             // Write target file at its package-relative path.
             Path tempFile = writeToTempDir(tempDir, uri, content);
 
-            // Build effective sourcepath: tempDir first (in-memory priority),
-            // then workspace folders, then user sourcePath (or classPath fallback).
-            OpenJMLSettings ctx = new OpenJMLSettings();
-            ctx.specsPath            = settings.specsPath;
-            ctx.solversPath          = settings.solversPath;
-            ctx.classPath            = settings.classPath;
-            ctx.workspaceFolderPaths = settings.workspaceFolderPaths;
-            ctx.sourcePath           = settings.sourcePath;
-            // Override sourcePath with the fully assembled value; buildArgs will
-            // call buildEffectiveSourcePath(null, ctx) but we pre-bake tempDir here.
-            ctx.sourcePath = buildEffectiveSourcePath(tempDir, settings);
-            // Clear workspaceFolderPaths so buildArgs doesn't double-append them.
-            ctx.workspaceFolderPaths = null;
-
-            List<String> args = buildArgs(ctx, modeFlag);
+            List<String> args = buildArgs(settings, modeFlag, tempDir);
             if (methodName != null && !methodName.isEmpty()) {
                 args.add("--method");
                 args.add(methodName);
@@ -1067,6 +1053,10 @@ public class CheckRunner {
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {
+        return buildArgs(settings, modeFlag, null);
+    }
+
+    private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag, Path prefixDir) {
         List<String> args = new ArrayList<>();
         // --properties must come first: options in the file are read before
         // subsequent args, so IDE settings and invocation flags override it.
@@ -1083,7 +1073,7 @@ public class CheckRunner {
             args.add("--solvers-path");
             args.add(settings.solversPath);
         }
-        String sp = buildEffectiveSourcePath(null, settings);
+        String sp = buildEffectiveSourcePath(prefixDir, settings);
         if (!sp.isEmpty()) {
             args.add("-sourcepath");
             args.add(sp);
