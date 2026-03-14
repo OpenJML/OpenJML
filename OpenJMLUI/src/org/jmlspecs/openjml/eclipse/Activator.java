@@ -56,10 +56,10 @@ public class Activator extends AbstractUIPlugin {
     // Called during Activator construction
     public void start(BundleContext context) throws Exception {
         super.start(context);
+        plugin = this;  // set here (after super.start) so getDefault() works immediately
 
-        // Initialize the preferences store first — needed for LSP settings.
-        // This must succeed even when the legacy OpenJML JARs are absent.
-        Options.initialize();
+        // Initialize LSP preference defaults — no OpenJML class dependencies.
+        OpenJMLOptions.initializeDefaults(getPreferenceStore());
 
         // The rest of start() depends on legacy OpenJML JARs (jSMTLIB, jmlruntime,
         // OpenJML classes).  Wrap in a broad catch so the plugin still activates

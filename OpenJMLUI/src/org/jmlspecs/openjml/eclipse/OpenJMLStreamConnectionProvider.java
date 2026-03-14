@@ -5,11 +5,9 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.Platform;
@@ -38,7 +36,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      *   2. Directory of the Eclipse install (Platform.getInstallLocation)
      */
     private static String findServerPath() {
-        String pref = Options.value(Options.lspServerPathKey);
+        String pref = OpenJMLOptions.value(OpenJMLOptions.lspServerPathKey);
         if (pref != null && !pref.isBlank()) {
             return pref;
         }
@@ -59,29 +57,10 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      */
     @Override
     public Object getInitializationOptions(URI rootUri) {
-        Map<String, Object> opts = new LinkedHashMap<>();
-        opts.put("checkTriggerOn",      nonBlank(Options.value(Options.checkTriggerOnKey), "edit"));
-        opts.put("escTriggerOn",        nonBlank(Options.value(Options.escTriggerOnKey),   "manual"));
-        opts.put("specsPath",           Options.value(Options.specsPathKey));
-        opts.put("sourcePath",          Options.value(Options.sourcePathKey));
-        opts.put("classPath",           Options.value(Options.classPathKey));
-        opts.put("solversPath",         Options.value(Options.solversPathKey));
-        opts.put("propertiesFile",      Options.value(Options.propertiesFileKey));
-        opts.put("racOutputDir",        Options.value(Options.racOutputDirKey));
-        opts.put("escEngine",           nonBlank(Options.value(Options.escEngineKey), "subprocess"));
-        opts.put("useIntegratedOutline",Options.value(Options.useIntegratedOutlineKey));
-        String threads = Options.value(Options.escThreadsKey);
-        if (threads != null && !threads.isBlank() && !threads.equals("0")) {
-            try { opts.put("escThreads", Integer.parseInt(threads.trim())); }
-            catch (NumberFormatException ignored) {}
-        }
+        Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();
         LspConsole.log("[OpenJML] Sending initializationOptions: checkTriggerOn="
                 + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
-    }
-
-    private static String nonBlank(String s, String fallback) {
-        return (s == null || s.isBlank()) ? fallback : s;
     }
 
     @Override
