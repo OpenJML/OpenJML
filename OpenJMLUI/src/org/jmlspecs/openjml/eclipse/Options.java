@@ -99,25 +99,30 @@ public class Options {
         boolean b = store.getBoolean(Options.alreadyInitializedKey);
         boolean bb = store.getBoolean(Options.initializeOnStartupKey);
         if (!b || bb) {
-            Properties properties = org.jmlspecs.openjml.Utils.findProperties(null);
-            for (java.util.Map.Entry<Object, Object> entry : properties.entrySet()) {
-                String key = entry.getKey().toString();
-                String value = entry.getValue().toString();
-                if (key.startsWith(Strings.optionPropertyPrefix)) {
-                    boolean isBoolean = false;
-                    String optname = "-" + key.substring(Strings.optionPropertyPrefix.length());
-                    for (IOption o : JmlOption.list) { // FIXME - change to a lookup
-                        if (o.optionName().equals(optname)) {
-                            isBoolean = !o.hasArg();
-                            break;
+            try {
+                Properties properties = org.jmlspecs.openjml.Utils.findProperties(null);
+                for (java.util.Map.Entry<Object, Object> entry : properties.entrySet()) {
+                    String key = entry.getKey().toString();
+                    String value = entry.getValue().toString();
+                    if (key.startsWith(Strings.optionPropertyPrefix)) {
+                        boolean isBoolean = false;
+                        String optname = "-" + key.substring(Strings.optionPropertyPrefix.length());
+                        for (IOption o : JmlOption.list) { // FIXME - change to a lookup
+                            if (o.optionName().equals(optname)) {
+                                isBoolean = !o.hasArg();
+                                break;
+                            }
+                        }
+                        if (isBoolean) {
+                            store.setValue(key, Boolean.parseBoolean(value));
+                        } else {
+                            store.setValue(key, value);
                         }
                     }
-                    if (isBoolean) {
-                        store.setValue(key, Boolean.parseBoolean(value));
-                    } else {
-                        store.setValue(key, value);
-                    }
                 }
+            } catch (Throwable t) {
+                // Legacy OpenJML classes unavailable — skip properties file loading.
+                System.err.println("[OpenJML] Skipping properties file init: " + t);
             }
             store.setValue(Options.alreadyInitializedKey, true);
         }
