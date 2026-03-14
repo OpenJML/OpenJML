@@ -6,8 +6,7 @@
 
 set -e
 
-# Debug log — remove once startup is confirmed working
-LOG=/tmp/openjml-lsp-debug.log
+LOG="${OPENJML_LSP_LOG:-/tmp/openjml-lsp-debug.log}"
 echo "$(date): openjml-lsp invoked, args: $*" > "$LOG"
 exec 2>>"$LOG"   # redirect stderr to log so Java errors are captured too
 

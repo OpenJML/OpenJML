@@ -297,18 +297,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String uri, ASTCache.Entry entry, String content) {
         boolean jmlOnly = !Boolean.TRUE.equals(settings.useIntegratedOutline);
         List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content, jmlOnly);
-        System.err.println("[documentSymbol] returning " + symbols.size() + " top-level symbol(s) for " + uri);
-        for (DocumentSymbol ds : symbols) {
-            int nChildren = ds.getChildren() == null ? 0 : ds.getChildren().size();
-            System.err.println("[documentSymbol]   " + ds.getKind() + " " + ds.getName()
-                    + " (" + nChildren + " children)");
-            if (ds.getChildren() != null) {
-                for (DocumentSymbol ch : ds.getChildren()) {
-                    System.err.println("[documentSymbol]     " + ch.getKind() + " " + ch.getName()
-                            + (ch.getDetail() != null ? " [" + ch.getDetail() + "]" : ""));
-                }
-            }
-        }
         List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
         for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
         return result;
@@ -318,30 +306,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
             DocumentSymbolParams params) {
         String uri     = params.getTextDocument().getUri();
-        System.err.println("[documentSymbol] called for " + uri);
         String content = lastContent.get(uri);
         if (content == null) {
-            System.err.println("[documentSymbol] no content for " + uri + " → returning empty");
             return CompletableFuture.completedFuture(List.of());
         }
         // If a check is in flight (first open OR edit), wait for it so the
         // outline reflects the current source rather than the previous AST.
         CompletableFuture<Void> pending = lastCheckFuture.get(uri);
         if (pending != null && !pending.isDone()) {
-            System.err.println("[documentSymbol] check in flight, waiting before building symbols for " + uri);
             final String finalContent = content;
             return pending.thenApply(_v -> {
                 ASTCache.Entry e2 = CheckRunner.getASTCache().get(uri);
-                if (e2 == null) {
-                    System.err.println("[documentSymbol] check completed but no ASTCache entry for " + uri);
-                    return List.<Either<SymbolInformation, DocumentSymbol>>of();
-                }
+                if (e2 == null) return List.<Either<SymbolInformation, DocumentSymbol>>of();
                 return buildSymbolResult(uri, e2, finalContent);
             });
         }
         ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
         if (entry == null) {
-            System.err.println("[documentSymbol] no ASTCache entry and no pending check for " + uri + " → returning empty");
             return CompletableFuture.completedFuture(List.of());
         }
         List<Either<SymbolInformation, DocumentSymbol>> result = buildSymbolResult(uri, entry, content);
@@ -691,10 +672,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             .collect(java.util.stream.Collectors.toList());
                 }
                 if (filePaths.isEmpty()) return;
-                System.err.println("[OpenJML] Background index: " + filePaths.size()
-                        + " .java files under " + rootPath);
                 CheckRunner.indexWorkspaceFiles(filePaths, settings);
-                System.err.println("[OpenJML] Background index complete");
             } catch (Exception e) {
                 System.err.println("[OpenJML] Background index failed: " + e);
             }
@@ -901,8 +879,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         Future<?> f = pool.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
-                System.err.println("[OpenJML] ESC-method done: exit=" + result.exitCode()
-                        + " diags=" + result.diagnostics().size() + " uri=" + uri);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC-method for " + uri);
                 if (escGen.get(uri).get() != myGen) return; // superseded
@@ -1075,8 +1051,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         Future<?> f = executor.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
-                System.err.println("[OpenJML] ESC done: exit=" + result.exitCode()
-                        + " diags=" + result.diagnostics().size() + " uri=" + uri);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
                 // Only publish if this task is still the latest for this URI.

@@ -23,6 +23,9 @@ import java.util.Map;
  */
 public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject> {
 
+    /** Set to true and recompile to enable per-diagnostic debug logging in toLspDiagnostics(). */
+    private static final boolean DEBUG_DIAGNOSTICS = false;
+
     private final List<Diagnostic<? extends JavaFileObject>> collected =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends JavaFileObject>>());
 
@@ -170,24 +173,25 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     }
 
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
-        System.err.println("[LspDiagnosticListener] " + collected.size()
-                + " raw diagnostic(s) for " + sourcePath);
         var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
         for (var d : collected) {
-            String src = d.getSource() == null ? "<null>" : d.getSource().getName();
-            System.err.println("  raw: kind=" + d.getKind()
-                    + " code=" + d.getCode()
-                    + " line=" + d.getLineNumber()
-                    + " src=" + src
-                    + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
+            if (DEBUG_DIAGNOSTICS) {
+                String src = d.getSource() == null ? "<null>" : d.getSource().getName();
+                System.err.println("  raw: kind=" + d.getKind()
+                        + " code=" + d.getCode()
+                        + " line=" + d.getLineNumber()
+                        + " src=" + src
+                        + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
+            }
             var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri);
             if (lsp != null) {
                 result.add(lsp);
-            } else {
+            } else if (DEBUG_DIAGNOSTICS) {
                 System.err.println("    ^ filtered out by DiagnosticConverter");
             }
         }
-        System.err.println("[LspDiagnosticListener] " + result.size() + " LSP diagnostic(s) after filtering");
+        System.err.println("[LspDiagnosticListener] " + collected.size()
+                + " raw, " + result.size() + " LSP diagnostic(s) for " + sourcePath);
         return result;
     }
 }
