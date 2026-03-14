@@ -41,6 +41,7 @@ import org.junit.runners.Suite;
     DoEscTest.class,
     EscCancellationTest.class,
     ConcurrentEscTest.class,
+    FreshParallelEscTest.class,
     CheckRunnerEscAndRacTest.class,
     PropertiesFileOptionsTest.class,
     RacTest.class,
