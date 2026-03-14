@@ -13,6 +13,7 @@
     "vscode": "^1.79.0"
   },
   "categories": [
+    "Programming Languages",
     "Linters"
   ],
   "activationEvents": [
