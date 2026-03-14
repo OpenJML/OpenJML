@@ -38,6 +38,11 @@
         "category": "OpenJML"
       },
       {
+        "command": "openjml.runEscDir",
+        "title": "Run ESC on Project",
+        "category": "OpenJML"
+      },
+      {
         "command": "openjml.runRac",
         "title": "Compile RAC",
         "category": "OpenJML"
@@ -81,9 +86,14 @@
           "group": "1_openjml@3"
         },
         {
-          "command": "openjml.runRac",
+          "command": "openjml.runEscDir",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@4"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@5"
         }
       ],
       "editor/context": [
@@ -103,9 +113,14 @@
           "group": "1_openjml@3"
         },
         {
-          "command": "openjml.runRac",
+          "command": "openjml.runEscDir",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@4"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@5"
         }
       ],
       "commandPalette": [
@@ -120,6 +135,9 @@
         {
           "command": "openjml.runEscForMethod",
           "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.runEscDir"
         },
         {
           "command": "openjml.runRac",

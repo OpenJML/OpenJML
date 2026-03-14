@@ -317,6 +317,28 @@ async function activate(context) {
     });
     context.subscriptions.push(racCmd);
 
+    // "Run ESC on Project" — runs ESC on all workspace folders.
+    // Requires at least one workspace folder to be open.
+    const escDirCmd = vscode.commands.registerCommand('openjml.runEscDir', async () => {
+        if (!client) { requireServer(); return; }
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders || folders.length === 0) {
+            vscode.window.showWarningMessage(
+                'OpenJML: no workspace folder is open. Open a folder to run ESC on the project.');
+            return;
+        }
+        const paths = folders.map(f => f.uri.fsPath);
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEscDir',
+                arguments: paths,
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC on project failed: ' + err);
+        }
+    });
+    context.subscriptions.push(escDirCmd);
+
     // If no server script is available, stop here — commands are registered above so
     // VS Code can find them; they will show a helpful error when invoked.
     if (!serverScript) {
