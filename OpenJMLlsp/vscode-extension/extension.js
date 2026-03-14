@@ -340,6 +340,21 @@ async function activate(context) {
     });
     context.subscriptions.push(escDirCmd);
 
+    // "Clear Caches and Reindex" — clears all server-side caches and restarts
+    // from scratch: re-checks open files and re-indexes the workspace.
+    const clearCmd = vscode.commands.registerCommand('openjml.clearAndReindex', async () => {
+        if (!client) { requireServer(); return; }
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.clearAndReindex',
+                arguments: [],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML clear-and-reindex failed: ' + err);
+        }
+    });
+    context.subscriptions.push(clearCmd);
+
     // If no server script is available, stop here — commands are registered above so
     // VS Code can find them; they will show a helpful error when invoked.
     if (!serverScript) {

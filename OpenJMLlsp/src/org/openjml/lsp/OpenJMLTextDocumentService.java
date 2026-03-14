@@ -137,6 +137,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final String codeLensCommand;
     private LanguageClient client;
 
+    /** Workspace root URI, stored when the first workspace index is scheduled. */
+    private volatile String rootUri = null;
+
     private final ExecutorService          executor      = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
 
@@ -689,6 +692,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * @param rootUri the workspace root URI from {@code InitializeParams}
      */
     void scheduleWorkspaceIndex(String rootUri) {
+        this.rootUri = rootUri;
         String rootPath = CheckRunner.uriToPath(rootUri);
         if (rootPath == null) return;
         indexExecutor.submit(() -> {
@@ -1317,6 +1321,57 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (c != null) c.cancel(false);
         ScheduledFuture<?> e = pendingEsc.remove(uri);
         if (e != null) e.cancel(false);
+    }
+
+    /**
+     * Clear all in-memory caches and restart as if the server had just started.
+     *
+     * <p>Cancels any pending check/ESC work, clears the AST cache, diagnostic
+     * maps, and ESC status, publishes empty diagnostics for all open files,
+     * then re-queues a fresh {@code --check} for every open file and a fresh
+     * workspace index pass.
+     *
+     * <p>Intended as a recovery command when the user suspects the server state
+     * has become stale or is consuming too much memory.
+     */
+    void resetAndReindex() {
+        // Cancel all pending debounced and running work.
+        pendingCheck.values().forEach(f -> f.cancel(false));
+        pendingCheck.clear();
+        pendingEsc.values().forEach(f -> f.cancel(false));
+        pendingEsc.clear();
+        runningEscTasks.values().forEach(f -> f.cancel(false));
+        runningEscTasks.clear();
+        lastCheckFuture.clear();
+
+        // Clear all diagnostic and status caches.
+        checkDiags.clear();
+        escDiags.clear();
+        racDiags.clear();
+        methodEscStatus.clear();
+        lastCheckedContent.clear();
+
+        // Clear the AST cache (both tiers and declaration indexes).
+        CheckRunner.getASTCache().clear();
+
+        // Publish empty diagnostics for all open files so stale markers disappear.
+        if (client != null) {
+            for (String uri : lastContent.keySet()) {
+                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+            }
+            client.logMessage(new MessageParams(MessageType.Info,
+                    "OpenJML: caches cleared — re-checking open files and re-indexing workspace…"));
+        }
+
+        // Re-check every currently open file.
+        for (Map.Entry<String, String> e : lastContent.entrySet()) {
+            scheduleCheckNow(e.getKey(), e.getValue());
+        }
+
+        // Re-run the workspace index if a root was known.
+        if (rootUri != null) scheduleWorkspaceIndex(rootUri);
+
+        refreshCodeLenses();
     }
 
     /** Shut down all executor services. Called from the language server's shutdown sequence. */

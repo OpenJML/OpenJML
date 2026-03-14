@@ -47,16 +47,17 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private String rootUri  = null;
 
     /**
-     * @param escCommand           command name for full-file ESC
-     * @param escForMethodCommand  command name for per-method ESC
-     * @param escDirCommand        command name for multi-path ESC via {@code --dirs} (may be {@code null})
-     * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
+     * @param escCommand               command name for full-file ESC
+     * @param escForMethodCommand      command name for per-method ESC
+     * @param escDirCommand            command name for multi-path ESC via {@code --dirs} (may be {@code null})
+     * @param focusFileCommand         command name sent by the client when focus changes to an already-open file
      * @param getSemanticTokensCommand command name for semantic tokens
-     * @param racCommand           command name for RAC compile (may be {@code null})
+     * @param racCommand               command name for RAC compile (may be {@code null})
+     * @param clearAndReindexCommand   command name to clear caches and reindex (may be {@code null})
      */
     public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
                                   String focusFileCommand, String getSemanticTokensCommand,
-                                  String racCommand) {
+                                  String racCommand, String clearAndReindexCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
@@ -72,7 +73,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 escDirCommand,
                 focusFileCommand,
                 getSemanticTokensCommand,
-                racCommand);
+                racCommand,
+                clearAndReindexCommand,
+                textDocumentService::resetAndReindex);
     }
 
     @Override

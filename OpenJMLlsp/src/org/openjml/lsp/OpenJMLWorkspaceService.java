@@ -51,6 +51,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final String focusFileCommand;
     private final String getSemanticTokensCommand;
     private final String racCommand;
+    private final String clearAndReindexCommand;
+    private final Runnable clearAndReindexRequester;
 
     /**
      * @param settings                 shared settings object
@@ -66,6 +68,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      * @param focusFileCommand         command name for focus-triggered recheck
      * @param getSemanticTokensCommand command name for semantic tokens
      * @param racCommand               command name for RAC compile (may be {@code null})
+     * @param clearAndReindexCommand   command name to clear caches and reindex (may be {@code null})
+     * @param clearAndReindexRequester called (no args) when the clear-and-reindex command is received
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    Consumer<String>             escRequester,
@@ -80,7 +84,9 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                                    String escDirCommand,
                                    String focusFileCommand,
                                    String getSemanticTokensCommand,
-                                   String racCommand) {
+                                   String racCommand,
+                                   String clearAndReindexCommand,
+                                   Runnable clearAndReindexRequester) {
         this.settings                  = settings;
         this.escRequester              = escRequester;
         this.escMethodRequester        = escMethodRequester;
@@ -95,6 +101,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         this.focusFileCommand          = focusFileCommand;
         this.getSemanticTokensCommand  = getSemanticTokensCommand;
         this.racCommand                = racCommand;
+        this.clearAndReindexCommand    = clearAndReindexCommand;
+        this.clearAndReindexRequester  = clearAndReindexRequester;
     }
 
     @Override
@@ -164,6 +172,9 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                 String uri = extractString(args.get(0));
                 if (uri != null) racRequester.accept(uri);
             }
+        } else if (clearAndReindexCommand != null && clearAndReindexCommand.equals(cmd)
+                && clearAndReindexRequester != null) {
+            clearAndReindexRequester.run();
         }
         return CompletableFuture.completedFuture(null);
     }

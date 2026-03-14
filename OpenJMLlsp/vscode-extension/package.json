@@ -46,6 +46,11 @@
         "command": "openjml.runRac",
         "title": "Compile RAC",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.clearAndReindex",
+        "title": "Clear Caches and Reindex",
+        "category": "OpenJML"
       }
     ],
     "keybindings": [

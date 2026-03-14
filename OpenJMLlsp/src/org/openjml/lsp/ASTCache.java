@@ -200,6 +200,18 @@ public class ASTCache {
         removeInitDeclarationsForUri(uri);
     }
 
+    /**
+     * Clear all cached entries and declaration indexes from both tiers.
+     * Resets the indexing flag.  Called by the clear-and-reindex command.
+     */
+    public void clear() {
+        liveCache.clear();
+        liveDeclarationIndex.clear();
+        initCache.clear();
+        initDeclarationIndex.clear();
+        indexing.set(false);
+    }
+
     // -----------------------------------------------------------------------
     // Iteration
     // -----------------------------------------------------------------------

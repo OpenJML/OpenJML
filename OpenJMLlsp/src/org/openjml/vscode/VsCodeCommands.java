@@ -50,5 +50,15 @@ public final class VsCodeCommands {
      */
     public static final String GET_SEMANTIC_TOKENS = "openjml.getSemanticTokens";
 
+    /**
+     * Clear-and-reindex command: clears all server-side caches (AST cache,
+     * diagnostics, ESC status) and restarts as if the server had just started —
+     * re-checking open files and re-indexing the workspace.
+     *
+     * <p>Intended as a recovery action when the user suspects stale state or
+     * memory pressure.  Takes no arguments.
+     */
+    public static final String CLEAR_AND_REINDEX = "openjml.clearAndReindex";
+
     private VsCodeCommands() {}
 }
