@@ -259,12 +259,6 @@
           "order": 10,
           "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `subprocess`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
         },
-        "openjml.racOutputDir": {
-          "type": "string",
-          "default": "",
-          "order": 12,
-          "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
-        },
         "openjml.syntaxColoringStrategy": {
           "type": "string",
           "enum": [
@@ -274,6 +268,18 @@
           "default": "regex",
           "order": 11,
           "markdownDescription": "Strategy for JML syntax coloring:\n- `ast` (default) — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check\n- `regex` — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)"
+        },
+        "openjml.useIntegratedOutline": {
+          "type": "boolean",
+          "default": true,
+          "order": 12,
+          "markdownDescription": "When `true` (default), the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols (ghost, model) are shown, complementing the Red Hat Java extension's outline. Users can collapse irrelevant sections in either mode."
+        },
+        "openjml.racOutputDir": {
+          "type": "string",
+          "default": "",
+          "order": 13,
+          "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
         }
       }
     }

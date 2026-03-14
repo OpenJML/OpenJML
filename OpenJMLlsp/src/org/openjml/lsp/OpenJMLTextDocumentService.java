@@ -295,7 +295,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private List<Either<SymbolInformation, DocumentSymbol>> buildSymbolResult(
             String uri, ASTCache.Entry entry, String content) {
-        List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content);
+        boolean jmlOnly = !Boolean.TRUE.equals(settings.useIntegratedOutline);
+        List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content, jmlOnly);
         System.err.println("[documentSymbol] returning " + symbols.size() + " top-level symbol(s) for " + uri);
         for (DocumentSymbol ds : symbols) {
             int nChildren = ds.getChildren() == null ? 0 : ds.getChildren().size();

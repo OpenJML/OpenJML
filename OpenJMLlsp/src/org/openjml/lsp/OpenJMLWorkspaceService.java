@@ -194,7 +194,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.escTriggerOn           != null) settings.escTriggerOn           = src.escTriggerOn;
         if (src.syntaxColoringStrategy != null) settings.syntaxColoringStrategy = src.syntaxColoringStrategy;
         if (src.escEngine              != null) settings.escEngine              = src.escEngine;
-        if (src.racOutputDir      != null) settings.racOutputDir      = src.racOutputDir;
+        if (src.racOutputDir         != null) settings.racOutputDir         = src.racOutputDir;
+        if (src.useIntegratedOutline != null) settings.useIntegratedOutline = src.useIntegratedOutline;
         if (src.escThreads > 0 && src.escThreads != settings.escThreads) {
             settings.escThreads = src.escThreads;
             var old = settings.escPool;

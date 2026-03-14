@@ -62,6 +62,15 @@ public class OpenJMLSettings {
     public volatile String classPath;
 
     /**
+     * When {@code true} (default), the outline ({@code textDocument/documentSymbol})
+     * returns all Java and JML symbols together — an integrated view.
+     * When {@code false}, only JML-specific symbols (ghost, model) are returned,
+     * complementing a competing Java outline provider (e.g. Red Hat Java extension in VS Code).
+     * Users can collapse unwanted sections in either mode.
+     */
+    public volatile Boolean useIntegratedOutline = true;
+
+    /**
      * When to run the {@code --check} pass:
      * <ul>
      *   <li>{@code "edit"} (default) — check on every document change (debounced)</li>
