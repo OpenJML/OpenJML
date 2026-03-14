@@ -1674,7 +1674,17 @@
        </quickFixProcessor>
    </extension>
 
-   <!-- LSP4E integration: connect Java source files to the openjml-lsp server -->
+   <!-- Content type for .jml specification files -->
+   <extension point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="jml"
+            id="org.jmlspecs.openjml.jmlSource"
+            name="JML Specification File"
+            priority="high"/>
+   </extension>
+
+   <!-- LSP4E integration: connect Java and .jml source files to the openjml-lsp server -->
    <extension point="org.eclipse.lsp4e.languageServer">
       <languageServer
             class="org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider"
@@ -1683,7 +1693,100 @@
          <contentTypeMapping
                contentTypeId="org.eclipse.jdt.core.javaSource"
                priority="low"/>
+         <contentTypeMapping
+               contentTypeId="org.jmlspecs.openjml.jmlSource"
+               priority="high"/>
       </languageServer>
+   </extension>
+
+   <!-- OpenJML command definitions -->
+   <extension point="org.eclipse.ui.commands">
+      <category
+            id="org.jmlspecs.openjml.commands.category"
+            name="OpenJML"/>
+      <command
+            id="org.jmlspecs.openjml.commands.runEsc"
+            name="Run ESC on Current File"
+            categoryId="org.jmlspecs.openjml.commands.category"
+            description="Run extended static checking on the current Java/JML file"/>
+      <command
+            id="org.jmlspecs.openjml.commands.runEscForMethod"
+            name="Run ESC for Method Under Cursor"
+            categoryId="org.jmlspecs.openjml.commands.category"
+            description="Run extended static checking on the method at the cursor position"/>
+      <command
+            id="org.jmlspecs.openjml.commands.clearAndReindex"
+            name="Clear OpenJML Cache and Reindex"
+            categoryId="org.jmlspecs.openjml.commands.category"
+            description="Clear all OpenJML server caches and reindex the workspace"/>
+   </extension>
+
+   <!-- Handlers that send LSP executeCommand to the OpenJML language server -->
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            commandId="org.jmlspecs.openjml.commands.runEsc"
+            class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEsc"/>
+      <handler
+            commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+            class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscForMethod"/>
+      <handler
+            commandId="org.jmlspecs.openjml.commands.clearAndReindex"
+            class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
+   </extension>
+
+   <!--
+     Keybindings use a two-key chord:  Ctrl+Shift+J  (the "JML prefix")
+       followed by a second key.
+     M1 = Ctrl (Win/Linux) or Cmd (macOS),  M2 = Shift.
+     The chord is unlikely to conflict with existing Eclipse bindings.
+   -->
+   <extension point="org.eclipse.ui.bindings">
+      <key
+            sequence="M1+M2+J E"
+            commandId="org.jmlspecs.openjml.commands.runEsc"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M2+J M"
+            commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+   </extension>
+
+   <!-- Menu contributions: editor context menu and main menu bar -->
+   <extension point="org.eclipse.ui.menus">
+      <!-- Editor right-click context menu -->
+      <menuContribution locationURI="popup:org.eclipse.ui.editorss?after=additions">
+         <menu id="org.jmlspecs.openjml.editorPopupMenu" label="OpenJML">
+            <command
+                  commandId="org.jmlspecs.openjml.commands.runEsc"
+                  label="Run ESC on File"
+                  icon="icons/jml-logo-16x16.png"/>
+            <command
+                  commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                  label="Run ESC for Method Under Cursor"/>
+            <separator name="sep1"/>
+            <command
+                  commandId="org.jmlspecs.openjml.commands.clearAndReindex"
+                  label="Clear and Reindex"/>
+         </menu>
+      </menuContribution>
+      <!-- Top-level main menu bar entry -->
+      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu id="org.jmlspecs.openjml.mainMenu" label="OpenJML">
+            <command
+                  commandId="org.jmlspecs.openjml.commands.runEsc"
+                  label="Run ESC on Current File"
+                  icon="icons/jml-logo-16x16.png"/>
+            <command
+                  commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                  label="Run ESC for Method Under Cursor"/>
+            <separator name="sep1"/>
+            <command
+                  commandId="org.jmlspecs.openjml.commands.clearAndReindex"
+                  label="Clear and Reindex"/>
+         </menu>
+      </menuContribution>
    </extension>
 
 </plugin>

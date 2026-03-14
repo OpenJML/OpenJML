@@ -55,17 +55,28 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
 
     /**
      * Sends OpenJML analysis settings to the server as initialization options,
-     * matching the settings sent by the VS Code extension via initializationOptions.
+     * matching the fields in {@link org.openjml.lsp.OpenJMLSettings}.
      */
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = new LinkedHashMap<>();
-        opts.put("checkTriggerOn", nonBlank(Options.value(Options.checkTriggerOnKey), "edit"));
-        opts.put("escTriggerOn",   nonBlank(Options.value(Options.escTriggerOnKey),   "manual"));
-        opts.put("specsPath",      Options.value(Options.specsPathKey));
-        opts.put("sourcePath",     Options.value(Options.sourcePathKey));
-        opts.put("classPath",      Options.value(Options.classPathKey));
-        opts.put("solversPath",    Options.value(Options.solversPathKey));
+        opts.put("checkTriggerOn",      nonBlank(Options.value(Options.checkTriggerOnKey), "edit"));
+        opts.put("escTriggerOn",        nonBlank(Options.value(Options.escTriggerOnKey),   "manual"));
+        opts.put("specsPath",           Options.value(Options.specsPathKey));
+        opts.put("sourcePath",          Options.value(Options.sourcePathKey));
+        opts.put("classPath",           Options.value(Options.classPathKey));
+        opts.put("solversPath",         Options.value(Options.solversPathKey));
+        opts.put("propertiesFile",      Options.value(Options.propertiesFileKey));
+        opts.put("racOutputDir",        Options.value(Options.racOutputDirKey));
+        opts.put("escEngine",           nonBlank(Options.value(Options.escEngineKey), "subprocess"));
+        opts.put("useIntegratedOutline",Options.value(Options.useIntegratedOutlineKey));
+        String threads = Options.value(Options.escThreadsKey);
+        if (threads != null && !threads.isBlank() && !threads.equals("0")) {
+            try { opts.put("escThreads", Integer.parseInt(threads.trim())); }
+            catch (NumberFormatException ignored) {}
+        }
+        LspConsole.log("[OpenJML] Sending initializationOptions: checkTriggerOn="
+                + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
     }
 

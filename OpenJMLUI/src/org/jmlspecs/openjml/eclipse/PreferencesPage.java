@@ -233,10 +233,21 @@ public class PreferencesPage extends FieldEditorPreferencePage implements IWorkb
                                  { "On save",       "save" },
                                  { "On edit (expensive)", "edit" } });
 
-        addStringEditorField(Options.specsPathKey,   "Specs path (blank = default from launcher)");
-        addStringEditorField(Options.sourcePathKey,  "Source path for -sourcepath (blank = single-file)");
-        addStringEditorField(Options.classPathKey,   "Classpath for -classpath (blank = none)");
-        addStringEditorField(Options.solversPathKey, "Solvers path (blank = default from launcher)");
+        addStringEditorField(Options.propertiesFileKey, "openjml.properties file (blank = auto-discover at workspace root)");
+        addStringEditorField(Options.specsPathKey,      "Specs path (blank = default from launcher)");
+        addStringEditorField(Options.solversPathKey,    "Solvers path (blank = default from launcher)");
+        addStringEditorField(Options.sourcePathKey,     "Source path for -sourcepath (blank = single-file)");
+        addStringEditorField(Options.classPathKey,      "Classpath for -classpath (blank = none)");
+
+        addComboFieldEditor(Options.escEngineKey, "ESC engine",
+                new String[][] { { "subprocess (separate process, default)", "subprocess" },
+                                 { "concurrent (in-process, shared IAPI)",   "concurrent" },
+                                 { "fresh (in-process, fresh IAPI per method)", "fresh" } });
+        addStringEditorField(Options.escThreadsKey, "ESC parallel threads (0 = server default)");
+
+        addBooleanField(Options.useIntegratedOutlineKey, "Use integrated JML outline (uncheck for full Java+JML)");
+
+        addStringEditorField(Options.racOutputDirKey, "RAC output directory (blank = use project output)");
 
         // ESC
 

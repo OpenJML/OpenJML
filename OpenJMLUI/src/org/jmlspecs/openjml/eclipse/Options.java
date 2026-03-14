@@ -91,8 +91,11 @@ public class Options {
     public static void initialize() {
         IPreferenceStore store = Activator.getDefault().getPreferenceStore();
         store.setDefault(Options.showJobControlDialogKey, true);
-        store.setDefault(Options.checkTriggerOnKey, "edit");
-        store.setDefault(Options.escTriggerOnKey,   "manual");
+        store.setDefault(Options.checkTriggerOnKey,        "edit");
+        store.setDefault(Options.escTriggerOnKey,          "manual");
+        store.setDefault(Options.escEngineKey,             "subprocess");
+        store.setDefault(Options.escThreadsKey,            "0");
+        store.setDefault(Options.useIntegratedOutlineKey,  "true");
         boolean b = store.getBoolean(Options.alreadyInitializedKey);
         boolean bb = store.getBoolean(Options.initializeOnStartupKey);
         if (!b || bb) {
@@ -263,4 +266,14 @@ public class Options {
     final static public String classPathKey      = "openjml.classPath";
     /** Path to SMT solvers directory (blank = use launcher default) */
     final static public String solversPathKey    = "openjml.solversPath";
+    /** Path to openjml.properties file (blank = auto-discover at workspace root) */
+    final static public String propertiesFileKey = "openjml.propertiesFile";
+    /** Output directory for RAC-compiled classes (blank = use project output default) */
+    final static public String racOutputDirKey   = "openjml.racOutputDir";
+    /** ESC engine: "subprocess" (default), "concurrent", or "fresh" */
+    final static public String escEngineKey      = "openjml.escEngine";
+    /** Number of parallel ESC threads (0 = use server default) */
+    final static public String escThreadsKey     = "openjml.escThreads";
+    /** Whether the outline shows JML-only items (true) or full Java+JML (false) */
+    final static public String useIntegratedOutlineKey = "openjml.useIntegratedOutline";
 }
