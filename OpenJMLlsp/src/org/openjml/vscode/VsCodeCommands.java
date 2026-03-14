@@ -33,6 +33,16 @@ public final class VsCodeCommands {
     public static final String FOCUS_FILE = "openjml.focusFile";
 
     /**
+     * RAC compile command: {@code openjml.runRac}.
+     *
+     * <p>Compiles the focused Java file with {@code --rac}, producing class files
+     * with embedded assertion checks.  Output directory is controlled by the
+     * {@code openjml.racOutputDir} setting (default: {@code rac-classes} relative
+     * to the workspace root).
+     */
+    public static final String RUN_RAC = "openjml.runRac";
+
+    /**
      * Semantic tokens request: sent by the extension's directly-registered
      * {@code DocumentSemanticTokensProvider}.  Returns the flat integer token
      * data for the given URI so VS Code can apply JML highlighting independently

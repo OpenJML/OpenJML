@@ -296,6 +296,27 @@ async function activate(context) {
     });
     context.subscriptions.push(saveAndEscCmd);
 
+    // "Compile RAC" — compiles the focused Java file with --rac, producing class files
+    // with embedded assertion checks.  Output directory is controlled by openjml.racOutputDir.
+    const racCmd = vscode.commands.registerCommand('openjml.runRac', async () => {
+        if (!client) { requireServer(); return; }
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.languageId !== 'java') {
+            vscode.window.showWarningMessage('OpenJML: open a Java file to compile RAC.');
+            return;
+        }
+        const uri = editor.document.uri.toString();
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runRac',
+                arguments: [uri],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
+        }
+    });
+    context.subscriptions.push(racCmd);
+
     // If no server script is available, stop here — commands are registered above so
     // VS Code can find them; they will show a helpful error when invoked.
     if (!serverScript) {

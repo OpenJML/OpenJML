@@ -386,6 +386,70 @@ public class CheckRunner {
         return runOnFile(filePath, uri, settings, "--esc", methodName, true);
     }
 
+    // --- public API: --rac ---
+
+    /**
+     * Run {@code --rac} on a file already on disk.
+     *
+     * <p>Compiles the file with runtime-assertion-checking instrumentation and
+     * writes the resulting {@code .class} files to the directory specified by
+     * {@link OpenJMLSettings#racOutputDir} (resolved against
+     * {@code workspaceFolderPaths} when relative).  The output directory is
+     * created if it does not yet exist.
+     *
+     * @param filePath absolute path of the Java source file
+     * @param uri      {@code file://} URI of the source file
+     * @param settings current server settings
+     * @return diagnostics and exit code (0 = success, 1 = compile errors)
+     */
+    public static CheckResult runRacFile(String filePath, String uri, OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out      = new PrintWriter(new StringWriter());
+        var api      = IAPI.make(out, listener);
+
+        List<String> args = buildArgs(settings, "--rac");
+
+        // Resolve and create the RAC output directory.
+        String rawDir = (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
+                ? settings.racOutputDir : "rac-classes";
+        java.nio.file.Path outputDir;
+        java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
+        if (raw.isAbsolute()) {
+            outputDir = raw;
+        } else {
+            // Resolve relative path against first workspace folder (or file's parent).
+            String wsRoot = (settings.workspaceFolderPaths != null
+                          && !settings.workspaceFolderPaths.isEmpty())
+                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
+                    : new java.io.File(filePath).getParent();
+            outputDir = java.nio.file.Paths.get(wsRoot).resolve(raw);
+        }
+        try {
+            java.nio.file.Files.createDirectories(outputDir);
+        } catch (java.io.IOException e) {
+            System.err.println("[CheckRunner.runRacFile] failed to create output dir: " + e);
+        }
+        args.add("-d");
+        args.add(outputDir.toString());
+        args.add(filePath);
+        logInvocation("runRacFile", args);
+
+        String fname = fileName(uri);
+        log(ts() + " --rac " + fname + " → " + outputDir);
+
+        int rc;
+        try {
+            rc = api.execute(args.toArray(new String[0]));
+        } catch (Exception e) {
+            System.err.println("[CheckRunner.runRacFile] exception: " + e);
+            rc = -1;
+        }
+        System.err.println("[CheckRunner.runRacFile] exit code " + rc);
+        List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
+        log(ts() + " --rac " + fname + ": " + diags.size() + " diagnostic(s)");
+        return new CheckResult(diags, rc, Map.of(), listener.toForeignMessages(filePath), Map.of());
+    }
+
     // --- utility ---
 
     /**

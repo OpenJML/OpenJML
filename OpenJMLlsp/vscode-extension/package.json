@@ -36,6 +36,11 @@
         "command": "openjml.runEscForMethod",
         "title": "Run ESC for Method",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.runRac",
+        "title": "Compile RAC",
+        "category": "OpenJML"
       }
     ],
     "keybindings": [
@@ -62,18 +67,45 @@
       "editor/title": [
         {
           "command": "openjml.runEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@1"
         },
         {
           "command": "openjml.runEscForMethod",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@2"
         },
         {
           "command": "openjml.saveAndRunEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@3"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@4"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "openjml.runEsc",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@1"
+        },
+        {
+          "command": "openjml.runEscForMethod",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@2"
+        },
+        {
+          "command": "openjml.saveAndRunEsc",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@3"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@4"
         }
       ],
       "commandPalette": [
@@ -87,6 +119,10 @@
         },
         {
           "command": "openjml.runEscForMethod",
+          "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.runRac",
           "when": "resourceLangId == java"
         }
       ]
@@ -204,6 +240,12 @@
           "minimum": 1,
           "order": 10,
           "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `subprocess`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
+        },
+        "openjml.racOutputDir": {
+          "type": "string",
+          "default": "",
+          "order": 12,
+          "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
         },
         "openjml.syntaxColoringStrategy": {
           "type": "string",

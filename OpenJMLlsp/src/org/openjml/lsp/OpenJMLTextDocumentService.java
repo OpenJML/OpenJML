@@ -1012,6 +1012,39 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, settings));
     }
 
+    /**
+     * Compile the focused Java file with {@code --rac} and report diagnostics.
+     * Only works on disk files (RAC requires source on disk).
+     */
+    void scheduleRacForUri(String uri) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath == null) {
+            if (client != null)
+                client.logMessage(new MessageParams(MessageType.Warning,
+                        "RAC: cannot determine file path for " + uri));
+            return;
+        }
+        executor.submit(() -> {
+            try {
+                CheckRunner.CheckResult result = CheckRunner.runRacFile(filePath, uri, settings);
+                if (result.exitCode() == 0) {
+                    if (client != null) {
+                        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
+                        String fname = slash >= 0 ? uri.substring(slash + 1) : uri;
+                        client.logMessage(new MessageParams(MessageType.Info,
+                                "RAC compile succeeded: " + fname));
+                    }
+                } else if (result.isCommandLineError()) {
+                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from RAC for " + uri);
+                }
+                checkDiags.put(uri, result.diagnostics());
+                publishMerged(uri);
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] RAC failed: " + t);
+            }
+        });
+    }
+
     private void startEscContent(String uri, String content) {
         submitEsc(uri, () -> CheckRunner.runEsc(uri, content, settings));
     }

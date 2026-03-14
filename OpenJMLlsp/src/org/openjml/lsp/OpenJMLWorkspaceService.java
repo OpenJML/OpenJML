@@ -42,6 +42,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final BiConsumer<String, String> escMethodRequester;
     private final Consumer<List<String>>     escDirRequester;
     private final Consumer<String>           checkRequester;
+    private final Consumer<String>           racRequester;
     private final Function<String, List<Integer>> semanticTokensRequester;
     private final Function<String, List<SymbolInformation>> symbolsRequester;
     private final String escCommand;
@@ -49,6 +50,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final String escDirCommand;
     private final String focusFileCommand;
     private final String getSemanticTokensCommand;
+    private final String racCommand;
 
     /**
      * @param settings                 shared settings object
@@ -63,24 +65,28 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      * @param escDirCommand            command name for multi-path ESC via {@code --dirs}
      * @param focusFileCommand         command name for focus-triggered recheck
      * @param getSemanticTokensCommand command name for semantic tokens
+     * @param racCommand               command name for RAC compile (may be {@code null})
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    Consumer<String>             escRequester,
                                    BiConsumer<String, String>   escMethodRequester,
                                    Consumer<List<String>>       escDirRequester,
                                    Consumer<String>             checkRequester,
+                                   Consumer<String>             racRequester,
                                    Function<String, List<Integer>> semanticTokensRequester,
                                    Function<String, List<SymbolInformation>> symbolsRequester,
                                    String escCommand,
                                    String escForMethodCommand,
                                    String escDirCommand,
                                    String focusFileCommand,
-                                   String getSemanticTokensCommand) {
+                                   String getSemanticTokensCommand,
+                                   String racCommand) {
         this.settings                  = settings;
         this.escRequester              = escRequester;
         this.escMethodRequester        = escMethodRequester;
         this.escDirRequester           = escDirRequester;
         this.checkRequester            = checkRequester;
+        this.racRequester              = racRequester;
         this.semanticTokensRequester   = semanticTokensRequester;
         this.symbolsRequester          = symbolsRequester;
         this.escCommand                = escCommand;
@@ -88,6 +94,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         this.escDirCommand             = escDirCommand;
         this.focusFileCommand          = focusFileCommand;
         this.getSemanticTokensCommand  = getSemanticTokensCommand;
+        this.racCommand                = racCommand;
     }
 
     @Override
@@ -148,6 +155,11 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                             (Object) semanticTokensRequester.apply(uri));
                 }
             }
+        } else if (racCommand != null && racCommand.equals(cmd) && racRequester != null) {
+            if (args != null && !args.isEmpty()) {
+                String uri = extractString(args.get(0));
+                if (uri != null) racRequester.accept(uri);
+            }
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -182,6 +194,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.escTriggerOn           != null) settings.escTriggerOn           = src.escTriggerOn;
         if (src.syntaxColoringStrategy != null) settings.syntaxColoringStrategy = src.syntaxColoringStrategy;
         if (src.escEngine              != null) settings.escEngine              = src.escEngine;
+        if (src.racOutputDir      != null) settings.racOutputDir      = src.racOutputDir;
         if (src.escThreads > 0 && src.escThreads != settings.escThreads) {
             settings.escThreads = src.escThreads;
             var old = settings.escPool;

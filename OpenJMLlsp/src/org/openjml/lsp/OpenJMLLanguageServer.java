@@ -52,9 +52,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
      * @param escDirCommand        command name for multi-path ESC via {@code --dirs} (may be {@code null})
      * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
      * @param getSemanticTokensCommand command name for semantic tokens
+     * @param racCommand           command name for RAC compile (may be {@code null})
      */
     public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
-                                  String focusFileCommand, String getSemanticTokensCommand) {
+                                  String focusFileCommand, String getSemanticTokensCommand,
+                                  String racCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
@@ -62,13 +64,15 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 textDocumentService::scheduleEscForMethod,
                 textDocumentService::scheduleEscForPaths,
                 textDocumentService::recheckUri,
+                textDocumentService::scheduleRacForUri,
                 textDocumentService::getSemanticTokens,
                 textDocumentService::symbols,
                 escCommand,
                 escForMethodCommand,
                 escDirCommand,
                 focusFileCommand,
-                getSemanticTokensCommand);
+                getSemanticTokensCommand,
+                racCommand);
     }
 
     @Override

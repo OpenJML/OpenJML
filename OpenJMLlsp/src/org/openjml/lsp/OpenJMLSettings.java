@@ -138,4 +138,11 @@ public class OpenJMLSettings {
      */
     public transient java.util.concurrent.ExecutorService escPool =
             java.util.concurrent.Executors.newFixedThreadPool(5);
+
+    /**
+     * Output directory for {@code --rac}-compiled class files, passed as {@code -d}.
+     * Relative paths are resolved against the workspace root.
+     * {@code null} or empty means {@code rac-classes} in the workspace root.
+     */
+    public volatile String racOutputDir;
 }
