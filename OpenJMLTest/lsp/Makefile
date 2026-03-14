@@ -22,6 +22,7 @@ JUNIT_CP  := $(JUNITDIR)/junit-4.13.2.jar:$(JUNITDIR)/hamcrest-core-1.3.jar:$(JU
 ## rejects.  The GSON_EXPORTS flags (below) expose jdk.compiler's Gson instead.
 LSP4J_CP  := $(LSPROOT)/libs/org.eclipse.lsp4j-$(LSP4J_VERSION).jar:$(LSPROOT)/libs/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
 LSP_JAR   := $(LSPROOT)/build/openjml-lsp.jar
+LSP_SRCS  := $(shell find $(LSPROOT)/src -name '*.java')
 
 ## jdk.compiler bundles Gson internally but does not export its packages.
 ## Export all Gson packages so that LSP4J (and our RawLspClient / WorkspaceService)
@@ -72,8 +73,8 @@ LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
 all: run-tests
 
-## Build the LSP server jar if not already up to date
-$(LSP_JAR): .FORCE
+## Build the LSP server jar when any server source file is newer than the jar.
+$(LSP_JAR): $(LSP_SRCS)
 	$(MAKE) -C $(LSPROOT) jar
 
 ## Compile test infrastructure and test cases.
@@ -97,7 +98,8 @@ $(RESULT_DIR)/.compiled: compile
 ## Output is captured to a log file; on failure the log is printed and make exits non-zero.
 $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	@echo "[TEST] $*"
-	@if ( cd $(LSPTEST); \
+	@_start=$$(date +%s); \
+	if ( cd $(LSPTEST); \
 	      . $(SRC)/setup-exports; \
 	      OPENJML_INSTALL="$(BUILDJDK)" \
 	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
@@ -109,19 +111,24 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	        org.openjml.lsp.test.$* \
 	    ) > $@ 2>&1; \
 	then \
-	  grep -E "^OK|Tests run" $@ | tail -1 | sed "s/^/[PASS] $*: /"; \
+	  _elapsed=$$(( $$(date +%s) - _start )); \
+	  grep -E "^OK|Tests run" $@ | tail -1 | sed "s/^/[PASS] $* ($${_elapsed}s): /"; \
 	else \
-	  echo "[FAIL] $* — log: $@"; \
+	  _elapsed=$$(( $$(date +%s) - _start )); \
+	  echo "[FAIL] $* ($${_elapsed}s) — log: $@"; \
 	  cat $@; \
 	  exit 1; \
 	fi
 
-## Run all test classes in parallel (up to 5 at once).
+## Run all test classes in parallel (default: 5 concurrent JVMs).
+## Override with: make run-tests JOBS=3
+JOBS ?= 5
+
 ## Two-phase: compile first (serial), then dispatch log targets in parallel.
 _run-logs: $(LOG_FILES)
 
 run-tests: $(RESULT_DIR)/.compiled
-	@$(MAKE) --no-print-directory -j5 _run-logs
+	@$(MAKE) --no-print-directory -j$(JOBS) _run-logs
 	@echo "All LSP tests passed."
 
 ## Sequential fallback — useful for debugging; shows [PASS]/[FAIL] per class.
@@ -130,7 +137,13 @@ run-tests-seq: $(RESULT_DIR)/.compiled
 	@$(MAKE) --no-print-directory -j1 _run-logs
 	@echo "All LSP tests passed (sequential)."
 
+## Run a single test group, e.g.: make test-RenameTest1
+## Multiple groups: make test-RenameTest1 test-FastTests
+test-%: .FORCE $(RESULT_DIR)/.compiled
+	@$(MAKE) --no-print-directory -B $(RESULT_DIR)/$*.log
+
 clean: .FORCE
 	rm -rf $(LSPTEST)/build
+	$(MAKE) -C $(LSPROOT) clean
 
 .FORCE:
