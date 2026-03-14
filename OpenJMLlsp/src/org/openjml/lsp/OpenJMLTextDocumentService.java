@@ -152,6 +152,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Latest --esc diagnostics per URI. */
     private final Map<String, List<Diagnostic>> escDiags   = new ConcurrentHashMap<>();
 
+    /** Latest --rac diagnostics per URI (kept separate so check diags are not overwritten). */
+    private final Map<String, List<Diagnostic>> racDiags   = new ConcurrentHashMap<>();
+
     /** Per-URI generation counter: incremented on each new ESC submission. */
     private final Map<String, AtomicLong> escGen = new ConcurrentHashMap<>();
 
@@ -250,6 +253,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         cancelPending(uri);
         checkDiags.remove(uri);
         escDiags.remove(uri);
+        racDiags.remove(uri);
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
         CheckRunner.getASTCache().remove(uri);
@@ -310,18 +314,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (content == null) {
             return CompletableFuture.completedFuture(List.of());
         }
+        // .jml spec files redirect their check to the companion .java; look up under that URI.
+        String cacheUri = uri.endsWith(".jml")
+                ? uri.substring(0, uri.length() - 4) + ".java"
+                : uri;
         // If a check is in flight (first open OR edit), wait for it so the
         // outline reflects the current source rather than the previous AST.
-        CompletableFuture<Void> pending = lastCheckFuture.get(uri);
+        CompletableFuture<Void> pending = lastCheckFuture.get(cacheUri);
         if (pending != null && !pending.isDone()) {
             final String finalContent = content;
             return pending.thenApply(_v -> {
-                ASTCache.Entry e2 = CheckRunner.getASTCache().get(uri);
+                ASTCache.Entry e2 = CheckRunner.getASTCache().get(cacheUri);
                 if (e2 == null) return List.<Either<SymbolInformation, DocumentSymbol>>of();
                 return buildSymbolResult(uri, e2, finalContent);
             });
         }
-        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(cacheUri);
         if (entry == null) {
             return CompletableFuture.completedFuture(List.of());
         }
@@ -1014,7 +1022,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 } else if (result.isCommandLineError()) {
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from RAC for " + uri);
                 }
-                checkDiags.put(uri, result.diagnostics());
+                racDiags.put(uri, result.diagnostics());
                 publishMerged(uri);
             } catch (Throwable t) {
                 System.err.println("[OpenJML] RAC failed: " + t);
@@ -1236,6 +1244,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
         merged.addAll(escDiags.getOrDefault(uri, List.of()));
+        merged.addAll(racDiags.getOrDefault(uri, List.of()));
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, merged));
     }
 

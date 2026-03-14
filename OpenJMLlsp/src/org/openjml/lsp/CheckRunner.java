@@ -248,9 +248,13 @@ public class CheckRunner {
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
 
-            // Write all modified files at their package-relative paths.
+            // Write all modified files at their package-relative paths and record the mapping.
+            Map<String, String> tempPathToRealUri = new java.util.LinkedHashMap<>();
+            List<String> filePaths = new ArrayList<>();
             for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
-                writeToTempDir(tempDir, e.getKey(), e.getValue());
+                Path p = writeToTempDir(tempDir, e.getKey(), e.getValue());
+                tempPathToRealUri.put(p.toString(), e.getKey());
+                filePaths.add(p.toString());
             }
 
             // Build effective sourcepath: tempDir first, then workspace folders,
@@ -262,13 +266,25 @@ public class CheckRunner {
             modifiedSettings.classPath       = settings.classPath;
             // workspaceFolderPaths already baked into sourcePath above.
 
-            // Run --check on each file and collect all diagnostics.
+            // Run a single --check invocation on all files so cross-file dependencies
+            // (e.g., A.java referencing a renamed symbol in B.java) are caught.
+            var listener = new LspDiagnosticListener();
+            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var api = IAPI.make(out, listener);
+            List<String> args = buildArgs(modifiedSettings, "--check");
+            args.addAll(filePaths);
+            logInvocation("checkModifiedFiles", args);
+            try {
+                api.execute(args.toArray(new String[0]));
+            } catch (Throwable t) {
+                System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
+            }
+
+            // Collect all diagnostics across files.
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
-            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
-                String uri     = e.getKey();
-                String content = e.getValue();
-                CheckResult result = runOnContent(uri, content, modifiedSettings, "--check", null, false);
-                allDiags.addAll(result.diagnostics());
+            for (List<org.eclipse.lsp4j.Diagnostic> diags :
+                    listener.toLspDiagnosticsAll(tempPathToRealUri).values()) {
+                allDiags.addAll(diags);
             }
             return allDiags;
         } catch (IOException e) {

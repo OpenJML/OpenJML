@@ -57,7 +57,8 @@ function fileIfExists(p) {
  * fully-qualified method name (pkg.Class.method) of the method that
  * contains that line, or null if not found.
  *
- * Uses the same heuristic regex as JavaSourceScanner on the server side.
+ * Uses the same heuristic regex as JavaSourceScanner.methodFqn() on the server side.
+ * If the regex logic changes here it MUST be updated there too (and vice versa).
  */
 function findMethodFqnAtLine(content, cursorLine) {
     const lines = content.split('\n');

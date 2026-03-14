@@ -65,6 +65,10 @@ public class JavaSourceScanner {
     /**
      * Build the fully-qualified method name {@code pkg.ClassName.methodName}
      * suitable for passing to OpenJML's {@code --method} flag.
+     *
+     * <p>The VS Code extension replicates this logic in {@code findMethodFqnAtLine()}
+     * (extension.js) for keyboard/menu invocations.  If the regex logic changes
+     * here it MUST be updated there too (and vice versa).
      */
     public static String methodFqn(String content, String methodName) {
         String pkg = findPackage(content);
