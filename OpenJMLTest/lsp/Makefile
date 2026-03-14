@@ -120,18 +120,29 @@ run-tests: $(RESULT_DIR)/.compiled
 	@$(MAKE) --no-print-directory -j5 _run-logs
 	@echo "All LSP tests passed."
 
-## Sequential fallback — useful for debugging interleaved output.
-run-tests-seq: compile
-	@( cd $(LSPTEST); \
-	   . $(SRC)/setup-exports; \
-	   OPENJML_INSTALL="$(BUILDJDK)" \
-	   OPENJML_SPECS="$(SRC)/../../Specs/specs" \
-	   OPENJML_SOLVERS="$(SRC)/../../Solvers" \
-	   "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
-	     -Dlsp.testdata=$(LSPTEST)/testdata \
-	     -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
-	     org.junit.runner.JUnitCore \
-	     org.openjml.lsp.test.AllLspTests )
+## Sequential fallback — useful for debugging; quiet by default.
+## Set VERBOSE=1 to see full output: make run-tests-seq VERBOSE=1
+SEQ_LOG := $(RESULT_DIR)/seq.log
+run-tests-seq: $(RESULT_DIR)/.compiled
+	@if ( cd $(LSPTEST); \
+	      . $(SRC)/setup-exports; \
+	      OPENJML_INSTALL="$(BUILDJDK)" \
+	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
+	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
+	      "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	        -Dlsp.testdata=$(LSPTEST)/testdata \
+	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
+	        org.junit.runner.JUnitCore \
+	        org.openjml.lsp.test.AllLspTests \
+	    ) > $(SEQ_LOG) 2>&1; \
+	then \
+	  if [ "$(VERBOSE)" = "1" ]; then cat $(SEQ_LOG); fi; \
+	  grep -E "^OK|Tests run" $(SEQ_LOG) | tail -1 | sed "s/^/[PASS] AllLspTests: /"; \
+	else \
+	  echo "[FAIL] AllLspTests — log: $(SEQ_LOG)"; \
+	  cat $(SEQ_LOG); \
+	  exit 1; \
+	fi
 
 clean: .FORCE
 	rm -rf $(LSPTEST)/build
