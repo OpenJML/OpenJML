@@ -268,7 +268,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(List.of());
 
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
+                : JavaSourceScanner.findMethods(content);
         Map<Integer, MethodStatus> statuses = methodEscStatus.getOrDefault(uri, Map.of());
 
         List<CodeLens> lenses = new ArrayList<>(methods.size());
