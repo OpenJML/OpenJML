@@ -253,7 +253,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
         CheckRunner.getASTCache().remove(uri);
-        client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+        if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
     }
 
     // --- code lens ---
@@ -577,7 +577,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 result.proofResults(), result.exitCode(), List.of());
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
             }
         });
@@ -673,7 +673,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
                 if (filePaths.isEmpty()) return;
                 CheckRunner.indexWorkspaceFiles(filePaths, settings);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 System.err.println("[OpenJML] Background index failed: " + e);
             }
         });
@@ -1091,33 +1091,41 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // scheduleCheckNow redirects to the companion .java, but guard here as well.
         if (uri.endsWith(".jml")) return;
         lastCheckedContent.put(uri, content);
-        // Pass all open (possibly unsaved) files so cross-file dependencies use
-        // their current in-memory versions rather than the on-disk saved versions.
-        CheckRunner.CheckResult result = CheckRunner.checkWithContext(
-                uri, content, lastContent, settings);
-        checkDiags.put(uri, result.diagnostics());
-        publishMerged(uri);
-        // Update diagnostics for all dependency files that were actually attributed
-        // during this compilation run (the compiler's own AST list, not O(n) re-checks).
-        result.companionDiagnostics().forEach((otherUri, diags) -> {
-            if (lastContent.containsKey(otherUri)) {
-                checkDiags.put(otherUri, diags);
-                publishMerged(otherUri);
-                // Mark companion as checked so focus-triggered rechecks skip it
-                // (it was already compiled alongside the primary file with up-to-date content).
-                String companionContent = lastContent.get(otherUri);
-                if (companionContent != null) lastCheckedContent.put(otherUri, companionContent);
-            }
-        });
-        // Do NOT call refreshCodeLenses() here.
+        try {
+            // Pass all open (possibly unsaved) files so cross-file dependencies use
+            // their current in-memory versions rather than the on-disk saved versions.
+            CheckRunner.CheckResult result = CheckRunner.checkWithContext(
+                    uri, content, lastContent, settings);
+            checkDiags.put(uri, result.diagnostics());
+            publishMerged(uri);
+            // Update diagnostics for all dependency files that were actually attributed
+            // during this compilation run (the compiler's own AST list, not O(n) re-checks).
+            result.companionDiagnostics().forEach((otherUri, diags) -> {
+                if (lastContent.containsKey(otherUri)) {
+                    checkDiags.put(otherUri, diags);
+                    publishMerged(otherUri);
+                    // Mark companion as checked so focus-triggered rechecks skip it
+                    // (it was already compiled alongside the primary file with up-to-date content).
+                    String companionContent = lastContent.get(otherUri);
+                    if (companionContent != null) lastCheckedContent.put(otherUri, companionContent);
+                }
+            });
+            // Do NOT call refreshCodeLenses() here.
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] check failed for " + uri + ": " + t);
+        }
     }
 
     private void runCheckFile(String filePath, String uri) {
-        CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
-        checkDiags.put(uri, result.diagnostics());
-        publishMerged(uri);
-        // runOnFile does not use the context path so no companion diagnostics.
-        // Do NOT call refreshCodeLenses() here.
+        try {
+            CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
+            checkDiags.put(uri, result.diagnostics());
+            publishMerged(uri);
+            // runOnFile does not use the context path so no companion diagnostics.
+            // Do NOT call refreshCodeLenses() here.
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] check file failed for " + uri + ": " + t);
+        }
     }
 
     // --- ESC code-lens status helpers ---
@@ -1224,6 +1232,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // --- diagnostic merging ---
 
     private void publishMerged(String uri) {
+        if (client == null) return;
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
         merged.addAll(escDiags.getOrDefault(uri, List.of()));

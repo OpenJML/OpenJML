@@ -108,10 +108,14 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         // VS Code sends the configurationSection value directly (fields at top level).
         // Manual/test clients wrap them under an "openjml" key.  Handle both.
         JsonElement nested = obj.get("openjml");
-        OpenJMLSettings src = (nested != null && nested.isJsonObject())
-                ? GSON.fromJson(nested, OpenJMLSettings.class)
-                : GSON.fromJson(obj,    OpenJMLSettings.class);
-        applyUpdate(src);
+        try {
+            OpenJMLSettings src = (nested != null && nested.isJsonObject())
+                    ? GSON.fromJson(nested, OpenJMLSettings.class)
+                    : GSON.fromJson(obj,    OpenJMLSettings.class);
+            applyUpdate(src);
+        } catch (Exception e) {
+            System.err.println("[OpenJML] Failed to parse settings: " + e);
+        }
     }
 
     @Override
@@ -177,7 +181,11 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (raw == null) return;
         JsonElement element = toJsonElement(raw);
         if (!element.isJsonObject()) return;
-        applyUpdate(GSON.fromJson(element, OpenJMLSettings.class));
+        try {
+            applyUpdate(GSON.fromJson(element, OpenJMLSettings.class));
+        } catch (Exception e) {
+            System.err.println("[OpenJML] Failed to parse settings: " + e);
+        }
     }
 
     private static JsonElement toJsonElement(Object raw) {

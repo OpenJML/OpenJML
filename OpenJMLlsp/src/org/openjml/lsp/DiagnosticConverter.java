@@ -54,7 +54,10 @@ public class DiagnosticConverter {
         if (startPos != javax.tools.Diagnostic.NOPOS
                 && endPos   != javax.tools.Diagnostic.NOPOS
                 && endPos   >= startPos) {
-            // Expand the end column by the span length, staying on the same line.
+            // Approximate end column as startCol + span.  This stays on the start
+            // line, which is correct for single-line spans (the common case) and
+            // gives editors a reasonable underline even for multi-line spans.
+            // Without source text we cannot compute the true end line/column.
             int endCol = (int)(lspCol + (endPos - startPos));
             range = new Range(new Position(lspLine, lspCol),
                               new Position(lspLine, endCol));

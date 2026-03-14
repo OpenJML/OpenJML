@@ -272,6 +272,7 @@ public class CheckRunner {
             }
             return allDiags;
         } catch (IOException e) {
+            System.err.println("[CheckRunner.checkModifiedFiles] I/O error: " + e);
             return List.of();
         } finally {
             if (tempDir != null) {
@@ -340,6 +341,7 @@ public class CheckRunner {
                     rc, prc.getResults(),
                     listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
+            System.err.println("[CheckRunner.runEscWithSources] I/O error: " + e);
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
             if (tempDir != null) {
@@ -440,7 +442,7 @@ public class CheckRunner {
         int rc;
         try {
             rc = api.execute(args.toArray(new String[0]));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             System.err.println("[CheckRunner.runRacFile] exception: " + e);
             rc = -1;
         }
@@ -811,6 +813,8 @@ public class CheckRunner {
         IAPI.setASTListener(astListener);
         try {
             api.execute(args.toArray(new String[0]));
+        } catch (Throwable e) {
+            System.err.println("[CheckRunner.indexWorkspaceFiles] failed: " + e);
         } finally {
             IAPI.removeASTListener(astListener);
             AST_CACHE.setIndexing(false);
