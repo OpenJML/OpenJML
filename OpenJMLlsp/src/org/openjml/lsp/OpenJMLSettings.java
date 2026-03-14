@@ -133,6 +133,14 @@ public class OpenJMLSettings {
     public boolean isEscApiMode() { return "concurrent".equalsIgnoreCase(escEngine); }
 
     /**
+     * Returns {@code true} if the fresh-parallel engine is selected: each method
+     * gets its own fresh {@link org.openjml.IAPI} instance and all run concurrently
+     * in the ESC thread pool.  Higher startup cost per method (full re-parse and
+     * re-typecheck), but true parallelism with no shared state between methods.
+     */
+    public boolean isFreshParallelMode() { return "fresh".equalsIgnoreCase(escEngine); }
+
+    /**
      * Maximum number of concurrent doESC threads used by the {@code concurrent} engine.
      * Methods from different files run concurrently up to this limit;
      * methods within the same file are serialized (IAPI.doESC is not thread-safe per instance).

@@ -749,6 +749,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscForUri(String uri) {
         if (settings.isEscApiMode()) {
             submitEscApiWorkList(uri);
+        } else if (settings.isFreshParallelMode()) {
+            submitFreshParallelWorkList(uri);
         } else {
             scheduleEscFile(uri);
         }
@@ -804,6 +806,52 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
+     * Submit the fresh-parallel ESC work list for {@code uri}.
+     *
+     * <p>Each method gets a fresh IAPI instance running on {@link OpenJMLSettings#escPool};
+     * all run truly concurrently.  Per-method and final callbacks are the same as
+     * {@link #submitEscApiWorkList}.
+     */
+    private void submitFreshParallelWorkList(String uri) {
+        Future<?> prev = runningEscTasks.remove(uri);
+        if (prev != null) prev.cancel(true);
+
+        long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
+        markEscChecking(uri);
+
+        String content = lastContent.get(uri);
+        CompletableFuture<CheckRunner.CheckResult> cf =
+                CheckRunner.runFreshParallelEscFileAsync(uri, content, settings, methodResult -> {
+                    if (escGen.get(uri).get() != myGen) return;
+                    updateSingleMethodEscStatus(uri, methodResult);
+                    refreshCodeLenses();
+                });
+
+        cf.thenAccept(result -> {
+            if (escGen.get(uri).get() != myGen) return;
+            escDiags.put(uri, result.diagnostics());
+            if (result.isInternalError()) {
+                System.err.println("[OpenJML] ESC (fresh) internal error (exit code " + result.exitCode() + ")");
+                markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
+                refreshCodeLenses();
+            } else {
+                updateEscStatus(uri, result.diagnostics(), result.proofResults(),
+                        result.exitCode(), result.foreignMessages());
+            }
+            publishMerged(uri);
+        }).exceptionally(t -> {
+            System.err.println("[OpenJML] ESC (fresh) failed: " + t);
+            if (escGen.get(uri).get() == myGen) {
+                updateEscStatus(uri, List.of(), Map.of(), -1, List.of());
+                refreshCodeLenses();
+            }
+            return null;
+        }).whenComplete((v, t) -> runningEscTasks.remove(uri));
+
+        runningEscTasks.put(uri, cf);
+    }
+
+    /**
      * Update the code-lens status for a single method that completed doESC.
      * Diagnostics for that method are applied; other methods' statuses are
      * unchanged and will be overwritten by the final {@link #updateEscStatus} call.
@@ -843,11 +891,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     () -> CheckRunner.runDoEscMethod(uri, methodName, settings),
                     settings.escPool);
         } else {
+            // Both subprocess and fresh-parallel engines use runEscFileMethod for
+            // single-method ESC (fresh uses escPool; subprocess uses the main executor).
             String filePath = CheckRunner.uriToPath(uri);
             if (filePath == null) return;
+            ExecutorService pool = settings.isFreshParallelMode() ? settings.escPool : executor;
             submitEscForMethod(uri, target,
                     () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings),
-                    executor);
+                    pool);
         }
     }
 
