@@ -70,15 +70,20 @@ function findMethodFqnAtLine(content, cursorLine) {
         if (m) { pkg = m[1]; break; }
     }
 
-    // Extract top-level public/protected class name.
+    // Extract top-level public/protected class name, skipping block-comment lines.
     let cls = '';
+    let inBlockComment = false;
     for (const line of lines) {
-        const m = line.match(/(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
+        const stripped = line.trimStart();
+        if (inBlockComment) { if (stripped.includes('*/')) inBlockComment = false; continue; }
+        if (stripped.startsWith('//')) continue;
+        if (stripped.startsWith('/*')) { if (!stripped.includes('*/')) inBlockComment = true; continue; }
+        const m = line.match(/^[ \t]*(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
         if (m) { cls = m[1]; break; }
     }
 
     // Find all method declaration start lines.
-    const METHOD_RE = /^[ \t]*(?:public|private|protected|static|final|synchronized|abstract|native|default|strictfp).*?(\w+)[ \t]*\(/;
+    const METHOD_RE = /^[ \t]*(?:public|private|protected|static|final|synchronized|abstract|native|default|strictfp)[^(;{]*(\w+)[ \t]*\(/;
     const methodStarts = [];
     for (let i = 0; i < lines.length; i++) {
         if (/^\s*(?:\/\/|\*|\/\*|@)/.test(lines[i])) continue;
@@ -129,8 +134,13 @@ async function resolveCompanionJavaUri(jmlDoc) {
         if (m) { pkg = m[1]; break; }
     }
     let cls = '';
+    let inBC = false;
     for (const line of lines) {
-        const m = line.match(/(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
+        const s = line.trimStart();
+        if (inBC) { if (s.includes('*/')) inBC = false; continue; }
+        if (s.startsWith('//')) continue;
+        if (s.startsWith('/*')) { if (!s.includes('*/')) inBC = true; continue; }
+        const m = line.match(/^[ \t]*(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
         if (m) { cls = m[1]; break; }
     }
     if (!cls) return null;

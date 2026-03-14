@@ -48,7 +48,7 @@ public class FoldingRangeProvider {
      * @return list of {@link FoldingRange}s (may be empty)
      */
     public static List<FoldingRange> fromSource(String source) {
-        String[] lines = source.split("\n", -1);
+        String[] lines = source.split("\\r?\\n", -1);
         List<FoldingRange> result = new ArrayList<>();
 
         int regionStart = -1;   // first line of current JML region (-1 = none)

@@ -246,20 +246,25 @@ public class DefinitionFinder {
             // Estimate the name position by scanning backwards from the end of
             // the selected expression.
             if (tree.pos >= 0 && tree.name != null && tree.sym != null) {
-                int nameLen = tree.name.toString().length();
-                // Find the '.' that precedes the field name.
-                // tree.pos is start of the full expression; search forward for the last '.'.
-                int dotPos = -1;
-                for (int i = tree.pos; i < Math.min(tree.pos + 1000, source.length()); i++) {
-                    if (source.charAt(i) == '.') dotPos = i;
-                    // Stop once we've passed possible positions
-                    if (i > targetOffset + nameLen + 2) break;
+                String fieldName = tree.name.toString();
+                int nameLen = fieldName.length();
+                // Scan backward from the cursor to find the start of the identifier
+                // that is under the cursor.  Stop at tree.pos so we never walk
+                // into a different expression.
+                int nameStart = targetOffset;
+                while (nameStart > tree.pos && nameStart > 0
+                        && Character.isJavaIdentifierPart(source.charAt(nameStart - 1))) {
+                    nameStart--;
                 }
-                if (dotPos >= 0) {
-                    int nameStart = dotPos + 1;
-                    if (nameStart <= targetOffset && targetOffset <= nameStart + nameLen) {
-                        best = new NodeMatch(tree.sym);
-                    }
+                // The character immediately before must be '.', and the text starting
+                // at nameStart must equal tree.name (guards against false matches on
+                // nested field accesses like a.b.c where the outer node has name=c
+                // but the cursor is on b).
+                if (nameStart > 0 && source.charAt(nameStart - 1) == '.'
+                        && nameStart + nameLen <= source.length()
+                        && source.regionMatches(nameStart, fieldName, 0, nameLen)
+                        && targetOffset <= nameStart + nameLen) {
+                    best = new NodeMatch(tree.sym);
                 }
             }
             super.visitSelect(tree);

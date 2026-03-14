@@ -50,8 +50,9 @@ public class JavaSourceScanner {
     private static final Pattern PACKAGE_DECL = Pattern.compile(
             "^\\s*package\\s+([\\w.]+)\\s*;", Pattern.MULTILINE);
 
+    // Line-anchored (no (?:^|\n) prefix) — used per-line in findClassName.
     private static final Pattern CLASS_DECL = Pattern.compile(
-            "(?:^|\\n)[ \\t]*(?:public|protected)\\s+(?:(?:abstract|final|sealed|non-sealed)\\s+)*"
+            "^[ \\t]*(?:public|protected)\\s+(?:(?:abstract|final|sealed|non-sealed)\\s+)*"
             + "(?:class|interface|enum|record)\\s+(\\w+)");
 
     /**
@@ -66,11 +67,29 @@ public class JavaSourceScanner {
     /**
      * Extract the top-level public/protected class (or interface/enum/record) name
      * from {@code content}, or {@code ""} if not found.
+     *
+     * <p>Parses line-by-line and tracks block-comment state so that a line such as
+     * {@code public class Fake} inside a {@code /* ... *}{@code /} comment or a
+     * text-block literal is not mistaken for the real class declaration.
      */
     public static String findClassName(String content) {
         if (content == null) return "";
-        Matcher m = CLASS_DECL.matcher(content);
-        return m.find() ? m.group(1) : "";
+        boolean inBlockComment = false;
+        for (String line : content.split("\\r?\\n", -1)) {
+            String stripped = line.stripLeading();
+            if (inBlockComment) {
+                if (stripped.contains("*/")) inBlockComment = false;
+                continue;
+            }
+            if (stripped.startsWith("//")) continue;
+            if (stripped.startsWith("/*")) {
+                if (!stripped.contains("*/")) inBlockComment = true;
+                continue;
+            }
+            Matcher m = CLASS_DECL.matcher(line);
+            if (m.find()) return m.group(1);
+        }
+        return "";
     }
 
     /**
@@ -90,12 +109,13 @@ public class JavaSourceScanner {
     }
 
     // Requires ≥1 modifier keyword to avoid matching calls and field declarations.
-    // Uses a reluctant .*? so the first "word(" after the modifiers is captured
-    // as the method/constructor name rather than something inside the parameter list.
+    // [^(;{]* (greedy, stops at first '(', ';', or '{') ensures we capture the
+    // identifier *immediately* before the opening '(' of the parameter list, which
+    // is always the method name — not a type parameter or annotation name.
     private static final Pattern METHOD_DECL = Pattern.compile(
             "^[ \\t]*(?:public|private|protected|static|final|synchronized|abstract|"
             + "native|default|strictfp)"
-            + ".*?(\\w+)[ \\t]*\\(");
+            + "[^(;{]*(\\w+)[ \\t]*\\(");
 
     /**
      * Return all method declarations found in {@code content}, ordered by line.
@@ -105,7 +125,7 @@ public class JavaSourceScanner {
      */
     public static List<MethodInfo> findMethods(String content) {
         if (content == null || content.isBlank()) return List.of();
-        String[] lines = content.split("\n", -1);
+        String[] lines = content.split("\\r?\\n", -1);
         List<Integer> starts = new ArrayList<>();
         List<String>  names  = new ArrayList<>();
 
@@ -143,7 +163,7 @@ public class JavaSourceScanner {
      */
     public static List<MethodInfo> findMethodsFromAst(JmlCompilationUnit ast, String source) {
         if (ast == null || source == null) return List.of();
-        String[] lines = source.split("\n", -1);
+        String[] lines = source.split("\\r?\\n", -1);
         MethodLensWalker walker = new MethodLensWalker(ast, lines);
         walker.scan(ast);
         return walker.result;
