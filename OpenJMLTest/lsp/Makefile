@@ -39,13 +39,32 @@ GSON_EXPORTS := \
   --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED
 
 ## Build output
-CLASSES := $(LSPTEST)/build/classes
+CLASSES    := $(LSPTEST)/build/classes
+RESULT_DIR := $(LSPTEST)/build/results
 
 ## Source and test trees (infrastructure in src/, test cases in test/)
 INFRA_SRCS := $(shell find $(LSPTEST)/src  -name '*.java')
 TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 
-.PHONY: all compile run-tests clean .FORCE
+## All test classes — each runs in its own JVM process.
+## ESC-heavy classes (DoEscTest, EscStatusTest, MultiFileEscTest, DiagnosticsTest)
+## each run alone so that running with -j5 never starts more than 5 ESC processes.
+TEST_CLASSES := \
+  DiagnosticsTest \
+  EscStatusTest \
+  MultiFileEscTest \
+  LspProtocolTest \
+  DefinitionFinderTest \
+  ReferenceFinderTest \
+  RenameTest \
+  SemanticTokensTest \
+  DocumentSymbolTest \
+  FoldingRangeTest \
+  DoEscTest
+
+LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
+
+.PHONY: all compile run-tests run-tests-seq _run-logs clean .FORCE
 
 all: run-tests
 
@@ -65,8 +84,44 @@ compile: $(LSP_JAR)
 	     -d $(CLASSES) \
 	     $(INFRA_SRCS) $(TEST_SRCS) )
 
-## Run the LSP tests with JUnit's built-in console runner.
-run-tests: compile
+## Sentinel: compile once, used as dependency by all per-class log targets.
+$(RESULT_DIR)/.compiled: compile
+	@mkdir -p $(RESULT_DIR)
+	@touch $@
+
+## Per-class pattern rule — one JVM process per test class.
+## Output is captured to a log file; on failure the log is printed and make exits non-zero.
+$(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
+	@echo "[TEST] $*"
+	@if ( cd $(LSPTEST); \
+	      . $(SRC)/setup-exports; \
+	      OPENJML_INSTALL="$(BUILDJDK)" \
+	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
+	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
+	      "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	        -Dlsp.testdata=$(LSPTEST)/testdata \
+	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
+	        org.junit.runner.JUnitCore \
+	        org.openjml.lsp.test.$* \
+	    ) > $@ 2>&1; \
+	then \
+	  grep -E "^OK|Tests run" $@ | tail -1 | sed "s/^/[PASS] $*: /"; \
+	else \
+	  echo "[FAIL] $* — log: $@"; \
+	  cat $@; \
+	  exit 1; \
+	fi
+
+## Run all test classes in parallel (up to 5 at once).
+## Two-phase: compile first (serial), then dispatch log targets in parallel.
+_run-logs: $(LOG_FILES)
+
+run-tests: $(RESULT_DIR)/.compiled
+	@$(MAKE) --no-print-directory -j5 _run-logs
+	@echo "All LSP tests passed."
+
+## Sequential fallback — useful for debugging interleaved output.
+run-tests-seq: compile
 	@( cd $(LSPTEST); \
 	   . $(SRC)/setup-exports; \
 	   OPENJML_INSTALL="$(BUILDJDK)" \
