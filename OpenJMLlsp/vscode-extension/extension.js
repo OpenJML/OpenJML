@@ -119,7 +119,7 @@ async function checkDirtyAndProceed(document) {
     const action = vscode.workspace.getConfiguration('openjml')
                                    .get('dirtyFileAction', 'ask');
     if (action === 'save') {
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await document.save();
         return true;
     }
     if (action === 'run') {
@@ -134,7 +134,7 @@ async function checkDirtyAndProceed(document) {
     if (choice === 'Always save') {
         await vscode.workspace.getConfiguration('openjml')
             .update('dirtyFileAction', 'save', vscode.ConfigurationTarget.Global);
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await document.save();
         return true;
     }
     if (choice === 'Never save') {
@@ -143,7 +143,7 @@ async function checkDirtyAndProceed(document) {
         return true;
     }
     if (choice === 'Save and Run ESC') {
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await document.save();
     }
     return true;
 }
@@ -158,9 +158,11 @@ function getSettings() {
         solversPath:             cfg.get('solversPath',             ''),
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
+        racOutputDir:            cfg.get('racOutputDir',            ''),
         syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'regex'),
         escEngine:               cfg.get('escEngine',               'subprocess'),
         escThreads:              cfg.get('escThreads',              5),
+        useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
     };
 }
 
@@ -187,7 +189,7 @@ async function activate(context) {
         || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
         || findOnPath('openjml-lsp');
 
-    console.log('OpenJML: activating, server script =', serverScript);
+    outputChannel.appendLine(ts() + ' server script: ' + (serverScript || '(not found)'));
 
     // Helper: show error and open settings when the server is not configured.
     function requireServer() {
@@ -216,7 +218,10 @@ async function activate(context) {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
         if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+            vscode.window.showWarningMessage(
+                editor && editor.document.languageId === 'jml'
+                    ? 'OpenJML: ESC runs on Java files. Open the companion .java file to run ESC.'
+                    : 'OpenJML: open a Java file to run ESC.');
             return;
         }
 
@@ -245,7 +250,10 @@ async function activate(context) {
             // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
             const editor = vscode.window.activeTextEditor;
             if (!editor || editor.document.languageId !== 'java') {
-                vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC on a method.');
+                vscode.window.showWarningMessage(
+                    editor && editor.document.languageId === 'jml'
+                        ? 'OpenJML: ESC runs on Java files. Open the companion .java file to run ESC.'
+                        : 'OpenJML: open a Java file to run ESC on a method.');
                 return;
             }
             uri = editor.document.uri.toString();
@@ -281,10 +289,13 @@ async function activate(context) {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
         if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+            vscode.window.showWarningMessage(
+                editor && editor.document.languageId === 'jml'
+                    ? 'OpenJML: ESC runs on Java files. Open the companion .java file to run ESC.'
+                    : 'OpenJML: open a Java file to run ESC.');
             return;
         }
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await editor.document.save();
         const uri = editor.document.uri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
@@ -303,7 +314,10 @@ async function activate(context) {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
         if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to compile RAC.');
+            vscode.window.showWarningMessage(
+                editor && editor.document.languageId === 'jml'
+                    ? 'OpenJML: RAC compiles Java files. Open the companion .java file to compile RAC.'
+                    : 'OpenJML: open a Java file to compile RAC.');
             return;
         }
         const uri = editor.document.uri.toString();
@@ -441,9 +455,9 @@ async function activate(context) {
     );
 
     client.start().then(() => {
-        console.log('OpenJML: server started successfully');
+        outputChannel.appendLine(ts() + ' server started');
     }).catch(err => {
-        console.error('OpenJML: server failed to start:', err?.message ?? err);
+        outputChannel.appendLine(ts() + ' server failed to start: ' + (err?.message ?? err));
     });
     context.subscriptions.push(client);
 
@@ -518,6 +532,7 @@ async function activate(context) {
             const escTriggerOn = vscode.workspace.getConfiguration('openjml')
                                                  .get('escTriggerOn', 'manual');
             if (escTriggerOn !== 'save') return;
+            if (!client) return;
             try {
                 await client.sendRequest('workspace/executeCommand', {
                     command:   'openjml.runEsc',
