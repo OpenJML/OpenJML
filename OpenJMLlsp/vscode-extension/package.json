@@ -78,17 +78,17 @@
       "editor/title": [
         {
           "command": "openjml.runEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@1"
         },
         {
           "command": "openjml.runEscForMethod",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@2"
         },
         {
           "command": "openjml.saveAndRunEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@3"
         },
         {
@@ -98,24 +98,24 @@
         },
         {
           "command": "openjml.runRac",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@5"
         }
       ],
       "editor/context": [
         {
           "command": "openjml.runEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@1"
         },
         {
           "command": "openjml.runEscForMethod",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@2"
         },
         {
           "command": "openjml.saveAndRunEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@3"
         },
         {
@@ -125,7 +125,7 @@
         },
         {
           "command": "openjml.runRac",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@5"
         }
       ],

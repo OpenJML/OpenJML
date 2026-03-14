@@ -103,6 +103,46 @@ function findMethodFqnAtLine(content, cursorLine) {
 }
 
 /**
+ * Given a .jml TextDocument, find and return the vscode.Uri of the companion .java file.
+ *
+ * Algorithm:
+ *   1. Try <same-dir>/<same-base>.java  (works when spec-file name == class name).
+ *   2. Parse the .jml content for the package declaration and the first
+ *      public/protected class/interface/enum/record name, then use
+ *      workspace.findFiles to locate <pkg/path/ClassName>.java anywhere in the workspace.
+ *
+ * Returns a vscode.Uri or null if no companion is found.
+ */
+async function resolveCompanionJavaUri(jmlDoc) {
+    // 1. Same-name .java in the same directory
+    const simpleUri = jmlDoc.uri.with({ path: jmlDoc.uri.path.replace(/\.jml$/, '.java') });
+    try {
+        await vscode.workspace.fs.stat(simpleUri);
+        return simpleUri;
+    } catch (_) {}
+
+    // 2. Parse package and class name from the spec content
+    const lines = jmlDoc.getText().split('\n');
+    let pkg = '';
+    for (const line of lines) {
+        const m = line.match(/^\s*package\s+([\w.]+)\s*;/);
+        if (m) { pkg = m[1]; break; }
+    }
+    let cls = '';
+    for (const line of lines) {
+        const m = line.match(/(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
+        if (m) { cls = m[1]; break; }
+    }
+    if (!cls) return null;
+
+    const relPath = (pkg ? pkg.replace(/\./g, '/') + '/' : '') + cls + '.java';
+    const matches = await vscode.workspace.findFiles('**/' + cls + '.java', '**/node_modules/**', 10);
+    // Prefer the match whose path ends with the full package-relative path
+    const best = matches.find(u => u.path.replace(/\\/g, '/').endsWith(relPath));
+    return best || (matches.length > 0 ? matches[0] : null);
+}
+
+/**
  * Handle unsaved changes before running ESC.  Returns true if ESC should
  * proceed, false to abort.
  *
@@ -217,17 +257,24 @@ async function activate(context) {
     const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage(
-                editor && editor.document.languageId === 'jml'
-                    ? 'OpenJML: ESC runs on Java files. Open the companion .java file to run ESC.'
-                    : 'OpenJML: open a Java file to run ESC.');
+        if (!editor || !isJmlLike(editor.document.languageId)) {
+            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC.');
             return;
         }
 
-        if (!await checkDirtyAndProceed(editor.document)) return;
+        let doc = editor.document;
+        if (doc.languageId === 'jml') {
+            const javaUri = await resolveCompanionJavaUri(doc);
+            if (!javaUri) {
+                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                return;
+            }
+            doc = await vscode.workspace.openTextDocument(javaUri);
+        }
 
-        const uri = editor.document.uri.toString();
+        if (!await checkDirtyAndProceed(doc)) return;
+
+        const uri = doc.uri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEsc',
@@ -249,19 +296,27 @@ async function activate(context) {
         if (typeof uri !== 'string' || typeof methodName !== 'string') {
             // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
             const editor = vscode.window.activeTextEditor;
-            if (!editor || editor.document.languageId !== 'java') {
-                vscode.window.showWarningMessage(
-                    editor && editor.document.languageId === 'jml'
-                        ? 'OpenJML: ESC runs on Java files. Open the companion .java file to run ESC.'
-                        : 'OpenJML: open a Java file to run ESC on a method.');
+            if (!editor || !isJmlLike(editor.document.languageId)) {
+                vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
                 return;
             }
-            uri = editor.document.uri.toString();
+            // For .jml files: extract the method FQN from the spec content (spec files have
+            // method stubs matching the .java signatures), then redirect to the companion .java.
             const cursorLine = editor.selection.active.line;
             methodName = findMethodFqnAtLine(editor.document.getText(), cursorLine);
             if (!methodName) {
                 vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method.');
                 return;
+            }
+            if (editor.document.languageId === 'jml') {
+                const javaUri = await resolveCompanionJavaUri(editor.document);
+                if (!javaUri) {
+                    vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                    return;
+                }
+                uri = javaUri.toString();
+            } else {
+                uri = editor.document.uri.toString();
             }
         }
 
@@ -288,15 +343,21 @@ async function activate(context) {
     const saveAndEscCmd = vscode.commands.registerCommand('openjml.saveAndRunEsc', async () => {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage(
-                editor && editor.document.languageId === 'jml'
-                    ? 'OpenJML: ESC runs on Java files. Open the companion .java file to run ESC.'
-                    : 'OpenJML: open a Java file to run ESC.');
+        if (!editor || !isJmlLike(editor.document.languageId)) {
+            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC.');
             return;
         }
         await editor.document.save();
-        const uri = editor.document.uri.toString();
+        let targetUri = editor.document.uri;
+        if (editor.document.languageId === 'jml') {
+            const javaUri = await resolveCompanionJavaUri(editor.document);
+            if (!javaUri) {
+                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                return;
+            }
+            targetUri = javaUri;
+        }
+        const uri = targetUri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEsc',
@@ -313,14 +374,20 @@ async function activate(context) {
     const racCmd = vscode.commands.registerCommand('openjml.runRac', async () => {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage(
-                editor && editor.document.languageId === 'jml'
-                    ? 'OpenJML: RAC compiles Java files. Open the companion .java file to compile RAC.'
-                    : 'OpenJML: open a Java file to compile RAC.');
+        if (!editor || !isJmlLike(editor.document.languageId)) {
+            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to compile RAC.');
             return;
         }
-        const uri = editor.document.uri.toString();
+        let targetUri = editor.document.uri;
+        if (editor.document.languageId === 'jml') {
+            const javaUri = await resolveCompanionJavaUri(editor.document);
+            if (!javaUri) {
+                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                return;
+            }
+            targetUri = javaUri;
+        }
+        const uri = targetUri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runRac',

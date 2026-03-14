@@ -1007,10 +1007,84 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- scheduling helpers ---
 
+    /**
+     * Given the URI of a {@code .jml} spec file and its current content, find the URI
+     * of the companion {@code .java} source file.
+     *
+     * <p>Algorithm:
+     * <ol>
+     *   <li>Try the simple same-name replacement ({@code Foo.jml} → {@code Foo.java})
+     *       in the same directory.  This covers the common case where spec-file names
+     *       match their class names.</li>
+     *   <li>If that file does not exist, parse {@code jmlContent} for the {@code package}
+     *       declaration and the first {@code public}/{@code protected} class/interface/
+     *       enum/record name.  Then search each root in {@code workspaceFolderPaths} and
+     *       {@code sourcePath} for {@code pkg/path/ClassName.java}.</li>
+     * </ol>
+     *
+     * @param jmlUri     the URI of the {@code .jml} file
+     * @param jmlContent the current content of the {@code .jml} file, or {@code null}
+     *                   to read from disk
+     * @return the URI of the companion {@code .java} file, or {@code null} if not found
+     */
+    private String resolveCompanionJavaUri(String jmlUri, String jmlContent) {
+        // 1. Same-name replacement
+        String simpleUri = jmlUri.substring(0, jmlUri.length() - 4) + ".java";
+        String simplePath = CheckRunner.uriToPath(simpleUri);
+        if (simplePath != null && new java.io.File(simplePath).exists()) return simpleUri;
+
+        // 2. Parse content for package + class name
+        String content = jmlContent;
+        if (content == null) {
+            String jmlPath = CheckRunner.uriToPath(jmlUri);
+            if (jmlPath == null) return null;
+            try { content = new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(jmlPath))); }
+            catch (Exception e) { return null; }
+        }
+
+        String pkg = null, cls = null;
+        for (String line : content.split("\\n")) {
+            if (pkg == null) {
+                java.util.regex.Matcher m =
+                        java.util.regex.Pattern.compile("^\\s*package\\s+([\\w.]+)\\s*;").matcher(line);
+                if (m.find()) pkg = m.group(1);
+            }
+            if (cls == null) {
+                java.util.regex.Matcher m =
+                        java.util.regex.Pattern.compile(
+                                "(?:public|protected)\\s+(?:(?:abstract|final|sealed|non-sealed)\\s+)*" +
+                                "(?:class|interface|enum|record)\\s+(\\w+)").matcher(line);
+                if (m.find()) cls = m.group(1);
+            }
+            if (pkg != null && cls != null) break;
+        }
+        if (cls == null) return null;
+
+        String relPath = (pkg != null ? pkg.replace('.', java.io.File.separatorChar)
+                                            + java.io.File.separator : "")
+                         + cls + ".java";
+
+        // Search workspace roots
+        List<String> roots = new ArrayList<>();
+        if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
+            java.util.Collections.addAll(roots,
+                    settings.workspaceFolderPaths.split(java.io.File.pathSeparator));
+        if (settings.sourcePath != null && !settings.sourcePath.isEmpty())
+            java.util.Collections.addAll(roots,
+                    settings.sourcePath.split(java.io.File.pathSeparator));
+        for (String root : roots) {
+            java.nio.file.Path candidate = java.nio.file.Path.of(root).resolve(relPath);
+            if (java.nio.file.Files.isRegularFile(candidate))
+                return candidate.toUri().toString();
+        }
+        return null;
+    }
+
     private void scheduleCheckNow(String uri, String content) {
         // .jml files are spec files; redirect check to companion .java
         if (uri.endsWith(".jml")) {
-            String javaUri = uri.substring(0, uri.length() - 4) + ".java";
+            String javaUri = resolveCompanionJavaUri(uri, content);
+            if (javaUri == null) return;
             String javaContent = lastContent.get(javaUri);
             if (javaContent != null) {
                 CompletableFuture<Void> cf = new CompletableFuture<>();
@@ -1039,7 +1113,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void scheduleCheckFile(String uri) {
         // .jml files are spec files; redirect check to companion .java
         if (uri.endsWith(".jml")) {
-            scheduleCheckFile(uri.substring(0, uri.length() - 4) + ".java");
+            String javaUri = resolveCompanionJavaUri(uri, null);  // reads content from disk
+            if (javaUri != null) scheduleCheckFile(javaUri);
             return;
         }
         String filePath = CheckRunner.uriToPath(uri);
