@@ -10,7 +10,8 @@ import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjml.JmlTree;
 import org.openjml.IAPI.IASTListener;
 
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
@@ -122,8 +123,9 @@ public interface IAPI {
 //     */
 //    public void setProgressListener(/*@ nullable */ Main.IProgressListener p);
 //    
+
     /** Sets a listener for ESC proof results as they are generated. */
-    public void setProofResultListener(/*@nullable*/ IProofResultListener p);
+    public IProofResultListener setProofResultListener(/*@nullable*/ IProofResultListener p);
 //
 //    /** This method initializes the Options instance of the current compilation
 //     * context. If the options argument is not null, its content is used
@@ -558,23 +560,25 @@ public interface IAPI {
 //
 //    // FIXME _ need a way to determine if a CU has been typechecked (successfully)
 //    
-//    /** Executes static checking on the given method; assumes that all 
-//     * relevant ASTs have been typechecked (both the argument and any
-//     * methods that it references by direct calls or in its specs)
-//     * @param msym the method to check
-//     * @return the result of the proof attempt
-//     */
-//    //@ requires isOpen;
-//    //@ ensures isOpen;
-//    public IProverResult doESC(MethodSymbol msym);
-//
-//    /** Executes static checking on the methods of the given class; assumes that all 
-//     * relevant ASTs have been typechecked
-//     * @param csym the class to check
-//     */
-//    //@ requires isOpen;
-//    //@ ensures isOpen;
-//    public void doESC(ClassSymbol csym);
+    /** Executes static checking on the given method; assumes that all 
+     * relevant ASTs have been typechecked (both the argument and any
+     * methods that it references by direct calls or in its specs)
+     * @param msym the method to check
+     * @return the result of the proof attempt
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    @SuppressWarnings("exports")
+    public IProverResult doESC(JmlTree.JmlMethodDecl methodDecl);
+
+    /** Executes static checking on the methods of the given class; assumes that all 
+     * relevant ASTs have been typechecked
+     * @param csym the class to check
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    @SuppressWarnings("exports")
+    public void doESC(JmlTree.JmlClassDecl classDecl);
 //
 ////    /** The proof result of the most recent proof attempt for the given
 ////     * method, or null if there has been none.

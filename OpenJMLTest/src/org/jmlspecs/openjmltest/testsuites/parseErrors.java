@@ -63,15 +63,15 @@ public class parseErrors extends ParseBase {
 
     @Test public void modifierOnImport() {
         checkParseErrors("//@ @Pure import java.lang.System; \nclass A { }"
-                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 15
-                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 11, 10, 10, 15
-                ,"/TEST.java:1: warning: misplaced model import", 11, 10, 10, 35 // FIXME - need a clearer error message
+                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 16
+                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 11, 10, 10, 16
+                ,"/TEST.java:1: warning: misplaced model import", 11, 10, 10, 36 // FIXME - need a clearer error message
                 );
     }
 
     @Test public void modifierOnImport2() {
         checkParseErrors("//@ @Model import java.lang.System; \nclass A { }"
-                ,"/TEST.java:1: warning: misplaced model import", 12, 11, 11, 36  // FIXME - need a clearer error message
+                ,"/TEST.java:1: warning: misplaced model import", 12, 11, 11, 37  // FIXME - need a clearer error message
                 );
     }
 
@@ -183,7 +183,7 @@ public class parseErrors extends ParseBase {
             }
             """
             ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 1, 54, 54 ,54  // FIXME - why this error
-            ,"/TEST.java:5: warning: No modifiers are allowed prior to a for_example token", 1, 54, 54, 59
+            ,"/TEST.java:5: warning: No modifiers are allowed prior to a for_example token", 1, 54, 54, 60
             
             );
     }
@@ -228,7 +228,7 @@ public class parseErrors extends ParseBase {
                   public void m() {}
                 }
                 """
-                ,"/TEST.java:3: error: Invalid clause or missing end of specification group token ( |} )", 3, 44, 44, 49
+                ,"/TEST.java:3: error: Invalid clause or missing end of specification group token ( |} )", 3, 44, 44, 50
                 ,"/TEST.java:2: error: Method specifications without a following method declaration", 14, 23, 23, 23  // FIXME - why this cascade of errors
                 ,"/TEST.java:4: error: reached end of file while parsing", 2, 64, 64, 64
                 );

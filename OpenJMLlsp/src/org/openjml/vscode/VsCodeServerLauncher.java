@@ -35,7 +35,9 @@ public class VsCodeServerLauncher {
                                                   VsCodeCommands.RUN_ESC_FOR_METHOD,
                                                   VsCodeCommands.RUN_ESC_DIR,
                                                   VsCodeCommands.FOCUS_FILE,
-                                                  VsCodeCommands.GET_SEMANTIC_TOKENS);
+                                                  VsCodeCommands.GET_SEMANTIC_TOKENS,
+                                                  VsCodeCommands.RUN_RAC,
+                                                  VsCodeCommands.CLEAR_AND_REINDEX);
         var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut);
 
         LanguageClient client = launcher.getRemoteProxy();

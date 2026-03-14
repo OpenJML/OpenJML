@@ -3706,7 +3706,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkTypeClauseMods(tree,tree.modifiers,"constraint clause",tree.clauseType);
             if (tree.sigs != null) for (JmlTree.JmlMethodSig sig: tree.sigs) {
                 if (sig.argtypes == null) {
-                    // FIXME - not implemented
+                    for (var t: env.enclClass.defs) {
+                        if (t instanceof JCMethodDecl m) {
+                            String s = sig.expression.toString();
+                            if (s.equals(m.name.toString()) || s.equals(m.sym.owner.toString() + "." + m.name)) {
+                                if (sig.methodSymbol != null) {
+                                    utils.error(sig, "jml.message", "Duplicate match for " + sig + " in " + env.enclClass.sym);
+                                    // FIXME - point to duplicate declarations?
+                                } else {
+                                    sig.methodSymbol = m.sym;
+                                }
+                            }
+                        }
+                    }
+                    if (sig.methodSymbol == null) {
+                        utils.error(sig, "jml.message", "Could not match " + sig + " in " + env.enclClass.sym);
+                    }
+                    // FIXME - not implemented for method signatures with types without package names (or maybe with)
                 } else {
                     sig.accept(this);
                     Symbol s = sig.methodSymbol;

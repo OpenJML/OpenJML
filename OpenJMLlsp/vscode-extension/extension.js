@@ -21,6 +21,7 @@ const vscode = require('vscode');
 const { LanguageClient, TransportKind, RevealOutputChannelOn } = require('vscode-languageclient/node');
 
 let client;
+let outputChannel;
 
 /**
  * Return the absolute path of `name` if it is found on the system PATH,
@@ -37,6 +38,14 @@ function findOnPath(name) {
 }
 
 /**
+ * Return true if the language ID is Java or JML (both are handled by this extension).
+ * ESC commands only operate on Java files; the document selector covers both.
+ */
+function isJmlLike(langId) {
+    return langId === 'java' || langId === 'jml';
+}
+
+/**
  * Return p if it exists and is a regular file, otherwise null.
  */
 function fileIfExists(p) {
@@ -48,7 +57,8 @@ function fileIfExists(p) {
  * fully-qualified method name (pkg.Class.method) of the method that
  * contains that line, or null if not found.
  *
- * Uses the same heuristic regex as JavaSourceScanner on the server side.
+ * Uses the same heuristic regex as JavaSourceScanner.methodFqn() on the server side.
+ * If the regex logic changes here it MUST be updated there too (and vice versa).
  */
 function findMethodFqnAtLine(content, cursorLine) {
     const lines = content.split('\n');
@@ -60,15 +70,20 @@ function findMethodFqnAtLine(content, cursorLine) {
         if (m) { pkg = m[1]; break; }
     }
 
-    // Extract top-level public/protected class name.
+    // Extract top-level public/protected class name, skipping block-comment lines.
     let cls = '';
+    let inBlockComment = false;
     for (const line of lines) {
-        const m = line.match(/(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
+        const stripped = line.trimStart();
+        if (inBlockComment) { if (stripped.includes('*/')) inBlockComment = false; continue; }
+        if (stripped.startsWith('//')) continue;
+        if (stripped.startsWith('/*')) { if (!stripped.includes('*/')) inBlockComment = true; continue; }
+        const m = line.match(/^[ \t]*(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
         if (m) { cls = m[1]; break; }
     }
 
     // Find all method declaration start lines.
-    const METHOD_RE = /^[ \t]*(?:public|private|protected|static|final|synchronized|abstract|native|default|strictfp).*?(\w+)[ \t]*\(/;
+    const METHOD_RE = /^[ \t]*(?:public|private|protected|static|final|synchronized|abstract|native|default|strictfp)[^(;{]*(\w+)[ \t]*\(/;
     const methodStarts = [];
     for (let i = 0; i < lines.length; i++) {
         if (/^\s*(?:\/\/|\*|\/\*|@)/.test(lines[i])) continue;
@@ -93,6 +108,51 @@ function findMethodFqnAtLine(content, cursorLine) {
 }
 
 /**
+ * Given a .jml TextDocument, find and return the vscode.Uri of the companion .java file.
+ *
+ * Algorithm:
+ *   1. Try <same-dir>/<same-base>.java  (works when spec-file name == class name).
+ *   2. Parse the .jml content for the package declaration and the first
+ *      public/protected class/interface/enum/record name, then use
+ *      workspace.findFiles to locate <pkg/path/ClassName>.java anywhere in the workspace.
+ *
+ * Returns a vscode.Uri or null if no companion is found.
+ */
+async function resolveCompanionJavaUri(jmlDoc) {
+    // 1. Same-name .java in the same directory
+    const simpleUri = jmlDoc.uri.with({ path: jmlDoc.uri.path.replace(/\.jml$/, '.java') });
+    try {
+        await vscode.workspace.fs.stat(simpleUri);
+        return simpleUri;
+    } catch (_) {}
+
+    // 2. Parse package and class name from the spec content
+    const lines = jmlDoc.getText().split('\n');
+    let pkg = '';
+    for (const line of lines) {
+        const m = line.match(/^\s*package\s+([\w.]+)\s*;/);
+        if (m) { pkg = m[1]; break; }
+    }
+    let cls = '';
+    let inBC = false;
+    for (const line of lines) {
+        const s = line.trimStart();
+        if (inBC) { if (s.includes('*/')) inBC = false; continue; }
+        if (s.startsWith('//')) continue;
+        if (s.startsWith('/*')) { if (!s.includes('*/')) inBC = true; continue; }
+        const m = line.match(/^[ \t]*(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
+        if (m) { cls = m[1]; break; }
+    }
+    if (!cls) return null;
+
+    const relPath = (pkg ? pkg.replace(/\./g, '/') + '/' : '') + cls + '.java';
+    const matches = await vscode.workspace.findFiles('**/' + cls + '.java', '**/node_modules/**', 10);
+    // Prefer the match whose path ends with the full package-relative path
+    const best = matches.find(u => u.path.replace(/\\/g, '/').endsWith(relPath));
+    return best || (matches.length > 0 ? matches[0] : null);
+}
+
+/**
  * Handle unsaved changes before running ESC.  Returns true if ESC should
  * proceed, false to abort.
  *
@@ -109,7 +169,7 @@ async function checkDirtyAndProceed(document) {
     const action = vscode.workspace.getConfiguration('openjml')
                                    .get('dirtyFileAction', 'ask');
     if (action === 'save') {
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await document.save();
         return true;
     }
     if (action === 'run') {
@@ -124,7 +184,7 @@ async function checkDirtyAndProceed(document) {
     if (choice === 'Always save') {
         await vscode.workspace.getConfiguration('openjml')
             .update('dirtyFileAction', 'save', vscode.ConfigurationTarget.Global);
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await document.save();
         return true;
     }
     if (choice === 'Never save') {
@@ -133,7 +193,7 @@ async function checkDirtyAndProceed(document) {
         return true;
     }
     if (choice === 'Save and Run ESC') {
-        await vscode.commands.executeCommand('workbench.action.files.save');
+        await document.save();
     }
     return true;
 }
@@ -141,16 +201,30 @@ async function checkDirtyAndProceed(document) {
 function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
     return {
-        checkTriggerOn: cfg.get('checkTriggerOn', 'edit'),
-        escTriggerOn:   cfg.get('escTriggerOn',   'manual'),
-        specsPath:      cfg.get('specsPath',       ''),
-        solversPath:    cfg.get('solversPath',     ''),
-        sourcePath:     cfg.get('sourcePath',      ''),
-        classPath:      cfg.get('classPath',       ''),
+        checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
+        escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
+        propertiesFile:          cfg.get('propertiesFile',          ''),
+        specsPath:               cfg.get('specsPath',               ''),
+        solversPath:             cfg.get('solversPath',             ''),
+        sourcePath:              cfg.get('sourcePath',              ''),
+        classPath:               cfg.get('classPath',               ''),
+        racOutputDir:            cfg.get('racOutputDir',            ''),
+        syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'regex'),
+        escEngine:               cfg.get('escEngine',               'subprocess'),
+        escThreads:              cfg.get('escThreads',              5),
+        useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
     };
 }
 
+function ts() {
+    return new Date().toTimeString().slice(0, 8);
+}
+
 async function activate(context) {
+    outputChannel = vscode.window.createOutputChannel('OpenJML');
+    context.subscriptions.push(outputChannel);
+    outputChannel.appendLine(ts() + ' OpenJML extension started');
+
     const cfg = vscode.workspace.getConfiguration('openjml');
     const configuredPath = cfg.get('serverPath', '').trim();
 
@@ -165,7 +239,7 @@ async function activate(context) {
         || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
         || findOnPath('openjml-lsp');
 
-    console.log('OpenJML: activating, server script =', serverScript);
+    outputChannel.appendLine(ts() + ' server script: ' + (serverScript || '(not found)'));
 
     // Helper: show error and open settings when the server is not configured.
     function requireServer() {
@@ -193,14 +267,24 @@ async function activate(context) {
     const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+        if (!editor || !isJmlLike(editor.document.languageId)) {
+            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC.');
             return;
         }
 
-        if (!await checkDirtyAndProceed(editor.document)) return;
+        let doc = editor.document;
+        if (doc.languageId === 'jml') {
+            const javaUri = await resolveCompanionJavaUri(doc);
+            if (!javaUri) {
+                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                return;
+            }
+            doc = await vscode.workspace.openTextDocument(javaUri);
+        }
 
-        const uri = editor.document.uri.toString();
+        if (!await checkDirtyAndProceed(doc)) return;
+
+        const uri = doc.uri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEsc',
@@ -222,16 +306,27 @@ async function activate(context) {
         if (typeof uri !== 'string' || typeof methodName !== 'string') {
             // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
             const editor = vscode.window.activeTextEditor;
-            if (!editor || editor.document.languageId !== 'java') {
-                vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC on a method.');
+            if (!editor || !isJmlLike(editor.document.languageId)) {
+                vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
                 return;
             }
-            uri = editor.document.uri.toString();
+            // For .jml files: extract the method FQN from the spec content (spec files have
+            // method stubs matching the .java signatures), then redirect to the companion .java.
             const cursorLine = editor.selection.active.line;
             methodName = findMethodFqnAtLine(editor.document.getText(), cursorLine);
             if (!methodName) {
                 vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method.');
                 return;
+            }
+            if (editor.document.languageId === 'jml') {
+                const javaUri = await resolveCompanionJavaUri(editor.document);
+                if (!javaUri) {
+                    vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                    return;
+                }
+                uri = javaUri.toString();
+            } else {
+                uri = editor.document.uri.toString();
             }
         }
 
@@ -258,12 +353,21 @@ async function activate(context) {
     const saveAndEscCmd = vscode.commands.registerCommand('openjml.saveAndRunEsc', async () => {
         if (!client) { requireServer(); return; }
         const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.languageId !== 'java') {
-            vscode.window.showWarningMessage('OpenJML: open a Java file to run ESC.');
+        if (!editor || !isJmlLike(editor.document.languageId)) {
+            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC.');
             return;
         }
-        await vscode.commands.executeCommand('workbench.action.files.save');
-        const uri = editor.document.uri.toString();
+        await editor.document.save();
+        let targetUri = editor.document.uri;
+        if (editor.document.languageId === 'jml') {
+            const javaUri = await resolveCompanionJavaUri(editor.document);
+            if (!javaUri) {
+                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                return;
+            }
+            targetUri = javaUri;
+        }
+        const uri = targetUri.toString();
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEsc',
@@ -274,6 +378,73 @@ async function activate(context) {
         }
     });
     context.subscriptions.push(saveAndEscCmd);
+
+    // "Compile RAC" — compiles the focused Java file with --rac, producing class files
+    // with embedded assertion checks.  Output directory is controlled by openjml.racOutputDir.
+    const racCmd = vscode.commands.registerCommand('openjml.runRac', async () => {
+        if (!client) { requireServer(); return; }
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || !isJmlLike(editor.document.languageId)) {
+            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to compile RAC.');
+            return;
+        }
+        let targetUri = editor.document.uri;
+        if (editor.document.languageId === 'jml') {
+            const javaUri = await resolveCompanionJavaUri(editor.document);
+            if (!javaUri) {
+                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
+                return;
+            }
+            targetUri = javaUri;
+        }
+        const uri = targetUri.toString();
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runRac',
+                arguments: [uri],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
+        }
+    });
+    context.subscriptions.push(racCmd);
+
+    // "Run ESC on Project" — runs ESC on all workspace folders.
+    // Requires at least one workspace folder to be open.
+    const escDirCmd = vscode.commands.registerCommand('openjml.runEscDir', async () => {
+        if (!client) { requireServer(); return; }
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders || folders.length === 0) {
+            vscode.window.showWarningMessage(
+                'OpenJML: no workspace folder is open. Open a folder to run ESC on the project.');
+            return;
+        }
+        const paths = folders.map(f => f.uri.fsPath);
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEscDir',
+                arguments: paths,
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC on project failed: ' + err);
+        }
+    });
+    context.subscriptions.push(escDirCmd);
+
+    // "Clear Caches and Reindex" — clears all server-side caches and restarts
+    // from scratch: re-checks open files and re-indexes the workspace.
+    const clearCmd = vscode.commands.registerCommand('openjml.clearAndReindex', async () => {
+        if (!client) { requireServer(); return; }
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.clearAndReindex',
+                arguments: [],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML clear-and-reindex failed: ' + err);
+        }
+    });
+    context.subscriptions.push(clearCmd);
 
     // If no server script is available, stop here — commands are registered above so
     // VS Code can find them; they will show a helpful error when invoked.
@@ -315,7 +486,8 @@ async function activate(context) {
     };
 
     const clientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'java' }],
+        documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
+        outputChannel,          // reuse our named channel; suppresses the auto-created one
         revealOutputChannelOn: RevealOutputChannelOn.Warn,
         initializationOptions: getSettings(),
         synchronize: {
@@ -342,6 +514,13 @@ async function activate(context) {
             provideDocumentSemanticTokens: (_document, _token, _next) => {
                 return new vscode.SemanticTokens(new Uint32Array([]));
             },
+            window: {
+                // Route window/logMessage notifications from the server to our
+                // dedicated OpenJML output channel instead of the generic LSP log.
+                logMessage: (params, _next) => {
+                    outputChannel.appendLine(params.message);
+                },
+            },
         },
     };
 
@@ -353,9 +532,9 @@ async function activate(context) {
     );
 
     client.start().then(() => {
-        console.log('OpenJML: server started successfully');
+        outputChannel.appendLine(ts() + ' server started');
     }).catch(err => {
-        console.error('OpenJML: server failed to start:', err?.message ?? err);
+        outputChannel.appendLine(ts() + ' server failed to start: ' + (err?.message ?? err));
     });
     context.subscriptions.push(client);
 
@@ -365,7 +544,7 @@ async function activate(context) {
     // Token types must match SemanticTokensProvider.TOKEN_TYPES on the server.
     const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro'], []);
     const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
-        { language: 'java' },
+        [{ language: 'java' }, { language: 'jml' }],
         {
             async provideDocumentSemanticTokens(document) {
                 if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
@@ -393,7 +572,7 @@ async function activate(context) {
     let focusDebounceTimer = null;
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (!editor || editor.document.languageId !== 'java') return;
+            if (!editor || !isJmlLike(editor.document.languageId)) return;
             const uri = editor.document.uri.toString();
             if (focusDebounceTimer) clearTimeout(focusDebounceTimer);
             focusDebounceTimer = setTimeout(() => {
@@ -421,7 +600,7 @@ async function activate(context) {
     );
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(async doc => {
-            if (doc.languageId !== 'java') return;
+            if (!isJmlLike(doc.languageId)) return;
             const uri = doc.uri.toString();
             const wasManual = pendingManualSave.delete(uri); // always clear, even on auto-save
 
@@ -430,6 +609,7 @@ async function activate(context) {
             const escTriggerOn = vscode.workspace.getConfiguration('openjml')
                                                  .get('escTriggerOn', 'manual');
             if (escTriggerOn !== 'save') return;
+            if (!client) return;
             try {
                 await client.sendRequest('workspace/executeCommand', {
                     command:   'openjml.runEsc',

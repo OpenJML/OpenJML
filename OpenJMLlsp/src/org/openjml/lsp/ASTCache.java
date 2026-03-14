@@ -7,6 +7,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
+import org.openjml.IAPI;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,8 +47,41 @@ public class ASTCache {
     /** Declaration location: LSP URI and character offset of the declaration keyword. */
     public record SymbolLocation(String uri, int charOffset) {}
 
-    /** Cached entry for one source file. */
-    public record Entry(JmlCompilationUnit ast, Context context) {}
+    /**
+     * Cached entry for one source file.
+     *
+     * <p>The {@code api}, {@code diagListener}, {@code sourcePath}, and {@code escLock}
+     * fields are non-null only when the entry was produced by a successful
+     * {@code --check} run (exit code 0) on in-memory or on-disk content.
+     * They are used by the in-process {@code doESC} path ({@code escEngine=concurrent}).
+     * Init-tier entries (background workspace index) always have them null.
+     *
+     * <p>{@link IAPI#doESC} is NOT thread-safe on the same IAPI instance; concurrent
+     * calls for the same URI are serialized via {@code escLock}.  Calls on different
+     * URIs use different IAPI instances and proceed in parallel, bounded by
+     * the {@code escThreads} pool size.
+     */
+    public record Entry(JmlCompilationUnit ast, Context context,
+                        IAPI api,
+                        LspDiagnosticListener diagListener,
+                        String sourcePath,
+                        java.util.concurrent.locks.ReentrantLock escLock) {
+
+        /** Create a basic entry without IAPI (for init-tier or failed checks). */
+        static Entry basic(JmlCompilationUnit ast, Context ctx) {
+            return new Entry(ast, ctx, null, null, null, null);
+        }
+
+        /** Create an entry with a stored IAPI for in-process doESC (successful checks only). */
+        static Entry withApi(JmlCompilationUnit ast, Context ctx,
+                             IAPI api, LspDiagnosticListener listener, String sourcePath) {
+            return new Entry(ast, ctx, api, listener, sourcePath,
+                             new java.util.concurrent.locks.ReentrantLock());
+        }
+
+        /** Returns true if this entry supports in-process doESC via {@link IAPI#doESC}. */
+        public boolean supportsDoEsc() { return api != null; }
+    }
 
     // -----------------------------------------------------------------------
     // Live tier — user-triggered --check / --esc runs
@@ -93,15 +127,25 @@ public class ASTCache {
 
     /**
      * Store (or overwrite) the AST for {@code uri} in the <em>live</em> tier,
-     * and remove any init-tier entry for the same URI.
-     * Called from the IAPI.IASTListener — may fire multiple times per source
-     * file when the file contains multiple classes.
+     * without a stored IAPI (init-tier, failed check, or workspace-index).
      */
     public void put(String uri, Context ctx, JmlCompilationUnit ast) {
-        removeLiveDeclarationsForUri(uri);
-        liveCache.put(uri, new Entry(ast, ctx));
-        new DeclarationIndexer(liveDeclarationIndex, uri).scan(ast);
+        storeInLive(uri, Entry.basic(ast, ctx));
+    }
 
+    /**
+     * Store (or overwrite) the AST for {@code uri} in the <em>live</em> tier,
+     * including the IAPI instance for in-process doESC (successful check only).
+     */
+    public void put(String uri, Context ctx, JmlCompilationUnit ast,
+                    IAPI api, LspDiagnosticListener listener, String sourcePath) {
+        storeInLive(uri, Entry.withApi(ast, ctx, api, listener, sourcePath));
+    }
+
+    private void storeInLive(String uri, Entry entry) {
+        removeLiveDeclarationsForUri(uri);
+        liveCache.put(uri, entry);
+        new DeclarationIndexer(liveDeclarationIndex, uri).scan(entry.ast());
         // Init-tier entries for this URI are now superseded by the live entry.
         initCache.remove(uri);
         removeInitDeclarationsForUri(uri);
@@ -119,7 +163,8 @@ public class ASTCache {
     public void putInit(String uri, Context ctx, JmlCompilationUnit ast) {
         if (liveCache.containsKey(uri)) return;   // live takes precedence
         removeInitDeclarationsForUri(uri);
-        initCache.put(uri, new Entry(ast, ctx));
+        Entry entry = Entry.basic(ast, ctx);
+        initCache.put(uri, entry);
         new DeclarationIndexer(initDeclarationIndex, uri).scan(ast);
     }
 
@@ -153,6 +198,18 @@ public class ASTCache {
         removeLiveDeclarationsForUri(uri);
         initCache.remove(uri);
         removeInitDeclarationsForUri(uri);
+    }
+
+    /**
+     * Clear all cached entries and declaration indexes from both tiers.
+     * Resets the indexing flag.  Called by the clear-and-reindex command.
+     */
+    public void clear() {
+        liveCache.clear();
+        liveDeclarationIndex.clear();
+        initCache.clear();
+        initDeclarationIndex.clear();
+        indexing.set(false);
     }
 
     // -----------------------------------------------------------------------

@@ -3,7 +3,10 @@ package org.openjml.lsp;
 import org.openjml.IAPI;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.tree.JCTree;
+import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,6 +20,11 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 /**
  * Runs OpenJML {@code --check} or {@code --esc} passes on Java/JML source
@@ -50,6 +58,49 @@ public class CheckRunner {
 
     /** Return the shared AST cache. */
     public static ASTCache getASTCache() { return AST_CACHE; }
+
+    // ---- Output-channel logging ----
+
+    private static volatile java.util.function.Consumer<String> logCallback = null;
+
+    /** Set the callback that receives user-visible log lines (routed to the VS Code Output channel). */
+    public static void setLogCallback(java.util.function.Consumer<String> cb) { logCallback = cb; }
+
+    private static void log(String msg) {
+        java.util.function.Consumer<String> cb = logCallback;
+        if (cb != null) cb.accept(msg);
+    }
+
+    private static String ts() {
+        return java.time.LocalTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+    }
+
+    /** Return just the file name portion of a URI or path (no directory). */
+    private static String fileName(String uri) {
+        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
+        return slash >= 0 ? uri.substring(slash + 1) : uri;
+    }
+
+    /** Translate a raw proof-result kind to a user-friendly label. */
+    private static String kindLabel(IProverResult.Kind kind) {
+        if (kind == null)              return "unknown";
+        if (kind == IProverResult.UNSAT) return "Verified";
+        if (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) return "Not Verified";
+        return kind.toString();
+    }
+
+    /** Log ESC proof results from a subprocess (--esc) run. */
+    private static void logEscResults(String fname,
+                                      Map<String, IProverResult.Kind> proofResults,
+                                      int numDiags) {
+        if (!proofResults.isEmpty()) {
+            for (Map.Entry<String, IProverResult.Kind> e : proofResults.entrySet())
+                log(ts() + " --esc " + fname + " " + e.getKey() + ": " + kindLabel(e.getValue()));
+        } else {
+            log(ts() + " --esc " + fname + ": " + numDiags + " diagnostic(s)");
+        }
+    }
 
     /**
      * Result of a single OpenJML invocation.
@@ -197,28 +248,47 @@ public class CheckRunner {
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
 
-            // Write all modified files at their package-relative paths.
+            // Write all modified files at their package-relative paths and record the mapping.
+            Map<String, String> tempPathToRealUri = new java.util.LinkedHashMap<>();
+            List<String> filePaths = new ArrayList<>();
             for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
-                writeToTempDir(tempDir, e.getKey(), e.getValue());
+                Path p = writeToTempDir(tempDir, e.getKey(), e.getValue());
+                tempPathToRealUri.put(p.toString(), e.getKey());
+                filePaths.add(p.toString());
             }
 
-            // Build a modified settings copy with sourcePath = tempDir.
+            // Build effective sourcepath: tempDir first, then workspace folders,
+            // then user sourcePath (or classPath fallback).
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
-            modifiedSettings.sourcePath  = tempDir.toString();
-            modifiedSettings.specsPath   = settings.specsPath;
-            modifiedSettings.solversPath = settings.solversPath;
-            modifiedSettings.classPath   = settings.classPath;
+            modifiedSettings.sourcePath      = buildEffectiveSourcePath(tempDir, settings);
+            modifiedSettings.specsPath       = settings.specsPath;
+            modifiedSettings.solversPath     = settings.solversPath;
+            modifiedSettings.classPath       = settings.classPath;
+            // workspaceFolderPaths already baked into sourcePath above.
 
-            // Run --check on each file and collect all diagnostics.
+            // Run a single --check invocation on all files so cross-file dependencies
+            // (e.g., A.java referencing a renamed symbol in B.java) are caught.
+            var listener = new LspDiagnosticListener();
+            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var api = IAPI.make(out, listener);
+            List<String> args = buildArgs(modifiedSettings, "--check");
+            args.addAll(filePaths);
+            logInvocation("checkModifiedFiles", args);
+            try {
+                api.execute(args.toArray(new String[0]));
+            } catch (Throwable t) {
+                System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
+            }
+
+            // Collect all diagnostics across files.
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
-            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
-                String uri     = e.getKey();
-                String content = e.getValue();
-                CheckResult result = runOnContent(uri, content, modifiedSettings, "--check", null, false);
-                allDiags.addAll(result.diagnostics());
+            for (List<org.eclipse.lsp4j.Diagnostic> diags :
+                    listener.toLspDiagnosticsAll(tempPathToRealUri).values()) {
+                allDiags.addAll(diags);
             }
             return allDiags;
         } catch (IOException e) {
+            System.err.println("[CheckRunner.checkModifiedFiles] I/O error: " + e);
             return List.of();
         } finally {
             if (tempDir != null) {
@@ -287,6 +357,7 @@ public class CheckRunner {
                     rc, prc.getResults(),
                     listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
+            System.err.println("[CheckRunner.runEscWithSources] I/O error: " + e);
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
             if (tempDir != null) {
@@ -331,6 +402,70 @@ public class CheckRunner {
     public static CheckResult runEscFileMethod(String filePath, String uri, String methodName,
                                                OpenJMLSettings settings) {
         return runOnFile(filePath, uri, settings, "--esc", methodName, true);
+    }
+
+    // --- public API: --rac ---
+
+    /**
+     * Run {@code --rac} on a file already on disk.
+     *
+     * <p>Compiles the file with runtime-assertion-checking instrumentation and
+     * writes the resulting {@code .class} files to the directory specified by
+     * {@link OpenJMLSettings#racOutputDir} (resolved against
+     * {@code workspaceFolderPaths} when relative).  The output directory is
+     * created if it does not yet exist.
+     *
+     * @param filePath absolute path of the Java source file
+     * @param uri      {@code file://} URI of the source file
+     * @param settings current server settings
+     * @return diagnostics and exit code (0 = success, 1 = compile errors)
+     */
+    public static CheckResult runRacFile(String filePath, String uri, OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out      = new PrintWriter(new StringWriter());
+        var api      = IAPI.make(out, listener);
+
+        List<String> args = buildArgs(settings, "--rac");
+
+        // Resolve and create the RAC output directory.
+        String rawDir = (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
+                ? settings.racOutputDir : "rac-classes";
+        java.nio.file.Path outputDir;
+        java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
+        if (raw.isAbsolute()) {
+            outputDir = raw;
+        } else {
+            // Resolve relative path against first workspace folder (or file's parent).
+            String wsRoot = (settings.workspaceFolderPaths != null
+                          && !settings.workspaceFolderPaths.isEmpty())
+                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
+                    : new java.io.File(filePath).getParent();
+            outputDir = java.nio.file.Paths.get(wsRoot).resolve(raw);
+        }
+        try {
+            java.nio.file.Files.createDirectories(outputDir);
+        } catch (java.io.IOException e) {
+            System.err.println("[CheckRunner.runRacFile] failed to create output dir: " + e);
+        }
+        args.add("-d");
+        args.add(outputDir.toString());
+        args.add(filePath);
+        logInvocation("runRacFile", args);
+
+        String fname = fileName(uri);
+        log(ts() + " --rac " + fname + " → " + outputDir);
+
+        int rc;
+        try {
+            rc = api.execute(args.toArray(new String[0]));
+        } catch (Throwable e) {
+            System.err.println("[CheckRunner.runRacFile] exception: " + e);
+            rc = -1;
+        }
+        System.err.println("[CheckRunner.runRacFile] exit code " + rc);
+        List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
+        log(ts() + " --rac " + fname + ": " + diags.size() + " diagnostic(s)");
+        return new CheckResult(diags, rc, Map.of(), listener.toForeignMessages(filePath), Map.of());
     }
 
     // --- utility ---
@@ -389,17 +524,7 @@ public class CheckRunner {
             // Write target file at its package-relative path.
             Path tempFile = writeToTempDir(tempDir, uri, content);
 
-            // Prepend tempDir to sourcePath so in-memory versions take priority.
-            OpenJMLSettings ctx = new OpenJMLSettings();
-            ctx.specsPath   = settings.specsPath;
-            ctx.solversPath = settings.solversPath;
-            ctx.classPath   = settings.classPath;
-            String orig     = settings.sourcePath != null ? settings.sourcePath : "";
-            ctx.sourcePath  = orig.isEmpty()
-                    ? tempDir.toString()
-                    : tempDir + java.io.File.pathSeparator + orig;
-
-            List<String> args = buildArgs(ctx, modeFlag);
+            List<String> args = buildArgs(settings, modeFlag, tempDir);
             if (methodName != null && !methodName.isEmpty()) {
                 args.add("--method");
                 args.add(methodName);
@@ -407,18 +532,42 @@ public class CheckRunner {
             args.add(tempFile.toString());
             logInvocation("runOnContentWithContext", args, content);
 
+            String fname = fileName(uri);
+            String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+            else log(ts() + " --esc " + fname + methodDesc);
+
             // compiledPathToRealUri is populated by the AST listener — only files
             // that were actually attributed get an entry.  Start with the target.
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
             compiledPathToRealUri.put(tempFile.toString(), uri);
+            // Pre-populate .jml spec files because the AST listener does not fire for them.
+            for (Map.Entry<String, String> e : tempUriToRealUri.entrySet()) {
+                if (e.getKey().endsWith(".jml")) {
+                    try {
+                        Path p = java.nio.file.Paths.get(java.net.URI.create(e.getKey()));
+                        compiledPathToRealUri.put(p.toString(), e.getValue());
+                    } catch (Exception ignored) {}
+                }
+            }
 
+            // Capture target AST locally so we can store with IAPI after execution.
             final String tempTargetUri = tempFile.toUri().toString();
+            final JmlCompilationUnit[] capturedAst = { null };
+            final com.sun.tools.javac.util.Context[] capturedCtx = { null };
+            final String tempDirPrefix = tempDir.toUri().toString();
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
                 String jfoUri = jfo.toUri().toString();
                 if (jfoUri.equals(tempTargetUri)) {
-                    AST_CACHE.put(uri, astCtx, (JmlCompilationUnit) ast);
+                    capturedAst[0] = (JmlCompilationUnit) ast;
+                    capturedCtx[0] = astCtx;
                 } else {
                     String realUri = tempUriToRealUri.get(jfoUri);
+                    if (realUri == null && !jfoUri.startsWith(tempDirPrefix)) {
+                        // Disk file found via sourcepath (e.g. B.jml not currently open).
+                        // Map it directly so its diagnostics appear as companion diagnostics.
+                        realUri = jfoUri;
+                    }
                     if (realUri != null) {
                         AST_CACHE.put(realUri, astCtx, (JmlCompilationUnit) ast);
                         // Record that this file was compiled so we can extract its diags.
@@ -439,6 +588,16 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc
                     + " (" + modeFlag + ")");
 
+            // Only --check runs update the target AST cache entry; --esc discards.
+            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+                if (rc == 0) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                  api, listener, tempFile.toString());
+                } else {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                }
+            }
+
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
             // Extract diagnostics for the target AND all files that were actually compiled.
@@ -447,6 +606,16 @@ public class CheckRunner {
             List<org.eclipse.lsp4j.Diagnostic> primaryDiags =
                     allDiags.getOrDefault(uri, List.of());
             allDiags.remove(uri);   // companions = everything except the primary
+            if ("--check".equals(modeFlag)) {
+                int companionFiles  = compiledPathToRealUri.size() - 1;  // minus primary
+                int companionTotal  = allDiags.values().stream().mapToInt(List::size).sum();
+                String companionNote = companionFiles > 0
+                        ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
+                        : "";
+                log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
+            } else {
+                logEscResults(fname, proofResults, primaryDiags.size());
+            }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(tempFile.toString()), allDiags);
         } catch (IOException e) {
@@ -488,12 +657,20 @@ public class CheckRunner {
             args.add(tempFile.toString());
             logInvocation("runOnContent", args, content);
 
-            // Register an AST listener that remaps the temp-file URI to the caller's URI.
+            String fname = fileName(uri);
+            String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+            else log(ts() + " --esc " + fname + methodDesc);
+
+            // Capture AST in local vars so we can store with IAPI after execution.
             final String tempUriStr = tempFile.toUri().toString();
-            final String callerUri  = uri;
+            final JmlCompilationUnit[] capturedAst = { null };
+            final com.sun.tools.javac.util.Context[] capturedCtx = { null };
             IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
-                if (jfo.toUri().toString().equals(tempUriStr))
-                    AST_CACHE.put(callerUri, ctx, (JmlCompilationUnit) ast);
+                if (jfo.toUri().toString().equals(tempUriStr)) {
+                    capturedAst[0] = (JmlCompilationUnit) ast;
+                    capturedCtx[0] = ctx;
+                }
             };
             IAPI.setASTListener(astListener);
             int rc;
@@ -505,9 +682,27 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runOnContent] exit code " + rc
                     + " (" + modeFlag + ")");
 
+            // Only --check runs update the AST cache.  --esc runs do not redo attribution;
+            // any AST they happen to produce is discarded to preserve the --check entry
+            // (and its stored IAPI for the doESC API path).
+            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+                if (rc == 0) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                  api, listener, tempFile.toString());
+                } else {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);  // failed check: basic entry
+                }
+            }
+
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
-            return new CheckResult(listener.toLspDiagnostics(tempFile.toString(), uri), rc,
+            List<org.eclipse.lsp4j.Diagnostic> diags =
+                    listener.toLspDiagnostics(tempFile.toString(), uri);
+            if ("--check".equals(modeFlag))
+                log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+            else
+                logEscResults(fname, proofResults, diags.size());
+            return new CheckResult(diags, rc,
                     proofResults, listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
@@ -543,11 +738,25 @@ public class CheckRunner {
         args.add(filePath);
         logInvocation("runOnFile", args);
 
-        // Register an AST listener that stores each attributed file under its own URI.
-        // When additional files are compiled via -sourcepath, each gets its own cache
-        // entry — enabling cross-file go-to-definition within the same IAPI context.
-        IAPI.IASTListener astListener = (ctx, jfo, ast) ->
-                AST_CACHE.put(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
+        String fname = fileName(uri);
+        String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+        if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+        else log(ts() + " --esc " + fname + methodDesc);
+
+        // Capture the primary file's AST locally; store with IAPI on successful --check.
+        final String fileUriStr = new java.io.File(filePath).toURI().toString();
+        final JmlCompilationUnit[] capturedAst = { null };
+        final com.sun.tools.javac.util.Context[] capturedCtx = { null };
+        IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+            String jfoUri = jfo.toUri().toString();
+            if (jfoUri.equals(fileUriStr)) {
+                capturedAst[0] = (JmlCompilationUnit) ast;
+                capturedCtx[0] = ctx;
+            } else {
+                // Additional files pulled in via -sourcepath: store basic entry.
+                AST_CACHE.put(jfoUri, ctx, (JmlCompilationUnit) ast);
+            }
+        };
         IAPI.setASTListener(astListener);
         int rc;
         try {
@@ -558,47 +767,303 @@ public class CheckRunner {
         System.err.println("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
 
+        // Only --check runs update the AST cache; --esc discards to preserve the --check entry.
+        if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+            if (rc == 0) {
+                AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                              api, listener, filePath);
+            } else {
+                AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+            }
+        }
+
         Map<String, IProverResult.Kind> proofResults =
                 prc != null ? prc.getResults() : Map.of();
-        return new CheckResult(listener.toLspDiagnostics(filePath, uri), rc,
+        List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
+        if ("--check".equals(modeFlag))
+            log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+        else
+            logEscResults(fname, proofResults, diags.size());
+        return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath), Map.of());
     }
 
     /**
-     * Run {@code --check} on all {@code filePaths} in a single OpenJML invocation,
-     * populating the AST cache for every successfully attributed file.
+     * Run {@code --check} on a single file, populating the init-tier AST cache.
      *
-     * <p>Diagnostics are discarded — the purpose is to build the workspace symbol
-     * index so that {@code workspace/symbol} can find declarations in non-open files.
-     * Called in a background thread after the LSP {@code initialized} handshake.
+     * <p>Used by the background workspace index to check files one at a time so
+     * diagnostics can be published incrementally and the indexing thread does not
+     * monopolise the executor pool.  The {@code isIndexing()} flag is managed by
+     * the caller.
      *
-     * @param filePaths absolute paths of all {@code .java} files to index
-     * @param settings  current OpenJML settings (specs path, solvers path, etc.)
+     * @param filePath absolute path of the {@code .java} file to check
+     * @param uri      LSP document URI for the file
+     * @param settings current OpenJML settings
+     * @return diagnostics produced by the check (caller decides whether to publish)
      */
-    public static void indexWorkspaceFiles(List<String> filePaths, OpenJMLSettings settings) {
-        if (filePaths.isEmpty()) return;
+    public static List<org.eclipse.lsp4j.Diagnostic> indexOneFile(
+            String filePath, String uri, OpenJMLSettings settings) {
         var out      = new PrintWriter(new StringWriter());
-        var listener = new LspDiagnosticListener();  // diagnostics discarded
+        var listener = new LspDiagnosticListener();
         var api      = IAPI.make(out, listener);
 
         List<String> args = buildArgs(settings, "--check");
-        filePaths.forEach(args::add);
-        logInvocation("indexWorkspaceFiles", args);
+        args.add(filePath);
 
-        AST_CACHE.setIndexing(true);
         IAPI.IASTListener astListener = (ctx, jfo, ast) ->
                 AST_CACHE.putInit(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
         IAPI.setASTListener(astListener);
         try {
             api.execute(args.toArray(new String[0]));
+        } catch (Throwable e) {
+            System.err.println("[CheckRunner.indexOneFile] " + filePath + ": " + e);
         } finally {
             IAPI.removeASTListener(astListener);
-            AST_CACHE.setIndexing(false);
+        }
+        return listener.toLspDiagnostics(filePath, uri);
+    }
+
+    // --- public API: in-process doESC via cached IAPI ---
+
+    /**
+     * Run ESC on a single method using the IAPI instance from the last successful
+     * {@code --check} run for {@code uri}.
+     *
+     * <p>Falls back to the subprocess {@code --esc --method} path when:
+     * <ul>
+     *   <li>No cache entry exists yet (file not yet checked), or</li>
+     *   <li>The last check had errors ({@link ASTCache.Entry#supportsDoEsc()} is false), or</li>
+     *   <li>The method name is not found in the cached AST.</li>
+     * </ul>
+     *
+     * <p>Concurrent doESC calls on the same or different URIs proceed in parallel;
+     * {@link IAPI#doESC} is thread-safe.  Only {@code setProofResultListener} is
+     * briefly synchronized on the {@code api} object.
+     *
+     * @param uri        LSP document URI (used for cache lookup and diagnostic mapping)
+     * @param methodName fully-qualified or simple method name
+     */
+    public static CheckResult runDoEscMethod(String uri, String methodName,
+                                              OpenJMLSettings settings) {
+        ASTCache.Entry entry = AST_CACHE.get(uri);
+        if (entry == null || !entry.supportsDoEsc()) {
+            System.err.println("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
+                    + " — falling back to subprocess");
+            String filePath = uriToPath(uri);
+            if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        }
+
+        String simple = simpleName(methodName);
+        List<JmlTree.JmlMethodDecl> methods = findMethodsBySimpleName(entry.ast(), simple);
+        if (methods.isEmpty()) {
+            System.err.println("[CheckRunner.runDoEscMethod] method '" + simple
+                    + "' not found in cached AST for " + uri + " — falling back to subprocess");
+            String filePath = uriToPath(uri);
+            if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        }
+
+        List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+        Map<String, IProverResult.Kind> proofResults = new LinkedHashMap<>();
+        int exitCode = 0;
+        for (JmlTree.JmlMethodDecl method : methods) {
+            SingleEscResult r = doEscOneMethod(uri, method, entry);
+            if (r.kind() != null) proofResults.put(r.name(), r.kind());
+            allDiags.addAll(r.diags());
+            if (r.exitCode() != 0) exitCode = r.exitCode();
+        }
+        return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+    }
+
+    /** Holds the result of a single-method doESC call. */
+    public record MethodEscResult(String name, IProverResult.Kind kind,
+                                   List<org.eclipse.lsp4j.Diagnostic> diags, int exitCode) {}
+
+    /**
+     * Run ESC on all methods in the file for {@code uri} using the cached IAPI.
+     *
+     * <p>Builds a work list of all methods, submits them to {@link OpenJMLSettings#escPool}
+     * (N concurrent, where N = pool size = {@code escThreads}), and fires
+     * {@code onMethodComplete} on the calling thread as each method finishes.
+     * Returns a {@link CompletableFuture} that completes with the merged
+     * {@link CheckResult} after all methods are done.
+     *
+     * <p>Falls back to a subprocess {@code --esc} run (synchronous, wrapped in a
+     * completed future) when no cached IAPI is available.
+     *
+     * @param onMethodComplete called on the pool thread as each method finishes;
+     *                         may be {@code null} if no per-method callback is needed
+     */
+    public static CompletableFuture<CheckResult> runDoEscFileAsync(
+            String uri, OpenJMLSettings settings,
+            Consumer<MethodEscResult> onMethodComplete) {
+        ASTCache.Entry entry = AST_CACHE.get(uri);
+        if (entry == null || !entry.supportsDoEsc()) {
+            System.err.println("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
+                    + " — falling back to subprocess");
+            String filePath = uriToPath(uri);
+            CheckResult result = (filePath != null)
+                    ? runEscFile(filePath, uri, settings)
+                    : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return CompletableFuture.completedFuture(result);
+        }
+
+        List<JmlTree.JmlMethodDecl> methods = findAllMethods(entry.ast());
+        if (methods.isEmpty()) {
+            return CompletableFuture.completedFuture(
+                    new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of()));
+        }
+
+        // Submit each method to the pool; fire the callback as each completes.
+        List<CompletableFuture<MethodEscResult>> futures = new ArrayList<>(methods.size());
+        for (JmlTree.JmlMethodDecl method : methods) {
+            CompletableFuture<MethodEscResult> f = CompletableFuture
+                    .supplyAsync(() -> {
+                        var r = doEscOneMethod(uri, method, entry);
+                        return new MethodEscResult(r.name(), r.kind(), r.diags(), r.exitCode());
+                    }, settings.escPool)
+                    .whenComplete((r, ex) -> {
+                        if (r != null && onMethodComplete != null) onMethodComplete.accept(r);
+                        if (ex != null) System.err.println(
+                                "[CheckRunner.runDoEscFileAsync] task failed: " + ex);
+                    });
+            futures.add(f);
+        }
+
+        // Merge all results into a single CheckResult when all methods are done.
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> {
+                    List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+                    Map<String, IProverResult.Kind> proofResults = new LinkedHashMap<>();
+                    int exitCode = 0;
+                    for (CompletableFuture<MethodEscResult> f : futures) {
+                        MethodEscResult r = f.getNow(null);
+                        if (r == null) continue;
+                        if (r.kind() != null) proofResults.put(r.name(), r.kind());
+                        allDiags.addAll(r.diags());
+                        if (r.exitCode() != 0) exitCode = r.exitCode();
+                    }
+                    System.err.println("[CheckRunner.runDoEscFileAsync] done, exitCode="
+                            + exitCode + " diags=" + allDiags.size() + " uri=" + uri);
+                    return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+                });
+    }
+
+    /** Blocking wrapper around {@link #runDoEscFileAsync} (used by tests). */
+    public static CheckResult runDoEscFile(String uri, OpenJMLSettings settings) {
+        try {
+            return runDoEscFileAsync(uri, settings, null).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+        } catch (ExecutionException e) {
+            System.err.println("[CheckRunner.runDoEscFile] failed: " + e.getCause());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         }
     }
 
+    /** Holds the result of a single-method doESC call (internal alias for MethodEscResult). */
+    private record SingleEscResult(String name, IProverResult.Kind kind,
+                                    List<org.eclipse.lsp4j.Diagnostic> diags, int exitCode) {}
+
+    /**
+     * Run doESC on one method.
+     *
+     * <p>{@link IAPI#doESC} is NOT thread-safe on the same IAPI instance; calls for
+     * the same entry are serialized via the entry's {@code escLock}.  Methods from
+     * different files (different IAPI instances, different locks) proceed in parallel.
+     * The lock is held only for the duration of the single-method call, so all methods
+     * of a file are queued individually — each releases the lock as soon as it finishes,
+     * allowing the next queued method to start while results are being processed.
+     *
+     * <p>Diagnostic capture uses a {@link ThreadLocal} in {@link LspDiagnosticListener}
+     * and is safe to start/stop outside the lock.
+     */
+    private static SingleEscResult doEscOneMethod(String uri,
+                                                   JmlTree.JmlMethodDecl method,
+                                                   ASTCache.Entry entry) {
+        String msig = method.sym != null
+                ? method.sym.owner.toString() + " " + method.sym.toString()
+                : method.name.toString();
+        System.err.println("[CheckRunner.doEscOneMethod] doESC on " + method.name + " in " + uri);
+        log(ts() + " --esc " + msig + " starting");
+        entry.diagListener().startCapture();
+        IProverResult result;
+        entry.escLock().lock();
+        try {
+            result = entry.api().doESC(method);
+        } finally {
+            entry.escLock().unlock();
+        }
+        var rawDiags = entry.diagListener().stopCapture();
+
+        List<org.eclipse.lsp4j.Diagnostic> lspDiags =
+                LspDiagnosticListener.toLspDiagnosticsFromList(
+                        rawDiags, entry.sourcePath(), uri);
+        IProverResult.Kind kind = result != null ? result.result() : null;
+        int exitCode = (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) ? 6 : 0;
+        System.err.println("[CheckRunner.doEscOneMethod] " + method.name
+                + " -> " + kind + ", exitCode=" + exitCode);
+        log(ts() + " --esc " + msig + ": " + kindLabel(kind));
+        return new SingleEscResult(method.name.toString(), kind, lspDiags, exitCode);
+    }
+
+    // --- AST method-scanning helpers ---
+
+    /** Extract the simple (unqualified) method name from a possibly-qualified name. */
+    private static String simpleName(String fqn) {
+        int dot = fqn.lastIndexOf('.');
+        return dot >= 0 ? fqn.substring(dot + 1) : fqn;
+    }
+
+    /** Find all non-synthetic methods with the given simple name in the AST. */
+    private static List<JmlTree.JmlMethodDecl> findMethodsBySimpleName(
+            JmlCompilationUnit ast, String simpleName) {
+        List<JmlTree.JmlMethodDecl> result = new ArrayList<>();
+        new JmlTreeScanner(null) {
+            @Override
+            public void visitMethodDef(JCTree.JCMethodDecl tree) {
+                if (tree instanceof JmlTree.JmlMethodDecl md
+                        && simpleName.equals(tree.name.toString())) {
+                    result.add(md);
+                }
+                // do NOT recurse into the method body (no local classes)
+            }
+            @Override public void visitBlock(JCTree.JCBlock b) { /* skip */ }
+        }.scan(ast);
+        return result;
+    }
+
+    /** Find all non-synthetic methods (excluding {@code <clinit>}) in the AST. */
+    private static List<JmlTree.JmlMethodDecl> findAllMethods(JmlCompilationUnit ast) {
+        List<JmlTree.JmlMethodDecl> result = new ArrayList<>();
+        new JmlTreeScanner(null) {
+            @Override
+            public void visitMethodDef(JCTree.JCMethodDecl tree) {
+                if (tree instanceof JmlTree.JmlMethodDecl md) {
+                    String name = tree.name.toString();
+                    if (!"<clinit>".equals(name)) result.add(md);  // include constructors
+                }
+                // do NOT recurse into the method body (no local classes)
+            }
+            @Override public void visitBlock(JCTree.JCBlock b) { /* skip */ }
+        }.scan(ast);
+        return result;
+    }
+
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {
+        return buildArgs(settings, modeFlag, null);
+    }
+
+    private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag, Path prefixDir) {
         List<String> args = new ArrayList<>();
+        // --properties must come first: options in the file are read before
+        // subsequent args, so IDE settings and invocation flags override it.
+        if (settings.propertiesFile != null && !settings.propertiesFile.isEmpty()) {
+            args.add("--properties");
+            args.add(settings.propertiesFile);
+        }
         args.add(modeFlag);
         if (settings.specsPath != null && !settings.specsPath.isEmpty()) {
             args.add("--specs-path");
@@ -608,15 +1073,45 @@ public class CheckRunner {
             args.add("--solvers-path");
             args.add(settings.solversPath);
         }
-        if (settings.sourcePath != null && !settings.sourcePath.isEmpty()) {
+        String sp = buildEffectiveSourcePath(prefixDir, settings);
+        if (!sp.isEmpty()) {
             args.add("-sourcepath");
-            args.add(settings.sourcePath);
+            args.add(sp);
         }
         if (settings.classPath != null && !settings.classPath.isEmpty()) {
             args.add("-classpath");
             args.add(settings.classPath);
         }
         return args;
+    }
+
+    /**
+     * Build the effective {@code -sourcepath} value.
+     *
+     * <p>Concatenates (path-separator-separated, omitting empty parts):
+     * <ol>
+     *   <li>{@code prefixDir} — temp directory holding in-memory file contents
+     *       (may be {@code null} when there is no temp dir, e.g. for on-disk checks)</li>
+     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — workspace folders
+     *       reported by the editor at {@code initialize} time</li>
+     *   <li>{@link OpenJMLSettings#sourcePath} — explicit user setting, if non-empty</li>
+     *   <li>{@link OpenJMLSettings#classPath} — only appended when
+     *       {@link OpenJMLSettings#sourcePath} is absent, so compiled dependencies
+     *       can serve as a source fallback when no explicit source root is configured</li>
+     * </ol>
+     */
+    static String buildEffectiveSourcePath(Path prefixDir, OpenJMLSettings settings) {
+        List<String> parts = new ArrayList<>();
+        if (prefixDir != null) parts.add(prefixDir.toString());
+        if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
+            parts.add(settings.workspaceFolderPaths);
+        boolean hasSourcePath = settings.sourcePath != null && !settings.sourcePath.isEmpty();
+        if (hasSourcePath) {
+            parts.add(settings.sourcePath);
+        } else if (settings.classPath != null && !settings.classPath.isEmpty()) {
+            parts.add(settings.classPath);
+        }
+        return String.join(java.io.File.pathSeparator, parts);
     }
 
     /** Log an OpenJML invocation to stderr (captured in /tmp/openjml-lsp-debug.log). */
@@ -648,7 +1143,8 @@ public class CheckRunner {
     private static String extractBaseName(String uri) {
         int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
         String name = slash >= 0 ? uri.substring(slash + 1) : uri;
-        if (!name.endsWith(".java")) name = name.replaceAll("[^A-Za-z0-9_]", "_") + ".java";
+        if (!name.endsWith(".java") && !name.endsWith(".jml"))
+            name = name.replaceAll("[^A-Za-z0-9_]", "_") + ".java";
         return name;
     }
 

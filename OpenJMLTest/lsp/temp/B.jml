@@ -1,0 +1,10 @@
+public class B {
+  //@ ghost static public int pp;
+
+
+  //@ ensures \result == t;
+  public int k(int t); 
+
+      //@ model public int kk();
+
+}

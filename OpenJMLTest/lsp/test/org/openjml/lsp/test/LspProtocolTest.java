@@ -65,7 +65,8 @@ public class LspProtocolTest {
         PipedOutputStream serverOut = new PipedOutputStream(clientIn);
 
         server = new OpenJMLLanguageServer(VsCodeCommands.RUN_ESC, VsCodeCommands.RUN_ESC_FOR_METHOD,
-                VsCodeCommands.RUN_ESC_DIR, VsCodeCommands.FOCUS_FILE, VsCodeCommands.GET_SEMANTIC_TOKENS);
+                VsCodeCommands.RUN_ESC_DIR, VsCodeCommands.FOCUS_FILE, VsCodeCommands.GET_SEMANTIC_TOKENS,
+                VsCodeCommands.RUN_RAC, VsCodeCommands.CLEAR_AND_REINDEX);
         var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
         server.connect(launcher.getRemoteProxy());
         launcher.startListening();
@@ -284,6 +285,30 @@ public class LspProtocolTest {
         client.sendNotification("workspace/didChangeConfiguration", params);
     }
 
+    /** Send workspace/executeCommand with no arguments. */
+    private void executeCommand(String command) throws Exception {
+        String params = "{\"command\":\"" + command + "\",\"arguments\":[]}";
+        client.sendRequest("workspace/executeCommand", params);
+    }
+
+    /**
+     * Wait for the next publishDiagnostics notification whose URI matches the
+     * given URI.  Ignores notifications for other URIs.
+     */
+    private JsonObject nextDiagsForUri(String uri, long timeout, TimeUnit unit)
+            throws InterruptedException {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (true) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) return null;
+            JsonObject msg = client.nextNotification(
+                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
+            if (msg == null) return null;
+            String msgUri = msg.getAsJsonObject("params").get("uri").getAsString();
+            if (uri.equals(msgUri)) return msg;
+        }
+    }
+
     /** Return true if the diagnostics array contains at least one Error-severity (1) entry. */
     private static boolean hasErrorDiagnostic(JsonArray diags) {
         for (var el : diags) {
@@ -291,5 +316,45 @@ public class LspProtocolTest {
             if (d.has("severity") && d.get("severity").getAsInt() == 1) return true;
         }
         return false;
+    }
+
+    // -----------------------------------------------------------------------
+    // clearAndReindex command
+    // -----------------------------------------------------------------------
+
+    /**
+     * After openDocument (which triggers a check and produces diagnostics),
+     * {@code openjml.clearAndReindex} must clear all server caches, publish an
+     * empty diagnostics list for the open file, and then re-check it — producing
+     * the original diagnostics again.
+     */
+    @Test
+    public void testClearAndReindexRechecksOpenFile() throws Exception {
+        String uri    = "file:///ClearReindex.java";
+        String source = "public class ClearReindex {\\n    public int m() { return \\\"not an int\\\"; }\\n}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the initial check to produce error diagnostics.
+        JsonObject first = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected initial publishDiagnostics after didOpen", first);
+        JsonArray firstDiags = first.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected non-empty initial diagnostics", firstDiags.isEmpty());
+
+        // Issue clearAndReindex.
+        executeCommand(VsCodeCommands.CLEAR_AND_REINDEX);
+
+        // The server should publish empty diagnostics (cache cleared) for the open file.
+        JsonObject cleared = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after clearAndReindex (cache clear)", cleared);
+        JsonArray clearedDiags = cleared.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertEquals("Expected empty diagnostics immediately after cache clear", 0, clearedDiags.size());
+
+        // The server then re-checks the open file and must produce the original errors again.
+        JsonObject rechecked = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after clearAndReindex (re-check)", rechecked);
+        JsonArray recheckedDiags = rechecked.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected non-empty diagnostics after re-check", recheckedDiags.isEmpty());
+        assertTrue("Expected Error-severity diagnostic after re-check", hasErrorDiagnostic(recheckedDiags));
     }
 }

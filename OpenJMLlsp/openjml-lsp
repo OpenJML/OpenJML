@@ -6,9 +6,8 @@
 
 set -e
 
-# Debug log — remove once startup is confirmed working
-LOG=/tmp/openjml-lsp-debug.log
-echo "$(date): openjml-lsp invoked, args: $*" >> "$LOG"
+LOG="${OPENJML_LSP_LOG:-/tmp/openjml-lsp-debug.log}"
+echo "$(date): openjml-lsp invoked, args: $*" > "$LOG"
 exec 2>>"$LOG"   # redirect stderr to log so Java errors are captured too
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,8 +19,8 @@ if [ -d "$DIR/jdk" ]; then
     BUILDJDK="$DIR/jdk"
     . "$DIR/setup-exports"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$DIR}"
-    export OPENJML_SPECS="${OPENJML_SPECS:-$DIR/specs}"
-    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$OPENJML_INSTALL}"
+    # OPENJML_SPECS and OPENJML_SOLVERS: not defaulted here — OpenJML derives
+    # them from OPENJML_INSTALL internally.  Set them only for custom locations.
     JARFILE="$DIR/lsp/openjml-lsp.jar"
     LSP4J_CP="$DIR/lsp/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/lsp/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 else
@@ -35,8 +34,8 @@ else
     fi
     . "$SRC/setup-exports"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$SRC}"
-    export OPENJML_SPECS="${OPENJML_SPECS:-$DIR/../../Specs/specs}"
-    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$DIR/../../Solvers}"
+    export OPENJML_SPECS="${OPENJML_SPECS:-$OPENJML_INSTALL/../../Specs/specs}"
+    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$OPENJML_INSTALL/../../Solvers}"
     JARFILE="$DIR/build/openjml-lsp.jar"
     LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 fi

@@ -1513,9 +1513,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             printExpr(that.expression);
             print("(");
             boolean first = true;
-            for (JCExpression t: that.argtypes) {
-                if (first) first = false; else print(",");
-                printExpr(t);
+            if (that.argtypes != null) {
+                for (JCExpression t: that.argtypes) {
+                    if (first) first = false; else print(",");
+                    printExpr(t);
+                }
             }
             print(")");
         } catch (IOException e) { perr(that,e); }

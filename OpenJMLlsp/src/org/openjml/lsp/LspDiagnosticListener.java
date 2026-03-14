@@ -13,15 +13,67 @@ import java.util.Map;
 /**
  * Collects all diagnostics emitted by OpenJML during a check pass,
  * then converts them to LSP Diagnostic objects on request.
+ *
+ * <p>Supports per-call <em>capture mode</em> for in-process {@code doESC} runs.
+ * When a thread calls {@link #startCapture()}, subsequent {@link #report} calls
+ * from that thread go into a thread-local list instead of the shared
+ * {@link #collected} list.  {@link #stopCapture()} returns that list and clears it.
+ * This lets concurrent {@code doESC} calls on different methods (possibly different
+ * threads) each collect only their own diagnostics.
  */
 public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject> {
+
+    /** Set to true and recompile to enable per-diagnostic debug logging in toLspDiagnostics(). */
+    private static final boolean DEBUG_DIAGNOSTICS = false;
 
     private final List<Diagnostic<? extends JavaFileObject>> collected =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends JavaFileObject>>());
 
+    /** Per-thread capture list; non-null only while a doESC call is active on that thread. */
+    private final ThreadLocal<List<Diagnostic<? extends JavaFileObject>>> captureMode =
+            new ThreadLocal<>();
+
+    /** Start per-call diagnostic capture on the calling thread. */
+    public void startCapture() {
+        captureMode.set(new ArrayList<>());
+    }
+
+    /**
+     * Stop per-call capture and return the diagnostics collected since
+     * {@link #startCapture()}.  The thread-local state is cleared.
+     */
+    public List<Diagnostic<? extends JavaFileObject>> stopCapture() {
+        List<Diagnostic<? extends JavaFileObject>> list = captureMode.get();
+        captureMode.remove();
+        return list != null ? Collections.unmodifiableList(list) : List.of();
+    }
+
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        collected.add(diagnostic);
+        List<Diagnostic<? extends JavaFileObject>> cap = captureMode.get();
+        if (cap != null) {
+            cap.add(diagnostic);  // capture mode: goes to thread-local list only
+        } else {
+            collected.add(diagnostic);  // normal mode
+        }
+    }
+
+    /**
+     * Convert a list of raw diagnostics (e.g. from {@link #stopCapture()}) to LSP format.
+     *
+     * @param rawDiags   diagnostics captured during a {@code doESC} call
+     * @param sourcePath temp/real file path used during compilation (for source-filtering)
+     * @param targetUri  the LSP document URI to map diagnostics to
+     */
+    public static List<org.eclipse.lsp4j.Diagnostic> toLspDiagnosticsFromList(
+            List<Diagnostic<? extends JavaFileObject>> rawDiags,
+            String sourcePath, String targetUri) {
+        var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
+        for (var d : rawDiags) {
+            var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri);
+            if (lsp != null) result.add(lsp);
+        }
+        return result;
     }
 
     public List<Diagnostic<? extends JavaFileObject>> getDiagnostics() {
@@ -121,24 +173,25 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     }
 
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
-        System.err.println("[LspDiagnosticListener] " + collected.size()
-                + " raw diagnostic(s) for " + sourcePath);
         var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
         for (var d : collected) {
-            String src = d.getSource() == null ? "<null>" : d.getSource().getName();
-            System.err.println("  raw: kind=" + d.getKind()
-                    + " code=" + d.getCode()
-                    + " line=" + d.getLineNumber()
-                    + " src=" + src
-                    + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
+            if (DEBUG_DIAGNOSTICS) {
+                String src = d.getSource() == null ? "<null>" : d.getSource().getName();
+                System.err.println("  raw: kind=" + d.getKind()
+                        + " code=" + d.getCode()
+                        + " line=" + d.getLineNumber()
+                        + " src=" + src
+                        + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
+            }
             var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri);
             if (lsp != null) {
                 result.add(lsp);
-            } else {
+            } else if (DEBUG_DIAGNOSTICS) {
                 System.err.println("    ^ filtered out by DiagnosticConverter");
             }
         }
-        System.err.println("[LspDiagnosticListener] " + result.size() + " LSP diagnostic(s) after filtering");
+        System.err.println("[LspDiagnosticListener] " + collected.size()
+                + " raw, " + result.size() + " LSP diagnostic(s) for " + sourcePath);
         return result;
     }
 }

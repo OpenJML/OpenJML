@@ -3,6 +3,11 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
 import org.eclipse.lsp4j.Command;
+import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.DeclarationParams;
@@ -29,6 +34,8 @@ import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
 import org.eclipse.lsp4j.PrepareRenameResult;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.FoldingRange;
+import org.eclipse.lsp4j.FoldingRangeRequestParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
@@ -130,8 +137,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final String codeLensCommand;
     private LanguageClient client;
 
-    private final ExecutorService          executor  = Executors.newCachedThreadPool();
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    /** Workspace root URI, stored when the first workspace index is scheduled. */
+    private volatile String rootUri = null;
+
+    private final ExecutorService          executor      = Executors.newCachedThreadPool();
+    private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * Dedicated single-thread executor for the background workspace index.
+     * Kept separate from {@code executor} so the potentially long-running index
+     * pass never blocks user-triggered check/ESC requests.
+     * The thread is a daemon so it does not prevent JVM exit.
+     */
+    private final ExecutorService indexExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "openjml-index");
+        t.setDaemon(true);
+        return t;
+    });
 
     /** Pending debounce futures for --check, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
@@ -145,6 +167,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Latest --esc diagnostics per URI. */
     private final Map<String, List<Diagnostic>> escDiags   = new ConcurrentHashMap<>();
 
+    /** Latest --rac diagnostics per URI (kept separate so check diags are not overwritten). */
+    private final Map<String, List<Diagnostic>> racDiags   = new ConcurrentHashMap<>();
+
     /** Per-URI generation counter: incremented on each new ESC submission. */
     private final Map<String, AtomicLong> escGen = new ConcurrentHashMap<>();
 
@@ -157,6 +182,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Last-seen source content per URI (for code lens and hover). */
     private final Map<String, String> lastContent = new ConcurrentHashMap<>();
 
+    /** Content (by identity hash) of the last successfully submitted --check, per URI. */
+    private final Map<String, String> lastCheckedContent = new ConcurrentHashMap<>();
+
+    /**
+     * The most recently submitted --check future (per URI).  Set just before
+     * the check task is submitted to the executor; completed when the check
+     * finishes.  {@link #documentSymbol} chains off this so it can return
+     * populated symbols even when the outline is requested before the first
+     * check completes.
+     */
+    private final Map<String, CompletableFuture<Void>> lastCheckFuture = new ConcurrentHashMap<>();
+
     /**
      * @param settings        shared settings object
      * @param codeLensCommand the command name to embed in code-lens actions (e.g. run ESC for method)
@@ -168,6 +205,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     public void connect(LanguageClient client) {
         this.client = client;
+        CheckRunner.setLogCallback(msg -> {
+            if (client != null)
+                client.logMessage(new MessageParams(MessageType.Log, msg));
+        });
     }
 
     @Override
@@ -188,6 +229,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String uri     = params.getTextDocument().getUri();
         String content = params.getContentChanges().get(0).getText();
         lastContent.put(uri, content);
+        // Invalidate cached check state for all other open files so that focus-triggered
+        // rechecks pick up this change in their cross-file context.  When the primary
+        // check completes, companion files that were actually compiled will be re-marked
+        // as up-to-date, so only truly-uncompiled files will be rechecked on focus.
+        lastCheckedContent.keySet().removeIf(k -> !k.equals(uri));
 
         // --check: debounced if in edit mode
         if (settings.isCheckOnEdit()) {
@@ -222,10 +268,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         cancelPending(uri);
         checkDiags.remove(uri);
         escDiags.remove(uri);
+        racDiags.remove(uri);
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
         CheckRunner.getASTCache().remove(uri);
-        client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+        if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
     }
 
     // --- code lens ---
@@ -236,7 +283,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(List.of());
 
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
+                : JavaSourceScanner.findMethods(content);
         Map<Integer, MethodStatus> statuses = methodEscStatus.getOrDefault(uri, Map.of());
 
         List<CodeLens> lenses = new ArrayList<>(methods.size());
@@ -253,6 +303,65 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     // --- hover ---
+
+    @Override
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(
+            CompletionParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+        List<CompletionItem> items =
+                JmlCompletionProvider.complete(content, params.getPosition());
+        return CompletableFuture.completedFuture(Either.forLeft(items));
+    }
+
+    private List<Either<SymbolInformation, DocumentSymbol>> buildSymbolResult(
+            String uri, ASTCache.Entry entry, String content) {
+        boolean jmlOnly = !Boolean.TRUE.equals(settings.useIntegratedOutline);
+        List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content, jmlOnly);
+        List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
+        for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
+        return result;
+    }
+
+    @Override
+    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
+            DocumentSymbolParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) {
+            return CompletableFuture.completedFuture(List.of());
+        }
+        // .jml spec files redirect their check to the companion .java; look up under that URI.
+        String cacheUri = uri.endsWith(".jml")
+                ? uri.substring(0, uri.length() - 4) + ".java"
+                : uri;
+        // If a check is in flight (first open OR edit), wait for it so the
+        // outline reflects the current source rather than the previous AST.
+        CompletableFuture<Void> pending = lastCheckFuture.get(cacheUri);
+        if (pending != null && !pending.isDone()) {
+            final String finalContent = content;
+            return pending.thenApply(_v -> {
+                ASTCache.Entry e2 = CheckRunner.getASTCache().get(cacheUri);
+                if (e2 == null) return List.<Either<SymbolInformation, DocumentSymbol>>of();
+                return buildSymbolResult(uri, e2, finalContent);
+            });
+        }
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(cacheUri);
+        if (entry == null) {
+            return CompletableFuture.completedFuture(List.of());
+        }
+        List<Either<SymbolInformation, DocumentSymbol>> result = buildSymbolResult(uri, entry, content);
+        return CompletableFuture.completedFuture(result);
+    }
+
+    @Override
+    public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(List.of());
+        return CompletableFuture.completedFuture(FoldingRangeProvider.fromSource(content));
+    }
 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
@@ -494,7 +603,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 result.proofResults(), result.exitCode(), List.of());
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
             }
         });
@@ -514,12 +623,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     List<Integer> getSemanticTokens(String uri) {
         String content = lastContent.get(uri);
         if (content == null) return List.of();
-        // Prefer the AST-based approach (no false positives for identifiers
-        // that share a name with a JML keyword); fall back to regex when no
-        // attributed AST is available yet.
-        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
-        if (entry != null) {
-            return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
+        // "regex" strategy: always use regex (instant, works before first --check).
+        // "ast" strategy (default): prefer AST-based when an attributed AST is
+        // available (no false positives), fall back to regex before first --check.
+        if (!settings.isRegexColoring()) {
+            ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+            if (entry != null) {
+                return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
+            }
         }
         return SemanticTokensProvider.computeTokens(content).getData();
     }
@@ -572,12 +683,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * handshake so that {@code workspace/symbol} can find symbols in files
      * that have not been opened by the user.
      *
+     * <p>Runs on a dedicated daemon thread ({@code indexExecutor}) so it never
+     * blocks user-triggered check or ESC requests.  Files are checked one at a
+     * time; diagnostics are published incrementally after each file so the user
+     * sees results as they arrive.  Files already open in the editor are skipped
+     * (their live check takes priority).
+     *
      * @param rootUri the workspace root URI from {@code InitializeParams}
      */
     void scheduleWorkspaceIndex(String rootUri) {
+        this.rootUri = rootUri;
         String rootPath = CheckRunner.uriToPath(rootUri);
         if (rootPath == null) return;
-        executor.submit(() -> {
+        indexExecutor.submit(() -> {
             try {
                 List<String> filePaths;
                 try (var stream = java.nio.file.Files.walk(java.nio.file.Path.of(rootPath))) {
@@ -587,12 +705,40 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             .collect(java.util.stream.Collectors.toList());
                 }
                 if (filePaths.isEmpty()) return;
-                System.err.println("[OpenJML] Background index: " + filePaths.size()
-                        + " .java files under " + rootPath);
-                CheckRunner.indexWorkspaceFiles(filePaths, settings);
-                System.err.println("[OpenJML] Background index complete");
-            } catch (Exception e) {
+
+                CheckRunner.getASTCache().setIndexing(true);
+                if (client != null) client.logMessage(new MessageParams(MessageType.Info,
+                        "OpenJML: indexing workspace (" + filePaths.size() + " file(s))…"));
+
+                int indexed = 0, totalDiags = 0;
+                try {
+                    for (String filePath : filePaths) {
+                        String uri = java.nio.file.Path.of(filePath).toUri().toString();
+                        // Skip files the user already has open — their live check takes priority.
+                        if (lastContent.containsKey(uri)) continue;
+
+                        List<Diagnostic> diags = CheckRunner.indexOneFile(filePath, uri, settings);
+                        indexed++;
+                        if (!diags.isEmpty()) {
+                            totalDiags += diags.size();
+                            checkDiags.put(uri, diags);
+                            publishMerged(uri);
+                        }
+                        // Log progress every 50 files for large workspaces.
+                        if (indexed % 50 == 0 && client != null) {
+                            client.logMessage(new MessageParams(MessageType.Log,
+                                    "OpenJML: indexed " + indexed + " / " + filePaths.size() + " file(s)…"));
+                        }
+                    }
+                } finally {
+                    CheckRunner.getASTCache().setIndexing(false);
+                    if (client != null) client.logMessage(new MessageParams(MessageType.Info,
+                            "OpenJML: workspace index complete — "
+                            + indexed + " file(s), " + totalDiags + " diagnostic(s)"));
+                }
+            } catch (Throwable e) {
                 System.err.println("[OpenJML] Background index failed: " + e);
+                CheckRunner.getASTCache().setIndexing(false);
             }
         });
     }
@@ -633,11 +779,92 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void recheckUri(String uri) {
         String content = lastContent.get(uri);
         if (content == null) return;
+        // Skip if nothing has changed since the last completed check.
+        if (content.equals(lastCheckedContent.get(uri))) return;
+        // Skip if a check is already queued or running for this URI (e.g. didOpen
+        // schedules a check, then onDidChangeActiveTextEditor fires 200ms later).
+        CompletableFuture<Void> pending = lastCheckFuture.get(uri);
+        if (pending != null && !pending.isDone()) return;
         executor.submit(() -> runCheckContent(uri, content));
     }
 
     void scheduleEscForUri(String uri) {
-        scheduleEscFile(uri);
+        if (settings.isEscApiMode()) {
+            submitEscApiWorkList(uri);
+        } else {
+            scheduleEscFile(uri);
+        }
+    }
+
+    /**
+     * Submit the api-engine ESC work list for {@code uri}.
+     *
+     * <p>Each method in the file is submitted as a separate task to
+     * {@link OpenJMLSettings#escPool}.  As each method completes its code-lens
+     * status is updated immediately so the user sees progress.  After all
+     * methods finish a final {@link #publishMerged} flushes the accumulated
+     * diagnostics.
+     */
+    private void submitEscApiWorkList(String uri) {
+        Future<?> prev = runningEscTasks.remove(uri);
+        if (prev != null) prev.cancel(true);
+
+        long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
+        markEscChecking(uri);
+
+        CompletableFuture<CheckRunner.CheckResult> cf =
+                CheckRunner.runDoEscFileAsync(uri, settings, methodResult -> {
+                    // Called on a pool thread as each method finishes — update its
+                    // code-lens status immediately so the user sees progress.
+                    if (escGen.get(uri).get() != myGen) return;
+                    updateSingleMethodEscStatus(uri, methodResult);
+                    refreshCodeLenses();
+                });
+
+        cf.thenAccept(result -> {
+            if (escGen.get(uri).get() != myGen) return;
+            escDiags.put(uri, result.diagnostics());
+            if (result.isInternalError()) {
+                System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
+                markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
+                refreshCodeLenses();
+            } else {
+                updateEscStatus(uri, result.diagnostics(), result.proofResults(),
+                        result.exitCode(), result.foreignMessages());
+            }
+            publishMerged(uri);
+        }).exceptionally(t -> {
+            System.err.println("[OpenJML] ESC (api) failed: " + t);
+            if (escGen.get(uri).get() == myGen) {
+                updateEscStatus(uri, List.of(), Map.of(), -1, List.of());
+                refreshCodeLenses();
+            }
+            return null;
+        }).whenComplete((v, t) -> runningEscTasks.remove(uri));
+
+        runningEscTasks.put(uri, cf);
+    }
+
+    /**
+     * Update the code-lens status for a single method that completed doESC.
+     * Diagnostics for that method are applied; other methods' statuses are
+     * unchanged and will be overwritten by the final {@link #updateEscStatus} call.
+     */
+    private void updateSingleMethodEscStatus(String uri,
+                                              CheckRunner.MethodEscResult r) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.name().equals(r.name())) continue;
+            Map<Integer, MethodStatus> statuses =
+                    new HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+            statuses.put(m.startLine(),
+                    proofResultToStatus(r.kind(), r.diags(),
+                            m.startLine(), m.endLine(), r.exitCode(), false));
+            methodEscStatus.put(uri, statuses);
+            break;
+        }
     }
 
     /**
@@ -648,16 +875,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * diagnostics (within its line range) are updated; other methods are left unchanged.
      */
     void scheduleEscForMethod(String uri, String methodName) {
-        String filePath = CheckRunner.uriToPath(uri);
-        if (filePath == null) return;
-
-        // Resolve the method's line range now (on the calling thread) so we can
-        // do per-method status updates after the task completes.
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethodByFqn(content, methodName);
 
-        submitEscForMethod(uri, target,
-                () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings));
+        if (settings.isEscApiMode()) {
+            // Submit through escPool so this request joins the same shared queue
+            // as any in-flight runDoEscFileAsync tasks for the same URI.
+            submitEscForMethod(uri, target,
+                    () -> CheckRunner.runDoEscMethod(uri, methodName, settings),
+                    settings.escPool);
+        } else {
+            String filePath = CheckRunner.uriToPath(uri);
+            if (filePath == null) return;
+            submitEscForMethod(uri, target,
+                    () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings),
+                    executor);
+        }
     }
 
     /**
@@ -689,7 +922,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * </ul>
      */
     private void submitEscForMethod(String uri, JavaSourceScanner.MethodInfo target,
-                                    Supplier<CheckRunner.CheckResult> task) {
+                                    Supplier<CheckRunner.CheckResult> task,
+                                    ExecutorService pool) {
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(true);
 
@@ -706,11 +940,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             markEscChecking(uri);
         }
 
-        Future<?> f = executor.submit(() -> {
+        Future<?> f = pool.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
-                System.err.println("[OpenJML] ESC-method done: exit=" + result.exitCode()
-                        + " diags=" + result.diagnostics().size() + " uri=" + uri);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC-method for " + uri);
                 if (escGen.get(uri).get() != myGen) return; // superseded
@@ -775,16 +1007,116 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- scheduling helpers ---
 
+    /**
+     * Given the URI of a {@code .jml} spec file and its current content, find the URI
+     * of the companion {@code .java} source file.
+     *
+     * <p>Algorithm:
+     * <ol>
+     *   <li>Try the simple same-name replacement ({@code Foo.jml} → {@code Foo.java})
+     *       in the same directory.  This covers the common case where spec-file names
+     *       match their class names.</li>
+     *   <li>If that file does not exist, parse {@code jmlContent} for the {@code package}
+     *       declaration and the first {@code public}/{@code protected} class/interface/
+     *       enum/record name.  Then search each root in {@code workspaceFolderPaths} and
+     *       {@code sourcePath} for {@code pkg/path/ClassName.java}.</li>
+     * </ol>
+     *
+     * @param jmlUri     the URI of the {@code .jml} file
+     * @param jmlContent the current content of the {@code .jml} file, or {@code null}
+     *                   to read from disk
+     * @return the URI of the companion {@code .java} file, or {@code null} if not found
+     */
+    private String resolveCompanionJavaUri(String jmlUri, String jmlContent) {
+        // 1. Same-name replacement
+        String simpleUri = jmlUri.substring(0, jmlUri.length() - 4) + ".java";
+        String simplePath = CheckRunner.uriToPath(simpleUri);
+        if (simplePath != null && new java.io.File(simplePath).exists()) return simpleUri;
+
+        // 2. Parse content for package + class name
+        String content = jmlContent;
+        if (content == null) {
+            String jmlPath = CheckRunner.uriToPath(jmlUri);
+            if (jmlPath == null) return null;
+            try { content = new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(jmlPath))); }
+            catch (Exception e) { return null; }
+        }
+
+        String pkg = null, cls = null;
+        for (String line : content.split("\\n")) {
+            if (pkg == null) {
+                java.util.regex.Matcher m =
+                        java.util.regex.Pattern.compile("^\\s*package\\s+([\\w.]+)\\s*;").matcher(line);
+                if (m.find()) pkg = m.group(1);
+            }
+            if (cls == null) {
+                java.util.regex.Matcher m =
+                        java.util.regex.Pattern.compile(
+                                "(?:public|protected)\\s+(?:(?:abstract|final|sealed|non-sealed)\\s+)*" +
+                                "(?:class|interface|enum|record)\\s+(\\w+)").matcher(line);
+                if (m.find()) cls = m.group(1);
+            }
+            if (pkg != null && cls != null) break;
+        }
+        if (cls == null) return null;
+
+        String relPath = (pkg != null ? pkg.replace('.', java.io.File.separatorChar)
+                                            + java.io.File.separator : "")
+                         + cls + ".java";
+
+        // Search workspace roots
+        List<String> roots = new ArrayList<>();
+        if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
+            java.util.Collections.addAll(roots,
+                    settings.workspaceFolderPaths.split(java.io.File.pathSeparator));
+        if (settings.sourcePath != null && !settings.sourcePath.isEmpty())
+            java.util.Collections.addAll(roots,
+                    settings.sourcePath.split(java.io.File.pathSeparator));
+        for (String root : roots) {
+            java.nio.file.Path candidate = java.nio.file.Path.of(root).resolve(relPath);
+            if (java.nio.file.Files.isRegularFile(candidate))
+                return candidate.toUri().toString();
+        }
+        return null;
+    }
+
     private void scheduleCheckNow(String uri, String content) {
+        // .jml files are spec files; redirect check to companion .java
+        if (uri.endsWith(".jml")) {
+            String javaUri = resolveCompanionJavaUri(uri, content);
+            if (javaUri == null) return;
+            String javaContent = lastContent.get(javaUri);
+            if (javaContent != null) {
+                CompletableFuture<Void> cf = new CompletableFuture<>();
+                lastCheckFuture.put(javaUri, cf);
+                executor.submit(() -> { try { runCheckContent(javaUri, javaContent); } finally { cf.complete(null); } });
+            } else {
+                String filePath = CheckRunner.uriToPath(javaUri);
+                if (filePath != null && new java.io.File(filePath).exists()) {
+                    CompletableFuture<Void> cf = new CompletableFuture<>();
+                    lastCheckFuture.put(javaUri, cf);
+                    executor.submit(() -> { try { runCheckFile(filePath, javaUri); } finally { cf.complete(null); } });
+                }
+            }
+            return;
+        }
         String filePath = CheckRunner.uriToPath(uri);
+        CompletableFuture<Void> cf = new CompletableFuture<>();
+        lastCheckFuture.put(uri, cf);
         if (filePath != null && new java.io.File(filePath).exists()) {
-            scheduleCheckFile(uri);
+            executor.submit(() -> { try { runCheckFile(filePath, uri); } finally { cf.complete(null); } });
         } else {
-            executor.submit(() -> runCheckContent(uri, content));
+            executor.submit(() -> { try { runCheckContent(uri, content); } finally { cf.complete(null); } });
         }
     }
 
     private void scheduleCheckFile(String uri) {
+        // .jml files are spec files; redirect check to companion .java
+        if (uri.endsWith(".jml")) {
+            String javaUri = resolveCompanionJavaUri(uri, null);  // reads content from disk
+            if (javaUri != null) scheduleCheckFile(javaUri);
+            return;
+        }
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
         executor.submit(() -> runCheckFile(filePath, uri));
@@ -794,6 +1126,39 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
         submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, settings));
+    }
+
+    /**
+     * Compile the focused Java file with {@code --rac} and report diagnostics.
+     * Only works on disk files (RAC requires source on disk).
+     */
+    void scheduleRacForUri(String uri) {
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath == null) {
+            if (client != null)
+                client.logMessage(new MessageParams(MessageType.Warning,
+                        "RAC: cannot determine file path for " + uri));
+            return;
+        }
+        executor.submit(() -> {
+            try {
+                CheckRunner.CheckResult result = CheckRunner.runRacFile(filePath, uri, settings);
+                if (result.exitCode() == 0) {
+                    if (client != null) {
+                        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
+                        String fname = slash >= 0 ? uri.substring(slash + 1) : uri;
+                        client.logMessage(new MessageParams(MessageType.Info,
+                                "RAC compile succeeded: " + fname));
+                    }
+                } else if (result.isCommandLineError()) {
+                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from RAC for " + uri);
+                }
+                racDiags.put(uri, result.diagnostics());
+                publishMerged(uri);
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] RAC failed: " + t);
+            }
+        });
     }
 
     private void startEscContent(String uri, String content) {
@@ -825,8 +1190,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         Future<?> f = executor.submit(() -> {
             try {
                 CheckRunner.CheckResult result = task.get();
-                System.err.println("[OpenJML] ESC done: exit=" + result.exitCode()
-                        + " diags=" + result.diagnostics().size() + " uri=" + uri);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
                 // Only publish if this task is still the latest for this URI.
@@ -863,29 +1226,45 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // the ESC code-lens status that the user sees.
 
     private void runCheckContent(String uri, String content) {
-        // Pass all open (possibly unsaved) files so cross-file dependencies use
-        // their current in-memory versions rather than the on-disk saved versions.
-        CheckRunner.CheckResult result = CheckRunner.checkWithContext(
-                uri, content, lastContent, settings);
-        checkDiags.put(uri, result.diagnostics());
-        publishMerged(uri);
-        // Update diagnostics for all dependency files that were actually attributed
-        // during this compilation run (the compiler's own AST list, not O(n) re-checks).
-        result.companionDiagnostics().forEach((otherUri, diags) -> {
-            if (lastContent.containsKey(otherUri)) {
-                checkDiags.put(otherUri, diags);
-                publishMerged(otherUri);
-            }
-        });
-        // Do NOT call refreshCodeLenses() here.
+        // .jml files are spec files; should not be passed to OpenJML on command line.
+        // scheduleCheckNow redirects to the companion .java, but guard here as well.
+        if (uri.endsWith(".jml")) return;
+        lastCheckedContent.put(uri, content);
+        try {
+            // Pass all open (possibly unsaved) files so cross-file dependencies use
+            // their current in-memory versions rather than the on-disk saved versions.
+            CheckRunner.CheckResult result = CheckRunner.checkWithContext(
+                    uri, content, lastContent, settings);
+            checkDiags.put(uri, result.diagnostics());
+            publishMerged(uri);
+            // Update diagnostics for all dependency files that were actually attributed
+            // during this compilation run (the compiler's own AST list, not O(n) re-checks).
+            result.companionDiagnostics().forEach((otherUri, diags) -> {
+                if (lastContent.containsKey(otherUri)) {
+                    checkDiags.put(otherUri, diags);
+                    publishMerged(otherUri);
+                    // Mark companion as checked so focus-triggered rechecks skip it
+                    // (it was already compiled alongside the primary file with up-to-date content).
+                    String companionContent = lastContent.get(otherUri);
+                    if (companionContent != null) lastCheckedContent.put(otherUri, companionContent);
+                }
+            });
+            // Do NOT call refreshCodeLenses() here.
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] check failed for " + uri + ": " + t);
+        }
     }
 
     private void runCheckFile(String filePath, String uri) {
-        CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
-        checkDiags.put(uri, result.diagnostics());
-        publishMerged(uri);
-        // runOnFile does not use the context path so no companion diagnostics.
-        // Do NOT call refreshCodeLenses() here.
+        try {
+            CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
+            checkDiags.put(uri, result.diagnostics());
+            publishMerged(uri);
+            // runOnFile does not use the context path so no companion diagnostics.
+            // Do NOT call refreshCodeLenses() here.
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] check file failed for " + uri + ": " + t);
+        }
     }
 
     // --- ESC code-lens status helpers ---
@@ -992,9 +1371,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // --- diagnostic merging ---
 
     private void publishMerged(String uri) {
+        if (client == null) return;
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
         merged.addAll(escDiags.getOrDefault(uri, List.of()));
+        merged.addAll(racDiags.getOrDefault(uri, List.of()));
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, merged));
     }
 
@@ -1015,5 +1396,63 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (c != null) c.cancel(false);
         ScheduledFuture<?> e = pendingEsc.remove(uri);
         if (e != null) e.cancel(false);
+    }
+
+    /**
+     * Clear all in-memory caches and restart as if the server had just started.
+     *
+     * <p>Cancels any pending check/ESC work, clears the AST cache, diagnostic
+     * maps, and ESC status, publishes empty diagnostics for all open files,
+     * then re-queues a fresh {@code --check} for every open file and a fresh
+     * workspace index pass.
+     *
+     * <p>Intended as a recovery command when the user suspects the server state
+     * has become stale or is consuming too much memory.
+     */
+    void resetAndReindex() {
+        // Cancel all pending debounced and running work.
+        pendingCheck.values().forEach(f -> f.cancel(false));
+        pendingCheck.clear();
+        pendingEsc.values().forEach(f -> f.cancel(false));
+        pendingEsc.clear();
+        runningEscTasks.values().forEach(f -> f.cancel(false));
+        runningEscTasks.clear();
+        lastCheckFuture.clear();
+
+        // Clear all diagnostic and status caches.
+        checkDiags.clear();
+        escDiags.clear();
+        racDiags.clear();
+        methodEscStatus.clear();
+        lastCheckedContent.clear();
+
+        // Clear the AST cache (both tiers and declaration indexes).
+        CheckRunner.getASTCache().clear();
+
+        // Publish empty diagnostics for all open files so stale markers disappear.
+        if (client != null) {
+            for (String uri : lastContent.keySet()) {
+                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+            }
+            client.logMessage(new MessageParams(MessageType.Info,
+                    "OpenJML: caches cleared — re-checking open files and re-indexing workspace…"));
+        }
+
+        // Re-check every currently open file.
+        for (Map.Entry<String, String> e : lastContent.entrySet()) {
+            scheduleCheckNow(e.getKey(), e.getValue());
+        }
+
+        // Re-run the workspace index if a root was known.
+        if (rootUri != null) scheduleWorkspaceIndex(rootUri);
+
+        refreshCodeLenses();
+    }
+
+    /** Shut down all executor services. Called from the language server's shutdown sequence. */
+    void shutdown() {
+        scheduler.shutdownNow();
+        executor.shutdownNow();
+        indexExecutor.shutdownNow();
     }
 }

@@ -1,0 +1,4 @@
+
+grep Testing log-* | sed -e 's/^.*[.]//' | sed -e 's/ using.*$//' -e 's/^.*[[]//' | tr -d ']' | sort  > temptests
+sort -u temptests | diff - temptests
+

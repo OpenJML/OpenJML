@@ -22,6 +22,7 @@ JUNIT_CP  := $(JUNITDIR)/junit-4.13.2.jar:$(JUNITDIR)/hamcrest-core-1.3.jar:$(JU
 ## rejects.  The GSON_EXPORTS flags (below) expose jdk.compiler's Gson instead.
 LSP4J_CP  := $(LSPROOT)/libs/org.eclipse.lsp4j-$(LSP4J_VERSION).jar:$(LSPROOT)/libs/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
 LSP_JAR   := $(LSPROOT)/build/openjml-lsp.jar
+LSP_SRCS  := $(shell find $(LSPROOT)/src -name '*.java')
 
 ## jdk.compiler bundles Gson internally but does not export its packages.
 ## Export all Gson packages so that LSP4J (and our RawLspClient / WorkspaceService)
@@ -39,18 +40,41 @@ GSON_EXPORTS := \
   --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED
 
 ## Build output
-CLASSES := $(LSPTEST)/build/classes
+CLASSES    := $(LSPTEST)/build/classes
+RESULT_DIR := $(LSPTEST)/build/results
 
 ## Source and test trees (infrastructure in src/, test cases in test/)
 INFRA_SRCS := $(shell find $(LSPTEST)/src  -name '*.java')
 TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 
-.PHONY: all compile run-tests clean .FORCE
+## All test classes — each runs in its own JVM process.
+## ESC-heavy classes (DoEscTest, EscStatusTest, MultiFileEscTest, DiagnosticsTest)
+## each run alone so that running with -j5 never starts more than 5 ESC processes.
+## Ordered longest-first so -j5 keeps the pool busy and finishes sooner.
+## Timings (approximate, single run): RenameTest[1-3] ~41s each, DefinitionFinderTest 37s,
+## DoEscTest 31s, ReferenceFinderTest 28s, DiagnosticsTest 26s, DocumentSymbolTest 24s,
+## EscStatusTest 17s, MultiFileEscTest 15s, FastTests (FoldingRange+LspProtocol+SemanticTokens) 6s.
+TEST_CLASSES := \
+  RenameTest1 \
+  RenameTest2 \
+  RenameTest3 \
+  DefinitionFinderTest \
+  DoEscTest \
+  ReferenceFinderTest \
+  DiagnosticsTest \
+  DocumentSymbolTest \
+  EscStatusTest \
+  MultiFileEscTest \
+  FastTests
+
+LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
+
+.PHONY: all compile run-tests run-tests-seq _run-logs clean .FORCE
 
 all: run-tests
 
-## Build the LSP server jar if not already up to date
-$(LSP_JAR): .FORCE
+## Build the LSP server jar when any server source file is newer than the jar.
+$(LSP_JAR): $(LSP_SRCS)
 	$(MAKE) -C $(LSPROOT) jar
 
 ## Compile test infrastructure and test cases.
@@ -65,20 +89,61 @@ compile: $(LSP_JAR)
 	     -d $(CLASSES) \
 	     $(INFRA_SRCS) $(TEST_SRCS) )
 
-## Run the LSP tests with JUnit's built-in console runner.
-run-tests: compile
-	@( cd $(LSPTEST); \
-	   . $(SRC)/setup-exports; \
-	   OPENJML_INSTALL="$(BUILDJDK)" \
-	   OPENJML_SPECS="$(SRC)/../../Specs/specs" \
-	   OPENJML_SOLVERS="$(SRC)/../../Solvers" \
-	   "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
-	     -Dlsp.testdata=$(LSPTEST)/testdata \
-	     -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
-	     org.junit.runner.JUnitCore \
-	     org.openjml.lsp.test.AllLspTests )
+## Sentinel: compile once, used as dependency by all per-class log targets.
+$(RESULT_DIR)/.compiled: compile
+	@mkdir -p $(RESULT_DIR)
+	@touch $@
+
+## Per-class pattern rule — one JVM process per test class.
+## Output is captured to a log file; on failure the log is printed and make exits non-zero.
+$(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
+	@echo "[TEST] $*"
+	@_start=$$(date +%s); \
+	if ( cd $(LSPTEST); \
+	      . $(SRC)/setup-exports; \
+	      OPENJML_INSTALL="$(BUILDJDK)" \
+	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
+	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
+	      "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	        -Dlsp.testdata=$(LSPTEST)/testdata \
+	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
+	        org.junit.runner.JUnitCore \
+	        org.openjml.lsp.test.$* \
+	    ) > $@ 2>&1; \
+	then \
+	  _elapsed=$$(( $$(date +%s) - _start )); \
+	  grep -E "^OK|Tests run" $@ | tail -1 | sed "s/^/[PASS] $* ($${_elapsed}s): /"; \
+	else \
+	  _elapsed=$$(( $$(date +%s) - _start )); \
+	  echo "[FAIL] $* ($${_elapsed}s) — log: $@"; \
+	  cat $@; \
+	  exit 1; \
+	fi
+
+## Run all test classes in parallel (default: 5 concurrent JVMs).
+## Override with: make run-tests JOBS=3
+JOBS ?= 5
+
+## Two-phase: compile first (serial), then dispatch log targets in parallel.
+_run-logs: $(LOG_FILES)
+
+run-tests: $(RESULT_DIR)/.compiled
+	@$(MAKE) --no-print-directory -j$(JOBS) _run-logs
+	@echo "All LSP tests passed."
+
+## Sequential fallback — useful for debugging; shows [PASS]/[FAIL] per class.
+run-tests-seq: $(RESULT_DIR)/.compiled
+	@rm -f $(LOG_FILES)
+	@$(MAKE) --no-print-directory -j1 _run-logs
+	@echo "All LSP tests passed (sequential)."
+
+## Run a single test group, e.g.: make test-RenameTest1
+## Multiple groups: make test-RenameTest1 test-FastTests
+test-%: .FORCE $(RESULT_DIR)/.compiled
+	@$(MAKE) --no-print-directory -B $(RESULT_DIR)/$*.log
 
 clean: .FORCE
 	rm -rf $(LSPTEST)/build
+	$(MAKE) -C $(LSPROOT) clean
 
 .FORCE:

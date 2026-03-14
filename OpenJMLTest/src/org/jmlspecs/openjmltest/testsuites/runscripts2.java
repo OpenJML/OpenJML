@@ -61,6 +61,14 @@ public class runscripts2 extends RunBase {
         doTest();
     }
 
+    @Test public void apiAST() {
+        doTest();
+    }
+
+    @Test public void apiASTCrash() {
+        doTest();
+    }
+
     @Test public void findSpecs() {
         doTest();
     }

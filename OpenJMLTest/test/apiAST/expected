@@ -1,0 +1,53 @@
+COMPILED
+ABOUT TO EXECUTE
+ASTListener: com.sun.tools.javac.util.Context@587bec4c SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java] SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiAST/data/A.java]
+CLASS A A unnamed package
+METHOD <init> A() A
+CLASS AI A.AI A
+METHOD <init> AI() A.AI
+METHOD m m() A
+CLASS C C m()
+METHOD <init> C() C
+METHOD mmm mmm() A
+CLASS AA AA unnamed package
+METHOD <init> AA() AA
+METHOD m m() AA
+ASTListener: com.sun.tools.javac.util.Context@587bec4c DirectoryFileObject[data:B.java] DirectoryFileObject[data:B.java]
+CLASS B B unnamed package
+METHOD <init> B() B
+ASTListener: com.sun.tools.javac.util.Context@587bec4c SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java] SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiAST/data/A.java]
+CLASS A A unnamed package
+METHOD <init> A() A
+CLASS AI A.AI A
+METHOD <init> AI() A.AI
+METHOD m m() A
+CLASS C C m()
+METHOD <init> C() C
+METHOD mmm mmm() A
+CLASS AA AA unnamed package
+METHOD <init> AA() AA
+METHOD m m() AA
+DOING ESC
+ASTListener: com.sun.tools.javac.util.Context@435ccc80 SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/Q.java] SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiAST/data/Q.java]
+CLASS Q Q unnamed package
+METHOD <init> Q() Q
+METHOD m m(int) Q
+METHOD q q() Q
+RES 0
+RES Q() UNSAT [z3_4_3]
+RES m(int) UNSAT [z3_4_3]
+data/Q.java:11: verify: The prover cannot establish an assertion (Postcondition: data/Q.java:9:) in method q
+    return 0;
+    ^
+data/Q.java:9: verify: Associated declaration: data/Q.java:11:
+  //@ ensures \result == 1;
+      ^
+RES q() POSSIBLY_SAT [z3_4_3]
+DOING CLASS
+data/Q.java:11: verify: The prover cannot establish an assertion (Postcondition: data/Q.java:9:) in method q
+    return 0;
+    ^
+data/Q.java:9: verify: Associated declaration: data/Q.java:11:
+  //@ ensures \result == 1;
+      ^
+DONE

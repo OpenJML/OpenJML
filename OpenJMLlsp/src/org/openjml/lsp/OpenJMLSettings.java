@@ -18,6 +18,17 @@ package org.openjml.lsp;
 public class OpenJMLSettings {
 
     /**
+     * Path to an OpenJML {@code .properties} file, passed as {@code --properties}.
+     * Options in this file are read before command-line args, so IDE settings
+     * (specsPath, solversPath, etc.) and invocation-specific flags ({@code --esc},
+     * {@code --method}) override it.
+     *
+     * <p>If {@code null} or empty the server auto-discovers {@code openjml.properties}
+     * in the workspace root (set during the LSP {@code initialize} handshake).
+     */
+    public volatile String propertiesFile;
+
+    /**
      * Path to the OpenJML specs directory, passed as {@code --specs-path}.
      * {@code null} or empty means use the server's default.
      */
@@ -36,10 +47,28 @@ public class OpenJMLSettings {
     public volatile String sourcePath;
 
     /**
+     * Workspace folder paths supplied by the editor at {@code initialize} time,
+     * path-separator-separated.  Not part of the client JSON settings — set
+     * programmatically by {@code OpenJMLLanguageServer.initialize()}.
+     * These are appended to the effective {@code -sourcepath} after any temp
+     * directory but before the user-supplied {@link #sourcePath}.
+     */
+    public volatile String workspaceFolderPaths;
+
+    /**
      * Classpath for pre-compiled dependencies, passed as {@code -classpath}.
      * Colon-separated on Unix, semicolon on Windows.
      */
     public volatile String classPath;
+
+    /**
+     * When {@code true} (default), the outline ({@code textDocument/documentSymbol})
+     * returns all Java and JML symbols together — an integrated view.
+     * When {@code false}, only JML-specific symbols (ghost, model) are returned,
+     * complementing a competing Java outline provider (e.g. Red Hat Java extension in VS Code).
+     * Users can collapse unwanted sections in either mode.
+     */
+    public volatile Boolean useIntegratedOutline = true;
 
     /**
      * When to run the {@code --check} pass:
@@ -72,4 +101,57 @@ public class OpenJMLSettings {
 
     /** Returns {@code true} if --esc should only fire on explicit command. */
     public boolean isEscManual()   { return "manual".equalsIgnoreCase(escTriggerOn); }
+
+    /**
+     * Syntax coloring strategy for JML tokens:
+     * <ul>
+     *   <li>{@code "ast"} (default) — AST-based coloring when an attributed AST is
+     *       available (no false positives for identifiers that share a JML keyword name),
+     *       with regex fallback before the first {@code --check}.</li>
+     *   <li>{@code "regex"} — always use the regex-based approach (instant, but may
+     *       color non-JML identifiers that happen to match JML keywords).</li>
+     * </ul>
+     */
+    public volatile String syntaxColoringStrategy = "regex";
+
+    /** Returns {@code true} if the regex-only coloring strategy is selected. */
+    public boolean isRegexColoring() { return "regex".equalsIgnoreCase(syntaxColoringStrategy); }
+
+    /**
+     * Which engine to use for ESC:
+     * <ul>
+     *   <li>{@code "subprocess"} (default) — spawn a fresh OpenJML process with {@code --esc}</li>
+     *   <li>{@code "concurrent"} — call {@link org.openjml.IAPI#doESC} in-process on the cached AST
+     *       from the last successful {@code --check}.  No re-typechecking; ESC attempts on methods
+     *       are done concurrently according to the number of threads setting.
+     *       Falls back to subprocess if no cached IAPI is available.</li>
+     * </ul>
+     */
+    public volatile String escEngine = "subprocess";
+
+    /** Returns {@code true} if the concurrent in-process doESC engine is selected. */
+    public boolean isEscApiMode() { return "concurrent".equalsIgnoreCase(escEngine); }
+
+    /**
+     * Maximum number of concurrent doESC threads used by the {@code concurrent} engine.
+     * Methods from different files run concurrently up to this limit;
+     * methods within the same file are serialized (IAPI.doESC is not thread-safe per instance).
+     */
+    public volatile int escThreads = 5;
+
+    /**
+     * Fixed thread pool used by the {@code api} engine to run per-method doESC calls
+     * concurrently.  {@code transient} so Gson never touches it.  Recreated by
+     * {@link org.openjml.lsp.OpenJMLWorkspaceService} whenever {@link #escThreads}
+     * is updated via a configuration change.
+     */
+    public transient java.util.concurrent.ExecutorService escPool =
+            java.util.concurrent.Executors.newFixedThreadPool(5);
+
+    /**
+     * Output directory for {@code --rac}-compiled class files, passed as {@code -d}.
+     * Relative paths are resolved against the workspace root.
+     * {@code null} or empty means {@code rac-classes} in the workspace root.
+     */
+    public volatile String racOutputDir;
 }

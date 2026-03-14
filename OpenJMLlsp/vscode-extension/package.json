@@ -10,13 +10,15 @@
     "url": "https://github.com/OpenJML/OpenJML.git"
   },
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.79.0"
   },
   "categories": [
+    "Programming Languages",
     "Linters"
   ],
   "activationEvents": [
-    "onLanguage:java"
+    "onLanguage:java",
+    "onLanguage:jml"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -34,6 +36,21 @@
       {
         "command": "openjml.runEscForMethod",
         "title": "Run ESC for Method",
+        "category": "OpenJML"
+      },
+      {
+        "command": "openjml.runEscDir",
+        "title": "Run ESC on Project",
+        "category": "OpenJML"
+      },
+      {
+        "command": "openjml.runRac",
+        "title": "Compile RAC",
+        "category": "OpenJML"
+      },
+      {
+        "command": "openjml.clearAndReindex",
+        "title": "Clear Caches and Reindex",
         "category": "OpenJML"
       }
     ],
@@ -61,18 +78,55 @@
       "editor/title": [
         {
           "command": "openjml.runEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@1"
         },
         {
           "command": "openjml.runEscForMethod",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@2"
         },
         {
           "command": "openjml.saveAndRunEsc",
-          "when": "resourceLangId == java",
+          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@3"
+        },
+        {
+          "command": "openjml.runEscDir",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@4"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@5"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "openjml.runEsc",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@1"
+        },
+        {
+          "command": "openjml.runEscForMethod",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@2"
+        },
+        {
+          "command": "openjml.saveAndRunEsc",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@3"
+        },
+        {
+          "command": "openjml.runEscDir",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@4"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@5"
         }
       ],
       "commandPalette": [
@@ -87,15 +141,39 @@
         {
           "command": "openjml.runEscForMethod",
           "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.runEscDir"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java"
         }
       ]
     },
+    "languages": [
+      {
+        "id": "jml",
+        "extensions": [".jml"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/jml.svg",
+          "dark": "./icons/jml.svg"
+        }
+      }
+    ],
     "grammars": [
+      {
+        "language": "jml",
+        "scopeName": "source.jml",
+        "path": "./syntaxes/jml-file.tmLanguage.json"
+      },
       {
         "scopeName": "source.jml.injection",
         "path": "./syntaxes/jml.tmLanguage.json",
         "injectTo": [
-          "source.java"
+          "source.java",
+          "source.jml"
         ]
       }
     ],
@@ -140,29 +218,74 @@
           "order": 3,
           "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
         },
-        "openjml.specsPath": {
+        "openjml.propertiesFile": {
           "type": "string",
           "default": "",
           "order": 4,
+          "markdownDescription": "Path to an OpenJML `.properties` file containing project-level options (prover, timeout, nullable-by-default, etc.). Leave empty to auto-discover `openjml.properties` in the workspace root. Options in this file are overridden by the settings below and by invocation-specific flags."
+        },
+        "openjml.specsPath": {
+          "type": "string",
+          "default": "",
+          "order": 5,
           "description": "Path to the OpenJML specs directory. Leave empty to use the default from the launcher script."
         },
         "openjml.sourcePath": {
           "type": "string",
           "default": "",
-          "order": 5,
+          "order": 6,
           "description": "Source root(s) for resolving cross-file references (-sourcepath). Separate multiple roots with ':' (Unix) or ';' (Windows). Leave empty for single-file projects."
         },
         "openjml.classPath": {
           "type": "string",
           "default": "",
-          "order": 6,
+          "order": 7,
           "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
         },
         "openjml.solversPath": {
           "type": "string",
           "default": "",
-          "order": 7,
+          "order": 8,
           "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
+        },
+        "openjml.escEngine": {
+          "type": "string",
+          "enum": [
+            "subprocess",
+            "concurrent"
+          ],
+          "default": "subprocess",
+          "order": 9,
+          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the AST from the last successful `--check`; ESC attempts on methods are done concurrently according to the number of threads setting; no re-typechecking, faster per-method verification"
+        },
+        "openjml.escThreads": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "order": 10,
+          "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `subprocess`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
+        },
+        "openjml.syntaxColoringStrategy": {
+          "type": "string",
+          "enum": [
+            "ast",
+            "regex"
+          ],
+          "default": "regex",
+          "order": 11,
+          "markdownDescription": "Strategy for JML syntax coloring:\n- `regex` (default) — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)\n- `ast` — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check"
+        },
+        "openjml.useIntegratedOutline": {
+          "type": "boolean",
+          "default": true,
+          "order": 12,
+          "markdownDescription": "When `true` (default), the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols (ghost, model) are shown, complementing the Red Hat Java extension's outline. Users can collapse irrelevant sections in either mode."
+        },
+        "openjml.racOutputDir": {
+          "type": "string",
+          "default": "",
+          "order": 13,
+          "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
         }
       }
     }

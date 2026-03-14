@@ -17,7 +17,12 @@ import org.junit.runners.Suite;
     LspProtocolTest.class,
     DefinitionFinderTest.class,
     ReferenceFinderTest.class,
-    RenameTest.class,
+    RenameTest1.class,
+    RenameTest2.class,
+    RenameTest3.class,
     SemanticTokensTest.class,
+    DocumentSymbolTest.class,
+    FoldingRangeTest.class,
+    DoEscTest.class,
 })
 public class AllLspTests {}

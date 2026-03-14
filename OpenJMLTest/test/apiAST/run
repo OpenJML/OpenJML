@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+ROOT=$(cd ../../../.. && pwd)
+
+rm -rf Run.class actual
+openjml-compile Run.java > actual || exit 1
+echo COMPILED >> actual
+openjml-run Run >> actual         || exit 1
+sed -e "s^\$ROOT^$ROOT^" expected | diff actual - && rm -rf actual
+exit $?

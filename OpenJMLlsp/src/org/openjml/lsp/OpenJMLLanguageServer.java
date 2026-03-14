@@ -1,6 +1,7 @@
 package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
+import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
@@ -15,6 +16,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -45,14 +47,17 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private String rootUri  = null;
 
     /**
-     * @param escCommand           command name for full-file ESC
-     * @param escForMethodCommand  command name for per-method ESC
-     * @param escDirCommand        command name for multi-path ESC via {@code --dirs} (may be {@code null})
-     * @param focusFileCommand     command name sent by the client when focus changes to an already-open file
+     * @param escCommand               command name for full-file ESC
+     * @param escForMethodCommand      command name for per-method ESC
+     * @param escDirCommand            command name for multi-path ESC via {@code --dirs} (may be {@code null})
+     * @param focusFileCommand         command name sent by the client when focus changes to an already-open file
      * @param getSemanticTokensCommand command name for semantic tokens
+     * @param racCommand               command name for RAC compile (may be {@code null})
+     * @param clearAndReindexCommand   command name to clear caches and reindex (may be {@code null})
      */
     public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
-                                  String focusFileCommand, String getSemanticTokensCommand) {
+                                  String focusFileCommand, String getSemanticTokensCommand,
+                                  String racCommand, String clearAndReindexCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
         this.workspaceService    = new OpenJMLWorkspaceService(settings,
@@ -60,13 +65,17 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 textDocumentService::scheduleEscForMethod,
                 textDocumentService::scheduleEscForPaths,
                 textDocumentService::recheckUri,
+                textDocumentService::scheduleRacForUri,
                 textDocumentService::getSemanticTokens,
                 textDocumentService::symbols,
                 escCommand,
                 escForMethodCommand,
                 escDirCommand,
                 focusFileCommand,
-                getSemanticTokensCommand);
+                getSemanticTokensCommand,
+                racCommand,
+                clearAndReindexCommand,
+                textDocumentService::resetAndReindex);
     }
 
     @Override
@@ -74,10 +83,50 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         workspaceService.applyRaw(params.getInitializationOptions());
         rootUri = params.getRootUri();
 
+        // Collect workspace folder paths so CheckRunner can append them to -sourcepath.
+        if (params.getWorkspaceFolders() != null) {
+            String joined = params.getWorkspaceFolders().stream()
+                    .map(f -> f.getUri())
+                    .filter(u -> u != null && u.startsWith("file:"))
+                    .map(u -> { try { return java.nio.file.Path.of(java.net.URI.create(u)).toString(); }
+                                catch (Exception e) { return null; } })
+                    .filter(p -> p != null)
+                    .collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
+            if (!joined.isEmpty()) settings.workspaceFolderPaths = joined;
+        }
+        // Fall back to rootUri if no workspace folders list was provided.
+        if ((settings.workspaceFolderPaths == null || settings.workspaceFolderPaths.isEmpty())
+                && rootUri != null && rootUri.startsWith("file:")) {
+            try {
+                settings.workspaceFolderPaths =
+                        java.nio.file.Path.of(java.net.URI.create(rootUri)).toString();
+            } catch (Exception ignored) {}
+        }
+
+        // Auto-discover openjml.properties at the workspace root unless the
+        // client already supplied an explicit propertiesFile setting.
+        if ((settings.propertiesFile == null || settings.propertiesFile.isEmpty())
+                && rootUri != null) {
+            try {
+                java.nio.file.Path candidate = java.nio.file.Path.of(
+                        java.net.URI.create(rootUri)).resolve("openjml.properties");
+                if (java.nio.file.Files.isRegularFile(candidate)) {
+                    settings.propertiesFile = candidate.toString();
+                    System.err.println("[OpenJML] Auto-discovered properties file: " + candidate);
+                }
+            } catch (Exception ignored) {}
+        }
+
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
+        // Trigger on '\' (backslash tokens) and '@' (entering a JML annotation).
+        // The handler filters out non-JML contexts, so '@' in Java annotations
+        // silently returns an empty list.
+        caps.setCompletionProvider(new CompletionOptions(false, List.of("\\", "@")));
         caps.setHoverProvider(Boolean.TRUE);
+        caps.setDocumentSymbolProvider(Boolean.TRUE);
+        caps.setFoldingRangeProvider(Boolean.TRUE);
         caps.setWorkspaceSymbolProvider(Boolean.TRUE);
         caps.setDefinitionProvider(Boolean.TRUE);
         caps.setDeclarationProvider(Boolean.TRUE);
@@ -106,6 +155,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public CompletableFuture<Object> shutdown() {
         exitCode = 0;
+        textDocumentService.shutdown();
         return CompletableFuture.completedFuture(null);
     }
 
