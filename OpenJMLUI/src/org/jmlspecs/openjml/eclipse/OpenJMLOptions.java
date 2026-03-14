@@ -72,7 +72,7 @@ public class OpenJMLOptions {
     // -----------------------------------------------------------------------
 
     public static String value(String key) {
-        return Activator.getDefault().getPreferenceStore().getString(key);
+        return openjmlui.Activator.getDefault().getPreferenceStore().getString(key);
     }
 
     private static String nonBlank(String s, String fallback) {
