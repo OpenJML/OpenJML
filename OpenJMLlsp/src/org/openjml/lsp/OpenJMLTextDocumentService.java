@@ -137,8 +137,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final String codeLensCommand;
     private LanguageClient client;
 
-    private final ExecutorService          executor  = Executors.newCachedThreadPool();
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ExecutorService          executor      = Executors.newCachedThreadPool();
+    private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * Dedicated single-thread executor for the background workspace index.
+     * Kept separate from {@code executor} so the potentially long-running index
+     * pass never blocks user-triggered check/ESC requests.
+     * The thread is a daemon so it does not prevent JVM exit.
+     */
+    private final ExecutorService indexExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "openjml-index");
+        t.setDaemon(true);
+        return t;
+    });
 
     /** Pending debounce futures for --check, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
@@ -668,12 +680,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * handshake so that {@code workspace/symbol} can find symbols in files
      * that have not been opened by the user.
      *
+     * <p>Runs on a dedicated daemon thread ({@code indexExecutor}) so it never
+     * blocks user-triggered check or ESC requests.  Files are checked one at a
+     * time; diagnostics are published incrementally after each file so the user
+     * sees results as they arrive.  Files already open in the editor are skipped
+     * (their live check takes priority).
+     *
      * @param rootUri the workspace root URI from {@code InitializeParams}
      */
     void scheduleWorkspaceIndex(String rootUri) {
         String rootPath = CheckRunner.uriToPath(rootUri);
         if (rootPath == null) return;
-        executor.submit(() -> {
+        indexExecutor.submit(() -> {
             try {
                 List<String> filePaths;
                 try (var stream = java.nio.file.Files.walk(java.nio.file.Path.of(rootPath))) {
@@ -683,9 +701,40 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             .collect(java.util.stream.Collectors.toList());
                 }
                 if (filePaths.isEmpty()) return;
-                CheckRunner.indexWorkspaceFiles(filePaths, settings);
+
+                CheckRunner.getASTCache().setIndexing(true);
+                if (client != null) client.logMessage(new MessageParams(MessageType.Info,
+                        "OpenJML: indexing workspace (" + filePaths.size() + " file(s))…"));
+
+                int indexed = 0, totalDiags = 0;
+                try {
+                    for (String filePath : filePaths) {
+                        String uri = java.nio.file.Path.of(filePath).toUri().toString();
+                        // Skip files the user already has open — their live check takes priority.
+                        if (lastContent.containsKey(uri)) continue;
+
+                        List<Diagnostic> diags = CheckRunner.indexOneFile(filePath, uri, settings);
+                        indexed++;
+                        if (!diags.isEmpty()) {
+                            totalDiags += diags.size();
+                            checkDiags.put(uri, diags);
+                            publishMerged(uri);
+                        }
+                        // Log progress every 50 files for large workspaces.
+                        if (indexed % 50 == 0 && client != null) {
+                            client.logMessage(new MessageParams(MessageType.Log,
+                                    "OpenJML: indexed " + indexed + " / " + filePaths.size() + " file(s)…"));
+                        }
+                    }
+                } finally {
+                    CheckRunner.getASTCache().setIndexing(false);
+                    if (client != null) client.logMessage(new MessageParams(MessageType.Info,
+                            "OpenJML: workspace index complete — "
+                            + indexed + " file(s), " + totalDiags + " diagnostic(s)"));
+                }
             } catch (Throwable e) {
                 System.err.println("[OpenJML] Background index failed: " + e);
+                CheckRunner.getASTCache().setIndexing(false);
             }
         });
     }
@@ -1268,5 +1317,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (c != null) c.cancel(false);
         ScheduledFuture<?> e = pendingEsc.remove(uri);
         if (e != null) e.cancel(false);
+    }
+
+    /** Shut down all executor services. Called from the language server's shutdown sequence. */
+    void shutdown() {
+        scheduler.shutdownNow();
+        executor.shutdownNow();
+        indexExecutor.shutdownNow();
     }
 }

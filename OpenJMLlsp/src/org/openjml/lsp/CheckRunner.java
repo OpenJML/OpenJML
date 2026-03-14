@@ -789,38 +789,38 @@ public class CheckRunner {
     }
 
     /**
-     * Run {@code --check} on all {@code filePaths} in a single OpenJML invocation,
-     * populating the AST cache for every successfully attributed file.
+     * Run {@code --check} on a single file, populating the init-tier AST cache.
      *
-     * <p>Diagnostics are discarded — the purpose is to build the workspace symbol
-     * index so that {@code workspace/symbol} can find declarations in non-open files.
-     * Called in a background thread after the LSP {@code initialized} handshake.
+     * <p>Used by the background workspace index to check files one at a time so
+     * diagnostics can be published incrementally and the indexing thread does not
+     * monopolise the executor pool.  The {@code isIndexing()} flag is managed by
+     * the caller.
      *
-     * @param filePaths absolute paths of all {@code .java} files to index
-     * @param settings  current OpenJML settings (specs path, solvers path, etc.)
+     * @param filePath absolute path of the {@code .java} file to check
+     * @param uri      LSP document URI for the file
+     * @param settings current OpenJML settings
+     * @return diagnostics produced by the check (caller decides whether to publish)
      */
-    public static void indexWorkspaceFiles(List<String> filePaths, OpenJMLSettings settings) {
-        if (filePaths.isEmpty()) return;
+    public static List<org.eclipse.lsp4j.Diagnostic> indexOneFile(
+            String filePath, String uri, OpenJMLSettings settings) {
         var out      = new PrintWriter(new StringWriter());
-        var listener = new LspDiagnosticListener();  // diagnostics discarded
+        var listener = new LspDiagnosticListener();
         var api      = IAPI.make(out, listener);
 
         List<String> args = buildArgs(settings, "--check");
-        filePaths.forEach(args::add);
-        logInvocation("indexWorkspaceFiles", args);
+        args.add(filePath);
 
-        AST_CACHE.setIndexing(true);
         IAPI.IASTListener astListener = (ctx, jfo, ast) ->
                 AST_CACHE.putInit(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
         IAPI.setASTListener(astListener);
         try {
             api.execute(args.toArray(new String[0]));
         } catch (Throwable e) {
-            System.err.println("[CheckRunner.indexWorkspaceFiles] failed: " + e);
+            System.err.println("[CheckRunner.indexOneFile] " + filePath + ": " + e);
         } finally {
             IAPI.removeASTListener(astListener);
-            AST_CACHE.setIndexing(false);
         }
+        return listener.toLspDiagnostics(filePath, uri);
     }
 
     // --- public API: in-process doESC via cached IAPI ---

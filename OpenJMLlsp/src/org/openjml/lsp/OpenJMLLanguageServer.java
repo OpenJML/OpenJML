@@ -152,6 +152,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public CompletableFuture<Object> shutdown() {
         exitCode = 0;
+        textDocumentService.shutdown();
         return CompletableFuture.completedFuture(null);
     }
 
