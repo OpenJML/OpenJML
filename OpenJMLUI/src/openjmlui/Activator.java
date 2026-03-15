@@ -23,11 +23,18 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
             t.printStackTrace(System.err);
         }
 
-        // 2. Dump LanguageServerRegistry API so we can call it to start our server.
+        // 2. LanguageServerRegistry is in a non-exported package of org.eclipse.lsp4e.
+        //    Load it via the lsp4e bundle's own classloader (has access to its own internals).
         try {
-            Class<?> regClass = Class.forName("org.eclipse.lsp4e.LanguageServerRegistry");
+            org.osgi.framework.Bundle lsp4eBundle =
+                    org.osgi.framework.FrameworkUtil.getBundle(
+                            org.eclipse.lsp4e.LanguageServers.class);
+            ClassLoader lsp4eLoader = lsp4eBundle.adapt(
+                    org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
+
+            Class<?> regClass = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServerRegistry");
             Object registry = regClass.getMethod("getInstance").invoke(null);
-            System.err.println("[OpenJML] LanguageServerRegistry: " + registry.getClass().getName());
+            System.err.println("[OpenJML] LanguageServerRegistry loaded via lsp4e bundle loader");
             System.err.println("[OpenJML] LanguageServerRegistry methods:");
             java.util.Arrays.stream(regClass.getDeclaredMethods())
                     .sorted(java.util.Comparator.comparing(java.lang.reflect.Method::getName))
@@ -37,7 +44,7 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                                     .map(Class::getSimpleName)
                                     .collect(java.util.stream.Collectors.joining(", ")) + ")"));
         } catch (Throwable t) {
-            System.err.println("[OpenJML] LanguageServerRegistry probe failed: " + t);
+            System.err.println("[OpenJML] LanguageServerRegistry via lsp4e loader failed: " + t);
         }
     }
 

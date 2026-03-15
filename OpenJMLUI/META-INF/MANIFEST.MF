@@ -25,7 +25,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.lsp4e,
  org.eclipse.lsp4j;resolution:=optional,
  org.eclipse.core.filebuffers
-Import-Package: org.jmlspecs.annotation;resolution:=optional
+Import-Package: org.jmlspecs.annotation;resolution:=optional,
+ org.osgi.framework.wiring
 Automatic-Module-Name: OpenJMLUI.singleton.true
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-21
