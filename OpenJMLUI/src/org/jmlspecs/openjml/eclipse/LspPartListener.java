@@ -134,7 +134,10 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             }
 
             // Fallback: iterate all definitions from any no-arg Collection-returning method.
+            // ContentTypeToLanguageServerDefinition wraps a nested LanguageServerDefinition;
+            // we need to look inside for id/label.
             System.err.println("[OpenJML] Iterating all LS definitions:");
+            boolean dumpedStructure = false;
             for (java.lang.reflect.Method m : regClass.getDeclaredMethods()) {
                 if (m.getParameterCount() != 0) continue;
                 if (!m.getReturnType().getName().contains("List")
@@ -143,24 +146,60 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 m.setAccessible(true);
                 try {
                     Object result = m.invoke(registry);
-                    if (result instanceof java.util.Collection<?> col) {
-                        System.err.println("[OpenJML]   " + m.getName() + "() -> " + col.size() + " items");
-                        for (Object item : col) {
-                            String id = getStringField(item, "id");
-                            String label = getStringField(item, "label");
-                            System.err.println("[OpenJML]     id=" + id + " label=" + label
-                                    + " class=" + item.getClass().getSimpleName());
-                            if ("org.jmlspecs.openjml.lsp.server".equals(id)) {
-                                System.err.println("[OpenJML] Found our definition in collection");
-                                return item;
+                    if (!(result instanceof java.util.Collection<?> col)) continue;
+                    System.err.println("[OpenJML]   " + m.getName() + "() -> " + col.size() + " items");
+                    for (Object item : col) {
+                        // One-time: dump all fields of the first item to reveal structure.
+                        if (!dumpedStructure) {
+                            dumpedStructure = true;
+                            System.err.println("[OpenJML]   First item fields (" + item.getClass().getSimpleName() + "):");
+                            for (java.lang.reflect.Field f : getAllDeclaredFields(item.getClass())) {
+                                f.setAccessible(true);
+                                try { System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): " + f.get(item)); }
+                                catch (Exception e) { System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): [error]"); }
                             }
                         }
+                        // Look for a nested LanguageServerDefinition by field type name.
+                        Object nestedDef = findNestedDef(item);
+                        String id = (nestedDef != null) ? getStringField(nestedDef, "id") : getStringField(item, "id");
+                        String label = (nestedDef != null) ? getStringField(nestedDef, "label") : getStringField(item, "label");
+                        System.err.println("[OpenJML]     id=" + id + " label=" + label
+                                + " nested=" + (nestedDef != null ? nestedDef.getClass().getSimpleName() : "none"));
+                        if ("org.jmlspecs.openjml.lsp.server".equals(id)) {
+                            System.err.println("[OpenJML] Found our LanguageServerDefinition!");
+                            return (nestedDef != null) ? nestedDef : item;
+                        }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    System.err.println("[OpenJML]   method " + m.getName() + " failed: " + e);
+                }
             }
             System.err.println("[OpenJML] Our definition NOT found in registry");
         } catch (Throwable t) {
             System.err.println("[OpenJML] findOurDefinition failed: " + t);
+        }
+        return null;
+    }
+
+    /** Returns all declared fields from cls and all its superclasses. */
+    private static java.util.List<java.lang.reflect.Field> getAllDeclaredFields(Class<?> cls) {
+        java.util.List<java.lang.reflect.Field> fields = new java.util.ArrayList<>();
+        for (Class<?> c = cls; c != null && c != Object.class; c = c.getSuperclass()) {
+            fields.addAll(java.util.Arrays.asList(c.getDeclaredFields()));
+        }
+        return fields;
+    }
+
+    /**
+     * Looks through all fields of {@code item} for one whose type name contains
+     * "LanguageServerDefinition" and returns that nested object, or {@code null}.
+     */
+    private static Object findNestedDef(Object item) {
+        for (java.lang.reflect.Field f : getAllDeclaredFields(item.getClass())) {
+            if (f.getType().getName().contains("LanguageServerDefinition")) {
+                f.setAccessible(true);
+                try { return f.get(item); } catch (Exception ignored) {}
+            }
         }
         return null;
     }
