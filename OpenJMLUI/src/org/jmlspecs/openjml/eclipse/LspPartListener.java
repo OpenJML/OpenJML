@@ -13,21 +13,18 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.FileEditorInput;
 
 /**
- * Listens for editor opens and triggers the OpenJML LSP server for Java and JML
- * files by briefly opening the file in the Generic Editor, which LSP4E monitors.
- *
- * <p>LSP4E only auto-starts language servers when files are opened in the Generic
- * Editor.  JDT's CompilationUnitEditor is invisible to LSP4E's startup mechanism.
- * This listener compensates by opening each Java/JML file once in the Generic
- * Editor (in the background, without stealing focus) so that LSP4E detects the
- * content type and starts the OpenJML server.  The Generic Editor tab is closed
- * immediately; the server process continues running.
+ * Listens for editor opens and connects each Java/JML file to the OpenJML
+ * LSP server.  The server itself is started in {@link openjmlui.Activator#earlyStartup()}
+ * via {@code LanguageServiceAccessor.startLanguageServer(def)}.  This listener
+ * then calls {@code getInitializedLanguageServer(file, def, null)} for each
+ * newly-opened file so that LSP4E sends {@code textDocument/didOpen} and
+ * begins delivering diagnostics.
  *
  * <p>Registered programmatically from {@link openjmlui.Activator}.
  */
 public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
-    /** Generic Editor ID — LSP4E monitors documents opened here. */
+    /** Generic Editor ID — used as a secondary trigger if the primary approach fails. */
     private static final String GENERIC_EDITOR_ID = "org.eclipse.ui.genericeditor.GenericEditor";
 
     /** Files for which we have already triggered LSP startup — avoid repeat work. */
@@ -57,77 +54,72 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         org.eclipse.core.runtime.IPath path = file.getFullPath();
         if (!triggered.add(path)) return;  // already triggered for this file
 
-        // Log content types so we can verify LSP4E's content-type matching.
-        try {
-            org.eclipse.core.runtime.content.IContentType[] cts =
-                    org.eclipse.core.runtime.Platform.getContentTypeManager()
-                            .findContentTypesFor(file.getName());
-            StringBuilder ctIds = new StringBuilder();
-            for (org.eclipse.core.runtime.content.IContentType ct : cts) {
-                if (ctIds.length() > 0) ctIds.append(", ");
-                ctIds.append(ct.getId());
+        System.err.println("[OpenJML] LspPartListener: handling " + file.getName());
+
+        // Primary approach: use LanguageServiceAccessor.getInitializedLanguageServer(file, def, null)
+        // which connects the file to the already-running server and triggers textDocument/didOpen.
+        Object def = openjmlui.Activator.ourLsDefinition;
+        ClassLoader lsp4eLoader = openjmlui.Activator.lsp4eLoader;
+        if (def != null && lsp4eLoader != null) {
+            try {
+                Class<?> lsaClass = lsp4eLoader.loadClass(
+                        "org.eclipse.lsp4e.LanguageServiceAccessor");
+                // getInitializedLanguageServer(IResource, LanguageServerDefinition, Predicate)
+                java.lang.reflect.Method m = null;
+                for (java.lang.reflect.Method candidate : lsaClass.getDeclaredMethods()) {
+                    if ("getInitializedLanguageServer".equals(candidate.getName())
+                            && candidate.getParameterCount() == 3) {
+                        m = candidate;
+                        break;
+                    }
+                }
+                if (m != null) {
+                    m.setAccessible(true);
+                    java.util.concurrent.CompletableFuture<?> future =
+                            (java.util.concurrent.CompletableFuture<?>) m.invoke(
+                                    null, file, def, (java.util.function.Predicate<Object>) caps -> true);
+                    future.whenComplete((server, ex) -> {
+                        if (ex != null) {
+                            System.err.println("[OpenJML] LspPartListener: getInitializedLanguageServer"
+                                    + " error for " + file.getName() + ": " + ex);
+                        } else {
+                            System.err.println("[OpenJML] LspPartListener: server connected for "
+                                    + file.getName() + ": "
+                                    + (server != null ? server.getClass().getSimpleName() : "null"));
+                        }
+                    });
+                    System.err.println("[OpenJML] LspPartListener: getInitializedLanguageServer"
+                            + " called for " + file.getName());
+                    return;
+                } else {
+                    System.err.println("[OpenJML] LspPartListener: getInitializedLanguageServer"
+                            + " method not found");
+                }
+            } catch (Throwable e) {
+                System.err.println("[OpenJML] LspPartListener: primary approach failed: " + e);
+                e.printStackTrace(System.err);
             }
-            System.err.println("[OpenJML] LspPartListener: content types for "
-                    + file.getName() + ": [" + ctIds + "]");
-        } catch (Throwable t) {
-            System.err.println("[OpenJML] LspPartListener: content type lookup failed: " + t);
+        } else {
+            System.err.println("[OpenJML] LspPartListener: definition not ready yet for "
+                    + file.getName() + " (def=" + def + ")");
         }
 
-        System.err.println("[OpenJML] LspPartListener: triggering LSP for " + file.getName());
-
-        // Open the file in the Generic Editor (background, no focus steal).
-        // LSP4E monitors Generic Editor document events and will start the OpenJML
-        // server based on the file's content type.  We close the tab immediately;
-        // the server process keeps running.
+        // Fallback: open the file in the Generic Editor.  LSP4E monitors the Generic Editor
+        // and may start / connect the server when it sees the file's content type there.
         try {
             org.eclipse.ui.IWorkbenchPage page =
-                    org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                    org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                            .getActivePage();
             if (page == null) {
                 System.err.println("[OpenJML] LspPartListener: no active page");
                 return;
             }
-            // Open in background (activate=false keeps focus on the JDT editor).
-            // The Generic Editor tab stays open alongside JDT's editor — LSP4E uses
-            // it to track the document and send textDocument/didOpen to the server.
-            // The user can close the tab manually; the server will restart on the
-            // next file open if needed.
             IEditorPart ge = page.openEditor(new FileEditorInput(file), GENERIC_EDITOR_ID,
                     false /* do not activate */);
-            System.err.println("[OpenJML] LspPartListener: Generic Editor opened: " + (ge != null));
-
-            // Explicitly start the LSP server via LanguageServers.computeFirst().
-            // LSP4E's Generic Editor does NOT auto-start servers merely by being opened;
-            // a call through LanguageServers API is needed to instantiate the provider.
-            org.eclipse.core.filebuffers.ITextFileBuffer buf =
-                    org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
-                            .getTextFileBuffer(file.getFullPath(),
-                                    org.eclipse.core.filebuffers.LocationKind.IFILE);
-            if (buf != null) {
-                org.eclipse.jface.text.IDocument doc = buf.getDocument();
-                System.err.println("[OpenJML] LspPartListener: requesting server via computeFirst for "
-                        + file.getName());
-                org.eclipse.lsp4e.LanguageServers.forDocument(doc)
-                        .computeFirst(ls -> {
-                            System.err.println("[OpenJML] LspPartListener: server obtained for "
-                                    + file.getName() + ": " + ls.getClass().getSimpleName());
-                            return java.util.concurrent.CompletableFuture.completedFuture(
-                                    Boolean.TRUE);
-                        })
-                        .whenComplete((result, ex) -> {
-                            if (ex != null) {
-                                System.err.println("[OpenJML] LspPartListener: computeFirst error: "
-                                        + ex);
-                            } else {
-                                System.err.println("[OpenJML] LspPartListener: computeFirst result: "
-                                        + result);
-                            }
-                        });
-            } else {
-                System.err.println("[OpenJML] LspPartListener: no file buffer for " + file.getName());
-            }
+            System.err.println("[OpenJML] LspPartListener: fallback Generic Editor opened: "
+                    + (ge != null));
         } catch (Throwable e) {
-            System.err.println("[OpenJML] LspPartListener exception: " + e);
-            e.printStackTrace(System.err);
+            System.err.println("[OpenJML] LspPartListener: fallback exception: " + e);
         }
     }
 }
