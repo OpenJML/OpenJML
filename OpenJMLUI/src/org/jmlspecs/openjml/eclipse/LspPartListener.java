@@ -154,9 +154,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                             dumpedStructure = true;
                             System.err.println("[OpenJML]   First item fields (" + item.getClass().getSimpleName() + "):");
                             for (java.lang.reflect.Field f : getAllDeclaredFields(item.getClass())) {
-                                f.setAccessible(true);
-                                try { System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): " + f.get(item)); }
-                                catch (Exception e) { System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): [error]"); }
+                                try {
+                                    f.setAccessible(true);
+                                    System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): " + f.get(item));
+                                } catch (Exception e) {
+                                    System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): [error]");
+                                }
                             }
                         }
                         // Look for a nested LanguageServerDefinition by field type name.
@@ -191,15 +194,29 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     }
 
     /**
-     * Looks through all fields of {@code item} for one whose type name contains
-     * "LanguageServerDefinition" and returns that nested object, or {@code null}.
+     * Extracts the nested LanguageServerDefinition from a
+     * ContentTypeToLanguageServerDefinition (which extends
+     * AbstractMap.SimpleEntry&lt;IContentType, LanguageServerDefinition&gt;).
+     * Tries getValue() first; falls back to scanning field values.
      */
     private static Object findNestedDef(Object item) {
-        for (java.lang.reflect.Field f : getAllDeclaredFields(item.getClass())) {
-            if (f.getType().getName().contains("LanguageServerDefinition")) {
-                f.setAccessible(true);
-                try { return f.get(item); } catch (Exception ignored) {}
+        // Primary: AbstractMap.SimpleEntry.getValue() returns the LanguageServerDefinition.
+        try {
+            java.lang.reflect.Method getVal = item.getClass().getMethod("getValue");
+            Object v = getVal.invoke(item);
+            if (v != null && v.getClass().getName().contains("LanguageServerDefinition")) {
+                return v;
             }
+        } catch (Exception ignored) {}
+        // Fallback: scan all field values.
+        for (java.lang.reflect.Field f : getAllDeclaredFields(item.getClass())) {
+            try {
+                f.setAccessible(true);
+                Object v = f.get(item);
+                if (v != null && v.getClass().getName().contains("LanguageServerDefinition")) {
+                    return v;
+                }
+            } catch (Exception ignored) {}
         }
         return null;
     }
