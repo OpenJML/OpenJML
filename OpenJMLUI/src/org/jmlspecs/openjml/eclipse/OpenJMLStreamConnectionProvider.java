@@ -5,6 +5,7 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
@@ -24,8 +25,14 @@ import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
  */
 public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProvider {
 
+    static {
+        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider class loaded");
+    }
+
     public OpenJMLStreamConnectionProvider() {
-        setCommands(Arrays.asList(findServerPath()));
+        String path = findServerPath();
+        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider created, path=" + path);
+        setCommands(Arrays.asList(path));
         setWorkingDirectory(System.getProperty("user.dir"));
     }
 
@@ -55,6 +62,13 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      * Sends OpenJML analysis settings to the server as initialization options,
      * matching the fields in {@link org.openjml.lsp.OpenJMLSettings}.
      */
+    @Override
+    public void start() throws IOException {
+        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() called");
+        super.start();
+        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() completed");
+    }
+
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();

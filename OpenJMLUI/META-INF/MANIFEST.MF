@@ -23,7 +23,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text;bundle-version="3.4.2",
  org.jmlspecs.annotation;resolution:=optional,
  org.eclipse.lsp4e,
- org.eclipse.lsp4j;resolution:=optional
+ org.eclipse.lsp4j;resolution:=optional,
+ org.eclipse.core.filebuffers
 Import-Package: org.jmlspecs.annotation;resolution:=optional
 Automatic-Module-Name: OpenJMLUI.singleton.true
 Bundle-ActivationPolicy: lazy
