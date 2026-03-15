@@ -14,14 +14,8 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
     // The shared instance
     private static Activator plugin;
 
-    /**
-     * Our LSP4E LanguageServerDefinition (LanguageServersRegistry$LanguageServerDefinition),
-     * retrieved in earlyStartup() and used by LspPartListener to connect documents.
-     */
-    static volatile Object ourLsDefinition;
-
     /** ClassLoader for the org.eclipse.lsp4e bundle — can access its internal classes. */
-    static volatile ClassLoader lsp4eLoader;
+    public static volatile ClassLoader lsp4eLoader;
 
     /**
      * The constructor
@@ -34,91 +28,18 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
     @Override
     public void earlyStartup() {
         System.err.println("[OpenJML] earlyStartup() called");
-
-        // Acquire the lsp4e bundle's classloader (needed for internal classes).
-        org.osgi.framework.Bundle lsp4eBundle =
-                org.osgi.framework.FrameworkUtil.getBundle(org.eclipse.lsp4e.LanguageServers.class);
-        lsp4eLoader = lsp4eBundle.adapt(
-                org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
-
-        // Find our LanguageServerDefinition in LanguageServersRegistry and start the server.
+        // Store the lsp4e bundle's classloader for use by LspPartListener.
+        // LSP4E populates LanguageServersRegistry lazily (on first document open),
+        // so there is nothing to start here — document connection happens in LspPartListener.
         try {
-            // LanguageServersRegistry is in the org.eclipse.lsp4e package but not exported;
-            // use the lsp4e bundle's own classloader to load it.
-            Class<?> regClass = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServersRegistry");
-
-            // Dump LanguageServersRegistry methods (one-time diagnostic).
-            System.err.println("[OpenJML] LanguageServersRegistry methods:");
-            java.util.Arrays.stream(regClass.getDeclaredMethods())
-                    .sorted(java.util.Comparator.comparing(java.lang.reflect.Method::getName))
-                    .forEach(m -> System.err.println("[OpenJML]   "
-                            + m.getReturnType().getSimpleName() + " " + m.getName() + "("
-                            + java.util.Arrays.stream(m.getParameterTypes())
-                                    .map(Class::getSimpleName)
-                                    .collect(java.util.stream.Collectors.joining(", ")) + ")"));
-
-            Object registry = regClass.getMethod("getInstance").invoke(null);
-
-            // Try getDefinition(String id) — look for method with one String param
-            // that returns a LanguageServerDefinition.
-            Object def = null;
-            for (java.lang.reflect.Method m : regClass.getDeclaredMethods()) {
-                if (m.getParameterCount() == 1
-                        && m.getParameterTypes()[0] == String.class
-                        && m.getName().toLowerCase().contains("def")) {
-                    m.setAccessible(true);
-                    try {
-                        def = m.invoke(registry, "org.jmlspecs.openjml.lsp.server");
-                        System.err.println("[OpenJML] " + m.getName() + "() returned: " + def);
-                        if (def != null) break;
-                    } catch (Exception e2) {
-                        System.err.println("[OpenJML] " + m.getName() + "() failed: " + e2);
-                    }
-                }
-            }
-            // Fallback: iterate all definitions from any no-arg Collection-returning method
-            if (def == null) {
-                for (java.lang.reflect.Method m : regClass.getDeclaredMethods()) {
-                    if (m.getParameterCount() != 0) continue;
-                    m.setAccessible(true);
-                    try {
-                        Object result = m.invoke(registry);
-                        if (result instanceof java.util.Collection) {
-                            for (Object item : (java.util.Collection<?>) result) {
-                                try {
-                                    java.lang.reflect.Field idF = item.getClass().getField("id");
-                                    String id = (String) idF.get(item);
-                                    System.err.println("[OpenJML] definition id=" + id);
-                                    if ("org.jmlspecs.openjml.lsp.server".equals(id)) {
-                                        def = item;
-                                    }
-                                } catch (Exception ignored) {}
-                            }
-                        }
-                    } catch (Exception ignored) {}
-                }
-            }
-
-            if (def == null) {
-                System.err.println("[OpenJML] Our LanguageServerDefinition NOT FOUND in registry");
-            } else {
-                ourLsDefinition = def;
-                System.err.println("[OpenJML] Found our LanguageServerDefinition: " + def);
-
-                // Start the server: LanguageServiceAccessor.startLanguageServer(def)
-                Class<?> lsaClass = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServiceAccessor");
-                for (java.lang.reflect.Method m : lsaClass.getDeclaredMethods()) {
-                    if ("startLanguageServer".equals(m.getName()) && m.getParameterCount() == 1) {
-                        m.setAccessible(true);
-                        Object wrapper = m.invoke(null, def);
-                        System.err.println("[OpenJML] startLanguageServer() returned: " + wrapper);
-                        break;
-                    }
-                }
-            }
+            org.osgi.framework.Bundle lsp4eBundle =
+                    org.osgi.framework.FrameworkUtil.getBundle(
+                            org.eclipse.lsp4e.LanguageServers.class);
+            lsp4eLoader = lsp4eBundle.adapt(
+                    org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
+            System.err.println("[OpenJML] lsp4e loader acquired");
         } catch (Throwable t) {
-            System.err.println("[OpenJML] earlyStartup server start failed: " + t);
-            t.printStackTrace(System.err);
+            System.err.println("[OpenJML] earlyStartup failed to acquire lsp4e loader: " + t);
         }
     }
 
