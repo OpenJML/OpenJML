@@ -111,75 +111,101 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     }
 
     /**
-     * Finds our LanguageServerDefinition in LanguageServersRegistry.
-     * Logs all available definitions for diagnostic purposes.
+     * Constructs our LanguageServerDefinition directly from our IConfigurationElement
+     * rather than looking it up in LanguageServersRegistry (which may not have processed
+     * our extension by the time this is called).
+     *
+     * Strategy:
+     *  1. Find our IConfigurationElement in Eclipse's extension registry.
+     *  2. Obtain the ExtensionLanguageServerDefinition class from an existing registry entry.
+     *  3. Reflectively instantiate it with our IConfigurationElement.
      */
     private static Object findOurDefinition(ClassLoader lsp4eLoader) {
         try {
-            Class<?> regClass = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServersRegistry");
-            Object registry = regClass.getMethod("getInstance").invoke(null);
-
-            // Try getDefinition(String id) first.
-            for (java.lang.reflect.Method m : regClass.getDeclaredMethods()) {
-                if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == String.class) {
-                    m.setAccessible(true);
-                    try {
-                        Object def = m.invoke(registry, "org.jmlspecs.openjml.lsp.server");
-                        if (def != null) {
-                            System.err.println("[OpenJML] Found def via " + m.getName() + ": " + def);
-                            return def;
+            // --- Step 1: find our IConfigurationElement ---
+            org.eclipse.core.runtime.IExtensionRegistry extReg =
+                    org.eclipse.core.runtime.Platform.getExtensionRegistry();
+            org.eclipse.core.runtime.IExtensionPoint ep =
+                    extReg.getExtensionPoint("org.eclipse.lsp4e.languageServer");
+            if (ep == null) {
+                System.err.println("[OpenJML] lsp4e.languageServer extension point not found");
+                return null;
+            }
+            org.eclipse.core.runtime.IConfigurationElement ourCE = null;
+            for (org.eclipse.core.runtime.IExtension ext : ep.getExtensions()) {
+                if ("OpenJMLUI".equals(ext.getContributor().getName())) {
+                    for (org.eclipse.core.runtime.IConfigurationElement ce
+                            : ext.getConfigurationElements()) {
+                        if ("languageServer".equals(ce.getName())) {
+                            ourCE = ce;
+                            break;
                         }
-                    } catch (Exception ignored) {}
+                    }
                 }
             }
+            if (ourCE == null) {
+                System.err.println("[OpenJML] Our IConfigurationElement not found");
+                return null;
+            }
+            System.err.println("[OpenJML] Found our IConfigurationElement id="
+                    + ourCE.getAttribute("id"));
 
-            // Fallback: iterate all definitions from any no-arg Collection-returning method.
-            // ContentTypeToLanguageServerDefinition wraps a nested LanguageServerDefinition;
-            // we need to look inside for id/label.
-            System.err.println("[OpenJML] Iterating all LS definitions:");
-            boolean dumpedStructure = false;
+            // --- Step 2: get the ExtensionLanguageServerDefinition class from an existing entry ---
+            Class<?> regClass = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServersRegistry");
+            Object registry = regClass.getMethod("getInstance").invoke(null);
+            Class<?> defClass = null;
             for (java.lang.reflect.Method m : regClass.getDeclaredMethods()) {
                 if (m.getParameterCount() != 0) continue;
-                if (!m.getReturnType().getName().contains("List")
-                        && !m.getReturnType().getName().contains("Collection")
-                        && !m.getReturnType().getName().contains("Set")) continue;
+                String rn = m.getReturnType().getName();
+                if (!rn.contains("List") && !rn.contains("Collection") && !rn.contains("Set"))
+                    continue;
                 m.setAccessible(true);
                 try {
                     Object result = m.invoke(registry);
-                    if (!(result instanceof java.util.Collection<?> col)) continue;
-                    System.err.println("[OpenJML]   " + m.getName() + "() -> " + col.size() + " items");
-                    for (Object item : col) {
-                        // One-time: dump all fields of the first item to reveal structure.
-                        if (!dumpedStructure) {
-                            dumpedStructure = true;
-                            System.err.println("[OpenJML]   First item fields (" + item.getClass().getSimpleName() + "):");
-                            for (java.lang.reflect.Field f : getAllDeclaredFields(item.getClass())) {
-                                try {
-                                    f.setAccessible(true);
-                                    System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): " + f.get(item));
-                                } catch (Exception e) {
-                                    System.err.println("[OpenJML]     " + f.getName() + " (" + f.getType().getSimpleName() + "): [error]");
-                                }
-                            }
-                        }
-                        // Look for a nested LanguageServerDefinition by field type name.
-                        Object nestedDef = findNestedDef(item);
-                        String id = (nestedDef != null) ? getStringField(nestedDef, "id") : getStringField(item, "id");
-                        String label = (nestedDef != null) ? getStringField(nestedDef, "label") : getStringField(item, "label");
-                        System.err.println("[OpenJML]     id=" + id + " label=" + label
-                                + " nested=" + (nestedDef != null ? nestedDef.getClass().getSimpleName() : "none"));
-                        if ("org.jmlspecs.openjml.lsp.server".equals(id)) {
-                            System.err.println("[OpenJML] Found our LanguageServerDefinition!");
-                            return (nestedDef != null) ? nestedDef : item;
-                        }
+                    if (!(result instanceof java.util.Collection<?> col) || col.isEmpty()) continue;
+                    Object first = col.iterator().next();
+                    Object val = first.getClass().getMethod("getValue").invoke(first);
+                    if (val != null) {
+                        defClass = val.getClass();
+                        System.err.println("[OpenJML] ExtensionLanguageServerDefinition class: "
+                                + defClass.getName());
+                        break;
                     }
-                } catch (Exception e) {
-                    System.err.println("[OpenJML]   method " + m.getName() + " failed: " + e);
+                } catch (Exception ignored) {}
+            }
+            if (defClass == null) {
+                System.err.println("[OpenJML] Could not resolve ExtensionLanguageServerDefinition class");
+                return null;
+            }
+
+            // --- Step 3: construct our definition from ourCE ---
+            for (java.lang.reflect.Constructor<?> ctor : defClass.getDeclaredConstructors()) {
+                Class<?>[] pts = ctor.getParameterTypes();
+                if (pts.length == 1 && pts[0].isAssignableFrom(ourCE.getClass())) {
+                    ctor.setAccessible(true);
+                    Object def = ctor.newInstance(ourCE);
+                    System.err.println("[OpenJML] Created LanguageServerDefinition: " + def);
+                    return def;
                 }
             }
-            System.err.println("[OpenJML] Our definition NOT found in registry");
+            // If exact match failed, try by interface name
+            for (java.lang.reflect.Constructor<?> ctor : defClass.getDeclaredConstructors()) {
+                Class<?>[] pts = ctor.getParameterTypes();
+                if (pts.length == 1 && pts[0].getName().contains("ConfigurationElement")) {
+                    ctor.setAccessible(true);
+                    Object def = ctor.newInstance(ourCE);
+                    System.err.println("[OpenJML] Created LanguageServerDefinition (by name): " + def);
+                    return def;
+                }
+            }
+            System.err.println("[OpenJML] No matching constructor on " + defClass.getName()
+                    + "; available:");
+            for (java.lang.reflect.Constructor<?> c : defClass.getDeclaredConstructors()) {
+                System.err.println("[OpenJML]   " + c);
+            }
         } catch (Throwable t) {
             System.err.println("[OpenJML] findOurDefinition failed: " + t);
+            t.printStackTrace(System.err);
         }
         return null;
     }
