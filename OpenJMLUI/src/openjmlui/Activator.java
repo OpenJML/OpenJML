@@ -23,20 +23,33 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
             t.printStackTrace(System.err);
         }
 
-        // 2. LanguageServerRegistry is in a non-exported package of org.eclipse.lsp4e.
-        //    Load it via the lsp4e bundle's own classloader (has access to its own internals).
-        try {
-            org.osgi.framework.Bundle lsp4eBundle =
-                    org.osgi.framework.FrameworkUtil.getBundle(
-                            org.eclipse.lsp4e.LanguageServers.class);
-            ClassLoader lsp4eLoader = lsp4eBundle.adapt(
-                    org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
+        // 2. Explore LSP4E 0.18 internals: list top-level classes, then dump public API methods.
+        org.osgi.framework.Bundle lsp4eBundle =
+                org.osgi.framework.FrameworkUtil.getBundle(org.eclipse.lsp4e.LanguageServers.class);
+        ClassLoader lsp4eLoader = lsp4eBundle.adapt(
+                org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
+        System.err.println("[OpenJML] lsp4e bundle: " + lsp4eBundle.getSymbolicName()
+                + " " + lsp4eBundle.getVersion());
 
-            Class<?> regClass = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServerRegistry");
-            Object registry = regClass.getMethod("getInstance").invoke(null);
-            System.err.println("[OpenJML] LanguageServerRegistry loaded via lsp4e bundle loader");
-            System.err.println("[OpenJML] LanguageServerRegistry methods:");
-            java.util.Arrays.stream(regClass.getDeclaredMethods())
+        // 2a. List all .class files in the top-level org.eclipse.lsp4e package
+        //     so we can find any registry/manager class that may have been renamed.
+        try {
+            java.util.Enumeration<java.net.URL> entries =
+                    lsp4eBundle.findEntries("org/eclipse/lsp4e", "*.class", false);
+            System.err.println("[OpenJML] Top-level lsp4e classes:");
+            while (entries != null && entries.hasMoreElements()) {
+                String p = entries.nextElement().getPath();
+                System.err.println("[OpenJML]   " + p.substring(p.lastIndexOf('/') + 1, p.length() - 6));
+            }
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] class listing failed: " + t);
+        }
+
+        // 2b. Dump LanguageServiceAccessor methods (exported, @Restricted but accessible at runtime).
+        try {
+            Class<?> lsa = lsp4eLoader.loadClass("org.eclipse.lsp4e.LanguageServiceAccessor");
+            System.err.println("[OpenJML] LanguageServiceAccessor methods:");
+            java.util.Arrays.stream(lsa.getDeclaredMethods())
                     .sorted(java.util.Comparator.comparing(java.lang.reflect.Method::getName))
                     .forEach(m -> System.err.println("[OpenJML]   "
                             + m.getReturnType().getSimpleName() + " " + m.getName() + "("
@@ -44,7 +57,32 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                                     .map(Class::getSimpleName)
                                     .collect(java.util.stream.Collectors.joining(", ")) + ")"));
         } catch (Throwable t) {
-            System.err.println("[OpenJML] LanguageServerRegistry via lsp4e loader failed: " + t);
+            System.err.println("[OpenJML] LanguageServiceAccessor dump failed: " + t);
+        }
+
+        // 2c. Dump LanguageServers (public API) — look for methods that start new servers.
+        try {
+            Class<?> ls = org.eclipse.lsp4e.LanguageServers.class;
+            System.err.println("[OpenJML] LanguageServers methods:");
+            java.util.Arrays.stream(ls.getDeclaredMethods())
+                    .sorted(java.util.Comparator.comparing(java.lang.reflect.Method::getName))
+                    .forEach(m -> System.err.println("[OpenJML]   "
+                            + m.getReturnType().getSimpleName() + " " + m.getName() + "("
+                            + java.util.Arrays.stream(m.getParameterTypes())
+                                    .map(Class::getSimpleName)
+                                    .collect(java.util.stream.Collectors.joining(", ")) + ")"));
+            for (Class<?> inner : ls.getDeclaredClasses()) {
+                System.err.println("[OpenJML] LanguageServers inner class: " + inner.getSimpleName());
+                java.util.Arrays.stream(inner.getDeclaredMethods())
+                        .sorted(java.util.Comparator.comparing(java.lang.reflect.Method::getName))
+                        .forEach(m -> System.err.println("[OpenJML]     "
+                                + m.getReturnType().getSimpleName() + " " + m.getName() + "("
+                                + java.util.Arrays.stream(m.getParameterTypes())
+                                        .map(Class::getSimpleName)
+                                        .collect(java.util.stream.Collectors.joining(", ")) + ")"));
+            }
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] LanguageServers dump failed: " + t);
         }
     }
 
