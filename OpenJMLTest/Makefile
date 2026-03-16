@@ -125,9 +125,13 @@ unittests-par: prep .FORCE
 	@ ${TEST}/unittests/runpar
 
 # Executes the tests of JSON output and input
-json-tests: .FORCE 
+json-tests: .FORCE
 	@ ${TEST}/jsontests/json/run
 	@ ${TEST}/jsontests/json-loc/run
+
+# Compiles and runs the LSP server tests
+lsp-tests: .FORCE
+	$(MAKE) -C ${TEST}/lsp
 
 .FORCE:
 

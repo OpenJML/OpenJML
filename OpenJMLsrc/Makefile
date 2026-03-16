@@ -171,7 +171,11 @@ post: .FORCE
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
-	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
+	$(MAKE) -C ../OpenJMLlsp release
+	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)
+	cp -pR ../OpenJMLlsp/release-stage/lsp $(TEMP)
+	cp ../OpenJMLlsp/release-stage/openjml.vsix $(TEMP)
+	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 
 #RunOpenJML.class: RunOpenJML.java

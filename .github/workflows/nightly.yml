@@ -129,6 +129,10 @@ jobs:
       run: |
         PATH="../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
 
+    - name: Run LSP server tests
+      run: |
+        make -C OpenJML/OpenJMLlsp all || echo "failures=$failures LSP server tests failed." >> $GITHUB_ENV
+
     - name: Report
       run: |
         if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
