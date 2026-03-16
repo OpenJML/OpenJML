@@ -322,39 +322,39 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ modifies \\everything;
                   public void m0() {
-                    {/*@ nullable */ Short s = null;
+                    /*@ nullable */ Short s = null;
                     short ss = (short)s;
-                    //@ assert 0 == (short)s;}
+                    //@ assert 0 == (short)s;
                   }
                   //@ modifies \\everything;
                   public void m1() {
-                    {/*@ nullable */ Integer s = null;
+                    /*@ nullable */ Integer s = null;
                     int ss = (int)s;
-                    //@ assert 0 == (int)s;}
+                    //@ assert 0 == (int)s;
                   }
                   //@ modifies \\everything;
                   public void m2() {
-                    {/*@ nullable */ Long s = null;
+                    /*@ nullable */ Long s = null;
                     long ss = (long)s;
-                    //@ assert 0L == (long)s;}
+                    //@ assert 0L == (long)s;
                   }
                   //@ modifies \\everything;
                   public void m3() {
-                    {/*@ nullable */ Byte s = null;
+                    /*@ nullable */ Byte s = null;
                     byte ss = (byte)s;
-                    //@ assert 0 == (byte)s;}
+                    //@ assert 0 == (byte)s;
                   }
                   //@ modifies \\everything;
                   public void m4() {
-                    {/*@ nullable */ Character s = null;
+                    /*@ nullable */ Character s = null;
                     char ss = (char)s;
-                    //@ assert 0 == (char)s;}
+                    //@ assert 0 == (char)s;
                   }
                   //@ modifies \\everything;
                   public void m7() {
-                    {/*@ nullable */ Boolean s = null;
+                    /*@ nullable */ Boolean s = null;
                     boolean ss = (boolean)s;
-                    //@ assert (boolean)s;}
+                    //@ assert (boolean)s;
                   }
                 }
                 """
@@ -378,9 +378,9 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ modifies \\everything;
                   public void m5() {
-                    {/*@ nullable */ Double s = null;
+                    /*@ nullable */ Double s = null;
                     double ss = (double)s;
-                    //@ assert 0 == (double)s;}
+                    //@ assert 0 == (double)s;
                   }
                 }
                 """
@@ -400,9 +400,9 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ modifies \\everything;
                   public void m6() {
-                    {/*@ nullable */ Float s = null;
+                    /*@ nullable */ Float s = null;
                     float ss = (float)s;
-                    //@ assert 0.0 == (float)s;}
+                    //@ assert 0.0 == (float)s;
                   }
                 }
                 """

@@ -446,7 +446,7 @@ public class escCounterexamples extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                
+
                   //@ ensures false;
                   public void m1(int i) {
                     int k = 9 - 9;
