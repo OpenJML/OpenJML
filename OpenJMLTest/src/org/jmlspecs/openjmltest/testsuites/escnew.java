@@ -335,7 +335,7 @@ public class escnew extends EscBase {
                          inc();
                          inc();
                   }
-                  // Default is assignable \everything
+                  // Default is assignable \\everything
                   //@ public normal_behavior ensures i == \\old(i) + 1;
                   public void inc()  {
                          ++i;
@@ -397,7 +397,7 @@ public class escnew extends EscBase {
                          inc();
                          inc();
                   }
-                  // Default is assignable \everything
+                  // Default is assignable \\everything
                   //@ public normal_behavior ensures i == \\old(i) + 1;
                   public void inc()  {
                          ++i;
@@ -732,22 +732,21 @@ public class escnew extends EscBase {
                       //@ ghost int k = 0;      //@ set k = 1;
                       //@ assert k == 1;
                   }
+                  public void m3bad() {
+                      //@ ghost boolean k = true;
+                      //@ set k = (k <=!=> k);
+                      //@ assert k;
+                  }
+                  public void m3good() {
+                      //@ ghost boolean k = true;
+                      //@ set k = (k <==> k);
+                      //@ assert k;
+                  }
                 }
-                // FIXME - need to handle jml constructs in set, debug statements
-//                +"  public void m3bad() {\n"
-//                +"      //@ ghost boolean k = true;"
-//                +"      //@ set k = (k <=!=> k);\n"
-//                +"      //@ assert k; \n"
-//                +"  }\n"
-//                
-//                +"  public void m3good() {\n"
-//                +"      //@ ghost boolean k = true;"
-//                +"      //@ set k = (k <==> k);\n"
-//                +"      //@ assert k; \n"
-//                +"  }\n"
                 """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m1bad",11
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method m2bad",11
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Assert) in method m3bad",11
                 );
     }
 
