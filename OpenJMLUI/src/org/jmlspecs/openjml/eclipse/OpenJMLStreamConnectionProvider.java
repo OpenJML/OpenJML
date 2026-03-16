@@ -72,7 +72,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();
-        LspConsole.log("[OpenJML] Sending initializationOptions: checkTriggerOn="
+        Console.log("[OpenJML] Sending initializationOptions: checkTriggerOn="
                 + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
     }

@@ -34,11 +34,13 @@ import com.google.gson.JsonPrimitive;
  */
 public abstract class LspCommandHandler extends AbstractHandler {
 
-    private final String lspCommand;
+    protected final String lspCommand;
 
     protected LspCommandHandler(String lspCommand) {
         this.lspCommand = lspCommand;
     }
+    
+    // FIXME - need to adjust these commands to act on whatever is selected -- a file editor, or possibly multiple items in the Outline or Project Explorer or Package Explorer
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -48,7 +50,9 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         IFile file = ((IFileEditorInput) editor.getEditorInput()).getFile();
         String uri  = file.getLocationURI().toString();
-
+        
+        Console.log(lspCommand);
+        
         buildParams(uri, file, event).thenAccept(params -> {
             if (params == null) return;
             LanguageServers.forProject(file.getProject())
@@ -73,7 +77,17 @@ public abstract class LspCommandHandler extends AbstractHandler {
     // Concrete handlers registered via plugin.xml
     // -----------------------------------------------------------------------
 
-    /** Runs {@code openjml.runEsc} on the currently active editor file. */
+    /** Runs {@code openjml.checkJML} on the currently selected entities. */
+    public static final class CheckJML extends LspCommandHandler {
+        public CheckJML() { super("openjml.checkJML"); }
+    }
+
+    /** Runs {@code openjml.runRac} on the currently selected entities. */
+    public static final class RunRac extends LspCommandHandler {
+        public RunRac() { super("openjml.runRac"); }
+    }
+
+    /** Runs {@code openjml.runEsc} on the currently seelected entities. */
     public static final class RunEsc extends LspCommandHandler {
         public RunEsc() { super("openjml.runEsc"); }
     }
@@ -105,6 +119,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         @Override
         public Object execute(ExecutionEvent event) {
+            // FIXME - is there some way to get the unique LSP connection for the whole plugin?
             // clearAndReindex is workspace-wide; no file argument needed.
             // Use any open project to route to the server.
             IEditorPart editor = HandlerUtil.getActiveEditor(event);
@@ -112,6 +127,9 @@ public abstract class LspCommandHandler extends AbstractHandler {
             if (editor != null && editor.getEditorInput() instanceof IFileEditorInput) {
                 file = ((IFileEditorInput) editor.getEditorInput()).getFile();
             }
+
+            Console.errorlog(lspCommand);
+
             if (file != null) {
                 LanguageServers.forProject(file.getProject())
                     .computeFirst(server ->
@@ -119,7 +137,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
                                 new ExecuteCommandParams("openjml.clearAndReindex",
                                         List.of())));
             } else {
-                LspConsole.log("OpenJML: no active editor — cannot route clearAndReindex");
+                Console.log("OpenJML: no active editor — cannot route clearAndReindex");
             }
             return null;
         }

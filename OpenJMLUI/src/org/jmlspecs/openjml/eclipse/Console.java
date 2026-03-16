@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.eclipse;
 
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleFactory;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
@@ -24,35 +25,81 @@ import org.eclipse.ui.console.MessageConsoleStream;
  *     LspConsole.log("OpenJML: starting ESC on " + file);
  * </pre>
  */
-public class LspConsole {
+public class Console {
 
-    private static final String CONSOLE_NAME = "OpenJML LSP";
+    /** The user-visible name that labels the JML Console */
+    private static final String CONSOLE_NAME = Messages.OpenJMLUI_ConsoleTitle;
+    
+    public static class ConsoleFactory implements IConsoleFactory {
 
-    private static MessageConsole console;
-
-    /** Returns (or lazily creates) the shared OpenJML LSP console. */
-    public static synchronized MessageConsole getConsole() {
-        if (console != null) return console;
-        IConsoleManager mgr = ConsolePlugin.getDefault().getConsoleManager();
-        for (IConsole c : mgr.getConsoles()) {
-            if (CONSOLE_NAME.equals(c.getName()) && c instanceof MessageConsole) {
-                console = (MessageConsole) c;
-                return console;
-            }
+        /** The Factory method invoked by Eclipse when asked to create a new console */
+        @Override
+        public void openConsole() {
+            getJMLConsole(); 
         }
-        console = new MessageConsole(CONSOLE_NAME, null);
-        console.setWaterMarks(10 * 1024, 10 * 1024 * 1024);
-        mgr.addConsoles(new IConsole[] { console });
-        return console;
+
+        /** Returns the JML Console, creating it if necessary; 'show's it if the argument is true. */
+        public static /* @ non_null */ MessageConsole getJMLConsole() {
+            MessageConsole console = null;
+            IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
+            
+            // Check whether our singleton JML console already exists
+            IConsole[] existing = consoleManager.getConsoles();
+            for (int i = 0; i < existing.length; ++i) {
+                if (existing[i].getName().equals(CONSOLE_NAME)) {
+                    console = (MessageConsole) existing[i];
+                    break;
+                }
+            }
+            
+            // If the JML console does not yet exist, create it
+            if (console == null) {
+                console = new MessageConsole(CONSOLE_NAME, null);
+                consoleManager.addConsoles(new IConsole[] { console });
+            }
+            
+            // cap it at 10M characters
+            console.setWaterMarks(10000, 10000000);
+            return console;
+        }
     }
 
+    /** Cached instance of the singleton OpenJML Console */
+    private static MessageConsole console;
+
+    /** Returns (lazily creating) the shared OpenJML console. */
+    public static synchronized MessageConsole getConsole() {
+        if (console == null) console = ConsoleFactory.getJMLConsole();
+        return console;
+    }
+    
+    // FIXME - do we really want to allocate and close a MessageConsoleStream for every write to the Console?
+
     /**
-     * Append {@code message} followed by a newline to the OpenJML LSP console.
+     * Append {@code message} followed by a newline to the OpenJML console.
      * Safe to call from any thread.
      */
     public static void log(String message) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
             stream.println(message);
         } catch (Exception ignored) {}
+    }
+    
+    /**
+     * Append {@code message} followed by a newline to the OpenJML console.
+     * Safe to call from any thread.
+     */
+    public static void errorlog(String message) {
+        try (MessageConsoleStream stream = getConsole().newMessageStream()) {
+            stream.setColor(new org.eclipse.swt.graphics.Color(255,0,0)); // Red for errors
+            stream.println(message);
+            show();
+        } catch (Exception ignored) {}
+    }
+    
+    /** Make the console visible in the GUI */
+    public static void show() {
+        IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
+        consoleManager.showConsoleView(getConsole());
     }
 }

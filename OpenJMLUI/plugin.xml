@@ -44,7 +44,8 @@
      <startup class="openjmlui.Activator"/>
   </extension>
 
-  <!-- Content type for .jml specification files -->
+  <!-- Content type for .jml specification files. NOTE: If we use org.eclipse.jdt.core.javaSource 
+  as the base-type, then .jml files are type-checked like .java files, resulting in spurious errors. --> -->
   <extension point="org.eclipse.core.contenttype.contentTypes">
      <content-type
            base-type="org.eclipse.core.runtime.text"
@@ -53,6 +54,15 @@
            name="JML Specification File"
            priority="high"/>
   </extension>
+
+  <!-- Register the jmlSource content-type with the regular Java editor -->
+  <extension point="org.eclipse.ui.editors">
+    <editorContentTypeBinding 
+         contentTypeId="org.jmlspecs.openjml.jmlSource" 
+         editorId="org.eclipse.jdt.ui.CompilationUnitEditor">
+    </editorContentTypeBinding>
+  </extension>
+  
 
   <!-- LSP4E integration: connect Java and .jml source files to the openjml-lsp server -->
   <extension point="org.eclipse.lsp4e.languageServer">
@@ -75,50 +85,102 @@
            id="org.jmlspecs.openjml.commands.category"
            name="OpenJML"/>
      <command
-           id="org.jmlspecs.openjml.commands.runEsc"
+           id="org.jmlspecs.openjml.commands.checkJML"
+           name="Check JML in Current File"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Parse and type-check the selected Java/JML files"/>
+     <command
+           id="org.jmlspecs.openjml.commands.runESC"
            name="Run ESC on Current File"
            categoryId="org.jmlspecs.openjml.commands.category"
-           description="Run extended static checking on the current Java/JML file"/>
+           description="Run extended static checking on the selected Java/JML files"/>
      <command
            id="org.jmlspecs.openjml.commands.runEscForMethod"
            name="Run ESC for Method Under Cursor"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Run extended static checking on the method at the cursor position"/>
      <command
+           id="org.jmlspecs.openjml.commands.RAC"
+           name="Compile RAC"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Compile RAC for selected files"/>
+     <command
            id="org.jmlspecs.openjml.commands.clearAndReindex"
-           name="Clear OpenJML Cache and Reindex"
+           name="Clear LSP Cache and Reindex"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Clear all OpenJML server caches and reindex the workspace"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
   <extension point="org.eclipse.ui.handlers">
-     <handler commandId="org.jmlspecs.openjml.commands.runEsc"
+     <handler commandId="org.jmlspecs.openjml.commands.checkJML"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$CheckJML"/>
+     <handler commandId="org.jmlspecs.openjml.commands.runESC"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEsc"/>
      <handler commandId="org.jmlspecs.openjml.commands.runEscForMethod"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscForMethod"/>
+     <handler commandId="org.jmlspecs.openjml.commands.RAC"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunRac"/>
      <handler commandId="org.jmlspecs.openjml.commands.clearAndReindex"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
   </extension>
 
+  <!-- FIXME - review default key bindings -->
   <!-- Keybindings -->
   <extension point="org.eclipse.ui.bindings">
-     <key sequence="M1+M2+J E" commandId="org.jmlspecs.openjml.commands.runEsc"
+     <key sequence="M1+M2+J E" commandId="org.jmlspecs.openjml.commands.runESC"
           contextId="org.eclipse.ui.textEditorScope"
           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
      <key sequence="M1+M2+J M" commandId="org.jmlspecs.openjml.commands.runEscForMethod"
           contextId="org.eclipse.ui.textEditorScope"
           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
   </extension>
+  
+  <!-- Toolbar buttons -->
+  <extension
+         point="org.eclipse.ui.menus">
+     <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar">
+         <toolbar id="org.jmlspecs.eclipse.openjml.toolbar">
+            <command
+                  commandId="org.jmlspecs.openjml.commands.checkJML"
+                  icon="icons/jml-logo-16x16.png"
+                  id="org.jmlspecs.openjml.eclipse.ToolbarActions.CheckJML"
+                  label="%command.label.18"
+                  style="push"
+                  tooltip="%command.tooltip.13">
+            </command>
+            <command
+                  commandId="org.jmlspecs.openjml.commands.runESC"
+                  id="org.jmlspecs.openjml.eclipse.ToolbarActions.CheckESC"
+                  label="%command.label.19"
+                  style="push"
+                  tooltip="%command.tooltip.14">
+            </command>
+            <command
+                  commandId="org.jmlspecs.openjml.commands.RAC"
+                  id="org.jmlspecs.openjml.eclipse.ToolbarActions.RAC"
+                  label="%command.label.20"
+                  style="push"
+                  tooltip="%command.tooltip.15">
+            </command>
+          </toolbar>
+      </menuContribution>
+  </extension>
+  
+  
 
   <!-- OpenJML menu (editor popup and main menu) -->
   <extension point="org.eclipse.ui.menus">
      <menuContribution locationURI="popup:org.eclipse.ui.editorss?after=additions">
         <menu id="org.jmlspecs.openjml.editorPopupMenu" label="OpenJML">
-           <command commandId="org.jmlspecs.openjml.commands.runEsc"
+           <command commandId="org.jmlspecs.openjml.commands.checkJML"
+                    label="Check JML in File" />
+           <command commandId="org.jmlspecs.openjml.commands.runESC"
                     label="Run ESC on File" icon="icons/jml-logo-16x16.png"/>
            <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
                     label="Run ESC for Method Under Cursor"/>
+           <command commandId="org.jmlspecs.openjml.commands.RAC"
+                    label="Compile RAC"/>
            <separator name="sep1"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
@@ -126,17 +188,31 @@
      </menuContribution>
      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
         <menu id="org.jmlspecs.openjml.mainMenu" label="OpenJML">
-           <command commandId="org.jmlspecs.openjml.commands.runEsc"
+           <command commandId="org.jmlspecs.openjml.commands.checkJML"
+                    label="Check JML in File" />
+           <command commandId="org.jmlspecs.openjml.commands.runESC"
                     label="Run ESC on Current File" icon="icons/jml-logo-16x16.png"/>
            <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
                     label="Run ESC for Method Under Cursor"/>
+           <command commandId="org.jmlspecs.openjml.commands.RAC"
+                    label="Compile RAC"/>
            <separator name="sep1"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
         </menu>
      </menuContribution>
   </extension>
-
+  
+  <!-- Register a unique JML console -->
+  <extension
+      point="org.eclipse.ui.console.consoleFactories">
+    <consoleFactory
+         class="org.jmlspecs.openjml.eclipse.Console$Factory"
+         icon="icons/jml-logo-16x16.png"
+         label="%consoleFactory.label">
+    </consoleFactory>
+  </extension>
+  
   <!-- ============================================================ -->
   <!-- LEGACY EXTENSIONS COMMENTED OUT                              -->
   <!-- These reference old OpenJML classes (JMLBuilder, JMLNature,  -->
@@ -168,17 +244,6 @@
     <builder
             id="org.jmlspecs.OpenJMLUI.JMLBuilder">
     </builder>
-  </extension>
-  -->
-
-  <!--
-  <extension
-      point="org.eclipse.ui.console.consoleFactories">
-    <consoleFactory
-         class="org.jmlspecs.openjml.eclipse.ConsoleFactory"
-         icon="icons/jml-logo-16x16.png"
-         label="%consoleFactory.label">
-    </consoleFactory>
   </extension>
   -->
 
@@ -715,37 +780,7 @@
   </extension>
   -->
 
-  <!--
-  <extension
-         point="org.eclipse.ui.menus">
-     <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar">
-         <toolbar id="org.jmlspecs.eclipse.openjml.toolbar">
-            <command
-                  commandId="org.jmlspecs.eclipse.commands.CheckJML"
-                  icon="icons/jml-logo-16x16.png"
-                  id="org.jmlspecs.openjml.eclipse.MenuActions.CheckJML"
-                  label="%command.label.18"
-                  style="push"
-                  tooltip="%command.tooltip.13">
-            </command>
-            <command
-                  commandId="org.jmlspecs.eclipse.commands.CheckESC"
-                  id="org.jmlspecs.openjml.eclipse.MenuActions.CheckESC"
-                  label="%command.label.19"
-                  style="push"
-                  tooltip="%command.tooltip.14">
-            </command>
-            <command
-                  commandId="org.jmlspecs.eclipse.commands.RAC"
-                  id="org.jmlspecs.openjml.eclipse.MenuActions.RAC"
-                  label="%command.label.20"
-                  style="push"
-                  tooltip="%command.tooltip.15">
-            </command>
-          </toolbar>
-      </menuContribution>
-  </extension>
-  -->
+
 
   <!--
   <extension

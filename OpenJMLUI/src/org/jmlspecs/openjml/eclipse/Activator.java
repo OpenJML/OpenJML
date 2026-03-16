@@ -45,7 +45,7 @@ public class Activator extends AbstractUIPlugin {
      */
     public Activator() {
         // Log.log("UI Plugin constructor executed");
-        plugin = this;
+        plugin = this;  // FIXME - is this needed here? or just in start()
     }
 
     /*

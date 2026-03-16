@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -91,6 +92,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.part.FileEditorInput;
 import org.jmlspecs.annotation.NonNull;
 import org.jmlspecs.annotation.Nullable;
@@ -181,6 +183,31 @@ public class Utils {
         }
         return i;
     }
+    
+    public static OutputStream toConsole(String text) {
+        /** Returns the output stream for the IListener interface. */
+        OutputStream stream = getConsoleStream();
+        stream.write(text.getBytes()); // Uses default encoding
+        return stream;
+    }
+    
+    public static void toConsoleLN(String text) {
+        /** Returns the output stream for the IListener interface. */
+        toConsole(text).write("\n".getBytes());
+    }
+    
+    public static OutputStream getConsoleStream() {
+        MessageConsole console = ConsoleFactory.getJMLConsole(true);
+        return console.newMessageStream();
+    }
+    
+    public static PrintWriter getConsoleWriter() {
+        MessageConsole console = ConsoleFactory.getJMLConsole(true);
+        return new PrintWriter(console.newMessageStream());
+    }
+    
+    
+    // REVIEW EVERYTHING AFTER THIS LINE -- IS IT STILL RELEVANT?
 
     protected String getInternalSystemSpecs() {
         String filesep = "/"; // Not File.separator I think //$NON-NLS-1$

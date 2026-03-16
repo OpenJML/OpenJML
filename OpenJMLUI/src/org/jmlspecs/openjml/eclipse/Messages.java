@@ -12,7 +12,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "org.jmlspecs.openjml.eclipse.messages"; //$NON-NLS-1$
-	public static String OpenJMLUI_Activator_JmlConsoleTitle;
+	public static String OpenJMLUI_ConsoleTitle;
 	public static String OpenJMLUI_ExceptionTitle;
 	public static String OpenJMLUI_JMLBuilder_Title;
 	public static String OpenJMLUI_PathItem_AllSourceFolders;
