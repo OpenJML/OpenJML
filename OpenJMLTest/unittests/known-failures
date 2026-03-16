@@ -174,7 +174,7 @@ primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
 
 SFBugs.gitbug712                      # String literal ("Alice") problem
-esc1.testForEach2a2b
+
 escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
 escfiles2.gitbug726                   # OLList problem
 escfiles2.gitbug880                   # Helloworld infeasible
