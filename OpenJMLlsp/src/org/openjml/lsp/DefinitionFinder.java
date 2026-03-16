@@ -62,7 +62,7 @@ public class DefinitionFinder {
         int targetOffset = lineColToOffset(source, line, col);
         if (targetOffset < 0) return null;
 
-        // Try JCIdent first (simple name), then JCFieldAccess (a.field — cursor on field).
+        // Try JCIdent first (simple name), then JCFieldAccess (a field — cursor on field).
         NodeMatch match = findNodeAt(entry.ast(), targetOffset, source);
         if (match == null || match.sym() == null) return null;
 
