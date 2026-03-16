@@ -2,6 +2,7 @@
 
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
+ROOT=$(cd ../../../.. && pwd)
 
 rm -rf Run.class actual
 openjml-compile Run.java > actual || exit 1

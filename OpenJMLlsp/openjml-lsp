@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+## Launch the OpenJML LSP server.
+## Communicates with the editor client via stdin/stdout.
+## Invoke from your editor's LSP client configuration, e.g.:
+##   "command": ["path/to/openjml-lsp"]
+
+set -e
+
+# Debug log — remove once startup is confirmed working
+LOG=/tmp/openjml-lsp-debug.log
+echo "$(date): openjml-lsp invoked, args: $*" > "$LOG"
+exec 2>>"$LOG"   # redirect stderr to log so Java errors are captured too
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+LSP4J_VERSION=1.0.0
+
+if [ -d "$DIR/jdk" ]; then
+    ## ── Release layout (installed from openjml.zip) ──────────────────────────
+    BUILDJDK="$DIR/jdk"
+    . "$DIR/setup-exports"
+    export OPENJML_INSTALL="${OPENJML_INSTALL:-$DIR}"
+    # OPENJML_SPECS and OPENJML_SOLVERS: not defaulted here — OpenJML derives
+    # them from OPENJML_INSTALL internally.  Set them only for custom locations.
+    JARFILE="$DIR/lsp/openjml-lsp.jar"
+    LSP4J_CP="$DIR/lsp/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/lsp/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
+else
+    ## ── Development layout (sibling OpenJMLsrc/ repo) ────────────────────────
+    SRC="$DIR/../OpenJMLsrc"
+    BUILDJDK=$(echo "$SRC"/build/*/jdk)
+    if [ ! -d "$BUILDJDK" ]; then
+        echo "ERROR: OpenJML build not found at $SRC/build/*/jdk" >&2
+        echo "Run 'make openjml' in $SRC first." >&2
+        exit 1
+    fi
+    . "$SRC/setup-exports"
+    export OPENJML_INSTALL="${OPENJML_INSTALL:-$SRC}"
+    export OPENJML_SPECS="${OPENJML_SPECS:-$OPENJML_INSTALL/../../Specs/specs}"
+    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$OPENJML_INSTALL/../../Solvers}"
+    JARFILE="$DIR/build/openjml-lsp.jar"
+    LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
+fi
+
+[ -f "$JARFILE" ]        || { echo "ERROR: missing $JARFILE" >&2; exit 1; }
+[ -f "${LSP4J_CP%%:*}" ] || { echo "ERROR: missing ${LSP4J_CP%%:*}" >&2; exit 1; }
+
+# jdk.compiler bundles Gson internally (not exported by default).
+# LSP4J uses Gson for JSON-RPC serialisation, so we must export jdk.compiler's
+# Gson packages to the unnamed module.  Do NOT put a separate Gson jar on the
+# classpath — that would create a split-package the JVM refuses.
+GSON_EXPORTS="\
+  --add-exports=jdk.compiler/com.google.gson=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.annotations=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.bind=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.bind.util=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.reflect=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.internal.sql=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.reflect=ALL-UNNAMED \
+  --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED"
+
+exec "$BUILDJDK/bin/java" \
+     $OPENJML_JVM \
+     $OPENJML_EXPORTS \
+     $GSON_EXPORTS \
+     -cp "$JARFILE:$LSP4J_CP" \
+     org.openjml.lsp.ServerLauncher "$@"

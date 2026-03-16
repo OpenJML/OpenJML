@@ -1,0 +1,22 @@
+# Development / tooling files — excluded from the vsix package
+node_modules/.bin
+node_modules/.package-lock.json
+
+# TypeScript declaration files and source maps are not needed at runtime
+**/*.d.ts
+**/*.d.ts.map
+**/*.js.map
+
+# Documentation inside node_modules is not needed at runtime
+node_modules/**/README*
+node_modules/**/CHANGELOG*
+node_modules/**/LICENCE*
+node_modules/**/LICENSE*
+node_modules/**/.npmignore
+node_modules/**/.github
+
+# Already-built vsix artefacts
+*.vsix
+
+# Lock file (not useful inside the vsix)
+package-lock.json
