@@ -1,5 +1,40 @@
 #!/usr/bin/env bash
 # build-update-site.sh
+# Purpose:
+#   Assemble the OpenJML UI Eclipse plugin and feature into an update-site-style
+#   layout suitable for publishing. This script packages the plugin classes and
+#   bundled library JARs into a versioned plugin JAR and copies the feature
+#   definition into a features/ directory under the release-stage output.
+#
+# Usage:
+#   Run from the `OpenJML/OpenJMLUI` directory or anywhere; the script resolves
+#   paths relative to its location. Example:
+#     ./build-update-site.sh
+#   Optional environment variables:
+#     EXPECTED_BRANCH - when set, the script aborts unless the current git
+#                       branch matches this value.
+#     ECLIPSE_HOME     - path to an Eclipse installation (used when trying to
+#                       run the p2 publisher headlessly; otherwise the script
+#                       falls back to producing a simple plugins/features layout).
+#
+# Effects / outputs:
+#   - Creates or updates: ../OpenJMLUpdateSite/release-stage/plugins/
+#       org.jmlspecs.OpenJMLUI_${BUNDLE_VERSION}.jar
+#   - Copies the feature XML into ../OpenJMLUpdateSite/release-stage/features/
+#   - Attempts to run the p2 publisher headlessly (via Equinox launcher JAR)
+#     to produce metadata (metadata/ and artifacts/ under release-stage).
+#     If headless publishing is not possible the script falls back to a simple
+#     features/plugins layout and creates minimal artifacts.jar/content.jar
+#     placeholders.
+#
+# Non-interactive guarantee:
+#   The script never launches the Eclipse GUI. When it runs the p2 publisher
+#   it does so via `java -jar <equinox-launcher.jar>` (headless). If a GUI-capable
+#   `eclipse` binary is present, it will not be used to avoid interactive prompts.
+#
+# Example quick run:
+#   EXPECTED_BRANCH=dev-21 ./build-update-site.sh
+
 # Builds the OpenJMLUI plugin artifact and assembles an Eclipse update site layout.
 # Places results in ../OpenJMLUpdateSite/release-stage by default.
 # Run from the OpenJMLUI directory or anywhere; script resolves project root.
@@ -15,11 +50,115 @@ MANIFEST="$UI_DIR/META-INF/MANIFEST.MF"
 BIN_DIR="$UI_DIR/bin"
 LIBS=("jmlruntime.jar" "jSMTLIB.jar" "jpaul-2.5.1.jar" "gson-2.8.1.jar")
 
-# Helper: read manifest value
+# CLI: accept --version and --overwrite
+VERSION_ARG=""
+OVERWRITE=0
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [--version VERSION] [--overwrite] [--help]
+
+Options:
+  --version VERSION    Set the Bundle/Feature version to VERSION before building.
+                       When provided, the script will update source manifests
+                       and the feature.xml to use this version before packaging.
+  --overwrite          If an output plugin or feature with the same version
+                       already exists in the release-stage, allow overwriting.
+  --help               Show this help and exit.
+
+Note: The script is non-interactive and will never launch the Eclipse GUI.
+EOF
+}
+
+# parse simple CLI args
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --version) VERSION_ARG="$2"; shift 2;;
+        --overwrite) OVERWRITE=1; shift;;
+        --help|-h) usage; exit 0;;
+        *) break;;
+    esac
+done
+
+# Helper: read manifest value (needed by version-setting code)
 get_manifest_value() {
     local key="$1"
     awk -v key="$key" 'BEGIN{FS=": ";IGNORECASE=0} $1==key{print substr($0,index($0,$2))}' "$MANIFEST" | tr -d '\r' || true
 }
+
+# --- Version helpers (moved earlier so --version takes effect before reading manifest) ---
+# Function to update version strings in relevant files (manifests and feature.xml)
+set_version_in_sources() {
+    local newv="$1"
+    echo "Setting source bundle/feature versions to: $newv"
+    # Update OpenJMLUI manifest
+    if [ -f "$UI_DIR/META-INF/MANIFEST.MF" ]; then
+        awk -v v="$newv" 'BEGIN{FS=OFS=":"} /^Bundle-Version:/{print $1":"" " v; next} {print}' "$UI_DIR/META-INF/MANIFEST.MF" > "$UI_DIR/META-INF/MANIFEST.MF.tmp" && mv "$UI_DIR/META-INF/MANIFEST.MF.tmp" "$UI_DIR/META-INF/MANIFEST.MF"
+    fi
+    # Update OpenJMLTest manifest (if present)
+    if [ -f "$ROOT_DIR/../OpenJMLTest/META-INF/MANIFEST.MF" ]; then
+        awk -v v="$newv" 'BEGIN{FS=OFS=":"} /^Bundle-Version:/{print $1":"" " v; next} {print}' "$ROOT_DIR/../OpenJMLTest/META-INF/MANIFEST.MF" > "$ROOT_DIR/../OpenJMLTest/META-INF/MANIFEST.MF.tmp" && mv "$ROOT_DIR/../OpenJMLTest/META-INF/MANIFEST.MF.tmp" "$ROOT_DIR/../OpenJMLTest/META-INF/MANIFEST.MF"
+    fi
+    # Update Specs manifest (if present)
+    if [ -f "$ROOT_DIR/../Specs/META-INF/MANIFEST.MF" ]; then
+        awk -v v="$newv" 'BEGIN{FS=OFS=":"} /^Bundle-Version:/{print $1":"" " v; next} {print}' "$ROOT_DIR/../Specs/META-INF/MANIFEST.MF" > "$ROOT_DIR/../Specs/META-INF/MANIFEST.MF.tmp" && mv "$ROOT_DIR/../Specs/META-INF/MANIFEST.MF.tmp" "$ROOT_DIR/../Specs/META-INF/MANIFEST.MF"
+    fi
+    # Update feature.xml version and plugin entries
+    if [ -f "$FEATURE_DIR/feature.xml" ]; then
+        # Only replace version attributes on <feature ...> and <plugin ...> lines (avoid XML declaration)
+        awk -v v="$newv" '
+            /<feature[^>]*>/ { gsub(/version="[^"]*"/, "version=\"" v "\""); print; next }
+            /<plugin[^>]*>/ { gsub(/version="[^"]*"/, "version=\"" v "\""); print; next }
+            { print }
+        ' "$FEATURE_DIR/feature.xml" > "$FEATURE_DIR/feature.xml.tmp" && mv "$FEATURE_DIR/feature.xml.tmp" "$FEATURE_DIR/feature.xml"
+    fi
+}
+
+# Function to detect if the version already exists in release-stage
+check_version_exists_in_release_stage() {
+    local v="$1"
+    # plugin jar
+    local plugin_jar="$UPDATESITE_DIR/plugins/${PLUGIN_ID}_${v}.jar"
+    if [ -f "$plugin_jar" ]; then
+        echo "Found existing plugin jar: $plugin_jar"
+        return 0
+    fi
+    # feature dir (attempt to extract feature id)
+    if [ -f "$FEATURE_DIR/feature.xml" ]; then
+        local fid
+        fid=$(tr '\n' ' ' < "$FEATURE_DIR/feature.xml" 2>/dev/null | sed -n 's/.*<feature[^>]*id=\"\([^\"]*\)\".*/\1/p' || true)
+        if [ -n "$fid" ] && [ -d "$UPDATESITE_DIR/features/${fid}_${v}" ]; then
+            echo "Found existing feature dir: $UPDATESITE_DIR/features/${fid}_${v}"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# If a version was provided, update sources now and check for conflicts
+if [ -n "$VERSION_ARG" ]; then
+    set_version_in_sources "$VERSION_ARG"
+    # refresh BUNDLE_VERSION from updated manifest
+    BUNDLE_VERSION=$(get_manifest_value "Bundle-Version")
+    if [ -z "$BUNDLE_VERSION" ]; then
+        echo "ERROR: version update failed; manifest has no Bundle-Version" >&2
+        exit 1
+    fi
+    # Check if release-stage already has this version
+    if check_version_exists_in_release_stage "$BUNDLE_VERSION"; then
+        if [ "$OVERWRITE" -eq 1 ]; then
+            echo "--overwrite specified: removing existing artifacts for version $BUNDLE_VERSION"
+            rm -f "$UPDATESITE_DIR/plugins/${PLUGIN_ID}_${BUNDLE_VERSION}.jar" || true
+            # remove versioned feature dir if present
+            fid=$(tr '\n' ' ' < "$FEATURE_DIR/feature.xml" 2>/dev/null | sed -n 's/.*<feature[^>]*id=\\"\\([^\\\"]*\\)\\".*/\\1/p' || true)
+            if [ -n "$fid" ]; then
+                rm -rf "$UPDATESITE_DIR/features/${fid}_${BUNDLE_VERSION}" || true
+            fi
+        else
+            echo "ERROR: version $BUNDLE_VERSION already exists in release-stage; use --overwrite to replace it." >&2
+            exit 1
+        fi
+    fi
+fi
 
 # Helper: absolute path for files and dirs (portable)
 abspath() {

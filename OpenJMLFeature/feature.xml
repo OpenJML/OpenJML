@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version=\"0.21.0\" encoding="UTF-8"?>
 <feature
       id="org.openjml.OpenJMLFeature"
       label="OpenJMLFeature"
-      version="0.21.0"
+      version=\"0.21.0\"
       provider-name="David R. Cok">
 
    <description url="http://www.example.com/description">
@@ -31,21 +31,21 @@ https://github.com/OpenJML
          id="org.jmlspecs.annotation"
          download-size="0"
          install-size="0"
-         version="0.21.0"
+         version=\"0.21.0\"
          unpack="false"/>
 
    <plugin
          id="org.jmlspecs.OpenJMLUI"
          download-size="0"
          install-size="0"
-         version="0.21.0"
+         version=\"0.21.0\"
          unpack="false"/>
 
    <plugin
          id="org.jmlspecs.Specs"
          download-size="0"
          install-size="0"
-         version="0.21.0"
+         version=\"0.21.0\"
          unpack="false"/>
 
 </feature>
