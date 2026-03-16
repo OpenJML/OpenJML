@@ -101,27 +101,72 @@ public class JmlEsc extends JmlTreeScanner {
         
     }
     
-    /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
+        prepProofs(tree);
+        doProofs(tree);
+    }
+    
+    /** Initializes assertionAdder and proverToUse and translates the argument */
+    public void prepProofs(JCTree tree) {
+        if (tree instanceof JCCompilationUnit cu) {
+            utils.warning(cu.sourcefile, com.sun.tools.javac.util.Position.NOPOS, "jml.message", "Unusual JmlEsc.prepProofs call for compilation unit: " + cu.sourcefile);
+            for (var d: cu.defs) {
+                if (d instanceof JCClassDecl) prepProofs(d);
+            }
+            return;
+        }
+        if (debugEsc) System.out.println("[esc] prepProofs: " + tree.getClass());
         this.verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
-        	//org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree.check(context,tree);
+            //org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree.check(context,tree);
             // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
-//        	System.out.println("ESC " + tree.getClass());
-//        	if (tree instanceof JmlCompilationUnit) System.out.println("  CU  " + ((JmlCompilationUnit)tree).sourcefile);
-//        	if (tree instanceof JmlClassDecl) System.out.println("  CL  " + ((JmlClassDecl)tree).sym + " " + ((JmlClassDecl)tree).sourcefile );
-        	int nerrors = log.nerrors;
+//          System.out.println("ESC " + tree.getClass());
+//          if (tree instanceof JmlCompilationUnit) System.out.println("  CU  " + ((JmlCompilationUnit)tree).sourcefile);
+//          if (tree instanceof JmlClassDecl) System.out.println("  CL  " + ((JmlClassDecl)tree).sym + " " + ((JmlClassDecl)tree).sourcefile );
+            int nerrors = log.nerrors;
+            if (debugEsc) System.out.println("[esc] convert-start: " + tree.getClass());
             assertionAdder.convert(tree); // get at the converted tree through the map
-			if (nerrors != log.nerrors) {
-				throw new PropagatedException(new RuntimeException());
-			}
-            // And then we walk the tree to see which items are to be proved
+            if (debugEsc) System.out.println("[esc] convert-end: " + tree.getClass());
+            if (nerrors != log.nerrors) {
+                throw new PropagatedException(new RuntimeException());
+            }
+        } catch (PropagatedException e) {
+            utils.progress(1,Utils.PROGRESS,"Operation not performed because of parse or type errors");
+            Main.instance(context).canceled = true;
+            count(IProverResult.ERROR);
+        } catch (Main.JmlCanceledException e) {
+            // Canceled
+            Main.instance(context).canceled = true;
+            count(IProverResult.ERROR);
+            throw e;
+        } catch (Exception e) {
+            count(IProverResult.ERROR);
+            String info = "";
+            if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
+            if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
+            log.error("jml.internal","Should not be catching a " + e.getClass().getName() + " in JmlEsc.check: "+ e.toString() + " while translating " + info);
+            e.printStackTrace(System.out);
+        }
+    }
+
+    public void doProofs(JCTree tree) {
+        if (tree instanceof JCCompilationUnit cu) {
+            utils.warning(cu.sourcefile, com.sun.tools.javac.util.Position.NOPOS, "jml.message", "Unusual JmlEsc.doProofs call for compilation unit: " + cu.sourcefile);
+            for (var d: cu.defs) {
+                if (d instanceof JCClassDecl) doProofs(d);
+            }
+            return;
+        }
+        if (debugEsc) System.out.println("[esc] doProofs: " + tree.getClass());
+        this.verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
+                || utils.jmlverbose >= Utils.JMLVERBOSE;
+        try {
             tree.accept(this);
         } catch (PropagatedException e) {
-        	utils.progress(1,Utils.PROGRESS,"Operation not performed because of parse or type errors");
+            utils.progress(1,Utils.PROGRESS,"Operation not performed because of parse or type errors");
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
         } catch (Main.JmlCanceledException e) {

@@ -664,12 +664,12 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         return st;
     }
     
-    ListBuffer<JCStatement> temp = new ListBuffer<>();
-    protected void addFeasibilityCheck(java.util.List<JCStatement> statements, String bbname) {
-        JmlEsc.instance(context).assertionAdder.addFeasibilityCheck(treeutils.trueLit, temp, "BB-Assume" );
-        statements.add(temp.first());
-        temp.clear();
-    }
+//    ListBuffer<JCStatement> temp = new ListBuffer<>();
+//    protected void addFeasibilityCheck(java.util.List<JCStatement> statements, String bbname) {
+//        JmlEsc.instance(context).assertionAdder.addFeasibilityCheck(treeutils.trueLit, temp, "BB-Assume" );
+//        statements.add(temp.first());
+//        temp.clear();
+//    }
 
     
     /** Adds a new assume statement to the end of the given statements list; the assume statement is
@@ -970,11 +970,11 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             T catchBlock = newBlock(CATCH,catcher.pos);
             follows(targetBlock,catchBlock);
             follows(catchBlock,finallyBlock);
-            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "-start");
+            //addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "-start"); // FIXME - move these to JmlAssertionAdder
             catchBlock.statements.addAll(assumptions);
-            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
+            //addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +1");
             addAssume(catcher.pos,Label.CATCH_CONDITION,tt,catchBlock.statements);
-            addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
+            //addFeasibilityCheck(catchBlock.statements, catchBlock.id().toString() + "- +2");
             addAssume(catcher.pos,Label.CATCH_CONDITION,treeutils.makeNot(catcher,tt),assumptions);
             JCVariableDecl d = treeutils.makeVariableDecl(catcher.param.sym, ex);
                 d.pos = catcher.param.pos;

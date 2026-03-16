@@ -2450,16 +2450,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		//System.out.println("ADDING FEAS CHECK " + feasibilityCheckCount + " " + description);
 		java.util.List<JmlStatementExpr> descs = getFeasibilityChecks(methodDecl, originalSplit);
 		if (useAssertCount) {
-			JCIdent id = treeutils.makeIdent(item, feasCheckSym);
+            ListBuffer<JCStatement> prev = currentStatements;
+            currentStatements = list;
+
+            JCIdent id = treeutils.makeIdent(item, feasCheckSym);
 			JCExpression bin = treeutils.makeBinary(item, JCTree.Tag.NE, treeutils.intneqSymbol, id,
 					treeutils.makeIntLiteral(item, feasibilityCheckCount));
-			ListBuffer<JCStatement> prev = currentStatements;
-			currentStatements = list;
 			addStat(comment("Feasibility check " + description));
 			JmlStatementExpr a = addAssert(item, Label.FEASIBILITY_CHECK, bin);
 			a.description = description;
 			a.sourcefile = (item instanceof JmlTree.JmlSource s) ? s.source() : log.currentSourceFile();
 			a.associatedPos = feasibilityCheckCount;
+			
 			descs.add(a);
 			currentStatements = prev;
 		} else {
@@ -19700,7 +19702,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean saved = translatingJML;
 		JmlMethodDecl savedMD = methodDecl;
 		methodDecl = that;
-		Translations t = new Translations(context);
+		Translations t = new Translations(context, this);
 		methodBiMap.put(that, t);
 		int stackDepth = frameStack.size();
 
@@ -19773,6 +19775,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 				result = m;
 				t.addTranslation(originalSplit, m);
+				if (JmlEsc.debugEsc) System.out.println("[esc] Added translation for " + that.sym);
 			}
 //            String splits = "";
 //            for (String s: translations.keys()) splits += (s + " " );

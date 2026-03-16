@@ -12,6 +12,8 @@ import org.jmlspecs.openjml.Strings;
 
 import com.sun.tools.javac.util.Context;
 
+/** There is one of these maps for each method;
+ * the internal map is indexed by split identifier */
 public class Translations {
     
     public Context context;

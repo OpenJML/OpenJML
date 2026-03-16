@@ -1391,7 +1391,7 @@ public class JmlTreeUtils {
         JCVariableDecl v = makeVarDef(exceptionType,caughtException,owner,Position.NOPOS);
         return factory.at(Position.NOPOS).Catch(v,factory.Block(0,List.<JCStatement>nil()));
     }
-
+    
     /** Makes an AST for an int variable declaration with initialization and no
      * modifiers and no position.
      * @param name the name of the new variable

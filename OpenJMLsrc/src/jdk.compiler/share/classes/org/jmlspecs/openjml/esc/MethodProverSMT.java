@@ -287,6 +287,7 @@ public class MethodProverSMT {
             utils.warning(methodDecl, "jml.message", "To check a specific method of an anonymous class, you must also check any containing methods");
             return factory.makeProverResult(methodDecl.sym,proverToUse,IProverResult.SKIPPED,null);
         }
+        if (JmlEsc.debugEsc) System.out.println("[esc] " + translations.splits.size() + " translations for " + methodDecl.sym.owner + "." + methodDecl.sym);
         for (String splitkey: translations.keys()) {
 //        if (splitkey.equals(Strings.feas_preOnly)) {
 //            if (proofResultAccumulated.isSat()) continue;
