@@ -1476,7 +1476,7 @@ public class racnew extends RacBase {
                 """
                 
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()" // Leaving m(), Line 5
-                ,"public void m() { i = 1-i; }  "
+                ,"public void m() { i = 1-i; }"
                 ,"            ^"
                 ,"/$A/tt/A.jml:2: Associated declaration: /tt/A.java:3:"
                 ,"//@ public invariant i == 0;"
@@ -1489,7 +1489,7 @@ public class racnew extends RacBase {
                 ,"           ^"
                 ,"MID"
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()"
-                ,"public void m() { i = 1-i; }  "
+                ,"public void m() { i = 1-i; }"
                 ,"            ^"
                 ,"/$A/tt/A.jml:2: Associated declaration: /tt/A.java:3:"
                 ,"//@ public invariant i == 0;"
