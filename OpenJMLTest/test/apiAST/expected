@@ -1,6 +1,6 @@
 COMPILED
 ABOUT TO EXECUTE
-ASTListener: com.sun.tools.javac.util.Context@587bec4c SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java] SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiAST/data/A.java]
+ASTListener: com.sun.tools.javac.util.Context@587bec4c SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java] SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java]
 CLASS A A unnamed package
 METHOD <init> A() A
 CLASS AI A.AI A
@@ -15,7 +15,7 @@ METHOD m m() AA
 ASTListener: com.sun.tools.javac.util.Context@587bec4c DirectoryFileObject[data:B.java] DirectoryFileObject[data:B.java]
 CLASS B B unnamed package
 METHOD <init> B() B
-ASTListener: com.sun.tools.javac.util.Context@587bec4c SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java] SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiAST/data/A.java]
+ASTListener: com.sun.tools.javac.util.Context@587bec4c SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java] SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/A.java]
 CLASS A A unnamed package
 METHOD <init> A() A
 CLASS AI A.AI A
@@ -28,7 +28,7 @@ CLASS AA AA unnamed package
 METHOD <init> AA() AA
 METHOD m m() AA
 DOING ESC
-ASTListener: com.sun.tools.javac.util.Context@435ccc80 SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/Q.java] SimpleFileObject[/Users/davidcok/projects/OpenJML21/OpenJML/OpenJMLTest/test/apiAST/data/Q.java]
+ASTListener: com.sun.tools.javac.util.Context@435ccc80 SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/Q.java] SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiAST/data/Q.java]
 CLASS Q Q unnamed package
 METHOD <init> Q() Q
 METHOD m m(int) Q
