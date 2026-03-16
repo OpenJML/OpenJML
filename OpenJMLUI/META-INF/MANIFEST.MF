@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLUI
-Bundle-SymbolicName: OpenJMLUI;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: org.jmlspecs.OpenJMLUI;singleton:=true
+Bundle-Version: 0.21.0
 Bundle-ClassPath: bin/,
  jmlruntime.jar,
  jSMTLIB.jar,
@@ -30,3 +30,4 @@ Import-Package: org.jmlspecs.annotation;resolution:=optional,
 Automatic-Module-Name: OpenJMLUI.singleton.true
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-21
+Import-Package: org.jmlspecs.annotation

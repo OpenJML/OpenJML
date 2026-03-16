@@ -2,7 +2,8 @@
 <feature
       id="org.openjml.OpenJMLFeature"
       label="OpenJMLFeature"
-      version="1.0.0.qualifier">
+      version="0.21.0"
+      provider-name="David R. Cok">
 
    <description url="http://www.example.com/description">
       This Eclipse plugin feature contains the OpenJML plug-in, which integrates
@@ -27,7 +28,24 @@ https://github.com/OpenJML
    </license>
 
    <plugin
-         id="OpenJMLUI"
-         version="0.0.0"/>
+         id="org.jmlspecs.annotation"
+         download-size="0"
+         install-size="0"
+         version="0.21.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.jmlspecs.OpenJMLUI"
+         download-size="0"
+         install-size="0"
+         version="0.21.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.jmlspecs.Specs"
+         download-size="0"
+         install-size="0"
+         version="0.21.0"
+         unpack="false"/>
 
 </feature>
