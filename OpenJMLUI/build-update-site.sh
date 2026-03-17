@@ -19,7 +19,7 @@
 #
 # Effects / outputs:
 #   - Creates or updates: ../OpenJMLUpdateSite/release-stage/plugins/
-#       org.jmlspecs.OpenJMLUI_${BUNDLE_VERSION}.jar
+#       org.openjml.OpenJMLUI_${BUNDLE_VERSION}.jar
 #   - Copies the feature XML into ../OpenJMLUpdateSite/release-stage/features/
 #   - Attempts to run the p2 publisher headlessly (via Equinox launcher JAR)
 #     to produce metadata (metadata/ and artifacts/ under release-stage).
@@ -45,7 +45,7 @@ ROOT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 UI_DIR="$ROOT_DIR"
 FEATURE_DIR="$ROOT_DIR/../OpenJMLFeature"
 UPDATESITE_DIR="$ROOT_DIR/../OpenJMLUpdateSite/release-stage"
-PLUGIN_ID="org.jmlspecs.OpenJMLUI"
+PLUGIN_ID="org.openjml.OpenJMLUI"
 MANIFEST="$UI_DIR/META-INF/MANIFEST.MF"
 BIN_DIR="$UI_DIR/bin"
 LIBS=("jmlruntime.jar" "jSMTLIB.jar" "jpaul-2.5.1.jar" "gson-2.8.1.jar")

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.jmlspecs.openjml.OpenJMLFeature"
+      label="OpenJML"
+      version="0.21.0"
+      provider-name="David R. Cok">
+
+   <description url="http://jmlspecs.sourceforge.net">
+      This plug-in encapsulates the OpenJML tool, which provides type-checking,
+static verification, and runtime-assertion checking of Java and 
+Java Modeling Language (JML) annotations.
+   </description>
+
+   <copyright>
+      The software is Copyright (c) 2007-2026 by David R. Cok
+   </copyright>
+
+   <license url="http://openjdk.java.net/legal/">
+      The OpenJML software is licensed under the same license as OpenJDK,
+namely the GPL v.2.
+
+The Eclipse plug-in interface is licensed under the EPL (Eclipse Public License)
+
+The source code is available under github:
+https://github.com/OpenJML/OpenJML
+   </license>
+
+   <url>
+      <update label="OpenJML" url="http://openjml.org/eclipse-update-site"/>
+   </url>
+
+   <plugin
+         id="org.openjml.OpenJMLUI"
+         version="0.21.0"/>
+
+</feature>

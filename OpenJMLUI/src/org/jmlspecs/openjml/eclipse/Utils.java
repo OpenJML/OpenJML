@@ -2318,7 +2318,7 @@ public class Utils {
                     break;
                 }
             }
-            // Bundle b = Platform.getBundle("org.jmlspecs.OpenJMLUI");
+            // Bundle b = Platform.getBundle("org.openjml.OpenJMLUI");
             // URL url = b.getEntry("");
             // URI uri = url.toURI();
             // String s = uri.getPath();

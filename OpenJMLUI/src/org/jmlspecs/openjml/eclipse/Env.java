@@ -30,7 +30,7 @@ public class Env {
 
     /** The plug-in ID, which must match the content of plugin.xml in several places */
     public static final @NonNull
-    String PLUGIN_ID = "org.jmlspecs.OpenJMLUI"; //$NON-NLS-1$
+    String PLUGIN_ID = "org.openjml.OpenJMLUI"; //$NON-NLS-1$
 
     /** The plug-in ID of the Specs project plugin (containing specifications
      * of Java library classes).  This must match the ID specified in the 

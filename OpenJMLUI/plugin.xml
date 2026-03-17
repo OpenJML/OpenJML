@@ -242,7 +242,7 @@
       <run class="org.jmlspecs.openjml.eclipse.JMLNature"/>
     </runtime>
     <builder
-            id="org.jmlspecs.OpenJMLUI.JMLBuilder">
+            id="org.openjml.OpenJMLUI.JMLBuilder">
     </builder>
   </extension>
   -->
@@ -256,13 +256,13 @@
             label="%decorator.label"
             icon="icons/JMLSmall.png"
             state="true"
-            id="org.jmlspecs.OpenJMLUI.JMLDecoration">
+            id="org.openjml.OpenJMLUI.JMLDecoration">
        <description>
             %decorator.description
        </description>
        <enablement>
         	<and>
-                <objectState name="nature" value="org.jmlspecs.OpenJMLUI.JMLNatureID"/>
+                <objectState name="nature" value="org.openjml.OpenJMLUI.JMLNatureID"/>
                 <objectClass name="org.eclipse.jdt.core.IJavaProject"/>
              </and>
        </enablement>
@@ -849,46 +849,46 @@
          point="org.eclipse.ui.editors.annotationTypes"
          id="JMLAnnotation">
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLHighlight"
-            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotation"
+            markerType="org.openjml.OpenJMLUI.JMLHighlight"
+            name="org.openjml.OpenJMLUI.ESCHighlightAnnotation"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLHighlightTrue"
-            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationTrue"
+            markerType="org.openjml.OpenJMLUI.JMLHighlightTrue"
+            name="org.openjml.OpenJMLUI.ESCHighlightAnnotationTrue"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLHighlightFalse"
-            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationFalse"
+            markerType="org.openjml.OpenJMLUI.JMLHighlightFalse"
+            name="org.openjml.OpenJMLUI.ESCHighlightAnnotationFalse"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLHighlightException"
-            name="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationException"
+            markerType="org.openjml.OpenJMLUI.JMLHighlightException"
+            name="org.openjml.OpenJMLUI.ESCHighlightAnnotationException"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLESCProblem"
-            name="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
+            markerType="org.openjml.OpenJMLUI.JMLESCProblem"
+            name="org.openjml.OpenJMLUI.ESCProblemAnnotation"
             markerSeverity="1"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
-            name="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
+            markerType="org.openjml.OpenJMLUI.JMLProblem"
+            name="org.openjml.OpenJMLUI.JMLProblemAnnotation"
             markerSeverity="2"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
-            name="org.jmlspecs.OpenJMLUI.JMLWarningAnnotation"
+            markerType="org.openjml.OpenJMLUI.JMLProblem"
+            name="org.openjml.OpenJMLUI.JMLWarningAnnotation"
             markerSeverity="1"
             >
     </type>
     <type
-            markerType="org.jmlspecs.OpenJMLUI.JMLProblem"
-            name="org.jmlspecs.OpenJMLUI.JMLNoteAnnotation"
+            markerType="org.openjml.OpenJMLUI.JMLProblem"
+            name="org.openjml.OpenJMLUI.JMLNoteAnnotation"
             markerSeverity="0"
             >
     </type>
@@ -907,7 +907,7 @@
   <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <specification
-            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotation"
+            annotationType="org.openjml.OpenJMLUI.ESCHighlightAnnotation"
             label="%specification.label"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orphKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrphKey"
@@ -923,7 +923,7 @@
             >
     </specification>
     <specification
-            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationTrue"
+            annotationType="org.openjml.OpenJMLUI.ESCHighlightAnnotationTrue"
             label="%specification.label.0"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orphtKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrphtKey"
@@ -939,7 +939,7 @@
             >
     </specification>
     <specification
-            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationFalse"
+            annotationType="org.openjml.OpenJMLUI.ESCHighlightAnnotationFalse"
             label="%specification.label.1"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orphfKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrphfKey"
@@ -955,7 +955,7 @@
             >
     </specification>
     <specification
-            annotationType="org.jmlspecs.OpenJMLUI.ESCHighlightAnnotationException"
+            annotationType="org.openjml.OpenJMLUI.ESCHighlightAnnotationException"
             label="%specification.label.2"
             overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpheKey"
             verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpheKey"
@@ -977,7 +977,7 @@
   <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <specification
-          annotationType="org.jmlspecs.OpenJMLUI.ESCProblemAnnotation"
+          annotationType="org.openjml.OpenJMLUI.ESCProblemAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeKey"
           colorPreferenceValue="255,192,0"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeKey"
@@ -994,7 +994,7 @@
           verticalRulerPreferenceValue="true">
     </specification>
     <specification
-          annotationType="org.jmlspecs.OpenJMLUI.JMLProblemAnnotation"
+          annotationType="org.openjml.OpenJMLUI.JMLProblemAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpKey"
           colorPreferenceValue="255,64,64"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpKey"
@@ -1011,7 +1011,7 @@
           verticalRulerPreferenceValue="true">
     </specification>
     <specification
-          annotationType="org.jmlspecs.OpenJMLUI.JMLWarningAnnotation"
+          annotationType="org.openjml.OpenJMLUI.JMLWarningAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpwKey"
           colorPreferenceValue="255,255,128"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpwKey"
@@ -1028,7 +1028,7 @@
           verticalRulerPreferenceValue="true">
     </specification>
     <specification
-          annotationType="org.jmlspecs.OpenJMLUI.JMLNoteAnnotation"
+          annotationType="org.openjml.OpenJMLUI.JMLNoteAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpnKey"
           colorPreferenceValue="192,192,255"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpnKey"
@@ -1428,7 +1428,7 @@
          point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
       <javaCompletionProposalComputer
         class="org.jmlspecs.openjml.eclipse.ProposalComputer"
-        categoryId="org.jmlspecs.OpenJMLUI.openjml_proposals">
+        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
         <partition type="__java_singleline_comment"/>
       </javaCompletionProposalComputer>
   </extension>
@@ -1441,7 +1441,7 @@
          point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
       <javaCompletionProposalComputer
         class="org.jmlspecs.openjml.eclipse.ProposalComputer"
-        categoryId="org.jmlspecs.OpenJMLUI.openjml_proposals">
+        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
         <partition type="__java_multiline_comment"/>
       </javaCompletionProposalComputer>
   </extension>
