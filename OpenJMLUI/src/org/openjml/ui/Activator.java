@@ -41,6 +41,7 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
         } catch (Throwable t) {
             System.err.println("[OpenJML] earlyStartup failed to acquire lsp4e loader: " + t);
         }
+        org.jmlspecs.openjml.eclipse.Console.log("OpenJMLUI plugin started");
     }
 
     @Override

@@ -3,7 +3,7 @@
  * Copyright (c) 2006-2013 David R. Cok
  * @author David R. Cok
  */
-package org.jmlspecs.openjml.eclipse;
+package org.jmlspecs.openjml.eclipse.old;
 
 import java.io.File;
 import java.io.FileInputStream;

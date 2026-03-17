@@ -3,6 +3,8 @@
 	<name>OpenJMLUpdateSite</name>
 	<comment></comment>
 	<projects>
+		<project>OpenJMLFeature</project>
+		<project>OpenJMLUI</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
