@@ -63,6 +63,8 @@ Options:
   --launcher PATH        Explicit path to an equinox launcher JAR (non-source). If unset the script searches common locations and ECLIPSE_HOME.
   --java PATH            Explicit java binary to use. Defaults to JAVA_HOME/bin/java or java on PATH.
   --backup               When merging in-place, back up the existing site (if --existing equals --out).
+  --deploy-site          Path to deploy the published site (default: user's openjml.github.io/eclipse-update-site)
+  --deploy               Deploy the site after publishing
   -v, --verbose          Enable verbose logging
   -h, --help             Show this help
 
@@ -163,6 +165,8 @@ OUT="$DEFAULT_OUT"
 ECLIPSE_LAUNCHER=""
 JAVA_OVERRIDE=""
 DO_BACKUP=0
+DEPLOY_SITE="${DEPLOY_SITE:-/Users/davidcok/projects/OpenJML21/openjml.github.io/eclipse-update-site}"
+DO_DEPLOY=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -172,6 +176,8 @@ while [ $# -gt 0 ]; do
         --launcher) ECLIPSE_LAUNCHER="$2"; shift 2;;
         --java) JAVA_OVERRIDE="$2"; shift 2;;
         --backup) DO_BACKUP=1; shift;;
+        --deploy-site) DEPLOY_SITE="$2"; DO_DEPLOY=1; shift 2;;
+        --deploy) DO_DEPLOY=1; shift;;
         -v|--verbose) VERBOSE=1; shift;;
         -h|--help) usage; exit 0;;
         *) err "Unknown arg: $1"; usage; exit 1;;
@@ -251,9 +257,48 @@ if publish_headless "$LAUNCHER_JAR" "$OUT_ABS" "$OUT_ABS" "${PUBLISH_ARGS[@]}"; 
     printf "Published combined p2 repository to %s\n" "$OUT_ABS"
     printf "Publisher log (first 200 lines):\n"
     sed -n '1,200p' "$OUT_ABS/publish.log" || true
+
+    # Deploy to local openjml.github.io site if requested
+    if [ "$DO_DEPLOY" -eq 1 ]; then
+        DEPLOY_ABS=$(abspath "$DEPLOY_SITE")
+        echo "Deploying published site to: $DEPLOY_ABS"
+        # ensure OUT_ABS exists
+        if [ ! -d "$OUT_ABS" ]; then
+            err "Publish output not found: $OUT_ABS"; exit 1
+        fi
+        # Backup existing site if present
+        if [ -d "$DEPLOY_ABS" ]; then
+            BK="${DEPLOY_ABS}.bak-$(date +%Y%m%d%H%M%S)"
+            echo "Backing up existing deploy site to: $BK"
+            rm -rf "$BK" || true
+            mv "$DEPLOY_ABS" "$BK" || { err "Failed to backup existing deploy site"; exit 1; }
+        fi
+        # Create deploy dir and copy contents
+        mkdir -p "$DEPLOY_ABS"
+        cp -a "$OUT_ABS/." "$DEPLOY_ABS/"
+        # ensure nojekyll to allow files starting with _ to be served
+        touch "$DEPLOY_ABS/.nojekyll"
+        echo "Deployed combined p2 repository to: $DEPLOY_ABS"
+    fi
+
     exit 0
 else
     err "Headless publisher failed; falling back to writing raw features/plugins layout to $OUT_ABS"
     cp -a "$TMPDIR/." "$OUT_ABS/"
+    # if deploy requested, still copy fallback layout
+    if [ "$DO_DEPLOY" -eq 1 ]; then
+        DEPLOY_ABS=$(abspath "$DEPLOY_SITE")
+        echo "Deploying fallback layout to: $DEPLOY_ABS"
+        if [ -d "$DEPLOY_ABS" ]; then
+            BK="${DEPLOY_ABS}.bak-$(date +%Y%m%d%H%M%S)"
+            echo "Backing up existing deploy site to: $BK"
+            rm -rf "$BK" || true
+            mv "$DEPLOY_ABS" "$BK" || { err "Failed to backup existing deploy site"; exit 1; }
+        fi
+        mkdir -p "$DEPLOY_ABS"
+        cp -a "$OUT_ABS/." "$DEPLOY_ABS/"
+        touch "$DEPLOY_ABS/.nojekyll"
+        echo "Deployed fallback combined layout to: $DEPLOY_ABS"
+    fi
     exit 2
 fi
