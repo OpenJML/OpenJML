@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.openjml.OpenJMLFeature_1.0.0.qualifier.jar" id="org.openjml.OpenJMLFeature" version="1.0.0.qualifier"/>
+</site>
