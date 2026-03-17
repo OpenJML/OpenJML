@@ -88,7 +88,8 @@ if [ -z "$VERSION" ]; then
 fi
 
 if [ -z "$BRANCH" ]; then
-  BRANCH="release-$VERSION"
+##  BRANCH="release-$VERSION"
+  BRANCH="master"
 fi
 
 # Print a start banner so the script always emits output even without -v

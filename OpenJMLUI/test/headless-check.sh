@@ -19,7 +19,7 @@ err() { printf "ERROR: %s\n" "$*" >&2; }
 ECLIPSE_HOME="/Users/davidcok/eclipse/eclipse-committers-2026-03-R-macosx-cocoa-x86_64-pure/Eclipse.app/Contents/Eclipse"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd -P)"
 # Default update site: ../../openjml.github.io/eclipse-update-site relative to script -> workspace root's openjml.github.io
-UPDATE_SITE_DIR_DEFAULT="$(cd "$SCRIPT_DIR/../../.." && pwd -P)/openjml.github.io/eclipse-update-site"
+UPDATE_SITE_DIR_DEFAULT="$(cd "$SCRIPT_DIR/../../../openjml.github.io/eclipse-update-site" && pwd -P)"
 UPDATE_SITE_DIR="${UPDATE_SITE_DIR:-$UPDATE_SITE_DIR_DEFAULT}"
 SOURCE_DIR=""  # optional explicit source (release-stage)
 # Ensure IU variable exists to avoid 'unbound variable' with set -u
