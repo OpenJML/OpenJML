@@ -253,10 +253,24 @@ fi
 
 # Run headless publisher to OUT_ABS
 mkdir -p "$OUT_ABS"
-if publish_headless "$LAUNCHER_JAR" "$OUT_ABS" "$OUT_ABS" "${PUBLISH_ARGS[@]}"; then
+# Prepare metadata and artifacts subdirs for the publisher
+METADATA_REPO_ABS="$(abspath "$OUT_ABS")/metadata"
+ARTIFACT_REPO_ABS="$(abspath "$OUT_ABS")/artifacts"
+mkdir -p "$METADATA_REPO_ABS" "$ARTIFACT_REPO_ABS"
+if publish_headless "$LAUNCHER_JAR" "$METADATA_REPO_ABS" "$ARTIFACT_REPO_ABS" "${PUBLISH_ARGS[@]}"; then
     printf "Published combined p2 repository to %s\n" "$OUT_ABS"
     printf "Publisher log (first 200 lines):\n"
-    sed -n '1,200p' "$OUT_ABS/publish.log" || true
+    sed -n '1,200p' "$METADATA_REPO_ABS/publish.log" || true
+
+    # Copy assembled plugins/features into the output so file-based sites host the jars (useful fallback)
+    if [ -d "$TMPDIR/plugins" ]; then
+        mkdir -p "$OUT_ABS/plugins"
+        cp -a "$TMPDIR/plugins/." "$OUT_ABS/plugins/" || true
+    fi
+    if [ -d "$TMPDIR/features" ]; then
+        mkdir -p "$OUT_ABS/features"
+        cp -a "$TMPDIR/features/." "$OUT_ABS/features/" || true
+    fi
 
     # Deploy to local openjml.github.io site if requested
     if [ "$DO_DEPLOY" -eq 1 ]; then

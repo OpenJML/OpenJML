@@ -179,7 +179,7 @@ fi
 # Assemble combined p2 repo and deploy to local pages dir if requested
 if [ "$DO_DEPLOY" -eq 1 ]; then
   log "Publishing and deploying combined p2 repository"
-  ( cd "$UI_DIR" && "$PUBLISH_SCRIPT" --source "$REPO_ROOT/OpenJMLUpdateSite/release-stage" --out "$REPO_ROOT/OpenJMLUpdateSite/combined-repo" --deploy -v )
+  ( cd "$UI_DIR" && "$PUBLISH_SCRIPT" --source "$REPO_ROOT/OpenJMLUpdateSite/release-stage" --out "$REPO_ROOT/OpenJMLUpdateSite/combined-repo" --deploy --deploy-site "$PAGES_SITE_DIR" -v )
 else
   log "Skipping deploy step (--no-deploy)"
 fi
