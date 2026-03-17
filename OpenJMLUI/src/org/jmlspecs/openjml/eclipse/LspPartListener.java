@@ -17,7 +17,7 @@ import org.eclipse.ui.part.FileEditorInput;
  * {@code LanguageServiceAccessor.startLanguageServer(definition)} and then
  * connects each Java/JML document to it.
  *
- * <p>Registered programmatically from {@link openjmlui.Activator}.
+ * <p>Registered programmatically from {@link org.openjml.ui.Activator}.
  */
 public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
@@ -56,7 +56,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
         System.err.println("[OpenJML] LspPartListener: handling " + file.getName());
 
-        ClassLoader lsp4eLoader = openjmlui.Activator.lsp4eLoader;
+        ClassLoader lsp4eLoader = org.openjml.ui.Activator.lsp4eLoader;
         if (lsp4eLoader == null) {
             System.err.println("[OpenJML] LspPartListener: lsp4e loader not ready — using Generic Editor");
             openGenericEditor(file);

@@ -1,4 +1,4 @@
-package openjmlui;
+package org.openjml.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;

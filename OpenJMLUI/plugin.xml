@@ -41,7 +41,7 @@
 
   <!-- Activate this bundle early so LspPartListener registers before any files are opened -->
   <extension point="org.eclipse.ui.startup">
-     <startup class="openjmlui.Activator"/>
+     <startup class="org.openjml.ui.Activator"/>
   </extension>
 
   <!-- Content type for .jml specification files. NOTE: If we use org.eclipse.jdt.core.javaSource 

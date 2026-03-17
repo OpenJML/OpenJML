@@ -30,7 +30,7 @@ public class OpenJMLPreferences extends FieldEditorPreferencePage
 
     @Override
     public void init(IWorkbench workbench) {
-        setPreferenceStore(openjmlui.Activator.getDefault().getPreferenceStore());
+        setPreferenceStore(org.openjml.ui.Activator.getDefault().getPreferenceStore());
     }
 
     @Override

@@ -8,10 +8,10 @@ Bundle-ClassPath: bin/,
  jSMTLIB.jar,
  jpaul-2.5.1.jar,
  gson-2.8.1.jar
-Bundle-Activator: openjmlui.Activator
-Export-Package: openjmlui,
- org.jmlspecs.openjml.eclipse,
- org.jmlspecs.openjml.eclipse.widgets
+Bundle-Activator: org.openjml.ui.Activator
+Export-Package: org.jmlspecs.openjml.eclipse,
+ org.jmlspecs.openjml.eclipse.widgets,
+ org.openjml.ui
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
