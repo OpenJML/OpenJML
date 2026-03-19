@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 ## Folder containing this script -- which is OpenJMLTest/releaseTests
-LOCAL=`cd $(dirname $BASH_SOURCE[0]) && pwd`
+LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
