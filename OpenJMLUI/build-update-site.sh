@@ -12,10 +12,10 @@
 #     ./build-update-site.sh [OPTIONS]
 #
 # Options:
-#   --build              Compile OpenJMLUI/src before packaging (default).
+#   --compile              Compile OpenJMLUI/src before packaging (default).
 #                        Requires ECLIPSE_HOME to be set so Eclipse platform
 #                        JARs can be found for the javac classpath.
-#   --no-build           Skip compilation; package whatever is already in bin/.
+#   --no-compile           Skip compilation; package whatever is already in bin/.
 #   --version VERSION    Set the Bundle/Feature version to VERSION before
 #                        building.  Updates MANIFEST.MF, feature.xml, and
 #                        category.xml in-source.
@@ -24,7 +24,7 @@
 #   --help               Show this help and exit.
 #
 # Environment:
-#   ECLIPSE_HOME   Path to an Eclipse installation.  Required when --build is
+#   ECLIPSE_HOME   Path to an Eclipse installation.  Required when --compile is
 #                  in effect (the default).  Used to find Eclipse platform JARs
 #                  for compilation and, optionally, the p2 publisher.
 #   JAVA_HOME      Path to a JDK 21+ installation.  Defaults to whatever
@@ -42,7 +42,10 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-ROOT_DIR="$(cd "$(dirname "$0")" && pwd -P)"   # OpenJMLUI/
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"   # OpenJMLUI/
+
+# shellcheck source=eclipse-utils.sh
+. "$ROOT_DIR/eclipse-utils.sh"
 UI_DIR="$ROOT_DIR"
 FEATURE_DIR="$ROOT_DIR/../OpenJMLFeature"
 UPDATESITE_DIR="$ROOT_DIR/../OpenJMLUpdateSite"
@@ -54,21 +57,21 @@ BIN_DIR="$UI_DIR/bin"
 
 # Library JARs that are part of Bundle-ClassPath (must be present inside the
 # plugin JAR).  Keep in sync with MANIFEST.MF Bundle-ClassPath.
-LIBS=("jSMTLIB.jar" "jpaul-2.5.1.jar" "gson-2.8.1.jar")
+LIBS=("gson-2.8.1.jar")
 
 # ---------------------------------------------------------------------------
 # CLI parsing
 # ---------------------------------------------------------------------------
 VERSION_ARG=""
 OVERWRITE=0
-DO_BUILD=1      # --build is the default
+DO_COMPILE=1      # --compile is the default
 
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [--build|--no-build] [--version VERSION] [--overwrite] [--help]
+Usage: $(basename "$0") [--compile|--no-compile] [--version VERSION] [--overwrite] [--help]
 
-  --build              Compile src/ before packaging (default; needs ECLIPSE_HOME).
-  --no-build           Skip compilation; use existing bin/ contents.
+  --compile              Compile src/ before packaging (default; needs ECLIPSE_HOME).
+  --no-compile           Skip compilation; use existing bin/ contents.
   --version VERSION    Set Bundle/Feature version before building.
   --overwrite          Allow overwriting an existing output JAR of the same version.
   --help               Show this help and exit.
@@ -77,14 +80,17 @@ EOF
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --build)       DO_BUILD=1;  shift ;;
-        --no-build)    DO_BUILD=0;  shift ;;
+        --compile)       DO_COMPILE=1;  shift ;;
+        --no-compile)    DO_COMPILE=0;  shift ;;
         --version)     VERSION_ARG="$2"; shift 2 ;;
         --overwrite)   OVERWRITE=1; shift ;;
         --help|-h)     usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
     esac
 done
+
+# Auto-detect ECLIPSE_HOME if not set (needed for --compile and optional p2 step).
+find_eclipse_home || true
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -120,70 +126,12 @@ set_version_in_sources() {
     fi
 }
 
-# ---------------------------------------------------------------------------
-# Eclipse auto-detection: sets ECLIPSE_HOME if not already set.
-# Searches (in order):
-#   1. 'eclipse' binary on PATH  → derive home from its real location
-#   2. macOS /Applications/Eclipse*.app bundles
-# ---------------------------------------------------------------------------
-find_eclipse_home() {
-    [ -n "${ECLIPSE_HOME-}" ] && return 0   # already set
-
-    # 1. eclipse on PATH
-    if command -v eclipse >/dev/null 2>&1; then
-        local bin
-        bin="$(command -v eclipse)"
-        # Resolve symlinks so we find the real directory
-        if command -v realpath >/dev/null 2>&1; then
-            bin="$(realpath "$bin")"
-        fi
-        local bindir
-        bindir="$(dirname "$bin")"
-        # macOS app bundle: binary is in Contents/MacOS/, plugins in Contents/Eclipse/plugins/
-        for candidate in \
-                "$bindir/../Eclipse" \
-                "$bindir/../../Contents/Eclipse" \
-                "$bindir"; do
-            candidate="$(cd "$candidate" 2>/dev/null && pwd -P || true)"
-            if [ -d "$candidate/plugins" ]; then
-                ECLIPSE_HOME="$candidate"
-                echo "Auto-detected ECLIPSE_HOME from PATH: $ECLIPSE_HOME"
-                return 0
-            fi
-        done
-    fi
-
-    # 2. macOS /Applications — pick the newest Eclipse*.app
-    if [ "$(uname)" = "Darwin" ]; then
-        local app
-        for app in /Applications/Eclipse*.app /Applications/eclipse*.app; do
-            [ -d "$app/Contents/Eclipse/plugins" ] || continue
-            ECLIPSE_HOME="$app/Contents/Eclipse"
-            echo "Auto-detected ECLIPSE_HOME from Applications: $ECLIPSE_HOME"
-            return 0
-        done
-    fi
-
-    return 1   # not found
-}
 
 # ---------------------------------------------------------------------------
 # Build step: compile OpenJMLUI/src using javac + Eclipse platform JARs
 # ---------------------------------------------------------------------------
 build_plugin() {
     echo "--- Compiling OpenJMLUI ---"
-
-    find_eclipse_home || true
-
-    if [ -z "${ECLIPSE_HOME-}" ]; then
-        echo "ERROR: --build requires ECLIPSE_HOME (Eclipse not found on PATH or in /Applications)." >&2
-        exit 1
-    fi
-
-    if [ ! -d "$ECLIPSE_HOME" ]; then
-        echo "ERROR: ECLIPSE_HOME=$ECLIPSE_HOME does not exist." >&2
-        exit 1
-    fi
 
     # Locate javac (prefer JAVA_HOME)
     if [ -n "${JAVA_HOME-}" ] && [ -x "$JAVA_HOME/bin/javac" ]; then
@@ -311,12 +259,12 @@ for lib in "${LIBS[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-# Compile (unless --no-build)
+# Compile (unless --no-compile)
 # ---------------------------------------------------------------------------
-if [ "$DO_BUILD" -eq 1 ]; then
+if [ "$DO_COMPILE" -eq 1 ]; then
     build_plugin
 else
-    echo "--- Skipping compilation (--no-build) ---"
+    echo "--- Skipping compilation (--no-compile) ---"
     [ -d "$BIN_DIR" ] || echo "Warning: $BIN_DIR not found; plugin JAR will contain no compiled classes."
 fi
 
@@ -358,14 +306,16 @@ for lib in "${LIBS[@]}"; do
     [ -f "$UI_DIR/$lib" ] && cp "$UI_DIR/$lib" "$STAGE/"
 done
 
-# Bundle metadata and resources
-mkdir -p "$STAGE/META-INF"
-cp "$MANIFEST" "$STAGE/META-INF/MANIFEST.MF"
+# Bundle resources (NOT META-INF/MANIFEST.MF — passed via --manifest below)
 for item in plugin.xml icons html OSGI-INF; do
     [ -e "$UI_DIR/$item" ] && cp -a "$UI_DIR/$item" "$STAGE/"
 done
 
-(cd "$STAGE" && jar --create --file="$PLUGIN_JAR" .)
+# Use --manifest so the OSGi headers from MANIFEST.MF become the actual JAR
+# manifest.  Without this flag, 'jar --create' generates a default
+# "Manifest-Version: 1.0 / Created-By: ..." manifest and any META-INF/MANIFEST.MF
+# in the stage directory is silently overridden, stripping all OSGi headers.
+(cd "$STAGE" && jar --create --file="$PLUGIN_JAR" --manifest="$MANIFEST" .)
 echo "  -> $PLUGIN_JAR"
 
 # ---------------------------------------------------------------------------
@@ -400,12 +350,14 @@ if [ -n "$LAUNCHER_JAR" ]; then
     JAVACMD="${JAVA_HOME:+$JAVA_HOME/bin/}java"
     echo "--- Running p2 publisher ---"
     SITE_URI="file:$(cd "$UPDATESITE_DIR" && pwd -P)"
+    # Delete stale metadata so the publisher creates correct fresh files.
+    rm -f "$UPDATESITE_DIR/content.jar" "$UPDATESITE_DIR/artifacts.jar"
     "$JAVACMD" -jar "$LAUNCHER_JAR" -nosplash \
         -application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
         -metadataRepository "$SITE_URI" \
         -artifactRepository "$SITE_URI" \
-        -source "$SITE_URI" \
-        -publishArtifacts -compress -consolelog \
+        -source "$(cd "$UPDATESITE_DIR" && pwd -P)" \
+        -publishArtifacts -append -compress -consolelog \
         && echo "p2 metadata written to $UPDATESITE_DIR" \
         || echo "Warning: p2 publisher exited with errors; basic plugins/features layout is still valid." >&2
 else

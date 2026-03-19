@@ -38,7 +38,8 @@ Required:
 
 Options:
   --overwrite         Allow overwriting existing output JARs of the same version.
-  --no-build          Skip compilation; package whatever is already in bin/.
+  --no-compile        Skip compilation of OpenJMLUI source; package existing bin/ contents.
+  --no-publish        Skip copying to eclipse-update-site (build only).
   --no-p2             Skip p2 metadata regeneration in the pages site.
   -h, --help          Show this help and exit.
 
@@ -51,15 +52,17 @@ EOF
 VERSION=""
 OVERWRITE_FLAG=""
 BUILD_FLAG=""
+PUBLISH=1
 P2_FLAG=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --version)   VERSION="$2"; shift 2 ;;
-        --overwrite) OVERWRITE_FLAG="--overwrite"; shift ;;
-        --no-build)  BUILD_FLAG="--no-build"; shift ;;
-        --no-p2)     P2_FLAG="--no-p2"; shift ;;
-        -h|--help)   usage; exit 0 ;;
+        --version)    VERSION="$2"; shift 2 ;;
+        --overwrite)  OVERWRITE_FLAG="--overwrite"; shift ;;
+        --no-compile) BUILD_FLAG="--no-compile"; shift ;;
+        --no-publish) PUBLISH=0; shift ;;
+        --no-p2)      P2_FLAG="--no-p2"; shift ;;
+        -h|--help)    usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
     esac
 done
@@ -72,6 +75,23 @@ fi
 
 [ -x "$BUILD_SCRIPT" ]   || { echo "ERROR: not found/executable: $BUILD_SCRIPT" >&2; exit 1; }
 [ -x "$PUBLISH_SCRIPT" ] || { echo "ERROR: not found/executable: $PUBLISH_SCRIPT" >&2; exit 1; }
+
+# shellcheck source=eclipse-utils.sh
+. "$SCRIPT_DIR/eclipse-utils.sh"
+
+find_eclipse_home || true
+export ECLIPSE_HOME
+[ -n "${JAVA_HOME-}" ] && export JAVA_HOME
+
+if [ -z "${ECLIPSE_HOME-}" ]; then
+    echo "ERROR: ECLIPSE_HOME required for compilation (Eclipse not found on PATH or in /Applications)." >&2
+    exit 1
+fi
+
+if [ ! -d "$ECLIPSE_HOME" ]; then
+    echo "ERROR: ECLIPSE_HOME=$ECLIPSE_HOME does not exist." >&2
+    exit 1
+fi
 
 echo "=== OpenJML release $VERSION ==="
 
@@ -89,12 +109,15 @@ echo "--- Step 1/2: build ---"
 # ---------------------------------------------------------------------------
 # Step 3: copy JARs to pages site, regenerate p2 metadata
 # ---------------------------------------------------------------------------
-PUBLISH_CMD=("$PUBLISH_SCRIPT")
-[ -n "$P2_FLAG" ] && PUBLISH_CMD+=("$P2_FLAG")
-
 echo ""
-echo "--- Step 3: publish ---"
-( cd "$UI_DIR" && "${PUBLISH_CMD[@]}" )
+if [ "$PUBLISH" -eq 0 ]; then
+    echo "--- Step 3: publish skipped (--no-publish) ---"
+else
+    PUBLISH_CMD=("$PUBLISH_SCRIPT")
+    [ -n "$P2_FLAG" ] && PUBLISH_CMD+=("$P2_FLAG")
+    echo "--- Step 3: publish ---"
+    ( cd "$UI_DIR" && "${PUBLISH_CMD[@]}" )
+fi
 
 # ---------------------------------------------------------------------------
 echo ""
@@ -102,4 +125,6 @@ echo "=== Release $VERSION complete ==="
 echo ""
 echo "Next: review changes, then commit and push manually:"
 echo "  OpenJML repo  — MANIFEST.MF, feature.xml, category.xml"
-echo "  GH Pages repo — eclipse-update-site/"
+if [ "$PUBLISH" -eq 1 ]; then
+    echo "  GH Pages repo — eclipse-update-site/"
+fi

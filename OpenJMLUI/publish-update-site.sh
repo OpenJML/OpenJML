@@ -65,50 +65,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# ---------------------------------------------------------------------------
-# Eclipse auto-detection: sets ECLIPSE_HOME if not already set.
-# Searches (in order):
-#   1. 'eclipse' binary on PATH  → derive home from its real location
-#   2. macOS /Applications/Eclipse*.app bundles
-# ---------------------------------------------------------------------------
-find_eclipse_home() {
-    [ -n "${ECLIPSE_HOME-}" ] && return 0   # already set
-
-    # 1. eclipse on PATH
-    if command -v eclipse >/dev/null 2>&1; then
-        local bin
-        bin="$(command -v eclipse)"
-        if command -v realpath >/dev/null 2>&1; then
-            bin="$(realpath "$bin")"
-        fi
-        local bindir
-        bindir="$(dirname "$bin")"
-        for candidate in \
-                "$bindir/../Eclipse" \
-                "$bindir/../../Contents/Eclipse" \
-                "$bindir"; do
-            candidate="$(cd "$candidate" 2>/dev/null && pwd -P || true)"
-            if [ -d "$candidate/plugins" ]; then
-                ECLIPSE_HOME="$candidate"
-                echo "Auto-detected ECLIPSE_HOME from PATH: $ECLIPSE_HOME"
-                return 0
-            fi
-        done
-    fi
-
-    # 2. macOS /Applications — pick the first Eclipse*.app
-    if [ "$(uname)" = "Darwin" ]; then
-        local app
-        for app in /Applications/Eclipse*.app /Applications/eclipse*.app; do
-            [ -d "$app/Contents/Eclipse/plugins" ] || continue
-            ECLIPSE_HOME="$app/Contents/Eclipse"
-            echo "Auto-detected ECLIPSE_HOME from Applications: $ECLIPSE_HOME"
-            return 0
-        done
-    fi
-
-    return 1
-}
+# shellcheck source=eclipse-utils.sh
+. "$SCRIPT_DIR/eclipse-utils.sh"
 
 find_eclipse_home || true
 
@@ -143,6 +101,34 @@ echo "Features to copy: $FEATURE_COUNT"
 if [ "$PLUGIN_COUNT" -eq 0 ] && [ "$FEATURE_COUNT" -eq 0 ]; then
     echo "ERROR: no JAR files found to copy." >&2
     exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Clean up stale artifacts from old p2 publisher runs
+#
+# Old scripts used separate -metadataRepositoryLocation/-artifactRepositoryLocation
+# flags pointing to metadata/ and artifacts/ subdirectories, leaving stale
+# sub-repositories that confuse Eclipse.  Remove them unconditionally.
+# Also remove any expanded feature directories (keep only feature JARs).
+# ---------------------------------------------------------------------------
+echo "--- Cleaning up stale p2 sub-repositories ---"
+for stale_dir in "$DEST_DIR/artifacts" "$DEST_DIR/metadata"; do
+    if [ -d "$stale_dir" ]; then
+        echo "  Removing stale subdir: $stale_dir"
+        rm -rf "$stale_dir"
+    fi
+done
+# Remove expanded feature dirs (those without a .jar extension alongside the same name .jar)
+if [ -d "$DEST_DIR/features" ]; then
+    for d in "$DEST_DIR/features"/*/; do
+        [ -d "$d" ] || continue
+        bn="$(basename "$d")"
+        # If a JAR with the same name exists, the dir is the expanded form — remove it
+        if [ -f "$DEST_DIR/features/${bn}.jar" ]; then
+            echo "  Removing expanded feature dir (JAR exists): $bn"
+            rm -rf "$d"
+        fi
+    done
 fi
 
 # ---------------------------------------------------------------------------
@@ -247,23 +233,55 @@ set +e
     -application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
     -metadataRepository  "$DEST_URI" \
     -artifactRepository  "$DEST_URI" \
-    -source              "$DEST_URI" \
-    -publishArtifacts -compress -consolelog \
+    -source              "$(cd "$DEST_DIR" && pwd -P)" \
+    -publishArtifacts -append -compress -consolelog \
     >"$PUBLISH_LOG" 2>&1
 P2_STATUS=$?
 set -e
 
 if [ $P2_STATUS -eq 0 ]; then
-    echo "p2 metadata regenerated successfully."
+    echo "p2 FeaturesAndBundlesPublisher succeeded."
 else
     echo "" >&2
-    echo "WARNING: p2 publisher exited with status $P2_STATUS." >&2
+    echo "WARNING: p2 FeaturesAndBundlesPublisher exited with status $P2_STATUS." >&2
     echo "Publisher output (last 30 lines):" >&2
     tail -n 30 "$PUBLISH_LOG" >&2
     echo "" >&2
-    echo "The JARs were copied; only metadata regeneration failed." >&2
-    echo "You may still push and users can install via the directory listing," >&2
-    echo "but the update-site URL may not resolve cleanly in Eclipse." >&2
+    echo "The JARs were copied but metadata regeneration failed." >&2
+    echo "Eclipse will not be able to discover installable units." >&2
+fi
+
+# ---------------------------------------------------------------------------
+# Step 2: CategoryPublisher — adds category grouping to content.jar so that
+# features appear in Eclipse's "Install New Software" grouped view.
+# Without this step, features are invisible when "Group items by category" is on.
+# ---------------------------------------------------------------------------
+if [ $P2_STATUS -eq 0 ] && [ -f "$DEST_DIR/category.xml" ]; then
+    echo ""
+    echo "--- Running CategoryPublisher ---"
+    CATEGORY_URI="file://$(cd "$DEST_DIR" && pwd -P)/category.xml"
+
+    set +e
+    "$JAVA_CMD" -jar "$LAUNCHER_JAR" -nosplash \
+        -application org.eclipse.equinox.p2.publisher.CategoryPublisher \
+        -metadataRepository  "$DEST_URI" \
+        -categoryDefinition  "$CATEGORY_URI" \
+        -compress -consolelog \
+        >>"$PUBLISH_LOG" 2>&1
+    CAT_STATUS=$?
+    set -e
+
+    if [ $CAT_STATUS -eq 0 ]; then
+        echo "CategoryPublisher succeeded — feature will appear in grouped view."
+    else
+        echo "" >&2
+        echo "WARNING: CategoryPublisher exited with status $CAT_STATUS." >&2
+        echo "Publisher output (last 20 lines):" >&2
+        tail -n 20 "$PUBLISH_LOG" >&2
+        echo "" >&2
+        echo "Feature may not appear in Eclipse 'Install New Software' grouped view." >&2
+        echo "Users can still install if they uncheck 'Group items by category'." >&2
+    fi
 fi
 
 # Remove the log file the publisher may have written into DEST_DIR

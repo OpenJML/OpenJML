@@ -149,7 +149,7 @@ fi
 echo ""
 echo "--- Library JAR checks ---"
 
-for lib in jSMTLIB.jar jpaul-2.5.1.jar gson-2.8.1.jar; do
+for lib in gson-2.8.1.jar; do
     [ -f "$WORK_DIR/$lib" ] \
         && check_pass "$lib present" \
         || check_fail "$lib missing from plugin JAR"

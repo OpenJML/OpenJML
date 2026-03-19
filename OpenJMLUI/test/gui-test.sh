@@ -27,7 +27,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-ECLIPSE_APP_SRC=""   # empty = auto-detect
+ECLIPSE_APP_SRC="/Users/davidcok/eclipse/eclipse-committers-2026-03-R-macosx-cocoa-x86_64-pure/Eclipse.app"
 UPDATE_SITE_DIR="$REPO_ROOT/../OpenJMLUpdateSite"
 TMP_BASE="/tmp/openjml-gui-test"
 VERBOSE=0
@@ -53,33 +53,8 @@ Grant Accessibility permission to Terminal in:
 EOF
 }
 
-# ---------------------------------------------------------------------------
-# Auto-detect Eclipse.app on macOS
-# ---------------------------------------------------------------------------
-find_eclipse_app() {
-  # 1. Look for 'eclipse' binary on PATH, resolve back to .app bundle
-  if command -v eclipse >/dev/null 2>&1; then
-    local bin
-    bin="$(command -v eclipse)"
-    bin="$(realpath "$bin" 2>/dev/null || readlink -f "$bin" 2>/dev/null || echo "$bin")"
-    # Strip /Contents/MacOS/eclipse or /Contents/Eclipse/eclipse to get .app
-    local candidate
-    candidate="${bin%/Contents/MacOS/eclipse}"
-    candidate="${candidate%/Contents/Eclipse/eclipse}"
-    if [ -d "$candidate" ] && [[ "$candidate" == *.app ]]; then
-      echo "$candidate"
-      return 0
-    fi
-  fi
-
-  # 2. Check /Applications/ for Eclipse*.app bundles
-  local app
-  for app in /Applications/Eclipse*.app; do
-    [ -d "$app" ] && echo "$app" && return 0
-  done
-
-  return 1
-}
+# shellcheck source=../eclipse-utils.sh
+. "$SCRIPT_DIR/../eclipse-utils.sh"
 
 # ---------------------------------------------------------------------------
 # Parse arguments
@@ -101,12 +76,12 @@ TMP_WS="$TMP_BASE/workspace"
 # ---------------------------------------------------------------------------
 # Resolve Eclipse source app
 # ---------------------------------------------------------------------------
-if [ -z "$ECLIPSE_APP_SRC" ]; then
-  if ! ECLIPSE_APP_SRC="$(find_eclipse_app)"; then
-    err "Could not auto-detect Eclipse.app. Use --eclipse-app PATH."
-    exit 2
+if [ ! -d "$ECLIPSE_APP_SRC" ]; then
+  # Default not found — try auto-detection
+  if DETECTED="$(find_eclipse_app 2>/dev/null)"; then
+    ECLIPSE_APP_SRC="$DETECTED"
+    echo "Auto-detected Eclipse: $ECLIPSE_APP_SRC"
   fi
-  echo "Auto-detected Eclipse: $ECLIPSE_APP_SRC"
 fi
 
 if [ ! -d "$ECLIPSE_APP_SRC" ]; then
