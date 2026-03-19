@@ -31,6 +31,9 @@ https://github.com/OpenJML/OpenJML
 
    <plugin
          id="org.openjml.OpenJMLUI"
-         version="0.21.0"/>
+         version="0.21.0"
+         download-size="0"
+         install-size="0"
+         unpack="false"/>
 
 </feature>
