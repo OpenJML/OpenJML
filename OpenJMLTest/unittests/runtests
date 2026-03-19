@@ -21,7 +21,7 @@ function ctrl_c() {
 
 F=$(realpath "$BASH_SOURCE")
 R=$(dirname "$F")
-export ROOT=$(cd "$R/../../OpenJMLsrc" ; pwd)
+export ROOT=$(cd "$R/../../OpenJMLsrc" && pwd -P)
 JROOT="$R/../libs"
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"
 export NJAVAC=$(echo "$ROOT"/build/*/jdk/bin/javac)
@@ -61,7 +61,7 @@ while true; do
   break
 done
 
-SPECS=$(cd "$ROOT/../../Specs/specs" ; pwd)
+SPECS=$(cd "$ROOT/../../Specs/specs" && pwd -P)
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
