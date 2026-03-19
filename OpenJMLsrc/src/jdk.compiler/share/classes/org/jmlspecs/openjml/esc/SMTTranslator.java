@@ -1501,6 +1501,20 @@ public class SMTTranslator extends JmlTreeScanner {
 
     }
     
+    public static class ScanQuant extends JmlTreeScanner {
+        boolean hasQuant;
+        public boolean check(JCExpression e) { hasQuant = false; scan(e); return hasQuant; }
+        @Override
+        public void visitJmlQuantifiedExpr(JmlQuantifiedExpr e) { hasQuant = true; }
+    };
+
+    
+    public boolean containsQuant(JCExpression e) {
+        if (e instanceof JmlQuantifiedExpr) return true;
+        var scan = new ScanQuant();
+        return scan.check(e);
+    }
+    
     // FIXME - things ought to work equivalently with this variable flase
     public static boolean useFcnDef = true;
     
@@ -1510,9 +1524,8 @@ public class SMTTranslator extends JmlTreeScanner {
      * @param stat
      */
     public void convertDeclaration(JCStatement stat) {
-        if (stat instanceof JmlVariableDecl) {
+        if (stat instanceof JmlVariableDecl decl) {
             try {
-                JmlVariableDecl decl = (JmlVariableDecl)stat;
                 // convert to a declaration or definition
                 IExpr init = null;
                 if (useFcnDef) init = decl.init == null ? null : convertExpr(decl.init);
@@ -1526,7 +1539,11 @@ public class SMTTranslator extends JmlTreeScanner {
                             sym,
                             emptyList,
                             sort));
-                } else if (decl.init instanceof JmlQuantifiedExpr) {
+                } else if (containsQuant(decl.init)) {
+                    // When determining model values of a failed proof, SMT (or at least Z3) objects to 
+                    // asking for values of variables that have been defined by a define-fun where the
+                    // initialization expression contains a quantified expression. It works OK to 
+                    // declare the variable and assert it is equal to its initializer
                     commands.add(new C_declare_fun(
                             sym,
                             emptyList,
