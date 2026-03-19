@@ -20602,6 +20602,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         		convertedArg = treeutils.makeAnd(arg.pos, treeutils.makeNeqObject(arg.pos, convertedArg, treeutils.nullLit),
         				treeutils.makeJmlMethodInvocation(arg, nonnullelementsKind, arg.type, convertedArg));
         	} else {
+
         		// Having the SMT solver implement a definition for \nonnullelementes causes it
         		// at least Z3 to timeout. So we insert the definition directly.
         		int p = arg.pos;
@@ -20622,34 +20623,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         		// FIXME _ for now don't use a let: there are problems translating it
         		// id0 = arg;
 
-        		JCVariableDecl vd = newTempDecl(arg, syms.intType);
-        		JCExpression z = treeutils.makeIntLiteral(p, 0);
-        		JCExpression id1 = treeutils.makeIdent(p, vd.sym);
-        		JCExpression id2 = treeutils.makeIdent(p, vd.sym);
-        		JCExpression al = treeutils.makeArrayLength(p, id0);
-        		JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
-        		JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, al);
-        		JCExpression element = treeutils.makeArrayElement(p, id0,
-        				treeutils.makeIdent(p, vd.sym));
-        		JCExpression nnull = treeutils.makeNotNull(p, element);
-        		if (addingAssumptionsForFormals) {
-        	          JCExpression notfr = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.makeSelect(p, element, allocSym),
-        	                    treeutils.makeIntLiteral(p, 0));
-        	          nnull = treeutils.makeAnd(p, nnull, notfr);
-        		}
-        		JCExpression ex = M.JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd),
-        				treeutils.makeAnd(p, a, b), nnull);
-        		ex.pos = p;
-        		ex.type = syms.booleanType;
-        		ex = treeutils.makeAnd(p, treeutils.makeNotNull(p, copy(convertedArg)), convertExpr(ex));
-//                                JCExpression let = M.LetExpr(vd0, ex);
-//                                let.pos = p;
-//                                let.type  = ex.type;
-//                                ex = let;
-        		convertedArg = ex;
+//                boolean savedSplit = this.splitExpressions;
+//                this.splitExpressions = false;
+                
+                convertedArg = nnelemRec(arg, convertedArg);
+        		
+//                this.splitExpressions = savedSplit;
         	}
         }
         return convertedArg;
+    }
+    
+    private JCExpression nnelemRec(DiagnosticPosition pos, JCExpression arr) {
+        int p = pos.getPreferredPosition();
+        JCExpression cex = treeutils.makeNotNull(p, arr);
+        if (!(arr.type instanceof Type.ArrayType at)) return cex;
+        Type et = at.elemtype;
+        if (et.isPrimitive()) return cex;
+        
+        JCVariableDecl vd = newTempDecl(pos, syms.intType);
+        JCExpression z = treeutils.makeIntLiteral(p, 0);
+        JCExpression id1 = treeutils.makeIdent(p, vd.sym);
+        JCExpression id2 = treeutils.makeIdent(p, vd.sym);
+        JCExpression al = treeutils.makeArrayLength(p, arr);
+        JCExpression a = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.intleSymbol, z, id1);
+        JCExpression b = treeutils.makeBinary(p, JCTree.Tag.LT, treeutils.intltSymbol, id2, al);
+
+        JCExpression element = new JmlBBArrayAccess(null, arr, treeutils.makeIdent(p, vd.sym));
+        element.pos = p;
+        element.type = et;
+        JCExpression nnull = nnelemRec(pos, element);
+        JCExpression ex = M.JmlQuantifiedExpr(qforallKind, List.<JCVariableDecl>of(vd),
+                treeutils.makeAnd(p, a, b), nnull);
+        ex.pos = p;
+        ex.type = syms.booleanType;
+        return treeutils.makeAnd(p, cex, ex);
     }
 	
 	public Name normalizeLabel(JCExpression arg, Name defaultLabel, DiagnosticPosition altpos) {
