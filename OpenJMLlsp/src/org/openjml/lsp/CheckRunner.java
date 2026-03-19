@@ -117,7 +117,7 @@ public class CheckRunner {
     public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode,
                                Map<String, IProverResult.Kind> proofResults,
                                List<String> foreignMessages,
-                               Map<String, List<org.eclipse.lsp4j.Diagnostic>> companionDiagnostics) {
+                               Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiagnostics) {
         /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
         public boolean isInternalError() { return exitCode == 4; }
         /** Returns {@code true} when OpenJML rejected the command line — indicates a server bug. */
@@ -606,10 +606,10 @@ public class CheckRunner {
                     listener.toLspDiagnosticsAll(compiledPathToRealUri);
             List<org.eclipse.lsp4j.Diagnostic> primaryDiags =
                     allDiags.getOrDefault(uri, List.of());
-            allDiags.remove(uri);   // companions = everything except the primary
+            // keep uri in allDiags — allDiagnostics covers all compiled files including primary
             if ("--check".equals(modeFlag)) {
-                int companionFiles  = compiledPathToRealUri.size() - 1;  // minus primary
-                int companionTotal  = allDiags.values().stream().mapToInt(List::size).sum();
+                int companionFiles  = allDiags.size() - 1;  // minus primary
+                int companionTotal  = allDiags.values().stream().mapToInt(List::size).sum() - primaryDiags.size();
                 String companionNote = companionFiles > 0
                         ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
                         : "";

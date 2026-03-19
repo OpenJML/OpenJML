@@ -27,19 +27,21 @@ public class FoldingRangeProvider {
 
     /**
      * Matches a JML line comment: optional whitespace, then {@code //} followed by
-     * an optional sequence of conditional keys ({@code [+-][a-zA-Z][a-zA-Z0-9_]*}),
-     * then {@code @}.  Examples: {@code //@}, {@code //+ESC@}, {@code //-JML@}.
+     * optional whitespace, then an optional sequence of conditional keys
+     * ({@code [+-][a-zA-Z][a-zA-Z0-9_]*}), then {@code @}.
+     * Examples: {@code //@}, {@code // @}, {@code //+ESC@}, {@code //-JML@}.
      */
     private static final Pattern JML_LINE_COMMENT =
-            Pattern.compile("^[ \\t]*//([+-][a-zA-Z][a-zA-Z0-9_]*)*@");
+            Pattern.compile("^[ \\t]*//[ \\t]*([+-][a-zA-Z][a-zA-Z0-9_]*)*@");
 
     /**
      * Matches the start of a JML block comment: optional whitespace, then {@code /*}
-     * followed by an optional sequence of conditional keys, then {@code @}.
-     * Examples: {@code /*@}, {@code /*+ESC@}, {@code /* @} (space treated as no keys).
+     * followed by optional whitespace, then an optional sequence of conditional keys,
+     * then {@code @}.
+     * Examples: {@code /*@}, {@code /* @}, {@code /*+ESC@}.
      */
     private static final Pattern JML_BLOCK_COMMENT_START =
-            Pattern.compile("^[ \\t]*/\\*([+-][a-zA-Z][a-zA-Z0-9_]*)*@");
+            Pattern.compile("^[ \\t]*/\\*[ \\t]*([+-][a-zA-Z][a-zA-Z0-9_]*)*@");
 
     /**
      * Scan {@code source} and return folding ranges for JML annotation blocks.

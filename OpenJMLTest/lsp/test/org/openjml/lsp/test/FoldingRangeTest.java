@@ -158,6 +158,46 @@ public class FoldingRangeTest {
     }
 
     // -----------------------------------------------------------------------
+    // Space-variant JML markers  (// @ and /* @)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testSpaceAfterSlashes() {
+        // "// @" is a valid JML line comment marker.
+        String source =
+                "    // @ requires x > 0;\n" +
+                "    // @ ensures \\result > 0;\n" +
+                "    public int foo(int x) { return x; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(1, fs.get(0).getEndLine());
+    }
+
+    @Test
+    public void testSpaceAfterSlashStar() {
+        // "/* @" is a valid JML block comment start.
+        String source =
+                "    /* @ requires x > 0;\n" +   // line 0
+                "       @ ensures \\result > 0;\n" + // line 1
+                "       @*/\n" +                  // line 2
+                "    public int foo(int x) { return x; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(2, fs.get(0).getEndLine());
+    }
+
+    @Test
+    public void testSpaceSingleLine_noFold() {
+        // Single "// @" line — no fold.
+        String source =
+                "    // @ requires x > 0;\n" +
+                "    public int foo(int x) { return x; }\n";
+        assertTrue(folds(source).isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
     // Leading whitespace
     // -----------------------------------------------------------------------
 

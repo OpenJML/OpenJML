@@ -373,7 +373,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = lastContent.get(uri);
-        if (content == null) return CompletableFuture.completedFuture(List.of());
+        if (content == null) {
+            // Not yet in memory (request arrived before didOpen) — read from disk.
+            String path = CheckRunner.uriToPath(uri);
+            if (path == null) return CompletableFuture.completedFuture(List.of());
+            try {
+                content = java.nio.file.Files.readString(java.nio.file.Path.of(path));
+            } catch (java.io.IOException e) {
+                return CompletableFuture.completedFuture(List.of());
+            }
+        }
         return CompletableFuture.completedFuture(FoldingRangeProvider.fromSource(content));
     }
 
@@ -1125,10 +1134,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleCheckFile(String uri) {
-        // .jml files are spec files; redirect check to companion .java
+        // .jml files are spec files; redirect check to companion .java.
+        // Use content-based check so companion diagnostics (including .jml markers) are updated.
         if (uri.endsWith(".jml")) {
-            String javaUri = resolveCompanionJavaUri(uri, null);  // reads content from disk
-            if (javaUri != null) scheduleCheckFile(javaUri);
+            String javaUri = resolveCompanionJavaUri(uri, null);
+            if (javaUri == null) return;
+            String javaContent = lastContent.get(javaUri);
+            if (javaContent != null) {
+                executor.submit(() -> runCheckContent(javaUri, javaContent));
+            } else {
+                // java file not open; fall back to file-based check for java
+                scheduleCheckFile(javaUri);
+            }
+            return;
+        }
+        // For .java files: prefer content-based check if the file is open in memory,
+        // so that the current (possibly unsaved) .jml companion content is also checked.
+        String openContent = lastContent.get(uri);
+        if (openContent != null) {
+            executor.submit(() -> runCheckContent(uri, openContent));
             return;
         }
         String filePath = CheckRunner.uriToPath(uri);
@@ -1249,20 +1273,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // their current in-memory versions rather than the on-disk saved versions.
             CheckRunner.CheckResult result = CheckRunner.checkWithContext(
                     uri, content, lastContent, settings);
-            checkDiags.put(uri, result.diagnostics());
-            publishMerged(uri);
-            // Update diagnostics for all dependency files that were actually attributed
-            // during this compilation run (the compiler's own AST list, not O(n) re-checks).
-            result.companionDiagnostics().forEach((otherUri, diags) -> {
-                if (lastContent.containsKey(otherUri)) {
-                    checkDiags.put(otherUri, diags);
-                    publishMerged(otherUri);
-                    // Mark companion as checked so focus-triggered rechecks skip it
-                    // (it was already compiled alongside the primary file with up-to-date content).
-                    String companionContent = lastContent.get(otherUri);
-                    if (companionContent != null) lastCheckedContent.put(otherUri, companionContent);
-                }
+            // Publish diagnostics for all compiled files (primary + companions) uniformly.
+            result.allDiagnostics().forEach((diagUri, diags) -> {
+                checkDiags.put(diagUri, diags);
+                publishMerged(diagUri);
+                String c = lastContent.get(diagUri);
+                if (c != null) lastCheckedContent.put(diagUri, c);
             });
+            // If allDiagnostics is empty (non-context check), fall back to primary.
+            if (result.allDiagnostics().isEmpty()) {
+                checkDiags.put(uri, result.diagnostics());
+                publishMerged(uri);
+            }
             // Do NOT call refreshCodeLenses() here.
         } catch (Throwable t) {
             System.err.println("[OpenJML] check failed for " + uri + ": " + t);

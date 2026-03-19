@@ -33,10 +33,20 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Set<org.eclipse.core.runtime.IPath> triggered =
             java.util.Collections.synchronizedSet(new java.util.HashSet<>());
 
+    /** JML folding managers keyed by editor part, for cleanup on close. */
+    private final java.util.Map<IEditorPart, JmlFoldingManager> foldingManagers =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     @Override public void partOpened(IWorkbenchPartReference ref) { handlePart(ref); }
     @Override public void partActivated(IWorkbenchPartReference ref) { handlePart(ref); }
     @Override public void partBroughtToTop(IWorkbenchPartReference ref) {}
-    @Override public void partClosed(IWorkbenchPartReference ref) {}
+    @Override public void partClosed(IWorkbenchPartReference ref) {
+        IWorkbenchPart part = ref.getPart(false);
+        if (part instanceof IEditorPart ep) {
+            JmlFoldingManager mgr = foldingManagers.remove(ep);
+            if (mgr != null) mgr.dispose();
+        }
+    }
     @Override public void partDeactivated(IWorkbenchPartReference ref) {}
     @Override public void partHidden(IWorkbenchPartReference ref) {}
     @Override public void partVisible(IWorkbenchPartReference ref) {}
@@ -50,6 +60,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         IFile file = ((IFileEditorInput) input).getFile();
         String ext = file.getFileExtension();
         if (!"java".equals(ext) && !"jml".equals(ext)) return;
+
+        // Install JML annotation folding (once per editor instance).
+        if (part instanceof IEditorPart ep && !foldingManagers.containsKey(ep)) {
+            setupFolding(ep);
+        }
 
         org.eclipse.core.runtime.IPath path = file.getFullPath();
         if (!triggered.add(path)) return;
@@ -108,6 +123,28 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             System.err.println("[OpenJML] LspPartListener: start/connect failed: " + t);
             t.printStackTrace(System.err);
         }
+    }
+
+    /**
+     * Installs JML annotation folding on the given editor.  We delay one event-loop
+     * tick so the editor's ProjectionViewer is fully initialised before we query it.
+     */
+    private void setupFolding(IEditorPart editor) {
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            try {
+                Object adapted = editor.getAdapter(org.eclipse.jface.text.ITextOperationTarget.class);
+                if (!(adapted instanceof org.eclipse.jface.text.source.projection.ProjectionViewer pv))
+                    return;
+                JmlFoldingManager mgr = JmlFoldingManager.install(pv);
+                if (mgr != null) {
+                    foldingManagers.put(editor, mgr);
+                    System.err.println("[OpenJML] JML folding installed for "
+                            + editor.getEditorInput().getName());
+                }
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] setupFolding failed: " + t);
+            }
+        });
     }
 
     /**
