@@ -133,7 +133,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             }
             org.eclipse.core.runtime.IConfigurationElement ourCE = null;
             for (org.eclipse.core.runtime.IExtension ext : ep.getExtensions()) {
-                if ("OpenJMLUI".equals(ext.getContributor().getName())) {
+                if ("org.openjml.OpenJMLUI".equals(ext.getContributor().getName())) {
                     for (org.eclipse.core.runtime.IConfigurationElement ce
                             : ext.getConfigurationElements()) {
                         if ("languageServer".equals(ce.getName())) {
@@ -273,33 +273,61 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
     private static void connectDocumentToWrapper(Object wrapper, org.eclipse.jface.text.IDocument doc,
             IFile file, ClassLoader lsp4eLoader) {
-        // Try connect(IDocument, IFile) first, then connectDocument(IDocument).
+        // Walk the full class hierarchy so inherited methods are found.
         Class<?> wrapperClass = wrapper.getClass();
+        java.util.List<java.lang.reflect.Method> allMethods = new java.util.ArrayList<>();
+        for (Class<?> c = wrapperClass; c != null && c != Object.class; c = c.getSuperclass()) {
+            allMethods.addAll(java.util.Arrays.asList(c.getDeclaredMethods()));
+        }
+
+        // Log all available connect-like methods to help diagnose signature mismatches.
+        for (java.lang.reflect.Method m : allMethods) {
+            if (m.getName().startsWith("connect")) {
+                System.err.println("[OpenJML] wrapper has: " + m.getName()
+                        + java.util.Arrays.toString(m.getParameterTypes()));
+            }
+        }
+
+        org.eclipse.core.runtime.IPath ipath = file.getFullPath();
+
         for (String methodName : new String[]{"connect", "connectDocument"}) {
-            for (java.lang.reflect.Method m : wrapperClass.getDeclaredMethods()) {
+            for (java.lang.reflect.Method m : allMethods) {
                 if (!m.getName().equals(methodName)) continue;
                 m.setAccessible(true);
+                Class<?>[] pts = m.getParameterTypes();
                 try {
-                    if (m.getParameterCount() == 2
-                            && m.getParameterTypes()[0].getSimpleName().equals("IDocument")) {
-                        m.invoke(wrapper, doc, file);
-                        System.err.println("[OpenJML] " + methodName + "(doc, file) called for "
+                    // LSP4E 0.19+: connect(IPath, IDocument)
+                    if (pts.length == 2
+                            && pts[0].getSimpleName().equals("IPath")
+                            && pts[1].getSimpleName().equals("IDocument")) {
+                        m.invoke(wrapper, ipath, doc);
+                        System.err.println("[OpenJML] " + methodName + "(IPath, IDocument) called for "
                                 + file.getName());
                         return;
                     }
-                    if (m.getParameterCount() == 1
-                            && m.getParameterTypes()[0].getSimpleName().equals("IDocument")) {
+                    // connect(IDocument, IFile/IPath) — doc first
+                    if (pts.length == 2
+                            && pts[0].getSimpleName().equals("IDocument")) {
+                        m.invoke(wrapper, doc, file);
+                        System.err.println("[OpenJML] " + methodName + "(IDocument, file) called for "
+                                + file.getName());
+                        return;
+                    }
+                    // connect(IDocument)
+                    if (pts.length == 1
+                            && pts[0].getSimpleName().equals("IDocument")) {
                         m.invoke(wrapper, doc);
-                        System.err.println("[OpenJML] " + methodName + "(doc) called for "
+                        System.err.println("[OpenJML] " + methodName + "(IDocument) called for "
                                 + file.getName());
                         return;
                     }
                 } catch (Exception e) {
-                    System.err.println("[OpenJML] " + methodName + "() failed: " + e);
+                    System.err.println("[OpenJML] " + methodName + "() invocation failed: " + e);
                 }
             }
         }
-        System.err.println("[OpenJML] No connect method found on wrapper");
+        System.err.println("[OpenJML] No connect method matched on "
+                + wrapperClass.getName() + " for " + file.getName());
     }
 
     private void openGenericEditor(IFile file) {

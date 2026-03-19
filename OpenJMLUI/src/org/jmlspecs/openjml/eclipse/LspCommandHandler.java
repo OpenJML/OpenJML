@@ -50,14 +50,31 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         IFile file = ((IFileEditorInput) editor.getEditorInput()).getFile();
         String uri  = file.getLocationURI().toString();
-        
+
         Console.log(lspCommand);
-        
+
+        // Obtain the IDocument from the file buffer so we can route via forDocument(),
+        // which works even before LspPartListener has connected the document explicitly.
+        org.eclipse.jface.text.IDocument doc = null;
+        org.eclipse.core.filebuffers.ITextFileBuffer buf =
+                org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
+                        .getTextFileBuffer(file.getFullPath(),
+                                org.eclipse.core.filebuffers.LocationKind.IFILE);
+        if (buf != null) doc = buf.getDocument();
+
+        final org.eclipse.jface.text.IDocument finalDoc = doc;
         buildParams(uri, file, event).thenAccept(params -> {
             if (params == null) return;
-            LanguageServers.forProject(file.getProject())
-                .computeFirst(server ->
-                    server.getWorkspaceService().executeCommand(params));
+            if (finalDoc != null) {
+                LanguageServers.forDocument(finalDoc)
+                    .computeFirst(server ->
+                        server.getWorkspaceService().executeCommand(params));
+            } else {
+                // Fallback: route by project
+                LanguageServers.forProject(file.getProject())
+                    .computeFirst(server ->
+                        server.getWorkspaceService().executeCommand(params));
+            }
         });
         return null;
     }
@@ -131,11 +148,19 @@ public abstract class LspCommandHandler extends AbstractHandler {
             Console.errorlog(lspCommand);
 
             if (file != null) {
-                LanguageServers.forProject(file.getProject())
-                    .computeFirst(server ->
-                        server.getWorkspaceService().executeCommand(
-                                new ExecuteCommandParams("openjml.clearAndReindex",
-                                        List.of())));
+                org.eclipse.core.filebuffers.ITextFileBuffer buf2 =
+                        org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
+                                .getTextFileBuffer(file.getFullPath(),
+                                        org.eclipse.core.filebuffers.LocationKind.IFILE);
+                org.eclipse.jface.text.IDocument doc2 = (buf2 != null) ? buf2.getDocument() : null;
+                ExecuteCommandParams p = new ExecuteCommandParams("openjml.clearAndReindex", List.of());
+                if (doc2 != null) {
+                    LanguageServers.forDocument(doc2).computeFirst(server ->
+                            server.getWorkspaceService().executeCommand(p));
+                } else {
+                    LanguageServers.forProject(file.getProject()).computeFirst(server ->
+                            server.getWorkspaceService().executeCommand(p));
+                }
             } else {
                 Console.log("OpenJML: no active editor — cannot route clearAndReindex");
             }

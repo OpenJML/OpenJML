@@ -8,5 +8,10 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OpenJMLlsp"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.core.filebuffers.jar"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4j.jar"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4j.jsonrpc.jar"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4e.jar"/>
+	<classpathentry kind="lib" path="compile-deps/gson-2.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

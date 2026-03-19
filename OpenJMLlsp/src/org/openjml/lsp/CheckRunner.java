@@ -495,6 +495,7 @@ public class CheckRunner {
             String modeFlag, String methodName, boolean collectProofResults) {
 
         var listener = new LspDiagnosticListener();
+        listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
         var out      = new PrintWriter(new StringWriter());
         var api      = IAPI.make(out, listener);
 
@@ -635,6 +636,7 @@ public class CheckRunner {
             String uri, String content, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults) {
         var listener = new LspDiagnosticListener();
+        listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
 

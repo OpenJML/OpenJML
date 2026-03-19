@@ -11,32 +11,25 @@
            id="org.jmlspecs.openjml.eclipse.SettingsPage"
            name="%openjml.ui.PreferencePage">
      </page>
-     <!-- Legacy page (requires old OpenJML JARs on classpath) -->
-     <page
-           class="org.jmlspecs.openjml.eclipse.PreferencesPage"
+     <!-- Legacy preference sub-pages moved to oldsrc; comment back in when resurrected -->
+     <!--
+     <page class="org.jmlspecs.openjml.eclipse.PreferencesPage"
            id="org.jmlspecs.openjml.eclipse.LegacySettingsPage"
            category="org.jmlspecs.openjml.eclipse.SettingsPage"
-           name="Legacy OpenJML Options">
-     </page>
-     <page
-           class="org.jmlspecs.openjml.eclipse.JobControlPage"
+           name="Legacy OpenJML Options"/>
+     <page class="org.jmlspecs.openjml.eclipse.JobControlPage"
            id="org.jmlspecs.openjml.eclipse.JobControlPage"
            category="org.jmlspecs.openjml.eclipse.SettingsPage"
-           name="%openjml.ui.PreferencePage.JobControl">
-     </page>
-     <page
-           class="org.jmlspecs.openjml.eclipse.SolversPage"
+           name="%openjml.ui.PreferencePage.JobControl"/>
+     <page class="org.jmlspecs.openjml.eclipse.SolversPage"
            id="org.jmlspecs.openjml.eclipse.SolversPage"
            category="org.jmlspecs.openjml.eclipse.SettingsPage"
-           name="%openjml.ui.PreferencePage.Solvers">
-     </page>
-
-     <page
-           class="org.jmlspecs.openjml.eclipse.StrongarmPage"
+           name="%openjml.ui.PreferencePage.Solvers"/>
+     <page class="org.jmlspecs.openjml.eclipse.StrongarmPage"
            id="org.jmlspecs.openjml.eclipse.StrongarmPage"
            category="org.jmlspecs.openjml.eclipse.SettingsPage"
-           name="%openjml.ui.PreferencePage.Strongarm">
-     </page>
+           name="%openjml.ui.PreferencePage.Strongarm"/>
+     -->
   </extension>
 
   <!-- Activate this bundle early so LspPartListener registers before any files are opened -->
@@ -55,14 +48,25 @@
            priority="high"/>
   </extension>
 
-  <!-- Register the jmlSource content-type with the regular Java editor -->
-  <extension point="org.eclipse.ui.editors">
-    <editorContentTypeBinding 
-         contentTypeId="org.jmlspecs.openjml.jmlSource" 
-         editorId="org.eclipse.jdt.ui.CompilationUnitEditor">
-    </editorContentTypeBinding>
+  <!-- .jml files open in the Generic Editor (not JDT's Java editor) so that
+       TM4E syntax coloring and LSP4E integration work properly.
+       JDT's Java editor ignores TM4E grammars and LSP4E semantic tokens. -->
+
+  <!-- TM4E syntax coloring for .jml files -->
+  <extension point="org.eclipse.tm4e.registry.grammars">
+    <!-- Grammar for standalone .jml spec files (delegates to source.java for base coloring) -->
+    <grammar scopeName="source.jml"
+             path="syntaxes/jml-file.tmLanguage.json"/>
+    <!-- Injection grammar: adds JML keyword coloring inside //@ and /*@ Java comments -->
+    <grammar scopeName="source.jml.injection"
+             path="syntaxes/jml.tmLanguage.json"/>
   </extension>
-  
+
+  <extension point="org.eclipse.tm4e.registry.grammarDefinitions">
+    <scopeNameContentTypeBinding
+          scopeName="source.jml"
+          contentTypeId="org.jmlspecs.openjml.jmlSource"/>
+  </extension>
 
   <!-- LSP4E integration: connect Java and .jml source files to the openjml-lsp server -->
   <extension point="org.eclipse.lsp4e.languageServer">
@@ -207,7 +211,7 @@
   <extension
       point="org.eclipse.ui.console.consoleFactories">
     <consoleFactory
-         class="org.jmlspecs.openjml.eclipse.Console$Factory"
+         class="org.jmlspecs.openjml.eclipse.Console$ConsoleFactory"
          icon="icons/jml-logo-16x16.png"
          label="%consoleFactory.label">
     </consoleFactory>
@@ -1377,15 +1381,6 @@
            class="org.jmlspecs.openjml.eclipse.OpenJMLView"
            id="org.openjml.proofview"
            name="%view.name"
-           icon="icons/jml-logo-16x16.png"
-           allowMultiple="false"
-           restorable="true">
-     </view>
-     <view
-           category="org.openjml.views"
-           class="org.jmlspecs.openjml.eclipse.TraceView"
-           id="org.openjml.traceview"
-           name="%view.name.0"
            icon="icons/jml-logo-16x16.png"
            allowMultiple="false"
            restorable="true">

@@ -35,7 +35,8 @@ public class Console {
         /** The Factory method invoked by Eclipse when asked to create a new console */
         @Override
         public void openConsole() {
-            getJMLConsole(); 
+            getJMLConsole();
+            Console.show();
         }
 
         /** Returns the JML Console, creating it if necessary; 'show's it if the argument is true. */

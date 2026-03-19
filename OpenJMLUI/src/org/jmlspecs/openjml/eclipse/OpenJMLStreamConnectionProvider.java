@@ -42,7 +42,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      *   1. User preference (Options.lspServerPathKey)
      *   2. Directory of the Eclipse install (Platform.getInstallLocation)
      */
-    private static String findServerPath() {
+    public static String findServerPath() {
         String pref = OpenJMLOptions.value(OpenJMLOptions.lspServerPathKey);
         if (pref != null && !pref.isBlank()) {
             return pref;
@@ -65,6 +65,12 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     @Override
     public void start() throws IOException {
         System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() called");
+        String path = findServerPath();
+        java.io.File f = new java.io.File(path);
+        if (!f.isFile() || !f.canExecute()) {
+            showServerNotFoundDialog(path);
+            throw new IOException("openjml-lsp not found or not executable: " + path);
+        }
         super.start();
         System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() completed");
     }
@@ -75,6 +81,49 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         Console.log("[OpenJML] Sending initializationOptions: checkTriggerOn="
                 + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
+    }
+
+    /**
+     * Returns true if the server script is present and executable at the
+     * currently configured path.
+     */
+    public static boolean isServerAvailable() {
+        java.io.File f = new java.io.File(findServerPath());
+        return f.isFile() && f.canExecute();
+    }
+
+    /**
+     * Shows a warning dialog offering to open OpenJML Preferences so the
+     * user can set the LSP server path.  Safe to call from any thread.
+     */
+    public static void showServerNotFoundDialog(String path) {
+        org.eclipse.swt.widgets.Display display =
+                org.eclipse.swt.widgets.Display.getDefault();
+        if (display == null) return;
+        display.asyncExec(() -> {
+            org.eclipse.swt.widgets.Shell shell = display.getActiveShell();
+            String message =
+                    "The OpenJML LSP server script was not found at:\n\n  " + path + "\n\n"
+                    + "OpenJML features (error markers, ESC, syntax coloring, etc.) "
+                    + "will not work until the path is configured.\n\n"
+                    + "Click \"Open Preferences\" to set the LSP Server Path now.";
+            org.eclipse.jface.dialogs.MessageDialog dialog =
+                    new org.eclipse.jface.dialogs.MessageDialog(
+                            shell,
+                            "OpenJML: Server Not Configured",
+                            null,
+                            message,
+                            org.eclipse.jface.dialogs.MessageDialog.WARNING,
+                            new String[]{"Open Preferences", "Dismiss"},
+                            0);
+            if (dialog.open() == 0) {   // "Open Preferences"
+                org.eclipse.ui.dialogs.PreferencesUtil
+                        .createPreferenceDialogOn(shell,
+                                "org.jmlspecs.openjml.eclipse.SettingsPage",
+                                null, null)
+                        .open();
+            }
+        });
     }
 
     @Override

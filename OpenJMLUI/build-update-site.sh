@@ -56,8 +56,14 @@ SRC_DIR="$UI_DIR/src"
 BIN_DIR="$UI_DIR/bin"
 
 # Library JARs that are part of Bundle-ClassPath (must be present inside the
-# plugin JAR).  Keep in sync with MANIFEST.MF Bundle-ClassPath.
+# plugin JAR).  Paths are relative to compile-deps/.
+# Keep in sync with MANIFEST.MF Bundle-ClassPath.
 LIBS=("gson-2.8.1.jar")
+
+# Compile-only JARs: on javac classpath but NOT bundled in the plugin JAR.
+# These are Eclipse bundles that are present in the target Eclipse at runtime
+# but not in every ECLIPSE_HOME used for building.
+COMPILE_DEPS_DIR="$UI_DIR/compile-deps"
 
 # ---------------------------------------------------------------------------
 # CLI parsing
@@ -157,17 +163,25 @@ build_plugin() {
         exit 1
     fi
 
-    # Collect platform JARs (skip *source* JARs)
+    # Collect platform JARs (skip OSGi source bundles: *\.source_*.jar).
+    # IMPORTANT: do NOT use *source* — that matches "resources" and similar names.
     CP=""
     while IFS= read -r jar; do
-        case "$(basename "$jar")" in *source*|*src*) continue ;; esac
+        case "$(basename "$jar")" in *.source_*) continue ;; esac
         CP="${CP:+$CP:}$jar"
     done < <(find "$ECLIPSE_PLUGINS" -maxdepth 1 -name "*.jar" 2>/dev/null | sort)
 
-    # Add our own library JARs
+    # Add our own library JARs (bundled inside the plugin)
     for lib in "${LIBS[@]}"; do
-        [ -f "$UI_DIR/$lib" ] && CP="${CP:+$CP:}$UI_DIR/$lib"
+        [ -f "$COMPILE_DEPS_DIR/$lib" ] && CP="${CP:+$CP:}$COMPILE_DEPS_DIR/$lib"
     done
+
+    # Add compile-only JARs (not bundled; provided by target Eclipse at runtime)
+    if [ -d "$COMPILE_DEPS_DIR" ]; then
+        for jar in "$COMPILE_DEPS_DIR"/*.jar; do
+            [ -f "$jar" ] && CP="${CP:+$CP:}$jar"
+        done
+    fi
 
     if [ -z "$CP" ]; then
         echo "ERROR: no JARs found under $ECLIPSE_PLUGINS" >&2
@@ -255,7 +269,7 @@ if [ ${#MISSING[@]} -ne 0 ]; then
 fi
 
 for lib in "${LIBS[@]}"; do
-    [ -f "$UI_DIR/$lib" ] || echo "Warning: expected library $lib not found in $UI_DIR"
+    [ -f "$COMPILE_DEPS_DIR/$lib" ] || echo "Warning: expected library $lib not found in $COMPILE_DEPS_DIR"
 done
 
 # ---------------------------------------------------------------------------
@@ -303,11 +317,11 @@ fi
 
 # Library JARs (at root of plugin JAR, matching Bundle-ClassPath entries)
 for lib in "${LIBS[@]}"; do
-    [ -f "$UI_DIR/$lib" ] && cp "$UI_DIR/$lib" "$STAGE/"
+    [ -f "$COMPILE_DEPS_DIR/$lib" ] && cp "$COMPILE_DEPS_DIR/$lib" "$STAGE/"
 done
 
 # Bundle resources (NOT META-INF/MANIFEST.MF — passed via --manifest below)
-for item in plugin.xml icons html OSGI-INF; do
+for item in plugin.xml icons html OSGI-INF syntaxes; do
     [ -e "$UI_DIR/$item" ] && cp -a "$UI_DIR/$item" "$STAGE/"
 done
 

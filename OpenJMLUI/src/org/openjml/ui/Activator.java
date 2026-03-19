@@ -9,7 +9,7 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStartup {
 
     // The plug-in ID
-    public static final String PLUGIN_ID = "OpenJMLUI"; //$NON-NLS-1$
+    public static final String PLUGIN_ID = "org.openjml.OpenJMLUI"; //$NON-NLS-1$
 
     // The shared instance
     private static Activator plugin;
@@ -42,6 +42,12 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
             System.err.println("[OpenJML] earlyStartup failed to acquire lsp4e loader: " + t);
         }
         org.jmlspecs.openjml.eclipse.Console.log("OpenJMLUI plugin started");
+
+        // Proactive check: warn immediately if openjml-lsp is not reachable.
+        if (!org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider.isServerAvailable()) {
+            org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider.showServerNotFoundDialog(
+                    org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider.findServerPath());
+        }
     }
 
     @Override
@@ -89,7 +95,7 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
             System.err.println("[OpenJML] lsp4e ext point found, "
                     + ep.getExtensions().length + " extension(s)");
             for (org.eclipse.core.runtime.IExtension ext : ep.getExtensions()) {
-                if ("OpenJMLUI".equals(ext.getContributor().getName())) {
+                if ("org.openjml.OpenJMLUI".equals(ext.getContributor().getName())) {
                     System.err.println("[OpenJML] Our extension config elements:");
                     for (org.eclipse.core.runtime.IConfigurationElement ce : ext.getConfigurationElements()) {
                         System.err.println("[OpenJML]   <" + ce.getName() + ">");

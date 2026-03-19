@@ -21,7 +21,8 @@ Require-Bundle: org.eclipse.ui,
  org.jmlspecs.annotation;resolution:=optional,
  org.eclipse.lsp4e,
  org.eclipse.lsp4j;resolution:=optional,
- org.eclipse.core.filebuffers
+ org.eclipse.core.filebuffers,
+ org.eclipse.tm4e.registry;resolution:=optional
 Import-Package: org.jmlspecs.annotation;resolution:=optional,
  org.osgi.framework.wiring
 Automatic-Module-Name: org.openjml.openjmlui

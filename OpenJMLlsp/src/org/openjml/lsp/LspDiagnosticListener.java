@@ -26,6 +26,22 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     /** Set to true and recompile to enable per-diagnostic debug logging in toLspDiagnostics(). */
     private static final boolean DEBUG_DIAGNOSTICS = false;
 
+    /**
+     * Precomputed line-start offsets for the primary source being checked.
+     * Set via {@link #setSourceContent} before {@code api.execute()} so that
+     * {@link DiagnosticConverter} can compute accurate tab-safe LSP columns.
+     */
+    private int[] lineStartOffsets;
+
+    /**
+     * Precompute the line-start offset table from the source content.
+     * Call this once per check, before {@code api.execute()}, with the exact
+     * string that was written to the temp file.
+     */
+    public void setSourceContent(String content) {
+        lineStartOffsets = DiagnosticConverter.buildLineStartOffsets(content);
+    }
+
     private final List<Diagnostic<? extends JavaFileObject>> collected =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends JavaFileObject>>());
 
@@ -183,7 +199,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
                         + " src=" + src
                         + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
             }
-            var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri);
+            var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri, lineStartOffsets);
             if (lsp != null) {
                 result.add(lsp);
             } else if (DEBUG_DIAGNOSTICS) {

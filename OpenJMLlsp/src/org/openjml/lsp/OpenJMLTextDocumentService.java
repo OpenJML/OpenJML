@@ -237,9 +237,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // --check: debounced if in edit mode
         if (settings.isCheckOnEdit()) {
-            debounce(pendingCheck, uri,
-                    () -> runCheckContent(uri, content),
-                    CHECK_DEBOUNCE_MS);
+            if (uri.endsWith(".jml")) {
+                // .jml files are spec files; redirect check to companion .java.
+                // The dirty .jml content is already in lastContent so checkWithContext
+                // will use it when writing the temp directory.
+                String javaUri = resolveCompanionJavaUri(uri, content);
+                if (javaUri != null) {
+                    final String fJavaUri = javaUri;
+                    debounce(pendingCheck, fJavaUri,
+                            () -> { String jc = lastContent.get(fJavaUri);
+                                    if (jc != null) runCheckContent(fJavaUri, jc); },
+                            CHECK_DEBOUNCE_MS);
+                }
+            } else {
+                debounce(pendingCheck, uri,
+                        () -> runCheckContent(uri, content),
+                        CHECK_DEBOUNCE_MS);
+            }
         }
 
         // --esc: debounced if in edit mode
