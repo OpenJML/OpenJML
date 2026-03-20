@@ -172,7 +172,9 @@
     "languages": [
       {
         "id": "jml",
-        "extensions": [".jml"],
+        "extensions": [
+          ".jml"
+        ],
         "configuration": "./language-configuration.json",
         "icon": {
           "light": "./icons/jml.svg",

@@ -14,15 +14,13 @@ import org.eclipse.ui.console.MessageConsoleStream;
 /**
  * Simple console for OpenJML LSP-related messages in Eclipse.
  *
- * <p>Opens (or reuses) a {@code MessageConsole} named "OpenJML LSP" and
- * provides a single static {@link #log(String)} method so that command
- * handlers and the stream connection provider can write status lines
- * without depending on the legacy {@link Log} / {@link ConsoleLogger}
- * infrastructure.
+ * <p>Opens (or reuses) a {@code MessageConsole} named "JML Console" and
+ * provides a static {@link #log(String)} and {@link #errorlog(String)} methods
+ * so that command handlers and the stream connection provider can write status lines.
  *
  * <p>Usage:
  * <pre>
- *     LspConsole.log("OpenJML: starting ESC on " + file);
+ *     Console.log("OpenJML: starting ESC on " + file);
  * </pre>
  */
 public class Console {
@@ -30,6 +28,7 @@ public class Console {
     /** The user-visible name that labels the JML Console */
     private static final String CONSOLE_NAME = Messages.OpenJMLUI_ConsoleTitle;
     
+    /** The factory for creating consoles. The name of this class is used in plugin.xml */
     public static class ConsoleFactory implements IConsoleFactory {
 
         /** The Factory method invoked by Eclipse when asked to create a new console */
@@ -87,7 +86,7 @@ public class Console {
     }
     
     /**
-     * Append {@code message} followed by a newline to the OpenJML console.
+     * Append {@code message} followed by a newline to the OpenJML console, but in red font.
      * Safe to call from any thread.
      */
     public static void errorlog(String message) {

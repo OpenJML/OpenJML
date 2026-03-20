@@ -446,21 +446,27 @@ public abstract class LspCommandHandler extends AbstractHandler {
      * <p>Unlike the other handlers this does NOT go through LSP.  It operates
      * directly on Eclipse's {@link org.eclipse.core.resources.IMarker} API so
      * that it works even when the language server is not running.
+     *
+     * <p>LSP4E stores diagnostics as {@code org.eclipse.lsp4e.diagnostic} markers
+     * with a {@code languageServerId} attribute set to the server's plugin.xml ID.
+     * The LSP {@code source} field is NOT propagated to marker attributes by LSP4E.
      */
     public static final class ClearMarkers extends AbstractHandler {
+        private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
+        private static final String SERVER_ID    = "org.jmlspecs.openjml.lsp.server";
+
         @Override
         public Object execute(ExecutionEvent event) {
             try {
                 org.eclipse.core.resources.IWorkspaceRoot root =
                         org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
                 org.eclipse.core.resources.IMarker[] markers =
-                        root.findMarkers(org.eclipse.core.resources.IMarker.PROBLEM,
-                                /*includeSubtypes=*/ true,
+                        root.findMarkers(LSP4E_MARKER,
+                                /*includeSubtypes=*/ false,
                                 org.eclipse.core.resources.IResource.DEPTH_INFINITE);
                 int deleted = 0;
                 for (org.eclipse.core.resources.IMarker m : markers) {
-                    Object src = m.getAttribute("source");
-                    if ("openjml".equals(src)) {
+                    if (SERVER_ID.equals(m.getAttribute("languageServerId"))) {
                         m.delete();
                         deleted++;
                     }

@@ -126,6 +126,24 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         });
     }
 
+    /**
+     * Intercept every incoming server message.  {@code window/logMessage}
+     * notifications are routed to the JML Console so proof results and other
+     * server messages are visible to the user without opening the Error Log.
+     */
+    @Override
+    public void handleMessage(org.eclipse.lsp4j.jsonrpc.messages.Message message,
+                              org.eclipse.lsp4j.services.LanguageServer server,
+                              java.net.URI rootUri) {
+        if (message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n
+                && "window/logMessage".equals(n.getMethod())) {
+            Object params = n.getParams();
+            if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
+                Console.log("[OpenJML] " + mp.getMessage());
+            }
+        }
+    }
+
     @Override
     public String toString() {
         return "OpenJML LSP Server " + super.toString();
