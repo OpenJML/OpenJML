@@ -21,6 +21,9 @@ import org.eclipse.ui.part.FileEditorInput;
  */
 public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
+    /** Singleton instance — set in the constructor so other classes can call static helpers. */
+    private static volatile LspPartListener INSTANCE;
+
     /** Generic Editor ID — last-resort fallback. */
     private static final String GENERIC_EDITOR_ID = "org.eclipse.ui.genericeditor.GenericEditor";
 
@@ -38,6 +41,28 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     /** JML folding managers keyed by editor part, for cleanup on close. */
     private final java.util.Map<IEditorPart, JmlFoldingManager> foldingManagers =
             new java.util.concurrent.ConcurrentHashMap<>();
+
+    public LspPartListener() {
+        INSTANCE = this;
+    }
+
+    /**
+     * Disposes all JML folding managers for editors whose file belongs to
+     * {@code project}.  Called when the JML nature is removed from a project.
+     */
+    public static void disposeFoldingManagersForProject(org.eclipse.core.resources.IProject project) {
+        LspPartListener inst = INSTANCE;
+        if (inst == null) return;
+        inst.foldingManagers.entrySet().removeIf(entry -> {
+            IEditorPart ep = entry.getKey();
+            if (ep.getEditorInput() instanceof IFileEditorInput fi
+                    && project.equals(fi.getFile().getProject())) {
+                entry.getValue().dispose();
+                return true;
+            }
+            return false;
+        });
+    }
 
     @Override public void partOpened(IWorkbenchPartReference ref) { handlePart(ref); }
     @Override public void partActivated(IWorkbenchPartReference ref) { handlePart(ref); }

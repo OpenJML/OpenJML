@@ -4,10 +4,16 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.List;
+
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.lsp4e.LanguageServers;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
@@ -142,8 +148,47 @@ public class JmlNature implements IProjectNature {
             project.setDescription(desc, null);
             Console.log("[OpenJML] JML nature removed from " + project.getName());
             refreshDecorator();
+            cleanupForProject(project);
         } catch (CoreException e) {
             Console.log("[OpenJML] Failed to disable JML nature on " + project.getName() + ": " + e);
         }
+    }
+
+    private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
+    private static final String SERVER_ID    = "org.jmlspecs.openjml.lsp.server";
+
+    /**
+     * Cleans up all Eclipse-side and server-side state for {@code project}
+     * after its JML nature has been removed:
+     * <ul>
+     *   <li>Deletes all OpenJML markers on the project.</li>
+     *   <li>Disposes JML folding managers for any open editors in the project.</li>
+     *   <li>Sends {@code openjml.clearAndReindex} to the server so it discards
+     *       cached data and rebuilds its workspace index.</li>
+     * </ul>
+     */
+    private static void cleanupForProject(IProject project) {
+        // 1. Delete all OpenJML markers on this project.
+        try {
+            IMarker[] markers = project.findMarkers(
+                    LSP4E_MARKER, /*includeSubtypes=*/ false, IResource.DEPTH_INFINITE);
+            for (IMarker m : markers) {
+                if (SERVER_ID.equals(m.getAttribute("languageServerId"))) {
+                    m.delete();
+                }
+            }
+        } catch (CoreException e) {
+            Console.log("[OpenJML] Warning: could not clear markers for "
+                    + project.getName() + ": " + e.getMessage());
+        }
+
+        // 2. Dispose folding managers for any open editors in this project.
+        LspPartListener.disposeFoldingManagersForProject(project);
+
+        // 3. Tell the server to clear its caches and reindex.
+        ExecuteCommandParams p = new ExecuteCommandParams(
+                "openjml.clearAndReindex", List.of());
+        LanguageServers.forProject(project).computeFirst(
+                server -> server.getWorkspaceService().executeCommand(p));
     }
 }
