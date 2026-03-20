@@ -2,6 +2,7 @@ package org.openjml.lsp;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Authoritative lists of JML and Java reserved words used throughout the LSP server.
@@ -36,7 +37,7 @@ public final class JmlKeywords {
      */
     public static final Set<String> JML_KEYWORDS = Set.of(
         // specification method clauses
-        "requires", "ensures", "signals", "signals_only", "assignable",
+        "requires", "old", "ensures", "signals", "signals_only", "assignable",
         "modifies", "accessible", "callable", "measured_by", "captures",
         "diverges", "when", "working_space", "duration",
         "breaks", "continues", "returns",
@@ -48,20 +49,18 @@ public final class JmlKeywords {
         // behavior keywords
         "behavior", "normal_behavior", "exceptional_behavior",
         // declaration modifiers
-        "pure", "ghost", "model",
-        "spec_public", "spec_protected", "spec_private",
+        "pure", "spec_pure", "strictly_pure", "no_state", "two_state",
+         "ghost", "model",
+        "spec_public", "spec_protected", 
         "non_null", "non_null_by_default", "nullable", "nullable_by_default",
         "helper", "instance", "query", "secret",
-        "no_state", "two_state", "monitored", "uninitialized",
+        "monitored", "uninitialized",
         "code_java_math", "code_safe_math", "code_bigint_math",
         "spec_java_math", "spec_safe_math", "spec_bigint_math",
         // statement / expression keywords
         "loop_invariant", "maintaining", "decreasing", "decreases",
         "assume", "assert", "set", "debug", "hence_by", "unreachable",
-        "reachable", "in", "maps",
-        // quantifier words (JML uses these without backslash too)
-        "forall", "exists", "min", "max", "sum", "product", "num_of",
-        "let", "old", "pre", "result", "not_modified"
+        "reachable", "in", "maps"
     );
 
     /**
@@ -72,24 +71,24 @@ public final class JmlKeywords {
      */
     public static final Set<String> JML_BACKSLASH = Set.of(
         // common value expressions
-        "result", "old", "pre", "fresh", "reach",
+        "result", "old", "pre", "past", "fresh", "reach",
         // quantifiers
         "forall", "exists", "min", "max", "sum", "product", "num_of",
         // store-ref keywords
         "nothing", "everything", "not_specified", "strictly_nothing",
         // type expressions
-        "typeof", "type", "elemtype", "bigint", "real",
+        "typeof", "type", "elemtype", "bigint", "real", "set", "map", "string", "array", "seq",
         // heap/object checks
         "lockset", "nonnullelements", "invariant_for", "is_initialized",
         // frame conditions / bounds
         "not_assigned", "not_modified",
         "only_accessed", "only_assigned", "only_called", "only_captured",
         // labels
-        "lblneg", "lblpos",
+        "lbl", "lblneg", "lblpos",
         // time/space (rarely used)
         "duration", "space", "working_space",
         // loop / sequence
-        "values", "index", "indices",
+        "values", "count", "index", 
         // misc
         "exception", "witness", "empty", "singleton", "same"
     );
@@ -101,43 +100,27 @@ public final class JmlKeywords {
     /**
      * Ordered list of JML clause and modifier keywords offered as completion items.
      *
-     * <p>This is a curated subset of {@link #JML_KEYWORDS} containing the keywords
-     * most commonly needed at the top level of a JML annotation.
+     * <p>Derived from {@link #JML_KEYWORDS}: every entry sorted alphabetically.
+     * Adding or removing from {@code JML_KEYWORDS} automatically updates this list.
      */
-    public static final List<String> JML_KEYWORD_COMPLETIONS = List.of(
-        // Specification cases
-        "also", "behavior", "exceptional_behavior", "normal_behavior",
-        // Clauses
-        "accessible", "assignable", "axiom", "captures", "constraint",
-        "decreases", "ensures", "hence_by", "initially", "invariant",
-        "loop_invariant", "maintaining", "modifies", "requires",
-        "signals", "signals_only",
-        // Statement annotations
-        "assert", "assume", "unreachable",
-        // Modifiers
-        "ghost", "helper", "instance", "model", "non_null",
-        "non_null_by_default", "nullable", "nullable_by_default",
-        "pure", "spec_bigint_math", "spec_java_math", "spec_protected",
-        "spec_public", "spec_safe_math"
-    );
+    public static final List<String> JML_KEYWORD_COMPLETIONS =
+            JML_KEYWORDS.stream()
+                        .sorted()
+                        .collect(Collectors.toUnmodifiableList());
 
     /**
      * Ordered list of JML backslash-prefixed tokens offered as completion items
      * (each entry includes the leading {@code \}).
      *
-     * <p>This is a curated subset of the names in {@link #JML_BACKSLASH}.
+     * <p>Derived from {@link #JML_BACKSLASH}: every entry sorted alphabetically
+     * with a {@code \} prepended.  Adding or removing from {@code JML_BACKSLASH}
+     * automatically updates this list.
      */
-    public static final List<String> JML_BACKSLASH_COMPLETIONS = List.of(
-        "\\bigint", "\\elemtype", "\\everything", "\\exists",
-        "\\forall", "\\fresh", "\\invariant_for", "\\is_initialized",
-        "\\lblneg", "\\lblpos", "\\lockset",
-        "\\max", "\\min", "\\not_assigned", "\\not_modified",
-        "\\not_specified", "\\nothing", "\\nonnullelements",
-        "\\num_of", "\\old", "\\only_accessed", "\\only_assigned",
-        "\\only_called", "\\only_captured", "\\pre", "\\product",
-        "\\reach", "\\real", "\\result", "\\same",
-        "\\strictly_nothing", "\\sum", "\\type", "\\typeof"
-    );
+    public static final List<String> JML_BACKSLASH_COMPLETIONS =
+            JML_BACKSLASH.stream()
+                         .sorted()
+                         .map(s -> "\\" + s)
+                         .collect(Collectors.toUnmodifiableList());
 
     // -----------------------------------------------------------------------
     // Java reserved words
