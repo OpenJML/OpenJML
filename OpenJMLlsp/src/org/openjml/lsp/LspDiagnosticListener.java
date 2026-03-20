@@ -86,8 +86,8 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             String sourcePath, String targetUri) {
         var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
         for (var d : rawDiags) {
-            var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri);
-            if (lsp != null) result.add(lsp);
+            if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) continue;
+            result.add(DiagnosticConverter.convert(d, targetUri));
         }
         return result;
     }
@@ -132,9 +132,8 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
      * {@code file://} URI.  Used for multi-path {@code --dirs} invocations where
      * diagnostics may come from many files.
      *
-     * <p>Passing {@code null} as {@code sourcePath} to
-     * {@link DiagnosticConverter#convert} disables the single-file source filter,
-     * so every diagnostic is included under its actual source file's URI.
+     * <p>Diagnostics with no source (file-level) are skipped — there is no
+     * obvious file to attribute them to in a multi-file context.
      */
     public Map<String, List<org.eclipse.lsp4j.Diagnostic>> toLspDiagnosticsByFile() {
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> result = new LinkedHashMap<>();
@@ -148,11 +147,8 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             } catch (Exception e) {
                 continue;
             }
-            // null sourcePath → no source filter; all diagnostics are included
-            var lsp = DiagnosticConverter.convert(d, null, uri);
-            if (lsp != null) {
-                result.computeIfAbsent(uri, k -> new ArrayList<>()).add(lsp);
-            }
+            result.computeIfAbsent(uri, k -> new ArrayList<>())
+                  .add(DiagnosticConverter.convert(d, uri));
         }
         return result;
     }
@@ -178,9 +174,8 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         for (var d : collected) {
             if (d.getSource() == null) continue;
             for (Map.Entry<String, String> entry : tempPathToRealUri.entrySet()) {
-                var lsp = DiagnosticConverter.convert(d, entry.getKey(), entry.getValue());
-                if (lsp != null) {
-                    result.get(entry.getValue()).add(lsp);
+                if (DiagnosticConverter.matchesSourcePath(d, entry.getKey())) {
+                    result.get(entry.getValue()).add(DiagnosticConverter.convert(d, entry.getValue()));
                     break;
                 }
             }
@@ -199,12 +194,11 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
                         + " src=" + src
                         + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
             }
-            var lsp = DiagnosticConverter.convert(d, sourcePath, targetUri, lineStartOffsets);
-            if (lsp != null) {
-                result.add(lsp);
-            } else if (DEBUG_DIAGNOSTICS) {
-                System.err.println("    ^ filtered out by DiagnosticConverter");
+            if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) {
+                if (DEBUG_DIAGNOSTICS) System.err.println("    ^ filtered (wrong source file)");
+                continue;
             }
+            result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets));
         }
         System.err.println("[LspDiagnosticListener] " + collected.size()
                 + " raw, " + result.size() + " LSP diagnostic(s) for " + sourcePath);
