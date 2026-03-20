@@ -2,8 +2,6 @@ package org.openjml.lsp;
 
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
-import org.openjml.vscode.VsCodeCommands;
-
 import java.io.PrintStream;
 import java.util.concurrent.ExecutionException;
 
@@ -25,15 +23,7 @@ public class ServerLauncher {
         PrintStream lspOut = System.out;
         System.setOut(System.err);
 
-        var server = new OpenJMLLanguageServer(
-                VsCodeCommands.RUN_ESC,
-                VsCodeCommands.RUN_ESC_FOR_METHOD,
-                VsCodeCommands.RUN_ESC_DIR,
-                VsCodeCommands.FOCUS_FILE,
-                VsCodeCommands.GET_SEMANTIC_TOKENS,
-                VsCodeCommands.RUN_RAC,
-                VsCodeCommands.CLEAR_AND_REINDEX,
-                VsCodeCommands.CLEAR_MARKERS);
+        var server = new OpenJMLLanguageServer();
 
         var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut);
         LanguageClient client = launcher.getRemoteProxy();

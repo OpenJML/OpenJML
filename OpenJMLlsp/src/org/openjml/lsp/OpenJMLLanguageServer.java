@@ -47,31 +47,25 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private String rootUri  = null;
 
     /**
-     * @param escCommand               command name for full-file ESC
-     * @param escForMethodCommand      command name for per-method ESC
-     * @param escDirCommand            command name for multi-path ESC via {@code --dirs} (may be {@code null})
-     * @param focusFileCommand         command name sent by the client when focus changes to an already-open file
-     * @param getSemanticTokensCommand command name for semantic tokens
-     * @param racCommand               command name for RAC compile (may be {@code null})
-     * @param clearAndReindexCommand   command name to clear caches and reindex (may be {@code null})
-     * @param clearMarkersCommand      command name to clear markers only, without reindexing (may be {@code null})
+     * Constructs the server, wiring all command names from {@link OpenJMLCommands}.
+     *
+     * <p>The {@code openjml.*} command names are shared constants used by both the
+     * VS Code extension and the Eclipse plugin — no caller-supplied names are needed.
      */
-    public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
-                                  String focusFileCommand, String getSemanticTokensCommand,
-                                  String racCommand, String clearAndReindexCommand,
-                                  String clearMarkersCommand) {
+    public OpenJMLLanguageServer() {
         this.settings            = new OpenJMLSettings();
-        this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
+        this.textDocumentService = new OpenJMLTextDocumentService(settings,
+                OpenJMLCommands.RUN_ESC_FOR_METHOD);
 
         CommandRegistry registry = new CommandRegistry();
-        registry.onUri     (escCommand,               textDocumentService::scheduleEscForUri);
-        registry.onUriStr  (escForMethodCommand,      textDocumentService::scheduleEscForMethod);
-        registry.onStringList(escDirCommand,          textDocumentService::scheduleEscForPaths);
-        registry.onUri     (focusFileCommand,         textDocumentService::recheckUri);
-        registry.onUriReturn(getSemanticTokensCommand, textDocumentService::getSemanticTokens);
-        registry.onUriStr  (racCommand,               (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir));
-        registry.onNoArgs  (clearAndReindexCommand,   textDocumentService::resetAndReindex);
-        registry.onNoArgs  (clearMarkersCommand,      textDocumentService::clearMarkers);
+        registry.onUri       (OpenJMLCommands.RUN_ESC,             textDocumentService::scheduleEscForUri);
+        registry.onUriStr    (OpenJMLCommands.RUN_ESC_FOR_METHOD,  textDocumentService::scheduleEscForMethod);
+        registry.onStringList(OpenJMLCommands.RUN_ESC_DIR,         textDocumentService::scheduleEscForPaths);
+        registry.onUri       (OpenJMLCommands.FOCUS_FILE,          textDocumentService::recheckUri);
+        registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
+        registry.onUriStr    (OpenJMLCommands.RUN_RAC,             (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir));
+        registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
+        registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
 
         this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
                 textDocumentService::symbols);

@@ -7,7 +7,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLLanguageServer;
-import org.openjml.vscode.VsCodeCommands;
+import org.openjml.lsp.OpenJMLCommands;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -64,9 +64,7 @@ public class LspProtocolTest {
         PipedInputStream  clientIn  = new PipedInputStream(65536);
         PipedOutputStream serverOut = new PipedOutputStream(clientIn);
 
-        server = new OpenJMLLanguageServer(VsCodeCommands.RUN_ESC, VsCodeCommands.RUN_ESC_FOR_METHOD,
-                VsCodeCommands.RUN_ESC_DIR, VsCodeCommands.FOCUS_FILE, VsCodeCommands.GET_SEMANTIC_TOKENS,
-                VsCodeCommands.RUN_RAC, VsCodeCommands.CLEAR_AND_REINDEX, VsCodeCommands.CLEAR_MARKERS);
+        server = new OpenJMLLanguageServer();
         var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
         server.connect(launcher.getRemoteProxy());
         launcher.startListening();
@@ -342,7 +340,7 @@ public class LspProtocolTest {
         assertFalse("Expected non-empty initial diagnostics", firstDiags.isEmpty());
 
         // Issue clearAndReindex.
-        executeCommand(VsCodeCommands.CLEAR_AND_REINDEX);
+        executeCommand(OpenJMLCommands.CLEAR_AND_REINDEX);
 
         // The server should publish empty diagnostics (cache cleared) for the open file.
         JsonObject cleared = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
