@@ -3,7 +3,6 @@ package org.openjml.lsp;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
@@ -14,10 +13,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Handles LSP workspace-level notifications.
@@ -25,85 +21,30 @@ import java.util.stream.Collectors;
  * <p>{@code workspace/didChangeConfiguration} applies updated settings.
  * Only non-null fields in the incoming JSON overwrite current settings.
  *
- * <p>{@code workspace/executeCommand} with the configured ESC command name
- * and a single URI argument triggers an immediate ESC check on that file.
- * With the configured ESC-for-method command name and arguments {@code [uri, methodName]},
- * triggers ESC on a single method.
- *
- * <p>Command names are supplied by the caller; they are not hardcoded here.
- * Use {@code org.openjml.vscode.VsCodeCommands} for the VS Code command names.
+ * <p>{@code workspace/executeCommand} dispatches to the {@link CommandRegistry}
+ * supplied at construction time.  Command names and their handlers are registered
+ * by the caller (see {@link OpenJMLLanguageServer}).
  */
 public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private static final Gson GSON = new Gson();
 
     private final OpenJMLSettings settings;
-    private final Consumer<String>           escRequester;
-    private final BiConsumer<String, String> escMethodRequester;
-    private final Consumer<List<String>>     escDirRequester;
-    private final Consumer<String>           checkRequester;
-    private final BiConsumer<String, String> racRequester;
-    private final Function<String, List<Integer>> semanticTokensRequester;
+    private final CommandRegistry commands;
     private final Function<String, List<SymbolInformation>> symbolsRequester;
-    private final String escCommand;
-    private final String escForMethodCommand;
-    private final String escDirCommand;
-    private final String focusFileCommand;
-    private final String getSemanticTokensCommand;
-    private final String racCommand;
-    private final String clearAndReindexCommand;
-    private final Runnable clearAndReindexRequester;
 
     /**
-     * @param settings                 shared settings object
-     * @param escRequester             called with the URI when the ESC command is requested
-     * @param escMethodRequester       called with (uri, methodName) when the ESC-for-method command is requested
-     * @param escDirRequester          called with a list of paths when the ESC-dir command is requested
-     * @param checkRequester           called with the URI when a focus-triggered recheck is requested
-     * @param racRequester             called with (uri, outputDir) for RAC compile; outputDir may be null
-     * @param semanticTokensRequester  called with a URI; returns the flat semantic token integer data
-     * @param symbolsRequester         called with a query string; returns matching {@link SymbolInformation} list
-     * @param escCommand               command name for full-file ESC
-     * @param escForMethodCommand      command name for per-method ESC
-     * @param escDirCommand            command name for multi-path ESC via {@code --dirs}
-     * @param focusFileCommand         command name for focus-triggered recheck
-     * @param getSemanticTokensCommand command name for semantic tokens
-     * @param racCommand               command name for RAC compile (may be {@code null})
-     * @param clearAndReindexCommand   command name to clear caches and reindex (may be {@code null})
-     * @param clearAndReindexRequester called (no args) when the clear-and-reindex command is received
+     * @param settings         shared settings object (mutated by didChangeConfiguration)
+     * @param commands         registry of command-name → handler mappings
+     * @param symbolsRequester called with a query string for {@code workspace/symbol} requests;
+     *                         returns matching {@link SymbolInformation} list
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
-                                   Consumer<String>             escRequester,
-                                   BiConsumer<String, String>   escMethodRequester,
-                                   Consumer<List<String>>       escDirRequester,
-                                   Consumer<String>             checkRequester,
-                                   BiConsumer<String, String>   racRequester,
-                                   Function<String, List<Integer>> semanticTokensRequester,
-                                   Function<String, List<SymbolInformation>> symbolsRequester,
-                                   String escCommand,
-                                   String escForMethodCommand,
-                                   String escDirCommand,
-                                   String focusFileCommand,
-                                   String getSemanticTokensCommand,
-                                   String racCommand,
-                                   String clearAndReindexCommand,
-                                   Runnable clearAndReindexRequester) {
-        this.settings                  = settings;
-        this.escRequester              = escRequester;
-        this.escMethodRequester        = escMethodRequester;
-        this.escDirRequester           = escDirRequester;
-        this.checkRequester            = checkRequester;
-        this.racRequester              = racRequester;
-        this.semanticTokensRequester   = semanticTokensRequester;
-        this.symbolsRequester          = symbolsRequester;
-        this.escCommand                = escCommand;
-        this.escForMethodCommand       = escForMethodCommand;
-        this.escDirCommand             = escDirCommand;
-        this.focusFileCommand          = focusFileCommand;
-        this.getSemanticTokensCommand  = getSemanticTokensCommand;
-        this.racCommand                = racCommand;
-        this.clearAndReindexCommand    = clearAndReindexCommand;
-        this.clearAndReindexRequester  = clearAndReindexRequester;
+                                   CommandRegistry commands,
+                                   Function<String, List<SymbolInformation>> symbolsRequester) {
+        this.settings          = settings;
+        this.commands          = commands;
+        this.symbolsRequester  = symbolsRequester;
     }
 
     @Override
@@ -129,63 +70,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     @Override
     public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
-        String cmd = params.getCommand();
-        List<?> args = params.getArguments();
-
-        if (escCommand.equals(cmd) && escRequester != null) {
-            if (args != null && !args.isEmpty()) {
-                String uri = extractString(args.get(0));
-                if (uri != null) escRequester.accept(uri);
-            }
-        } else if (escForMethodCommand.equals(cmd) && escMethodRequester != null) {
-            if (args != null && args.size() >= 2) {
-                String uri        = extractString(args.get(0));
-                String methodName = extractString(args.get(1));
-                if (uri != null && methodName != null) {
-                    escMethodRequester.accept(uri, methodName);
-                }
-            }
-        } else if (escDirCommand != null && escDirCommand.equals(cmd) && escDirRequester != null) {
-            if (args != null && !args.isEmpty()) {
-                List<String> paths = args.stream()
-                        .map(OpenJMLWorkspaceService::extractString)
-                        .filter(s -> s != null && !s.isEmpty())
-                        .collect(Collectors.toList());
-                if (!paths.isEmpty()) escDirRequester.accept(paths);
-            }
-        } else if (focusFileCommand != null && focusFileCommand.equals(cmd)
-                && checkRequester != null) {
-            if (args != null && !args.isEmpty()) {
-                String uri = extractString(args.get(0));
-                if (uri != null) checkRequester.accept(uri);
-            }
-        } else if (getSemanticTokensCommand != null && getSemanticTokensCommand.equals(cmd)
-                && semanticTokensRequester != null) {
-            if (args != null && !args.isEmpty()) {
-                String uri = extractString(args.get(0));
-                if (uri != null) {
-                    return CompletableFuture.completedFuture(
-                            (Object) semanticTokensRequester.apply(uri));
-                }
-            }
-        } else if (racCommand != null && racCommand.equals(cmd) && racRequester != null) {
-            if (args != null && !args.isEmpty()) {
-                String uri = extractString(args.get(0));
-                // Optional second arg: output directory (e.g. Eclipse project bin/ folder).
-                String outputDir = (args.size() >= 2) ? extractString(args.get(1)) : null;
-                if (uri != null) racRequester.accept(uri, outputDir);
-            }
-        } else if (clearAndReindexCommand != null && clearAndReindexCommand.equals(cmd)
-                && clearAndReindexRequester != null) {
-            clearAndReindexRequester.run();
-        }
-        return CompletableFuture.completedFuture(null);
-    }
-
-    private static String extractString(Object arg) {
-        if (arg instanceof JsonPrimitive jp) return jp.getAsString();
-        if (arg != null) return String.valueOf(arg);
-        return null;
+        Object result = commands.dispatch(params.getCommand(), params.getArguments());
+        return CompletableFuture.completedFuture(result);
     }
 
     /**

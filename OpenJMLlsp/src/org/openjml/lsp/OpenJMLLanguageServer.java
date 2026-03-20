@@ -60,22 +60,18 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                                   String racCommand, String clearAndReindexCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
-        this.workspaceService    = new OpenJMLWorkspaceService(settings,
-                textDocumentService::scheduleEscForUri,
-                textDocumentService::scheduleEscForMethod,
-                textDocumentService::scheduleEscForPaths,
-                textDocumentService::recheckUri,
-                (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir),
-                textDocumentService::getSemanticTokens,
-                textDocumentService::symbols,
-                escCommand,
-                escForMethodCommand,
-                escDirCommand,
-                focusFileCommand,
-                getSemanticTokensCommand,
-                racCommand,
-                clearAndReindexCommand,
-                textDocumentService::resetAndReindex);
+
+        CommandRegistry registry = new CommandRegistry();
+        registry.onUri     (escCommand,               textDocumentService::scheduleEscForUri);
+        registry.onUriStr  (escForMethodCommand,      textDocumentService::scheduleEscForMethod);
+        registry.onStringList(escDirCommand,          textDocumentService::scheduleEscForPaths);
+        registry.onUri     (focusFileCommand,         textDocumentService::recheckUri);
+        registry.onUriReturn(getSemanticTokensCommand, textDocumentService::getSemanticTokens);
+        registry.onUriStr  (racCommand,               (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir));
+        registry.onNoArgs  (clearAndReindexCommand,   textDocumentService::resetAndReindex);
+
+        this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
+                textDocumentService::symbols);
     }
 
     @Override

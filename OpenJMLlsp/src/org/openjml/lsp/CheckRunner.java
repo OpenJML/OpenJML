@@ -441,30 +441,30 @@ public class CheckRunner {
         String rawDir = (outputDir != null && !outputDir.isEmpty()) ? outputDir
                 : (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
                         ? settings.racOutputDir : "rac-classes";
-        java.nio.file.Path outputDir;
+        java.nio.file.Path outputPath;
         java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
         if (raw.isAbsolute()) {
-            outputDir = raw;
+            outputPath = raw;
         } else {
             // Resolve relative path against first workspace folder (or file's parent).
             String wsRoot = (settings.workspaceFolderPaths != null
                           && !settings.workspaceFolderPaths.isEmpty())
                     ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
                     : new java.io.File(filePath).getParent();
-            outputDir = java.nio.file.Paths.get(wsRoot).resolve(raw);
+            outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
         }
         try {
-            java.nio.file.Files.createDirectories(outputDir);
+            java.nio.file.Files.createDirectories(outputPath);
         } catch (java.io.IOException e) {
             System.err.println("[CheckRunner.runRacFile] failed to create output dir: " + e);
         }
         args.add("-d");
-        args.add(outputDir.toString());
+        args.add(outputPath.toString());
         args.add(filePath);
         logInvocation("runRacFile", args);
 
         String fname = fileName(uri);
-        log(ts() + " --rac " + fname + " → " + outputDir);
+        log(ts() + " --rac " + fname + " → " + outputPath);
 
         int rc;
         try {
