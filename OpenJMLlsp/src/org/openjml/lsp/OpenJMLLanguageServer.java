@@ -54,10 +54,12 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
      * @param getSemanticTokensCommand command name for semantic tokens
      * @param racCommand               command name for RAC compile (may be {@code null})
      * @param clearAndReindexCommand   command name to clear caches and reindex (may be {@code null})
+     * @param clearMarkersCommand      command name to clear markers only, without reindexing (may be {@code null})
      */
     public OpenJMLLanguageServer(String escCommand, String escForMethodCommand, String escDirCommand,
                                   String focusFileCommand, String getSemanticTokensCommand,
-                                  String racCommand, String clearAndReindexCommand) {
+                                  String racCommand, String clearAndReindexCommand,
+                                  String clearMarkersCommand) {
         this.settings            = new OpenJMLSettings();
         this.textDocumentService = new OpenJMLTextDocumentService(settings, escForMethodCommand);
 
@@ -69,6 +71,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onUriReturn(getSemanticTokensCommand, textDocumentService::getSemanticTokens);
         registry.onUriStr  (racCommand,               (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir));
         registry.onNoArgs  (clearAndReindexCommand,   textDocumentService::resetAndReindex);
+        registry.onNoArgs  (clearMarkersCommand,      textDocumentService::clearMarkers);
 
         this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
                 textDocumentService::symbols);

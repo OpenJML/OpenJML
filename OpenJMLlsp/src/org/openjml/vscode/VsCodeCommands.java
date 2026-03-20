@@ -60,5 +60,15 @@ public final class VsCodeCommands {
      */
     public static final String CLEAR_AND_REINDEX = "openjml.clearAndReindex";
 
+    /**
+     * Clear markers command: removes all OpenJML diagnostic markers from the
+     * client without scheduling any new checks.  Takes no arguments.
+     *
+     * <p>Useful when markers have become stale (e.g. after editing spec files
+     * that were not re-checked) and the user wants a clean slate without a
+     * full reindex.
+     */
+    public static final String CLEAR_MARKERS = "openjml.clearMarkers";
+
     private VsCodeCommands() {}
 }

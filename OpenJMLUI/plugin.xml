@@ -113,6 +113,11 @@
            name="Clear LSP Cache and Reindex"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Clear all OpenJML server caches and reindex the workspace"/>
+     <command
+           id="org.jmlspecs.openjml.commands.clearMarkers"
+           name="Clear Markers"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Delete all OpenJML diagnostic markers from the workspace"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -127,6 +132,8 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunRac"/>
      <handler commandId="org.jmlspecs.openjml.commands.clearAndReindex"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
+     <handler commandId="org.jmlspecs.openjml.commands.clearMarkers"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkers"/>
   </extension>
 
   <!-- FIXME - review default key bindings -->
@@ -186,6 +193,8 @@
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
            <separator name="sep1"/>
+           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                    label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
         </menu>
@@ -201,6 +210,8 @@
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
            <separator name="sep1"/>
+           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                    label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
         </menu>
@@ -1481,5 +1492,62 @@
       </quickFixProcessor>
   </extension>
   -->
+
+  <!-- ===================================================================
+       Find Declaration — LSP textDocument/definition for JML/Java files
+       in editors connected to the OpenJML LSP server.
+
+       For .java files JDT's "Open Declaration" (F3) already works.
+       For .jml files (opened in the Generic Editor) JDT's action is absent,
+       so we add our own command, handler, F3 keybinding, and context-menu
+       entry that delegate to LSP4E's OpenDeclarationHyperlinkDetector.
+       =================================================================== -->
+
+  <extension point="org.eclipse.ui.commands">
+     <command
+           id="org.openjml.eclipse.findDeclaration"
+           name="Find Declaration"
+           categoryId="org.eclipse.ui.category.navigate"/>
+  </extension>
+
+  <extension point="org.eclipse.ui.handlers">
+     <!-- No activeWhen restriction — the handler checks for a text viewer internally
+          and returns silently if not applicable. -->
+     <handler
+           class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"
+           commandId="org.openjml.eclipse.findDeclaration"/>
+
+  </extension>
+
+  <!-- Bind F3 to Find Declaration in the Generic Editor context.
+       The Generic Editor context is org.eclipse.ui.genericeditor.genericEditorContext.
+       JDT's Java editor has its own F3 binding which takes priority for .java files. -->
+  <extension point="org.eclipse.ui.bindings">
+     <key
+           sequence="F3"
+           commandId="org.openjml.eclipse.findDeclaration"
+           contextId="org.eclipse.ui.genericeditor.genericEditorContext"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+  </extension>
+
+  <!-- Add "Find Declaration" to the OpenJML top-level menu and right-click popup.
+       Also keep F3 binding via the keybinding extension above. -->
+  <extension point="org.eclipse.ui.menus">
+
+     <!-- Add to the existing OpenJML main menu (same id as the menu defined above) -->
+     <menuContribution locationURI="menu:org.jmlspecs.openjml.mainMenu?after=sep1">
+        <command
+              commandId="org.openjml.eclipse.findDeclaration"
+              label="Find Declaration"/>
+     </menuContribution>
+
+     <!-- Right-click popup for editors with our LSP server -->
+     <menuContribution locationURI="popup:org.eclipse.ui.genericeditor.source.menu?before=additions">
+        <command
+              commandId="org.openjml.eclipse.findDeclaration"
+              label="Find Declaration"/>
+     </menuContribution>
+
+  </extension>
 
 </plugin>

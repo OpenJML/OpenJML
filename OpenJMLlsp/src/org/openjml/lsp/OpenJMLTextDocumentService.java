@@ -1508,6 +1508,31 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
+     * Clear all OpenJML diagnostic markers without scheduling any new checks.
+     *
+     * <p>Clears {@code checkDiags}, {@code escDiags}, {@code racDiags}, and
+     * {@code methodEscStatus}, then publishes empty diagnostic lists for every
+     * open file so the client removes the markers immediately.  Code lenses are
+     * refreshed so per-method ESC status indicators reset to the idle state.
+     *
+     * <p>Pending and running checks are left undisturbed — they will overwrite
+     * the now-empty markers when they complete.  Use {@link #resetAndReindex()}
+     * instead when a full restart is needed.
+     */
+    void clearMarkers() {
+        checkDiags.clear();
+        escDiags.clear();
+        racDiags.clear();
+        methodEscStatus.clear();
+        if (client != null) {
+            for (String uri : lastContent.keySet()) {
+                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+            }
+        }
+        refreshCodeLenses();
+    }
+
+    /**
      * Clear all in-memory caches and restart as if the server had just started.
      *
      * <p>Cancels any pending check/ESC work, clears the AST cache, diagnostic

@@ -52,6 +52,11 @@
         "command": "openjml.clearAndReindex",
         "title": "Clear Caches and Reindex",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.clearMarkers",
+        "title": "Clear Markers",
+        "category": "OpenJML"
       }
     ],
     "keybindings": [
@@ -100,6 +105,11 @@
           "command": "openjml.runRac",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@5"
+        },
+        {
+          "command": "openjml.clearMarkers",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@6"
         }
       ],
       "editor/context": [
@@ -127,6 +137,11 @@
           "command": "openjml.runRac",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@5"
+        },
+        {
+          "command": "openjml.clearMarkers",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@6"
         }
       ],
       "commandPalette": [
@@ -148,6 +163,9 @@
         {
           "command": "openjml.runRac",
           "when": "resourceLangId == java"
+        },
+        {
+          "command": "openjml.clearMarkers"
         }
       ]
     },

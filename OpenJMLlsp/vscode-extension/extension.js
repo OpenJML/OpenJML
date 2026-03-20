@@ -446,6 +446,19 @@ async function activate(context) {
     });
     context.subscriptions.push(clearCmd);
 
+    const clearMarkersCmd = vscode.commands.registerCommand('openjml.clearMarkers', async () => {
+        if (!client) { requireServer(); return; }
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.clearMarkers',
+                arguments: [],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML clear markers failed: ' + err);
+        }
+    });
+    context.subscriptions.push(clearMarkersCmd);
+
     // If no server script is available, stop here — commands are registered above so
     // VS Code can find them; they will show a helpful error when invoked.
     if (!serverScript) {

@@ -241,6 +241,48 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
     }
 
+    /**
+     * Deletes all OpenJML diagnostic markers from the entire workspace.
+     *
+     * <p>Unlike the other handlers this does NOT go through LSP.  It operates
+     * directly on Eclipse's {@link org.eclipse.core.resources.IMarker} API so
+     * that it works even when the language server is not running.
+     *
+     * <p>Strategy: find all {@code IMarker.PROBLEM} markers on the workspace
+     * root (depth = infinite) whose {@code "source"} attribute equals
+     * {@code "openjml"}, and delete them.  This attribute is set by the LSP
+     * server via {@link DiagnosticConverter} ({@code lsp.setSource("openjml")})
+     * and propagated to Eclipse markers by LSP4E — but propagation must be
+     * verified by testing.  If the attribute is not propagated, deleting all
+     * {@code org.eclipse.lsp4e.diagnostic} markers is a reasonable fallback
+     * (see comment in code).
+     */
+    public static final class ClearMarkers extends AbstractHandler {
+        @Override
+        public Object execute(ExecutionEvent event) {
+            try {
+                org.eclipse.core.resources.IWorkspaceRoot root =
+                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
+                org.eclipse.core.resources.IMarker[] markers =
+                        root.findMarkers(org.eclipse.core.resources.IMarker.PROBLEM,
+                                /*includeSubtypes=*/ true,
+                                org.eclipse.core.resources.IResource.DEPTH_INFINITE);
+                int deleted = 0;
+                for (org.eclipse.core.resources.IMarker m : markers) {
+                    Object src = m.getAttribute("source");
+                    if ("openjml".equals(src)) {
+                        m.delete();
+                        deleted++;
+                    }
+                }
+                Console.log("[OpenJML] Cleared " + deleted + " OpenJML marker(s).");
+            } catch (org.eclipse.core.runtime.CoreException e) {
+                Console.log("[OpenJML] ClearMarkers failed: " + e);
+            }
+            return null;
+        }
+    }
+
     /** Sends {@code openjml.clearAndReindex} (no file argument). */
     public static final class ClearAndReindex extends LspCommandHandler {
         public ClearAndReindex() { super("openjml.clearAndReindex"); }
