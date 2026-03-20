@@ -99,50 +99,17 @@ public class SemanticTokensProvider {
     // -----------------------------------------------------------------------
     // JML keyword sets (used by the regex fallback)
     // -----------------------------------------------------------------------
+    //
+    // These lists live in JmlKeywords — edit them there.
 
     /** JML clause and modifier keywords (plain word-boundary matched). */
-    private static final Set<String> JML_KEYWORDS = Set.of(
-        // specification clauses
-        "requires", "ensures", "signals", "signals_only", "assignable",
-        "modifies", "accessible", "callable", "measured_by", "captures",
-        "diverges", "when", "working_space", "duration",
-        "breaks", "continues", "returns",
-        // type-member clauses
-        "invariant", "initially", "constraint", "represents", "axiom",
-        "readable", "writable", "monitors_for",
-        // case combinators
-        "also", "implies_that", "for_example", "example",
-        // declaration modifiers
-        "pure", "ghost", "model", "spec_public", "spec_protected", "spec_private",
-        "non_null", "nullable", "helper", "instance", "query", "secret",
-        "no_state", "two_state", "monitored", "uninitialized",
-        "code_java_math", "code_safe_math", "code_bigint_math",
-        "spec_java_math", "spec_safe_math", "spec_bigint_math",
-        // statement / expression keywords
-        "loop_invariant", "maintaining", "decreasing", "decreases",
-        "assume", "assert", "set", "debug", "hence_by", "unreachable",
-        "reachable", "in", "maps",
-        // quantifier words (JML uses these without backslash too)
-        "forall", "exists", "min", "max", "sum", "product", "num_of",
-        "let", "old", "pre", "result", "not_modified"
-    );
+    private static final Set<String> JML_KEYWORDS = JmlKeywords.JML_KEYWORDS;
 
     /**
      * JML backslash-expression keywords (the part AFTER the backslash).
      * Matched as {@code \word}.
      */
-    private static final Set<String> JML_BACKSLASH = Set.of(
-        "result", "old", "pre", "fresh", "reach",
-        "forall", "exists", "min", "max", "sum", "product", "num_of",
-        "nothing", "everything", "not_specified",
-        "typeof", "type", "elemtype", "lockset",
-        "nonnullelements", "invariant_for", "is_initialized",
-        "duration", "space", "working_space",
-        "values", "index", "indices",
-        "not_modified", "only_accessed", "only_assigned",
-        "only_called", "only_captured",
-        "exception", "witness", "empty", "singleton"
-    );
+    private static final Set<String> JML_BACKSLASH = JmlKeywords.JML_BACKSLASH;
 
     // -----------------------------------------------------------------------
     // Patterns (regex fallback)
@@ -464,9 +431,7 @@ public class SemanticTokensProvider {
         // ---- JML ghost/model variable and method declarations ---------------
 
         /** Java modifier keywords that may appear in JML ghost/model declarations. */
-        private static final Set<String> JAVA_MODIFIERS = Set.of(
-                "public", "protected", "private", "static", "abstract", "final",
-                "synchronized", "native", "strictfp", "transient", "volatile");
+        private static final Set<String> JAVA_MODIFIERS = JmlKeywords.JAVA_MODIFIERS;
 
         /**
          * Emit tokens for all modifier keywords preceding {@code typePos}.

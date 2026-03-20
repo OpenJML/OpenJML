@@ -36,62 +36,24 @@ import java.util.List;
 public class JmlCompletionProvider {
 
     // -----------------------------------------------------------------------
-    // Static keyword list
-    // -----------------------------------------------------------------------
-
-    /** JML clause and modifier keywords, alphabetically ordered. */
-    private static final String[] KEYWORDS = {
-        // Specification cases
-        "also", "behavior", "exceptional_behavior", "normal_behavior",
-        // Clauses
-        "accessible", "assignable", "axiom", "captures", "constraint",
-        "decreases", "ensures", "hence_by", "initially", "invariant",
-        "loop_invariant", "maintaining", "modifies", "requires",
-        "signals", "signals_only",
-        // Statement annotations
-        "assert", "assume", "unreachable",
-        // Modifiers
-        "ghost", "helper", "instance", "model", "non_null",
-        "non_null_by_default", "nullable", "nullable_by_default",
-        "pure", "spec_bigint_math", "spec_java_math", "spec_protected",
-        "spec_public", "spec_safe_math",
-    };
-
-    // -----------------------------------------------------------------------
-    // Static backslash-token list
-    // -----------------------------------------------------------------------
-
-    /** JML {@code \}-prefixed built-in expressions and types. */
-    private static final String[] BACKSLASH_TOKENS = {
-        // Common expression tokens
-        "\\bigint", "\\elemtype", "\\everything", "\\exists",
-        "\\forall", "\\fresh", "\\invariant_for", "\\is_initialized",
-        "\\lblneg", "\\lblpos", "\\lockset",
-        "\\max", "\\min", "\\not_assigned", "\\not_modified",
-        "\\not_specified", "\\nothing", "\\nonnullelements",
-        "\\num_of", "\\old", "\\only_accessed", "\\only_assigned",
-        "\\only_called", "\\only_captured", "\\pre", "\\product",
-        "\\reach", "\\real", "\\result", "\\same",
-        "\\strictly_nothing", "\\sum", "\\type", "\\typeof",
-    };
-
-    // -----------------------------------------------------------------------
     // Pre-built completion item lists (built once at class-load time)
     // -----------------------------------------------------------------------
+    //
+    // Keyword and backslash-token lists live in JmlKeywords — edit them there.
 
     private static final List<CompletionItem> ALL_KEYWORD_ITEMS;
     private static final List<CompletionItem> ALL_BACKSLASH_ITEMS;
 
     static {
-        ALL_KEYWORD_ITEMS = new ArrayList<>(KEYWORDS.length);
-        for (String kw : KEYWORDS) {
+        ALL_KEYWORD_ITEMS = new ArrayList<>(JmlKeywords.JML_KEYWORD_COMPLETIONS.size());
+        for (String kw : JmlKeywords.JML_KEYWORD_COMPLETIONS) {
             CompletionItem item = new CompletionItem(kw);
             item.setKind(CompletionItemKind.Keyword);
             ALL_KEYWORD_ITEMS.add(item);
         }
 
-        ALL_BACKSLASH_ITEMS = new ArrayList<>(BACKSLASH_TOKENS.length);
-        for (String tok : BACKSLASH_TOKENS) {
+        ALL_BACKSLASH_ITEMS = new ArrayList<>(JmlKeywords.JML_BACKSLASH_COMPLETIONS.size());
+        for (String tok : JmlKeywords.JML_BACKSLASH_COMPLETIONS) {
             CompletionItem item = new CompletionItem(tok);
             item.setKind(CompletionItemKind.Keyword);
             ALL_BACKSLASH_ITEMS.add(item);

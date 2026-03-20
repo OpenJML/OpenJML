@@ -35,17 +35,8 @@ public class Renamer {
 
     private Renamer() {}
 
-    // Set of Java keywords — renaming to any of these must be rejected.
-    private static final java.util.Set<String> JAVA_KEYWORDS = java.util.Set.of(
-            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char",
-            "class", "const", "continue", "default", "do", "double", "else", "enum",
-            "extends", "final", "finally", "float", "for", "goto", "if", "implements",
-            "import", "instanceof", "int", "interface", "long", "native", "new",
-            "package", "private", "protected", "public", "return", "short", "static",
-            "strictfp", "super", "switch", "synchronized", "this", "throw", "throws",
-            "transient", "try", "void", "volatile", "while",
-            // boolean/null literals are not keywords but also forbidden as identifiers
-            "true", "false", "null");
+    // Java keywords forbidden as rename targets — defined in JmlKeywords.
+    private static final java.util.Set<String> JAVA_KEYWORDS = JmlKeywords.JAVA_KEYWORDS;
 
     /**
      * Compute a map of URI → list-of-TextEdits for renaming the symbol at the
