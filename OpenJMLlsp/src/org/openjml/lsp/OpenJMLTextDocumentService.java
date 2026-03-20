@@ -186,6 +186,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final Map<String, String> lastCheckedContent = new ConcurrentHashMap<>();
 
     /**
+     * URIs for which the client currently holds at least one OpenJML diagnostic marker.
+     *
+     * <p>Updated by {@link #publishDiags}: added when a non-empty list is published,
+     * removed when an empty list (clear) is published.  This is the authoritative set
+     * used by {@link #clearMarkers} so that markers on dependency files (companions from
+     * cross-file checks, or files from a {@code --dirs} run) are not left behind.
+     */
+    private final java.util.Set<String> markedUris = ConcurrentHashMap.newKeySet();
+
+    /**
      * The most recently submitted --check future (per URI).  Set just before
      * the check task is submitted to the executor; completed when the check
      * finishes.  {@link #documentSymbol} chains off this so it can return
@@ -286,7 +296,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
         CheckRunner.getASTCache().remove(uri);
-        if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+        publishDiags(uri, List.of());
     }
 
     // --- code lens ---
@@ -675,8 +685,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (client == null) return;
                 // Publish diagnostics for every file that had diagnostics.
                 for (var entry : result.diagnosticsByUri().entrySet()) {
-                    client.publishDiagnostics(
-                            new PublishDiagnosticsParams(entry.getKey(), entry.getValue()));
+                    publishDiags(entry.getKey(), entry.getValue());
                 }
                 // Clear diagnostics for files that had none but are currently open.
                 for (String path : paths) {
@@ -684,7 +693,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     try { uri = java.nio.file.Path.of(path).toUri().toString(); }
                     catch (Exception e) { continue; }
                     if (!result.diagnosticsByUri().containsKey(uri) && lastContent.containsKey(uri)) {
-                        client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+                        publishDiags(uri, List.of());
                     }
                 }
                 // Update code-lens status for any files currently open.
@@ -1479,13 +1488,29 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- diagnostic merging ---
 
-    private void publishMerged(String uri) {
+    /**
+     * Publish {@code diags} to the client for {@code uri} and update {@link #markedUris}.
+     *
+     * <p>All diagnostic publications must go through this method (never call
+     * {@code client.publishDiagnostics} directly) so that {@link #markedUris} stays
+     * accurate and {@link #clearMarkers} can clear every URI that holds markers.
+     *
+     * <p>An empty list removes {@code uri} from {@link #markedUris}; a non-empty
+     * list adds it.
+     */
+    private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
+        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
+        if (diags.isEmpty()) markedUris.remove(uri);
+        else                 markedUris.add(uri);
+    }
+
+    private void publishMerged(String uri) {
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
         merged.addAll(escDiags.getOrDefault(uri, List.of()));
         merged.addAll(racDiags.getOrDefault(uri, List.of()));
-        client.publishDiagnostics(new PublishDiagnosticsParams(uri, merged));
+        publishDiags(uri, merged);
     }
 
     // --- debounce / cancel helpers ---
@@ -1524,10 +1549,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         escDiags.clear();
         racDiags.clear();
         methodEscStatus.clear();
-        if (client != null) {
-            for (String uri : lastContent.keySet()) {
-                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
-            }
+        // Snapshot markedUris before clearing so we don't modify the set while iterating.
+        List<String> toClean = new ArrayList<>(markedUris);
+        markedUris.clear();
+        for (String uri : toClean) {
+            if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
         }
         refreshCodeLenses();
     }
@@ -1563,11 +1589,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // Clear the AST cache (both tiers and declaration indexes).
         CheckRunner.getASTCache().clear();
 
-        // Publish empty diagnostics for all open files so stale markers disappear.
+        // Publish empty diagnostics for all marked URIs so stale markers disappear.
+        List<String> toClean = new ArrayList<>(markedUris);
+        markedUris.clear();
+        for (String uri : toClean) {
+            publishDiags(uri, List.of());
+        }
         if (client != null) {
-            for (String uri : lastContent.keySet()) {
-                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
-            }
             client.logMessage(new MessageParams(MessageType.Info,
                     "OpenJML: caches cleared — re-checking open files and re-indexing workspace…"));
         }
