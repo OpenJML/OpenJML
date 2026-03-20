@@ -76,28 +76,40 @@ public class Renamer {
      * Apply a list of text edits (sorted in descending position order) to a
      * source string.
      *
-     * <p>Each edit's range is converted from 0-indexed (line, character) to a
-     * character offset using {@link DefinitionFinder#lineColToOffset}, then the
-     * substring between start and end offsets is replaced with the edit's new text.
+     * <p>Resolves all offsets up front, then applies edits in ascending position
+     * order with a single-pass {@link StringBuilder}: unchanged regions are copied
+     * once; each edit's range is replaced with its new text.  This is O(n) in the
+     * source length regardless of the number of edits.
      *
      * @param source                  original source text
      * @param sortedEditsDescending   edits sorted so that later positions in the
-     *                                file come first; applying them in this order
-     *                                preserves the validity of earlier positions
+     *                                file come first
      * @return the modified source text
      */
     public static String applyEdits(String source, List<TextEdit> sortedEditsDescending) {
+        // Resolve all offsets first (against the original, unmodified source).
+        record Replacement(int start, int end, String text) {}
+        List<Replacement> replacements = new ArrayList<>(sortedEditsDescending.size());
         for (TextEdit edit : sortedEditsDescending) {
             Range r = edit.getRange();
             int startOffset = DefinitionFinder.lineColToOffset(
                     source, r.getStart().getLine(), r.getStart().getCharacter());
             int endOffset = DefinitionFinder.lineColToOffset(
                     source, r.getEnd().getLine(), r.getEnd().getCharacter());
-            source = source.substring(0, startOffset)
-                    + edit.getNewText()
-                    + source.substring(endOffset);
+            replacements.add(new Replacement(startOffset, endOffset, edit.getNewText()));
         }
-        return source;
+
+        // Apply in ascending order (reverse of the descending input).
+        StringBuilder sb = new StringBuilder(source.length());
+        int pos = 0;
+        for (int i = replacements.size() - 1; i >= 0; i--) {
+            Replacement rep = replacements.get(i);
+            sb.append(source, pos, rep.start());
+            sb.append(rep.text());
+            pos = rep.end();
+        }
+        sb.append(source, pos, source.length());
+        return sb.toString();
     }
 
     /**
