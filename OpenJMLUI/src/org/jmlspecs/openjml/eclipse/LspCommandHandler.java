@@ -10,9 +10,11 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -49,6 +51,18 @@ public abstract class LspCommandHandler extends AbstractHandler {
         if (!(editor.getEditorInput() instanceof IFileEditorInput)) return null;
 
         IFile file = ((IFileEditorInput) editor.getEditorInput()).getFile();
+
+        if (!JmlNature.hasNature(file.getProject())) {
+            Display.getDefault().asyncExec(() ->
+                MessageDialog.openWarning(
+                    Display.getDefault().getActiveShell(),
+                    "OpenJML — No JML Nature",
+                    "Project '" + file.getProject().getName() + "' does not have the OpenJML "
+                    + "nature.\n\nUse OpenJML > Add OpenJML Nature to enable checking for "
+                    + "this project."));
+            return null;
+        }
+
         String uri  = file.getLocationURI().toString();
 
         Console.log(lspCommand);

@@ -118,6 +118,16 @@
            name="Clear Markers"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Delete all OpenJML diagnostic markers from the workspace"/>
+     <command
+           id="org.jmlspecs.openjml.commands.enableJmlNature"
+           name="Add OpenJML Nature"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Add the OpenJML project nature to the selected project"/>
+     <command
+           id="org.jmlspecs.openjml.commands.disableJmlNature"
+           name="Remove OpenJML Nature"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Remove the OpenJML project nature from the selected project"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -134,6 +144,10 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
      <handler commandId="org.jmlspecs.openjml.commands.clearMarkers"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkers"/>
+     <handler commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+              class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$EnableJmlNature"/>
+     <handler commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+              class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$DisableJmlNature"/>
   </extension>
 
   <!-- FIXME - review default key bindings -->
@@ -197,6 +211,11 @@
                     label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
+           <separator name="sep2"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
@@ -214,6 +233,48 @@
                     label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
+           <separator name="sep2"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
+        </menu>
+     </menuContribution>
+     <!-- View popup: right-click in Package Explorer, Project Explorer, Outline -->
+     <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+        <menu id="org.jmlspecs.openjml.viewPopupMenu" label="OpenJML"
+              icon="icons/jml-logo-16x16.png">
+           <!-- Show whenever the selection contains a Java element or resource -->
+           <visibleWhen checkEnabled="false">
+              <with variable="selection">
+                 <iterate ifEmpty="false" operator="or">
+                    <or>
+                       <instanceof value="org.eclipse.jdt.core.IJavaElement"/>
+                       <adapt type="org.eclipse.jdt.core.IJavaElement"/>
+                       <instanceof value="org.eclipse.core.resources.IResource"/>
+                       <adapt type="org.eclipse.core.resources.IResource"/>
+                    </or>
+                 </iterate>
+              </with>
+           </visibleWhen>
+           <command commandId="org.jmlspecs.openjml.commands.checkJML"
+                    label="Check JML"/>
+           <command commandId="org.jmlspecs.openjml.commands.runESC"
+                    label="Run ESC"/>
+           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                    label="Run ESC for Method Under Cursor"/>
+           <command commandId="org.jmlspecs.openjml.commands.RAC"
+                    label="Compile RAC"/>
+           <separator name="sep1"/>
+           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                    label="Clear Markers"/>
+           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
+                    label="Clear and Reindex"/>
+           <separator name="sep2"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
   </extension>
@@ -228,6 +289,39 @@
     </consoleFactory>
   </extension>
   
+  <!-- OpenJML project nature (marker nature — no builder) -->
+  <extension
+        id="JMLNatureID"
+        name="OpenJML Nature"
+        point="org.eclipse.core.resources.natures">
+     <requires-nature id="org.eclipse.jdt.core.javanature"/>
+     <runtime>
+        <run class="org.jmlspecs.openjml.eclipse.JmlNature"/>
+     </runtime>
+  </extension>
+
+  <!-- Decorator: JMLSmall.png overlay on JML-natured projects in Package Explorer -->
+  <extension
+         point="org.eclipse.ui.decorators">
+    <decorator
+            lightweight="true"
+            location="TOP_RIGHT"
+            label="%decorator.label"
+            icon="icons/JMLSmall.png"
+            state="true"
+            id="org.openjml.OpenJMLUI.JMLDecoration">
+       <description>
+            %decorator.description
+       </description>
+       <enablement>
+            <and>
+                <objectState name="nature" value="org.openjml.OpenJMLUI.JMLNatureID"/>
+                <objectClass name="org.eclipse.jdt.core.IJavaProject"/>
+            </and>
+       </enablement>
+    </decorator>
+  </extension>
+
   <!-- ============================================================ -->
   <!-- LEGACY EXTENSIONS COMMENTED OUT                              -->
   <!-- These reference old OpenJML classes (JMLBuilder, JMLNature,  -->
@@ -259,29 +353,6 @@
     <builder
             id="org.openjml.OpenJMLUI.JMLBuilder">
     </builder>
-  </extension>
-  -->
-
-  <!--
-  <extension
-         point="org.eclipse.ui.decorators">
-    <decorator
-            lightweight="true"
-            location="TOP_RIGHT"
-            label="%decorator.label"
-            icon="icons/JMLSmall.png"
-            state="true"
-            id="org.openjml.OpenJMLUI.JMLDecoration">
-       <description>
-            %decorator.description
-       </description>
-       <enablement>
-        	<and>
-                <objectState name="nature" value="org.openjml.OpenJMLUI.JMLNatureID"/>
-                <objectClass name="org.eclipse.jdt.core.IJavaProject"/>
-             </and>
-       </enablement>
-    </decorator>
   </extension>
   -->
 
