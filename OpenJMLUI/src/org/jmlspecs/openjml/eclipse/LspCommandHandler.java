@@ -479,39 +479,57 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
     }
 
-    /** Sends {@code openjml.clearAndReindex} (no file argument). */
+    /**
+     * Clears all cached state (Eclipse markers, server index, AST cache) and
+     * reindexes the workspace.  Does not require an active editor.
+     */
     public static final class ClearAndReindex extends LspCommandHandler {
+        private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
+        private static final String SERVER_ID    = "org.jmlspecs.openjml.lsp.server";
+
         public ClearAndReindex() { super("openjml.clearAndReindex"); }
 
         @Override
         public Object execute(ExecutionEvent event) {
-            // clearAndReindex is workspace-wide; no file argument needed.
-            // Use any open project to route to the server.
-            IEditorPart editor = HandlerUtil.getActiveEditor(event);
-            IFile file = null;
-            if (editor != null && editor.getEditorInput() instanceof IFileEditorInput fi) {
-                file = fi.getFile();
-            }
-
             Console.errorlog(lspCommand);
 
-            if (file != null) {
-                org.eclipse.core.filebuffers.ITextFileBuffer buf2 =
-                        org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
-                                .getTextFileBuffer(file.getFullPath(),
-                                        org.eclipse.core.filebuffers.LocationKind.IFILE);
-                org.eclipse.jface.text.IDocument doc2 = (buf2 != null) ? buf2.getDocument() : null;
-                ExecuteCommandParams p = new ExecuteCommandParams("openjml.clearAndReindex", List.of());
-                if (doc2 != null) {
-                    LanguageServers.forDocument(doc2).computeFirst(server ->
-                            server.getWorkspaceService().executeCommand(p));
-                } else {
-                    LanguageServers.forProject(file.getProject()).computeFirst(server ->
-                            server.getWorkspaceService().executeCommand(p));
+            // 1. Clear all OpenJML Eclipse markers workspace-wide.
+            try {
+                org.eclipse.core.resources.IWorkspaceRoot root =
+                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
+                org.eclipse.core.resources.IMarker[] markers =
+                        root.findMarkers(LSP4E_MARKER,
+                                /*includeSubtypes=*/ false,
+                                org.eclipse.core.resources.IResource.DEPTH_INFINITE);
+                int deleted = 0;
+                for (org.eclipse.core.resources.IMarker m : markers) {
+                    if (SERVER_ID.equals(m.getAttribute("languageServerId"))) {
+                        m.delete();
+                        deleted++;
+                    }
                 }
-            } else {
-                Console.log("OpenJML: no active editor — cannot route clearAndReindex");
+                Console.log("[OpenJML] Cleared " + deleted + " marker(s).");
+            } catch (org.eclipse.core.runtime.CoreException e) {
+                Console.log("[OpenJML] Warning: could not clear markers: " + e.getMessage());
             }
+
+            // 2. Send clearAndReindex to the server.
+            // Prefer the cached wrapper (works without an active editor); fall back
+            // to any open project that has the JML nature.
+            ExecuteCommandParams p = new ExecuteCommandParams("openjml.clearAndReindex", List.of());
+            if (sendViaWrapper(LspPartListener.cachedWrapper, p)) {
+                return null;
+            }
+            for (org.eclipse.core.resources.IProject project :
+                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                            .getRoot().getProjects()) {
+                if (JmlNature.hasNature(project)) {
+                    LanguageServers.forProject(project).computeFirst(
+                            server -> server.getWorkspaceService().executeCommand(p));
+                    return null;
+                }
+            }
+            Console.log("[OpenJML] WARNING: no connected server found — clearAndReindex not sent.");
             return null;
         }
     }
