@@ -163,6 +163,27 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 new ExecuteCommandParams(lspCommand, List.of(uri)));
     }
 
+    /**
+     * Returns the absolute path of the JDT output folder for {@code file}'s project,
+     * or {@code null} if it cannot be determined.
+     */
+    private static String resolveJdtOutputDir(IFile file) {
+        try {
+            org.eclipse.jdt.core.IJavaProject jp =
+                    org.eclipse.jdt.core.JavaCore.create(file.getProject());
+            if (jp == null || !jp.exists()) return null;
+            org.eclipse.core.runtime.IPath outputPath = jp.getOutputLocation();
+            org.eclipse.core.resources.IFolder folder =
+                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                            .getRoot().getFolder(outputPath);
+            org.eclipse.core.runtime.IPath location = folder.getLocation();
+            return location != null ? location.toOSString() : null;
+        } catch (Exception e) {
+            Console.log("[OpenJML] resolveJdtOutputDir failed: " + e);
+            return null;
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Concrete handlers registered via plugin.xml
     // -----------------------------------------------------------------------
@@ -172,9 +193,26 @@ public abstract class LspCommandHandler extends AbstractHandler {
         public CheckJML() { super("openjml.checkJML"); }
     }
 
-    /** Runs {@code openjml.runRac} on the currently selected entities. */
+    /**
+     * Runs {@code openjml.runRac} on the currently active editor file.
+     *
+     * <p>Passes the Eclipse project's JDT output folder as the second argument so
+     * the RAC-compiled {@code .class} files land alongside the regular compiled
+     * classes and can be executed immediately.
+     */
     public static final class RunRac extends LspCommandHandler {
         public RunRac() { super("openjml.runRac"); }
+
+        @Override
+        protected java.util.concurrent.CompletableFuture<ExecuteCommandParams>
+                buildParams(String uri, IFile file, ExecutionEvent event) {
+            String outputDir = resolveJdtOutputDir(file);
+            List<Object> args = outputDir != null
+                    ? List.of(uri, outputDir)
+                    : List.of(uri);
+            return java.util.concurrent.CompletableFuture.completedFuture(
+                    new ExecuteCommandParams("openjml.runRac", args));
+        }
     }
 
     /** Runs {@code openjml.runEsc} on the currently seelected entities. */

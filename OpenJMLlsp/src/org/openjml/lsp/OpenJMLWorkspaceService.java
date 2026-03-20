@@ -42,7 +42,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final BiConsumer<String, String> escMethodRequester;
     private final Consumer<List<String>>     escDirRequester;
     private final Consumer<String>           checkRequester;
-    private final Consumer<String>           racRequester;
+    private final BiConsumer<String, String> racRequester;
     private final Function<String, List<Integer>> semanticTokensRequester;
     private final Function<String, List<SymbolInformation>> symbolsRequester;
     private final String escCommand;
@@ -60,6 +60,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      * @param escMethodRequester       called with (uri, methodName) when the ESC-for-method command is requested
      * @param escDirRequester          called with a list of paths when the ESC-dir command is requested
      * @param checkRequester           called with the URI when a focus-triggered recheck is requested
+     * @param racRequester             called with (uri, outputDir) for RAC compile; outputDir may be null
      * @param semanticTokensRequester  called with a URI; returns the flat semantic token integer data
      * @param symbolsRequester         called with a query string; returns matching {@link SymbolInformation} list
      * @param escCommand               command name for full-file ESC
@@ -76,7 +77,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                                    BiConsumer<String, String>   escMethodRequester,
                                    Consumer<List<String>>       escDirRequester,
                                    Consumer<String>             checkRequester,
-                                   Consumer<String>             racRequester,
+                                   BiConsumer<String, String>   racRequester,
                                    Function<String, List<Integer>> semanticTokensRequester,
                                    Function<String, List<SymbolInformation>> symbolsRequester,
                                    String escCommand,
@@ -170,7 +171,9 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         } else if (racCommand != null && racCommand.equals(cmd) && racRequester != null) {
             if (args != null && !args.isEmpty()) {
                 String uri = extractString(args.get(0));
-                if (uri != null) racRequester.accept(uri);
+                // Optional second arg: output directory (e.g. Eclipse project bin/ folder).
+                String outputDir = (args.size() >= 2) ? extractString(args.get(1)) : null;
+                if (uri != null) racRequester.accept(uri, outputDir);
             }
         } else if (clearAndReindexCommand != null && clearAndReindexCommand.equals(cmd)
                 && clearAndReindexRequester != null) {

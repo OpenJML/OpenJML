@@ -1238,8 +1238,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /**
      * Compile the focused Java file with {@code --rac} and report diagnostics.
      * Only works on disk files (RAC requires source on disk).
+     *
+     * @param uri       file URI to compile
+     * @param outputDir optional output directory override (e.g. Eclipse project bin/ folder);
+     *                  {@code null} means use {@link OpenJMLSettings#racOutputDir}
      */
-    void scheduleRacForUri(String uri) {
+    void scheduleRacForUri(String uri, String outputDir) {
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) {
             if (client != null)
@@ -1249,7 +1253,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         executor.submit(() -> {
             try {
-                CheckRunner.CheckResult result = CheckRunner.runRacFile(filePath, uri, settings);
+                CheckRunner.CheckResult result = CheckRunner.runRacFile(filePath, uri, settings, outputDir);
                 if (result.exitCode() == 0) {
                     if (client != null) {
                         int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));

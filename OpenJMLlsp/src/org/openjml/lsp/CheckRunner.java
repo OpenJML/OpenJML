@@ -421,6 +421,15 @@ public class CheckRunner {
      * @return diagnostics and exit code (0 = success, 1 = compile errors)
      */
     public static CheckResult runRacFile(String filePath, String uri, OpenJMLSettings settings) {
+        return runRacFile(filePath, uri, settings, null);
+    }
+
+    /**
+     * @param outputDir optional output directory override; {@code null} means use
+     *                  {@link OpenJMLSettings#racOutputDir}
+     */
+    public static CheckResult runRacFile(String filePath, String uri, OpenJMLSettings settings,
+                                          String outputDir) {
         var listener = new LspDiagnosticListener();
         var out      = new PrintWriter(new StringWriter());
         var api      = IAPI.make(out, listener);
@@ -428,8 +437,10 @@ public class CheckRunner {
         List<String> args = buildArgs(settings, "--rac");
 
         // Resolve and create the RAC output directory.
-        String rawDir = (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
-                ? settings.racOutputDir : "rac-classes";
+        // Caller may supply an explicit override (e.g. the Eclipse project's bin/ folder).
+        String rawDir = (outputDir != null && !outputDir.isEmpty()) ? outputDir
+                : (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
+                        ? settings.racOutputDir : "rac-classes";
         java.nio.file.Path outputDir;
         java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
         if (raw.isAbsolute()) {

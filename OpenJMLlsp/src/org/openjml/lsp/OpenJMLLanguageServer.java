@@ -65,7 +65,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 textDocumentService::scheduleEscForMethod,
                 textDocumentService::scheduleEscForPaths,
                 textDocumentService::recheckUri,
-                textDocumentService::scheduleRacForUri,
+                (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir),
                 textDocumentService::getSemanticTokens,
                 textDocumentService::symbols,
                 escCommand,
