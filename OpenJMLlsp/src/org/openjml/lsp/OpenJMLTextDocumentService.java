@@ -99,25 +99,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     // --- ESC status per method (for code lens) ---
 
-    enum EscPhase { UNKNOWN, CHECKING, VERIFIED, INFEASIBLE, NOT_VERIFIED, SKIPPED, TIMEOUT, CANCELLED, CHECK_ERROR, CHECK_ERROR_DEPS }
+    enum EscResult { UNKNOWN, CHECKING, VERIFIED, INFEASIBLE, NOT_VERIFIED, SKIPPED, TIMEOUT, CANCELLED, CHECK_ERROR, CHECK_ERROR_DEPS }
 
-    record MethodStatus(EscPhase phase, int issueCount) {
-        static final MethodStatus UNKNOWN      = new MethodStatus(EscPhase.UNKNOWN,      0);
-        static final MethodStatus CHECKING     = new MethodStatus(EscPhase.CHECKING,     0);
-        static final MethodStatus VERIFIED     = new MethodStatus(EscPhase.VERIFIED,     0);
-        static final MethodStatus INFEASIBLE   = new MethodStatus(EscPhase.INFEASIBLE,   0);
-        static final MethodStatus SKIPPED      = new MethodStatus(EscPhase.SKIPPED,      0);
-        static final MethodStatus TIMEOUT      = new MethodStatus(EscPhase.TIMEOUT,      0);
-        static final MethodStatus CANCELLED    = new MethodStatus(EscPhase.CANCELLED,    0);
-        static final MethodStatus CHECK_ERROR       = new MethodStatus(EscPhase.CHECK_ERROR,       0);
-        static final MethodStatus CHECK_ERROR_DEPS  = new MethodStatus(EscPhase.CHECK_ERROR_DEPS,  0);
-        static MethodStatus notVerified(int n) { return new MethodStatus(EscPhase.NOT_VERIFIED, n); }
+    record MethodStatus(EscResult result, int issueCount) {
+        static final MethodStatus UNKNOWN      = new MethodStatus(EscResult.UNKNOWN,      0);
+        static final MethodStatus CHECKING     = new MethodStatus(EscResult.CHECKING,     0);
+        static final MethodStatus VERIFIED     = new MethodStatus(EscResult.VERIFIED,     0);
+        static final MethodStatus INFEASIBLE   = new MethodStatus(EscResult.INFEASIBLE,   0);
+        static final MethodStatus SKIPPED      = new MethodStatus(EscResult.SKIPPED,      0);
+        static final MethodStatus TIMEOUT      = new MethodStatus(EscResult.TIMEOUT,      0);
+        static final MethodStatus CANCELLED    = new MethodStatus(EscResult.CANCELLED,    0);
+        static final MethodStatus CHECK_ERROR       = new MethodStatus(EscResult.CHECK_ERROR,       0);
+        static final MethodStatus CHECK_ERROR_DEPS  = new MethodStatus(EscResult.CHECK_ERROR_DEPS,  0);
+        static MethodStatus notVerified(int n) { return new MethodStatus(EscResult.NOT_VERIFIED, n); }
         static MethodStatus done(int n) {
             return n == 0 ? VERIFIED : notVerified(n);
         }
 
         String label() {
-            return switch (phase) {
+            return switch (result) {
                 case UNKNOWN      -> "OpenJML: \u2014";                 // —
                 case CHECKING     -> "OpenJML: \u29d7 Checking\u2026";  // ⧗
                 case VERIFIED     -> "OpenJML: \u2713 Verified";
