@@ -138,10 +138,41 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         if (message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n
                 && "window/logMessage".equals(n.getMethod())) {
             Object params = n.getParams();
-            if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
-                Console.log("[OpenJML] " + mp.getMessage());
-            }
+            String text = extractLogMessageText(params);
+            if (text != null) Console.log("[OpenJML] " + text);
         }
+    }
+
+    /**
+     * Extracts the "message" field from a {@code window/logMessage} params object.
+     *
+     * The params may be a typed {@link org.eclipse.lsp4j.MessageParams} (if LSP4J has
+     * already deserialized it) or a raw Gson {@code JsonObject} (if accessed before
+     * LSP4J routing). We avoid a direct Gson class reference to sidestep OSGi
+     * classloader issues and instead fall back to {@code toString()} parsing.
+     */
+    private static String extractLogMessageText(Object params) {
+        if (params == null) return null;
+        if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
+            return mp.getMessage();
+        }
+        // params is likely a Gson JsonObject from a different classloader.
+        // JsonObject.toString() produces JSON like {"type":3,"message":"..."}.
+        // Use a simple regex to extract the message field.
+        String json = params.toString();
+        var m = java.util.regex.Pattern
+                .compile("\"message\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
+                .matcher(json);
+        if (m.find()) {
+            // Unescape basic JSON escape sequences
+            return m.group(1)
+                    .replace("\\\"", "\"")
+                    .replace("\\\\", "\\")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "\r")
+                    .replace("\\t", "\t");
+        }
+        return null;
     }
 
     @Override
