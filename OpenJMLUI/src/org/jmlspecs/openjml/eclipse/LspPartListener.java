@@ -28,6 +28,8 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private static volatile Object cachedDef;
     /** LanguageServiceAccessor.startLanguageServer(LanguageServerDefinition) method, cached. */
     private static volatile java.lang.reflect.Method startLanguageServerMethod;
+    /** The running LanguageServerWrapper, cached after first successful start. */
+    static volatile Object cachedWrapper;
 
     /** Files for which we have already triggered LSP startup. */
     private final java.util.Set<org.eclipse.core.runtime.IPath> triggered =
@@ -111,6 +113,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             if (startLanguageServerMethod != null) {
                 Object wrapper = startLanguageServerMethod.invoke(null, cachedDef);
                 System.err.println("[OpenJML] LspPartListener: startLanguageServer() = " + wrapper);
+                if (wrapper != null) cachedWrapper = wrapper;
 
                 // --- Step 3: connect this document to the (now-running) server ---
                 if (wrapper != null && doc != null) {

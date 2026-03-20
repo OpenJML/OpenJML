@@ -12,11 +12,11 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4j.ExecuteCommandParams;
+import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.google.gson.JsonPrimitive;
 
 /**
  * Eclipse command handler that forwards an LSP {@code workspace/executeCommand}
@@ -53,8 +53,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         Console.log(lspCommand);
 
-        // Obtain the IDocument from the file buffer so we can route via forDocument(),
-        // which works even before LspPartListener has connected the document explicitly.
+        // Obtain the IDocument from the file buffer so we can route via forDocument().
         org.eclipse.jface.text.IDocument doc = null;
         org.eclipse.core.filebuffers.ITextFileBuffer buf =
                 org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
@@ -65,18 +64,92 @@ public abstract class LspCommandHandler extends AbstractHandler {
         final org.eclipse.jface.text.IDocument finalDoc = doc;
         buildParams(uri, file, event).thenAccept(params -> {
             if (params == null) return;
-            if (finalDoc != null) {
-                LanguageServers.forDocument(finalDoc)
-                    .computeFirst(server ->
-                        server.getWorkspaceService().executeCommand(params));
-            } else {
-                // Fallback: route by project
-                LanguageServers.forProject(file.getProject())
-                    .computeFirst(server ->
-                        server.getWorkspaceService().executeCommand(params));
-            }
+            // computeFirst() waits for the server to finish initialising — do NOT
+            // gate it with anyMatching() (50 ms timeout causes commands to be lost
+            // while the server is still starting up).
+            dispatchCommand(params, finalDoc, file.getProject());
         });
         return null;
+    }
+
+    /**
+     * Route {@code params} to the language server.
+     * Tries {@code forDocument} then {@code forProject}; if neither finds a server
+     * (Optional is empty), falls back to the cached wrapper from LspPartListener.
+     */
+    private static void dispatchCommand(ExecuteCommandParams params,
+                                        org.eclipse.jface.text.IDocument doc,
+                                        org.eclipse.core.resources.IProject project) {
+        try {
+            // computeFirst() waits for server initialisation.  If it routes to a
+            // different language server (e.g. JDT) that rejects openjml.* commands,
+            // the exceptionally handler retries via the cached OpenJML wrapper.
+            java.util.concurrent.CompletableFuture<java.util.Optional<Object>> cf =
+                    doc != null
+                    ? LanguageServers.forDocument(doc)
+                            .computeFirst(s -> s.getWorkspaceService().executeCommand(params))
+                    : LanguageServers.forProject(project)
+                            .computeFirst(s -> s.getWorkspaceService().executeCommand(params));
+            cf.orTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+              .thenAccept(opt -> {
+                if (opt == null || opt.isEmpty()) {
+                    // No server responded — try the cached OpenJML wrapper directly.
+                    boolean sent = sendViaWrapper(
+                            org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params);
+                    if (!sent)
+                        Console.log("[OpenJML] ERROR: server not connected — command not sent");
+                }
+              }).exceptionally(t -> {
+                // Another server (e.g. JDT) rejected the command — retry via wrapper.
+                boolean sent = sendViaWrapper(
+                        org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params);
+                if (!sent)
+                    Console.log("[OpenJML] ERROR: server not connected — command not sent");
+                return null;
+              });
+        } catch (Throwable t) {
+            Console.log("[OpenJML] dispatchCommand exception: " + t);
+        }
+    }
+
+    /**
+     * Send {@code params} to the language server via the cached
+     * {@code LanguageServerWrapper} from {@link LspPartListener}.
+     * Uses reflection to call {@code wrapper.getServer().getWorkspaceService().executeCommand(params)}.
+     *
+     * @return {@code true} if the call was dispatched (wrapper was non-null and
+     *         the reflective call succeeded), {@code false} otherwise
+     */
+    private static boolean sendViaWrapper(Object wrapper, ExecuteCommandParams params) {
+        if (wrapper == null) return false;
+        try {
+            // LanguageServerWrapper.getServer() → LanguageServer proxy
+            java.lang.reflect.Method getServer = null;
+            for (Class<?> c = wrapper.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                try {
+                    getServer = c.getDeclaredMethod("getServer");
+                    getServer.setAccessible(true);
+                    break;
+                } catch (NoSuchMethodException ignored) {}
+            }
+            if (getServer == null) return false;
+            Object serverFuture = getServer.invoke(wrapper);
+            // getServer() returns CompletableFuture<LanguageServer> in some versions,
+            // or LanguageServer directly in others.
+            LanguageServer server = null;
+            if (serverFuture instanceof java.util.concurrent.CompletableFuture<?> cf) {
+                Object result = cf.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                if (result instanceof LanguageServer ls) server = ls;
+            } else if (serverFuture instanceof LanguageServer ls) {
+                server = ls;
+            }
+            if (server == null) return false;
+            server.getWorkspaceService().executeCommand(params);
+            return true;
+        } catch (Throwable t) {
+            Console.log("[OpenJML] sendViaWrapper failed: " + t);
+            return false;
+        }
     }
 
     /**
@@ -87,7 +160,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
     protected java.util.concurrent.CompletableFuture<ExecuteCommandParams>
             buildParams(String uri, IFile file, ExecutionEvent event) {
         return java.util.concurrent.CompletableFuture.completedFuture(
-                new ExecuteCommandParams(lspCommand, List.of(new JsonPrimitive(uri))));
+                new ExecuteCommandParams(lspCommand, List.of(uri)));
     }
 
     // -----------------------------------------------------------------------
@@ -126,7 +199,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             // when no method name is supplied.
             return java.util.concurrent.CompletableFuture.completedFuture(
                     new ExecuteCommandParams("openjml.runEscForMethod",
-                            List.of(new JsonPrimitive(uri), new JsonPrimitive(""))));
+                            List.of(uri, "")));
         }
     }
 

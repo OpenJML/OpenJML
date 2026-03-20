@@ -427,16 +427,57 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             definition(DefinitionParams params) {
         String uri = params.getTextDocument().getUri();
         String source = lastContent.get(uri);
+        ASTCache cache = CheckRunner.getASTCache();
+        boolean hasAst = cache.get(uri) != null;
+        System.err.println("[OpenJML] definition: uri=" + uri
+                + "  hasContent=" + (source != null)
+                + "  hasAST=" + hasAst);
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
+
+        // For .jml spec files the AST is cached under the companion .java URI.
+        // JML spec nodes in that AST retain positions in .jml coordinate space,
+        // so look up via javaUri but compute cursor offset from jml source.
+        // If the check is still running, chain the lookup off the pending future.
+        if (uri.endsWith(".jml") && !hasAst) {
+            String javaUri = resolveCompanionJavaUri(uri, source);
+            if (javaUri != null) {
+                String jmlSource = source;
+                CompletableFuture<Void> pending = lastCheckFuture.get(javaUri);
+                CompletableFuture<Void> ready = (pending != null && !pending.isDone())
+                        ? pending : CompletableFuture.completedFuture(null);
+                return ready.thenApply(v -> {
+                    ASTCache.Entry entry = cache.get(javaUri);
+                    if (entry == null) {
+                        System.err.println("[OpenJML] definition: no AST for " + javaUri);
+                        return Either.<List<? extends Location>, List<? extends LocationLink>>
+                                forLeft(List.of());
+                    }
+                    System.err.println("[OpenJML] definition: redirecting to java AST " + javaUri);
+                    Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
+                    synthetic.put(javaUri, jmlSource);
+                    Location loc = DefinitionFinder.findDefinition(
+                            javaUri,
+                            params.getPosition().getLine(),
+                            params.getPosition().getCharacter(),
+                            synthetic,
+                            cache);
+                    System.err.println("[OpenJML] definition result (jml): " + loc);
+                    List<Location> res = loc != null ? List.of(loc) : List.of();
+                    return Either.<List<? extends Location>, List<? extends LocationLink>>
+                            forLeft(res);
+                });
+            }
+        }
 
         Location loc = DefinitionFinder.findDefinition(
                 uri,
                 params.getPosition().getLine(),
                 params.getPosition().getCharacter(),
                 lastContent,
-                CheckRunner.getASTCache());
+                cache);
 
+        System.err.println("[OpenJML] definition result: " + loc);
         List<Location> result = loc != null ? List.of(loc) : List.of();
         return CompletableFuture.completedFuture(Either.forLeft(result));
     }
@@ -493,12 +534,40 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
+        ASTCache cache = CheckRunner.getASTCache();
+        if (uri.endsWith(".jml") && cache.get(uri) == null) {
+            String javaUri = resolveCompanionJavaUri(uri, source);
+            if (javaUri != null) {
+                String jmlSource = source;
+                CompletableFuture<Void> pending = lastCheckFuture.get(javaUri);
+                CompletableFuture<Void> ready = (pending != null && !pending.isDone())
+                        ? pending : CompletableFuture.completedFuture(null);
+                return ready.thenApply(v -> {
+                    ASTCache.Entry entry = cache.get(javaUri);
+                    if (entry == null)
+                        return Either.<List<? extends Location>, List<? extends LocationLink>>
+                                forLeft(List.of());
+                    Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
+                    synthetic.put(javaUri, jmlSource);
+                    Location loc = DefinitionFinder.findDefinition(
+                            javaUri,
+                            params.getPosition().getLine(),
+                            params.getPosition().getCharacter(),
+                            synthetic,
+                            cache);
+                    List<Location> res = loc != null ? List.of(loc) : List.of();
+                    return Either.<List<? extends Location>, List<? extends LocationLink>>
+                            forLeft(res);
+                });
+            }
+        }
+
         Location loc = DefinitionFinder.findDefinition(
                 uri,
                 params.getPosition().getLine(),
                 params.getPosition().getCharacter(),
                 lastContent,
-                CheckRunner.getASTCache());
+                cache);
 
         List<Location> result = loc != null ? List.of(loc) : List.of();
         return CompletableFuture.completedFuture(Either.forLeft(result));

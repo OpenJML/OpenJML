@@ -3,10 +3,13 @@ package org.openjml.lsp;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.io.IOException;
@@ -200,7 +203,7 @@ public class DefinitionFinder {
         }
 
         @Override
-        public void visitMethodDef(com.sun.tools.javac.tree.JCTree.JCMethodDecl tree) {
+        public void visitMethodDef(JCMethodDecl tree) {
             // Handle cursor on the method name in its own declaration.
             if (tree.pos >= 0 && tree.sym != null && tree.name != null
                     && !tree.name.toString().equals("<init>")) {
@@ -211,6 +214,14 @@ public class DefinitionFinder {
                 }
             }
             super.visitMethodDef(tree);
+            // Also scan combined specs: includes specs from companion .jml spec files
+            // that are NOT in methodSpecs (inline JML) but in methodSpecsCombined.
+            if (tree instanceof JmlMethodDecl jmlMethod) {
+                JmlSpecs.MethodSpecs ms = jmlMethod.methodSpecsCombined;
+                if (ms != null && ms.cases != null) {
+                    scan(ms.cases);
+                }
+            }
         }
 
         @Override
