@@ -225,11 +225,16 @@
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
            <separator name="sep1"/>
+           <command commandId="org.openjml.eclipse.commands.findDeclaration"
+                    label="Find Declaration"/>
+           <command commandId="org.openjml.eclipse.commands.findReferences"
+                    label="Find References"/>
+           <separator name="sep2"/>
            <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                     label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
-           <separator name="sep2"/>
+           <separator name="sep3"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
            <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
