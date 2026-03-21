@@ -135,7 +135,7 @@ public class JmlFoldingManager {
     }
 
     /**
-     * Scans {@code line} for {@code */} … {@code /*@} pairs, starting from the
+     * Scans {@code line} for {@code *\/} .. {@code /*@} pairs, starting from the
      * assumption that we are inside a JML block comment.  Returns {@code true}
      * if we are still inside a (possibly different) block comment at the end of
      * the line.

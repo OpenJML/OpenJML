@@ -22,7 +22,7 @@ import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.eclipse.ui.texteditor.ITextEditor;
+//import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Handles the {@code org.openjml.eclipse.findDeclaration} command (F3 in the
@@ -41,23 +41,22 @@ public class JmlOpenDeclarationHandler extends AbstractHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
+
         IEditorPart editor = HandlerUtil.getActiveEditor(event);
-        if (!(editor instanceof ITextEditor textEditor)) return null;
-
-        IDocument doc = textEditor.getDocumentProvider()
-                .getDocument(textEditor.getEditorInput());
-        if (doc == null) return null;
-
+        if (editor == null) return null;
+        var resource = org.eclipse.ui.ide.ResourceUtil.getResource(editor.getEditorInput());
+        if (resource == null) return null;
+        IDocument doc = LSPEclipseUtils.getDocument(resource);
+        
         ITextSelection sel = (ITextSelection)
-                textEditor.getSelectionProvider().getSelection();
-        int offset = sel.getOffset();
+                editor.getSite().getSelectionProvider().getSelection();
+        int offset = sel.getOffset(); // 0-based character position
 
-        URI docUri = LSPEclipseUtils.toUri(textEditor.getEditorInput());
-        if (docUri == null) return null;
+        URI docUri = LSPEclipseUtils.toUri(doc);
 
         Position pos;
         try {
-            pos = LSPEclipseUtils.toPosition(offset, doc);
+            pos = LSPEclipseUtils.toPosition(offset, doc); // 0-based line and column offset
         } catch (BadLocationException e) {
             return null;
         }
@@ -86,7 +85,7 @@ public class JmlOpenDeclarationHandler extends AbstractHandler {
                     }
                     if (uri != null) {
                         final String fUri = uri;
-                        final org.eclipse.lsp4j.Range fRange = range;
+                        final org.eclipse.lsp4j.Range fRange = range; // 0-based
                         Display.getDefault().asyncExec(() ->
                                 LSPEclipseUtils.open(fUri, fRange));
                     }

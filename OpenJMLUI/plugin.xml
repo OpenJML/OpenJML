@@ -128,6 +128,11 @@
            name="Remove OpenJML Nature"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Remove the OpenJML project nature from the selected project"/>
+     <command
+           id="org.openjml.eclipse.commands.findDeclaration"
+           name="Find Declaration"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Move cursor to the declaration corresponding to the current cursor"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -148,18 +153,10 @@
               class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$EnableJmlNature"/>
      <handler commandId="org.jmlspecs.openjml.commands.disableJmlNature"
               class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$DisableJmlNature"/>
+     <handler commandId="org.openjml.eclipse.commands.findDeclaration"
+              class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"/>
   </extension>
 
-  <!-- FIXME - review default key bindings -->
-  <!-- Keybindings -->
-  <extension point="org.eclipse.ui.bindings">
-     <key sequence="M1+M2+J E" commandId="org.jmlspecs.openjml.commands.runESC"
-          contextId="org.eclipse.ui.textEditorScope"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-     <key sequence="M1+M2+J M" commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-          contextId="org.eclipse.ui.textEditorScope"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-  </extension>
   
   <!-- Toolbar buttons -->
   <extension
@@ -192,11 +189,9 @@
       </menuContribution>
   </extension>
   
-  
-
   <!-- OpenJML menu (editor popup and main menu) -->
   <extension point="org.eclipse.ui.menus">
-     <menuContribution locationURI="popup:org.eclipse.ui.editorss?after=additions">
+     <menuContribution locationURI="popup:org.eclipse.ui.editors?after=additions">
         <menu id="org.jmlspecs.openjml.editorPopupMenu" label="OpenJML">
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML in File" />
@@ -228,6 +223,8 @@
                     label="Run ESC for Method Under Cursor"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
+           <command commandId="org.openjml.eclipse.commands.findDeclaration"
+                    label="Find Declaration"/>
            <separator name="sep1"/>
            <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                     label="Clear Markers"/>
@@ -240,6 +237,7 @@
                     label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
+     
      <!-- View popup: right-click in Package Explorer, Project Explorer, Outline -->
      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
         <menu id="org.jmlspecs.openjml.viewPopupMenu" label="OpenJML"
@@ -278,6 +276,39 @@
         </menu>
      </menuContribution>
   </extension>
+  
+  <extension point="org.eclipse.ui.menus">
+       <!-- Right-click popup for editors with our LSP server -->
+     <menuContribution locationURI="popup:org.eclipse.ui.genericeditor.source.menu?before=additions">
+        <command
+              commandId="org.openjml.eclipse.commands.findDeclaration"
+              label="Find Declaration"/>
+     </menuContribution>
+  </extension>
+
+  <!-- Bind F3 to Find Declaration in the Generic Editor context.
+       The Generic Editor context is org.eclipse.ui.genericeditor.genericEditorContext.
+       JDT's Java editor has its own F3 binding which takes priority for .java files. -->
+  <extension point="org.eclipse.ui.bindings">
+  </extension>
+
+
+  <!-- FIXME - review default key bindings -->
+  <!-- Keybindings -->
+  <extension point="org.eclipse.ui.bindings">
+     <key sequence="M1+M2+J E" commandId="org.jmlspecs.openjml.commands.runESC"
+          contextId="org.eclipse.ui.textEditorScope"
+          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+     <key sequence="M1+M2+J M" commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+          contextId="org.eclipse.ui.textEditorScope"
+          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+     <key
+           sequence="F3"
+           commandId="org.openjml.eclipse.commands.findDeclaration"
+           contextId="org.eclipse.ui.genericeditor.genericEditorContext"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+  </extension>
+  
   
   <!-- Register a unique JML console -->
   <extension
@@ -1574,51 +1605,7 @@
        entry that delegate to LSP4E's OpenDeclarationHyperlinkDetector.
        =================================================================== -->
 
-  <extension point="org.eclipse.ui.commands">
-     <command
-           id="org.openjml.eclipse.findDeclaration"
-           name="Find Declaration"
-           categoryId="org.eclipse.ui.category.navigate"/>
-  </extension>
 
-  <extension point="org.eclipse.ui.handlers">
-     <!-- No activeWhen restriction — the handler checks for a text viewer internally
-          and returns silently if not applicable. -->
-     <handler
-           class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"
-           commandId="org.openjml.eclipse.findDeclaration"/>
 
-  </extension>
-
-  <!-- Bind F3 to Find Declaration in the Generic Editor context.
-       The Generic Editor context is org.eclipse.ui.genericeditor.genericEditorContext.
-       JDT's Java editor has its own F3 binding which takes priority for .java files. -->
-  <extension point="org.eclipse.ui.bindings">
-     <key
-           sequence="F3"
-           commandId="org.openjml.eclipse.findDeclaration"
-           contextId="org.eclipse.ui.genericeditor.genericEditorContext"
-           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-  </extension>
-
-  <!-- Add "Find Declaration" to the OpenJML top-level menu and right-click popup.
-       Also keep F3 binding via the keybinding extension above. -->
-  <extension point="org.eclipse.ui.menus">
-
-     <!-- Add to the existing OpenJML main menu (same id as the menu defined above) -->
-     <menuContribution locationURI="menu:org.jmlspecs.openjml.mainMenu?after=sep1">
-        <command
-              commandId="org.openjml.eclipse.findDeclaration"
-              label="Find Declaration"/>
-     </menuContribution>
-
-     <!-- Right-click popup for editors with our LSP server -->
-     <menuContribution locationURI="popup:org.eclipse.ui.genericeditor.source.menu?before=additions">
-        <command
-              commandId="org.openjml.eclipse.findDeclaration"
-              label="Find Declaration"/>
-     </menuContribution>
-
-  </extension>
 
 </plugin>

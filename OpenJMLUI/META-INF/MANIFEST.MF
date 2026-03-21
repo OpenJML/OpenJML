@@ -23,8 +23,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.lsp4j;resolution:=optional,
  org.eclipse.lsp4j.jsonrpc;resolution:=optional,
  org.eclipse.core.filebuffers,
- org.eclipse.tm4e.registry;resolution:=optional
-Import-Package: org.jmlspecs.annotation;resolution:=optional,
+ org.eclipse.tm4e.registry;resolution:=optional,
+ org.eclipse.ui.workbench.texteditor
+Import-Package: org.eclipse.ui.texteditor,
+ org.jmlspecs.annotation;resolution:=optional,
  org.osgi.framework.wiring
 Automatic-Module-Name: org.openjml.openjmlui
 Bundle-ActivationPolicy: lazy

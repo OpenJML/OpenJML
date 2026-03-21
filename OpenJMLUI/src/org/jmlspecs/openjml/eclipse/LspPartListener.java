@@ -171,6 +171,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             } catch (Throwable t) {
                 System.err.println("[OpenJML] setupFolding failed: " + t);
+                t.printStackTrace(System.err);
             }
         });
     }
