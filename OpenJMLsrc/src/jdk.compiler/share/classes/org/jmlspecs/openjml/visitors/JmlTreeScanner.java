@@ -233,11 +233,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
             var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
             try {
                 if (scanMode == AST_SPEC_MODE) {
-                    JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
-                    if (ms != null) { // FIXME - explain why ms might be null
-                        scan(ms.mods);
-                        scan(ms.cases);
-                    }
+//                    JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
+//                    if (ms != null) { // FIXME - explain why ms might be null
+//                        scan(ms.mods);
+//                        scan(ms.cases);
+//                    }
                 }
                 if (scanMode == AST_JML_MODE) {
                     scan(that.methodSpecs);

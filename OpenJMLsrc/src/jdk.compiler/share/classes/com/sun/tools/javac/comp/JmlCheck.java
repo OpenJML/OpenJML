@@ -141,7 +141,7 @@ public class JmlCheck extends Check {
             boolean isInInterface = sym.owner.isInterface();
             boolean isInstance = JmlAttr.instance(context).isInstance(d.mods);
             if (isInstance) k &= ~Flags.STATIC;
-            if ((wasFinal==0) && Utils.instance(context).isJML(flags) && sym.owner.isInterface()) {
+            if ((wasFinal==0) && Utils.isJML(flags) && sym.owner.isInterface()) {
             	k &= ~Flags.FINAL;
             }
         	if (isInInterface && (k&Flags.AccessFlags)==0) k |= Flags.PUBLIC;

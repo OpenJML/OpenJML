@@ -731,7 +731,7 @@ public class TypeEnter implements Completer {
             JCExpression extending;
             
             var save = org.jmlspecs.openjml.Utils.isJML() && ((JmlResolve)Resolve.instance(context)).allowJML(); // OPENJML
-            if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.instance(context).isJML(sym.flags())) ((JmlResolve)Resolve.instance(context)).setAllowJML(true); // OPENJML
+            if (org.jmlspecs.openjml.Utils.isJML() && org.jmlspecs.openjml.Utils.isJML(sym.flags())) ((JmlResolve)Resolve.instance(context)).setAllowJML(true); // OPENJML
             if (tree.extending != null) {
                 extending = clearTypeParams(tree.extending);
                 supertype = attr.attribBase(extending, baseEnv, true, false, true);

@@ -6531,7 +6531,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		methodDecl.sourcefile = Log.instance(context).currentSourceFile();
 		methodDecl.docComment = null;
 		methodDecl.methodSpecs = null;
-		methodDecl.methodSpecsCombined = null;
+//		methodDecl.methodSpecsCombined = null;
 		methodDecl.sym = msym;
 		methodDecl.type = null;
 		return methodDecl;
@@ -16801,7 +16801,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //			fa.pos = that.pos;
 //			fa.sym = null;
 //			eee = fa;
-		} else if (translatingJML && (s == null || (s instanceof VarSymbol && (utils.isModel(s) || utils.isJML(s.owner.flags()))
+		} else if (translatingJML && (s == null || (s instanceof VarSymbol && (utils.isModel(s) || Utils.isJML(s.owner.flags()))
 				&& !convertingAssignable))) {
 			selected = copy(trexpr);
 
@@ -19747,7 +19747,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// m.owner = that.owner; // FIXME - new class decl?
 				m.docComment = that.docComment;
 				m.methodSpecs = copy(that.methodSpecs); // FIXME - why do we need to copy?
-				m.methodSpecsCombined = that.methodSpecsCombined; // FIXME - copy?
+//				m.methodSpecsCombined = that.methodSpecsCombined; // FIXME - copy?
 				m.specsDecl = that.specsDecl; // FIXME - needs new reference
 				if (classDefs != null)
 					classDefs.add(m); // classDefs can be null if JmlEsc.check is called directly on a JCMethodDecl

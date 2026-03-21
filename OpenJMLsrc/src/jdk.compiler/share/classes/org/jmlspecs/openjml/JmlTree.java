@@ -1385,7 +1385,7 @@ public class JmlTree {
 
         /** The final, combined specs from all sources (set in JmlMemberEnter);
          * set to self in parser for methods in anonymous classes */
-        public JmlSpecs.MethodSpecs methodSpecsCombined; 
+//        public JmlSpecs.MethodSpecs methodSpecsCombined; 
 
         public JmlMethodSpecs methodSpecs;
 

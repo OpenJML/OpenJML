@@ -299,7 +299,7 @@ public class JmlEnter extends Enter {
 					}
 					if (match == null) {
 						// No match in the Java list with the same name
-					    if (utils.isJML(specDecl.mods)) {
+					    if (Utils.isJML(specDecl.mods)) {
 					        // OK -- it is a model (JML-only) class declaration
 					        specDecl.specsDecl = specDecl;
 					        JmlClassDecl found = null;
@@ -833,7 +833,7 @@ public class JmlEnter extends Enter {
 	    if (print) System.out.println("SME " + specDecl);
 	    if (debugEnter || print) System.out.println("enter: Entering members for binary " + specDecl.sym + " : " + 
 	                            Utils.join(" ",specDecl.defs,d->(d instanceof JmlVariableDecl vd ? vd.name : d instanceof JmlMethodDecl md ? md.name : "")));
-		var saved = JmlResolve.instance(context).setAllowJML(utils.isJML(specDecl.mods));
+		var saved = JmlResolve.instance(context).setAllowJML(Utils.isJML(specDecl.mods));
 		ClassSymbol csym = specDecl.sym;
 		Symbol owner = csym.owner;
 		JmlSpecs specs = JmlSpecs.instance(context);
@@ -876,7 +876,7 @@ public class JmlEnter extends Enter {
 			} else if (t instanceof JmlVariableDecl vd) {
 				ok = specsFieldEnter(csym, vd, specsEnv);
 			} else if (t instanceof JmlBlock block) {
-    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(specsEnv.enclClass.mods)) {
+    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !Utils.isJML(specsEnv.enclClass.mods)) {
     				utils.error(block.source(), block, "jml.initializer.block.allowed");
     				ok = false;
     			}
@@ -1077,7 +1077,7 @@ public class JmlEnter extends Enter {
 		boolean print = false;//mdecl.name.toString().equals("of") && csym.toString().equals("java.util.stream.Stream");
 		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv + " " + mdecl.specsDecl);
 		boolean isJML = utils.isJML(mdecl);
-		boolean isOwnerJML = utils.isJML(csym.flags());
+		boolean isOwnerJML = Utils.isJML(csym.flags());
 		boolean isModel = utils.hasModifier(mdecl.mods, Modifiers.MODEL);
 		var specs = JmlSpecs.instance(context);
 		if (mdecl.sym != null) {
@@ -1168,7 +1168,7 @@ public class JmlEnter extends Enter {
 		} else {
 			// Found a matching Java binary method
 			if (print) System.out.println("MATCHED " + msym);
-			boolean matchIsJML = utils.isJML(msym.flags());
+			boolean matchIsJML = Utils.isJML(msym.flags());
 			JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).get(msym); // Raw get to see if specs are present
 
 			if (isJML && matchIsJML) {
@@ -1294,7 +1294,7 @@ public class JmlEnter extends Enter {
 	public boolean specsFieldEnter(ClassSymbol csym, JmlVariableDecl vdecl, Env<AttrContext> specsEnv) {
 	    // FIXME - error messages need a sourcefile
 		boolean isJML = utils.isJML(vdecl);
-		boolean isOwnerJML = utils.isJML(csym.flags());
+		boolean isOwnerJML = Utils.isJML(csym.flags());
 		boolean isGhost = utils.hasMod(vdecl.mods, Modifiers.GHOST);
 		boolean isGhostOrModel = isGhost || utils.hasMod(vdecl.mods, Modifiers.MODEL);
 		boolean ok = false;
@@ -1353,7 +1353,7 @@ public class JmlEnter extends Enter {
 				ok = true;
 			} else if (vsym.name != names.error) {
 				// Found a matching binary field
-				boolean matchIsJML = utils.isJML(vsym.flags());
+				boolean matchIsJML = Utils.isJML(vsym.flags());
 				JmlSpecs.FieldSpecs fspecs = JmlSpecs.instance(context).get(vsym); // Raw get to see if specs are present
 				if ((isJML || matchIsJML) && fspecs == null) {
 					utils.error(vdecl.source(), vdecl, "jml.internal", "No FieldSpecs for an already entered JML field " + csym + "." + vsym);

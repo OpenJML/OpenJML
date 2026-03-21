@@ -408,7 +408,7 @@ public class JmlTypes extends Types {
     /** Return true if this method is JML or declared in a JML file */
     @Override
     public boolean checkJML(MethodSymbol msym) { 
-        if (Utils.instance(context).isJML(msym.flags())) return true;
+        if (Utils.isJML(msym.flags())) return true;
     	var e = com.sun.tools.javac.comp.Enter.instance(context).getEnv((Symbol.TypeSymbol)msym.owner);
     	if (e == null || e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return true; 
     	return false;
