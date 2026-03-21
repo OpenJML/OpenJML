@@ -27,8 +27,10 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.MessageActionItem;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.ShowMessageRequestParams;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
@@ -508,22 +510,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
         String uri = params.getTextDocument().getUri();
-        String source = lastContent.get(uri);
-        if (source == null)
+        if (lastContent.get(uri) == null)
             return CompletableFuture.completedFuture(List.of());
 
         boolean includeDecl = params.getContext() != null
                 && params.getContext().isIncludeDeclaration();
 
-        List<? extends Location> refs = ReferenceFinder.findReferences(
-                uri,
-                params.getPosition().getLine(),
-                params.getPosition().getCharacter(),
-                lastContent,
-                CheckRunner.getASTCache(),
-                includeDecl);
-
-        return CompletableFuture.completedFuture(refs);
+        return ensureFreshAndConfirm(uri, "Find References").thenApply(proceed -> {
+            if (!proceed) return List.of();
+            return ReferenceFinder.findReferences(
+                    uri,
+                    params.getPosition().getLine(),
+                    params.getPosition().getCharacter(),
+                    lastContent,
+                    CheckRunner.getASTCache(),
+                    includeDecl);
+        });
     }
 
     // --- go to declaration ---
@@ -630,22 +632,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
         String uri = params.getTextDocument().getUri();
-        String source = lastContent.get(uri);
-        if (source == null)
+        if (lastContent.get(uri) == null)
             return CompletableFuture.completedFuture(null);
-        try {
-            WorkspaceEdit edit = Renamer.rename(
-                    uri,
-                    params.getPosition().getLine(),
-                    params.getPosition().getCharacter(),
-                    params.getNewName(),
-                    lastContent,
-                    CheckRunner.getASTCache(),
-                    settings);
-            return CompletableFuture.completedFuture(edit);
-        } catch (ResponseErrorException e) {
-            return CompletableFuture.failedFuture(e);
-        }
+
+        return ensureFreshAndConfirm(uri, "Rename").thenCompose(proceed -> {
+            if (!proceed) return CompletableFuture.completedFuture(null);
+            try {
+                WorkspaceEdit edit = Renamer.rename(
+                        uri,
+                        params.getPosition().getLine(),
+                        params.getPosition().getCharacter(),
+                        params.getNewName(),
+                        lastContent,
+                        CheckRunner.getASTCache(),
+                        settings);
+                return CompletableFuture.completedFuture(edit);
+            } catch (ResponseErrorException e) {
+                return CompletableFuture.failedFuture(e);
+            }
+        });
     }
 
     /**
@@ -1344,6 +1349,81 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // diagnostics, but they MUST NOT touch methodEscStatus or call
     // refreshCodeLenses().  Partially-typed code during editing must not disturb
     // the ESC code-lens status that the user sees.
+
+    /**
+     * Returns {@code true} if any currently-open document has in-memory content
+     * that has not yet been processed by a completed {@code --check} pass.
+     */
+    private boolean isWorkspaceStale() {
+        for (var entry : lastContent.entrySet()) {
+            if (!entry.getValue().equals(lastCheckedContent.get(entry.getKey())))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns {@code true} if any file in the workspace currently has
+     * ERROR-severity {@code --check} diagnostics (warnings are ignored).
+     */
+    private boolean hasWorkspaceErrors() {
+        for (List<Diagnostic> diags : checkDiags.values()) {
+            for (Diagnostic d : diags) {
+                if (d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Ensure the workspace is up to date, then ask the user to confirm if there
+     * are errors.
+     *
+     * <ol>
+     *   <li>If any open file is stale, run a blocking {@code --check} on
+     *       {@code primaryUri} (which includes all open files via
+     *       {@link CheckRunner#checkWithContext}).</li>
+     *   <li>If any workspace file has ERROR-severity diagnostics, show a
+     *       {@code window/showMessageRequest} dialog.  Returns {@code false}
+     *       if the user cancels; {@code true} to proceed.</li>
+     * </ol>
+     *
+     * @param primaryUri    the URI the operation is invoked on
+     * @param operationName human-readable name for the dialog (e.g. "Rename")
+     * @return a future completing with {@code true} to proceed, {@code false} to abort
+     */
+    private CompletableFuture<Boolean> ensureFreshAndConfirm(
+            String primaryUri, String operationName) {
+        CompletableFuture<Void> checkFuture;
+        if (isWorkspaceStale()) {
+            String content = lastContent.get(primaryUri);
+            if (content == null)
+                return CompletableFuture.completedFuture(false);
+            checkFuture = CompletableFuture.runAsync(
+                    () -> runCheckContent(primaryUri, content), executor);
+        } else {
+            checkFuture = CompletableFuture.completedFuture(null);
+        }
+
+        return checkFuture.thenCompose(v -> {
+            if (!hasWorkspaceErrors())
+                return CompletableFuture.completedFuture(true);
+            if (client == null)
+                return CompletableFuture.completedFuture(true);
+
+            ShowMessageRequestParams req = new ShowMessageRequestParams();
+            req.setType(MessageType.Warning);
+            req.setMessage(operationName + " may be inaccurate because the workspace"
+                    + " has compilation errors. Proceed anyway?");
+            MessageActionItem proceed = new MessageActionItem("Proceed Anyway");
+            MessageActionItem cancel  = new MessageActionItem("Cancel");
+            req.setActions(List.of(proceed, cancel));
+
+            return client.showMessageRequest(req).thenApply(action ->
+                    action != null && "Proceed Anyway".equals(action.getTitle()));
+        });
+    }
 
     private void runCheckContent(String uri, String content) {
         // .jml files are spec files; should not be passed to OpenJML on command line.
