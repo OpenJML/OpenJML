@@ -312,18 +312,34 @@ public class ASTCache {
         /**
          * Record {@code sym → (uri, pos)} in the index.
          *
-         * <p>Preference rule: a {@code .java} declaration is never overwritten by
-         * a {@code .jml} spec stub for the same symbol.  Ghost/model symbols never
-         * reach this method for a {@code .java} CU (filtered by
-         * {@link #skipJmlNodeInJavaCu}), so they are always recorded under the
-         * real {@code .jml} URI from the companion AST scan.
+         * <p>Preference rules:
+         * <ul>
+         *   <li><b>Ghost/model symbols</b> ({@code JMLBIT} set): the {@code .jml} URI is
+         *       authoritative.  A {@code .jml} entry always wins over a {@code .java} entry.
+         *       {@link #skipJmlNodeInJavaCu} normally prevents these symbols from being
+         *       recorded under the {@code .java} URI in the first place; this rule is the
+         *       safety net for the case where {@code sourcefile} is not set on the merged
+         *       node.</li>
+         *   <li><b>Regular Java symbols</b>: a {@code .java} declaration is never
+         *       overwritten by a {@code .jml} spec stub for the same symbol.</li>
+         * </ul>
          */
         private void record(Symbol sym, int pos) {
             SymbolLocation incoming = new SymbolLocation(uri, pos);
-            index.merge(sym, incoming,
-                    (existing, in) -> !existing.uri().endsWith(".jml") && in.uri().endsWith(".jml")
-                            ? existing   // keep .java over .jml spec stub
-                            : in);       // otherwise take the latest
+            // Ghost/model symbols have the JML bit set — declared only in JML spec files.
+            boolean isJmlSym = (sym.flags() & org.jmlspecs.openjml.Utils.JMLBIT) != 0;
+            index.merge(sym, incoming, (existing, in) -> {
+                if (isJmlSym) {
+                    // Ghost/model: .jml URI wins over .java URI.
+                    if (existing.uri().endsWith(".jml")) return existing;
+                    if (in.uri().endsWith(".jml"))       return in;
+                    return in;  // both .java (inline ghost, no companion): take latest
+                } else {
+                    // Regular Java: .java wins over .jml spec stub.
+                    return !existing.uri().endsWith(".jml") && in.uri().endsWith(".jml")
+                            ? existing : in;
+                }
+            });
         }
     }
 }

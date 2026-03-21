@@ -66,7 +66,9 @@ public class DefinitionFinder {
         if (targetOffset < 0) return null;
 
         // Try JCIdent first (simple name), then JCFieldAccess (a field — cursor on field).
-        NodeMatch match = findNodeAt(entry.ast(), targetOffset, source);
+        // Only scan specsCompilationUnit when the cursor is already in a .jml file:
+        // specsCompilationUnit positions are in .jml coordinate space, not .java coordinate space.
+        NodeMatch match = findNodeAt(entry.ast(), targetOffset, source, uri.endsWith(".jml"));
         if (match == null || match.sym() == null) return null;
 
         ASTCache.SymbolLocation decl = cache.getDeclarationLocation(match.sym());
@@ -106,7 +108,7 @@ public class DefinitionFinder {
         int targetOffset = lineColToOffset(source, line, col);
         if (targetOffset < 0) return null;
 
-        NodeMatch match = findNodeAt(entry.ast(), targetOffset, source);
+        NodeMatch match = findNodeAt(entry.ast(), targetOffset, source, uri.endsWith(".jml"));
         return match != null ? match.sym() : null;
     }
 
@@ -148,11 +150,14 @@ public class DefinitionFinder {
      * name span contains {@code targetOffset}.  Returns the innermost match.
      */
     private static NodeMatch findNodeAt(JmlCompilationUnit ast,
-                                        int targetOffset, String source) {
+                                        int targetOffset, String source,
+                                        boolean scanSpecs) {
         IdentFinder finder = new IdentFinder(targetOffset, source);
         finder.scan(ast);
-        JmlCompilationUnit cu = ast.specsCompilationUnit;
-        if (cu != null && cu != ast) finder.scan(cu);
+        if (scanSpecs) {
+            JmlCompilationUnit cu = ast.specsCompilationUnit;
+            if (cu != null && cu != ast) finder.scan(cu);
+        }
         return finder.best;
     }
 

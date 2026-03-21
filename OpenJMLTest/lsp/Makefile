@@ -59,6 +59,7 @@ TEST_CLASSES := \
   RenameTest2 \
   RenameTest3 \
   DefinitionFinderTest \
+  DefinitionFinderJmlTest \
   DoEscTest \
   ReferenceFinderTest \
   DiagnosticsTest \
