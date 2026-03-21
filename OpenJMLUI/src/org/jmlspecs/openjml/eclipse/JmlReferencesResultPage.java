@@ -17,6 +17,7 @@ import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.AbstractTextSearchViewPage;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
@@ -67,19 +68,38 @@ public class JmlReferencesResultPage extends AbstractTextSearchViewPage {
         if (v != null) v.refresh();
     }
 
+    /**
+     * In tree mode the base-class {@code handleOpen} only toggles expand/collapse
+     * and never reaches {@code showMatch}.  Override to navigate directly when a
+     * {@link JmlReferencesSearchQuery.LocatedMatch} leaf is double-clicked.
+     */
+    @Override
+    protected void handleOpen(org.eclipse.jface.viewers.OpenEvent event) {
+        org.eclipse.jface.viewers.ISelection sel = event.getSelection();
+        if (sel instanceof org.eclipse.jface.viewers.IStructuredSelection ss) {
+            Object first = ss.getFirstElement();
+            if (first instanceof JmlReferencesSearchQuery.LocatedMatch lm
+                    && lm.getElement() instanceof IFile file) {
+                try {
+                    IEditorPart part = IDE.openEditor(getSite().getPage(), file, true);
+                    if (part instanceof ITextEditor te)
+                        te.selectAndReveal(lm.getOffset(), lm.getLength());
+                } catch (PartInitException e) {
+                    // ignore
+                }
+                return;
+            }
+        }
+        // IFile nodes: let the base class handle (expand/collapse)
+        super.handleOpen(event);
+    }
+
     @Override
     protected void showMatch(Match match, int currentOffset, int currentLength,
                              ITextEditor editor) {
+        // Called by gotoNextMatch / showCurrentMatch (table mode and keyboard nav).
         if (editor != null) {
             editor.selectAndReveal(currentOffset, currentLength);
-        } else if (match.getElement() instanceof IFile file) {
-            try {
-                IEditorPart part = IDE.openEditor(getSite().getPage(), file, true);
-                if (part instanceof ITextEditor te)
-                    te.selectAndReveal(currentOffset, currentLength);
-            } catch (PartInitException e) {
-                // ignore — file couldn't be opened
-            }
         }
     }
 
