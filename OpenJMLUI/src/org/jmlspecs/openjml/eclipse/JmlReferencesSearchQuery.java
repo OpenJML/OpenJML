@@ -92,13 +92,16 @@ public class JmlReferencesSearchQuery implements ISearchQuery {
             if (file == null) continue;
             String content = contentCache.computeIfAbsent(file,
                     JmlReferencesSearchQuery::readFileContent);
-            int start = lineCharToOffset(content,
-                    loc.getRange().getStart().getLine(),
+            int line  = loc.getRange().getStart().getLine(); // 0-indexed
+            int start = lineCharToOffset(content, line,
                     loc.getRange().getStart().getCharacter());
             int end   = lineCharToOffset(content,
                     loc.getRange().getEnd().getLine(),
                     loc.getRange().getEnd().getCharacter());
-            searchResult.addMatch(new Match(file, start, Math.max(0, end - start)));
+            String lineText = extractLine(content, line);
+            searchResult.addMatch(
+                    new LocatedMatch(file, start, Math.max(0, end - start),
+                            line + 1, lineText));
         }
         return Status.OK_STATUS;
     }
@@ -141,6 +144,33 @@ public class JmlReferencesSearchQuery implements ISearchQuery {
             if (content.charAt(offset++) == '\n') currentLine++;
         }
         return Math.min(offset + col, content.length());
+    }
+
+    /** Returns the text of the given 0-indexed line, with leading/trailing whitespace stripped. */
+    private static String extractLine(String content, int zeroBasedLine) {
+        int offset = 0, currentLine = 0;
+        while (offset < content.length() && currentLine < zeroBasedLine) {
+            if (content.charAt(offset++) == '\n') currentLine++;
+        }
+        int end = offset;
+        while (end < content.length() && content.charAt(end) != '\n' && content.charAt(end) != '\r')
+            end++;
+        return content.substring(offset, end).strip();
+    }
+
+    // -----------------------------------------------------------------------
+    // LocatedMatch — Match enriched with 1-indexed line number and line text
+    // -----------------------------------------------------------------------
+
+    static class LocatedMatch extends Match {
+        final int    line;     // 1-indexed display line
+        final String lineText; // stripped text of the source line
+
+        LocatedMatch(IFile file, int offset, int length, int line, String lineText) {
+            super(file, offset, length);
+            this.line     = line;
+            this.lineText = lineText;
+        }
     }
 
     // -----------------------------------------------------------------------
