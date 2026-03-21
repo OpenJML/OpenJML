@@ -62,6 +62,7 @@ TEST_CLASSES := \
   DefinitionFinderJmlTest \
   DoEscTest \
   ReferenceFinderTest \
+  ReferenceFinderJmlTest \
   DiagnosticsTest \
   DocumentSymbolTest \
   EscStatusTest \

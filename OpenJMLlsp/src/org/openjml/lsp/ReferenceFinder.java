@@ -117,6 +117,20 @@ public class ReferenceFinder {
 
         // --- declaration sites (only when includeDeclaration is true) ---
 
+        /**
+         * Handles class declaration sites ({@code includeDeclaration}) and scans
+         * the class body ({@code tree.defs}) directly — bypassing
+         * {@link JmlTreeScanner#visitClassDef}'s additional {@code typeSpecs.clauses}
+         * scan, which would double-count JML invariant nodes already present in
+         * {@code tree.defs}.
+         *
+         * <p>JML invariants declared in a file are stored as {@code JmlTypeClause}
+         * nodes in the class's {@code defs} list (scanned via {@code scan(tree.defs)})
+         * AND also in {@code typeSpecs.clauses} (a summary convenience field).
+         * Scanning both causes each invariant to be reported twice.  Method specs
+         * are still found because {@code visitMethodDef} runs in
+         * {@link JmlTreeScanner#AST_JML_MODE} and scans {@code methodSpecs}.
+         */
         @Override
         public void visitClassDef(JCClassDecl tree) {
             if (includeDeclaration && tree.sym == targetSym
@@ -127,7 +141,13 @@ public class ReferenceFinder {
                     if (namePos >= 0) addLocation(namePos, nameStr.length());
                 }
             }
-            super.visitClassDef(tree);
+            // Scan class body directly (tree.defs) without going through
+            // JmlTreeScanner.visitClassDef, which also scans typeSpecs.clauses.
+            scan(tree.mods);
+            scan(tree.typarams);
+            scan(tree.extending);
+            scan(tree.implementing);
+            scan(tree.defs);
         }
 
         @Override

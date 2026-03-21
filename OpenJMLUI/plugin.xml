@@ -133,6 +133,11 @@
            name="Find Declaration"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Move cursor to the declaration corresponding to the current cursor"/>
+     <command
+           id="org.openjml.eclipse.commands.findReferences"
+           name="Find References"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Find all references to the identifier at the cursor"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -155,6 +160,24 @@
               class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$DisableJmlNature"/>
      <handler commandId="org.openjml.eclipse.commands.findDeclaration"
               class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"/>
+     <!-- Handler for Generic Editor (used by .jml files and the OpenJML menu) -->
+     <handler commandId="org.openjml.eclipse.commands.findReferences"
+              class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler"/>
+     <!-- Override JDT's standard Find References in OpenJML-natured projects so that
+          Shift+Ctrl+G delegates to the OpenJML LSP server, returning both Java and
+          JML reference locations.  The activeWhen guard ensures JDT's own handler
+          remains active for non-OpenJML projects. -->
+     <handler commandId="org.eclipse.jdt.ui.edit.text.java.search.references.in.workspace"
+              class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler">
+        <activeWhen>
+           <with variable="activeEditorInput">
+              <adapt type="org.eclipse.core.resources.IFile">
+                 <test property="org.eclipse.core.resources.projectNature"
+                       value="org.openjml.OpenJMLUI.JMLNatureID"/>
+              </adapt>
+           </with>
+        </activeWhen>
+     </handler>
   </extension>
 
   
@@ -225,6 +248,8 @@
                     label="Compile RAC"/>
            <command commandId="org.openjml.eclipse.commands.findDeclaration"
                     label="Find Declaration"/>
+           <command commandId="org.openjml.eclipse.commands.findReferences"
+                    label="Find References"/>
            <separator name="sep1"/>
            <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                     label="Clear Markers"/>
@@ -283,6 +308,9 @@
         <command
               commandId="org.openjml.eclipse.commands.findDeclaration"
               label="Find Declaration"/>
+        <command
+              commandId="org.openjml.eclipse.commands.findReferences"
+              label="Find References"/>
      </menuContribution>
   </extension>
 
@@ -305,6 +333,11 @@
      <key
            sequence="F3"
            commandId="org.openjml.eclipse.commands.findDeclaration"
+           contextId="org.eclipse.ui.genericeditor.genericEditorContext"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+     <key
+           sequence="M2+M1+G"
+           commandId="org.openjml.eclipse.commands.findReferences"
            contextId="org.eclipse.ui.genericeditor.genericEditorContext"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
   </extension>
