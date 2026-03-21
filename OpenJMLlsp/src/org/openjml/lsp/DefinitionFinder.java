@@ -72,8 +72,12 @@ public class DefinitionFinder {
         ASTCache.SymbolLocation decl = cache.getDeclarationLocation(match.sym());
         if (decl == null) return null;
 
-        String declSource = openContent.get(decl.uri());
-        if (declSource == null) declSource = getSource(decl.uri(), cache);
+        // For the declaration source, prefer the actual file content (AST or disk)
+        // over openContent.  openContent may contain synthetic redirections (e.g.
+        // the .jml-to-javaUri mapping used for cursor lookup) that would corrupt
+        // the offset-to-line/col conversion for the declaration file.
+        String declSource = getSource(decl.uri(), cache);
+        if (declSource == null) declSource = openContent.get(decl.uri());
         if (declSource == null) return null;
 
         int[] lc = offsetToLineCol(declSource, decl.charOffset());
@@ -145,8 +149,12 @@ public class DefinitionFinder {
      */
     private static NodeMatch findNodeAt(JmlCompilationUnit ast,
                                         int targetOffset, String source) {
+        System.err.println("DECL " + targetOffset + " " + source);
         IdentFinder finder = new IdentFinder(targetOffset, source);
         finder.scan(ast);
+        JmlCompilationUnit cu = ast.specsCompilationUnit;
+        if (cu != null && cu != ast) finder.scan(cu);
+        System.err.println("  FOUND " + finder.best);
         return finder.best;
     }
 

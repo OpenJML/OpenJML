@@ -1,11 +1,15 @@
 package org.openjml.lsp;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.Context;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.openjml.IAPI;
 
@@ -185,7 +189,12 @@ public class ASTCache {
     /** Return the declaration location for {@code sym}, or {@code null} if unknown. */
     public SymbolLocation getDeclarationLocation(Symbol sym) {
         SymbolLocation live = liveDeclarationIndex.get(sym);
-        return live != null ? live : initDeclarationIndex.get(sym);
+        SymbolLocation result = live != null ? live : initDeclarationIndex.get(sym);
+        System.err.println("[ASTCache.lookup] " + sym.getQualifiedName()
+                + " -> " + (result == null ? "NOT FOUND (liveSize=" + liveDeclarationIndex.size()
+                        + " initSize=" + initDeclarationIndex.size() + ")"
+                        : result.uri().replaceAll(".*/", "") + "@" + result.charOffset()));
+        return result;
     }
 
     // -----------------------------------------------------------------------
@@ -266,23 +275,63 @@ public class ASTCache {
 
         @Override
         public void visitClassDef(JCClassDecl tree) {
-            if (tree.sym != null && tree.pos >= 0)
-                index.put(tree.sym, new SymbolLocation(uri, tree.pos));
+            if (tree.sym != null && tree.pos >= 0 && !skipJmlNodeInJavaCu(tree))
+                record(tree.sym, tree.pos);
             super.visitClassDef(tree);
         }
 
         @Override
         public void visitMethodDef(JCMethodDecl tree) {
-            if (tree.sym != null && tree.pos >= 0)
-                index.put(tree.sym, new SymbolLocation(uri, tree.pos));
+            if (tree.sym != null && tree.pos >= 0 && !skipJmlNodeInJavaCu(tree))
+                record(tree.sym, tree.pos);
             super.visitMethodDef(tree);
         }
 
         @Override
         public void visitVarDef(JCVariableDecl tree) {
-            if (tree.sym != null && tree.pos >= 0)
-                index.put(tree.sym, new SymbolLocation(uri, tree.pos));
+            if (tree.sym != null && tree.pos >= 0 && !skipJmlNodeInJavaCu(tree))
+                record(tree.sym, tree.pos);
             super.visitVarDef(tree);
+        }
+
+        /**
+         * Returns {@code true} when a JML declaration node (ghost/model field,
+         * model method, spec class) from a {@code .jml} companion file is
+         * encountered while scanning a {@code .java} compilation unit.
+         *
+         * <p>Such nodes should be skipped here: they will be recorded under the
+         * correct {@code .jml} URI when the companion {@code .jml} AST is scanned
+         * by {@link #cacheSpecsCu}.  Recording them under {@code javaUri} here
+         * would assign a wrong location and the merge rule would keep that wrong
+         * entry over the later correct {@code .jml} entry.
+         */
+        private boolean skipJmlNodeInJavaCu(JCTree tree) {
+            if (uri.endsWith(".jml")) return false;   // scanning .jml CU — always record
+            javax.tools.JavaFileObject sf = null;
+            if (tree instanceof JmlVariableDecl jv)  sf = jv.sourcefile;
+            else if (tree instanceof JmlMethodDecl jm) sf = jm.sourcefile;
+            else if (tree instanceof JmlClassDecl jc && jc.toplevel != null) sf = jc.toplevel.sourcefile;
+            return sf != null && sf.toUri().toString().endsWith(".jml");
+        }
+
+        /**
+         * Record {@code sym → (uri, pos)} in the index.
+         *
+         * <p>Preference rule: a {@code .java} declaration is never overwritten by
+         * a {@code .jml} spec stub for the same symbol.  Ghost/model symbols never
+         * reach this method for a {@code .java} CU (filtered by
+         * {@link #skipJmlNodeInJavaCu}), so they are always recorded under the
+         * real {@code .jml} URI from the companion AST scan.
+         */
+        private void record(Symbol sym, int pos) {
+            SymbolLocation incoming = new SymbolLocation(uri, pos);
+            index.merge(sym, incoming,
+                    (existing, in) -> !existing.uri().endsWith(".jml") && in.uri().endsWith(".jml")
+                            ? existing   // keep .java over .jml spec stub
+                            : in);       // otherwise take the latest
+            String stored = index.get(sym).uri();
+            System.err.println("[ASTCache] " + sym.getQualifiedName() + "@" + pos
+                    + " -> " + stored.replaceAll(".*/", ""));
         }
     }
 }

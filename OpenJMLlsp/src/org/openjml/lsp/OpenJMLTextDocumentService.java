@@ -445,10 +445,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        // For .jml spec files the AST is cached under the companion .java URI.
-        // JML spec nodes in that AST retain positions in .jml coordinate space,
-        // so look up via javaUri but compute cursor offset from jml source.
-        // If the check is still running, chain the lookup off the pending future.
+        // For .jml spec files: if the .jml AST is cached directly (via cacheSpecsCu),
+        // use it directly (normal path below).  If not yet cached, redirect lookup to
+        // the companion .java AST (which has specsCompilationUnit pointing to the .jml
+        // AST), using .jml source for cursor-offset computation.
         if (uri.endsWith(".jml") && !hasAst) {
             String javaUri = resolveCompanionJavaUri(uri, source);
             if (javaUri != null) {

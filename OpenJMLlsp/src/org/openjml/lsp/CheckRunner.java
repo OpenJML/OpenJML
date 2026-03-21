@@ -4,6 +4,7 @@ import org.openjml.IAPI;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -496,6 +497,42 @@ public class CheckRunner {
     // --- private implementation ---
 
     /**
+     * If {@code javaAst.specsCompilationUnit} is non-null and different from
+     * {@code javaAst}, cache the specs AST under its real URI.
+     *
+     * <p>This gives go-to-definition direct access to the JML specs AST so that
+     * lookups from inside {@code .jml} files work without a Java-URI redirect.
+     *
+     * @param tempUriToRealUri maps temp-dir file URIs to real workspace URIs,
+     *                         or {@code null} when no temp directory is in use
+     * @param tempDirPrefix    URI prefix string of the temp directory (used to
+     *                         detect and skip unmapped temp-dir paths), or {@code null}
+     * @param live             if {@code true}, store in the live tier;
+     *                         if {@code false}, store in the init tier
+     */
+    private static void cacheSpecsCu(JmlCompilationUnit javaAst, Context ctx,
+                                     Map<String, String> tempUriToRealUri,
+                                     String tempDirPrefix, boolean live) {
+        JmlCompilationUnit specs = javaAst.specsCompilationUnit;
+        if (specs == null || specs == javaAst || specs.sourcefile == null) return;
+        String specsUri = specs.sourcefile.toUri().toString();
+        if (tempUriToRealUri != null) {
+            String real = tempUriToRealUri.get(specsUri);
+            if (real != null) {
+                specsUri = real;
+            } else if (tempDirPrefix != null && specsUri.startsWith(tempDirPrefix)) {
+                return; // in temp dir but no mapping — skip
+            }
+            // else: real path found via sourcepath — use directly
+        }
+        if (live) {
+            AST_CACHE.put(specsUri, ctx, specs);
+        } else {
+            AST_CACHE.putInit(specsUri, ctx, specs);
+        }
+    }
+
+    /**
      * Like {@link #runOnContent} but writes all {@code openContent} files into
      * the same temp directory so the compiler resolves cross-file references
      * against their current in-memory versions rather than the on-disk files.
@@ -581,7 +618,9 @@ public class CheckRunner {
                         realUri = jfoUri;
                     }
                     if (realUri != null) {
-                        AST_CACHE.put(realUri, astCtx, (JmlCompilationUnit) ast);
+                        JmlCompilationUnit cu = (JmlCompilationUnit) ast;
+                        AST_CACHE.put(realUri, astCtx, cu);
+                        cacheSpecsCu(cu, astCtx, tempUriToRealUri, tempDirPrefix, true);
                         // Record that this file was compiled so we can extract its diags.
                         try {
                             Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
@@ -608,6 +647,7 @@ public class CheckRunner {
                 } else {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
                 }
+                cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, true);
             }
 
             Map<String, IProverResult.Kind> proofResults =
@@ -705,6 +745,7 @@ public class CheckRunner {
                 } else {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);  // failed check: basic entry
                 }
+                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
             }
 
             Map<String, IProverResult.Kind> proofResults =
@@ -767,7 +808,9 @@ public class CheckRunner {
                 capturedCtx[0] = ctx;
             } else {
                 // Additional files pulled in via -sourcepath: store basic entry.
-                AST_CACHE.put(jfoUri, ctx, (JmlCompilationUnit) ast);
+                JmlCompilationUnit cu = (JmlCompilationUnit) ast;
+                AST_CACHE.put(jfoUri, ctx, cu);
+                cacheSpecsCu(cu, ctx, null, null, true);
             }
         };
         IAPI.setASTListener(astListener);
@@ -788,6 +831,7 @@ public class CheckRunner {
             } else {
                 AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
             }
+            cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
         }
 
         Map<String, IProverResult.Kind> proofResults =
@@ -823,8 +867,11 @@ public class CheckRunner {
         List<String> args = buildArgs(settings, "--check");
         args.add(filePath);
 
-        IAPI.IASTListener astListener = (ctx, jfo, ast) ->
-                AST_CACHE.putInit(jfo.toUri().toString(), ctx, (JmlCompilationUnit) ast);
+        IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+            JmlCompilationUnit cu = (JmlCompilationUnit) ast;
+            AST_CACHE.putInit(jfo.toUri().toString(), ctx, cu);
+            cacheSpecsCu(cu, ctx, null, null, false);
+        };
         IAPI.setASTListener(astListener);
         try {
             api.execute(args.toArray(new String[0]));
