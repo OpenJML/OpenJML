@@ -165,41 +165,10 @@
               class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$DisableJmlNature"/>
      <handler commandId="org.openjml.eclipse.commands.findDeclaration"
               class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"/>
-     <!-- Handler for Generic Editor (used by .jml files and the OpenJML menu) -->
      <handler commandId="org.openjml.eclipse.commands.findReferences"
               class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler"/>
-     <!-- Override JDT's standard Find References (Shift+Ctrl+G and Search menu)
-          in OpenJML-natured projects so that it delegates to the OpenJML LSP
-          server, returning both Java and JML reference locations.
-          The activeWhen guard makes this handler more specific than JDT's
-          unconditional handler, so Eclipse selects ours for those projects. -->
-     <handler commandId="org.eclipse.jdt.ui.edit.text.java.search.references.in.workspace"
-              class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler">
-        <activeWhen>
-           <with variable="activeEditorInput">
-              <adapt type="org.eclipse.core.resources.IFile">
-                 <test property="org.eclipse.core.resources.projectNature"
-                       value="org.openjml.OpenJMLUI.JMLNatureID"/>
-              </adapt>
-           </with>
-        </activeWhen>
-     </handler>
-     <!-- Handler for Generic Editor (used by .jml files and the OpenJML menu) -->
      <handler commandId="org.openjml.eclipse.commands.rename"
               class="org.jmlspecs.openjml.eclipse.JmlRenameHandler"/>
-     <!-- Override JDT's Rename (Alt+Shift+R) in OpenJML-natured projects so that
-          rename delegates to the OpenJML LSP server, updating all Java and JML sites. -->
-     <handler commandId="org.eclipse.jdt.ui.edit.text.java.rename.element"
-              class="org.jmlspecs.openjml.eclipse.JmlRenameHandler">
-        <activeWhen>
-           <with variable="activeEditorInput">
-              <adapt type="org.eclipse.core.resources.IFile">
-                 <test property="org.eclipse.core.resources.projectNature"
-                       value="org.openjml.OpenJMLUI.JMLNatureID"/>
-              </adapt>
-           </with>
-        </activeWhen>
-     </handler>
   </extension>
 
   
