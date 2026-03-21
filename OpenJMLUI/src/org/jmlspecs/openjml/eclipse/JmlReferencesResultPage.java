@@ -17,6 +17,9 @@ import org.eclipse.search.ui.text.AbstractTextSearchResult;
 import org.eclipse.search.ui.text.AbstractTextSearchViewPage;
 import org.eclipse.search.ui.text.Match;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -67,8 +70,17 @@ public class JmlReferencesResultPage extends AbstractTextSearchViewPage {
     @Override
     protected void showMatch(Match match, int currentOffset, int currentLength,
                              ITextEditor editor) {
-        if (editor != null)
+        if (editor != null) {
             editor.selectAndReveal(currentOffset, currentLength);
+        } else if (match.getElement() instanceof IFile file) {
+            try {
+                IEditorPart part = IDE.openEditor(getSite().getPage(), file, true);
+                if (part instanceof ITextEditor te)
+                    te.selectAndReveal(currentOffset, currentLength);
+            } catch (PartInitException e) {
+                // ignore — file couldn't be opened
+            }
+        }
     }
 
     // -----------------------------------------------------------------------
