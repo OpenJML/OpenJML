@@ -72,10 +72,13 @@ public class MenuPresenceTest extends GUITestBase {
     public void contextMenu_allItemsPresentForPlainProject() {
         selectProjects("MenuTestPlainProject");
         SWTBotMenu openJml = packageExplorerTree().contextMenu("OpenJML");
-        assertMenuItemPresent(openJml, "Check JML");
-        assertMenuItemPresent(openJml, "Run ESC");
+        assertMenuItemWithTooltip(openJml, "Check JML",
+                "Type-checks JML in selected objects");
+        assertMenuItemWithTooltip(openJml, "Run ESC",
+                "Performs JML static checks for selected objects");
         assertMenuItemPresent(openJml, "Run ESC for Method Under Cursor");
-        assertMenuItemPresent(openJml, "Compile RAC");
+        assertMenuItemWithTooltip(openJml, "Compile RAC",
+                "Compiles JML runtime checks for selected objects");
         assertMenuItemPresent(openJml, "Clear Markers");
         assertMenuItemPresent(openJml, "Clear and Reindex");
         assertMenuItemPresent(openJml, "Add OpenJML Nature");
@@ -110,8 +113,10 @@ public class MenuPresenceTest extends GUITestBase {
     public void mainMenu_openJmlMenuPresent() {
         SWTBotMenu openJml = bot.menu("OpenJML");
         assertNotNull("OpenJML top-level menu should be present", openJml);
-        assertMenuItemPresent(openJml, "Check JML in File");
-        assertMenuItemPresent(openJml, "Run ESC on Current File");
+        assertMenuItemWithTooltip(openJml, "Check JML in File",
+                "Type-checks JML in selected objects");
+        assertMenuItemWithTooltip(openJml, "Run ESC on Current File",
+                "Performs JML static checks for selected objects");
         assertMenuItemPresent(openJml, "Add OpenJML Nature");
         assertMenuItemPresent(openJml, "Remove OpenJML Nature");
         closeOpenMenu();
@@ -129,10 +134,11 @@ public class MenuPresenceTest extends GUITestBase {
      */
     @Test
     public void toolbar_openJmlButtonsPresent() {
-        // Check JML button
-        assertToolbarButtonPresent("Check JML");
-        // Run ESC button
-        assertToolbarButtonPresent("Run ESC on Current File");
+        // CheckJML has an icon — found by tooltip; ESC and RAC are text-only — found by label.
+        // All three are also verified to carry the expected tooltip text.
+        assertIconToolbarButton("Type-checks JML in selected objects");
+        assertToolbarButton("ESC", "Performs JML static checks for selected objects");
+        assertToolbarButton("RAC", "Compiles JML runtime checks for selected objects");
     }
 
     // -----------------------------------------------------------------------
@@ -141,8 +147,7 @@ public class MenuPresenceTest extends GUITestBase {
 
     /**
      * Asserts that a submenu item with the given label is reachable from
-     * {@code parentMenu}.  SWTBot throws {@code WidgetNotFoundException} if
-     * the item is absent; this helper wraps that in a more informative failure.
+     * {@code parentMenu}.
      */
     private static void assertMenuItemPresent(SWTBotMenu parentMenu, String label) {
         try {
@@ -155,16 +160,53 @@ public class MenuPresenceTest extends GUITestBase {
     }
 
     /**
-     * Asserts that a toolbar button with the given tooltip is visible in the
-     * main toolbar.
+     * Asserts that a submenu item is present and carries the expected tooltip text.
      */
-    private static void assertToolbarButtonPresent(String tooltip) {
+    private static void assertMenuItemWithTooltip(SWTBotMenu parentMenu,
+                                                   String label, String expectedTooltip) {
+        try {
+            SWTBotMenu item = parentMenu.menu(label);
+            assertNotNull("Menu item '" + label + "' should be present", item);
+            org.junit.Assert.assertEquals(
+                    "Tooltip for menu item '" + label + "'",
+                    expectedTooltip, item.getToolTipText());
+        } catch (Exception e) {
+            org.junit.Assert.fail("Menu item '" + label + "': " + e.getMessage());
+        }
+    }
+
+    /**
+     * Asserts that an icon-only toolbar button with the given tooltip exists and
+     * that its tooltip text matches.  Icon buttons have no visible text label so
+     * SWTBot must locate them by tooltip.
+     */
+    private static void assertIconToolbarButton(String tooltip) {
         try {
             SWTBotToolbarButton btn = bot.toolbarButtonWithTooltip(tooltip);
-            assertNotNull("Toolbar button '" + tooltip + "' should be present", btn);
+            assertNotNull("Icon toolbar button '" + tooltip + "' should be present", btn);
+            org.junit.Assert.assertEquals(
+                    "Tooltip text mismatch", tooltip, btn.getToolTipText());
         } catch (Exception e) {
-            org.junit.Assert.fail("Expected toolbar button '" + tooltip
-                    + "' was not found: " + e.getMessage());
+            org.junit.Assert.fail("Icon toolbar button '" + tooltip
+                    + "' not found: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Asserts that a text-label toolbar button with the given label exists and
+     * that its tooltip text matches.  Text buttons have no icon, so SWTBot can
+     * locate them by their visible label.
+     */
+    private static void assertToolbarButton(String label, String expectedTooltip) {
+        try {
+            SWTBotToolbarButton btn = bot.toolbarButton(label);
+            assertNotNull("Toolbar button '" + label + "' should be present", btn);
+            org.junit.Assert.assertEquals(
+                    "Tooltip for toolbar button '" + label + "'",
+                    expectedTooltip, btn.getToolTipText());
+        } catch (Exception e) {
+            org.junit.Assert.fail("Toolbar button '" + label
+                    + "' not found: " + e.getMessage());
         }
     }
 

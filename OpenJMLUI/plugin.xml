@@ -267,13 +267,17 @@
      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
         <menu id="org.jmlspecs.openjml.mainMenu" label="OpenJML">
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
-                    label="Check JML in File" />
+                    label="Check JML in File"
+                    tooltip="%command.tooltip.13"/>
            <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC on Current File" icon="icons/jml-logo-16x16.png"/>
+                    label="Run ESC on Current File"
+                    icon="icons/jml-logo-16x16.png"
+                    tooltip="%command.tooltip.14"/>
            <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
                     label="Run ESC for Method Under Cursor"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
-                    label="Compile RAC"/>
+                    label="Compile RAC"
+                    tooltip="%command.tooltip.15"/>
            <command commandId="org.openjml.eclipse.commands.findDeclaration"
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
@@ -311,13 +315,16 @@
               </with>
            </visibleWhen>
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
-                    label="Check JML"/>
+                    label="Check JML"
+                    tooltip="%command.tooltip.13"/>
            <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC"/>
+                    label="Run ESC"
+                    tooltip="%command.tooltip.14"/>
            <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
                     label="Run ESC for Method Under Cursor"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
-                    label="Compile RAC"/>
+                    label="Compile RAC"
+                    tooltip="%command.tooltip.15"/>
            <separator name="sep1"/>
            <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                     label="Clear Markers"/>
