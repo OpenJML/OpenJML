@@ -122,4 +122,50 @@ public class RenameTest3 extends RenameTestBase {
                     e.getResponseError().getMessage().contains("Not a valid Java identifier"));
         }
     }
+
+    @Test
+    public void testRenameToEmptyStringAborts() {
+        // Renaming to an empty string is not a valid Java identifier.
+        // The renamer must reject it with an InvalidParams error rather than
+        // silently deleting every occurrence of the symbol.
+        try {
+            renameAt(primaryUri, primarySrc,
+                    "requires pJavaField", "pJavaField", "");
+            fail("Expected ResponseErrorException when renaming to empty string");
+        } catch (ResponseErrorException e) {
+            assertNotNull(e.getResponseError());
+            assertTrue("Error message should mention invalid identifier",
+                    e.getResponseError().getMessage().contains("Not a valid Java identifier"));
+        }
+    }
+
+    @Test
+    public void testRenameAtNonSymbolPositionAborts() {
+        // Placing the cursor inside a comment or on whitespace means there is no
+        // renameable symbol.  The renamer must reject the request rather than
+        // returning an empty (silently no-op) edit.
+        //
+        // We position the cursor on the "@" character of the "//@ requires" comment
+        // leader — this is not part of any Java identifier.
+        String context = "//@ requires pJavaField";
+        int contextPos = primarySrc.indexOf(context);
+        assertTrue("Context string not found in source", contextPos >= 0);
+        // In "//@ requires ...", the '@' is at index 2 (0-indexed).
+        // '@' is not a Java identifier character, so no symbol will be found.
+        int atPos = contextPos + 2; // "//@ " → index 2 is '@'
+        int[] lc = DefinitionFinder.offsetToLineCol(primarySrc, atPos);
+
+        try {
+            Renamer.rename(
+                    primaryUri, lc[0], lc[1], "newName",
+                    Map.of(primaryUri, primarySrc, helperUri, helperSrc),
+                    CheckRunner.getASTCache(),
+                    settings);
+            fail("Expected ResponseErrorException when cursor is not on a symbol");
+        } catch (ResponseErrorException e) {
+            assertNotNull(e.getResponseError());
+            assertTrue("Error message should mention no renameable symbol",
+                    e.getResponseError().getMessage().contains("No renameable symbol"));
+        }
+    }
 }

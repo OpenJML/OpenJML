@@ -12,8 +12,8 @@ import org.junit.runners.Suite;
  * class when each class is launched as a separate process.
  *
  * <p>Order: MenuPresenceTest (menu wiring smoke-test, fast) → NatureTest
- * (Add/Remove nature) → MarkersTest (JML marker lifecycle, needs OpenJML
- * to run and is the slowest).
+ * (Add/Remove nature) → ActionTest (command dispatch and argument extraction) →
+ * MarkersTest (JML marker lifecycle, needs OpenJML to run and is the slowest).
  *
  * <p>To run from the Makefile: {@code make run-plugin-tests}<br>
  * To run individual classes:   {@code make run-menu-test}, {@code make run-nature-test}, etc.
@@ -22,6 +22,7 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     MenuPresenceTest.class,
     NatureTest.class,
+    ActionTest.class,
     MarkersTest.class
 })
 public class AllPluginTests {

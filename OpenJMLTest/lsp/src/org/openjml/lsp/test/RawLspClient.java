@@ -29,8 +29,11 @@ public class RawLspClient {
     private final InputStream  in;
     private int nextId = 1;
 
-    /** Queue of server-to-client notifications keyed by method. */
+    /** Queue of server-to-client notifications (have "method", no "id"). */
     private final BlockingQueue<JsonObject> notifications = new LinkedBlockingQueue<>();
+
+    /** Queue of server-to-client responses (have "id", no "method"). */
+    private final BlockingQueue<JsonObject> responses = new LinkedBlockingQueue<>();
 
     /** Background thread that reads server output and routes it. */
     private final Thread reader;
@@ -49,8 +52,11 @@ public class RawLspClient {
                     // Notifications have "method" but no "id"
                     if (msg.has("method") && !msg.has("id")) {
                         notifications.offer(msg);
+                    } else if (msg.has("id") && !msg.has("method")) {
+                        // Responses have "id" and no "method"
+                        responses.offer(msg);
                     }
-                    // Responses (have "id") could be queued here if needed.
+                    // Server-to-client requests (have both "id" and "method") are ignored.
                 } catch (IOException e) {
                     break;
                 }
@@ -65,13 +71,15 @@ public class RawLspClient {
      *
      * @param method JSON-RPC method name
      * @param params params object as a raw JSON string, or {@code null}
+     * @return the request id assigned to this request (use with {@link #nextResponse})
      */
-    public void sendRequest(String method, String params) throws IOException {
+    public int sendRequest(String method, String params) throws IOException {
         int id = nextId++;
         String body = params == null
                 ? "{\"jsonrpc\":\"2.0\",\"id\":" + id + ",\"method\":\"" + method + "\"}"
                 : "{\"jsonrpc\":\"2.0\",\"id\":" + id + ",\"method\":\"" + method + "\",\"params\":" + params + "}";
         writeMessage(body);
+        return id;
     }
 
     /**
@@ -85,6 +93,17 @@ public class RawLspClient {
                 ? "{\"jsonrpc\":\"2.0\",\"method\":\"" + method + "\"}"
                 : "{\"jsonrpc\":\"2.0\",\"method\":\"" + method + "\",\"params\":" + params + "}";
         writeMessage(body);
+    }
+
+    /**
+     * Wait for the next server response.  Responses are enqueued in arrival order.
+     * If the test sends multiple requests before reading responses, call this once
+     * per request in the order the requests were sent.
+     *
+     * @return the full response JSON object, or {@code null} on timeout
+     */
+    public JsonObject nextResponse(long timeout, TimeUnit unit) throws InterruptedException {
+        return responses.poll(timeout, unit);
     }
 
     /**

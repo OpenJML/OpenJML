@@ -55,6 +55,8 @@ public class LspProtocolTest {
 
     private OpenJMLLanguageServer server;
     private RawLspClient          client;
+    /** The response to the {@code initialize} request, captured during setUp. */
+    private JsonObject initializeResponse;
 
     @Before
     public void setUp() throws Exception {
@@ -71,12 +73,14 @@ public class LspProtocolTest {
 
         client = new RawLspClient(clientOut, clientIn);
 
-        // LSP handshake: initialize (minimal params) + initialized
+        // LSP handshake: initialize + initialized.
+        // We read the initialize response explicitly so (a) tests can inspect
+        // the advertised capabilities, and (b) we know the server is ready
+        // before we send "initialized" and subsequent requests.
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        // Give the server a moment to respond before sending initialized.
-        // (We ignore the initialize response — we just need to send it.)
-        Thread.sleep(500);
+        initializeResponse = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Server must respond to initialize", initializeResponse);
         client.sendNotification("initialized", "{}");
     }
 
@@ -314,6 +318,164 @@ public class LspProtocolTest {
             if (d.has("severity") && d.get("severity").getAsInt() == 1) return true;
         }
         return false;
+    }
+
+    // -----------------------------------------------------------------------
+    // Server capability advertisement
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that the server's {@code initialize} response advertises all
+     * capabilities that the OpenJML LSP server is known to implement.
+     *
+     * <p>This is a regression guard: silently removing a capability from
+     * {@code ServerCapabilities} in {@code OpenJMLLanguageServer.initialize()}
+     * would break clients that rely on it without any other test failing.
+     *
+     * <p>The response is captured during {@link #setUp()} so this test itself
+     * runs entirely in-memory with no OpenJML invocation.
+     */
+    @Test
+    public void testInitializeResponseCapabilities() {
+        // The response has the shape: {"jsonrpc":"2.0","id":1,"result":{"capabilities":{...}}}
+        assertTrue("initialize response must have 'result'",
+                initializeResponse.has("result"));
+        JsonObject result = initializeResponse.getAsJsonObject("result");
+        assertTrue("initialize result must have 'capabilities'",
+                result.has("capabilities"));
+        JsonObject caps = result.getAsJsonObject("capabilities");
+
+        // Each assertion guards one LSP feature the server declares it supports.
+        // If a capability is removed from OpenJMLLanguageServer, the relevant
+        // assertion here will fail with a clear name, making the regression obvious.
+        assertTrue("Server must advertise hoverProvider",
+                caps.has("hoverProvider") && !caps.get("hoverProvider").isJsonNull());
+        assertTrue("Server must advertise referencesProvider",
+                caps.has("referencesProvider") && !caps.get("referencesProvider").isJsonNull());
+        assertTrue("Server must advertise renameProvider",
+                caps.has("renameProvider") && !caps.get("renameProvider").isJsonNull());
+        assertTrue("Server must advertise definitionProvider",
+                caps.has("definitionProvider") && !caps.get("definitionProvider").isJsonNull());
+        assertTrue("Server must advertise documentSymbolProvider",
+                caps.has("documentSymbolProvider") && !caps.get("documentSymbolProvider").isJsonNull());
+        assertTrue("Server must advertise completionProvider",
+                caps.has("completionProvider") && !caps.get("completionProvider").isJsonNull());
+        assertTrue("Server must advertise codeLensProvider",
+                caps.has("codeLensProvider") && !caps.get("codeLensProvider").isJsonNull());
+        assertTrue("Server must advertise foldingRangeProvider",
+                caps.has("foldingRangeProvider") && !caps.get("foldingRangeProvider").isJsonNull());
+        assertTrue("Server must advertise semanticTokensProvider",
+                caps.has("semanticTokensProvider") && !caps.get("semanticTokensProvider").isJsonNull());
+
+        // The rename provider must declare prepareProvider=true (required for client middleware).
+        JsonObject renameOpts = caps.getAsJsonObject("renameProvider");
+        assertTrue("renameProvider must have prepareProvider=true",
+                renameOpts.has("prepareProvider")
+                        && renameOpts.get("prepareProvider").getAsBoolean());
+    }
+
+    // -----------------------------------------------------------------------
+    // Hover over wire
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code textDocument/hover} returns JML spec content over
+     * the full JSON-RPC wire when the cursor is on a method that has JML
+     * spec comments above it.
+     *
+     * <p>The hover provider reads from {@code lastContent} (set by didOpen),
+     * so no separate AST population step is needed.  However, we still wait
+     * for {@code publishDiagnostics} to confirm the document is fully open
+     * before sending the hover request.
+     */
+    @Test
+    public void testHoverReturnsJmlSpec() throws Exception {
+        // File with a requires/ensures spec above the method.
+        // The hover provider extracts //@ lines immediately above the method.
+        String uri    = "file:///HoverWire.java";
+        // Source is passed over the wire, so newlines must be literal \n within the JSON string.
+        String source = "public class HoverWire {\\n"
+                + "    //@ requires x >= 0;\\n"
+                + "    //@ ensures \\\\result >= 0;\\n"
+                + "    public int add(int x) { return x + 1; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the check to complete so that lastContent is set on the server.
+        JsonObject diagNotif = client.nextNotification(
+                "textDocument/publishDiagnostics", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen", diagNotif);
+
+        // The method "add" is on line 3 (0-indexed).  Hover at that line.
+        String hoverParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"},"
+                + "\"position\":{\"line\":3,\"character\":15}}";
+        client.sendRequest("textDocument/hover", hoverParams);
+
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected a response to textDocument/hover", response);
+        // The server returns null when no spec is found — here it should be non-null.
+        assertFalse("Hover result must not be an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        assertTrue("Hover response must have a 'result' field", response.has("result"));
+        assertFalse("Hover result must not be JSON null (JML spec should be present)",
+                response.get("result").isJsonNull());
+
+        // The result must contain "JML spec" in the hover markup.
+        String resultStr = response.get("result").toString();
+        assertTrue("Hover markup must mention 'JML spec'", resultStr.contains("JML spec"));
+        assertTrue("Hover markup must contain the method name 'add'", resultStr.contains("add"));
+    }
+
+    // -----------------------------------------------------------------------
+    // References over wire
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code textDocument/references} returns a non-empty list
+     * of locations over the full JSON-RPC wire when the cursor is on a field
+     * that is referenced more than once.
+     *
+     * <p>The server calls {@code ReferenceFinder.findReferences} which requires
+     * the AST to be cached.  We wait for {@code publishDiagnostics} (which is
+     * emitted after the check completes) to ensure the AST is ready before
+     * sending the references request.  Using a clean file avoids the
+     * "workspace has errors, proceed anyway?" confirmation dialog.
+     */
+    @Test
+    public void testReferencesOverWireReturnLocations() throws Exception {
+        // Clean file: a field declared on line 1 and referenced on line 2.
+        // References to "wireField" should include at least the declaration site.
+        String uri    = "file:///WireRefTest.java";
+        String source = "public class WireRefTest {\\n"
+                + "    public int wireField = 0;\\n"
+                + "    public void m() { int x = wireField + 1; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the initial check (populates AST cache, ensures !isWorkspaceStale).
+        JsonObject diagNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen", diagNotif);
+
+        // The field "wireField" is declared on line 1 (0-indexed), column 15.
+        String refParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"},"
+                + "\"position\":{\"line\":1,\"character\":15},"
+                + "\"context\":{\"includeDeclaration\":true}}";
+        client.sendRequest("textDocument/references", refParams);
+
+        // References is async (may re-check); allow generous time.
+        JsonObject response = client.nextResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected a response to textDocument/references", response);
+        assertFalse("References response must not be an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        assertTrue("References response must have a 'result' field", response.has("result"));
+
+        // At minimum the declaration site should be returned.
+        JsonArray locations = response.getAsJsonArray("result");
+        assertNotNull("References result must be a JSON array", locations);
+        assertFalse("References must find at least one location for 'wireField'",
+                locations.isEmpty());
     }
 
     // -----------------------------------------------------------------------
