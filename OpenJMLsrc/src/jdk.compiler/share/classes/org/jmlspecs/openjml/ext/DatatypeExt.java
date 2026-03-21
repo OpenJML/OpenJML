@@ -4,6 +4,7 @@ import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.visitors.JmlTreeCopier;
 
 import com.sun.tools.javac.code.Flags;
@@ -70,9 +71,9 @@ public class DatatypeExt extends JmlExtension {
                 JCExpression restype = parser.jmlF.Ident(datatypeName);
                 if (!typarams.isEmpty()) restype = parser.jmlF.TypeApply(restype, tye);
                 JCModifiers mmodstatic = parser.jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC);
-                parser.utils.setJML(mmodstatic);
+                Utils.setJML(mmodstatic);
                 JCModifiers mmods = parser.jmlF.Modifiers(Flags.PUBLIC|Flags.ABSTRACT);
-                parser.utils.setJML(mmods);
+                Utils.setJML(mmods);
                 ListBuffer<JCTypeParameter> ntyparams = new ListBuffer<>();
                 for (JCTypeParameter tp: typarams) {
                     ntyparams.add(parser.jmlF.TypeParameter(tp.name, tp.bounds));
@@ -108,7 +109,7 @@ public class DatatypeExt extends JmlExtension {
             JmlDatatypeDecl d = new JmlDatatypeDecl(mods, datatypeName, typarams, null, List.<JCExpression>of(dtype), defs.toList(), null);
             d.constructors = cons.toList();
             d.pos = pos;
-            parser.utils.setJML(d.mods);
+            Utils.setJML(d.mods);
             while (parser.isEndJml()) parser.nextToken();
             System.out.println(d.toString());
             return d;

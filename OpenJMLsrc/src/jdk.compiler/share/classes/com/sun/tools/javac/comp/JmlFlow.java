@@ -728,7 +728,7 @@ public class JmlFlow extends Flow  {
         @Override
         void checkInit(DiagnosticPosition pos, VarSymbol sym) {
         	// A static final ghost field does not need to be initialized
-            if (!(Utils.instance(context).isJML(sym.flags()) && Utils.isStatic(sym.flags()) && Utils.isFinal(sym.flags()))) {
+            if (!(Utils.isJML(sym.flags()) && Utils.isStatic(sym.flags()) && Utils.isFinal(sym.flags()))) {
             	super.checkInit(pos,sym);
             }
         }

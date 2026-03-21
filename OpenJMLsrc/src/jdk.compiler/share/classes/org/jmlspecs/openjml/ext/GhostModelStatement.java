@@ -52,7 +52,7 @@ public class GhostModelStatement extends JmlExtension {
             try {
                 mods = parser.modifiersOpt();
                 mods.annotations = mods.annotations.prepend(a);
-                parser.utils.setJML(mods);
+                org.jmlspecs.openjml.Utils.setJML(mods);
                 JCExpression t = parser.parseType();
                 ListBuffer<JCStatement> stats =
                         parser.variableDeclarators(mods, t, new ListBuffer<JCStatement>(), false); // FIXME - no local decl?

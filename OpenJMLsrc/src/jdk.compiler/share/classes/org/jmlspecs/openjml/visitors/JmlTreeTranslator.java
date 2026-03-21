@@ -302,13 +302,13 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         super.visitMethodDef(that);
         JmlMethodDecl r = (JmlMethodDecl)result;
         r.defaultValue = translate(that.defaultValue); // Should be in visitMethodDef - TODO
-        r.methodSpecsCombined = that.methodSpecsCombined;
+//        r.methodSpecsCombined = that.methodSpecsCombined;
         r.isInitializer = that.isInitializer;
-        if (that.methodSpecsCombined != null) {
-            //r.methodSpecsCombined = new JmlSpecs.MethodSpecs(
-            r.methodSpecsCombined.mods = translate(that.methodSpecsCombined.mods);
-            r.methodSpecsCombined.cases = translate(that.methodSpecsCombined.cases);
-        }
+//        if (that.methodSpecsCombined != null) {
+//            //r.methodSpecsCombined = new JmlSpecs.MethodSpecs(
+//            r.methodSpecsCombined.mods = translate(that.methodSpecsCombined.mods);
+//            r.methodSpecsCombined.cases = translate(that.methodSpecsCombined.cases);
+//        }
         // FIXME - cases, methodSpecs, specsDecl, owner, docComment, _this
         result = r;
         // Not translating: name, sym, ??? FIXME

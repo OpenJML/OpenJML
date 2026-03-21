@@ -158,7 +158,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         copy.sourcefile = that.sourcefile;
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.methodSpecs = copy(that.methodSpecs,p);
-        copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
+//        copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
         copy.type = that.type;
         copy.sym = that.sym;
         copy.isInitializer = that.isInitializer;
