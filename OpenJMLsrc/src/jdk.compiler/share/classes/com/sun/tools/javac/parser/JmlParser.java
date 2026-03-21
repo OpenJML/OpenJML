@@ -759,7 +759,7 @@ public class JmlParser extends JavacParser {
             jmlF.at(cd.pos);
             ListBuffer<JCTree> newdefs = new ListBuffer<>();
             JCVariableDecl vd = jmlF.VarDef(jmlF.Modifiers(Flags.PUBLIC|Flags.STATIC),names.fromString("_JMLvalues"),jmlF.TypeArray(jmlF.Ident(cd.name)),null);
-            utils.setJML(vd.mods);
+            Utils.setJML(vd.mods);
 //            JCAnnotation a = utils.modToAnnotationAST(Modifiers.MODEL, cd.pos, cd.pos);  // FIXME -is position correct?
 //            vd.mods.annotations =  vd.mods.annotations.append(a);
             ((JmlModifiers)vd.mods).jmlmods.add(new JmlToken(Modifiers.MODEL, log.currentSourceFile(), cd.pos, cd.pos, null));
@@ -832,7 +832,7 @@ public class JmlParser extends JavacParser {
     	boolean injml = inJmlDeclaration;
         JCClassDecl cd = super.classDeclaration(mods, dc);
         ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
-        if (injml) utils.setJML(cd.mods);
+        if (injml) Utils.setJML(cd.mods);
         S.lineAnnotations = new java.util.LinkedList<>();
         return cd;
     }
@@ -970,7 +970,7 @@ public class JmlParser extends JavacParser {
             		if (token.kind == INTERFACE ||
             				token.kind == CLASS ||
             				token.kind == ENUM) {
-            			if (S.jml()) utils.setJML(mods); // Added this to mark declarations in JML annotations
+            			if (S.jml()) Utils.setJML(mods); // Added this to mark declarations in JML annotations
             			normalizeAnnotations(mods,null);
             			return List.of(super.classOrRecordOrInterfaceOrEnumDeclaration(mods, dc));
             		} else {
@@ -1316,7 +1316,7 @@ public class JmlParser extends JavacParser {
                                 utils.error(tr.pos, "jml.message", "Method specs may not precede a class declaration");
                                 currentMethodSpecs = null;
                             }
-                            if (startsInJml) utils.setJML(d.mods);
+                            if (startsInJml) Utils.setJML(d.mods);
                             //d.toplevel.sourcefile = log.currentSourceFile();
                             ttr = tr;
                             attach(d, dc); // FIXME - already attached I think; here and below
@@ -1353,7 +1353,7 @@ public class JmlParser extends JavacParser {
                             vd.sourcefile = currentSourceFile();
                             ttr = tr;
                             attach(vd, dc);
-                            if (startsInJml) utils.setJML(vd.mods);
+                            if (startsInJml) Utils.setJML(vd.mods);
                             currentVariableDecl = vd;
                             currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
                         } else if (tr instanceof JCErroneous) {
@@ -1379,7 +1379,7 @@ public class JmlParser extends JavacParser {
                 } else if (t.head instanceof JmlVariableDecl vd) {
                     if (vd.fieldSpecs == null) vd.fieldSpecs = new JmlSpecs.FieldSpecs(vd);
                     vd.sourcefile = currentSourceFile();
-                    if (startsInJml) utils.setJML(vd.mods);
+                    if (startsInJml) Utils.setJML(vd.mods);
                     attach(vd, dc);
                     list.append(vd);
                     currentVariableDecl = vd;
@@ -1431,7 +1431,7 @@ public class JmlParser extends JavacParser {
     		mods.annotations = mods.annotations.appendList(savedTypeAnnotations);
     		savedTypeAnnotations = null;
     	}
-    	if (S.jml()) utils.setJML(mods); // TODO - is this actually useful?
+    	if (S.jml()) Utils.setJML(mods); // TODO - is this actually useful?
     }
     
     List<JCAnnotation> savedTypeAnnotations = null;
