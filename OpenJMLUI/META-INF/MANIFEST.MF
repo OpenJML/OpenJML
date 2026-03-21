@@ -24,7 +24,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.lsp4j.jsonrpc;resolution:=optional,
  org.eclipse.core.filebuffers,
  org.eclipse.tm4e.registry;resolution:=optional,
- org.eclipse.ui.workbench.texteditor
+ org.eclipse.ui.workbench.texteditor,
+ org.eclipse.search
 Import-Package: org.eclipse.ui.texteditor,
  org.jmlspecs.annotation;resolution:=optional,
  org.osgi.framework.wiring

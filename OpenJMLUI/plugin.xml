@@ -1678,7 +1678,17 @@
        entry that delegate to LSP4E's OpenDeclarationHyperlinkDetector.
        =================================================================== -->
 
-
+  <!-- ===================================================================
+       Find References — registers LSP4E's LSSearchResultPage as the view
+       for JmlReferencesSearchResult so Eclipse's Search view can display
+       the results returned by JmlReferencesSearchQuery.
+       =================================================================== -->
+  <extension point="org.eclipse.search.searchResultViewPages">
+     <viewPage
+           class="org.eclipse.lsp4e.operations.references.LSSearchResultPage"
+           id="org.jmlspecs.openjml.jmlReferencesPage"
+           searchResultClass="org.jmlspecs.openjml.eclipse.JmlReferencesSearchQuery$JmlReferencesSearchResult"/>
+  </extension>
 
 
 </plugin>
