@@ -138,6 +138,11 @@
            name="Find References"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Find all references to the identifier at the cursor"/>
+     <command
+           id="org.openjml.eclipse.commands.rename"
+           name="Rename (JML-aware)"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Rename the identifier at the cursor, updating all Java and JML references"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -169,6 +174,22 @@
           remains active for non-OpenJML projects. -->
      <handler commandId="org.eclipse.jdt.ui.edit.text.java.search.references.in.workspace"
               class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler">
+        <activeWhen>
+           <with variable="activeEditorInput">
+              <adapt type="org.eclipse.core.resources.IFile">
+                 <test property="org.eclipse.core.resources.projectNature"
+                       value="org.openjml.OpenJMLUI.JMLNatureID"/>
+              </adapt>
+           </with>
+        </activeWhen>
+     </handler>
+     <!-- Handler for Generic Editor (used by .jml files and the OpenJML menu) -->
+     <handler commandId="org.openjml.eclipse.commands.rename"
+              class="org.jmlspecs.openjml.eclipse.JmlRenameHandler"/>
+     <!-- Override JDT's Rename (Alt+Shift+R) in OpenJML-natured projects so that
+          rename delegates to the OpenJML LSP server, updating all Java and JML sites. -->
+     <handler commandId="org.eclipse.jdt.ui.edit.text.java.rename.element"
+              class="org.jmlspecs.openjml.eclipse.JmlRenameHandler">
         <activeWhen>
            <with variable="activeEditorInput">
               <adapt type="org.eclipse.core.resources.IFile">
@@ -229,6 +250,8 @@
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
                     label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.rename"
+                    label="Rename (JML-aware)"/>
            <separator name="sep2"/>
            <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                     label="Clear Markers"/>
@@ -255,6 +278,8 @@
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
                     label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.rename"
+                    label="Rename (JML-aware)"/>
            <separator name="sep1"/>
            <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                     label="Clear Markers"/>
@@ -316,6 +341,9 @@
         <command
               commandId="org.openjml.eclipse.commands.findReferences"
               label="Find References"/>
+        <command
+              commandId="org.openjml.eclipse.commands.rename"
+              label="Rename (JML-aware)"/>
      </menuContribution>
   </extension>
 

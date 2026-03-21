@@ -8,11 +8,11 @@ public class A {
     //@ ghost public int ghostInAJml = 0; // (4) ghost declaration only in A.jml
     public int aField;                   // (3) spec stub — declaration is in A.java
 
-    // Class-level invariants: all four symbols used
-    //@ invariant aField >= 0;           // (3) aField in A.jml invariant
-    //@ invariant ghostInAJml >= 0;      // (4) ghostInAJml in A.jml invariant
-    //@ invariant cObj.cField >= 0;      // (1) cField in A.jml invariant
-    //@ invariant cObj.cGhostField >= 0; // (2) cGhostField in A.jml invariant
+    // Class-level invariants: all four symbols used (public visibility to match public fields)
+    //@ public invariant aField >= 0;           // (3) aField in A.jml invariant
+    //@ public invariant ghostInAJml >= 0;      // (4) ghostInAJml in A.jml invariant
+    //@ public invariant cObj.cField >= 0;      // (1) cField in A.jml invariant
+    //@ public invariant cObj.cGhostField >= 0; // (2) cGhostField in A.jml invariant
 
     // Method spec for aMethod2: all four symbols in requires clauses
     //@ requires aField >= 0;            // (3) aField in A.jml method spec
