@@ -7,9 +7,12 @@ import static org.junit.Assert.assertTrue;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.IHandlerService;
@@ -29,16 +32,17 @@ import org.junit.runners.MethodSorters;
  *   <li><b>Rename dialog pre-fill</b> — triggering the OpenJML Rename command
  *       ({@code org.openjml.eclipse.commands.rename}) when the cursor sits on
  *       a Java identifier opens an {@link org.eclipse.jface.dialogs.InputDialog}
- *       whose input text is pre-populated with the identifier under the cursor.
+ *       whose input text is pre-populated with that exact identifier.
  *       This verifies {@code JmlRenameHandler.getWordAtOffset()} correctly
  *       extracts the cursor word and passes it to the dialog.</li>
- *   <li><b>Find References opens Search view</b> — triggering the OpenJML
+ *   <li><b>Find References produces correct results</b> — triggering the OpenJML
  *       Find References command ({@code org.openjml.eclipse.commands.findReferences})
- *       opens the Eclipse Search view.  The test does not assert specific results
- *       (which require an active LSP server), but confirms the command completes
- *       without throwing and the Search view is accessible — verifying that
- *       {@code JmlFindReferencesHandler} builds valid {@code ReferenceParams} and
- *       submits a {@code JmlReferencesSearchQuery} to the Search framework.</li>
+ *       populates the Eclipse Search view with at least the two expected references
+ *       to {@code myField} (the Java field declaration and the JML {@code requires}
+ *       clause) in {@code ActionTarget.java}.  This verifies that
+ *       {@code JmlFindReferencesHandler} builds valid {@code ReferenceParams},
+ *       the LSP server returns the correct locations, and they are correctly
+ *       mapped to {@code LocatedMatch} entries visible in the Search tree.</li>
  * </ul>
  *
  * <h3>Test setup</h3>
@@ -205,49 +209,100 @@ public class ActionTest extends GUITestBase {
     }
 
     /**
-     * Verifies that the Find References command opens the Eclipse Search view
-     * without error.
+     * Verifies that the Find References command finds the expected references to
+     * {@link #TARGET_SYMBOL} ({@code myField}) in {@code ActionTarget.java}.
      *
-     * <p>The test does not assert that specific references are found — that
-     * correctness is covered by {@code ReferenceFinderTest} in the LSP test
-     * suite.  The goal here is to confirm that:
+     * <p>The source file contains exactly two uses of {@code myField}: the Java
+     * field declaration on line 1 and a JML {@code requires} clause on line 2.
+     * Both must appear in the Search view's result tree after the query completes.
+     *
+     * <p>This test validates the full pipeline:
      * <ol>
-     *   <li>{@code JmlFindReferencesHandler.execute()} builds a valid
-     *       {@code ReferenceParams} from the cursor position without throwing.</li>
-     *   <li>The {@code JmlReferencesSearchQuery} is submitted to the Search
-     *       framework and the Search view opens.</li>
+     *   <li>{@code JmlFindReferencesHandler} extracts the cursor word and builds
+     *       a {@code ReferenceParams} pointing at the correct document and position.</li>
+     *   <li>The LSP server calls {@code ReferenceFinder.findReferences} and returns
+     *       locations for both the Java and JML occurrences.</li>
+     *   <li>{@code JmlReferencesSearchQuery} converts the LSP locations to
+     *       {@code LocatedMatch} entries and populates the Search view.</li>
      * </ol>
      *
-     * <p>If the LSP server is not running in the test Eclipse the query will
-     * complete with zero results, but the Search view must still appear.
+     * <p><b>Requires the OpenJML LSP server to be running</b> in the test Eclipse.
+     * If the server is not available the handler shows a "No references found"
+     * info dialog and this test fails with a message explaining the requirement.
      */
     @Test
-    public void t2_findReferencesOpensSearchView() {
+    public void t2_findReferencesFindsExpectedReferences() {
         positionCursorOnTargetSymbol();
         executeCommandAsync(FIND_REFS_COMMAND_ID);
 
-        // Allow the async search to be submitted and the Search view to open.
-        bot.sleep(2000);
+        // The query is async; wait up to 35s for either results or a "no results"
+        // dialog (the latter is shown when the LSP server returns an empty list,
+        // e.g. when it is not running or not connected to the document).
+        SWTBotView searchView = null;
+        SWTBotTree resultTree = null;
+        long deadline = System.currentTimeMillis() + 35_000;
 
-        // The Search view is contributed by org.eclipse.search and has the
-        // title "Search".  If the command failed silently the view might not
-        // appear, or an error dialog might be shown instead.
-        dismissShellIfPresent("Error");
-
-        // Verify the Search view is visible (may have 0 results if no LSP server).
-        try {
-            bot.viewByTitle("Search").show();
-        } catch (Exception e) {
-            // The view may be embedded in the standard search view with a different
-            // title in some Eclipse configurations.  Accept either "Search" or
-            // "Search Results" as evidence that the command ran successfully.
+        while (System.currentTimeMillis() < deadline) {
+            // If the handler showed a "No references found" dialog, the LSP server
+            // did not return results.  Fail with an actionable message.
             try {
-                bot.viewByTitle("Search Results").show();
-            } catch (Exception e2) {
+                SWTBotShell noResultsShell = bot.shell("Find References");
+                String msg = noResultsShell.bot().label(0).getText();
+                noResultsShell.bot().button("OK").click();
                 org.junit.Assert.fail(
-                        "Search view did not appear after Find References command: "
-                                + e.getMessage());
+                        "LSP server returned no references for '" + TARGET_SYMBOL
+                        + "' — is the OpenJML LSP server running and connected"
+                        + " to the document?  Dialog said: " + msg);
+                return;
+            } catch (org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException ignored) {
+                // Good: no "no results" dialog yet
+            }
+
+            // Check if the Search view has populated with results.
+            try {
+                searchView = bot.viewByTitle("Search");
+                searchView.show();
+                resultTree = searchView.bot().tree();
+                if (resultTree.getAllItems().length > 0) break;
+            } catch (Exception ignored) {
+                // Search view not yet visible
+            }
+            bot.sleep(500);
+        }
+
+        assertNotNull("Search view must be visible after Find References", searchView);
+        assertNotNull("Search view must contain a result tree", resultTree);
+
+        // The test file has myField in 2 places: the Java declaration and the JML
+        // requires clause.  The top-level tree item is the file node; its label
+        // reports the file name and match count (e.g. "ActionTarget.java — 2 references").
+        SWTBotTreeItem[] topItems = resultTree.getAllItems();
+        assertTrue("Search result tree must have at least one top-level item",
+                topItems.length > 0);
+
+        String fileNodeLabel = topItems[0].getText();
+        assertTrue("Top-level search result must identify the source file 'ActionTarget.java'",
+                fileNodeLabel.contains("ActionTarget.java"));
+
+        // Expand the file node to reveal individual match rows.
+        topItems[0].expand();
+        SWTBotTreeItem[] matchItems = topItems[0].getItems();
+        assertTrue(
+                "Find References must return at least 2 matches for '" + TARGET_SYMBOL
+                + "' (Java declaration + JML requires clause); got: " + matchItems.length,
+                matchItems.length >= 2);
+
+        // Each match row is labelled "N: source-line-text".  At least one must
+        // mention myField so we know the cursor word was correctly passed to the
+        // server as the subject of the search.
+        boolean foundSymbolInResults = false;
+        for (var item : matchItems) {
+            if (item.getText().contains(TARGET_SYMBOL)) {
+                foundSymbolInResults = true;
+                break;
             }
         }
+        assertTrue("At least one match row must mention '" + TARGET_SYMBOL + "'",
+                foundSymbolInResults);
     }
 }
