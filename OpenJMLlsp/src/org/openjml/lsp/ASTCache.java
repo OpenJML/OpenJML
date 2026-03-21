@@ -189,12 +189,7 @@ public class ASTCache {
     /** Return the declaration location for {@code sym}, or {@code null} if unknown. */
     public SymbolLocation getDeclarationLocation(Symbol sym) {
         SymbolLocation live = liveDeclarationIndex.get(sym);
-        SymbolLocation result = live != null ? live : initDeclarationIndex.get(sym);
-        System.err.println("[ASTCache.lookup] " + sym.getQualifiedName()
-                + " -> " + (result == null ? "NOT FOUND (liveSize=" + liveDeclarationIndex.size()
-                        + " initSize=" + initDeclarationIndex.size() + ")"
-                        : result.uri().replaceAll(".*/", "") + "@" + result.charOffset()));
-        return result;
+        return live != null ? live : initDeclarationIndex.get(sym);
     }
 
     // -----------------------------------------------------------------------
@@ -329,9 +324,6 @@ public class ASTCache {
                     (existing, in) -> !existing.uri().endsWith(".jml") && in.uri().endsWith(".jml")
                             ? existing   // keep .java over .jml spec stub
                             : in);       // otherwise take the latest
-            String stored = index.get(sym).uri();
-            System.err.println("[ASTCache] " + sym.getQualifiedName() + "@" + pos
-                    + " -> " + stored.replaceAll(".*/", ""));
         }
     }
 }

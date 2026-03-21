@@ -149,12 +149,10 @@ public class DefinitionFinder {
      */
     private static NodeMatch findNodeAt(JmlCompilationUnit ast,
                                         int targetOffset, String source) {
-        System.err.println("DECL " + targetOffset + " " + source);
         IdentFinder finder = new IdentFinder(targetOffset, source);
         finder.scan(ast);
         JmlCompilationUnit cu = ast.specsCompilationUnit;
         if (cu != null && cu != ast) finder.scan(cu);
-        System.err.println("  FOUND " + finder.best);
         return finder.best;
     }
 
