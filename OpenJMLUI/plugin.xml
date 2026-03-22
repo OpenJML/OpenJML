@@ -426,6 +426,18 @@
     </decorator>
   </extension>
 
+  <!-- ===================================================================
+       Find References — display page for JmlReferencesSearchResult.
+       Uses public AbstractTextSearchViewPage API so it works for files
+       open in any editor (JDT Java editor or Generic Editor).
+       =================================================================== -->
+  <extension point="org.eclipse.search.searchResultViewPages">
+     <viewPage
+           class="org.jmlspecs.openjml.eclipse.JmlReferencesResultPage"
+           id="org.jmlspecs.openjml.jmlReferencesPage"
+           searchResultClass="org.jmlspecs.openjml.eclipse.JmlReferencesSearchQuery$JmlReferencesSearchResult"/>
+  </extension>
+
   <!-- ============================================================ -->
   <!-- LEGACY EXTENSIONS COMMENTED OUT                              -->
   <!-- These reference old OpenJML classes (JMLBuilder, JMLNature,  -->
@@ -1668,17 +1680,6 @@
   </extension>
   -->
 
-  <!-- ===================================================================
-       Find References — display page for JmlReferencesSearchResult.
-       Uses public AbstractTextSearchViewPage API so it works for files
-       open in any editor (JDT Java editor or Generic Editor).
-       =================================================================== -->
-  <extension point="org.eclipse.search.searchResultViewPages">
-     <viewPage
-           class="org.jmlspecs.openjml.eclipse.JmlReferencesResultPage"
-           id="org.jmlspecs.openjml.jmlReferencesPage"
-           searchResultClass="org.jmlspecs.openjml.eclipse.JmlReferencesSearchQuery$JmlReferencesSearchResult"/>
-  </extension>
 
   <!-- ===================================================================
        Find Declaration — LSP textDocument/definition for JML/Java files
@@ -1690,5 +1691,17 @@
        entry that delegate to LSP4E's OpenDeclarationHyperlinkDetector.
        =================================================================== -->
 
+  <!-- Outline support for .jml files.
+       LSP4E's EditorToOutlineAdapterFactory (registered for ExtensionBasedTextEditor)
+       uses a 50 ms timeout to wait for the language server, which is too short on
+       first-connect.  Our factory intercepts .jml-file requests, waits up to 5 s,
+       then re-delegates so LSP4E's factory can take its fast path. -->
+  <extension point="org.eclipse.core.runtime.adapters">
+     <factory
+           adaptableType="org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor"
+           class="org.jmlspecs.openjml.eclipse.JmlOutlineAdapterFactory">
+        <adapter type="org.eclipse.ui.views.contentoutline.IContentOutlinePage"/>
+     </factory>
+  </extension>
 
 </plugin>
