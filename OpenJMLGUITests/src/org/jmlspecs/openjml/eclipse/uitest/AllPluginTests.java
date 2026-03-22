@@ -21,6 +21,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
     MenuPresenceTest.class,
+    FileIconTest.class,
     NatureTest.class,
     ActionTest.class,
     MarkersTest.class
