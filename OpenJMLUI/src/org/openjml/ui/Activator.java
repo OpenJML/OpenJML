@@ -17,6 +17,9 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
     /** ClassLoader for the org.eclipse.lsp4e bundle — can access its internal classes. */
     public static volatile ClassLoader lsp4eLoader;
 
+    /** The registered part listener; kept so it can be disposed on stop. */
+    private static volatile org.jmlspecs.openjml.eclipse.LspPartListener partListener;
+
     /**
      * The constructor
      */
@@ -61,6 +64,7 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                 org.eclipse.ui.IWorkbench wb = org.eclipse.ui.PlatformUI.getWorkbench();
                 org.jmlspecs.openjml.eclipse.LspPartListener listener =
                         new org.jmlspecs.openjml.eclipse.LspPartListener();
+                partListener = listener;
                 for (org.eclipse.ui.IWorkbenchWindow w : wb.getWorkbenchWindows()) {
                     org.eclipse.ui.IWorkbenchPage p = w.getActivePage();
                     if (p != null) {
@@ -114,6 +118,8 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
 
     @Override
     public void stop(BundleContext context) throws Exception {
+        org.jmlspecs.openjml.eclipse.LspPartListener pl = partListener;
+        if (pl != null) { pl.dispose(); partListener = null; }
         plugin = null;
         super.stop(context);
     }

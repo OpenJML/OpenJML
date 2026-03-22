@@ -209,7 +209,7 @@ function getSettings() {
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
         racOutputDir:            cfg.get('racOutputDir',            ''),
-        syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'regex'),
+        syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'ast'),
         escEngine:               cfg.get('escEngine',               'subprocess'),
         escThreads:              cfg.get('escThreads',              5),
         useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),

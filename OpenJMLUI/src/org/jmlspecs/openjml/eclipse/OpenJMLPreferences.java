@@ -113,6 +113,18 @@ public class OpenJMLPreferences extends FieldEditorPreferencePage
         addField(new BooleanFieldEditor(OpenJMLOptions.useIntegratedOutlineKey,
                 "Use integrated JML outline (uncheck for full Java+JML outline)",
                 getFieldEditorParent()));
+
+        addSpace();
+
+        // ── Syntax coloring ─────────────────────────────────────────────────
+        addLabel("Syntax Coloring", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        addField(new ComboFieldEditor(OpenJMLOptions.syntaxColoringStrategyKey,
+                "JML syntax coloring strategy:",
+                new String[][] {
+                    { "AST-based (precise, default)", "ast"   },
+                    { "Regex (instant fallback)",     "regex" } },
+                getFieldEditorParent()));
     }
 
     private void addLabel(String text, int swtOptions) {

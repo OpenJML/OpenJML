@@ -112,7 +112,7 @@ public class OpenJMLSettings {
      *       color non-JML identifiers that happen to match JML keywords).</li>
      * </ul>
      */
-    public volatile String syntaxColoringStrategy = "regex";
+    public volatile String syntaxColoringStrategy = "ast";
 
     /** Returns {@code true} if the regex-only coloring strategy is selected. */
     public boolean isRegexColoring() { return "regex".equalsIgnoreCase(syntaxColoringStrategy); }

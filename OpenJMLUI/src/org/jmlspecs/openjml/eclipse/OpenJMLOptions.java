@@ -51,6 +51,9 @@ public class OpenJMLOptions {
     /** Whether the outline shows JML-only items (true) or full Java+JML (false). */
     public static final String useIntegratedOutlineKey = "openjml.useIntegratedOutline";
 
+    /** Syntax coloring strategy: "ast" (default) or "regex". */
+    public static final String syntaxColoringStrategyKey = "openjml.syntaxColoringStrategy";
+
     // -----------------------------------------------------------------------
     // Defaults
     // -----------------------------------------------------------------------
@@ -64,7 +67,8 @@ public class OpenJMLOptions {
         store.setDefault(escTriggerOnKey,         "manual");
         store.setDefault(escEngineKey,            "subprocess");
         store.setDefault(escThreadsKey,           "0");
-        store.setDefault(useIntegratedOutlineKey, "true");
+        store.setDefault(useIntegratedOutlineKey,        "true");
+        store.setDefault(syntaxColoringStrategyKey,      "ast");
     }
 
     // -----------------------------------------------------------------------
@@ -91,7 +95,8 @@ public class OpenJMLOptions {
         opts.put("propertiesFile",      value(propertiesFileKey));
         opts.put("racOutputDir",        value(racOutputDirKey));
         opts.put("escEngine",           nonBlank(value(escEngineKey), "subprocess"));
-        opts.put("useIntegratedOutline",value(useIntegratedOutlineKey));
+        opts.put("useIntegratedOutline",    value(useIntegratedOutlineKey));
+        opts.put("syntaxColoringStrategy",  nonBlank(value(syntaxColoringStrategyKey), "ast"));
         String threads = value(escThreadsKey);
         if (threads != null && !threads.isBlank() && !threads.equals("0")) {
             try { opts.put("escThreads", Integer.parseInt(threads.trim())); }

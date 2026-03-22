@@ -2,6 +2,8 @@ package org.openjml.lsp;
 
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.JmlToken;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -88,10 +90,17 @@ public class SemanticTokensProvider {
     public static final int TT_KEYWORD = 0;
 
     /** Index of the {@code macro} token type in the legend. */
-    public static final int TT_MACRO   = 1;
+    public static final int TT_MACRO    = 1;
+
+    /**
+     * Index of the {@code variable} token type in the legend.
+     * Used for identifiers inside JML expression contexts to override TM4E's
+     * regex-based coloring at those positions.
+     */
+    public static final int TT_VARIABLE = 2;
 
     /** Token types registered in the server capabilities legend (order matters). */
-    public static final List<String> TOKEN_TYPES     = List.of("keyword", "macro");
+    public static final List<String> TOKEN_TYPES     = List.of("keyword", "macro", "variable");
 
     /** No token modifiers used. */
     public static final List<String> TOKEN_MODIFIERS = List.of();
@@ -145,6 +154,14 @@ public class SemanticTokensProvider {
         new JmlAstWalker(source, lineOffsets, tokens).scan(entry.ast());
         // Sort by (line, col) in case AST order differs from source order.
         tokens.sort(Comparator.comparingInt((int[] t) -> t[0]).thenComparingInt(t -> t[1]));
+        // Debug: log every token so we can see which semantic category each word gets.
+        String[] TYPE_NAMES = { "keyword", "macro", "variable" };
+        for (int[] tok : tokens) {
+            int off = lineOffsets[tok[0]] + tok[1];
+            String text = source.substring(off, Math.min(off + tok[2], source.length()));
+            String typeName = (tok[3] >= 0 && tok[3] < TYPE_NAMES.length) ? TYPE_NAMES[tok[3]] : String.valueOf(tok[3]);
+            System.err.println("[semtok] " + typeName + " '" + text + "' L" + (tok[0]+1) + ":" + tok[1]);
+        }
         return deltaEncode(tokens);
     }
 
@@ -239,6 +256,29 @@ public class SemanticTokensProvider {
             return Character.isLetterOrDigit(c) || c == '_';
         }
 
+        /**
+         * Find the source offset of {@code word} as a complete identifier token,
+         * scanning forward from {@code searchFrom} up to 512 characters.
+         * Returns -1 if not found.
+         */
+        private int findWordAfter(int searchFrom, String word) {
+            int limit = Math.min(source.length() - word.length(), searchFrom + 512);
+            for (int i = searchFrom; i <= limit; i++) {
+                char c = source.charAt(i);
+                if (!isWordChar(c)) continue;
+                // start of a word — check if it matches
+                if (source.startsWith(word, i)) {
+                    int endPos = i + word.length();
+                    if (endPos >= source.length() || !isWordChar(source.charAt(endPos))) {
+                        return i;
+                    }
+                }
+                // skip rest of current word
+                while (i < limit && isWordChar(source.charAt(i))) i++;
+            }
+            return -1;
+        }
+
         /** Binary-search {@code lineOffsets} to find the 0-based line for {@code offset}. */
         private int lineForOffset(int offset) {
             int lo = 0, hi = lineOffsets.length - 1;
@@ -279,7 +319,7 @@ public class SemanticTokensProvider {
         @Override
         public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors tree) {
             emitClause(tree);
-            // no expression children; super scans nothing useful
+            // no expression children
         }
 
         @Override
@@ -339,7 +379,7 @@ public class SemanticTokensProvider {
         @Override
         public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
             emitTypeClause(tree);
-            // children are specs (scanned by super), no special jmlDepth needed
+            // children are initializer specs — scanned by super
         }
 
         @Override
@@ -493,6 +533,15 @@ public class SemanticTokensProvider {
                 jmlDepth++;
                 super.visitVarDef(tree);
                 jmlDepth--;
+                // Emit the declared name as a variable token (JCVariableDecl.name is
+                // a Name field, not a tree node, so visitIdent is never called for it).
+                if (jmlVar.name != null && !jmlVar.name.isEmpty()) {
+                    int typeEnd = jmlVar.vartype != null
+                            ? jmlVar.vartype.pos + jmlVar.vartype.toString().length()
+                            : typePos;
+                    int namePos = findWordAfter(typeEnd, jmlVar.name.toString());
+                    if (namePos >= 0) emitAt(namePos, TT_VARIABLE);
+                }
             } else {
                 super.visitVarDef(tree);
             }
@@ -512,6 +561,14 @@ public class SemanticTokensProvider {
                 jmlDepth++;
                 super.visitMethodDef(tree);
                 jmlDepth--;
+                // Emit the declared method name as a variable token.
+                if (jmlMethod.name != null && !jmlMethod.name.isEmpty()) {
+                    int typeEnd = jmlMethod.restype != null
+                            ? jmlMethod.restype.pos + jmlMethod.restype.toString().length()
+                            : typePos;
+                    int namePos = findWordAfter(typeEnd, jmlMethod.name.toString());
+                    if (namePos >= 0) emitAt(namePos, TT_VARIABLE);
+                }
             } else {
                 super.visitMethodDef(tree);
             }
@@ -540,6 +597,46 @@ public class SemanticTokensProvider {
                 emitAt(tree.pos, TT_KEYWORD);
             }
             // no children
+        }
+
+        // ---- Identifiers inside JML expressions ----------------------------
+
+        @Override
+        public void visitIdent(JCIdent tree) {
+            if (jmlDepth > 0) {
+                if (tree.pos >= 0) {
+                    emitAt(tree.pos, TT_VARIABLE);
+                } else {
+                    System.err.println("[semtok] visitIdent name=" + tree.name
+                            + " pos=" + tree.pos + " (skipped — no position)");
+                }
+            }
+            // no children
+        }
+
+        @Override
+        public void visitSelect(JCFieldAccess tree) {
+            if (jmlDepth > 0 && tree.pos >= 0 && tree.name != null) {
+                String name = tree.name.toString();
+                int searchFrom = tree.pos;
+                int namePos = -1;
+                int limit = Math.min(source.length() - name.length(), searchFrom + 512);
+                for (int i = searchFrom; i <= limit; i++) {
+                    if (source.charAt(i) == '.' && i + 1 + name.length() <= source.length()) {
+                        int after = i + 1;
+                        if (source.startsWith(name, after)) {
+                            int endOfName = after + name.length();
+                            if (endOfName >= source.length() || !isWordChar(source.charAt(endOfName))) {
+                                namePos = after;
+                            }
+                        }
+                    }
+                }
+                if (namePos >= 0) {
+                    emitAt(namePos, TT_VARIABLE);
+                }
+            }
+            super.visitSelect(tree);
         }
     }
 

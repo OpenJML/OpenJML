@@ -291,9 +291,9 @@
             "ast",
             "regex"
           ],
-          "default": "regex",
+          "default": "ast",
           "order": 11,
-          "markdownDescription": "Strategy for JML syntax coloring:\n- `regex` (default) — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)\n- `ast` — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check"
+          "markdownDescription": "Strategy for JML syntax coloring:\n- `ast` (default) — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check\n- `regex` — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)"
         },
         "openjml.useIntegratedOutline": {
           "type": "boolean",

@@ -227,6 +227,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
+        System.err.println("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
 
         // --check: always on open
@@ -401,6 +402,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         String uri = params.getTextDocument().getUri();
+        System.err.println("[hover] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(null);
 
@@ -735,10 +737,41 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (!settings.isRegexColoring()) {
             ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
             if (entry != null) {
+                System.err.println("[getSemanticTokens] strategy=AST uri=" + uri);
                 return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
             }
         }
+        System.err.println("[getSemanticTokens] strategy=regex uri=" + uri);
         return SemanticTokensProvider.computeTokens(content).getData();
+    }
+
+    /**
+     * Handle {@code textDocument/semanticTokens/full} requests from LSP clients
+     * (e.g. Eclipse via LSP4E's {@code SemanticHighlightReconcilerStrategy}).
+     */
+    @Override
+    public CompletableFuture<org.eclipse.lsp4j.SemanticTokens> semanticTokensFull(
+            org.eclipse.lsp4j.SemanticTokensParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            String uri = params.getTextDocument().getUri();
+            List<Integer> data = getSemanticTokens(uri);
+            int n = data.size() / 5;
+            System.err.println("[semanticTokensFull] uri=" + uri + " tokens=" + n);
+            // Decode and print each token in readable form.
+            String[] TYPE_NAMES = { "keyword", "macro", "variable" };
+            int line = 0, col = 0;
+            for (int i = 0; i < n; i++) {
+                int dLine = data.get(i*5);
+                int dCol  = data.get(i*5+1);
+                int len   = data.get(i*5+2);
+                int type  = data.get(i*5+3);
+                line += dLine;
+                col   = (dLine == 0) ? col + dCol : dCol;
+                String typeName = (type >= 0 && type < TYPE_NAMES.length) ? TYPE_NAMES[type] : String.valueOf(type);
+                System.err.println("  [tok] " + typeName + " L" + (line+1) + ":" + col + " len=" + len);
+            }
+            return new org.eclipse.lsp4j.SemanticTokens(data);
+        });
     }
 
     /**

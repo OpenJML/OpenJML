@@ -47,6 +47,14 @@
            name="JML Specification File"
            priority="high"/>
   </extension>
+  
+  <extension
+      point="org.eclipse.ui.genericeditor.icons">
+    <icon
+         contentTypeId="org.jmlspecs.openjml.jmlSource"
+         icon="icons/jml-logo-16x16.png">
+    </icon>
+  </extension>
 
   <!-- .jml files open in the Generic Editor (not JDT's Java editor) so that
        TM4E syntax coloring and LSP4E integration work properly.
@@ -66,6 +74,15 @@
     <scopeNameContentTypeBinding
           scopeName="source.jml"
           contentTypeId="org.jmlspecs.openjml.jmlSource"/>
+  </extension>
+
+  <!-- Register LSP4E semantic-token reconciler for .jml files directly.
+       LSP4E's own registration uses enabledWhen which fails to fire for our content type;
+       registering it here without that guard ensures it is always installed. -->
+  <extension point="org.eclipse.ui.genericeditor.reconcilers">
+     <reconcilingStrategy
+           class="org.eclipse.lsp4e.operations.semanticTokens.SemanticHighlightReconcilerStrategy"
+           contentType="org.jmlspecs.openjml.jmlSource"/>
   </extension>
 
   <!-- LSP4E integration: connect Java and .jml source files to the openjml-lsp server -->
@@ -205,8 +222,25 @@
   
   <!-- OpenJML menu (editor popup and main menu) -->
   <extension point="org.eclipse.ui.menus">
-     <menuContribution locationURI="popup:org.eclipse.ui.editors?after=additions">
-        <menu id="org.jmlspecs.openjml.editorPopupMenu" label="OpenJML">
+     <!-- popup:#TextEditorContext is the context menu ID registered by all
+          text editors (AbstractTextEditor.registerContextMenu).  This is what
+          LSP4E itself uses and is the correct location for modern Eclipse 4.x.
+          The legacy popup:org.eclipse.ui.editors ID does not work reliably. -->
+     <menuContribution locationURI="popup:#TextEditorContext?after=additions">
+        <menu id="org.jmlspecs.openjml.editorPopupMenu" label="OpenJML"
+              icon="icons/jml-logo-16x16.png">
+           <visibleWhen checkEnabled="false">
+              <with variable="activeEditorInput">
+                 <or>
+                    <adapt type="org.eclipse.core.resources.IFile">
+                       <test property="org.eclipse.core.resources.extension" value="java"/>
+                    </adapt>
+                    <adapt type="org.eclipse.core.resources.IFile">
+                       <test property="org.eclipse.core.resources.extension" value="jml"/>
+                    </adapt>
+                 </or>
+              </with>
+           </visibleWhen>
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML in File" />
            <command commandId="org.jmlspecs.openjml.commands.runESC"
@@ -309,8 +343,10 @@
      </menuContribution>
   </extension>
   
+  <!-- The genericeditor.source.menu contribution is kept as a secondary path
+       for the Generic Editor's Source submenu (.jml files).  The primary
+       editor popup is now via popup:#TextEditorContext above. -->
   <extension point="org.eclipse.ui.menus">
-       <!-- Right-click popup for editors with our LSP server -->
      <menuContribution locationURI="popup:org.eclipse.ui.genericeditor.source.menu?before=additions">
         <command
               commandId="org.openjml.eclipse.commands.findDeclaration"
@@ -322,12 +358,6 @@
               commandId="org.openjml.eclipse.commands.rename"
               label="Rename (JML-aware)"/>
      </menuContribution>
-  </extension>
-
-  <!-- Bind F3 to Find Declaration in the Generic Editor context.
-       The Generic Editor context is org.eclipse.ui.genericeditor.genericEditorContext.
-       JDT's Java editor has its own F3 binding which takes priority for .java files. -->
-  <extension point="org.eclipse.ui.bindings">
   </extension>
 
 

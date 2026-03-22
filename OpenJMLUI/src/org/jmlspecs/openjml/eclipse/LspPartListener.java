@@ -5,6 +5,9 @@
 package org.jmlspecs.openjml.eclipse;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITextViewerExtension4;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -42,8 +45,16 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Map<IEditorPart, JmlFoldingManager> foldingManagers =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** JML colorizers for .java editors, keyed by workspace-relative path. */
+    private final java.util.Map<org.eclipse.core.runtime.IPath, JmlColorizer> colorizersByPath =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     public LspPartListener() {
         INSTANCE = this;
+    }
+
+    /** Called from Activator.stop(). */
+    public void dispose() {
     }
 
     /**
@@ -72,6 +83,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         if (part instanceof IEditorPart ep) {
             JmlFoldingManager mgr = foldingManagers.remove(ep);
             if (mgr != null) mgr.dispose();
+            if (ep.getEditorInput() instanceof IFileEditorInput fi) {
+                colorizersByPath.remove(fi.getFile().getFullPath());
+            }
         }
     }
     @Override public void partDeactivated(IWorkbenchPartReference ref) {}
@@ -91,6 +105,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         // Install JML annotation folding (once per editor instance).
         if (part instanceof IEditorPart ep && !foldingManagers.containsKey(ep)) {
             setupFolding(ep);
+        }
+
+        // Install JML semantic-token colorizer for .java files (once per path).
+        if ("java".equals(ext) && part instanceof IEditorPart ep
+                && !colorizersByPath.containsKey(file.getFullPath())) {
+            setupColorizer(ep, file);
         }
 
         org.eclipse.core.runtime.IPath path = file.getFullPath();
@@ -138,7 +158,10 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             if (startLanguageServerMethod != null) {
                 Object wrapper = startLanguageServerMethod.invoke(null, cachedDef);
                 System.err.println("[OpenJML] LspPartListener: startLanguageServer() = " + wrapper);
-                if (wrapper != null) cachedWrapper = wrapper;
+                if (wrapper != null) {
+                    cachedWrapper = wrapper;
+                    installDiagnosticsHook(wrapper);
+                }
 
                 // --- Step 3: connect this document to the (now-running) server ---
                 if (wrapper != null && doc != null) {
@@ -171,6 +194,125 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             } catch (Throwable t) {
                 System.err.println("[OpenJML] setupFolding failed: " + t);
+                t.printStackTrace(System.err);
+            }
+        });
+    }
+
+    /** Ensures the diagnostics hook is installed only once per server instance. */
+    private static volatile boolean diagnosticsHookInstalled = false;
+
+    /**
+     * Wraps the {@code DefaultLanguageClient}'s diagnostics consumer so that
+     * every {@code publishDiagnostics} notification — including clean-file responses
+     * with an empty diagnostic list — triggers {@link JmlColorizer#refreshAsync()} on
+     * the affected document.  This is the explicit trigger the user requested instead
+     * of a fixed timer.
+     *
+     * <p>Uses reflection to access the package-private {@code languageClient} field on
+     * {@code LanguageServerWrapper} and the public {@code setDiagnosticsConsumer} on
+     * {@code DefaultLanguageClient}.
+     */
+    private void installDiagnosticsHook(Object wrapper) {
+        if (diagnosticsHookInstalled) return;
+        diagnosticsHookInstalled = true;
+        try {
+            // Reflectively get wrapper.languageClient (DefaultLanguageClient)
+            java.lang.reflect.Field clientField = null;
+            for (Class<?> c = wrapper.getClass(); c != null; c = c.getSuperclass()) {
+                try { clientField = c.getDeclaredField("languageClient"); break; }
+                catch (NoSuchFieldException ignored) {}
+            }
+            if (clientField == null) {
+                System.err.println("[OpenJML] diagnosticsHook: languageClient field not found");
+                return;
+            }
+            clientField.setAccessible(true);
+            Object client = clientField.get(wrapper);
+            if (client == null) {
+                System.err.println("[OpenJML] diagnosticsHook: languageClient is null");
+                return;
+            }
+
+            // Get the existing diagnosticConsumer to wrap it
+            java.lang.reflect.Field consumerField = null;
+            for (Class<?> c = client.getClass(); c != null; c = c.getSuperclass()) {
+                try { consumerField = c.getDeclaredField("diagnosticConsumer"); break; }
+                catch (NoSuchFieldException ignored) {}
+            }
+            @SuppressWarnings("unchecked")
+            java.util.function.Consumer<Object> original = (consumerField != null)
+                    ? (java.util.function.Consumer<Object>) getField(consumerField, client)
+                    : null;
+
+            // Install a wrapper consumer that calls the original then refreshes colorizers
+            java.lang.reflect.Method setter = null;
+            for (java.lang.reflect.Method m : client.getClass().getMethods()) {
+                if ("setDiagnosticsConsumer".equals(m.getName()) && m.getParameterCount() == 1) {
+                    setter = m; break;
+                }
+            }
+            if (setter == null) {
+                System.err.println("[OpenJML] diagnosticsHook: setDiagnosticsConsumer not found");
+                return;
+            }
+            final java.util.function.Consumer<Object> orig = original;
+            java.util.function.Consumer<Object> wrapped = params -> {
+                if (orig != null) orig.accept(params);
+                try {
+                    String uri = (String) params.getClass().getMethod("getUri").invoke(params);
+                    if (uri != null) refreshColorizerForUri(uri);
+                } catch (Exception ignored) {}
+            };
+            setter.invoke(client, wrapped);
+            System.err.println("[OpenJML] diagnosticsHook installed");
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] installDiagnosticsHook failed: " + t);
+            t.printStackTrace(System.err);
+        }
+    }
+
+    private static Object getField(java.lang.reflect.Field f, Object obj) {
+        try { f.setAccessible(true); return f.get(obj); } catch (Exception e) { return null; }
+    }
+
+    /** Finds the colorizer registered for the given file URI and refreshes it. */
+    private void refreshColorizerForUri(String fileUri) {
+        try {
+            java.net.URI uri = java.net.URI.create(fileUri);
+            IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(uri);
+            for (IFile f : files) {
+                JmlColorizer c = colorizersByPath.get(f.getFullPath());
+                if (c != null) c.refreshAsync();
+            }
+        } catch (Exception e) {
+            System.err.println("[OpenJML] refreshColorizerForUri error: " + e);
+        }
+    }
+
+    /**
+     * Attaches a {@link JmlColorizer} to the given {@code .java} editor's viewer.
+     * The colorizer overlays JML semantic-token colors (keyword / macro / variable)
+     * on top of JDT's own syntax coloring, which would otherwise render
+     * {@code //@ …} annotations as plain comments.
+     */
+    private void setupColorizer(IEditorPart editor, IFile file) {
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            try {
+                Object adapted = editor.getAdapter(org.eclipse.jface.text.ITextOperationTarget.class);
+                if (!(adapted instanceof ITextViewer viewer)) return;
+                if (!(viewer instanceof ITextViewerExtension4 ext4)) return;
+                org.eclipse.jface.text.IDocument doc = viewer.getDocument();
+                if (doc == null) return;
+                JmlColorizer.ensureColors();
+                JmlColorizer colorizer = new JmlColorizer(viewer, doc);
+                ext4.addTextPresentationListener(colorizer);
+                colorizersByPath.put(file.getFullPath(), colorizer);
+                System.err.println("[OpenJML] JML colorizer installed for " + file.getName());
+                // Immediate fetch — gets cached tokens if a prior check has already run.
+                colorizer.refreshAsync();
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] setupColorizer failed: " + t);
                 t.printStackTrace(System.err);
             }
         });
