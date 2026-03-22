@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Basic rules
+
+CLaude must never run 'git push'
+
+Claude must never run any 'git' commands that change files without explicit permission.
+
 ## Project Overview
 
 OpenJML is a tool for Java that processes JML (Java Modeling Language) specifications embedded in Java source code. It extends OpenJDK 21 (jdk-21-ga branch) by adding JML parsing, type-checking, static checking (ESC via SMT solvers), and runtime assertion checking (RAC).
@@ -72,7 +78,7 @@ OpenJML/
     Makefile              # Test targets
 
   OpenJMLFeature/   # Eclipse feature plugin (mostly obsolete)
-  OpenJMLUI/        # Eclipse UI plugin
+  OpenJMLUI/        # Eclipse cat /tmp/openjml-lsp-debug.logUI plugin
 ```
 
 ## Building
@@ -184,6 +190,6 @@ The `unittests/runtests` script compiles test framework files via `make unittest
 
 **ESC Pipeline**: `JmlEsc` → `JmlAssertionAdder` (converts specs to Java assertions) → `BasicBlocker2` (basic block form) → `SMTTranslator` (SMT-LIB format) → `MethodProverSMT` (invokes external SMT solver, default z3).
 
-**Module System**: Because OpenJML extends OpenJDK internals, running it programmatically requires many `--add-exports` flags (see `setup-exports`). The `OPENJML_EXPORTS` variable captures these. Test compilation and execution must include these flags.
+cat /tmp/openjml-lsp-debug.log**Module System**: Because OpenJML extends OpenJDK internals, running it programmatically requires many `--add-exports` flags (see `setup-exports`). The `OPENJML_EXPORTS` variable captures these. Test compilation and execution must include these flags.
 
 **Specs Separation**: JML specs for the Java standard library live in the sibling `Specs/` repository, not in this repo. The `--specs-path` option points OpenJML to them.
