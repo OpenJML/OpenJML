@@ -302,7 +302,7 @@ public class Utils {
      * @param mods the instance of JCModifiers to test
      * @return true if JML is set
      */
-    public boolean isJML(/*@ nullable */ JCModifiers mods) {
+    public static boolean isJML(/*@ nullable */ JCModifiers mods) {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
     
@@ -310,7 +310,7 @@ public class Utils {
      * @param flags the bit-array to test
      * @return true if JML is set
      */
-    public boolean isJML(long flags) {
+    public static boolean isJML(long flags) {  // FIXME - make static and some other of these methods
         return (flags & JMLBIT) != 0;
     }
 
@@ -322,12 +322,12 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-    public void setJML(/*@ non_null */ JCModifiers mods) {
+    public static void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
     }
 
     /** Sets the JMLBIT flag in the flags bit-vector */
-    public long setJML(long flags) {
+    public static long setJML(long flags) {
         return flags | JMLBIT;
     }
 
@@ -335,7 +335,7 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-    public void unsetJML(/*@ non_null */ JCModifiers mods) {
+    public static void unsetJML(/*@ non_null */ JCModifiers mods) {
         mods.flags &= ~JMLBIT;
     }
 

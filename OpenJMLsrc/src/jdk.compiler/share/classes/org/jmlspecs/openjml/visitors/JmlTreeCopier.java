@@ -156,9 +156,10 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         var that = (JmlMethodDecl)node;
         JmlMethodDecl copy = (JmlMethodDecl)super.visitMethod(that,p);
         copy.sourcefile = that.sourcefile;
+        copy.namePosition = that.namePosition;
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.methodSpecs = copy(that.methodSpecs,p);
-        copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
+//        copy.methodSpecsCombined = JmlSpecs.copy(that.methodSpecsCombined,p,this);
         copy.type = that.type;
         copy.sym = that.sym;
         copy.isInitializer = that.isInitializer;
@@ -170,6 +171,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlVariableDecl jthat = (JmlVariableDecl)that;
         JmlVariableDecl copy = (JmlVariableDecl)super.visitVariable(that,p);
         copy.sourcefile = jthat.sourcefile;
+        copy.namePosition = jthat.namePosition;
         copy.specsDecl = jthat.specsDecl; // FIXME - repoint to new reference?
         copy.fieldSpecs = jthat.fieldSpecs;
         copy.sym = jthat.sym;
@@ -929,6 +931,7 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
         JmlClassDecl copy = (JmlClassDecl)super.visitClass(node,p);
         JmlClassDecl that = (JmlClassDecl)node;
         copy.toplevel = that.toplevel;
+        copy.namePosition = that.namePosition;
         copy.specsDecl = that.specsDecl;// FIXME - copy
         copy.typeSpecs = that.typeSpecs;// FIXME - copy
         copy.thisSymbol = that.thisSymbol;

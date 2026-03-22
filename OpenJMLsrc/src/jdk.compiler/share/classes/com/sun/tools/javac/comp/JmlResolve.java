@@ -139,7 +139,7 @@ public class JmlResolve extends Resolve {
      */
     @Override
     protected boolean symbolOK(Symbol e) {
-        return allowJML || !utils.isJML(e.flags_field);
+        return allowJML || !Utils.isJML(e.flags_field);
     }
     
     @Override
@@ -201,7 +201,7 @@ public class JmlResolve extends Resolve {
     public Symbol resolveQualifiedMethod(DiagnosticPosition pos, Env<AttrContext> env,
             Symbol location, Type site, Name name, List<Type> argtypes,
             List<Type> typeargtypes) {
-        boolean isJML = utils.isJML(site.tsym.flags());
+        boolean isJML = Utils.isJML(site.tsym.flags());
         boolean prev = setAllowJML(isJML || allowJML());
         Symbol s =  super.resolveQualifiedMethod(pos, env, location, site, name, argtypes, typeargtypes);
         setAllowJML(prev);
@@ -430,7 +430,7 @@ public class JmlResolve extends Resolve {
 
         public boolean test(Symbol s) {
             if (!super.test(s)) return false;
-            if (utils.isJML(s.flags()) && !allowJML()) return false;
+            if (Utils.isJML(s.flags()) && !allowJML()) return false;
             return true;
         }
     };

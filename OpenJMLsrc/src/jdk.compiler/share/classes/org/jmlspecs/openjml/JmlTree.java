@@ -1307,7 +1307,10 @@ public class JmlTree {
         public Env<AttrContext> staticInitializerBlockEnv;
         
         public java.util.List<ExceptionLineAnnotation> lineAnnotations;
-        
+
+        /** Source position of the class/interface/enum/record name token; Position.NOPOS if not set. */
+        public int namePosition = Position.NOPOS;
+
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCExpression extending,
@@ -1385,7 +1388,7 @@ public class JmlTree {
 
         /** The final, combined specs from all sources (set in JmlMemberEnter);
          * set to self in parser for methods in anonymous classes */
-        public JmlSpecs.MethodSpecs methodSpecsCombined; 
+//        public JmlSpecs.MethodSpecs methodSpecsCombined; 
 
         public JmlMethodSpecs methodSpecs;
 
@@ -1395,7 +1398,10 @@ public class JmlTree {
         
         public boolean usedBitVectors = false;
         public boolean isInitializer = false;
-        
+
+        /** Source position of the method name identifier token; Position.NOPOS if not set. */
+        public int namePosition = Position.NOPOS;
+
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,  // FIXME - backdoor use - should not be public
                 List<JCTypeParameter> typarams, JCVariableDecl recvparam, List<JCVariableDecl> params,
@@ -1528,7 +1534,10 @@ public class JmlTree {
         
         /** A fixed ident used in ESC */
         public JCIdent ident = null;
-        
+
+        /** Source position of the name identifier token; Position.NOPOS if not set. */
+        public int namePosition = Position.NOPOS;
+
         public JmlSpecs.FieldSpecs fieldSpecs() {
             if (fieldSpecs == null) fieldSpecs = new JmlSpecs.FieldSpecs(this);
             return fieldSpecs;
