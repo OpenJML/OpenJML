@@ -148,6 +148,8 @@ ECLIPSE_EQUINOX_JAR = $(call find_jar,org.eclipse.equinox.common)
 ECLIPSE_CORE_JOBS_JAR = $(call find_jar,org.eclipse.core.jobs)
 ECLIPSE_OSGI_JAR    = $(call find_jar,org.eclipse.osgi)
 ECLIPSE_UI_WORKBENCH_JAR = $(call find_jar,org.eclipse.ui.workbench)
+ECLIPSE_UI_IDE_JAR       = $(call find_jar,org.eclipse.ui.ide)
+ECLIPSE_CORE_COMMANDS_JAR = $(call find_jar,org.eclipse.core.commands)
 JUNIT4_JAR          = $(shell find "$(PLUGINS_DIR)" -maxdepth 1 -name "org.junit_*.jar" 2>/dev/null | sort -V | tail -1)
 HAMCREST_JAR        = $(shell find "$(PLUGINS_DIR)" -maxdepth 1 -name "org.hamcrest_*.jar" 2>/dev/null | sort -V | tail -1)
 LAUNCHER_JAR        = $(shell find "$(PRISTINE_HOME)/plugins" -maxdepth 1 -name "org.eclipse.equinox.launcher_*.jar" 2>/dev/null | head -1)
@@ -160,7 +162,7 @@ else
   ECLIPSE_SWT_JAR = $(shell find "$(PLUGINS_DIR)" -maxdepth 1 -name "org.eclipse.swt.gtk.linux.*.jar" 2>/dev/null | grep -v source | sort -V | tail -1)
 endif
 
-COMPILE_CP = $(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(SWTBOT_JUNIT_JAR):$(ECLIPSE_UI_JAR):$(ECLIPSE_UI_WORKBENCH_JAR):$(ECLIPSE_RUNTIME_JAR):$(ECLIPSE_RESOURCES_JAR):$(ECLIPSE_JDT_CORE_JAR):$(ECLIPSE_SWT_JAR):$(ECLIPSE_JFACE_JAR):$(ECLIPSE_EQUINOX_JAR):$(ECLIPSE_CORE_JOBS_JAR):$(ECLIPSE_OSGI_JAR):$(JUNIT4_JAR):$(HAMCREST_JAR)
+COMPILE_CP = $(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(SWTBOT_JUNIT_JAR):$(ECLIPSE_UI_JAR):$(ECLIPSE_UI_WORKBENCH_JAR):$(ECLIPSE_UI_IDE_JAR):$(ECLIPSE_CORE_COMMANDS_JAR):$(ECLIPSE_RUNTIME_JAR):$(ECLIPSE_RESOURCES_JAR):$(ECLIPSE_JDT_CORE_JAR):$(ECLIPSE_SWT_JAR):$(ECLIPSE_JFACE_JAR):$(ECLIPSE_EQUINOX_JAR):$(ECLIPSE_CORE_JOBS_JAR):$(ECLIPSE_OSGI_JAR):$(JUNIT4_JAR):$(HAMCREST_JAR)
 
 ## --------------------------------------------------------------------------
 ## Phony targets
@@ -168,7 +170,7 @@ COMPILE_CP = $(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(S
 ## File targets (sentinels) are intentionally NOT listed here.
 .PHONY: all fetch-eclipse build-tests prepare-test-eclipse \
         run-install-test install-openjml \
-        run-menu-test run-nature-test run-markers-test \
+        run-menu-test run-nature-test run-markers-test run-action-test run-fileicon-test \
         run-plugin-tests run-plugin-suite \
         clean clean-test-eclipse clean-downloads clean-cache clean-all help .FORCE
 
@@ -187,6 +189,8 @@ help:
 	@echo "  run-menu-test        Run MenuPresenceTest: menu items and toolbar buttons"
 	@echo "  run-nature-test      Run NatureTest: Add/Remove JML Nature (Properties + decorator)"
 	@echo "  run-markers-test     Run MarkersTest: JML marker lifecycle tests"
+	@echo "  run-action-test      Run ActionTest: command dispatch and argument extraction"
+	@echo "  run-fileicon-test    Run FileIconTest: file-type icons for .java/.jml/.xyz"
 	@echo "  run-plugin-tests     Run each test class separately: [PASS]/[FAIL] per class"
 	@echo "  run-plugin-suite     Run AllPluginTests in one JVM: one [PASS]/[FAIL] at end (faster)"
 	@echo "  clean                Remove build/ and test-ws/ (keeps eclipse-cache and sentinels)"
@@ -519,6 +523,68 @@ run-menu-test: $(OPENJML_INSTALLED_STAMP)
 	 fi
 
 ## --------------------------------------------------------------------------
+## run-action-test
+## --------------------------------------------------------------------------
+## Runs ActionTest: verifies command dispatch and argument extraction.
+## --------------------------------------------------------------------------
+run-action-test: $(OPENJML_INSTALLED_STAMP)
+	@mkdir -p "$(RESULTS_DIR)"
+	@rm -rf "$(TEST_WS)"
+	@echo "=== Running ActionTest ==="
+	@_launcher="$(TEST_LAUNCHER_JAR)"; \
+	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
+	     -nosplash \
+	     --launcher.suppressErrors \
+	     -application org.eclipse.pde.junit.runtime.uitestapplication \
+	     -data \"$(TEST_WS)\" \
+	     -testpluginname $(TEST_BUNDLE) \
+	     -classnames org.jmlspecs.openjml.eclipse.uitest.ActionTest \
+	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
+	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
+	     -testResultsXml \"$(RESULTS_DIR)/action-test-results.xml\" \
+	     -vmargs -Xmx1g -ea"; \
+	 eval "$$_cmd"; \
+	 _rc=$$?; \
+	 if [ $$_rc -eq 0 ]; then \
+	     echo "[PASS] ActionTest"; \
+	 else \
+	     echo "[FAIL] ActionTest (exit $$_rc)"; \
+	     echo "Results: $(RESULTS_DIR)/action-test-results.xml"; \
+	     exit 1; \
+	 fi
+
+## --------------------------------------------------------------------------
+## run-fileicon-test
+## --------------------------------------------------------------------------
+## Runs FileIconTest: verifies file-type icons for .java, .jml, .xyz files.
+## --------------------------------------------------------------------------
+run-fileicon-test: $(OPENJML_INSTALLED_STAMP)
+	@mkdir -p "$(RESULTS_DIR)"
+	@rm -rf "$(TEST_WS)"
+	@echo "=== Running FileIconTest ==="
+	@_launcher="$(TEST_LAUNCHER_JAR)"; \
+	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
+	     -nosplash \
+	     --launcher.suppressErrors \
+	     -application org.eclipse.pde.junit.runtime.uitestapplication \
+	     -data \"$(TEST_WS)\" \
+	     -testpluginname $(TEST_BUNDLE) \
+	     -classnames org.jmlspecs.openjml.eclipse.uitest.FileIconTest \
+	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
+	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
+	     -testResultsXml \"$(RESULTS_DIR)/fileicon-test-results.xml\" \
+	     -vmargs -Xmx1g -ea"; \
+	 eval "$$_cmd"; \
+	 _rc=$$?; \
+	 if [ $$_rc -eq 0 ]; then \
+	     echo "[PASS] FileIconTest"; \
+	 else \
+	     echo "[FAIL] FileIconTest (exit $$_rc)"; \
+	     echo "Results: $(RESULTS_DIR)/fileicon-test-results.xml"; \
+	     exit 1; \
+	 fi
+
+## --------------------------------------------------------------------------
 ## run-plugin-tests
 ## --------------------------------------------------------------------------
 ## Runs each plugin test class in its own Eclipse JVM, sequentially.
@@ -529,7 +595,7 @@ run-menu-test: $(OPENJML_INSTALLED_STAMP)
 ## To run one class in isolation: make run-menu-test / run-nature-test / etc.
 ## AllPluginTests.java is a JUnit suite for running all classes from the IDE.
 ## --------------------------------------------------------------------------
-PLUGIN_TEST_CLASSES := MenuPresenceTest NatureTest MarkersTest
+PLUGIN_TEST_CLASSES := MenuPresenceTest FileIconTest NatureTest ActionTest MarkersTest
 
 run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	@mkdir -p "$(RESULTS_DIR)"
