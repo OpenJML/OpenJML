@@ -26,7 +26,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.tm4e.registry;resolution:=optional,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.search,
- org.eclipse.ui.genericeditor;bundle-version="1.3.600"
+ org.eclipse.ui.genericeditor;bundle-version="1.3.600",
+ org.eclipse.ui.views
 Import-Package: org.eclipse.ui.texteditor,
  org.jmlspecs.annotation;resolution:=optional,
  org.osgi.framework.wiring

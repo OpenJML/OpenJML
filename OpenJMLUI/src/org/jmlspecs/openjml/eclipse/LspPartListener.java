@@ -37,6 +37,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     /** The running LanguageServerWrapper, cached after first successful start. */
     static volatile Object cachedWrapper;
 
+    /** A document known to be connected to the server — used to send notifications. */
+    static volatile org.eclipse.jface.text.IDocument cachedDocument;
+
     /** Files for which we have already triggered LSP startup. */
     private final java.util.Set<org.eclipse.core.runtime.IPath> triggered =
             java.util.Collections.synchronizedSet(new java.util.HashSet<>());
@@ -55,6 +58,36 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
     /** Called from Activator.stop(). */
     public void dispose() {
+    }
+
+    /**
+     * Sends a {@code workspace/didChangeConfiguration} notification to the running
+     * LSP server with the current Eclipse preference values.  Safe to call from any
+     * thread; no-op if the server wrapper is not yet available.
+     *
+     * <p>Called from a preference-store {@code IPropertyChangeListener} registered
+     * in {@code Activator.earlyStartup()} so that settings changes take effect
+     * immediately without restarting the server.
+     */
+    public static void sendSettingsToServer() {
+        org.eclipse.jface.text.IDocument doc = cachedDocument;
+        if (doc == null) {
+            System.err.println("[OpenJML] sendSettingsToServer: no connected document");
+            return;
+        }
+        try {
+            java.util.Map<String, Object> map = OpenJMLOptions.buildInitializationOptions();
+            org.eclipse.lsp4j.DidChangeConfigurationParams params =
+                    new org.eclipse.lsp4j.DidChangeConfigurationParams(map);
+            org.eclipse.lsp4e.LanguageServers.forDocument(doc)
+                    .execute(ls -> {
+                        ls.getWorkspaceService().didChangeConfiguration(params);
+                        return java.util.concurrent.CompletableFuture.completedFuture(null);
+                    });
+            System.err.println("[OpenJML] workspace/didChangeConfiguration sent");
+        } catch (Exception e) {
+            System.err.println("[OpenJML] sendSettingsToServer failed: " + e);
+        }
     }
 
     /**
@@ -113,6 +146,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             setupColorizer(ep, file);
         }
 
+        // Retry the diagnostics hook on every activation until it succeeds.
+        // (languageClient may be null on first attempt if server hasn't handshaked yet.)
+        if (!diagnosticsHookInstalled && cachedWrapper != null) {
+            installDiagnosticsHook(cachedWrapper);
+        }
+
         org.eclipse.core.runtime.IPath path = file.getFullPath();
         if (!triggered.add(path)) return;
 
@@ -166,6 +205,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 // --- Step 3: connect this document to the (now-running) server ---
                 if (wrapper != null && doc != null) {
                     connectDocumentToWrapper(wrapper, doc, file, lsp4eLoader);
+                    cachedDocument = doc;  // remember for sendSettingsToServer()
                 }
             } else {
                 System.err.println("[OpenJML] LspPartListener: startLanguageServer method not found");
@@ -215,7 +255,8 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
      */
     private void installDiagnosticsHook(Object wrapper) {
         if (diagnosticsHookInstalled) return;
-        diagnosticsHookInstalled = true;
+        // NOTE: do NOT set diagnosticsHookInstalled = true here; only set it on success
+        // so that a retry is possible when languageClient is null at startup.
         try {
             // Reflectively get wrapper.languageClient (DefaultLanguageClient)
             java.lang.reflect.Field clientField = null;
@@ -224,13 +265,17 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 catch (NoSuchFieldException ignored) {}
             }
             if (clientField == null) {
+                // The field was not found in any superclass — this is a permanent failure.
                 System.err.println("[OpenJML] diagnosticsHook: languageClient field not found");
+                diagnosticsHookInstalled = true;  // don't retry
                 return;
             }
             clientField.setAccessible(true);
             Object client = clientField.get(wrapper);
             if (client == null) {
-                System.err.println("[OpenJML] diagnosticsHook: languageClient is null");
+                // Server not yet initialized — languageClient assigned after handshake.
+                // Leave diagnosticsHookInstalled = false so the next handlePart call retries.
+                System.err.println("[OpenJML] diagnosticsHook: languageClient is null (will retry)");
                 return;
             }
 
@@ -265,6 +310,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 } catch (Exception ignored) {}
             };
             setter.invoke(client, wrapped);
+            diagnosticsHookInstalled = true;  // success — don't install again
             System.err.println("[OpenJML] diagnosticsHook installed");
         } catch (Throwable t) {
             System.err.println("[OpenJML] installDiagnosticsHook failed: " + t);
@@ -283,11 +329,49 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(uri);
             for (IFile f : files) {
                 JmlColorizer c = colorizersByPath.get(f.getFullPath());
-                if (c != null) c.refreshAsync();
+                if (c != null) {
+                    // .java files: JmlColorizer overlays JML tokens on JDT's presentation.
+                    c.refreshAsync();
+                } else if ("jml".equals(f.getFileExtension())) {
+                    // .jml files: LSP4E's SemanticTokensPresentationReconciler handles tokens,
+                    // but it only runs on document edits — not when the server sends fresh tokens
+                    // after a check.  Invalidate the presentation so it re-requests tokens now.
+                    invalidateJmlEditorPresentation(f);
+                }
             }
         } catch (Exception e) {
             System.err.println("[OpenJML] refreshColorizerForUri error: " + e);
         }
+    }
+
+    /** Invalidates the text presentation for any editor showing {@code file}. */
+    private static void invalidateJmlEditorPresentation(IFile file) {
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            try {
+                for (org.eclipse.ui.IWorkbenchWindow w :
+                        org.eclipse.ui.PlatformUI.getWorkbench().getWorkbenchWindows()) {
+                    for (org.eclipse.ui.IWorkbenchPage p : w.getPages()) {
+                        for (org.eclipse.ui.IEditorReference ref : p.getEditorReferences()) {
+                            org.eclipse.ui.IEditorPart ed = ref.getEditor(false);
+                            if (ed == null) continue;
+                            if (!(ed.getEditorInput() instanceof IFileEditorInput fi)) continue;
+                            if (!file.equals(fi.getFile())) continue;
+                            Object adapted = ed.getAdapter(
+                                    org.eclipse.jface.text.ITextOperationTarget.class);
+                            if (adapted instanceof ITextViewer tv) {
+                                // Trigger LSP4E's SemanticTokensPresentationReconciler to
+                                // re-request semanticTokens/full.  It only runs on document
+                                // edits, so the first check after open would otherwise leave
+                                // the .jml file uncolored until the user makes an edit.
+                                tv.invalidateTextPresentation();
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[OpenJML] invalidateJmlEditorPresentation: " + e);
+            }
+        });
     }
 
     /**

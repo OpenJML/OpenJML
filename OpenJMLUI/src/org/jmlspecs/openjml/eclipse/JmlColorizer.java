@@ -102,6 +102,7 @@ public class JmlColorizer implements ITextPresentationListener {
                 Class<?> cls = loader.loadClass(
                         "org.eclipse.lsp4e.operations.semanticTokens.TokenTypeMapper");
                 java.lang.reflect.Method create = cls.getMethod("create", ITextViewer.class);
+                create.setAccessible(true);  // TokenTypeMapper class is package-private
                 return (Function<String, IToken>) create.invoke(null, viewer);
             } catch (Exception e) {
                 System.err.println("[OpenJML] JmlColorizer: TokenTypeMapper unavailable: " + e);

@@ -111,7 +111,7 @@ public class OpenJMLPreferences extends FieldEditorPreferencePage
                 getFieldEditorParent()));
 
         addField(new BooleanFieldEditor(OpenJMLOptions.useIntegratedOutlineKey,
-                "Use integrated JML outline (uncheck for full Java+JML outline)",
+                "Show full Java+JML outline (uncheck for JML-only symbols)",
                 getFieldEditorParent()));
 
         addSpace();
