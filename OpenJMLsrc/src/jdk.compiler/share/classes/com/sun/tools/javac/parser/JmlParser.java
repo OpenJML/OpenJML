@@ -428,7 +428,9 @@ public class JmlParser extends JavacParser {
             boolean isRecord,
             Comment dc) {
         type = normalizeAnnotations(((JmlModifiers)mods), type);
-        return super.methodDeclaratorRest(pos,  mods,  type,  name, typarams, isInterface, isVoid, isRecord, dc);
+        JCTree result = super.methodDeclaratorRest(pos, mods, type, name, typarams, isInterface, isVoid, isRecord, dc);
+        if (result instanceof JmlMethodDecl m) m.namePosition = pos;
+        return result;
     }
 
     // FIXME - needs to be called in casts, generic type arguments, 
@@ -829,11 +831,37 @@ public class JmlParser extends JavacParser {
     /** Overrides in order to collect and reset line annotations for this declaration */
     @Override
     public JCClassDecl classDeclaration(JCModifiers mods, Comment dc) {
+        int namePos = S.token(1).pos; // token(0)=CLASS, token(1)=name
     	boolean injml = inJmlDeclaration;
         JCClassDecl cd = super.classDeclaration(mods, dc);
+        ((JmlClassDecl)cd).namePosition = namePos;
         ((JmlClassDecl)cd).lineAnnotations = S.lineAnnotations;
         if (injml) Utils.setJML(cd.mods);
         S.lineAnnotations = new java.util.LinkedList<>();
+        return cd;
+    }
+
+    @Override
+    protected JCClassDecl interfaceDeclaration(JCModifiers mods, Comment dc) {
+        int namePos = S.token(1).pos; // token(0)=INTERFACE, token(1)=name
+        JCClassDecl cd = super.interfaceDeclaration(mods, dc);
+        ((JmlClassDecl)cd).namePosition = namePos;
+        return cd;
+    }
+
+    @Override
+    protected JCClassDecl enumDeclaration(JCModifiers mods, Comment dc) {
+        int namePos = S.token(1).pos; // token(0)=ENUM, token(1)=name
+        JCClassDecl cd = super.enumDeclaration(mods, dc);
+        ((JmlClassDecl)cd).namePosition = namePos;
+        return cd;
+    }
+
+    @Override
+    protected JCClassDecl recordDeclaration(JCModifiers mods, Comment dc) {
+        int namePos = S.token(1).pos; // token(0)=record identifier, token(1)=name
+        JCClassDecl cd = super.recordDeclaration(mods, dc);
+        ((JmlClassDecl)cd).namePosition = namePos;
         return cd;
     }
 
@@ -3009,6 +3037,24 @@ public class JmlParser extends JavacParser {
         var r = super.variableDeclaratorsRest(pos, mods, type, name, reqInit,
                 dc, vdefs, localDecl);
         return r;
+    }
+
+    @Override
+    public JCVariableDecl variableDeclaratorRest(int pos, JCModifiers mods, JCExpression type,
+            Name name, boolean reqInit, Comment dc, boolean localDecl, boolean compound) {
+        JCVariableDecl result = super.variableDeclaratorRest(pos, mods, type, name, reqInit, dc, localDecl, compound);
+        if (result instanceof JmlVariableDecl d) d.namePosition = pos;
+        return result;
+    }
+
+    @Override
+    protected JCVariableDecl variableDeclaratorId(JCModifiers mods, JCExpression type,
+            boolean catchParameter, boolean lambdaParameter, boolean recordComponent) {
+        // For formal parameters and catch clauses, pos inside variableDeclaratorId equals the
+        // name-token position and is stored as result.pos by F.at(pos).VarDef(...).
+        JCVariableDecl result = super.variableDeclaratorId(mods, type, catchParameter, lambdaParameter, recordComponent);
+        if (result instanceof JmlVariableDecl d) d.namePosition = result.pos;
+        return result;
     }
 
     @Override
