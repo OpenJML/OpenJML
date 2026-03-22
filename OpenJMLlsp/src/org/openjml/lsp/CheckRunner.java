@@ -258,10 +258,15 @@ public class CheckRunner {
                 filePaths.add(p.toString());
             }
 
-            // Build effective sourcepath: tempDir first, then workspace folders,
-            // then user sourcePath (or classPath fallback).
+            // Use tempDir as the sole sourcepath entry.  All modified files have already
+            // been written there, so javac resolves every cross-file reference against the
+            // modified versions.  Including the original settings.sourcePath here would add
+            // the unmodified testdata/source directory alongside tempDir; since all file
+            // basenames are the same (e.g., IWorker.java in both tempDir and testdata), javac
+            // can see the same class from two sources and fail silently with a duplicate-class
+            // conflict, losing the diagnostics we need to detect rename errors.
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
-            modifiedSettings.sourcePath      = buildEffectiveSourcePath(tempDir, settings);
+            modifiedSettings.sourcePath      = tempDir.toString();
             modifiedSettings.specsPath       = settings.specsPath;
             modifiedSettings.solversPath     = settings.solversPath;
             modifiedSettings.classPath       = settings.classPath;

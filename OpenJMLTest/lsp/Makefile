@@ -61,6 +61,7 @@ TEST_CLASSES := \
   RenameJmlTest \
   DefinitionFinderTest \
   DefinitionFinderJmlTest \
+  MethodAndClassTest \
   DoEscTest \
   ReferenceFinderTest \
   ReferenceFinderJmlTest \

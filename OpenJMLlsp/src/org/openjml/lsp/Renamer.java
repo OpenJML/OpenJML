@@ -153,16 +153,21 @@ public class Renamer {
         }
 
         // 4. Validate: check that the rename does not INTRODUCE new errors.
-        // We compare the error count of the original sources against the modified
-        // sources.  Pre-existing errors are not a reason to reject the rename;
-        // only newly added errors are.
-        int baselineErrors = CheckRunner.checkModifiedFiles(openContent, settings).size();
+        // Compare only ERROR-severity diagnostics (not warnings).  JML style warnings
+        // (e.g. "specification should begin with 'also'") are present in both the
+        // baseline and modified compilations and must not inflate the baseline count,
+        // which would mask real errors introduced by the rename.
+        long baselineErrors = countErrors(CheckRunner.checkModifiedFiles(openContent, settings));
         Map<String, String> allSources = new HashMap<>(openContent);
         allSources.putAll(modifiedSources);
         List<org.eclipse.lsp4j.Diagnostic> modifiedDiags =
                 CheckRunner.checkModifiedFiles(allSources, settings);
-        if (modifiedDiags.size() > baselineErrors) {
-            org.eclipse.lsp4j.Diagnostic d = modifiedDiags.get(0);
+        long modifiedErrors = countErrors(modifiedDiags);
+        if (modifiedErrors > baselineErrors) {
+            // Find the first ERROR-severity diagnostic for the message.
+            org.eclipse.lsp4j.Diagnostic d = modifiedDiags.stream()
+                    .filter(x -> x.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                    .findFirst().orElse(modifiedDiags.get(0));
             var msg = d.getMessage();
             String firstMsg = msg.isLeft() ? msg.getLeft() : msg.getRight().getValue();
             throw new ResponseErrorException(new ResponseError(
@@ -179,6 +184,12 @@ public class Renamer {
         }
         wsEdit.setChanges(lsp4jEdits);
         return wsEdit;
+    }
+
+    private static long countErrors(List<org.eclipse.lsp4j.Diagnostic> diags) {
+        return diags.stream()
+                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                .count();
     }
 
     // -----------------------------------------------------------------------
