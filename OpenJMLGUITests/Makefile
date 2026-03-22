@@ -110,8 +110,6 @@ CLASSES_DIR := $(UITEST)/build/classes
 TEST_JAR    := $(UITEST)/build/org.openjml.OpenJMLGUITest_0.21.0.jar
 RESULTS_DIR        := $(UITEST)/build/results
 RESULTS_XML        := $(RESULTS_DIR)/install-test-results.xml
-NATURE_RESULTS_XML := $(RESULTS_DIR)/nature-test-results.xml
-MARKERS_RESULTS_XML := $(RESULTS_DIR)/markers-test-results.xml
 TEST_WS     := $(UITEST)/test-ws
 
 ## Sentinel files inside the test-eclipse directory.
@@ -427,162 +425,59 @@ install-openjml: build-tests
 	@$(MAKE) --no-print-directory $(OPENJML_INSTALLED_STAMP)
 
 ## --------------------------------------------------------------------------
-## run-nature-test
+## run-one-plugin-test  (internal macro — not a phony target)
 ## --------------------------------------------------------------------------
-## Runs NatureTest: Add/Remove JML Nature via the Package Explorer menu.
-## Requires OpenJML to be installed in the test Eclipse (see install-openjml).
+## Shared recipe for running a single SWTBot test class in isolation.
+## Usage: $(call run-one-plugin-test,ClassName)
+##   ClassName — simple class name, e.g. NatureTest
 ## --------------------------------------------------------------------------
-run-nature-test: $(OPENJML_INSTALLED_STAMP)
+define run-one-plugin-test
 	@mkdir -p "$(RESULTS_DIR)"
 	@rm -rf "$(TEST_WS)"
-	@echo "=== Running NatureTest ==="
-	@_launcher="$(TEST_LAUNCHER_JAR)"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
+	@echo "=== Running $(1) ==="
+	@_cmd="$(XVFB) \"$(TEST_BIN)\" \
 	     -nosplash \
 	     --launcher.suppressErrors \
 	     -application org.eclipse.pde.junit.runtime.uitestapplication \
 	     -data \"$(TEST_WS)\" \
 	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.NatureTest \
+	     -classnames org.jmlspecs.openjml.eclipse.uitest.$(1) \
 	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
 	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(NATURE_RESULTS_XML)\" \
-	     -vmargs -Xmx1g -ea"; \
-	 eval "$$_cmd"; \
-	 _rc=$$?; \
-	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] NatureTest"; \
-	 else \
-	     echo "[FAIL] NatureTest (exit $$_rc)"; \
-	     echo "Results: $(NATURE_RESULTS_XML)"; \
-	     exit 1; \
-	 fi
-
-## --------------------------------------------------------------------------
-## run-markers-test
-## --------------------------------------------------------------------------
-## Runs MarkersTest: JML markers appear/disappear with JML nature changes.
-## Requires OpenJML to be installed AND the OpenJML LSP server to be reachable.
-## --------------------------------------------------------------------------
-run-markers-test: $(OPENJML_INSTALLED_STAMP)
-	@mkdir -p "$(RESULTS_DIR)"
-	@rm -rf "$(TEST_WS)"
-	@echo "=== Running MarkersTest ==="
-	@_launcher="$(TEST_LAUNCHER_JAR)"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
-	     -nosplash \
-	     --launcher.suppressErrors \
-	     -application org.eclipse.pde.junit.runtime.uitestapplication \
-	     -data \"$(TEST_WS)\" \
-	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.MarkersTest \
-	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(MARKERS_RESULTS_XML)\" \
+	     -testResultsXml \"$(RESULTS_DIR)/$(1)-results.xml\" \
 	     -vmargs -Xmx1g -ea \
-	         -Dopenjml.update.site=\"$(UPDATE_SITE)\""; \
+	         \"-Dopenjml.update.site=$(UPDATE_SITE)\""; \
 	 eval "$$_cmd"; \
 	 _rc=$$?; \
 	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] MarkersTest"; \
+	     echo "[PASS] $(1)"; \
 	 else \
-	     echo "[FAIL] MarkersTest (exit $$_rc)"; \
-	     echo "Results: $(MARKERS_RESULTS_XML)"; \
+	     echo "[FAIL] $(1) (exit $$_rc)"; \
+	     echo "Results: $(RESULTS_DIR)/$(1)-results.xml"; \
 	     exit 1; \
 	 fi
+endef
 
 ## --------------------------------------------------------------------------
-## run-menu-test
-## --------------------------------------------------------------------------
-## Runs MenuPresenceTest: verifies menu items and toolbar buttons are wired.
-## --------------------------------------------------------------------------
-run-menu-test: $(OPENJML_INSTALLED_STAMP)
-	@mkdir -p "$(RESULTS_DIR)"
-	@rm -rf "$(TEST_WS)"
-	@echo "=== Running MenuPresenceTest ==="
-	@_launcher="$(TEST_LAUNCHER_JAR)"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
-	     -nosplash \
-	     --launcher.suppressErrors \
-	     -application org.eclipse.pde.junit.runtime.uitestapplication \
-	     -data \"$(TEST_WS)\" \
-	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.MenuPresenceTest \
-	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(RESULTS_DIR)/menu-test-results.xml\" \
-	     -vmargs -Xmx1g -ea"; \
-	 eval "$$_cmd"; \
-	 _rc=$$?; \
-	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] MenuPresenceTest"; \
-	 else \
-	     echo "[FAIL] MenuPresenceTest (exit $$_rc)"; \
-	     echo "Results: $(RESULTS_DIR)/menu-test-results.xml"; \
-	     exit 1; \
-	 fi
-
-## --------------------------------------------------------------------------
-## run-action-test
-## --------------------------------------------------------------------------
-## Runs ActionTest: verifies command dispatch and argument extraction.
-## --------------------------------------------------------------------------
-run-action-test: $(OPENJML_INSTALLED_STAMP)
-	@mkdir -p "$(RESULTS_DIR)"
-	@rm -rf "$(TEST_WS)"
-	@echo "=== Running ActionTest ==="
-	@_launcher="$(TEST_LAUNCHER_JAR)"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
-	     -nosplash \
-	     --launcher.suppressErrors \
-	     -application org.eclipse.pde.junit.runtime.uitestapplication \
-	     -data \"$(TEST_WS)\" \
-	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.ActionTest \
-	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(RESULTS_DIR)/action-test-results.xml\" \
-	     -vmargs -Xmx1g -ea"; \
-	 eval "$$_cmd"; \
-	 _rc=$$?; \
-	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] ActionTest"; \
-	 else \
-	     echo "[FAIL] ActionTest (exit $$_rc)"; \
-	     echo "Results: $(RESULTS_DIR)/action-test-results.xml"; \
-	     exit 1; \
-	 fi
-
-## --------------------------------------------------------------------------
+## run-nature-test / run-markers-test / run-menu-test / run-action-test /
 ## run-fileicon-test
 ## --------------------------------------------------------------------------
-## Runs FileIconTest: verifies file-type icons for .java, .jml, .xyz files.
+## Run a single test class in isolation (one Eclipse JVM launch each).
 ## --------------------------------------------------------------------------
+run-nature-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,NatureTest)
+
+run-markers-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,MarkersTest)
+
+run-menu-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,MenuPresenceTest)
+
+run-action-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,ActionTest)
+
 run-fileicon-test: $(OPENJML_INSTALLED_STAMP)
-	@mkdir -p "$(RESULTS_DIR)"
-	@rm -rf "$(TEST_WS)"
-	@echo "=== Running FileIconTest ==="
-	@_launcher="$(TEST_LAUNCHER_JAR)"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
-	     -nosplash \
-	     --launcher.suppressErrors \
-	     -application org.eclipse.pde.junit.runtime.uitestapplication \
-	     -data \"$(TEST_WS)\" \
-	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.FileIconTest \
-	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(RESULTS_DIR)/fileicon-test-results.xml\" \
-	     -vmargs -Xmx1g -ea"; \
-	 eval "$$_cmd"; \
-	 _rc=$$?; \
-	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] FileIconTest"; \
-	 else \
-	     echo "[FAIL] FileIconTest (exit $$_rc)"; \
-	     echo "Results: $(RESULTS_DIR)/fileicon-test-results.xml"; \
-	     exit 1; \
-	 fi
+	$(call run-one-plugin-test,FileIconTest)
 
 ## --------------------------------------------------------------------------
 ## run-plugin-tests
