@@ -267,7 +267,7 @@ public class CheckRunner {
             // conflict, losing the diagnostics we need to detect rename errors.
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath      = tempDir.toString();
-            modifiedSettings.specsPath       = settings.specsPath;
+            modifiedSettings.specsPath       = buildEffectiveSpecsPath(tempDir, settings);
             modifiedSettings.solversPath     = settings.solversPath;
             modifiedSettings.classPath       = settings.classPath;
             // workspaceFolderPaths already baked into sourcePath above.
@@ -349,7 +349,7 @@ public class CheckRunner {
 
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath  = buildEffectiveSourcePath(tempDir, settings);
-            modifiedSettings.specsPath   = settings.specsPath;
+            modifiedSettings.specsPath   = buildEffectiveSpecsPath(tempDir, settings);
             modifiedSettings.solversPath = settings.solversPath;
             modifiedSettings.classPath   = settings.classPath;
 
@@ -687,14 +687,14 @@ public class CheckRunner {
             // that were actually attributed get an entry.  Start with the target.
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
             compiledPathToRealUri.put(tempFile.toString(), uri);
-            // Pre-populate .jml spec files because the AST listener does not fire for them.
+            // Pre-populate from all open files (including .jml spec files) so that
+            // diagnostics from spec files are routed correctly even if the AST listener
+            // does not fire for them (spec CUs are loaded differently from regular CUs).
             for (Map.Entry<String, String> e : tempUriToRealUri.entrySet()) {
-                if (e.getKey().endsWith(".jml")) {
-                    try {
-                        Path p = java.nio.file.Paths.get(java.net.URI.create(e.getKey()));
-                        compiledPathToRealUri.put(p.toString(), e.getValue());
-                    } catch (Exception ignored) {}
-                }
+                try {
+                    Path p = java.nio.file.Paths.get(java.net.URI.create(e.getKey()));
+                    compiledPathToRealUri.put(p.toString(), e.getValue());
+                } catch (Exception ignored) {}
             }
 
             // Capture target AST locally so we can store with IAPI after execution.
@@ -1268,6 +1268,27 @@ public class CheckRunner {
         } else if (settings.classPath != null && !settings.classPath.isEmpty()) {
             parts.add(settings.classPath);
         }
+        return String.join(java.io.File.pathSeparator, parts);
+    }
+
+    /**
+     * Build the effective specs path for a run that uses a temp directory.
+     *
+     * <p>If the user has not specified a specs path, return {@code ""} so that
+     * no {@code --specs-path} argument is forwarded to OpenJML; it will then
+     * fall back to the source path (which already includes {@code prefixDir}).
+     *
+     * <p>If the user has specified a specs path, prepend {@code prefixDir} and
+     * workspace folder paths so that dirty {@code .jml} files in the temp dir
+     * take priority over on-disk versions, matching the sourcepath logic.
+     */
+    static String buildEffectiveSpecsPath(Path prefixDir, OpenJMLSettings settings) {
+        if (settings.specsPath == null || settings.specsPath.isEmpty()) return "";
+        List<String> parts = new ArrayList<>();
+        if (prefixDir != null) parts.add(prefixDir.toString());
+        if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
+            parts.add(settings.workspaceFolderPaths);
+        parts.add(settings.specsPath);
         return String.join(java.io.File.pathSeparator, parts);
     }
 

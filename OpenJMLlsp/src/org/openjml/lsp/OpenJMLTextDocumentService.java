@@ -734,7 +734,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // "regex" strategy: always use regex (instant, works before first --check).
         // "ast" strategy (default): prefer AST-based when an attributed AST is
         // available (no false positives), fall back to regex before first --check.
-        if (!settings.isRegexColoring()) {
+        // .jml files never have a standalone AST — always use regex for them.
+        if (!settings.isRegexColoring() && !uri.endsWith(".jml")) {
             ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
             if (entry != null) {
                 System.err.println("[getSemanticTokens] strategy=AST uri=" + uri);
@@ -825,7 +826,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 List<String> filePaths;
                 try (var stream = java.nio.file.Files.walk(java.nio.file.Path.of(rootPath))) {
                     filePaths = stream
-                            .filter(p -> p.toString().endsWith(".java"))
+                            .filter(p -> { String s = p.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
                             .map(java.nio.file.Path::toString)
                             .collect(java.util.stream.Collectors.toList());
                 }
