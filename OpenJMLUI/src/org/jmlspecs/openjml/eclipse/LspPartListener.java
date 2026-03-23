@@ -80,7 +80,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             org.eclipse.lsp4j.DidChangeConfigurationParams params =
                     new org.eclipse.lsp4j.DidChangeConfigurationParams(map);
             org.eclipse.lsp4e.LanguageServers.forDocument(doc)
-                    .execute(ls -> {
+                    .computeAll(ls -> {
                         ls.getWorkspaceService().didChangeConfiguration(params);
                         return java.util.concurrent.CompletableFuture.completedFuture(null);
                     });

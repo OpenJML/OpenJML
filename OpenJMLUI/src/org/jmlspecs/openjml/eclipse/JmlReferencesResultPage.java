@@ -96,10 +96,12 @@ public class JmlReferencesResultPage extends AbstractTextSearchViewPage {
 
     @Override
     protected void showMatch(Match match, int currentOffset, int currentLength,
-                             ITextEditor editor) {
+                             boolean activate) throws org.eclipse.ui.PartInitException {
         // Called by gotoNextMatch / showCurrentMatch (table mode and keyboard nav).
-        if (editor != null) {
-            editor.selectAndReveal(currentOffset, currentLength);
+        if (match.getElement() instanceof org.eclipse.core.resources.IFile file) {
+            org.eclipse.ui.IWorkbenchPage page =
+                org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+            openAndSelect(page, file, currentOffset, currentLength, activate);
         }
     }
 

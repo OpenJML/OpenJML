@@ -192,6 +192,7 @@ public class JmlReferencesSearchQuery implements ISearchQuery {
                     + " to '" + query.symbolName + "'";
         }
 
+        @Override public String           getTooltip()         { return getLabel(); }
         @Override public ImageDescriptor getImageDescriptor() { return null; }
         @Override public ISearchQuery    getQuery()           { return query; }
 
