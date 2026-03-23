@@ -58,7 +58,9 @@ BIN_DIR="$UI_DIR/bin"
 # Library JARs that are part of Bundle-ClassPath (must be present inside the
 # plugin JAR).  Paths are relative to compile-deps/.
 # Keep in sync with MANIFEST.MF Bundle-ClassPath.
-LIBS=("gson-2.8.1.jar")
+# NOTE: gson-2.8.1.jar was removed — OpenJMLUI has no direct Gson usage;
+# LSP4E/LSP4J bring their own Gson via OSGi.
+LIBS=()
 
 # Compile-only JARs: on javac classpath but NOT bundled in the plugin JAR.
 # These are Eclipse bundles that are present in the target Eclipse at runtime

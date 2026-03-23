@@ -82,22 +82,27 @@ public class ActionTest extends GUITestBase {
      * clause (line 2).  Line/column numbers are 0-indexed.
      *
      * <pre>
-     * line 0: public class ActionTarget {
-     * line 1:     public int myField = 0;          ← myField at col 15
-     * line 2:     //@ requires myField >= 0;
-     * line 3:     public void method(int x) { }
-     * line 4: }
+     * line 0: package actiontest;
+     * line 1: public class ActionTarget {
+     * line 2:     public int myField = 0;          ← myField at col 15
+     * line 3:     //@ requires myField >= 0;
+     * line 4:     public void method(int x) { }
+     * line 5: }
      * </pre>
      */
     private static final String SOURCE =
-            "public class ActionTarget {\n"
+            "package actiontest;\n"
+            + "public class ActionTarget {\n"
             + "    public int myField = 0;\n"
             + "    //@ requires myField >= 0;\n"
             + "    public void method(int x) { }\n"
             + "}\n";
 
     // line index (0-based) and column of TARGET_SYMBOL in the declaration
-    private static final int SYMBOL_LINE = 1;
+    // line 0: package actiontest;
+    // line 1: public class ActionTarget {
+    // line 2:     public int myField = 0;   ← myField at col 15
+    private static final int SYMBOL_LINE = 2;
     private static final int SYMBOL_COL  = 15;   // "    public int " = 15 chars
 
     // -----------------------------------------------------------------------
@@ -113,6 +118,8 @@ public class ActionTest extends GUITestBase {
         bot.sleep(500);
 
         // Open the file in the editor so it is available for the tests.
+        // LSP4E starts the server when the first Java file is opened; give it
+        // time to launch and complete its initial file check before t2 runs.
         UIThreadRunnable.syncExec((VoidResult) () -> {
             try {
                 IWorkbenchPage page = PlatformUI.getWorkbench()
@@ -122,7 +129,7 @@ public class ActionTest extends GUITestBase {
                 throw new RuntimeException("Could not open ActionTarget.java", e);
             }
         });
-        bot.sleep(200);
+        bot.sleep(5_000);  // allow LSP server startup + initial file check
     }
 
     @AfterClass
@@ -192,7 +199,8 @@ public class ActionTest extends GUITestBase {
         // SWTBot waits (up to SWTBotPreferences.TIMEOUT ms) for the shell.
         SWTBotShell renameShell = bot.shell("Rename");
         assertNotNull("Rename dialog must appear after command execution", renameShell);
-        renameShell.activate();
+        // Skip activate() — on headless macOS it times out even though
+        // the shell is open.  Using renameShell.bot() still works.
 
         try {
             // The dialog title text shows "New name for '<currentName>':" as

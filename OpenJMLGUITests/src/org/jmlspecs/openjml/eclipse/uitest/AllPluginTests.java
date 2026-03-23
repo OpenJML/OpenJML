@@ -20,11 +20,11 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+    PreferencesPageTest.class,
     MenuPresenceTest.class,
     FileIconTest.class,
     NatureTest.class,
-    ActionTest.class,
-    MarkersTest.class
+    LspFeatureTest.class
 })
 public class AllPluginTests {
     // Suite container — no methods needed

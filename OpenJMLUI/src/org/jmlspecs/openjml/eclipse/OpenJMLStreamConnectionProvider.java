@@ -43,10 +43,18 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      *   2. Directory of the Eclipse install (Platform.getInstallLocation)
      */
     public static String findServerPath() {
+        // 1. User preference (set via OpenJML Preferences page)
         String pref = OpenJMLOptions.value(OpenJMLOptions.lspServerPathKey);
         if (pref != null && !pref.isBlank()) {
             return pref;
         }
+        // 2. System property — used by the test harness to inject the dev path
+        //    without modifying workspace preferences.
+        String sysProp = System.getProperty("openjml.lsp.server.path");
+        if (sysProp != null && !sysProp.isBlank()) {
+            return sysProp;
+        }
+        // 3. Script alongside the Eclipse install (release layout)
         try {
             URL installUrl = Platform.getInstallLocation().getURL();
             String installDir = installUrl.getPath();

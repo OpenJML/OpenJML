@@ -12,6 +12,5 @@
 	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4j.jar"/>
 	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4j.jsonrpc.jar"/>
 	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4e.jar"/>
-	<classpathentry kind="lib" path="compile-deps/gson-2.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

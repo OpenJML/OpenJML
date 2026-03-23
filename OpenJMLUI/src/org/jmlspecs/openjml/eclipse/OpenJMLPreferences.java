@@ -122,18 +122,6 @@ public class OpenJMLPreferences extends FieldEditorPreferencePage
         addField(new ComboFieldEditor(OpenJMLOptions.syntaxColoringStrategyKey,
                 "JML syntax coloring strategy:",
                 new String[][] {
-                    { "AST-based (precise, default)", "ast"   },
-                    { "Regex (instant fallback)",     "regex" } },
-                getFieldEditorParent()));
-
-        addSpace();
-
-        // ── Syntax coloring ─────────────────────────────────────────────────
-        addLabel("Syntax Coloring", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addField(new ComboFieldEditor(OpenJMLOptions.syntaxColoringStrategyKey,
-                "JML syntax coloring strategy:",
-                new String[][] {
                     { "Regex (instant, always active)",                          "regex" },
                     { "AST (precise, uses attributed tree; falls back to regex)", "ast"  } },
                 getFieldEditorParent()));

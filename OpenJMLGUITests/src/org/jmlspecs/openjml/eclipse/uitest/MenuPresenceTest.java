@@ -109,8 +109,26 @@ public class MenuPresenceTest extends GUITestBase {
      * Verifies that the "OpenJML" top-level menu appears in the Eclipse menu
      * bar and contains the key action items.
      */
+    /**
+     * Verifies that the "OpenJML" top-level menu appears in the Eclipse menu
+     * bar and contains the key action items.
+     *
+     * <p>On macOS, {@code bot.menu()} needs an active shell to locate the menu
+     * bar.  We explicitly activate the workbench window's shell via the UI
+     * thread to ensure it is active before querying the menu.
+     */
     @Test
     public void mainMenu_openJmlMenuPresent() {
+        // Force the workbench shell to become the active shell.
+        UIThreadRunnable.syncExec((VoidResult) () -> {
+            org.eclipse.swt.widgets.Shell wbShell =
+                    org.eclipse.ui.PlatformUI.getWorkbench()
+                            .getActiveWorkbenchWindow().getShell();
+            wbShell.forceActive();
+            wbShell.setFocus();
+        });
+        bot.sleep(200);
+
         SWTBotMenu openJml = bot.menu("OpenJML");
         assertNotNull("OpenJML top-level menu should be present", openJml);
         assertMenuItemWithTooltip(openJml, "Check JML in File",
@@ -134,8 +152,16 @@ public class MenuPresenceTest extends GUITestBase {
      */
     @Test
     public void toolbar_openJmlButtonsPresent() {
-        // CheckJML has an icon — found by tooltip; ESC and RAC are text-only — found by label.
-        // All three are also verified to carry the expected tooltip text.
+        // Ensure the workbench shell is active so SWTBot can find toolbar items.
+        UIThreadRunnable.syncExec((VoidResult) () -> {
+            org.eclipse.swt.widgets.Shell wbShell =
+                    org.eclipse.ui.PlatformUI.getWorkbench()
+                            .getActiveWorkbenchWindow().getShell();
+            wbShell.forceActive();
+            wbShell.setFocus();
+        });
+        bot.sleep(200);
+
         assertIconToolbarButton("Type-checks JML in selected objects");
         assertToolbarButton("ESC", "Performs JML static checks for selected objects");
         assertToolbarButton("RAC", "Compiles JML runtime checks for selected objects");

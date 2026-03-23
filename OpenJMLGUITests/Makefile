@@ -102,6 +102,10 @@ LOCAL_UPDATE_SITE := file://$(abspath $(REPO_ROOT)/../openjml.github.io/eclipse-
 UPDATE_SITE       ?= $(LOCAL_UPDATE_SITE)
 OPENJML_FEATURE   := org.openjml.OpenJMLFeature.feature.group
 
+## Path to the openjml-lsp launcher used by the running tests.
+## Passed as a system property so GUITestBase can configure the preference.
+OPENJML_LSP_PATH  := $(abspath $(REPO_ROOT)/OpenJMLlsp/openjml-lsp)
+
 ## --------------------------------------------------------------------------
 ## Build
 ## --------------------------------------------------------------------------
@@ -184,6 +188,7 @@ help:
 	@echo "  prepare-test-eclipse Copy pristine → test instance (fresh per run)"
 	@echo "  run-install-test     Install OpenJML via UI wizard and verify (integration test)"
 	@echo "  install-openjml      Install OpenJML via p2 director (headless, fast)"
+	@echo "  run-preferences-test Run PreferencesPageTest: Preferences page loads and shows fields"
 	@echo "  run-menu-test        Run MenuPresenceTest: menu items and toolbar buttons"
 	@echo "  run-nature-test      Run NatureTest: Add/Remove JML Nature (Properties + decorator)"
 	@echo "  run-markers-test     Run MarkersTest: JML marker lifecycle tests"
@@ -408,6 +413,16 @@ $(OPENJML_INSTALLED_STAMP): $(TEST_PREPARED_STAMP) $(TEST_JAR)
 	     -vmargs -Xmx512m \
 	   && echo "OpenJML installed." \
 	   || { echo "ERROR: OpenJML installation failed.  UPDATE_SITE=$(UPDATE_SITE)"; exit 1; }
+	## Copy openjml-lsp to the test Eclipse install dir so OpenJMLStreamConnectionProvider
+	## finds it via its fallback (installLocation/openjml-lsp) without needing a preference.
+	@_lsp="$(REPO_ROOT)/OpenJMLlsp/openjml-lsp"; \
+	 if [ -f "$$_lsp" ]; then \
+	    cp "$$_lsp" "$(TEST_HOME)/openjml-lsp"; \
+	    chmod +x "$(TEST_HOME)/openjml-lsp"; \
+	    echo "openjml-lsp installed at $(TEST_HOME)/openjml-lsp"; \
+	else \
+	    echo "WARNING: $$_lsp not found; LSP features will not work in tests"; \
+	fi
 	@touch $@
 
 ## Phony wrapper: force re-installation (removes stamp, then rebuilds).
@@ -472,7 +487,10 @@ define run-one-plugin-test
 	     -testPluginName $(TEST_BUNDLE) \
 	     \"formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$$_xml\" \
 	     -vmargs -Xmx1g -ea \
-	         \"-Dopenjml.update.site=$(UPDATE_SITE)\""; \
+	         \"-Dopenjml.update.site=$(UPDATE_SITE)\" \
+	         \"-Dopenjml.lsp.server.path=$(OPENJML_LSP_PATH)\" \
+	         -Dorg.eclipse.epp.mpc.ui.showMPCPopup=false \
+	         -Declipse.p2.unsignedPolicy=allow"; \
 	 eval "$$_cmd"
 	$(call check-xml-results,$(1),$(RESULTS_DIR)/$(1)-results.xml)
 endef
@@ -495,8 +513,14 @@ run-menu-test: $(OPENJML_INSTALLED_STAMP)
 run-action-test: $(OPENJML_INSTALLED_STAMP)
 	$(call run-one-plugin-test,ActionTest)
 
+run-lsp-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,LspFeatureTest)
+
 run-fileicon-test: $(OPENJML_INSTALLED_STAMP)
 	$(call run-one-plugin-test,FileIconTest)
+
+run-preferences-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,PreferencesPageTest)
 
 ## --------------------------------------------------------------------------
 ## run-plugin-tests
@@ -509,7 +533,7 @@ run-fileicon-test: $(OPENJML_INSTALLED_STAMP)
 ## To run one class in isolation: make run-menu-test / run-nature-test / etc.
 ## AllPluginTests.java is a JUnit suite for running all classes from the IDE.
 ## --------------------------------------------------------------------------
-PLUGIN_TEST_CLASSES := MenuPresenceTest FileIconTest NatureTest ActionTest MarkersTest
+PLUGIN_TEST_CLASSES := MenuPresenceTest PreferencesPageTest FileIconTest NatureTest LspFeatureTest
 
 run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	@mkdir -p "$(RESULTS_DIR)"
