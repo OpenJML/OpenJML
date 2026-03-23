@@ -89,33 +89,35 @@ public class NatureTest extends GUITestBase {
     // -----------------------------------------------------------------------
 
     /**
-     * Asserts that the given project HAS JML nature, using both the
-     * Project Properties dialog and the JML decorator as evidence.
+     * Asserts that the given project HAS JML nature.
+     *
+     * <p>Uses {@code project.hasNature()} as the authoritative check.
+     *
+     * <p>Potential work: Add a check that the decorator (JMLSmall.png overlay)
+     * is actually visible in the display.  This would catch a broken icon path
+     * or malformed image even when the nature and enablement expression are
+     * correct.  Doing so reliably in a headless SWTBot run is non-trivial:
+     * the JML decorator is purely declarative (no Java class, just an icon +
+     * enablement expression in plugin.xml), so {@code IDecoratorManager
+     * .getLabelDecorator(id).decorateImage()} always returns null.  The only
+     * practical approach would be pixel-comparison of the {@code TreeItem}
+     * image, which is fragile under HiDPI scaling and platform rendering
+     * differences.
      */
     private static void assertHasJmlNature(IProject project, String label)
             throws CoreException {
-        // Ground-truth check (authoritative — no GUI needed)
         assertTrue(label + ": project.hasNature() should be true",
                 project.hasNature(JML_NATURE_ID));
-        // Decorator check (confirms the UI layer reflects the nature change)
-        waitForDecoratorRefresh();
-        assertTrue(label + ": JML decorator should be active after nature added",
-                hasJmlDecorator(project));
     }
 
     /**
-     * Asserts that the given project does NOT have JML nature, using both the
-     * Project Properties dialog and the JML decorator as evidence.
+     * Asserts that the given project does NOT have JML nature.
+     * See {@link #assertHasJmlNature} for a note on decorator visibility testing.
      */
     private static void assertNoJmlNature(IProject project, String label)
             throws CoreException {
-        // Ground-truth check (authoritative — no GUI needed)
         assertFalse(label + ": project.hasNature() should be false",
                 project.hasNature(JML_NATURE_ID));
-        // Decorator check (confirms the UI layer reflects the nature change)
-        waitForDecoratorRefresh();
-        assertFalse(label + ": JML decorator should NOT be active",
-                hasJmlDecorator(project));
     }
 
     // -----------------------------------------------------------------------
