@@ -27,7 +27,7 @@ public interface IAPI {
     
     public boolean isOptionSet(String key);
     public String getOption(String key);
-//    public String getSpecs(MethodSymbol methodSymbol);
+    public String getSpecs(MethodSymbol methodSymbol);
 
     
     public static final int OK = Main.Result.OK.exitCode;
