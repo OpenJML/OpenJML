@@ -536,10 +536,13 @@ public class SemanticTokensProvider {
                 // Emit the declared name as a variable token (JCVariableDecl.name is
                 // a Name field, not a tree node, so visitIdent is never called for it).
                 if (jmlVar.name != null && !jmlVar.name.isEmpty()) {
-                    int typeEnd = jmlVar.vartype != null
-                            ? jmlVar.vartype.pos + jmlVar.vartype.toString().length()
-                            : typePos;
-                    int namePos = findWordAfter(typeEnd, jmlVar.name.toString());
+                    int namePos = jmlVar.namePosition >= 0
+                            ? jmlVar.namePosition
+                            : findWordAfter(
+                                jmlVar.vartype != null
+                                    ? jmlVar.vartype.pos + jmlVar.vartype.toString().length()
+                                    : typePos,
+                                jmlVar.name.toString());
                     if (namePos >= 0) emitAt(namePos, TT_VARIABLE);
                 }
             } else {
@@ -563,10 +566,13 @@ public class SemanticTokensProvider {
                 jmlDepth--;
                 // Emit the declared method name as a variable token.
                 if (jmlMethod.name != null && !jmlMethod.name.isEmpty()) {
-                    int typeEnd = jmlMethod.restype != null
-                            ? jmlMethod.restype.pos + jmlMethod.restype.toString().length()
-                            : typePos;
-                    int namePos = findWordAfter(typeEnd, jmlMethod.name.toString());
+                    int namePos = jmlMethod.namePosition >= 0
+                            ? jmlMethod.namePosition
+                            : findWordAfter(
+                                jmlMethod.restype != null
+                                    ? jmlMethod.restype.pos + jmlMethod.restype.toString().length()
+                                    : typePos,
+                                jmlMethod.name.toString());
                     if (namePos >= 0) emitAt(namePos, TT_VARIABLE);
                 }
             } else {

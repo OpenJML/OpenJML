@@ -135,7 +135,7 @@ public class DocumentSymbolProvider {
             if (sym == null) {
                 // Placeholder: create an undecorated symbol so visitVarDef /
                 // visitMethodDef have a parent to attach JML children to.
-                Range sel = nameRange(tree.pos, name);
+                Range sel = nameRange(declarationNamePos(tree), name);
                 sym = new DocumentSymbol(name, SymbolKind.Class, fullRange(tree, sel), sel);
             }
 
@@ -184,7 +184,7 @@ public class DocumentSymbolProvider {
             String name = isCtor ? classNameStack.peek() : rawName;
             if (name == null || name.isEmpty()) return;
             SymbolKind kind = isCtor ? SymbolKind.Constructor : SymbolKind.Method;
-            Range sel = nameRange(tree.pos, name);
+            Range sel = nameRange(declarationNamePos(tree), name);
             DocumentSymbol sym = new DocumentSymbol(name, kind,
                     fullRange(tree, sel), sel);
             if (jmlOnly && !setJmlDetail(sym, tree.mods)) return;  // skip non-JML members
@@ -204,7 +204,7 @@ public class DocumentSymbolProvider {
             String name = tree.name.toString();
             if (name.isEmpty() || name.startsWith("this$") || name.startsWith("val$")) return;
 
-            Range sel = nameRange(tree.pos, name);
+            Range sel = nameRange(declarationNamePos(tree), name);
             DocumentSymbol sym = new DocumentSymbol(name, SymbolKind.Field,
                     fullRange(tree, sel), sel);
             if (jmlOnly && !setJmlDetail(sym, tree.mods)) return;  // skip non-JML members
@@ -248,7 +248,7 @@ public class DocumentSymbolProvider {
             } else {
                 kind = SymbolKind.Class;
             }
-            Range sel = nameRange(tree.pos, name);
+            Range sel = nameRange(declarationNamePos(tree), name);
             DocumentSymbol sym = new DocumentSymbol(name, kind,
                     fullRange(tree, sel), sel);
             if (tree instanceof JmlClassDecl jmlCd) {
@@ -279,6 +279,18 @@ public class DocumentSymbolProvider {
         private static boolean posLe(Position a, Position b) {
             if (a.getLine() != b.getLine()) return a.getLine() < b.getLine();
             return a.getCharacter() <= b.getCharacter();
+        }
+
+        /**
+         * Returns the source offset of the declaration name token, using the
+         * {@code namePosition} field (set by {@code JmlParser}) when available,
+         * and falling back to {@code tree.pos} for plain javac AST nodes.
+         */
+        private static int declarationNamePos(JCTree tree) {
+            if (tree instanceof JmlClassDecl   jc && jc.namePosition  >= 0) return jc.namePosition;
+            if (tree instanceof JmlMethodDecl  jm && jm.namePosition  >= 0) return jm.namePosition;
+            if (tree instanceof JmlVariableDecl jv && jv.namePosition >= 0) return jv.namePosition;
+            return tree.pos;
         }
 
         private Range nameRange(int nodePos, String name) {

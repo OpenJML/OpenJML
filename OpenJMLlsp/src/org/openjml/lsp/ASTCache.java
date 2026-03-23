@@ -327,7 +327,7 @@ public class ASTCache {
         private void record(Symbol sym, int pos) {
             SymbolLocation incoming = new SymbolLocation(uri, pos);
             // Ghost/model symbols have the JML bit set — declared only in JML spec files.
-            boolean isJmlSym = (sym.flags() & org.jmlspecs.openjml.Utils.JMLBIT) != 0;
+            boolean isJmlSym = org.jmlspecs.openjml.Utils.isJML(sym.flags());
             index.merge(sym, incoming, (existing, in) -> {
                 if (isJmlSym) {
                     // Ghost/model: .jml URI wins over .java URI.

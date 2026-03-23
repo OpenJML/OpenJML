@@ -7,7 +7,6 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
@@ -225,13 +224,8 @@ public class DefinitionFinder {
                 }
             }
             super.visitMethodDef(tree);
-            // Also scan combined specs: includes specs from companion .jml spec files
-            // that are NOT in methodSpecs (inline JML) but in methodSpecsCombined.
-            if (tree instanceof JmlMethodDecl jmlMethod) {
-                JmlSpecs.MethodSpecs ms = jmlMethod.methodSpecsCombined;
-                if (ms != null && ms.cases != null) {
-                    scan(ms.cases);
-                }
+            if (tree instanceof JmlMethodDecl jmlMethod && jmlMethod.methodSpecs != null) {
+                scan(jmlMethod.methodSpecs.cases);
             }
         }
 
