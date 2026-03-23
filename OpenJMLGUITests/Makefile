@@ -69,13 +69,6 @@ endif
 ## --------------------------------------------------------------------------
 ## Download URL
 ## --------------------------------------------------------------------------
-## We use the Eclipse Committers package (not Eclipse for Java Developers) because
-## running SWTBot tests via uitestapplication requires PDE (Plugin Development
-## Environment) — specifically org.eclipse.pde.internal.junit.runtime — which
-## is not present in the Java Developers package but IS in Committers.
-##
-## Eclipse EPP filenames include the full release tag, e.g. "2026-03-R".
-## DMG (macOS) and tar.gz (Linux) are hosted directly on download.eclipse.org CDN.
 ECLIPSE_FILE := eclipse-committers-$(ECLIPSE_RELEASE)-R-$(ECLIPSE_PLATFORM).$(ECLIPSE_EXT)
 ECLIPSE_CDN  := https://download.eclipse.org/technology/epp/downloads/release/$(ECLIPSE_RELEASE)/R
 ECLIPSE_URL  := $(ECLIPSE_CDN)/$(ECLIPSE_FILE)
@@ -103,7 +96,6 @@ UPDATE_SITE       ?= $(LOCAL_UPDATE_SITE)
 OPENJML_FEATURE   := org.openjml.OpenJMLFeature.feature.group
 
 ## Path to the openjml-lsp launcher used by the running tests.
-## Passed as a system property so GUITestBase can configure the preference.
 OPENJML_LSP_PATH  := $(abspath $(REPO_ROOT)/OpenJMLlsp/openjml-lsp)
 
 ## --------------------------------------------------------------------------
@@ -112,13 +104,10 @@ OPENJML_LSP_PATH  := $(abspath $(REPO_ROOT)/OpenJMLlsp/openjml-lsp)
 SRC_DIR     := $(UITEST)/src
 CLASSES_DIR := $(UITEST)/build/classes
 TEST_JAR    := $(UITEST)/build/org.openjml.OpenJMLGUITest_0.21.0.jar
-RESULTS_DIR        := $(UITEST)/build/results
-RESULTS_XML        := $(RESULTS_DIR)/install-test-results.xml
+RESULTS_DIR := $(UITEST)/build/results
 TEST_WS     := $(UITEST)/test-ws
 
 ## Sentinel files inside the test-eclipse directory.
-## File targets are only rebuilt when their dependencies are newer —
-## sub-makes see an up-to-date stamp and skip re-preparation/re-installation.
 TEST_PREPARED_STAMP     := $(TEST_ECLIPSE)/.prepared
 OPENJML_INSTALLED_STAMP := $(TEST_ECLIPSE)/.openjml-installed
 
@@ -127,6 +116,24 @@ TEST_BUNDLE := org.openjml.OpenJMLGUITest
 
 ## Java sources
 SRCS := $(shell find "$(SRC_DIR)" -name '*.java' 2>/dev/null)
+
+## --------------------------------------------------------------------------
+## Shared test-launch constants
+## --------------------------------------------------------------------------
+## SWTBot headless application (no socket connection needed, unlike uitestapplication)
+SWTBOT_APP := org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication
+
+## JUnit XML formatter class (Ant taskdef)
+JUNIT_FORMATTER := org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter
+
+## VM arguments shared by all plugin test launches.
+## Keep in one place so run-one-plugin-test, run-plugin-tests, and
+## run-plugin-suite all behave identically.
+PLUGIN_TEST_VMARGS = -Xmx1g -ea \
+    "-Dopenjml.update.site=$(UPDATE_SITE)" \
+    "-Dopenjml.lsp.server.path=$(OPENJML_LSP_PATH)" \
+    -Dorg.eclipse.epp.mpc.ui.showMPCPopup=false \
+    -Declipse.p2.unsignedPolicy=allow
 
 ## --------------------------------------------------------------------------
 ## Classpath construction (needs pristine Eclipse with SWTBot to be present)
@@ -139,7 +146,6 @@ find_jar  = $(shell find "$(PLUGINS_DIR)" -maxdepth 1 -name "$(1)_*.jar" 2>/dev/
 SWTBOT_ECLIPSE_JAR  = $(call find_jar,org.eclipse.swtbot.eclipse.finder)
 SWTBOT_CORE_JAR     = $(call find_jar,org.eclipse.swtbot.swt.finder)
 SWTBOT_ECLIPSE_CORE = $(call find_jar,org.eclipse.swtbot.eclipse.core)
-## SWTBotJunit4ClassRunner lives in org.eclipse.swtbot.junit4_x, not swt.finder.junit
 SWTBOT_JUNIT_JAR    = $(call find_jar,org.eclipse.swtbot.junit4_x)
 ECLIPSE_UI_JAR      = $(call find_jar,org.eclipse.ui)
 ECLIPSE_RUNTIME_JAR = $(call find_jar,org.eclipse.core.runtime)
@@ -169,10 +175,10 @@ COMPILE_CP = $(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(S
 ## --------------------------------------------------------------------------
 ## Phony targets
 ## --------------------------------------------------------------------------
-## File targets (sentinels) are intentionally NOT listed here.
 .PHONY: all fetch-eclipse build-tests prepare-test-eclipse \
         run-install-test install-openjml \
-        run-menu-test run-nature-test run-markers-test run-action-test run-fileicon-test \
+        run-menu-test run-nature-test run-markers-test run-action-test \
+        run-fileicon-test run-preferences-test run-lsp-test \
         run-plugin-tests run-plugin-suite \
         clean clean-test-eclipse clean-downloads clean-cache clean-all help .FORCE
 
@@ -190,10 +196,11 @@ help:
 	@echo "  install-openjml      Install OpenJML via p2 director (headless, fast)"
 	@echo "  run-preferences-test Run PreferencesPageTest: Preferences page loads and shows fields"
 	@echo "  run-menu-test        Run MenuPresenceTest: menu items and toolbar buttons"
-	@echo "  run-nature-test      Run NatureTest: Add/Remove JML Nature (Properties + decorator)"
-	@echo "  run-markers-test     Run MarkersTest: JML marker lifecycle tests"
-	@echo "  run-action-test      Run ActionTest: command dispatch and argument extraction"
+	@echo "  run-nature-test      Run NatureTest: Add/Remove JML Nature"
 	@echo "  run-fileicon-test    Run FileIconTest: file-type icons for .java/.jml/.xyz"
+	@echo "  run-lsp-test         Run LspFeatureTest: Find References, Check JML markers (needs LSP)"
+	@echo "  run-action-test      Run ActionTest (legacy — use run-lsp-test)"
+	@echo "  run-markers-test     Run MarkersTest (legacy — use run-lsp-test)"
 	@echo "  run-plugin-tests     Run each test class separately: [PASS]/[FAIL] per class"
 	@echo "  run-plugin-suite     Run AllPluginTests in one JVM: one [PASS]/[FAIL] at end (faster)"
 	@echo "  clean                Remove build/ and test-ws/ (keeps eclipse-cache and sentinels)"
@@ -209,25 +216,11 @@ help:
 ## --------------------------------------------------------------------------
 ## fetch-eclipse
 ## --------------------------------------------------------------------------
-## Downloads Eclipse for Java Developers, extracts it to eclipse-cache/pristine/,
-## then installs the SWTBot feature into it via p2 director (headless).
-## The pristine directory is never modified after this step.
-##
-## Re-run with:  make fetch-eclipse .FORCE
-##
-## If the download fails due to mirror-picker issues, manually download:
-##   $(ECLIPSE_URL)
-## and place the file at:
-##   $(DOWNLOAD_DIR)/$(ECLIPSE_FILE)
-## then re-run: make fetch-eclipse
-## --------------------------------------------------------------------------
 $(PRISTINE_DIR)/.swtbot-installed: | $(DOWNLOAD_DIR)
 	@echo "=== fetch-eclipse: preparing pristine Eclipse ==="
 	@mkdir -p "$(PRISTINE_DIR)"
 ifeq ($(ECLIPSE_EXT),dmg)
 	## ---- macOS ----
-	## If ECLIPSE_SRC points at an existing .app, rsync from there (fast, no download).
-	## Otherwise download the committers DMG from download.eclipse.org.
 	@if [ ! -d "$(PRISTINE_DIR)/Eclipse.app" ]; then \
 	  if [ -n "$(ECLIPSE_SRC)" ] && [ -d "$(ECLIPSE_SRC)" ]; then \
 	    echo "Seeding pristine from $(ECLIPSE_SRC) ..."; \
@@ -316,9 +309,6 @@ $(DOWNLOAD_DIR):
 ## --------------------------------------------------------------------------
 ## build-tests
 ## --------------------------------------------------------------------------
-## Compile test sources and package them as an OSGi bundle jar.
-## Depends on fetch-eclipse so SWTBot jars are on the classpath.
-## --------------------------------------------------------------------------
 $(TEST_JAR): $(SRCS) $(PRISTINE_DIR)/.swtbot-installed
 	@mkdir -p "$(CLASSES_DIR)"
 	@echo "Compiling test sources ..."
@@ -339,12 +329,6 @@ build-tests: $(TEST_JAR)
 ## --------------------------------------------------------------------------
 ## prepare-test-eclipse
 ## --------------------------------------------------------------------------
-## File target: copies pristine → test-eclipse when pristine is newer.
-## Normal builds use this silently; sub-makes find the stamp fresh and skip.
-##
-## Phony target: explicit "make prepare-test-eclipse" forces a fresh copy
-## (useful before run-install-test or when you need a clean slate).
-## --------------------------------------------------------------------------
 $(TEST_PREPARED_STAMP): $(PRISTINE_DIR)/.swtbot-installed
 	@echo "=== Preparing test Eclipse instance ==="
 	@mkdir -p "$(TEST_ECLIPSE)"
@@ -352,7 +336,6 @@ $(TEST_PREPARED_STAMP): $(PRISTINE_DIR)/.swtbot-installed
 	@touch $@
 	@echo "Test instance ready at: $(TEST_ECLIPSE)"
 
-## Phony wrapper: forces a fresh copy and invalidates the install stamp.
 prepare-test-eclipse: fetch-eclipse .FORCE
 	@rm -f "$(TEST_PREPARED_STAMP)" "$(OPENJML_INSTALLED_STAMP)"
 	@$(MAKE) --no-print-directory $(TEST_PREPARED_STAMP)
@@ -361,10 +344,11 @@ prepare-test-eclipse: fetch-eclipse .FORCE
 ## run-install-test
 ## --------------------------------------------------------------------------
 ## Full end-to-end: always starts with a FRESH test Eclipse (no pre-installed
-## OpenJML), drops in the test bundle, and runs InstallPluginTest which drives
-## the Install New Software wizard.  Calls prepare-test-eclipse explicitly to
-## force a clean copy and clear the install stamp.
+## OpenJML), runs InstallPluginTest which drives the Install New Software wizard.
+## Uses its own vmargs (only needs update site, not LSP path or MPC suppression).
 ## --------------------------------------------------------------------------
+INSTALL_TEST_XML := $(RESULTS_DIR)/install-test-results.xml
+
 run-install-test: build-tests prepare-test-eclipse
 	@mkdir -p "$(RESULTS_DIR)"
 	@rm -rf "$(TEST_WS)"
@@ -372,29 +356,21 @@ run-install-test: build-tests prepare-test-eclipse
 	@cp "$(TEST_JAR)" "$(TEST_PLUGINS)/"
 	@echo "=== Running InstallPluginTest ==="
 	@echo "    Update site: $(UPDATE_SITE)"
-	@rm -f "$(RESULTS_XML)"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
+	@rm -f "$(INSTALL_TEST_XML)"; \
+	 $(XVFB) "$(TEST_BIN)" \
 	     -nosplash \
 	     --launcher.suppressErrors \
-	     -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
-	     -data \"$(TEST_WS)\" \
+	     -application $(SWTBOT_APP) \
+	     -data "$(TEST_WS)" \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.InstallPluginTest \
 	     -testPluginName $(TEST_BUNDLE) \
-	     \"formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$(RESULTS_XML)\" \
+	     "formatter=$(JUNIT_FORMATTER),$(INSTALL_TEST_XML)" \
 	     -vmargs -Xmx1g -ea \
-	         -Dopenjml.update.site=\"$(UPDATE_SITE)\""; \
-	 eval "$$_cmd"
-	$(call check-xml-results,InstallPluginTest,$(RESULTS_XML))
+	         "-Dopenjml.update.site=$(UPDATE_SITE)"
+	$(call check-xml-results,InstallPluginTest,$(INSTALL_TEST_XML))
 
 ## --------------------------------------------------------------------------
 ## install-openjml
-## --------------------------------------------------------------------------
-## File target: copies the test bundle and installs OpenJML via p2 director.
-## Only runs when the test-eclipse is not prepared, the test jar has changed,
-## or the stamp is missing.  Sub-makes find the stamp fresh and skip this.
-##
-## Phony wrapper: "make install-openjml" forces re-installation by removing
-## the stamp first, then delegating to the file target.
 ## --------------------------------------------------------------------------
 $(OPENJML_INSTALLED_STAMP): $(TEST_PREPARED_STAMP) $(TEST_JAR)
 	@echo "Installing test bundle ..."
@@ -425,21 +401,15 @@ $(OPENJML_INSTALLED_STAMP): $(TEST_PREPARED_STAMP) $(TEST_JAR)
 	fi
 	@touch $@
 
-## Phony wrapper: force re-installation (removes stamp, then rebuilds).
 install-openjml: build-tests
 	@rm -f "$(OPENJML_INSTALLED_STAMP)"
 	@$(MAKE) --no-print-directory $(OPENJML_INSTALLED_STAMP)
 
 ## --------------------------------------------------------------------------
-## check-xml-results  (internal macro — not a phony target)
+## check-xml-results  (internal macro)
 ## --------------------------------------------------------------------------
 ## Inspects an Ant XML JUnit result file and exits non-zero on failure.
 ## Usage: $(call check-xml-results,ClassName,XmlFile)
-##
-## Three failure modes are detected:
-##   1. XML file missing  — test class not found or runner crashed before writing
-##   2. tests="0"         — bundle loaded but class not found / @BeforeClass threw
-##   3. failures or errors > 0 — real test assertion failures
 ## --------------------------------------------------------------------------
 define check-xml-results
 	@_xml="$(2)"; \
@@ -461,16 +431,10 @@ define check-xml-results
 endef
 
 ## --------------------------------------------------------------------------
-## run-one-plugin-test  (internal macro — not a phony target)
+## run-one-plugin-test  (internal macro)
 ## --------------------------------------------------------------------------
 ## Shared recipe for running a single SWTBot test class in isolation.
 ## Usage: $(call run-one-plugin-test,ClassName)
-##   ClassName — simple class name, e.g. NatureTest
-##
-## Uses org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication, which
-## runs without a socket connection (unlike uitestapplication which requires
-## -port to connect back to the IDE's JUnit runner).  Test results are
-## written to an Ant XML file and then inspected via check-xml-results.
 ## --------------------------------------------------------------------------
 define run-one-plugin-test
 	@mkdir -p "$(RESULTS_DIR)"
@@ -478,60 +442,48 @@ define run-one-plugin-test
 	@echo "=== Running $(1) ==="
 	@_xml="$(RESULTS_DIR)/$(1)-results.xml"; \
 	 rm -f "$$_xml"; \
-	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
+	 $(XVFB) "$(TEST_BIN)" \
 	     -nosplash \
 	     --launcher.suppressErrors \
-	     -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
-	     -data \"$(TEST_WS)\" \
+	     -application $(SWTBOT_APP) \
+	     -data "$(TEST_WS)" \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.$(1) \
 	     -testPluginName $(TEST_BUNDLE) \
-	     \"formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$$_xml\" \
-	     -vmargs -Xmx1g -ea \
-	         \"-Dopenjml.update.site=$(UPDATE_SITE)\" \
-	         \"-Dopenjml.lsp.server.path=$(OPENJML_LSP_PATH)\" \
-	         -Dorg.eclipse.epp.mpc.ui.showMPCPopup=false \
-	         -Declipse.p2.unsignedPolicy=allow"; \
-	 eval "$$_cmd"
+	     "formatter=$(JUNIT_FORMATTER),$$_xml" \
+	     -vmargs $(PLUGIN_TEST_VMARGS)
 	$(call check-xml-results,$(1),$(RESULTS_DIR)/$(1)-results.xml)
 endef
 
 ## --------------------------------------------------------------------------
-## run-nature-test / run-markers-test / run-menu-test / run-action-test /
-## run-fileicon-test
+## Individual test targets
 ## --------------------------------------------------------------------------
-## Run a single test class in isolation (one Eclipse JVM launch each).
-## --------------------------------------------------------------------------
-run-nature-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,NatureTest)
-
-run-markers-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,MarkersTest)
-
 run-menu-test: $(OPENJML_INSTALLED_STAMP)
 	$(call run-one-plugin-test,MenuPresenceTest)
 
-run-action-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,ActionTest)
-
-run-lsp-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,LspFeatureTest)
+run-preferences-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,PreferencesPageTest)
 
 run-fileicon-test: $(OPENJML_INSTALLED_STAMP)
 	$(call run-one-plugin-test,FileIconTest)
 
-run-preferences-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,PreferencesPageTest)
+run-nature-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,NatureTest)
+
+run-lsp-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,LspFeatureTest)
+
+## Legacy aliases (these test classes still exist but LspFeatureTest is preferred)
+run-action-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,ActionTest)
+
+run-markers-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,MarkersTest)
 
 ## --------------------------------------------------------------------------
 ## run-plugin-tests
 ## --------------------------------------------------------------------------
 ## Runs each plugin test class in its own Eclipse JVM, sequentially.
 ## Prints [PASS]/[FAIL] + elapsed time for each class as it finishes.
-## The test-eclipse is prepared and OpenJML installed once (via sentinels);
-## only the per-class Eclipse startup is repeated (~15-20s per class).
-##
-## To run one class in isolation: make run-menu-test / run-nature-test / etc.
-## AllPluginTests.java is a JUnit suite for running all classes from the IDE.
 ## --------------------------------------------------------------------------
 PLUGIN_TEST_CLASSES := MenuPresenceTest PreferencesPageTest FileIconTest NatureTest LspFeatureTest
 
@@ -547,13 +499,12 @@ run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	   ( $(XVFB) "$(TEST_BIN)" \
 	            -nosplash \
 	            --launcher.suppressErrors \
-	            -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
+	            -application $(SWTBOT_APP) \
 	            -data "$(TEST_WS)" \
 	            -classname "org.jmlspecs.openjml.eclipse.uitest.$$cls" \
 	            -testPluginName "$(TEST_BUNDLE)" \
-	            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$$_xml" \
-	            -vmargs -Xmx1g -ea \
-	                "-Dopenjml.update.site=$(UPDATE_SITE)" \
+	            "formatter=$(JUNIT_FORMATTER),$$_xml" \
+	            -vmargs $(PLUGIN_TEST_VMARGS) \
 	       ) > "$(RESULTS_DIR)/$$cls.log" 2>&1; \
 	   _elapsed=$$(( $$(date +%s) - _start )); \
 	   _ok=1; \
@@ -583,8 +534,7 @@ run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 ## run-plugin-suite
 ## --------------------------------------------------------------------------
 ## Runs AllPluginTests in a SINGLE Eclipse JVM — one [PASS]/[FAIL] at the end.
-## Faster than run-plugin-tests (one Eclipse startup instead of one per class)
-## but produces no per-class progress output.
+## Faster (one Eclipse startup) but produces no per-class progress output.
 ## --------------------------------------------------------------------------
 PLUGIN_SUITE_XML := $(RESULTS_DIR)/plugin-suite-results.xml
 
@@ -597,13 +547,12 @@ run-plugin-suite: $(OPENJML_INSTALLED_STAMP)
 	 ( $(XVFB) "$(TEST_BIN)" \
 	          -nosplash \
 	          --launcher.suppressErrors \
-	          -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
+	          -application $(SWTBOT_APP) \
 	          -data "$(TEST_WS)" \
 	          -classname "org.jmlspecs.openjml.eclipse.uitest.AllPluginTests" \
 	          -testPluginName "$(TEST_BUNDLE)" \
-	          "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$(PLUGIN_SUITE_XML)" \
-	          -vmargs -Xmx1g -ea \
-	              "-Dopenjml.update.site=$(UPDATE_SITE)" \
+	          "formatter=$(JUNIT_FORMATTER),$(PLUGIN_SUITE_XML)" \
+	          -vmargs $(PLUGIN_TEST_VMARGS) \
 	   ) > "$(RESULTS_DIR)/AllPluginTests.log" 2>&1; \
 	 _elapsed=$$(( $$(date +%s) - _start )); \
 	 if [ ! -f "$(PLUGIN_SUITE_XML)" ]; then \
@@ -627,34 +576,23 @@ run-plugin-suite: $(OPENJML_INSTALLED_STAMP)
 ## clean targets
 ## --------------------------------------------------------------------------
 
-## Remove build artifacts and the test workspace.
-## Leaves eclipse-cache (pristine + test-eclipse) and both sentinel files intact,
-## so the next run-*-test reuses the already-prepared and installed test Eclipse.
 clean: .FORCE
 	rm -rf "$(UITEST)/build"
 	rm -rf "$(TEST_WS)"
 	@echo "Build artifacts removed."
 
-## Remove the test Eclipse copy, including both sentinel files.
-## Forces a full re-prepare + re-install on the next run-*-test.
-## Does not re-download Eclipse; the pristine cache is preserved.
 clean-test-eclipse: .FORCE
 	rm -rf "$(TEST_ECLIPSE)"
 	@echo "Test Eclipse copy removed (sentinels cleared)."
 
-## Remove downloaded archives (re-downloaded on next fetch-eclipse).
-## Keeps the already-extracted pristine Eclipse in place.
 clean-downloads: .FORCE
 	rm -rf "$(DOWNLOAD_DIR)"
 	@echo "Download cache removed."
 
-## Remove the entire eclipse-cache directory (downloaded archive + pristine + test copy).
-## Next fetch-eclipse will re-download and re-install SWTBot from scratch.
 clean-cache: .FORCE
 	rm -rf "$(CACHE_DIR)"
 	@echo "Eclipse cache removed."
 
-## Remove everything: build artifacts, test workspace, and the full eclipse cache.
 clean-all: clean clean-cache
 
 .FORCE:

@@ -3,6 +3,7 @@
 
 # Build output
 /build/
+/bin/
 
 # Test workspace (created fresh per run)
 /test-ws/
