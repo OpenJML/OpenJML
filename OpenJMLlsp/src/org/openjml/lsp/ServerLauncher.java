@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -25,7 +26,9 @@ public class ServerLauncher {
 
         var server = new OpenJMLLanguageServer();
 
-        var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut);
+        // Trace all JSON-RPC messages to stderr so we can see what LSP4E is sending.
+        var tracer = new PrintWriter(System.err, true);
+        var launcher = LSPLauncher.createServerLauncher(server, System.in, lspOut, false, tracer);
         LanguageClient client = launcher.getRemoteProxy();
         server.connect(client);
 

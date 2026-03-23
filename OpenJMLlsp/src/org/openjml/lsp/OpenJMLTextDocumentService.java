@@ -755,21 +755,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return CompletableFuture.supplyAsync(() -> {
             String uri = params.getTextDocument().getUri();
             List<Integer> data = getSemanticTokens(uri);
-            int n = data.size() / 5;
-            System.err.println("[semanticTokensFull] uri=" + uri + " tokens=" + n);
-            // Decode and print each token in readable form.
-            String[] TYPE_NAMES = { "keyword", "macro", "variable" };
-            int line = 0, col = 0;
-            for (int i = 0; i < n; i++) {
-                int dLine = data.get(i*5);
-                int dCol  = data.get(i*5+1);
-                int len   = data.get(i*5+2);
-                int type  = data.get(i*5+3);
-                line += dLine;
-                col   = (dLine == 0) ? col + dCol : dCol;
-                String typeName = (type >= 0 && type < TYPE_NAMES.length) ? TYPE_NAMES[type] : String.valueOf(type);
-                System.err.println("  [tok] " + typeName + " L" + (line+1) + ":" + col + " len=" + len);
-            }
+            System.err.println("[semanticTokensFull] uri=" + uri + " tokens=" + data.size() / 5);
             return new org.eclipse.lsp4j.SemanticTokens(data);
         });
     }

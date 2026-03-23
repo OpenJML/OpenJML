@@ -132,8 +132,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         var stLegend = new SemanticTokensLegend(
                 SemanticTokensProvider.TOKEN_TYPES,
                 SemanticTokensProvider.TOKEN_MODIFIERS);
-        caps.setSemanticTokensProvider(
-                new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE));
+        var stOpts = new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE);
+        caps.setSemanticTokensProvider(stOpts);
+        System.err.println("[initialize] semanticTokensProvider.full=" + stOpts.getFull());
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

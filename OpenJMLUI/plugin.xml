@@ -59,21 +59,37 @@
   <!-- .jml files open in the Generic Editor (not JDT's Java editor) so that
        TM4E syntax coloring and LSP4E integration work properly.
        JDT's Java editor ignores TM4E grammars and LSP4E semantic tokens. -->
-
-  <!-- TM4E syntax coloring for .jml files -->
-  <extension point="org.eclipse.tm4e.registry.grammars">
-    <!-- Grammar for standalone .jml spec files (delegates to source.java for base coloring) -->
-    <grammar scopeName="source.jml"
-             path="syntaxes/jml-file.tmLanguage.json"/>
-    <!-- Injection grammar: adds JML keyword coloring inside //@ and /*@ Java comments -->
-    <grammar scopeName="source.jml.injection"
-             path="syntaxes/jml.tmLanguage.json"/>
+  <extension point="org.eclipse.ui.editors">
+     <editorContentTypeBinding
+           editorId="org.eclipse.ui.genericeditor.GenericEditor"
+           contentTypeId="org.jmlspecs.openjml.jmlSource"/>
   </extension>
 
-  <extension point="org.eclipse.tm4e.registry.grammarDefinitions">
+  <!-- Register LSP4E semantic-token reconciler for .jml files directly.
+       LSP4E's own registration uses enabledWhen which fails to fire for our content type;
+       registering it here without that guard ensures it is always installed. -->
+  <extension point="org.eclipse.ui.genericeditor.reconcilers">
+     <reconcilingStrategy
+           class="org.eclipse.lsp4e.operations.semanticTokens.SemanticHighlightReconcilerStrategy"
+           contentType="org.jmlspecs.openjml.jmlSource"/>
+  </extension>
+
+  <!-- TM4E syntax coloring: all grammar/binding/injection elements in one grammars extension -->
+  <extension point="org.eclipse.tm4e.registry.grammars">
+    <!-- Grammar for standalone .jml spec files (includes source.java for base Java coloring) -->
+    <grammar scopeName="source.jml"
+             path="syntaxes/jml-file.tmLanguage.json"/>
+    <!-- Bind the JML content type to the source.jml grammar -->
     <scopeNameContentTypeBinding
           scopeName="source.jml"
           contentTypeId="org.jmlspecs.openjml.jmlSource"/>
+    <!-- Injection grammar: adds JML keyword coloring inside //@ and /*@ Java comments -->
+    <grammar scopeName="source.jml.injection"
+             path="syntaxes/jml.tmLanguage.json"/>
+    <!-- Inject JML keyword coloring into Java source files opened directly (root scope is source.java) -->
+    <injection scopeName="source.jml.injection" injectTo="source.java"/>
+    <!-- Inject JML keyword coloring into .jml files (root scope is source.jml, which includes source.java) -->
+    <injection scopeName="source.jml.injection" injectTo="source.jml"/>
   </extension>
 
   <!-- Register LSP4E semantic-token reconciler for .jml files directly.

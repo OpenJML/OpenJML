@@ -67,7 +67,7 @@ import java.util.regex.Pattern;
  * </ul>
  *
  * <p>Only tokens inside JML comment regions are highlighted — Java syntax is
- * already handled by VS Code's built-in Java grammar.  Two token types are
+ * already handled by VS Code's built-in Java grammar.  Three token types are
  * produced:
  * <ul>
  *   <li>{@code keyword} (index 0) — JML clause and modifier keywords such as
@@ -76,6 +76,11 @@ import java.util.regex.Pattern;
  *   <li>{@code macro} (index 1) — JML backslash-expressions such as
  *       {@code \result}, {@code \old}, {@code \forall}, {@code \exists},
  *       {@code \nothing}, etc.</li>
+ *   <li>{@code variable} (index 2) — identifiers and field references inside
+ *       JML expression contexts.  Emitting an explicit token here overrides
+ *       TM4E's regex-based keyword coloring at that position, ensuring that a
+ *       Java identifier whose name coincides with a JML keyword (e.g. a field
+ *       named {@code requires}) is not falsely highlighted as a keyword.</li>
  * </ul>
  *
  * <p>JML regions recognised by the regex fallback:
@@ -94,8 +99,12 @@ public class SemanticTokensProvider {
 
     /**
      * Index of the {@code variable} token type in the legend.
-     * Used for identifiers inside JML expression contexts to override TM4E's
-     * regex-based coloring at those positions.
+     *
+     * <p>Used for identifier and field-access nodes inside JML expression
+     * contexts.  Emitting this type at a position causes
+     * {@code StyleRangeMerger} (LSP4E) to override TM4E's coloring at that
+     * position, preventing false keyword highlighting when an identifier
+     * happens to share a name with a JML clause keyword.
      */
     public static final int TT_VARIABLE = 2;
 
@@ -607,23 +616,49 @@ public class SemanticTokensProvider {
 
         // ---- Identifiers inside JML expressions ----------------------------
 
+        /**
+         * Emit a {@link SemanticTokensProvider#TT_VARIABLE} token for any
+         * simple identifier that appears inside a JML expression context
+         * ({@code jmlDepth > 0}).
+         *
+         * <p>This overrides TM4E's regex-based keyword coloring for positions
+         * where the identifier's name coincides with a JML clause keyword.
+         * For example, in {@code //@ requires requires > 0;} the second
+         * {@code requires} is a {@code JCIdent} and receives a {@code variable}
+         * token, while the first one is emitted as {@code keyword} by
+         * {@link #visitJmlMethodClauseExpr}.
+         */
         @Override
         public void visitIdent(JCIdent tree) {
-            if (jmlDepth > 0) {
-                if (tree.pos >= 0) {
-                    emitAt(tree.pos, TT_VARIABLE);
-                } else {
-                    System.err.println("[semtok] visitIdent name=" + tree.name
-                            + " pos=" + tree.pos + " (skipped — no position)");
-                }
+            if (jmlDepth > 0 && tree.pos >= 0) {
+                emitAt(tree.pos, TT_VARIABLE);
             }
             // no children
         }
 
+        /**
+         * When a field-access expression (e.g. {@code this.field}) appears
+         * inside a JML expression, emit a {@link SemanticTokensProvider#TT_VARIABLE}
+         * token for the field-name part.
+         *
+         * <p>The position of the field name is approximated by searching
+         * backward from the node's end position for the last dot and reading
+         * the word that follows it.  If the position cannot be determined,
+         * only the receiver is scanned (which handles {@code this} / the
+         * qualifier identifiers via {@link #visitIdent}).
+         */
         @Override
         public void visitSelect(JCFieldAccess tree) {
             if (jmlDepth > 0 && tree.pos >= 0 && tree.name != null) {
+                // The AST pos of JCFieldAccess points to the start of the
+                // whole expression.  Locate the field name by scanning for
+                // the last '.' in [tree.pos, end) and emitting from the char
+                // after it.  We read at most name.length() + 1 chars after '.'
+                // to stay safe.
                 String name = tree.name.toString();
+                // Scan forward from tree.pos to find the position of 'name'
+                // after the last '.'.  Walk the source looking for .<name>
+                // followed by a non-word character or end-of-input.
                 int searchFrom = tree.pos;
                 int namePos = -1;
                 int limit = Math.min(source.length() - name.length(), searchFrom + 512);
@@ -634,6 +669,9 @@ public class SemanticTokensProvider {
                             int endOfName = after + name.length();
                             if (endOfName >= source.length() || !isWordChar(source.charAt(endOfName))) {
                                 namePos = after;
+                                // keep scanning: we want the LAST '.<name>' occurrence
+                                // (handles chains like a.b.c where all parts share a name —
+                                //  rare, but keep searching for correctness)
                             }
                         }
                     }
@@ -642,6 +680,9 @@ public class SemanticTokensProvider {
                     emitAt(namePos, TT_VARIABLE);
                 }
             }
+            // Scan the receiver (selected) — it may be a JCIdent or another
+            // JCFieldAccess; both emit tokens via their own visit methods
+            // since jmlDepth is already > 0 in this context.
             super.visitSelect(tree);
         }
     }

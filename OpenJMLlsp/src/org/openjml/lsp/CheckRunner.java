@@ -307,6 +307,98 @@ public class CheckRunner {
         }
     }
 
+    /**
+     * Result of a multi-file {@code --check} run that also captures a fresh
+     * {@link ASTCache} populated with the attributed ASTs of the modified sources.
+     * Used by {@link Renamer} for reference-stability validation.
+     *
+     * @param diagnostics       merged diagnostics from all checked files
+     * @param cache             fresh AST cache keyed by temp-dir absolute paths
+     * @param tempPathToRealUri maps temp-dir absolute paths to the caller's real URIs
+     */
+    public record CheckAndCacheResult(
+            List<org.eclipse.lsp4j.Diagnostic> diagnostics,
+            ASTCache cache,
+            Map<String, String> tempPathToRealUri) {}
+
+    /**
+     * Like {@link #checkModifiedFiles} but also captures a fresh {@link ASTCache}
+     * populated with the attributed ASTs of every modified file.
+     *
+     * <p>The returned {@link CheckAndCacheResult#cache()} is keyed by temp-dir
+     * absolute paths (the same keys as {@link CheckAndCacheResult#tempPathToRealUri()}).
+     * Pass those paths — and a content map keyed by the same paths — to
+     * {@link ReferenceFinder#findReferences} to query references in the modified
+     * compilation without touching the shared {@link #AST_CACHE}.
+     *
+     * <p>Used by {@link Renamer} for step 4.5 reference-stability validation.
+     */
+    public static CheckAndCacheResult checkModifiedFilesAndGetCache(
+            Map<String, String> modifiedContent, OpenJMLSettings settings) {
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("openjml-lsp-rename-");
+
+            Map<String, String> tempPathToRealUri = new java.util.LinkedHashMap<>();
+            List<String> filePaths = new ArrayList<>();
+            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
+                Path p = writeToTempDir(tempDir, e.getKey(), e.getValue());
+                tempPathToRealUri.put(p.toString(), e.getKey());
+                filePaths.add(p.toString());
+            }
+
+            OpenJMLSettings modifiedSettings = new OpenJMLSettings();
+            modifiedSettings.sourcePath  = buildEffectiveSourcePath(tempDir, settings);
+            modifiedSettings.specsPath   = settings.specsPath;
+            modifiedSettings.solversPath = settings.solversPath;
+            modifiedSettings.classPath   = settings.classPath;
+
+            var listener = new LspDiagnosticListener();
+            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var api = IAPI.make(out, listener);
+
+            // Populate a fresh (private) AST cache — never touches the shared AST_CACHE.
+            ASTCache freshCache = new ASTCache();
+            IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
+                // jfo.toUri().getPath() gives the absolute temp-dir path,
+                // matching the keys we stored in tempPathToRealUri.
+                String jfoPath = jfo.toUri().getPath();
+                if (tempPathToRealUri.containsKey(jfoPath)) {
+                    freshCache.put(jfoPath, astCtx, (JmlCompilationUnit) ast);
+                }
+            };
+            IAPI.setASTListener(astListener);
+            List<String> args = buildArgs(modifiedSettings, "--check");
+            args.addAll(filePaths);
+            logInvocation("checkModifiedFilesAndGetCache", args);
+            try {
+                api.execute(args.toArray(new String[0]));
+            } catch (Throwable t) {
+                System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
+            } finally {
+                IAPI.removeASTListener(astListener);
+            }
+
+            List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+            for (List<org.eclipse.lsp4j.Diagnostic> diags :
+                    listener.toLspDiagnosticsAll(tempPathToRealUri).values()) {
+                allDiags.addAll(diags);
+            }
+            return new CheckAndCacheResult(allDiags, freshCache, tempPathToRealUri);
+        } catch (IOException e) {
+            System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] I/O error: " + e);
+            return new CheckAndCacheResult(List.of(), new ASTCache(), Map.of());
+        } finally {
+            if (tempDir != null) {
+                try {
+                    Files.walk(tempDir)
+                         .sorted(Comparator.reverseOrder())
+                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+                } catch (IOException ignored) {}
+            }
+        }
+    }
+
     // --- public API: --esc (multi-source) ---
 
     /**

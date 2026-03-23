@@ -12,6 +12,10 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+// Note: tests testRenameParameterShadowingField, testRenameFieldCaptureChangesCount,
+// and testRenameNoFalsePositiveOnSafeRename in this class exercise the reference
+// stability check added to Renamer.rename().
+
 /**
  * Rename tests — group 3: cross-file, pre-existing errors, invalid new names.
  *
@@ -137,6 +141,128 @@ public class RenameTest3 extends RenameTestBase {
             assertTrue("Error message should mention invalid identifier",
                     e.getResponseError().getMessage().contains("Not a valid Java identifier"));
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Reference-stability capture tests
+    // -----------------------------------------------------------------------
+
+    /**
+     * Rename parameter {@code yy} to {@code xx} in a class that already has a
+     * field {@code xx}.  Before the rename, {@code yy} has exactly one reference
+     * (its own declaration).  After the rename, the body statement {@code int j = xx}
+     * (which previously resolved to the field) would start referring to the renamed
+     * parameter — the renamed symbol gains a reference.  The stability check must
+     * detect the count increase (1 → 2) and reject the rename.
+     *
+     * <p>The program compiles cleanly both before and after the rename (no new type
+     * errors), so the plain error-count check of step 4 does NOT catch this; only
+     * the reference stability check of step 4.5 does.
+     */
+    @Test
+    public void testRenameParameterShadowingField() {
+        // Class D: field xx; method m(int yy) { int j = xx; }
+        // Renaming the parameter yy→xx causes int j = xx to capture the parameter.
+        String uri = "file:///tmp/CaptureD.java";
+        String src =
+                "public class CaptureD {\n"
+                + "    int xx;\n"
+                + "    public void m(int yy) {\n"
+                + "        int j = xx;\n"     // currently references field xx
+                + "    }\n"
+                + "}\n";
+
+        OpenJMLSettings s = new OpenJMLSettings();
+        CheckRunner.check(uri, src, s);   // populate AST cache
+
+        // Place cursor on "yy" in the parameter declaration.
+        int[] lc = DefinitionFinder.offsetToLineCol(src, src.indexOf("int yy") + 4); // "yy"
+
+        try {
+            Renamer.rename(uri, lc[0], lc[1], "xx",
+                    Map.of(uri, src), CheckRunner.getASTCache(), s);
+            fail("Expected ResponseErrorException: rename should be rejected because "
+                    + "the renamed parameter would capture the body reference to field xx");
+        } catch (ResponseErrorException e) {
+            assertNotNull(e.getResponseError());
+            assertTrue("Error message should mention reference capture",
+                    e.getResponseError().getMessage().contains("capture or lose references"));
+        }
+    }
+
+    /**
+     * Rename local variable {@code aa} to {@code xx} in a method that also
+     * references a field named {@code xx}.  The local variable has two references
+     * (declaration + one body use).  After the rename the local {@code xx} shadows
+     * the field, so the body reference that previously resolved to the field now
+     * resolves to the local — the renamed symbol gains a reference (2 → 3).
+     * The stability check must detect the count increase and reject the rename.
+     */
+    @Test
+    public void testRenameFieldCaptureChangesCount() {
+        String uri = "file:///tmp/CaptureE.java";
+        String src =
+                "public class CaptureE {\n"
+                + "    int xx;\n"
+                + "    public void m() {\n"
+                + "        int aa = 0;\n"     // local aa: 2 refs (decl + j=aa)
+                + "        int j = aa;\n"     // use of aa
+                + "        int k = xx;\n"     // use of field xx — would be captured
+                + "    }\n"
+                + "}\n";
+
+        OpenJMLSettings s = new OpenJMLSettings();
+        CheckRunner.check(uri, src, s);
+
+        // Place cursor on "aa" in the declaration "int aa = 0".
+        int[] lc = DefinitionFinder.offsetToLineCol(src, src.indexOf("int aa") + 4); // "aa"
+
+        try {
+            Renamer.rename(uri, lc[0], lc[1], "xx",
+                    Map.of(uri, src), CheckRunner.getASTCache(), s);
+            fail("Expected ResponseErrorException: field xx reference would be captured");
+        } catch (ResponseErrorException e) {
+            assertNotNull(e.getResponseError());
+            assertTrue("Error message should mention reference capture",
+                    e.getResponseError().getMessage().contains("capture or lose references"));
+        }
+    }
+
+    /**
+     * Rename local variable {@code aa} to {@code bb} in a class with no existing
+     * {@code bb} symbol in scope.  This is a clean rename: the reference count
+     * and positions are unchanged (modulo the expected column shift for the
+     * shorter/longer name).  The stability check must NOT reject this rename
+     * (regression guard against false positives).
+     */
+    @Test
+    public void testRenameNoFalsePositiveOnSafeRename() {
+        String uri = "file:///tmp/SafeRenameF.java";
+        String src =
+                "public class SafeRenameF {\n"
+                + "    public void m() {\n"
+                + "        int aa = 0;\n"
+                + "        int j = aa;\n"
+                + "    }\n"
+                + "}\n";
+
+        OpenJMLSettings s = new OpenJMLSettings();
+        CheckRunner.check(uri, src, s);
+
+        // Place cursor on "aa" in the declaration.
+        int[] lc = DefinitionFinder.offsetToLineCol(src, src.indexOf("int aa") + 4); // "aa"
+
+        // Rename aa → bb: no field bb exists, so no capture possible.
+        WorkspaceEdit edit = Renamer.rename(uri, lc[0], lc[1], "bb",
+                Map.of(uri, src), CheckRunner.getASTCache(), s);
+
+        assertNotNull("Safe rename must succeed", edit);
+        assertNotNull("Edit must have changes", edit.getChanges());
+        assertFalse("Edit must not be empty", edit.getChanges().isEmpty());
+
+        String modified = Renamer.applyEdits(src, edit.getChanges().get(uri));
+        assertTrue("Modified source must contain new name", modified.contains("bb"));
+        assertFalse("Modified source must not contain old name", modified.contains(" aa"));
     }
 
     @Test

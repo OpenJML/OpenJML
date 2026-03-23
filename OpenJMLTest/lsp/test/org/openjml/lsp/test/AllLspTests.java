@@ -23,6 +23,7 @@ import org.junit.runners.Suite;
     RenameTest2.class,
     RenameTest3.class,
     RenameJmlTest.class,
+    MethodAndClassTest.class,
     SemanticTokensTest.class,
     DocumentSymbolTest.class,
     FoldingRangeTest.class,
