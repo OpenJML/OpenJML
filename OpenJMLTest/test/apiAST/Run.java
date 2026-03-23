@@ -2,6 +2,7 @@ import org.openjml.*;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.tree.JCTree.*;
 import org.jmlspecs.openjml.JmlTree.*;
+import java.util.*;
 
 public class Run {
     
@@ -32,8 +33,11 @@ public class Run {
 }
 
 class Listener implements IAPI.IASTListener {
+    static Map<Context,Integer> contexts = new HashMap<>();
     @Override public void notify(Context context, javax.tools.JavaFileObject jfo, org.jmlspecs.openjml.JmlTree.JmlCompilationUnit cu) { 
-        System.out.println("ASTListener: " + context + " " + jfo + " " + cu.sourcefile); 
+        Integer i = contexts.get(context);
+        if (i == null) contexts.put(context, (i = contexts.size()+1));
+        System.out.println("ASTListener: " + i + " " + jfo + " " + cu.sourcefile); 
         cu.accept(new Walk());
     } 
 }
