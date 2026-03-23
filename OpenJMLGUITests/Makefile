@@ -367,28 +367,19 @@ run-install-test: build-tests prepare-test-eclipse
 	@cp "$(TEST_JAR)" "$(TEST_PLUGINS)/"
 	@echo "=== Running InstallPluginTest ==="
 	@echo "    Update site: $(UPDATE_SITE)"
-	@_launcher="$(TEST_LAUNCHER_JAR)"; \
+	@rm -f "$(RESULTS_XML)"; \
 	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
 	     -nosplash \
 	     --launcher.suppressErrors \
-	     -application org.eclipse.pde.junit.runtime.uitestapplication \
+	     -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
 	     -data \"$(TEST_WS)\" \
-	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.InstallPluginTest \
-	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(RESULTS_XML)\" \
+	     -classname org.jmlspecs.openjml.eclipse.uitest.InstallPluginTest \
+	     -testPluginName $(TEST_BUNDLE) \
+	     \"formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$(RESULTS_XML)\" \
 	     -vmargs -Xmx1g -ea \
 	         -Dopenjml.update.site=\"$(UPDATE_SITE)\""; \
-	 eval "$$_cmd"; \
-	 _rc=$$?; \
-	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] InstallPluginTest"; \
-	 else \
-	     echo "[FAIL] InstallPluginTest (exit $$_rc)"; \
-	     echo "Results: $(RESULTS_XML)"; \
-	     exit 1; \
-	 fi
+	 eval "$$_cmd"
+	$(call check-xml-results,InstallPluginTest,$(RESULTS_XML))
 
 ## --------------------------------------------------------------------------
 ## install-openjml
@@ -425,37 +416,65 @@ install-openjml: build-tests
 	@$(MAKE) --no-print-directory $(OPENJML_INSTALLED_STAMP)
 
 ## --------------------------------------------------------------------------
+## check-xml-results  (internal macro — not a phony target)
+## --------------------------------------------------------------------------
+## Inspects an Ant XML JUnit result file and exits non-zero on failure.
+## Usage: $(call check-xml-results,ClassName,XmlFile)
+##
+## Three failure modes are detected:
+##   1. XML file missing  — test class not found or runner crashed before writing
+##   2. tests="0"         — bundle loaded but class not found / @BeforeClass threw
+##   3. failures or errors > 0 — real test assertion failures
+## --------------------------------------------------------------------------
+define check-xml-results
+	@_xml="$(2)"; \
+	 if [ ! -f "$$_xml" ]; then \
+	     echo "[FAIL] $(1) — no results file written (test class not found or runner crashed)"; \
+	     exit 1; \
+	 fi; \
+	 _tests=$$(grep -oE 'tests="[0-9]+"' "$$_xml" | grep -oE '[0-9]+' | head -1); \
+	 if [ "$${_tests:-0}" -eq 0 ]; then \
+	     echo "[FAIL] $(1) — 0 tests ran; test class was not loaded"; \
+	     cat "$$_xml"; \
+	     exit 1; \
+	 fi; \
+	 if grep -qE '(failures|errors)="[1-9]' "$$_xml"; then \
+	     echo "[FAIL] $(1) ($${_tests} tests — see $$_xml)"; \
+	     exit 1; \
+	 fi; \
+	 echo "[PASS] $(1) ($${_tests} tests)"
+endef
+
+## --------------------------------------------------------------------------
 ## run-one-plugin-test  (internal macro — not a phony target)
 ## --------------------------------------------------------------------------
 ## Shared recipe for running a single SWTBot test class in isolation.
 ## Usage: $(call run-one-plugin-test,ClassName)
 ##   ClassName — simple class name, e.g. NatureTest
+##
+## Uses org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication, which
+## runs without a socket connection (unlike uitestapplication which requires
+## -port to connect back to the IDE's JUnit runner).  Test results are
+## written to an Ant XML file and then inspected via check-xml-results.
 ## --------------------------------------------------------------------------
 define run-one-plugin-test
 	@mkdir -p "$(RESULTS_DIR)"
 	@rm -rf "$(TEST_WS)"
 	@echo "=== Running $(1) ==="
-	@_cmd="$(XVFB) \"$(TEST_BIN)\" \
+	@_xml="$(RESULTS_DIR)/$(1)-results.xml"; \
+	 rm -f "$$_xml"; \
+	 _cmd="$(XVFB) \"$(TEST_BIN)\" \
 	     -nosplash \
 	     --launcher.suppressErrors \
-	     -application org.eclipse.pde.junit.runtime.uitestapplication \
+	     -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
 	     -data \"$(TEST_WS)\" \
-	     -testpluginname $(TEST_BUNDLE) \
-	     -classnames org.jmlspecs.openjml.eclipse.uitest.$(1) \
-	     -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	     -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	     -testResultsXml \"$(RESULTS_DIR)/$(1)-results.xml\" \
+	     -classname org.jmlspecs.openjml.eclipse.uitest.$(1) \
+	     -testPluginName $(TEST_BUNDLE) \
+	     \"formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$$_xml\" \
 	     -vmargs -Xmx1g -ea \
 	         \"-Dopenjml.update.site=$(UPDATE_SITE)\""; \
-	 eval "$$_cmd"; \
-	 _rc=$$?; \
-	 if [ $$_rc -eq 0 ]; then \
-	     echo "[PASS] $(1)"; \
-	 else \
-	     echo "[FAIL] $(1) (exit $$_rc)"; \
-	     echo "Results: $(RESULTS_DIR)/$(1)-results.xml"; \
-	     exit 1; \
-	 fi
+	 eval "$$_cmd"
+	$(call check-xml-results,$(1),$(RESULTS_DIR)/$(1)-results.xml)
 endef
 
 ## --------------------------------------------------------------------------
@@ -497,31 +516,41 @@ run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	@_pass=0; _fail=0; \
 	 for cls in $(PLUGIN_TEST_CLASSES); do \
 	   rm -rf "$(TEST_WS)"; \
+	   _xml="$(RESULTS_DIR)/$$cls-results.xml"; \
+	   rm -f "$$_xml"; \
 	   echo "[TEST] $$cls"; \
 	   _start=$$(date +%s); \
-	   if ( $(XVFB) "$(TEST_BIN)" \
+	   ( $(XVFB) "$(TEST_BIN)" \
 	            -nosplash \
 	            --launcher.suppressErrors \
-	            -application org.eclipse.pde.junit.runtime.uitestapplication \
+	            -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
 	            -data "$(TEST_WS)" \
-	            -testpluginname "$(TEST_BUNDLE)" \
-	            -classnames "org.jmlspecs.openjml.eclipse.uitest.$$cls" \
-	            -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	            -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	            -testResultsXml "$(RESULTS_DIR)/$$cls-results.xml" \
+	            -classname "org.jmlspecs.openjml.eclipse.uitest.$$cls" \
+	            -testPluginName "$(TEST_BUNDLE)" \
+	            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$$_xml" \
 	            -vmargs -Xmx1g -ea \
 	                "-Dopenjml.update.site=$(UPDATE_SITE)" \
 	       ) > "$(RESULTS_DIR)/$$cls.log" 2>&1; \
-	   then \
-	     _elapsed=$$(( $$(date +%s) - _start )); \
-	     echo "[PASS] $$cls ($${_elapsed}s)"; \
-	     _pass=$$(( _pass + 1 )); \
-	   else \
-	     _elapsed=$$(( $$(date +%s) - _start )); \
-	     echo "[FAIL] $$cls ($${_elapsed}s) — log: $(RESULTS_DIR)/$$cls.log"; \
+	   _elapsed=$$(( $$(date +%s) - _start )); \
+	   _ok=1; \
+	   if [ ! -f "$$_xml" ]; then \
+	     echo "[FAIL] $$cls ($${_elapsed}s) — no results file (runner crashed; log: $(RESULTS_DIR)/$$cls.log)"; \
 	     cat "$(RESULTS_DIR)/$$cls.log"; \
-	     _fail=$$(( _fail + 1 )); \
+	     _ok=0; \
+	   else \
+	     _tests=$$(grep -oE 'tests="[0-9]+"' "$$_xml" | grep -oE '[0-9]+' | head -1); \
+	     if [ "$${_tests:-0}" -eq 0 ]; then \
+	       echo "[FAIL] $$cls ($${_elapsed}s) — 0 tests ran (class not loaded; log: $(RESULTS_DIR)/$$cls.log)"; \
+	       cat "$(RESULTS_DIR)/$$cls.log"; \
+	       _ok=0; \
+	     elif grep -qE '(failures|errors)="[1-9]' "$$_xml"; then \
+	       echo "[FAIL] $$cls ($${_elapsed}s) — $${_tests} tests, see $$_xml"; \
+	       _ok=0; \
+	     else \
+	       echo "[PASS] $$cls ($${_elapsed}s, $${_tests} tests)"; \
+	     fi; \
 	   fi; \
+	   [ "$$_ok" -eq 1 ] && _pass=$$(( _pass + 1 )) || _fail=$$(( _fail + 1 )); \
 	 done; \
 	 echo "Plugin tests: $${_pass} passed, $${_fail} failed."; \
 	 [ "$$_fail" -eq 0 ]
@@ -538,30 +567,37 @@ PLUGIN_SUITE_XML := $(RESULTS_DIR)/plugin-suite-results.xml
 run-plugin-suite: $(OPENJML_INSTALLED_STAMP)
 	@mkdir -p "$(RESULTS_DIR)"
 	@rm -rf "$(TEST_WS)"
+	@rm -f "$(PLUGIN_SUITE_XML)"
 	@echo "[TEST] AllPluginTests"
 	@_start=$$(date +%s); \
-	 if ( $(XVFB) "$(TEST_BIN)" \
+	 ( $(XVFB) "$(TEST_BIN)" \
 	          -nosplash \
 	          --launcher.suppressErrors \
-	          -application org.eclipse.pde.junit.runtime.uitestapplication \
+	          -application org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication \
 	          -data "$(TEST_WS)" \
-	          -testpluginname "$(TEST_BUNDLE)" \
-	          -classnames "org.jmlspecs.openjml.eclipse.uitest.AllPluginTests" \
-	          -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader \
-	          -loaderpluginname org.eclipse.jdt.junit4.runtime \
-	          -testResultsXml "$(PLUGIN_SUITE_XML)" \
+	          -classname "org.jmlspecs.openjml.eclipse.uitest.AllPluginTests" \
+	          -testPluginName "$(TEST_BUNDLE)" \
+	          "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$(PLUGIN_SUITE_XML)" \
 	          -vmargs -Xmx1g -ea \
 	              "-Dopenjml.update.site=$(UPDATE_SITE)" \
-	     ) > "$(RESULTS_DIR)/AllPluginTests.log" 2>&1; \
-	 then \
-	   _elapsed=$$(( $$(date +%s) - _start )); \
-	   echo "[PASS] AllPluginTests ($${_elapsed}s)"; \
-	 else \
-	   _elapsed=$$(( $$(date +%s) - _start )); \
-	   echo "[FAIL] AllPluginTests ($${_elapsed}s) — log: $(RESULTS_DIR)/AllPluginTests.log"; \
+	   ) > "$(RESULTS_DIR)/AllPluginTests.log" 2>&1; \
+	 _elapsed=$$(( $$(date +%s) - _start )); \
+	 if [ ! -f "$(PLUGIN_SUITE_XML)" ]; then \
+	   echo "[FAIL] AllPluginTests ($${_elapsed}s) — no results file (runner crashed)"; \
 	   cat "$(RESULTS_DIR)/AllPluginTests.log"; \
 	   exit 1; \
-	 fi
+	 fi; \
+	 _tests=$$(grep -oE 'tests="[0-9]+"' "$(PLUGIN_SUITE_XML)" | grep -oE '[0-9]+' | head -1); \
+	 if [ "$${_tests:-0}" -eq 0 ]; then \
+	   echo "[FAIL] AllPluginTests ($${_elapsed}s) — 0 tests ran (class not loaded)"; \
+	   cat "$(RESULTS_DIR)/AllPluginTests.log"; \
+	   exit 1; \
+	 fi; \
+	 if grep -qE '(failures|errors)="[1-9]' "$(PLUGIN_SUITE_XML)"; then \
+	   echo "[FAIL] AllPluginTests ($${_elapsed}s) — $${_tests} tests, see $(PLUGIN_SUITE_XML)"; \
+	   exit 1; \
+	 fi; \
+	 echo "[PASS] AllPluginTests ($${_elapsed}s, $${_tests} tests)"
 
 ## --------------------------------------------------------------------------
 ## clean targets

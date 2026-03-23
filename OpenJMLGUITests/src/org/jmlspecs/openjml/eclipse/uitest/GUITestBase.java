@@ -91,9 +91,9 @@ public abstract class GUITestBase extends SwtBotTestBase {
 
         // Configure source folder and output
         IFolder srcFolder = project.getFolder("src");
-        srcFolder.create(false, true, null);
+        srcFolder.create(true, true, null);
         IFolder binFolder = project.getFolder("bin");
-        binFolder.create(false, true, null);
+        binFolder.create(true, true, null);
 
         IJavaProject jp = JavaCore.create(project);
         jp.setOutputLocation(binFolder.getFullPath(), null);
