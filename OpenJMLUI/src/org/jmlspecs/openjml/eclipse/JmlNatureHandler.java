@@ -4,6 +4,9 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -30,22 +33,25 @@ public class JmlNatureHandler {
     // -----------------------------------------------------------------------
 
     /**
-     * Returns the {@link IProject} for the first selected element, or
-     * {@code null} if no project can be derived from the selection.
+     * Returns all distinct {@link IProject}s derivable from the selection,
+     * one per selected element.  Returns an empty list if the selection is
+     * empty or contains no recognisable project references.
      */
-    private static IProject projectFromSelection(ISelection selection) {
-        if (!(selection instanceof IStructuredSelection ss)) return null;
-        Object first = ss.getFirstElement();
-        if (first == null) return null;
+    private static List<IProject> projectsFromSelection(ISelection selection) {
+        List<IProject> result = new ArrayList<>();
+        if (!(selection instanceof IStructuredSelection ss)) return result;
+        for (Object element : ss.toList()) {
+            IProject p = projectFromElement(element);
+            if (p != null && !result.contains(p)) result.add(p);
+        }
+        return result;
+    }
 
-        // Direct IProject
-        if (first instanceof IProject p) return p;
-
-        // IResource (file, folder) → containing project
-        if (first instanceof IResource r) return r.getProject();
-
-        // IJavaProject and similar adaptable types
-        if (first instanceof IAdaptable adaptable) {
+    /** Derives an {@link IProject} from a single selection element, or {@code null}. */
+    private static IProject projectFromElement(Object element) {
+        if (element instanceof IProject p) return p;
+        if (element instanceof IResource r) return r.getProject();
+        if (element instanceof IAdaptable adaptable) {
             IProject p = adaptable.getAdapter(IProject.class);
             if (p != null) return p;
             IResource r = adaptable.getAdapter(IResource.class);
@@ -66,12 +72,12 @@ public class JmlNatureHandler {
     public static final class EnableJmlNature extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
-            IProject project = projectFromSelection(HandlerUtil.getCurrentSelection(event));
-            if (project == null) {
+            List<IProject> projects = projectsFromSelection(HandlerUtil.getCurrentSelection(event));
+            if (projects.isEmpty()) {
                 Console.log("[OpenJML] EnableJmlNature: no project in current selection.");
                 return null;
             }
-            JmlNature.enable(project);
+            for (IProject p : projects) JmlNature.enable(p);
             return null;
         }
     }
@@ -84,12 +90,12 @@ public class JmlNatureHandler {
     public static final class DisableJmlNature extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
-            IProject project = projectFromSelection(HandlerUtil.getCurrentSelection(event));
-            if (project == null) {
+            List<IProject> projects = projectsFromSelection(HandlerUtil.getCurrentSelection(event));
+            if (projects.isEmpty()) {
                 Console.log("[OpenJML] DisableJmlNature: no project in current selection.");
                 return null;
             }
-            JmlNature.disable(project);
+            for (IProject p : projects) JmlNature.disable(p);
             return null;
         }
     }

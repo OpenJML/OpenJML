@@ -419,8 +419,14 @@ public abstract class GUITestBase extends SwtBotTestBase {
     protected static boolean hasNatureInProperties(String projectName,
             String expectedNatureLabel) {
         selectProjects(projectName);
-        // Open properties via the Project top-level menu
-        bot.menu("Project").menu("Properties").click();
+        // Open properties via the context menu on the Package Explorer tree.
+        // Using tree.contextMenu("Properties") preserves the multi-selection
+        // (unlike SWTBotTreeItem.contextMenu which re-selects a single item).
+        // bot.menu("Project").menu("Properties") is unreliable in headless
+        // SWTBot runs because the menu item is only populated when the view
+        // has keyboard focus, which is not guaranteed.
+        SWTBotTree tree = packageExplorerTree();
+        tree.contextMenu("Properties").click();
         org.eclipse.swtbot.swt.finder.widgets.SWTBotShell shell =
                 bot.shell("Properties for " + projectName);
         shell.activate();

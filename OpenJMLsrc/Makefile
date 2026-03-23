@@ -118,6 +118,10 @@ release: .FORCE
 
 clean-jml:
 	rm -rf release-temp temp-release $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
+	$(MAKE) -C ../OpenJMLTest clean
+	$(MAKE) -C ../OpenJMLlsp clean
+	$(MAKE) -C ../OpenJMLUI clean
+	$(MAKE) -C ../OpenJMLGUITests clean
 
 ## Cleans and makes release
 clean-release:
@@ -177,6 +181,7 @@ post: .FORCE
 	cp ../OpenJMLlsp/release-stage/openjml.vsix $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
+	../OpenJMLUI/release.sh --version 0.21.0 --overwrite
 
 #RunOpenJML.class: RunOpenJML.java
 #	./openjml-compile -cp . RunOpenJML.java

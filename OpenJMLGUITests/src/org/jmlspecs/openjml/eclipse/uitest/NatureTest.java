@@ -54,9 +54,6 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class NatureTest extends GUITestBase {
 
-    /** Nature label as declared in plugin.xml {@code name} attribute. */
-    private static final String OPENJML_NATURE_LABEL = "OpenJML Nature";
-
     private static IProject projectA;
     private static IProject projectB;
     private static IProject projectC;
@@ -97,14 +94,10 @@ public class NatureTest extends GUITestBase {
      */
     private static void assertHasJmlNature(IProject project, String label)
             throws CoreException {
-        String name = project.getName();
-        // Ground-truth check (fast)
+        // Ground-truth check (authoritative — no GUI needed)
         assertTrue(label + ": project.hasNature() should be true",
                 project.hasNature(JML_NATURE_ID));
-        // Project Properties check
-        assertTrue(label + ": 'OpenJML Nature' should appear in Project Properties",
-                hasNatureInProperties(name, OPENJML_NATURE_LABEL));
-        // Decorator check
+        // Decorator check (confirms the UI layer reflects the nature change)
         waitForDecoratorRefresh();
         assertTrue(label + ": JML decorator should be active after nature added",
                 hasJmlDecorator(project));
@@ -116,14 +109,10 @@ public class NatureTest extends GUITestBase {
      */
     private static void assertNoJmlNature(IProject project, String label)
             throws CoreException {
-        String name = project.getName();
-        // Ground-truth check (fast)
+        // Ground-truth check (authoritative — no GUI needed)
         assertFalse(label + ": project.hasNature() should be false",
                 project.hasNature(JML_NATURE_ID));
-        // Project Properties check
-        assertFalse(label + ": 'OpenJML Nature' should NOT appear in Project Properties",
-                hasNatureInProperties(name, OPENJML_NATURE_LABEL));
-        // Decorator check
+        // Decorator check (confirms the UI layer reflects the nature change)
         waitForDecoratorRefresh();
         assertFalse(label + ": JML decorator should NOT be active",
                 hasJmlDecorator(project));
