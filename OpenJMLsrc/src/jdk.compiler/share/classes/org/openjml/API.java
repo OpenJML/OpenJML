@@ -85,6 +85,10 @@ public class API implements IAPI {
         return com.sun.tools.javac.util.Options.instance(main.context()).get(key);
     }
     
+//    public String getSpecs(MethodSymbol methodSymbol) {
+//        return org.jmlspecs.openjml.JmlSpecs.instance(main.context()).getAttrSpecs(methodSymbol).toString();
+//    }
+    
 
 
     
