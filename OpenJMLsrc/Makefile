@@ -175,6 +175,9 @@ post: .FORCE
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
+	$(MAKE) openjml-ui
+	
+openjml-ui:
 	$(MAKE) -C ../OpenJMLlsp release
 	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)
 	cp -pR ../OpenJMLlsp/release-stage/lsp $(TEMP)

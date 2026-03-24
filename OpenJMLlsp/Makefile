@@ -57,7 +57,7 @@ $(GSON_JAR):
 
 ## Compile the LSP server against the built OpenJML JDK.
 ## NOJML= disables JML processing in the extended javac (same idiom as in
-## OpenJMLsrc/Makefile) so that spec-path lookup is skipped during compilation.
+## OpenJMLsrc/Makefile) so that JML processing is skipped during compilation.
 compile: libs
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \
@@ -82,6 +82,7 @@ vsix:
 ## Produces $(RELEASE_STAGE)/openjml-lsp   (launcher, goes to release root)
 ##          $(RELEASE_STAGE)/lsp/          (jars, goes to release root as lsp/)
 ##          $(RELEASE_STAGE)/openjml.vsix  (VS Code extension)
+## GSON_JAR is not included in the release files because it is already present in OpenJML
 release: jar vsix
 	rm -rf $(RELEASE_STAGE)
 	mkdir -p $(RELEASE_STAGE)/lsp
