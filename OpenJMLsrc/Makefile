@@ -179,15 +179,11 @@ post: .FORCE
 	
 openjml-ui:
 	$(MAKE) -C ../OpenJMLlsp release
-	cp ../OpenJMLlsp/release-stage/openjml-lsp $(TEMP)
-	cp -pR ../OpenJMLlsp/release-stage/lsp $(TEMP)
-	cp ../OpenJMLlsp/release-stage/openjml.vsix $(TEMP)
+	cp -pR ../OpenJMLlsp/release-stage/. $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 	../OpenJMLUI/release.sh --version 0.21.0 --overwrite
 
-#RunOpenJML.class: RunOpenJML.java
-#	./openjml-compile -cp . RunOpenJML.java
 
 USERGUIDE=tempUserGuide
 REFMANID=5ceee26404c2854a1590029f
