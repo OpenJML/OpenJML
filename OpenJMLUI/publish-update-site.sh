@@ -112,6 +112,15 @@ fi
 # Also remove any expanded feature directories (keep only feature JARs).
 # ---------------------------------------------------------------------------
 echo "--- Cleaning up stale p2 sub-repositories ---"
+# Always remove existing metadata JARs so the publisher generates them fresh.
+# Without this, -append keeps old artifact entries with stale SHA hashes when
+# a JAR is rebuilt at the same version, causing p2 hash-mismatch errors.
+for stale_file in "$DEST_DIR/artifacts.jar" "$DEST_DIR/content.jar"; do
+    if [ -f "$stale_file" ]; then
+        echo "  Removing stale metadata: $stale_file"
+        rm -f "$stale_file"
+    fi
+done
 for stale_dir in "$DEST_DIR/artifacts" "$DEST_DIR/metadata"; do
     if [ -d "$stale_dir" ]; then
         echo "  Removing stale subdir: $stale_dir"
