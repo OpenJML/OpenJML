@@ -104,6 +104,11 @@ find_eclipse_home || true
 # Helpers
 # ---------------------------------------------------------------------------
 
+# Portable in-place sed: both GNU sed (Linux) and BSD sed (macOS) accept -i.bak
+# (suffix attached to -i with no space).  The backup is removed only on success,
+# so a failed edit leaves the original intact as <file>.bak.
+sedi() { local _f="${*: -1}"; sed -i.bak "$@" && rm -f "$_f.bak"; }
+
 # Read a single-line value from MANIFEST.MF (e.g. "Bundle-Version: 1.2.3" → "1.2.3")
 get_manifest_value() {
     local key="$1"
@@ -115,22 +120,19 @@ set_version_in_sources() {
     local newv="$1"
     echo "Setting source bundle/feature version to: $newv"
 
-    sed -i.bak "s/^Bundle-Version:.*/Bundle-Version: ${newv}/" "$MANIFEST"
-    rm -f "$MANIFEST.bak"
+    sedi "s/^Bundle-Version:.*/Bundle-Version: ${newv}/" "$MANIFEST"
 
-    sed -i.bak -E \
+    sedi -E \
         -e 's/(<feature[^>]* version=")[^"]*(")/\1'"${newv}"'\2/' \
         -e 's/(<plugin[^>]* version=")[^"]*(")/\1'"${newv}"'\2/' \
         "$FEATURE_DIR/feature.xml"
-    rm -f "$FEATURE_DIR/feature.xml.bak"
 
     local cat_xml="$UPDATESITE_DIR/category.xml"
     if [ -f "$cat_xml" ]; then
-        sed -i.bak -E \
+        sedi -E \
             -e "s|(features/[^_]+_)[^\"]+(\.jar\")|\1${newv}\2|g" \
             -e 's/(<feature[^>]* version=")[^"]*(")/\1'"${newv}"'\2/' \
             "$cat_xml"
-        rm -f "$cat_xml.bak"
     fi
 }
 

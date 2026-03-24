@@ -37,8 +37,8 @@
      <startup class="org.openjml.ui.Activator"/>
   </extension>
 
-  <!-- Content type for .jml specification files. NOTE: If we use org.eclipse.jdt.core.javaSource 
-  as the base-type, then .jml files are type-checked like .java files, resulting in spurious errors. --> -->
+  <!-- Content type for .jml specification files. NOTE: If we use org.eclipse.jdt.core.javaSource
+  as the base-type, then .jml files are type-checked like .java files, resulting in spurious errors. -->
   <extension point="org.eclipse.core.contenttype.contentTypes">
      <content-type
            base-type="org.eclipse.core.runtime.text"
@@ -63,15 +63,6 @@
      <editorContentTypeBinding
            editorId="org.eclipse.ui.genericeditor.GenericEditor"
            contentTypeId="org.jmlspecs.openjml.jmlSource"/>
-  </extension>
-
-  <!-- Register LSP4E semantic-token reconciler for .jml files directly.
-       LSP4E's own registration uses enabledWhen which fails to fire for our content type;
-       registering it here without that guard ensures it is always installed. -->
-  <extension point="org.eclipse.ui.genericeditor.reconcilers">
-     <reconcilingStrategy
-           class="org.eclipse.lsp4e.operations.semanticTokens.SemanticHighlightReconcilerStrategy"
-           contentType="org.jmlspecs.openjml.jmlSource"/>
   </extension>
 
   <!-- TM4E syntax coloring: all grammar/binding/injection elements in one grammars extension -->

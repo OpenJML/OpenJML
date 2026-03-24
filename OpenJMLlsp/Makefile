@@ -51,11 +51,11 @@ libs: $(LSP4J_JAR) $(LSP4J_RPC_JAR)
 
 $(LSP4J_JAR):
 	@mkdir -p $(LIBS)
-	curl -s -S -o $@ $(MAVEN)/org/eclipse/lsp4j/org.eclipse.lsp4j/$(LSP4J_VERSION)/org.eclipse.lsp4j-$(LSP4J_VERSION).jar
+	curl --fail --show-error -s -o $@ $(MAVEN)/org/eclipse/lsp4j/org.eclipse.lsp4j/$(LSP4J_VERSION)/org.eclipse.lsp4j-$(LSP4J_VERSION).jar
 
 $(LSP4J_RPC_JAR):
 	@mkdir -p $(LIBS)
-	curl -s -S -o $@ $(MAVEN)/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/$(LSP4J_VERSION)/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
+	curl --fail --show-error -s -o $@ $(MAVEN)/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/$(LSP4J_VERSION)/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
 
 ## Verify that the Gson version vendored in OpenJML matches GSON_REQUIRED_VERSION.
 check-gson:
