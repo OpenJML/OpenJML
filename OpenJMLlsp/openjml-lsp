@@ -43,24 +43,13 @@ fi
 [ -f "$JARFILE" ]        || { echo "ERROR: missing $JARFILE" >&2; exit 1; }
 [ -f "${LSP4J_CP%%:*}" ] || { echo "ERROR: missing ${LSP4J_CP%%:*}" >&2; exit 1; }
 
-# jdk.compiler bundles Gson internally (not exported by default).
-# LSP4J uses Gson for JSON-RPC serialisation, so we must export jdk.compiler's
-# Gson packages to the unnamed module.  Do NOT put a separate Gson jar on the
-# classpath — that would create a split-package the JVM refuses.
-GSON_EXPORTS="\
-  --add-exports=jdk.compiler/com.google.gson=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.annotations=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.bind=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.bind.util=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.reflect=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.sql=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.reflect=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED"
+# com.google.gson is now unconditionally exported from jdk.compiler (see
+# module-info.java), so no --add-exports flags are needed for Gson.
+# Do NOT put a separate Gson jar on the classpath — that would create a
+# split-package conflict since jdk.compiler already provides com.google.gson.
 
 exec "$BUILDJDK/bin/java" \
      $OPENJML_JVM \
      $OPENJML_EXPORTS \
-     $GSON_EXPORTS \
      -cp "$JARFILE:$LSP4J_CP" \
      org.openjml.lsp.ServerLauncher "$@"
