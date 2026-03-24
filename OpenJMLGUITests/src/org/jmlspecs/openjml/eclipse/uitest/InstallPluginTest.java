@@ -223,7 +223,7 @@ public class InstallPluginTest extends SwtBotTestBase {
         activateWorkbench();
 
         // --- Help > About Eclipse IDE ---
-        bot.menu("Help").menu("About Eclipse IDE").click();
+        bot.menu("Help").menu("About Eclipse").click();
 
         SWTBotShell aboutShell = findShell("About Eclipse IDE", "About Eclipse");
         aboutShell.activate();
