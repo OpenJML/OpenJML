@@ -5,7 +5,7 @@
       version="0.21.0"
       provider-name="David R. Cok">
 
-   <description url="http://jmlspecs.sourceforge.net">
+   <description url="https://openjml.org">
       This plug-in encapsulates the OpenJML tool, which provides type-checking,
 static verification, and runtime-assertion checking of Java and 
 Java Modeling Language (JML) annotations.

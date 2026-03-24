@@ -19,6 +19,7 @@ openjml-test: prep
 	$(MAKE) release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	$(MAKE) userguide-tests
 	$(MAKE) json-tests
+	-$(MAKE) -C lsp run-tests
 	-$(MAKE) tutorial-tests
 	-$(MAKE) unittests-par
 

@@ -1,0 +1,25 @@
+This directory contains SWTBot-based automated GUI tests for the OpenJMLUI
+Eclipse plugin.
+
+The tests run inside a real Eclipse instance (downloaded automatically) and
+exercise plugin installation, preferences, menus, LSP features, and project
+nature functionality.
+
+Key test classes are contained in src/org/jmlspecs/openjml/eclipse/uitest.
+
+Setup (one-time):
+  make fetch-eclipse          # Download Eclipse and install SWTBot features
+
+Running tests:
+  make run-install-test       # Run InstallPluginTest (installs the plugin)
+  make run-tests              # Run all tests, except the one above
+
+Environment variables:
+  ECLIPSE_RELEASE    Eclipse version to download (default: 2026-03)
+  ECLIPSE_HOME       Eclipse installation used for building tests
+  UPDATE_SITE        p2 update site URL for OpenJML (default: local openjml.github.io path)
+
+Platform notes:
+  macOS: tested and supported
+  Linux: requires xvfb-run for headless display
+  Windows: not supported

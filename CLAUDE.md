@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Basic rules
 
-CLaude must never run 'git push'
+Claude must never run 'git push
+
+Claude must never run 'git commit' or other commands that change the git history without explicit permission.
 
 Claude must never run any 'git' commands that change files without explicit permission.
 
@@ -13,7 +15,7 @@ Claude must never run any 'git' commands that change files without explicit perm
 OpenJML is a tool for Java that processes JML (Java Modeling Language) specifications embedded in Java source code. It extends OpenJDK 21 (jdk-21-ga branch) by adding JML parsing, type-checking, static checking (ESC via SMT solvers), and runtime assertion checking (RAC).
 
 The project requires several **sibling repositories** cloned under a common parent directory (e.g., `~/projects/OpenJML21/`):
-- `OpenJML/` — this repo (contains `OpenJMLsrc/` and `OpenJMLTest/`)
+- `OpenJML/` — this repo (contains `OpenJMLsrc/`, `OpenJMLTest/`, `OpenJMLlsp/`, `OpenJMLUI/`, `OpenJMLFeature/`, `OpenJMLUpdateSite/`, `OpenJMLGUITests/`)
 - `JMLAnnotations/` — JML annotation types
 - `Specs/` — JML specifications for the Java standard library
 - `Solvers/` — bundled SMT solvers (z3, etc.)
@@ -77,8 +79,11 @@ OpenJML/
     libs/                 # JUnit jars
     Makefile              # Test targets
 
-  OpenJMLFeature/   # Eclipse feature plugin (mostly obsolete)
-  OpenJMLUI/        # Eclipse cat /tmp/openjml-lsp-debug.logUI plugin
+  OpenJMLlsp/         # LSP server for OpenJML; also contains the VSCode extension
+  OpenJMLUI/          # Eclipse LSP UI plugin (LSP client connecting to openjml-lsp)
+  OpenJMLFeature/     # Eclipse feature descriptor (wraps OpenJMLUI for the update site)
+  OpenJMLUpdateSite/  # Eclipse p2 update site artifacts (published to openjml.org/eclipse-update-site)
+  OpenJMLGUITests/    # SWTBot-based automated GUI tests of the OpenJMLUI Eclipse plugin
 ```
 
 ## Building
@@ -190,6 +195,6 @@ The `unittests/runtests` script compiles test framework files via `make unittest
 
 **ESC Pipeline**: `JmlEsc` → `JmlAssertionAdder` (converts specs to Java assertions) → `BasicBlocker2` (basic block form) → `SMTTranslator` (SMT-LIB format) → `MethodProverSMT` (invokes external SMT solver, default z3).
 
-cat /tmp/openjml-lsp-debug.log**Module System**: Because OpenJML extends OpenJDK internals, running it programmatically requires many `--add-exports` flags (see `setup-exports`). The `OPENJML_EXPORTS` variable captures these. Test compilation and execution must include these flags.
+**Module System**: Because OpenJML extends OpenJDK internals, running it programmatically requires many `--add-exports` flags (see `setup-exports`). The `OPENJML_EXPORTS` variable captures these. Test compilation and execution must include these flags.
 
 **Specs Separation**: JML specs for the Java standard library live in the sibling `Specs/` repository, not in this repo. The `--specs-path` option points OpenJML to them.
