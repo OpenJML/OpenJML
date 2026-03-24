@@ -1,0 +1,5 @@
+# Generated update site artifacts
+/artifacts.jar
+/content.jar
+/features/
+/plugins/
