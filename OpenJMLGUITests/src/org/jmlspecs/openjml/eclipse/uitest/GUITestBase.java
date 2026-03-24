@@ -316,6 +316,12 @@ public abstract class GUITestBase extends SwtBotTestBase {
      * Waits for all Eclipse auto-build and pending UI jobs to complete.
      * Call this after triggering an action that modifies project configuration
      * (e.g. adding/removing a nature) so that assertions see the final state.
+     *
+     * <p>This waits only for {@code FAMILY_AUTO_BUILD} (JDT incremental compile
+     * and the JML nature builder).  It does NOT wait for the OpenJML LSP server's
+     * asynchronous diagnostics — those arrive as {@code publishDiagnostics}
+     * notifications after a separate round-trip.  For LSP-dependent assertions
+     * use a polling loop with a timeout instead.
      */
     protected static void waitForBuild() {
         // Join the auto-build job family
@@ -454,7 +460,6 @@ public abstract class GUITestBase extends SwtBotTestBase {
         }
     }
 
-    // -----------------------------------------------------------------------
     // -----------------------------------------------------------------------
     // Console view helpers
     // -----------------------------------------------------------------------

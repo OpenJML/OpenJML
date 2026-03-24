@@ -69,38 +69,112 @@ public class InstallPluginTest extends SwtBotTestBase {
      */
     @Test
     public void t1_installOpenJmlViaWizard() {
-        // --- Open the Install New Software dialog ---
-        bot.menu("Help").menu("Install New Software...").click();
+        // Open the "Install New Software" wizard via the Eclipse command
+        // framework (asyncExec) instead of bot.menu("Help"), which requires
+        // an active shell and fails on macOS headless SWTBot runs.
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.asyncExec(
+                (org.eclipse.swtbot.swt.finder.results.VoidResult) () -> {
+            try {
+                org.eclipse.ui.handlers.IHandlerService hs =
+                        org.eclipse.ui.PlatformUI.getWorkbench()
+                                .getService(org.eclipse.ui.handlers.IHandlerService.class);
+                hs.executeCommand("org.eclipse.equinox.p2.ui.sdk.install", null);
+            } catch (Exception e) {
+                System.err.println("[InstallPluginTest] Failed to open install wizard: " + e);
+            }
+        });
 
+        // Scope all subsequent wizard interactions to the Install shell so that
+        // button/tree lookups are not confused by other open shells or dialogs.
         SWTBotShell installShell = bot.shell("Install");
-        installShell.activate();
+        // SWTBot's activate() waits for the OS to report the shell as active, which
+        // times out on macOS when another app has focus.  forceActive()+setFocus()
+        // is stronger and does not block waiting for OS confirmation.
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
+                (org.eclipse.swtbot.swt.finder.results.VoidResult) () -> {
+            installShell.widget.forceActive();
+            installShell.widget.setFocus();
+        });
+        bot.sleep(300);
         System.out.println("[InstallPluginTest] Install dialog open");
 
         // --- Enter update site URL in the "Work with:" combo ---
-        // Type the URL and press Enter to trigger the repository load.
-        bot.comboBoxWithLabel("Work with:").setText(updateSiteUrl);
-        bot.comboBoxWithLabel("Work with:")
-           .pressShortcut(org.eclipse.swt.SWT.CR, (char) 0);
+        // Type the URL but do NOT press Enter yet — uncheck "Group items by category"
+        // first so the tree populates with the raw feature list rather than category
+        // headings.  The OpenJML p2 metadata does not include category IUs, so with
+        // grouping enabled the tree shows "There are no categorized items" and nothing
+        // is selectable.  Disabling grouping before the load avoids a two-step wait.
+        installShell.bot().comboBoxWithLabel("Work with:").setText(updateSiteUrl);
+
+        // Uncheck "Group items by category" before triggering the repository load.
+        try {
+            installShell.bot().checkBox("Group items by category").deselect();
+            System.out.println("[InstallPluginTest] Unchecked 'Group items by category'");
+        } catch (WidgetNotFoundException e) {
+            System.out.println("[InstallPluginTest] 'Group items by category' not found; continuing");
+        }
+
+        // Now press Enter to trigger the repository load.
+        installShell.bot().comboBoxWithLabel("Work with:")
+                          .pressShortcut(org.eclipse.swt.SWT.CR, (char) 0);
 
         // --- Wait for the feature tree to populate (up to 90 s for file:// or network) ---
         System.out.println("[InstallPluginTest] Waiting for feature list...");
-        bot.waitUntil(Conditions.treeHasRows(bot.tree(), 1), 90_000);
+        bot.waitUntil(Conditions.treeHasRows(installShell.bot().tree(), 1), 90_000);
         System.out.println("[InstallPluginTest] Feature list loaded");
 
-        // --- Select all items (OpenJML is the only feature in the site) ---
-        bot.button("Select All").click();
+        // --- Check all items via direct SWT events so p2's SelectionListener fires.
+        //
+        // SWTBot's "Select All" button click triggers the button widget, but in
+        // Eclipse 2026-03 the p2 install wizard's CheckboxTreeViewer listener does
+        // not reliably fire in response to the button event.  Directly calling
+        // setChecked(true) + notifyListeners(SWT.Selection, CHECK) on each tree item
+        // guarantees the AvailableIUsPage listener receives the check-state-changed
+        // notification and triggers dependency resolution.
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
+                (org.eclipse.swtbot.swt.finder.results.VoidResult) () -> {
+            org.eclipse.swt.widgets.Tree tree = installShell.bot().tree().widget;
+            System.out.println("[InstallPluginTest] Tree has "
+                    + tree.getItemCount() + " top-level item(s)");
+            for (org.eclipse.swt.widgets.TreeItem item : tree.getItems()) {
+                System.out.println("[InstallPluginTest]   Checking: '" + item.getText()
+                        + "' (was checked=" + item.getChecked() + ")");
+                item.setChecked(true);
+                // Fire the SWT.Selection/SWT.CHECK event that p2's viewer listener
+                // requires in order to start dependency resolution.
+                org.eclipse.swt.widgets.Event ev = new org.eclipse.swt.widgets.Event();
+                ev.type   = org.eclipse.swt.SWT.Selection;
+                ev.detail = org.eclipse.swt.SWT.CHECK;
+                ev.widget = tree;
+                ev.item   = item;
+                tree.notifyListeners(org.eclipse.swt.SWT.Selection, ev);
+            }
+        });
 
-        // --- Next: "Install Details" page ---
-        bot.button("Next >").click();
-        // Wait for the "Next >" button to become enabled again (details computed)
-        bot.waitUntil(Conditions.widgetIsEnabled(bot.button("Next >")), 30_000);
+        // --- Wait for p2 to finish dependency resolution, dismissing any
+        //     blocking dialogs (Trust, unsigned-content warnings) that may
+        //     appear before or during resolution in newer Eclipse versions.
+        //     "Next >" enables once p2 reports no errors.
+        //     All lookups are scoped to installShell to avoid false positives.
+        System.out.println("[InstallPluginTest] Waiting for dependency resolution...");
+        waitForNextButtonDismissingBlockers(installShell, 90_000);
+        System.out.println("[InstallPluginTest] Dependency resolution complete; clicking Next >");
+        installShell.bot().button("Next >").click();
 
-        // --- Next: "Review Licenses" page ---
-        bot.button("Next >").click();
+        // The "Install Details" page now computes sizes; wait for Next > again.
+        waitForNextButtonDismissingBlockers(installShell, 60_000);
+
+        // --- Next: "Review Licenses" page (if present) ---
+        try {
+            installShell.bot().button("Next >").click();
+        } catch (WidgetNotFoundException e) {
+            // Some wizard configurations skip directly to Finish
+            System.out.println("[InstallPluginTest] No third Next > page; proceeding to Finish");
+        }
 
         // --- Accept license (may or may not appear depending on the feature) ---
         try {
-            bot.radio("I accept the terms of the license agreements").click();
+            installShell.bot().radio("I accept the terms of the license agreements").click();
         } catch (WidgetNotFoundException e) {
             // No license page — some features omit it
             System.out.println("[InstallPluginTest] No license page; continuing");
@@ -146,6 +220,8 @@ public class InstallPluginTest extends SwtBotTestBase {
      */
     @Test
     public void t2_verifyOpenJmlInInstalledSoftware() {
+        activateWorkbench();
+
         // --- Help > About Eclipse IDE ---
         bot.menu("Help").menu("About Eclipse IDE").click();
 
@@ -190,6 +266,87 @@ public class InstallPluginTest extends SwtBotTestBase {
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
+
+    /**
+     * Polls until the "Next >" button in the active Install shell is enabled,
+     * dismissing any blocking dialogs (Trust, unsigned-content warnings) that
+     * may appear in newer Eclipse versions while p2 resolves requirements.
+     * Throws {@link AssertionError} if the button is still not enabled after
+     * {@code timeoutMs} milliseconds.
+     */
+    private static void waitForNextButtonDismissingBlockers(
+            SWTBotShell installShell, long timeoutMs) {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        int iteration = 0;
+        while (System.currentTimeMillis() < deadline) {
+            iteration++;
+            // Dismiss any trust / unsigned-content shell that appeared.
+            // These pop up over the Install shell so they are not children of it;
+            // scan all open shells but only dismiss known blocker titles.
+            for (SWTBotShell shell : bot.shells()) {
+                String title = shell.getText();
+                if (title.equals("Trust") || title.equals("Unsigned Content")
+                        || title.equals("Security Warning")) {
+                    System.out.println(
+                            "[InstallPluginTest] Dismissing dialog: " + title);
+                    try { shell.bot().button("Select All").click(); }
+                    catch (WidgetNotFoundException ignored) {}
+                    try { shell.bot().button("Trust Selected").click(); }
+                    catch (WidgetNotFoundException e) {
+                        try { shell.bot().button("OK").click(); }
+                        catch (WidgetNotFoundException ignored) {}
+                    }
+                }
+            }
+            // Check if Next > is now enabled — scoped to the Install shell.
+            // On first attempt and periodically, log button/label state for diagnosis.
+            try {
+                boolean enabled = installShell.bot().button("Next >").isEnabled();
+                if (iteration == 1 || iteration % 20 == 0) {
+                    System.out.println("[InstallPluginTest] 'Next >' found, enabled=" + enabled
+                            + " (iteration " + iteration + ")");
+                }
+                if (enabled) return;
+            } catch (WidgetNotFoundException e) {
+                if (iteration <= 3 || iteration % 20 == 0) {
+                    System.out.println("[InstallPluginTest] 'Next >' not found (iteration "
+                            + iteration + "): " + e.getMessage());
+                    // On first few misses, dump available button labels for diagnosis.
+                    dumpButtonsInShell(installShell);
+                }
+            }
+            bot.sleep(500);
+        }
+        org.junit.Assert.fail(
+                "Timed out (" + timeoutMs + "ms) waiting for 'Next >' to become enabled"
+                + " during p2 dependency resolution");
+    }
+
+    /**
+     * Prints all Button widget texts found anywhere within {@code shell} to
+     * stdout.  Called on diagnosis when "Next >" is not found.
+     */
+    private static void dumpButtonsInShell(SWTBotShell shell) {
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
+                (org.eclipse.swtbot.swt.finder.results.VoidResult) () ->
+                    dumpButtons(shell.widget, 0));
+    }
+
+    private static void dumpButtons(org.eclipse.swt.widgets.Composite parent, int depth) {
+        String indent = "  ".repeat(depth);
+        for (org.eclipse.swt.widgets.Control child : parent.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Button) {
+                org.eclipse.swt.widgets.Button b = (org.eclipse.swt.widgets.Button) child;
+                System.out.println("[InstallPluginTest] " + indent
+                        + "Button: '" + b.getText()
+                        + "' enabled=" + b.isEnabled()
+                        + " visible=" + b.isVisible());
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                dumpButtons((org.eclipse.swt.widgets.Composite) child, depth + 1);
+            }
+        }
+    }
 
     /**
      * Try each title in order; return the first shell found.

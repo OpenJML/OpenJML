@@ -98,10 +98,8 @@ public class ActionTest extends GUITestBase {
             + "    public void method(int x) { }\n"
             + "}\n";
 
-    // line index (0-based) and column of TARGET_SYMBOL in the declaration
-    // line 0: package actiontest;
-    // line 1: public class ActionTarget {
-    // line 2:     public int myField = 0;   ← myField at col 15
+    // Line index (0-based) and column of TARGET_SYMBOL in the declaration.
+    // (Layout described in the SOURCE Javadoc above.)
     private static final int SYMBOL_LINE = 2;
     private static final int SYMBOL_COL  = 15;   // "    public int " = 15 chars
 
@@ -129,6 +127,9 @@ public class ActionTest extends GUITestBase {
                 throw new RuntimeException("Could not open ActionTarget.java", e);
             }
         });
+        // Legacy: 5s wait here vs the 10s in LspFeatureTest.  Sufficient for the
+        // rename dialog pre-fill (no LSP round-trip needed) but may be too short
+        // for t2 Find References.  If t2 is flaky here, increase to 10_000.
         bot.sleep(5_000);  // allow LSP server startup + initial file check
     }
 

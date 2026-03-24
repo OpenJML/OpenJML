@@ -160,6 +160,38 @@ public abstract class SwtBotTestBase {
                 bot.shell(title).close();
             } catch (WidgetNotFoundException ignored) {}
         }
+
+        // Activate the workbench shell so test methods can access menu bars.
+        activateWorkbench();
+    }
+
+    /**
+     * Forces the Eclipse workbench window's shell to become the active OS
+     * window.  On macOS, {@code bot.menu()} requires an active shell — if no
+     * shell is active, SWTBot returns null and throws
+     * {@code WidgetNotFoundException}.
+     *
+     * <p>Call this at the start of any test method that accesses the main
+     * menu bar or toolbar (e.g. {@code bot.menu("Help")}).  The setup-level
+     * call in {@link #closeWelcomeAndTipViews()} may not hold through to the
+     * first test method because macOS can reclaim focus in the interim.
+     *
+     * <p>No-op if the workbench window is not yet available (guards against
+     * early calls during Eclipse startup).
+     */
+    protected static void activateWorkbench() {
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
+                (org.eclipse.swtbot.swt.finder.results.VoidResult) () -> {
+            org.eclipse.ui.IWorkbenchWindow window =
+                    org.eclipse.ui.PlatformUI.getWorkbench()
+                            .getActiveWorkbenchWindow();
+            if (window == null) return;
+            org.eclipse.swt.widgets.Shell wbShell = window.getShell();
+            if (wbShell == null || wbShell.isDisposed()) return;
+            wbShell.forceActive();
+            wbShell.setFocus();
+        });
+        bot.sleep(200);
     }
 
     /**

@@ -12,11 +12,19 @@ import org.junit.runners.Suite;
  * class when each class is launched as a separate process.
  *
  * <p>Order: MenuPresenceTest (menu wiring smoke-test, fast) → NatureTest
- * (Add/Remove nature) → ActionTest (command dispatch and argument extraction) →
- * MarkersTest (JML marker lifecycle, needs OpenJML to run and is the slowest).
+ * (Add/Remove nature) → FileIconTest → LspFeatureTest (Rename, Find References,
+ * JML marker lifecycle — slowest because it starts the LSP server).
  *
- * <p>To run from the Makefile: {@code make run-plugin-tests}<br>
- * To run individual classes:   {@code make run-menu-test}, {@code make run-nature-test}, etc.
+ * <p>{@link InstallPluginTest} is intentionally NOT included here: it requires
+ * a <em>pristine</em> Eclipse instance with OpenJML not yet installed, and must
+ * be run first (before OpenJML is deployed).  Use {@code make run-install-test}.
+ *
+ * <p>The Makefile {@code PLUGIN_TEST_CLASSES} variable is derived from this
+ * annotation at make-time, so adding/removing a class here automatically
+ * updates the individual {@code run-plugin-tests} target.
+ *
+ * <p>To run from the Makefile: {@code make run-plugin-suite} (one JVM) or
+ * {@code make run-plugin-tests} (one JVM per class, [PASS]/[FAIL] per class).
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({

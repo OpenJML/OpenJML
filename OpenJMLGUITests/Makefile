@@ -126,6 +126,11 @@ SWTBOT_APP := org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication
 ## JUnit XML formatter class (Ant taskdef)
 JUNIT_FORMATTER := org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter
 
+## Flags passed to the Eclipse launcher for every test invocation.
+## Shared here so all launch recipes stay in sync.
+ECLIPSE_LAUNCH_FLAGS := -nosplash --launcher.suppressErrors -application $(SWTBOT_APP) \
+    -data "$(TEST_WS)" -testPluginName $(TEST_BUNDLE)
+
 ## VM arguments shared by all plugin test launches.
 ## Keep in one place so run-one-plugin-test, run-plugin-tests, and
 ## run-plugin-suite all behave identically.
@@ -358,15 +363,12 @@ run-install-test: build-tests prepare-test-eclipse
 	@echo "    Update site: $(UPDATE_SITE)"
 	@rm -f "$(INSTALL_TEST_XML)"; \
 	 $(XVFB) "$(TEST_BIN)" \
-	     -nosplash \
-	     --launcher.suppressErrors \
-	     -application $(SWTBOT_APP) \
-	     -data "$(TEST_WS)" \
+	     $(ECLIPSE_LAUNCH_FLAGS) \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.InstallPluginTest \
-	     -testPluginName $(TEST_BUNDLE) \
 	     "formatter=$(JUNIT_FORMATTER),$(INSTALL_TEST_XML)" \
 	     -vmargs -Xmx1g -ea \
-	         "-Dopenjml.update.site=$(UPDATE_SITE)"
+	         "-Dopenjml.update.site=$(UPDATE_SITE)" \
+	         -Declipse.p2.unsignedPolicy=allow
 	$(call check-xml-results,InstallPluginTest,$(INSTALL_TEST_XML))
 
 ## --------------------------------------------------------------------------
@@ -443,12 +445,8 @@ define run-one-plugin-test
 	@_xml="$(RESULTS_DIR)/$(1)-results.xml"; \
 	 rm -f "$$_xml"; \
 	 $(XVFB) "$(TEST_BIN)" \
-	     -nosplash \
-	     --launcher.suppressErrors \
-	     -application $(SWTBOT_APP) \
-	     -data "$(TEST_WS)" \
+	     $(ECLIPSE_LAUNCH_FLAGS) \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.$(1) \
-	     -testPluginName $(TEST_BUNDLE) \
 	     "formatter=$(JUNIT_FORMATTER),$$_xml" \
 	     -vmargs $(PLUGIN_TEST_VMARGS)
 	$(call check-xml-results,$(1),$(RESULTS_DIR)/$(1)-results.xml)
@@ -485,7 +483,13 @@ run-markers-test: $(OPENJML_INSTALLED_STAMP)
 ## Runs each plugin test class in its own Eclipse JVM, sequentially.
 ## Prints [PASS]/[FAIL] + elapsed time for each class as it finishes.
 ## --------------------------------------------------------------------------
-PLUGIN_TEST_CLASSES := MenuPresenceTest PreferencesPageTest FileIconTest NatureTest LspFeatureTest
+## Derived from AllPluginTests.java @Suite.SuiteClasses — add/remove test classes
+## there and this list updates automatically.  Names are extracted by matching
+## the pattern "XxxTest.class" inside the @Suite.SuiteClasses annotation.
+PLUGIN_TEST_CLASSES := $(shell \
+    grep -oE '[A-Z][A-Za-z0-9]+Test\.class' \
+        "$(SRC_DIR)/org/jmlspecs/openjml/eclipse/uitest/AllPluginTests.java" \
+    | sed 's/\.class//')
 
 run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	@mkdir -p "$(RESULTS_DIR)"
@@ -497,12 +501,8 @@ run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	   echo "[TEST] $$cls"; \
 	   _start=$$(date +%s); \
 	   ( $(XVFB) "$(TEST_BIN)" \
-	            -nosplash \
-	            --launcher.suppressErrors \
-	            -application $(SWTBOT_APP) \
-	            -data "$(TEST_WS)" \
+	            $(ECLIPSE_LAUNCH_FLAGS) \
 	            -classname "org.jmlspecs.openjml.eclipse.uitest.$$cls" \
-	            -testPluginName "$(TEST_BUNDLE)" \
 	            "formatter=$(JUNIT_FORMATTER),$$_xml" \
 	            -vmargs $(PLUGIN_TEST_VMARGS) \
 	       ) > "$(RESULTS_DIR)/$$cls.log" 2>&1; \
@@ -545,12 +545,8 @@ run-plugin-suite: $(OPENJML_INSTALLED_STAMP)
 	@echo "[TEST] AllPluginTests"
 	@_start=$$(date +%s); \
 	 ( $(XVFB) "$(TEST_BIN)" \
-	          -nosplash \
-	          --launcher.suppressErrors \
-	          -application $(SWTBOT_APP) \
-	          -data "$(TEST_WS)" \
+	          $(ECLIPSE_LAUNCH_FLAGS) \
 	          -classname "org.jmlspecs.openjml.eclipse.uitest.AllPluginTests" \
-	          -testPluginName "$(TEST_BUNDLE)" \
 	          "formatter=$(JUNIT_FORMATTER),$(PLUGIN_SUITE_XML)" \
 	          -vmargs $(PLUGIN_TEST_VMARGS) \
 	   ) > "$(RESULTS_DIR)/AllPluginTests.log" 2>&1; \

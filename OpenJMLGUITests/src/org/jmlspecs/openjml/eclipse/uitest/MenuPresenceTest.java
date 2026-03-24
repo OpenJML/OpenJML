@@ -108,10 +108,6 @@ public class MenuPresenceTest extends GUITestBase {
     /**
      * Verifies that the "OpenJML" top-level menu appears in the Eclipse menu
      * bar and contains the key action items.
-     */
-    /**
-     * Verifies that the "OpenJML" top-level menu appears in the Eclipse menu
-     * bar and contains the key action items.
      *
      * <p>On macOS, {@code bot.menu()} needs an active shell to locate the menu
      * bar.  We explicitly activate the workbench window's shell via the UI
@@ -119,15 +115,7 @@ public class MenuPresenceTest extends GUITestBase {
      */
     @Test
     public void mainMenu_openJmlMenuPresent() {
-        // Force the workbench shell to become the active shell.
-        UIThreadRunnable.syncExec((VoidResult) () -> {
-            org.eclipse.swt.widgets.Shell wbShell =
-                    org.eclipse.ui.PlatformUI.getWorkbench()
-                            .getActiveWorkbenchWindow().getShell();
-            wbShell.forceActive();
-            wbShell.setFocus();
-        });
-        bot.sleep(200);
+        activateWorkbench();
 
         SWTBotMenu openJml = bot.menu("OpenJML");
         assertNotNull("OpenJML top-level menu should be present", openJml);
@@ -152,15 +140,7 @@ public class MenuPresenceTest extends GUITestBase {
      */
     @Test
     public void toolbar_openJmlButtonsPresent() {
-        // Ensure the workbench shell is active so SWTBot can find toolbar items.
-        UIThreadRunnable.syncExec((VoidResult) () -> {
-            org.eclipse.swt.widgets.Shell wbShell =
-                    org.eclipse.ui.PlatformUI.getWorkbench()
-                            .getActiveWorkbenchWindow().getShell();
-            wbShell.forceActive();
-            wbShell.setFocus();
-        });
-        bot.sleep(200);
+        activateWorkbench();
 
         assertIconToolbarButton("Type-checks JML in selected objects");
         assertToolbarButton("ESC", "Performs JML static checks for selected objects");

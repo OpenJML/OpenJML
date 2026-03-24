@@ -200,10 +200,6 @@ public class MarkersTest extends GUITestBase {
     }
 
     /**
-     * Java compile-error markers (JDT problem markers) should survive throughout
-     * all nature changes.  ProjectB and ProjectA both have Java compile errors.
-     */
-    /**
      * Verify that JML nature removal did not disturb JDT's Java compile-error
      * markers.  Triggers a full workspace build first (headless SWTBot
      * environments may not have auto-build enabled).
