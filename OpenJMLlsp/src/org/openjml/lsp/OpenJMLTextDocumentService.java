@@ -230,6 +230,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         System.err.println("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
 
+        // Notify the client to re-query code lenses now that lastContent is populated.
+        // This ensures the initial "—" status appears even before the first --check.
+        refreshCodeLenses();
+
         // --check: always on open
         scheduleCheckNow(uri, content);
         // ESC is never triggered on open — only on save/edit (per trigger setting)
@@ -308,6 +312,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
         String uri = params.getTextDocument().getUri();
         String content = lastContent.get(uri);
+        System.err.println("[codeLens] uri=" + uri + " content=" + (content == null ? "null" : content.length() + " chars"));
         if (content == null) return CompletableFuture.completedFuture(List.of());
 
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
@@ -326,6 +331,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                   List.<Object>of(uri, fqn));
             lenses.add(new CodeLens(range, cmd, null));
         }
+        System.err.println("[codeLens] returning " + lenses.size() + " lenses for " + uri);
         return CompletableFuture.completedFuture(lenses);
     }
 
@@ -1583,6 +1589,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void refreshCodeLenses() {
+        System.err.println("[refreshCodeLenses] client=" + (client != null ? client.getClass().getSimpleName() : "null"));
         if (client != null) client.refreshCodeLenses();
     }
 

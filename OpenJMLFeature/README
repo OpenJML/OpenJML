@@ -1,13 +1,22 @@
 
 Instructions for building and publishing a new update site:
 
-* Commit all changes
+* Note that the Eclipse plugin works in tandem with a release of OpenJML.
+The Uodate Site only holds the plugin per se, which defines the OpenJML
+additions to the Eclipse IDE. The release of OpenJML contains the
+OpenJML tool and the associated LSP server. When the Eclipse plugin
+runs, it is connected to the LSP server (there is an OpenJML
+Preference/Setting that tells teh plugi where to find the installation
+of OpenJML and hence the location of the LSP server).
+
+* Commit all changesa in OpenJMLUI, OpenJMLFeaeture, OpenJMLUpdateSite
 
 * Be sure that the JMLAnnotations, OpenJMLsrc, OpenJMLUI, and Specs
   projects are built without errors and all unit and release tests pass
 
-* FIXME - use the TBD script to set the new version number in the relevant.xml
-  files and to push the new version of the plugin to the update site.
+* Use the OpenJMLUI/release.sh script to set the new version number in the relevant
+  .xml files and to build the new plugin jar files, copying them to the
+  local clone of the openjml.github.io repository.
 
 * Publish to https://openjml.org/eclipse-update-site by running
   git commit and git push in your local copy of the openjml.github.io repo.

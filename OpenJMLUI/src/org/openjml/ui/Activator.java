@@ -46,10 +46,15 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
         }
         org.jmlspecs.openjml.eclipse.Console.log("OpenJMLUI plugin started");
 
-        // Forward Eclipse preference changes to the running server immediately,
-        // so the user does not need to restart after changing a setting.
+        // React to OpenJML preference changes.
+        // - Server path change: stop the old server and reconnect at the new path.
+        // - All other openjml.* changes: forward to the running server via
+        //   workspace/didChangeConfiguration (no restart needed).
         getPreferenceStore().addPropertyChangeListener(event -> {
-            if (event.getProperty().startsWith("openjml.")) {
+            String prop = event.getProperty();
+            if (org.jmlspecs.openjml.eclipse.OpenJMLOptions.lspServerPathKey.equals(prop)) {
+                org.jmlspecs.openjml.eclipse.LspPartListener.restartServer();
+            } else if (prop.startsWith("openjml.")) {
                 org.jmlspecs.openjml.eclipse.LspPartListener.sendSettingsToServer();
             }
         });

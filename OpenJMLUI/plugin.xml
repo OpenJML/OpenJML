@@ -444,6 +444,12 @@
            id="org.jmlspecs.openjml.jmlReferencesPage"
            searchResultClass="org.jmlspecs.openjml.eclipse.JmlReferencesSearchQuery$JmlReferencesSearchResult"/>
   </extension>
+  
+  <extension
+        point="org.eclipse.help.toc">
+     <toc file="html/JMLHelp.xml" primary="true" />
+  </extension>
+  
 
   <!-- ============================================================ -->
   <!-- LEGACY EXTENSIONS COMMENTED OUT                              -->
@@ -1593,12 +1599,6 @@
   </extension>
   -->
 
-  <!--
-  <extension
-        point="org.eclipse.help.toc">
-     <toc file="html/JMLHelp.xml" primary="true" />
-  </extension>
-  -->
 
   <!--
   <extension

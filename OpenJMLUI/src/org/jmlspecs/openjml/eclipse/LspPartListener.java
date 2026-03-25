@@ -61,6 +61,76 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     }
 
     /**
+     * Stops any running LSP server and resets all connection state so that
+     * the next editor activation triggers a fresh start at the new path.
+     *
+     * <p>Called when the {@link OpenJMLOptions#lspServerPathKey} preference changes.
+     * Other preference changes use {@link #sendSettingsToServer()} instead.
+     *
+     * <p>The stop is best-effort: {@code LanguageServerWrapper.stop()} performs
+     * a graceful LSP shutdown followed by process destroy.  If that fails the
+     * process will be abandoned and the OS will reclaim it.
+     */
+    public static void restartServer() {
+        System.err.println("[OpenJML] restartServer: stopping old server and resetting state");
+
+        // Stop the old server (graceful shutdown + process destroy via lsp4e).
+        Object wrapper = cachedWrapper;
+        if (wrapper != null) {
+            try {
+                java.lang.reflect.Method stopMethod = null;
+                for (Class<?> c = wrapper.getClass(); c != null; c = c.getSuperclass()) {
+                    try { stopMethod = c.getDeclaredMethod("stop"); break; }
+                    catch (NoSuchMethodException ignored) {}
+                }
+                if (stopMethod != null) {
+                    stopMethod.setAccessible(true);
+                    stopMethod.invoke(wrapper);
+                    System.err.println("[OpenJML] restartServer: LanguageServerWrapper.stop() called");
+                } else {
+                    System.err.println("[OpenJML] restartServer: stop() not found on wrapper");
+                }
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] restartServer: stop() failed: " + t);
+            }
+        } else {
+            System.err.println("[OpenJML] restartServer: no running server to stop");
+        }
+
+        // Reset connection state. cachedDef and startLanguageServerMethod are safe
+        // to keep — the definition is path-independent and the reflected method
+        // is stable across restarts.
+        cachedWrapper           = null;
+        cachedDocument          = null;
+        diagnosticsHookInstalled = false;
+
+        // Clear the per-path trigger set so every open file is reconnected.
+        LspPartListener inst = INSTANCE;
+        if (inst != null) inst.triggered.clear();
+
+        System.err.println("[OpenJML] restartServer: state reset");
+
+        // Re-trigger partOpened for all open editors so the server starts
+        // immediately rather than waiting for the next file activation.
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            LspPartListener listener = INSTANCE;
+            if (listener == null) return;
+            try {
+                for (org.eclipse.ui.IWorkbenchWindow win :
+                        org.eclipse.ui.PlatformUI.getWorkbench().getWorkbenchWindows()) {
+                    for (org.eclipse.ui.IWorkbenchPage page : win.getPages()) {
+                        for (org.eclipse.ui.IEditorReference ref : page.getEditorReferences()) {
+                            listener.partOpened(ref);
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                System.err.println("[OpenJML] restartServer: re-trigger failed: " + t);
+            }
+        });
+    }
+
+    /**
      * Sends a {@code workspace/didChangeConfiguration} notification to the running
      * LSP server with the current Eclipse preference values.  Safe to call from any
      * thread; no-op if the server wrapper is not yet available.
@@ -204,8 +274,36 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
                 // --- Step 3: connect this document to the (now-running) server ---
                 if (wrapper != null && doc != null) {
-                    connectDocumentToWrapper(wrapper, doc, file, lsp4eLoader);
+                    java.util.concurrent.CompletableFuture<?> connectFuture =
+                            connectDocumentToWrapper(wrapper, doc, file, lsp4eLoader);
                     cachedDocument = doc;  // remember for sendSettingsToServer()
+                    // Force code-mining refresh AFTER the connect future completes so that
+                    // LanguageServerWrapper.connectedDocuments contains this document before
+                    // LSP4E's CodeLensProvider calls LanguageServers.forDocument().
+                    final IEditorPart editorSnap = (IEditorPart) part;
+                    Runnable refresh = () -> {
+                        try {
+                            Object adapted = editorSnap.getAdapter(
+                                    org.eclipse.jface.text.ITextOperationTarget.class);
+                            if (adapted instanceof org.eclipse.jface.text.source.ISourceViewer sv
+                                    && sv instanceof org.eclipse.jface.text.source.ISourceViewerExtension5 ext5) {
+                                ext5.updateCodeMinings();
+                                System.err.println("[OpenJML] code-mining refresh triggered for "
+                                        + file.getName());
+                            } else {
+                                System.err.println("[OpenJML] code-mining refresh: viewer not ISourceViewerExtension5 for "
+                                        + file.getName());
+                            }
+                        } catch (Throwable t) {
+                            System.err.println("[OpenJML] updateCodeMinings failed: " + t);
+                        }
+                    };
+                    if (connectFuture != null) {
+                        connectFuture.thenRun(
+                                () -> org.eclipse.swt.widgets.Display.getDefault().asyncExec(refresh));
+                    } else {
+                        org.eclipse.swt.widgets.Display.getDefault().asyncExec(refresh);
+                    }
                 }
             } else {
                 System.err.println("[OpenJML] LspPartListener: startLanguageServer method not found");
@@ -244,13 +342,15 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
     /**
      * Wraps the {@code DefaultLanguageClient}'s diagnostics consumer so that
-     * every {@code publishDiagnostics} notification — including clean-file responses
-     * with an empty diagnostic list — triggers {@link JmlColorizer#refreshAsync()} on
-     * the affected document.  This is the explicit trigger the user requested instead
-     * of a fixed timer.
+     * every {@code publishDiagnostics} notification triggers:
+     * <ol>
+     *   <li>{@link JmlColorizer#refreshAsync()} on the affected document; and</li>
+     *   <li>{@link #refreshAllCodeMinings()} on the UI thread so that code-lens
+     *       labels update after each ESC / check cycle.</li>
+     * </ol>
      *
-     * <p>Uses reflection to access the package-private {@code languageClient} field on
-     * {@code LanguageServerWrapper} and the public {@code setDiagnosticsConsumer} on
+     * <p>Uses reflection to access the {@code languageClient} field on
+     * {@code LanguageServerWrapper} and the {@code setDiagnosticsConsumer} setter on
      * {@code DefaultLanguageClient}.
      */
     private void installDiagnosticsHook(Object wrapper) {
@@ -308,6 +408,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     String uri = (String) params.getClass().getMethod("getUri").invoke(params);
                     if (uri != null) refreshColorizerForUri(uri);
                 } catch (Exception ignored) {}
+                // Schedule a code-mining refresh on the UI thread.  lsp4e's
+                // DefaultLanguageClient.refreshCodeLenses() runs updateCodeMinings() on
+                // ForkJoinPool where UI.getActivePage() returns null (a no-op).
+                // We bypass that and call updateCodeMinings() directly on each viewer.
+                System.err.println("[OpenJML] diagnosticsHook: scheduling refreshAllCodeMinings");
+                org.eclipse.swt.widgets.Display.getDefault().asyncExec(LspPartListener::refreshAllCodeMinings);
             };
             setter.invoke(client, wrapped);
             diagnosticsHookInstalled = true;  // success — don't install again
@@ -563,7 +669,76 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         }
     }
 
-    private static void connectDocumentToWrapper(Object wrapper, org.eclipse.jface.text.IDocument doc,
+    /**
+     * Calls {@code updateCodeMinings()} on every open editor's source viewer so that
+     * LSP4E's {@code CodeLensProvider} re-queries the server.  Must run on the UI thread.
+     *
+     * <p>LSP4E's own {@code DefaultLanguageClient.refreshCodeLenses()} wraps
+     * {@code updateCodeMinings()} in {@code CompletableFuture.runAsync()} (ForkJoinPool)
+     * where {@code UI.getActivePage()} returns null, making it a no-op.  We bypass
+     * {@code DefaultLanguageClient} entirely and walk all viewers directly using
+     * {@code getWorkbenchWindows()} (which works even when Eclipse does not have OS focus).
+     */
+    private static void refreshAllCodeMinings() {
+        try {
+            org.eclipse.ui.IWorkbench wb = org.eclipse.ui.PlatformUI.getWorkbench();
+            int updated = 0;
+            for (org.eclipse.ui.IWorkbenchWindow win : wb.getWorkbenchWindows()) {
+                for (org.eclipse.ui.IWorkbenchPage page : win.getPages()) {
+                    for (org.eclipse.ui.IEditorReference ref : page.getEditorReferences()) {
+                        org.eclipse.ui.IEditorPart editor = ref.getEditor(false);
+                        if (editor == null) continue;
+                        Object adapted = editor.getAdapter(org.eclipse.jface.text.ITextViewer.class);
+                        if (adapted == null)
+                            adapted = editor.getAdapter(org.eclipse.jface.text.ITextOperationTarget.class);
+                        if (adapted == null) continue;
+                        logCodeMiningState(adapted, editor.getTitle());
+                        if (adapted instanceof org.eclipse.jface.text.source.ISourceViewerExtension5 ext5) {
+                            ext5.updateCodeMinings();
+                            updated++;
+                            System.err.println("[OpenJML] refreshAllCodeMinings: updateCodeMinings() for " + editor.getTitle());
+                        } else {
+                            System.err.println("[OpenJML] refreshAllCodeMinings: viewer not ISourceViewerExtension5 for "
+                                    + editor.getTitle() + " (" + adapted.getClass().getSimpleName() + ")");
+                        }
+                    }
+                }
+            }
+            System.err.println("[OpenJML] refreshAllCodeMinings: updated " + updated + " viewer(s)");
+        } catch (Throwable t) {
+            System.err.println("[OpenJML] refreshAllCodeMinings failed: " + t);
+        }
+    }
+
+    /** Logs the code mining manager and provider state of a viewer (diagnostic only). */
+    private static void logCodeMiningState(Object viewer, String editorTitle) {
+        try {
+            java.lang.reflect.Field fMgr = null, fProv = null;
+            for (Class<?> c = viewer.getClass(); c != null; c = c.getSuperclass()) {
+                if (fMgr == null) try { fMgr = c.getDeclaredField("fCodeMiningManager"); } catch (NoSuchFieldException ignored) {}
+                if (fProv == null) try { fProv = c.getDeclaredField("fCodeMiningProviders"); } catch (NoSuchFieldException ignored) {}
+                if (fMgr != null && fProv != null) break;
+            }
+            String mgrStr = "field not found";
+            if (fMgr != null) { fMgr.setAccessible(true); Object v = fMgr.get(viewer); mgrStr = v == null ? "null" : v.getClass().getSimpleName(); }
+            String provStr = "field not found";
+            if (fProv != null) {
+                fProv.setAccessible(true);
+                Object arr = fProv.get(viewer);
+                if (arr instanceof Object[] pa) {
+                    StringBuilder sb = new StringBuilder("[");
+                    for (Object p : pa) sb.append(p == null ? "null" : p.getClass().getSimpleName()).append(", ");
+                    sb.append("]");
+                    provStr = sb.toString();
+                } else { provStr = String.valueOf(arr); }
+            }
+            System.err.println("[OpenJML] " + editorTitle + " fCodeMiningManager=" + mgrStr + " providers=" + provStr);
+        } catch (Throwable ignored) {}
+    }
+
+    @SuppressWarnings("unchecked")
+    private static java.util.concurrent.CompletableFuture<?> connectDocumentToWrapper(
+            Object wrapper, org.eclipse.jface.text.IDocument doc,
             IFile file, ClassLoader lsp4eLoader) {
         // Walk the full class hierarchy so inherited methods are found.
         Class<?> wrapperClass = wrapper.getClass();
@@ -592,26 +767,26 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     if (pts.length == 2
                             && pts[0].getSimpleName().equals("IPath")
                             && pts[1].getSimpleName().equals("IDocument")) {
-                        m.invoke(wrapper, ipath, doc);
+                        Object r = m.invoke(wrapper, ipath, doc);
                         System.err.println("[OpenJML] " + methodName + "(IPath, IDocument) called for "
                                 + file.getName());
-                        return;
+                        return (r instanceof java.util.concurrent.CompletableFuture<?> cf) ? cf : null;
                     }
                     // connect(IDocument, IFile/IPath) — doc first
                     if (pts.length == 2
                             && pts[0].getSimpleName().equals("IDocument")) {
-                        m.invoke(wrapper, doc, file);
+                        Object r = m.invoke(wrapper, doc, file);
                         System.err.println("[OpenJML] " + methodName + "(IDocument, file) called for "
                                 + file.getName());
-                        return;
+                        return (r instanceof java.util.concurrent.CompletableFuture<?> cf) ? cf : null;
                     }
                     // connect(IDocument)
                     if (pts.length == 1
                             && pts[0].getSimpleName().equals("IDocument")) {
-                        m.invoke(wrapper, doc);
+                        Object r = m.invoke(wrapper, doc);
                         System.err.println("[OpenJML] " + methodName + "(IDocument) called for "
                                 + file.getName());
-                        return;
+                        return (r instanceof java.util.concurrent.CompletableFuture<?> cf) ? cf : null;
                     }
                 } catch (Exception e) {
                     System.err.println("[OpenJML] " + methodName + "() invocation failed: " + e);
@@ -620,6 +795,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         }
         System.err.println("[OpenJML] No connect method matched on "
                 + wrapperClass.getName() + " for " + file.getName());
+        return null;
     }
 
     private void openGenericEditor(IFile file) {

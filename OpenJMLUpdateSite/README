@@ -14,7 +14,8 @@ Contents:
   artifacts.jar, content.jar -- p2 repository metadata (generated)
 
 The features/ and plugins/ JARs and the metadata JARs are generated artifacts
-(listed in .gitignore). They are committed only when publishing a release.
+(listed in .gitignore). They are committed only when publishing a release,
+and then in openj.github.io, not here in OpenJMLUpdateSite..
 
 Related directories:
   OpenJMLUI/      -- Plugin source and build scripts
