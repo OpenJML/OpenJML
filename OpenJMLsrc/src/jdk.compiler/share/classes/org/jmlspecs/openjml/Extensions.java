@@ -71,7 +71,7 @@ public class Extensions {
     // of context.
     
     /** Finds the clause kind for the given token, if any */
-    public static @Nullable IJmlClauseKind findKeyword(Token token) {
+    public @Nullable IJmlClauseKind findKeyword(Token token) {
     	if (token instanceof JmlToken) {
     		JmlToken jt = (JmlToken)token;
     		if (jt.jmlclausekind == null) return jt.jmlclausekind;
@@ -86,44 +86,56 @@ public class Extensions {
     	}
     }
     
-    /** Finds the clause kind for the given keyword, if any */
-    public static @Nullable IJmlClauseKind findKeyword(Name name) {
-        String id = name.toString();
-        return allKinds.get(id);
+    public static void synonym(String name, IJmlClauseKind kind) {
+        synchronized (Extensions.class) {
+            allKinds.put(name, kind);
+        }
     }
     
     /** Finds the clause kind for the given keyword, if any */
-    public static @Nullable IJmlClauseKind findKeyword(String name) {
-        return allKinds.get(name);
+    public @Nullable IJmlClauseKind findKeyword(Name name) {
+        synchronized (Extensions.class) {
+            String id = name.toString();
+            return allKinds.get(id);
+        }
+    }
+    
+    /** Finds the clause kind for the given keyword, if any */
+    public @Nullable IJmlClauseKind findKeyword(String name) {
+        synchronized (Extensions.class) {
+            return allKinds.get(name);
+        }
     }
     
     /** Finds a type or method clause kind for the given keyword, if any */
-    public static @Nullable IJmlClauseKind findTM(String keyword) {
-        IJmlClauseKind ext = allKinds.get(keyword);
+    public @Nullable IJmlClauseKind findTM(String keyword) {
+        IJmlClauseKind ext = findKeyword(keyword);
         if (ext instanceof IJmlClauseKind.TypeClause || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
         return null;
     }
     
     /** Finds a statement or method clause kind for the given keyword, if any */
-    public static @Nullable IJmlClauseKind findSM(String keyword) {
-        IJmlClauseKind ext = allKinds.get(keyword);
+    public @Nullable IJmlClauseKind findSM(String keyword) {
+        IJmlClauseKind ext = findKeyword(keyword);
         if (ext instanceof IJmlClauseKind.IStatementKind || ext instanceof IJmlClauseKind.MethodClauseKind) return ext;
         return null;
     }
     
-    public static @Nullable IJmlClauseKind.ModifierKind findModifier(String name) {
+    public @Nullable IJmlClauseKind.ModifierKind findModifier(String name) {
         String dotName = name;
         if (name.indexOf('.') == -1) dotName = "." + name;
-    	for (var k: allKinds.values()) {
-    		if (k instanceof IJmlClauseKind.ModifierKind mk && mk.fullAnnotation.endsWith(dotName)) return mk;
-    	}
-    	return null;
+        synchronized (Extensions.class) {
+            for (var k: allKinds.values()) {
+                if (k instanceof IJmlClauseKind.ModifierKind mk && mk.fullAnnotation.endsWith(dotName)) return mk;
+            }
+            return null;
+        }
     }
     
     /** Last resort list of classes that add extensions to the Parser.
      *  Typically these are found by listing all the classes in
      *  the org.jmlspecs.openjml.ext package */  // TODO - fix this list
-    static Class<?>[] extensions = { 
+    static final Class<?>[] extensions = { 
             // Expressions
             Arithmetic.class,
             FrameExpressions.class,
@@ -186,7 +198,7 @@ public class Extensions {
             
             };
     
-    static public Map<String,IJmlClauseKind> allKinds = new HashMap<>();
+    public static final Map<String,IJmlClauseKind> allKinds = new HashMap<>();
 
     // This static method runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be 

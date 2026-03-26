@@ -254,7 +254,7 @@ public class JmlScanner extends Scanner {
 //    			}
     			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
     				String id = token.name().toString();
-    				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.allKinds.get(id);
+    				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.instance(context).findKeyword(id);
                     if (scannerDebug) System.out.println("JMLSCAN " + id + " # " + clk + " " + token.toStringDetail());
     				if (clk instanceof IJmlClauseKind.LineAnnotationKind lak) {
     					lak.scan(token.pos, id, lak, this);

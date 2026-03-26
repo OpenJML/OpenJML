@@ -97,7 +97,7 @@ public class SingletonExpressions extends JmlExtension {
     
     public static final IJmlClauseKind indexKind = countKind;
     static {
-        Extensions.allKinds.put("\\index", countKind);
+        Extensions.synonym("\\index", countKind);
     }
     
     

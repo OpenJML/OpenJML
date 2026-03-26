@@ -3437,7 +3437,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
         Type result;
-        if (tree instanceof JCIdent id && Extensions.findKeyword(id.name) instanceof JmlPrimitiveTypes.JmlTypeKind kt) {
+        if (tree instanceof JCIdent id && Extensions.instance(context).findKeyword(id.name) instanceof JmlPrimitiveTypes.JmlTypeKind kt) {
             // Backslash identifier -- user added type
             result = kt.getType(context);
             tree.type = result;
@@ -6090,7 +6090,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		}
         	}
         	Name nm = tree.name;
-            var ck = Extensions.findKeyword(tree.name);
+            var ck = Extensions.instance(context).findKeyword(tree.name);
             if (ck instanceof JmlTypeKind jtk) {
                 // Get here when a type-name is used as the expression in a static dot-selection
                 // FIXME - I think
@@ -6591,7 +6591,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
         } else {
-            IJmlClauseKind fext = Extensions.findKeyword(tree.name);
+            IJmlClauseKind fext = Extensions.instance(context).findKeyword(tree.name);
             // TODO: Not sure under what conditions resultInfo.pkind might be both VAL and TYP and what would happen then
             if (fext instanceof JmlField && this.jmlresolve.allowJML() && !resultInfo.pkind.contains(KindSelector.TYP)) {
             	// <expr>.array

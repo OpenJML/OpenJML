@@ -69,7 +69,7 @@ public abstract class IJmlClauseKind {
 
     public IJmlClauseKind(String keyword) {
         this.keyword = keyword;
-        Extensions.allKinds.put(keyword, this);
+        Extensions.synonym(keyword, this);
     }
     
     // These fields and methods give behavior of JML clauses of the given kind.
@@ -114,7 +114,7 @@ public abstract class IJmlClauseKind {
     // The following fields are initialized on demand when parsing or typechecking
     // They are not necessarily available when an instanceof IJmlClauseKind is created
     
-    /** The compilation context */
+    /** The compilation context -- initialized along with parser */
     private /*@ non_null */ Context context;
 
     /** The parser in use, set when parsing is requested; note that there is a new parser created for each file parsed */
@@ -244,7 +244,7 @@ public abstract class IJmlClauseKind {
             // If a semicolon is required, but we have end of JML comment instead, issue a warning about missing semicolon
             // (the parser effectively auto-inserts one)
             if (requireSemicolon) warning(parser.pos(), parser.endPos(), "jml.missing.semi", clauseKind.keyword());
-        } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.findKeyword(parser.token().name()) != null) {
+        } else if (parser.token().kind != SEMI && parser.token().kind == TokenKind.IDENTIFIER && Extensions.instance(context).findKeyword(parser.token().name()) != null) {
             // No semicolon or end of JML - so we have started a new clause or statement without a separating semicolon.
             // This is an error
             var t = parser.getScanner().prevToken();

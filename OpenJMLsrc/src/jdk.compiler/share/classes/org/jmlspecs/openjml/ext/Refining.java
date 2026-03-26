@@ -154,7 +154,7 @@ public class Refining extends JmlExtension {
 
             JCStatement begin = null;
             if (parser.jmlTokenClauseKind() == Refining.beginClause) {
-                begin = (JCStatement)Extensions.findSM(beginID).parse(mods, beginID, beginClause, parser);
+                begin = (JCStatement)Extensions.instance(parser.context).findSM(beginID).parse(mods, beginID, beginClause, parser);
             }
             ListBuffer<JCStatement> stats = new ListBuffer<>();
             List<JCStatement> stat;
@@ -166,7 +166,7 @@ public class Refining extends JmlExtension {
                 		parser.nextToken();
                 	}
                     if (parser.jmlTokenClauseKind() == Refining.endClause) {
-                        Extensions.findSM(endID).parse(mods, endID, endClause, parser);
+                        Extensions.instance(parser.context).findSM(endID).parse(mods, endID, endClause, parser);
                         break;
                     }
                     stat = parser.blockStatement();
