@@ -11,7 +11,7 @@
   "repository": {
     "jml-line-comment": {
       "comment": "JML line annotation: //@ ... or //+@ ... or //-@ ...",
-      "begin": "//[\\+\\-]?@",
+      "begin": "//([\\+\\-][a-zA-Z_]+)*@",
       "end": "$",
       "name": "comment.line.jml",
       "patterns": [
@@ -21,7 +21,7 @@
     },
     "jml-block-comment": {
       "comment": "JML block annotation: /*@ ... @*/ or /*+@ ... or /*-@ ...",
-      "begin": "/\\*[\\+\\-]?@",
+      "begin": "/\\*([\\+\\-][a-zA-Z_]+)*@",
       "end": "@?\\*/",
       "name": "comment.block.jml",
       "patterns": [

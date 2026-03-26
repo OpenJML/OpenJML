@@ -76,7 +76,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         String path = findServerPath();
         java.io.File f = new java.io.File(path);
         if (!f.isFile() || !f.canExecute()) {
-            Console.errorlog("OpenJML: server script not found or not executable: " + path);
+            Console.errorlog("[OpenJML] server script not found or not executable: " + path);
             showServerNotFoundDialog(path);
             throw new IOException("openjml-lsp not found or not executable: " + path);
         }

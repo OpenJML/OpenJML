@@ -328,7 +328,7 @@ public class SemanticTokensProvider {
         @Override
         public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors tree) {
             emitClause(tree);
-            // no expression children
+            jmlDepth++; super.visitJmlMethodClauseBehaviors(tree); jmlDepth--;
         }
 
         @Override

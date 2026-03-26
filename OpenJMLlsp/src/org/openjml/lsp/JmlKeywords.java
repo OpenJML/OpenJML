@@ -77,9 +77,9 @@ public final class JmlKeywords {
         // store-ref keywords
         "nothing", "everything", "not_specified", "strictly_nothing",
         // type expressions
-        "typeof", "type", "elemtype", "bigint", "real", "set", "map", "string", "array", "seq",
+        "typeof", "type", "elemtype", "bigint", "real", "set", "map", "string", "array", "seq", "datagroup", "locset",
         // heap/object checks
-        "lockset", "nonnullelements", "invariant_for", "is_initialized",
+        "lockset", "nonnullelements", "nonnullelementsx", "invariant_for", "is_initialized",
         // frame conditions / bounds
         "not_assigned", "not_modified",
         "only_accessed", "only_assigned", "only_called", "only_captured",
