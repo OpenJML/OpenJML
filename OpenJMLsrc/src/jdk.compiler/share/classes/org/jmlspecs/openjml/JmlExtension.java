@@ -10,7 +10,7 @@ public abstract class JmlExtension {
 	protected JmlExtension() {}
     
     public static void synonym(String s, IJmlClauseKind t) {
-        Extensions.allKinds.put(s,t);
+        Extensions.synonym(s,t);
     }
 
 }

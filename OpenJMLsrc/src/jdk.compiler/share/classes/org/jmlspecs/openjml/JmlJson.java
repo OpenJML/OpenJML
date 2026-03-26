@@ -2237,7 +2237,7 @@ public class JmlJson {
             var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
-            var kind = Extensions.findKeyword(str);
+            var kind = Extensions.allKinds.get(str);
             var token = new JmlToken(kind, null, 0, 0, null);
             return token;
         }
@@ -2305,7 +2305,7 @@ public class JmlJson {
             var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
-            return Extensions.findKeyword(str);
+            return Extensions.allKinds.get(str);
         }
    }
     

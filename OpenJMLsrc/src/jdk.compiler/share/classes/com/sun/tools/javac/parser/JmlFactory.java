@@ -5,6 +5,7 @@
  */
 package com.sun.tools.javac.parser;
 
+import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.Utils;
 
 import com.sun.tools.javac.util.Context;
@@ -95,6 +96,7 @@ public class JmlFactory extends ParserFactory {
         p.names = Names.instance(context);
         p.context = context;
         p.utils = Utils.instance(context);
+        p.extensions = Extensions.instance(context);
         return p;
     }
     

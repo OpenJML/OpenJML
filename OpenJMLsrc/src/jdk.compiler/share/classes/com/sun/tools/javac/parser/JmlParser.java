@@ -84,6 +84,9 @@ public class JmlParser extends JavacParser {
     /** Cached value of the utilities object */
     // @ non_null
     public Utils            utils;
+    
+    // Initialized by the factory after construction
+    public Extensions       extensions;
 
     /** The scanner associated with the parser */
     // @ non_null
@@ -186,7 +189,7 @@ public class JmlParser extends JavacParser {
     /** Returns true if the current token is a JML modifier, but not a type annotation */
     public boolean isJmlModifier(Token token) {
     	if (token.kind != IDENTIFIER) return false;
-    	var m = Extensions.findKeyword(token);
+    	var m = extensions.findKeyword(token);
     	//if (m instanceof TypeAnnotationKind) return false;
     	return m instanceof ModifierKind;
     }
@@ -201,7 +204,7 @@ public class JmlParser extends JavacParser {
     public IJmlClauseKind jmlTokenClauseKind(Token token) {
         if (token instanceof JmlToken jt && jt.jmlclausekind != null) return jt.jmlclausekind;
         if (token.kind != TokenKind.IDENTIFIER) return null;
-        IJmlClauseKind t = Extensions.allKinds.get(token.name().toString());
+        IJmlClauseKind t = extensions.findKeyword(token.name().toString());
         if (token instanceof JmlToken jt) jt.jmlclausekind = t;
         return t;
     }
@@ -367,7 +370,7 @@ public class JmlParser extends JavacParser {
         // the annotation will resolve to a type in a different package than org.jmlspecs.annotation
         // which will mean it erroneously is marked as a JML modifier. But we need to know at least
         // whether it is a MODEL, and maybe a type annotation, in JmlEnter, before attribution
-        ((JmlAnnotation)a).kind = Extensions.findModifier(s);
+        ((JmlAnnotation)a).kind = Extensions.instance(context).findModifier(s);
         return a;
     }
     
@@ -649,7 +652,7 @@ public class JmlParser extends JavacParser {
                 }
             } else { // presumes inJmlDeclaration is true
                 if (token.kind == IDENTIFIER) {
-                    IJmlClauseKind cl = Extensions.findKeyword(token);
+                    IJmlClauseKind cl = extensions.findKeyword(token);
                     if (cl instanceof IJmlClauseKind.ClassLikeKind) {
                         s = (JmlDatatypeDecl)cl.parse(mods,token.name().toString(),cl,this);
                     } else {
@@ -931,11 +934,11 @@ public class JmlParser extends JavacParser {
             	if (!S.jml()) break jml; // Empty JML comment
             	if (token.kind == TokenKind.IDENTIFIER) {
             		id = token.name().toString();
-            		anyext = Extensions.allKinds.get(id);
+            		anyext = extensions.findKeyword(id);
             	}
             	try {
             	if (anyext != null) {
-            		IJmlClauseKind ext = Extensions.findSM(id);
+            		IJmlClauseKind ext = extensions.findSM(id);
             		if (ext != null) {
             			JCStatement s;
             			if (ext instanceof IJmlClauseKind.MethodClauseKind
@@ -959,7 +962,7 @@ public class JmlParser extends JavacParser {
             			if (s == null) return List.<JCStatement>nil();
             			return List.<JCStatement>of(s);
             		}
-            		IJmlClauseKind cl = Extensions.findKeyword(token);
+            		IJmlClauseKind cl = extensions.findKeyword(token);
             		if (cl instanceof IJmlClauseKind.ClassLikeKind) {
             			return List.<JCStatement>of((JmlDatatypeDecl)cl.parse(null, cl.keyword, cl, this));
             		}
@@ -1057,7 +1060,7 @@ public class JmlParser extends JavacParser {
     	while (true) {
     		if (!(S.jml() && token.kind == TokenKind.IDENTIFIER)) break;
     		String id = token.name().toString();
-    		IJmlClauseKind anyext = Extensions.allKinds.get(id);
+    		IJmlClauseKind anyext = extensions.findKeyword(id);
     		if (anyext == InlinedLoopStatement.inlinedLoopStatement || anyext == splitClause) {
     			break;
     		} else if (!isLoopSpec(anyext)) {
@@ -1159,7 +1162,7 @@ public class JmlParser extends JavacParser {
         if (!(S.jml())) return false;
         if (possibleKeyword.kind == TokenKind.IDENTIFIER) {
             if (possibleKeyword.name().toString().equals("code")) return true;
-            IJmlClauseKind ext = Extensions.findKeyword(possibleKeyword);
+            IJmlClauseKind ext = extensions.findKeyword(possibleKeyword);
             return ext instanceof IJmlClauseKind.MethodClauseKind;
         }
         return false;
@@ -1171,7 +1174,7 @@ public class JmlParser extends JavacParser {
     protected boolean startOfTypeSpec(Token possibleKeyword) {
         if (!(S.jml())) return false;
         if (possibleKeyword.kind == TokenKind.IDENTIFIER) {
-            return Extensions.findKeyword(possibleKeyword) instanceof IJmlClauseKind.TypeClause;
+            return extensions.findKeyword(possibleKeyword) instanceof IJmlClauseKind.TypeClause;
         }
         return false;
     }
@@ -1180,7 +1183,7 @@ public class JmlParser extends JavacParser {
      * (e.g. inductive datatype).
      */
     public IJmlClauseKind.ClassLikeKind isJmlClassLike(Token token) {
-        IJmlClauseKind k = Extensions.findKeyword(token);
+        IJmlClauseKind k = extensions.findKeyword(token);
         if (k instanceof IJmlClauseKind.ClassLikeKind) return (IJmlClauseKind.ClassLikeKind)k;
         return null;
     }
@@ -1228,7 +1231,7 @@ public class JmlParser extends JavacParser {
             // Look up the keyword
             if (S.jml() && token.kind == TokenKind.IDENTIFIER) {
                 id = token.name().toString();
-                ct = Extensions.findTM(id);
+                ct = extensions.findTM(id);
             }
             if (ct != null) {
             	// It is something JML - but only type or method specification clauses
@@ -1283,7 +1286,7 @@ public class JmlParser extends JavacParser {
             } else if (isStartJml(token)) { // FIXME - is this needed - modifiersOpt reads any start or end JML tokens
             	nextToken();
             	continue;
-            } else if (S.jml() && id != null && Extensions.findSM(id) != null && !"set".equals(id)) {
+            } else if (S.jml() && id != null && extensions.findSM(id) != null && !"set".equals(id)) {
                 utils.error(pos(), endPos(), "jml.illegal.token.for.declaration", id);
                 skipThroughSemi(); // FIXME - or right brace?
                 mods = null;
@@ -1656,7 +1659,7 @@ public class JmlParser extends JavacParser {
         	}
         }
         while (isEndJml(token)) nextToken();
-        var clausekind = Extensions.findKeyword(token);
+        var clausekind = extensions.findKeyword(token);
         if (clausekind instanceof JmlTypeKind kind) {
 
             int prevmode = mode;
@@ -1672,19 +1675,19 @@ public class JmlParser extends JavacParser {
 
     public IJmlClauseKind methodSpecKeyword() {
         IJmlClauseKind ext = null;
-        if (token.kind == TokenKind.IDENTIFIER) ext = Extensions.findTM(token.name().toString());
+        if (token.kind == TokenKind.IDENTIFIER) ext = extensions.findTM(token.name().toString());
         return ext;
     }
 
     public IJmlClauseKind methodSpecKeywordS() {
         IJmlClauseKind ext = null;
-        if (token.kind == TokenKind.IDENTIFIER) ext = Extensions.findSM(token.name().toString());
+        if (token.kind == TokenKind.IDENTIFIER) ext = extensions.findSM(token.name().toString());
         return ext;
     }
 
     public JCTree parseTypeSpecs(JCModifiers mods) {
         String id = token.kind == TokenKind.IDENTIFIER ?  token.name().toString() : "";
-        IJmlClauseKind ct = Extensions.findKeyword(token);
+        IJmlClauseKind ct = extensions.findKeyword(token);
         JCTree t = ct.parse(mods, id, ct, this);
         return t;
     }
@@ -2002,7 +2005,7 @@ public class JmlParser extends JavacParser {
         String keyword = null;
         if (token().kind == IDENTIFIER) keyword = token().name().toString();
         if (keyword != null) {
-            IJmlClauseKind clauseType = Extensions.findTM(keyword);
+            IJmlClauseKind clauseType = extensions.findTM(keyword);
             if (clauseType == org.jmlspecs.openjml.ext.MethodExprClauseExtensions.behaviorsClauseKind) return null; // 'behaviors' clauses not allowed in specification cases
             if (clauseType instanceof MethodSpecClauseKind) {
                 res = (JmlMethodClause)clauseType.parse(null, keyword, clauseType, this);
@@ -2273,7 +2276,7 @@ public class JmlParser extends JavacParser {
         while (true) {
             while (S.jml()) {
                 if (isStartJml(token)) { nextToken(); continue; }
-                var mm = Extensions.findKeyword(token);
+                var mm = extensions.findKeyword(token);
                 if (!(mm instanceof ModifierKind m)) {
                     // The token is an identifier that is not a modifier
                     // We don't know whether this is a (a) misspelled modifier or (b) name that is a type name
@@ -2362,7 +2365,7 @@ public class JmlParser extends JavacParser {
                 mods.flags |= Flags.INTERFACE;
                 break;
             } else if (S.jml() && isJmlModifier(token)) {
-                ModifierKind mk = (ModifierKind)Extensions.findKeyword(token);
+                ModifierKind mk = (ModifierKind)extensions.findKeyword(token);
                 JmlToken jt = new JmlToken(mk, token.pos, token.endPos);
                 jt.source = Log.instance(context).currentSourceFile();
                 mods.jmlmods.add(jt);
@@ -2610,7 +2613,7 @@ public class JmlParser extends JavacParser {
                 t = S.token(2);
             }
             if (t.kind == TokenKind.IDENTIFIER) {
-                IJmlClauseKind ck = Extensions.findKeyword(t);
+                IJmlClauseKind ck = extensions.findKeyword(t);
                 if (ck instanceof JmlTypeKind) return ParensResult.CAST;
                 if (ck instanceof IJmlClauseKind.TypeAnnotationKind) return ParensResult.CAST;
                 if (t.name().charAt(0) == '\\') return ParensResult.PARENS;
@@ -2656,7 +2659,7 @@ public class JmlParser extends JavacParser {
             // FIXME - generally handle backslash type identifiers; verify type or expression
             String id = token.name().toString();
             if (id.charAt(0) == '\\') {
-                IJmlClauseKind kind = Extensions.findKeyword(token);
+                IJmlClauseKind kind = extensions.findKeyword(token);
                 // An invalid backslash token would have been reported in JmlTokenizer
                 if (kind instanceof IJmlClauseKind.SingletonKind) {
                     // FIXME - not sure this branch is ever reached
@@ -2725,7 +2728,7 @@ public class JmlParser extends JavacParser {
 
             else
                 {
-                    IJmlClauseKind kind = Extensions.findKeyword(token);
+                    IJmlClauseKind kind = extensions.findKeyword(token);
                     if (kind != null) {
                         if (kind instanceof IJmlClauseKind.ExpressionKind) {
                             JCExpression tt = ((IJmlClauseKind.ExpressionKind)kind).parse(null, token.toString(), kind, this);
