@@ -39,8 +39,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         return sym == null ? "<ERROR>" : jmlNames.get(sym.toString());
     }
 
-    public JmlPrimitiveTypes(Context context) {
-        context.put(JmlPrimitiveTypes.class, this);
+    public JmlPrimitiveTypes() {
     }
     
     public static class JmlTypeKind extends IJmlClauseKind {
