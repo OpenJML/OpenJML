@@ -8996,7 +8996,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        popMapSymbols(saved);
 		    }
 		}
-        if (eresult != null && actualVarArgsCount >= 0 && types.isJmlType(eresult.type) && eresult.type.tsym == types.ARRAYsym(context)) {
+        if (eresult != null && actualVarArgsCount >= 0 && types.isJmlType(eresult.type) && eresult.type.tsym == types.ARRAYsym) {
             JCFieldAccess fa = treeutils.makeSelect(that.pos, eresult, names.length);
             fa.sym = eresult.type.tsym.members().findFirst(names.length);
             fa.type = syms.intType;
@@ -15093,7 +15093,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				result = eresult = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
 				return;
 			}
-        } else if (optag == JCTree.Tag.PLUS && that.type.tsym == jmltypes.SEQsym(context)) {
+        } else if (optag == JCTree.Tag.PLUS && that.type.tsym == jmltypes.SEQsym) {
             JCExpression lhs = convertExpr(that.getLeftOperand());
             JCExpression rhs = convertExpr(that.getRightOperand());
             result = eresult = treeutils.makeMethodInvocation(that, lhs, "append", rhs);
@@ -15762,15 +15762,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 } else if (esc) {
                     eresult = castexpr;
                 }
-            } else if (types.erasure(oldtype).tsym == types.SEQsym(context)) {
+            } else if (types.erasure(oldtype).tsym == types.SEQsym) {
                 // In this and the following, the oldtype and newtype are not equal because typically the newtype is \seq<T>
                 // But we know there can be no needed conversions because these types do not participate in conversions
                 eresult = expr;
-            } else if (types.erasure(oldtype).tsym == types.SETsym(context)) {
+            } else if (types.erasure(oldtype).tsym == types.SETsym) {
                 eresult = expr;
-            } else if (types.erasure(oldtype).tsym == types.MAPsym(context)) {
+            } else if (types.erasure(oldtype).tsym == types.MAPsym) {
                 eresult = expr;
-            } else if (types.erasure(oldtype).tsym == types.ARRAYsym(context)) {
+            } else if (types.erasure(oldtype).tsym == types.ARRAYsym) {
                 eresult = expr;
             } else {
                 if (types.isSameType(oldtype, BIGINT) && newtype.isIntegral() && checkRange) {
