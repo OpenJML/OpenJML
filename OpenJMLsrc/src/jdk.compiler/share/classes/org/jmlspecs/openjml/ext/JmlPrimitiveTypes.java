@@ -40,7 +40,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
     }
 
     public JmlPrimitiveTypes(Context context) {
-        context.put(JmlPrimitiveTypes.class, this);
     }
     
     public static class JmlTypeKind extends IJmlClauseKind {
@@ -65,13 +64,13 @@ public class JmlPrimitiveTypes extends JmlExtension {
         }
         
         public Symbol.ClassSymbol getSymbol(Context context) {
-            System.out.println("GetTOMG SYM FOPr " + typename + " " + this.getClass());
+            //System.out.println("GetTOMG SYM FOPr " + typename + " " + this.getClass());
             String fqname = typename;
             var nm = Names.instance(context).fromString("java.base");
             com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
-            System.out.println("   MODULE " + moduleSym);
+            //System.out.println("   MODULE " + moduleSym);
             Symbol.ClassSymbol sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
-            System.out.println("   CLASS " + sym);
+            //System.out.println("   CLASS " + sym);
             if (sym == null) {
                 System.out.println("FAILED TO GET SYM FOR " + fqname);
             }

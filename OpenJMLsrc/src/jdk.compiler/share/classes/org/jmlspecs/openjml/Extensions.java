@@ -287,7 +287,7 @@ public class Extensions {
                 return true; 
             } 
             catch (ClassNotFoundException ee) { 
-            	Utils.instance(context).note("Not found " + s); 
+            	Utils.instance(context).note("Not found " + s +" " + e.getCause()); 
             }
             //Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
             return false;
