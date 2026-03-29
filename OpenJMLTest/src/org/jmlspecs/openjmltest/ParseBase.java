@@ -56,6 +56,8 @@ abstract public class ParseBase extends JmlTestSuite {
     public void postOptions() {
         JmlAttr.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
         JmlEnter.instance(context); // Needed to avoid circular dependencies in tool constructors that only occur in testing
+        com.sun.tools.javac.code.JmlTypes.instance(context);
+        com.sun.tools.javac.code.Symtab.instance(context);
         fac = (JmlFactory)JmlFactory.instance(context);
     }
 

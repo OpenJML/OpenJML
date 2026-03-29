@@ -67,37 +67,49 @@ public class JmlTypes extends Types {
     protected JmlTypes(Context context) {
         super(context);
         this.context = context;
-        TYPEsym = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
-        BIGINTsym = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
-        REALsym = JmlPrimitiveTypes.realTypeKind.getSymbol(context);
-        STRINGsym = JmlPrimitiveTypes.stringTypeKind.getSymbol(context);
-        SETsym = JmlPrimitiveTypes.setTypeKind.getSymbol(context);
-        SEQsym = JmlPrimitiveTypes.seqTypeKind.getSymbol(context);
-        MAPsym = JmlPrimitiveTypes.mapTypeKind.getSymbol(context);
-        ARRAYsym = JmlPrimitiveTypes.arrayTypeKind.getSymbol(context);
-        LOCSETsym = JmlPrimitiveTypes.locsetTypeKind.getSymbol(context);
     }
     
-    public final Symbol.TypeSymbol TYPEsym;
-    public final Symbol.TypeSymbol BIGINTsym;
-    public final Symbol.TypeSymbol REALsym;
-    public final Symbol.TypeSymbol STRINGsym;
-    public final Symbol.TypeSymbol SETsym;
-    public final Symbol.TypeSymbol SEQsym;
-    public final Symbol.TypeSymbol MAPsym;
-    public final Symbol.TypeSymbol ARRAYsym;
-    public final Symbol.TypeSymbol LOCSETsym;
+    private boolean initialized = false;
+    
+    private void initialize() {
+        if (!initialized) {
+            TYPEsym = JmlPrimitiveTypes.TYPETypeKind.init(context);
+            BIGINTsym = JmlPrimitiveTypes.bigintTypeKind.init(context);
+            REALsym = JmlPrimitiveTypes.realTypeKind.init(context);
+            STRINGsym = JmlPrimitiveTypes.stringTypeKind.init(context);
+            SETsym = JmlPrimitiveTypes.setTypeKind.init(context);
+            SEQsym = JmlPrimitiveTypes.seqTypeKind.init(context);
+            MAPsym = JmlPrimitiveTypes.mapTypeKind.init(context);
+            ARRAYsym = JmlPrimitiveTypes.arrayTypeKind.init(context);
+            LOCSETsym = JmlPrimitiveTypes.locsetTypeKind.init(context);
+            JmlPrimitiveTypes.intmapTypeKind.init(context);
+            JmlPrimitiveTypes.intsetTypeKind.init(context);
+            JmlPrimitiveTypes.rangeTypeKind.init(context);
+            JmlPrimitiveTypes.datagroupTypeKind.init(context);
+            initialized = true;
+        }
+    }
+    
+    private Symbol.TypeSymbol TYPEsym;
+    private Symbol.TypeSymbol BIGINTsym;
+    private Symbol.TypeSymbol REALsym;
+    private Symbol.TypeSymbol STRINGsym;
+    private Symbol.TypeSymbol SETsym;
+    private Symbol.TypeSymbol SEQsym;
+    private Symbol.TypeSymbol MAPsym;
+    private Symbol.TypeSymbol ARRAYsym;
+    private Symbol.TypeSymbol LOCSETsym;
         
-    //public Symbol.TypeSymbol TYPEsym(Context context) { return JmlPrimitiveTypes.TYPETypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol BIGINTsym(Context context) { return JmlPrimitiveTypes.bigintTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol REALsym(Context context) { return JmlPrimitiveTypes.realTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol STRINGsym(Context context) { return JmlPrimitiveTypes.stringTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol RANGEsym(Context context) { return JmlPrimitiveTypes.rangeTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol SETsym(Context context) { return JmlPrimitiveTypes.setTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol SEQsym(Context context) { return JmlPrimitiveTypes.seqTypeKind.getSymbol(context); }
-//    //public Symbol.TypeSymbol MAPsym(Context context) { return JmlPrimitiveTypes.mapTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol ARRAYsym(Context context) { return JmlPrimitiveTypes.arrayTypeKind.getSymbol(context); }
-//    public Symbol.TypeSymbol LOCSETsym(Context context) { return JmlPrimitiveTypes.locsetTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol TYPEsym() { initialize(); return TYPEsym; }
+    public Symbol.TypeSymbol BIGINTsym() { initialize(); return BIGINTsym; }
+    public Symbol.TypeSymbol REALsym() { initialize(); return REALsym; }
+    public Symbol.TypeSymbol STRINGsym() { initialize(); return STRINGsym; }
+    public Symbol.TypeSymbol RANGEsym() { initialize(); return JmlPrimitiveTypes.rangeTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol SETsym() { initialize(); return SETsym; }
+    public Symbol.TypeSymbol SEQsym() { initialize(); return SEQsym; }
+    public Symbol.TypeSymbol MAPsym() { initialize(); return MAPsym; }
+    public Symbol.TypeSymbol ARRAYsym() { initialize(); return ARRAYsym; }
+    public Symbol.TypeSymbol LOCSETsym() { initialize(); return LOCSETsym; }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override

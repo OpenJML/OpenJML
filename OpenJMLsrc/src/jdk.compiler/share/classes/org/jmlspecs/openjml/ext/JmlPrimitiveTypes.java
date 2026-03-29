@@ -63,6 +63,12 @@ public class JmlPrimitiveTypes extends JmlExtension {
             return Names.instance(context).fromString(typename);
         }
         
+        public Symbol.ClassSymbol init(Context context) {
+            var s = getSymbol(context);
+            initOps(context, s.type);
+            return s;
+        }
+        
         public Symbol.ClassSymbol getSymbol(Context context) {
             //System.out.println("GetTOMG SYM FOPr " + typename + " " + this.getClass());
             String fqname = typename;
@@ -74,7 +80,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
             if (sym == null) {
                 System.out.println("FAILED TO GET SYM FOR " + fqname);
             }
-            initOps(context, sym.type);
             return sym;
         }
         

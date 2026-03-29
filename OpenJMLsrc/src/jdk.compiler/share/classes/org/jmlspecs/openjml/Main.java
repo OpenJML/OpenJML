@@ -173,7 +173,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         // Put this early so any early diagnostics are sent to the listener
         if (diagListener != null) context.put(DiagnosticListener.class, diagListener);
-        register(context);
+        register(context, stdOut);
 
         // Now fetch option values from global properties and env. variables
         JmlOptions.setOptionsFromProperties(Utils.findProperties(context), context);
@@ -556,7 +556,7 @@ public class Main extends com.sun.tools.javac.main.Main {
      * that use each other, if you are not careful.
      * @param context the compilation context into which to register the tools
      */
-    public void register(/*@ non_null @*/ Context context) {
+    public static void register(/*@ non_null @*/ Context context, PrintWriter stdOut) {
 
         // Notes on tool instantiation:
         // JavacMessages is needed in order to write out any (javac) error messages, such as might happen in processing options

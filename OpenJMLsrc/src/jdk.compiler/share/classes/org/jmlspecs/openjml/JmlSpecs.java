@@ -705,11 +705,11 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
-        //if (type.toString().endsWith(".Object")) System.out.println("PUTSPECS " + type + " " + type.hashCode() + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + spec);
+        if (utils.verbose()) System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
         spec.csymbol = type;
         specsTypes.put(type,spec);        
         setStatus(type, SpecsStatus.SPECS_LOADED);
-        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.verbose()) utils.note("      Saving class specs for " + type + " " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
