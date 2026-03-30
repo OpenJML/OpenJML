@@ -395,12 +395,14 @@ public class JmlOptions extends Options {
             String v = properties.getProperty(key);
             if (key.startsWith(Strings.optionPropertyPrefix)) {
                 String rest = key.substring(Strings.optionPropertyPrefix.length());
-                if (v.equals("true")) v = "";
-                else if (v.equals("false")) v = null;
                 rest = "--" + rest;
-                opts.put(rest, v);
                 JmlOption opt = JmlOption.find(rest);
                 if (opt != null) {
+                    if (opt.defaultValue() instanceof Boolean) {
+                        set(opt, Boolean.parseBoolean(v));
+                    } else {
+                        opts.put(rest, v);
+                    }
                     opt.check(context, false);
                 } else {
                     Log.instance(context).error("jml.message","No such option: " + rest);
