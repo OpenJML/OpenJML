@@ -11,6 +11,15 @@
            id="org.jmlspecs.openjml.eclipse.SettingsPage"
            name="%openjml.ui.PreferencePage">
      </page>
+     <!-- Sub-pages: appear as twistie children of the OpenJML tree node -->
+     <page class="org.jmlspecs.openjml.eclipse.OpenJMLToolPage"
+           id="org.jmlspecs.openjml.eclipse.ToolOptionsPage"
+           category="org.jmlspecs.openjml.eclipse.SettingsPage"
+           name="%openjml.ui.PreferencePage.ToolOptions"/>
+     <page class="org.jmlspecs.openjml.eclipse.OpenJMLPluginPage"
+           id="org.jmlspecs.openjml.eclipse.PluginLspPage"
+           category="org.jmlspecs.openjml.eclipse.SettingsPage"
+           name="%openjml.ui.PreferencePage.PluginLsp"/>
      <!-- Legacy preference sub-pages moved to oldsrc; comment back in when resurrected -->
      <!--
      <page class="org.jmlspecs.openjml.eclipse.PreferencesPage"

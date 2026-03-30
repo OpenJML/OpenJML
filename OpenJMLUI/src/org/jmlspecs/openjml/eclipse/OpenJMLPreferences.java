@@ -4,136 +4,69 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import org.eclipse.jface.preference.BooleanFieldEditor;
-import org.eclipse.jface.preference.ComboFieldEditor;
-import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 
 /**
- * Eclipse preferences page for OpenJML LSP settings.
+ * Main OpenJML preferences page — shows two tabs:
+ * <ol>
+ *   <li>"Plugin and LSP Settings"</li>
+ *   <li>"OpenJML Tool Options"</li>
+ * </ol>
  *
- * <p>Depends only on {@link OpenJMLOptions} (plain string key constants) and
- * standard Eclipse JFace APIs — no dependency on legacy OpenJML classes
- * (JmlOption, Strings, etc.) — so this page always loads in a PDE runtime
- * workbench even when the old OpenJML JARs are absent.
+ * The same content is also accessible as individual sub-pages in the
+ * preferences tree (see {@link OpenJMLPluginPage} and
+ * {@link OpenJMLToolPage}), which causes the tree node to show a twistie.
+ *
+ * <p>Field creation and lifecycle management live in
+ * {@link OpenJMLPreferencesBase}.
  */
-public class OpenJMLPreferences extends FieldEditorPreferencePage
-        implements IWorkbenchPreferencePage {
+public class OpenJMLPreferences extends OpenJMLPreferencesBase {
 
-    public OpenJMLPreferences() {
-        super(FLAT);
-    }
-
-    @Override
-    public void init(IWorkbench workbench) {
-        setPreferenceStore(org.openjml.ui.Activator.getDefault().getPreferenceStore());
-    }
+    /**
+     * Returns the zero-based index of the tab to show initially.
+     * Subclasses ({@link OpenJMLPluginPage}, {@link OpenJMLToolPage}) override
+     * this to pre-select their respective tab when opened from the tree.
+     */
+    protected int getInitialTab() { return 0; }
 
     @Override
-    protected void createFieldEditors() {
+    protected Control createContents(Composite parent) {
+        TabFolder tabFolder = new TabFolder(parent, SWT.NONE);
+        tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-        // ── LSP Server ──────────────────────────────────────────────────────
-        addLabel("LSP Server", SWT.SEPARATOR | SWT.HORIZONTAL);
+        createPluginAndLspFields(addTab(tabFolder, "Plugin and LSP Settings"));
+        createToolOptionFields(addTab(tabFolder, "OpenJML Tool Options"));
 
-        addField(new StringFieldEditor(OpenJMLOptions.lspServerPathKey,
-                "Server script path (blank = find on PATH or beside Eclipse):",
-                getFieldEditorParent()));
-
-        addSpace();
-
-        // ── Analysis triggers ───────────────────────────────────────────────
-        addLabel("Analysis Triggers", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addField(new ComboFieldEditor(OpenJMLOptions.checkTriggerOnKey,
-                "JML type-check trigger:",
-                new String[][] {
-                    { "On edit (instant feedback)", "edit" },
-                    { "On save only",               "save" } },
-                getFieldEditorParent()));
-
-        addField(new ComboFieldEditor(OpenJMLOptions.escTriggerOnKey,
-                "ESC (static checking) trigger:",
-                new String[][] {
-                    { "Manual only",          "manual" },
-                    { "On save",              "save"   },
-                    { "On edit (expensive)",  "edit"   } },
-                getFieldEditorParent()));
-
-        addSpace();
-
-        // ── Paths ───────────────────────────────────────────────────────────
-        addLabel("Paths", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addField(new StringFieldEditor(OpenJMLOptions.propertiesFileKey,
-                "openjml.properties file (blank = auto-discover):",
-                getFieldEditorParent()));
-        addField(new StringFieldEditor(OpenJMLOptions.specsPathKey,
-                "Specs path (blank = default from launcher):",
-                getFieldEditorParent()));
-        addField(new StringFieldEditor(OpenJMLOptions.solversPathKey,
-                "Solvers path (blank = default from launcher):",
-                getFieldEditorParent()));
-        addField(new StringFieldEditor(OpenJMLOptions.sourcePathKey,
-                "Source path for -sourcepath (blank = single-file):",
-                getFieldEditorParent()));
-        addField(new StringFieldEditor(OpenJMLOptions.classPathKey,
-                "Classpath for -classpath (blank = none):",
-                getFieldEditorParent()));
-
-        addSpace();
-
-        // ── ESC engine ──────────────────────────────────────────────────────
-        addLabel("ESC Engine", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addField(new ComboFieldEditor(OpenJMLOptions.escEngineKey,
-                "ESC engine:",
-                new String[][] {
-                    { "subprocess (separate process, default)", "subprocess" },
-                    { "concurrent (in-process, shared IAPI)",  "concurrent" },
-                    { "fresh (in-process, fresh IAPI per method)", "fresh"  } },
-                getFieldEditorParent()));
-
-        addField(new StringFieldEditor(OpenJMLOptions.escThreadsKey,
-                "ESC parallel threads (0 = server default):",
-                getFieldEditorParent()));
-
-        addSpace();
-
-        // ── RAC / Outline ───────────────────────────────────────────────────
-        addLabel("RAC and Outline", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addField(new StringFieldEditor(OpenJMLOptions.racOutputDirKey,
-                "RAC output directory (blank = project output):",
-                getFieldEditorParent()));
-
-        addField(new BooleanFieldEditor(OpenJMLOptions.useIntegratedOutlineKey,
-                "Show full Java+JML outline (uncheck for JML-only symbols)",
-                getFieldEditorParent()));
-
-        addSpace();
-
-        // ── Syntax coloring ─────────────────────────────────────────────────
-        addLabel("Syntax Coloring", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addField(new ComboFieldEditor(OpenJMLOptions.syntaxColoringStrategyKey,
-                "JML syntax coloring strategy:",
-                new String[][] {
-                    { "Regex (instant, always active)",                          "regex" },
-                    { "AST (precise, uses attributed tree; falls back to regex)", "ast"  } },
-                getFieldEditorParent()));
+        tabFolder.setSelection(getInitialTab());
+        return tabFolder;
     }
 
-    private void addLabel(String text, int swtOptions) {
-        addField(new LabelFieldEditor("zzzzz.lsp.label", text, swtOptions,
-                getFieldEditorParent()));
-    }
+    /**
+     * Creates a tab with an inner composite that has 8 px padding on all sides
+     * (so field editor content doesn't crowd the tab border) and returns the
+     * inner composite for field editors to populate.
+     */
+    private Composite addTab(TabFolder folder, String title) {
+        TabItem item = new TabItem(folder, SWT.NONE);
+        item.setText(title);
 
-    private void addSpace() {
-        addField(new LabelFieldEditor("zzzzz.lsp.space", "", SWT.NONE,
-                getFieldEditorParent()));
+        // Outer composite: provides padding inside the tab.
+        Composite outer = new Composite(folder, SWT.NONE);
+        GridLayout outerLayout = new GridLayout(1, false);
+        outerLayout.marginWidth = 8;
+        outerLayout.marginHeight = 8;
+        outer.setLayout(outerLayout);
+        item.setControl(outer);
+
+        // Inner composite: managed by field editors and finalizeTab().
+        Composite inner = new Composite(outer, SWT.NONE);
+        inner.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        return inner;
     }
 }
