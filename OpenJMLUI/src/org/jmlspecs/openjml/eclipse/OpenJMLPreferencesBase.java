@@ -242,6 +242,43 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "debug",    "4" } },
                 parent));
 
+        addBoolean(parent, OpenJMLOptions.checkAccessibleKey,
+                "Check accessible clauses (--check-accessible)");
+
+        addEditor(new ComboFieldEditor(OpenJMLOptions.codeMathKey,
+                "Arithmetic mode for Java code (--code-math):",
+                new String[][] {
+                    { "safe",   "safe"   },
+                    { "java",   "java"   },
+                    { "bigint", "bigint" } },
+                parent));
+
+        addEditor(new ComboFieldEditor(OpenJMLOptions.specMathKey,
+                "Arithmetic mode for specs (--spec-math):",
+                new String[][] {
+                    { "bigint", "bigint" },
+                    { "safe",   "safe"   },
+                    { "java",   "java"   } },
+                parent));
+
+        addEditor(new ComboFieldEditor(OpenJMLOptions.arithmeticKey,
+                "Arithmetic warning severity (--arithmetic-failure):",
+                new String[][] {
+                    { "soft",  "soft"  },
+                    { "hard",  "hard"  },
+                    { "quiet", "quiet" } },
+                parent));
+
+        addBoolean(parent, OpenJMLOptions.allowPureInSpecsKey,
+                "Allow pure methods in specifications (--allow-pure-in-specs)");
+
+        addBoolean(parent, OpenJMLOptions.requireWhiteSpaceKey,
+                "Require white space after @ in JML comment (--require-white-space)");
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.warnKey,
+                "Warning keys to enable/disable, comma-separated (--warn):",
+                parent));
+
         addSpace(parent);
 
         // ── ESC ─────────────────────────────────────────────────────────────
@@ -266,6 +303,37 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "none",   "none"   },
                     { "basics", "basics" },
                     { "all",    "all"    } },
+                parent));
+
+        addBoolean(parent, OpenJMLOptions.traceKey,
+                "Enable counterexample tracing (--trace)");
+
+        addBoolean(parent, OpenJMLOptions.subexpressionsKey,
+                "Enable tracing with subexpressions (--subexpressions)");
+
+        addBoolean(parent, OpenJMLOptions.counterexampleKey,
+                "Output complete raw counterexample (--counterexample)");
+
+        addEditor(new ComboFieldEditor(OpenJMLOptions.escBvKey,
+                "Bit-vector arithmetic (--esc-bv):",
+                new String[][] {
+                    { "auto",  "auto"  },
+                    { "true",  "true"  },
+                    { "false", "false" } },
+                parent));
+
+        addBoolean(parent, OpenJMLOptions.escTriggersKey,
+                "Enable quantifier triggers in SMT encoding (--triggers)");
+
+        addBoolean(parent, OpenJMLOptions.escWarningsPathKey,
+                "Find all counterexample paths to each invalid assert (--esc-warnings-path)");
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.splitKey,
+                "Split proof into sections (--split; blank = none):",
+                parent));
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.solverSeedKey,
+                "Seed for solver RNG (--solver-seed; 0 = default):",
                 parent));
 
         addSpace(parent);
@@ -295,6 +363,14 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
         addBoolean(parent, OpenJMLOptions.showNotExecutableKey,
                 "Warn about non-executable constructs (--show-not-executable)");
+
+        addEditor(new ComboFieldEditor(OpenJMLOptions.racMissingModelFieldRepKey,
+                "Action when model field has no rep clause (--rac-missing-model-field-rep):",
+                new String[][] {
+                    { "skip",  "skip"  },
+                    { "warn",  "warn"  },
+                    { "error", "error" } },
+                parent));
 
         finalizeTab(parent);
     }
