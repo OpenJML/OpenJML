@@ -73,8 +73,8 @@ public class CheckRunner {
     }
 
     private static String ts() {
-        return java.time.LocalTime.now()
-                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        return "[" + java.time.LocalTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")) + "] ";
     }
 
     /** Return just the file name portion of a URI or path (no directory). */

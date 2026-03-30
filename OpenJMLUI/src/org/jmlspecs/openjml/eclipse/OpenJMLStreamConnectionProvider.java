@@ -26,12 +26,12 @@ import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProvider {
 
     static {
-        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider class loaded");
+        System.err.println("OpenJMLStreamConnectionProvider class loaded");
     }
 
     public OpenJMLStreamConnectionProvider() {
         String path = findServerPath();
-        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider created, path=" + path);
+        System.err.println("OpenJMLStreamConnectionProvider created, path=" + path);
         setCommands(Arrays.asList(path));
         setWorkingDirectory(System.getProperty("user.dir"));
     }
@@ -72,11 +72,11 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      */
     @Override
     public void start() throws IOException {
-        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() called");
+        System.err.println("OpenJMLStreamConnectionProvider.start() called");
         String path = findServerPath();
         java.io.File f = new java.io.File(path);
         if (!f.isFile() || !f.canExecute()) {
-            Console.errorlog("[OpenJML] server script not found or not executable: " + path);
+            Console.errorlog("server script not found or not executable: " + path);
             showServerNotFoundDialog(path);
             throw new IOException("openjml-lsp not found or not executable: " + path);
         }
@@ -84,13 +84,13 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         // it is available when getInitializationOptions() is called.
         OpenJMLOptions.writePropertiesFile();
         super.start();
-        System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() completed");
+        System.err.println("OpenJMLStreamConnectionProvider.start() completed");
     }
 
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();
-        Console.log("[OpenJML] Sending initializationOptions: checkTriggerOn="
+        Console.log("Sending initializationOptions: checkTriggerOn="
                 + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
     }
@@ -151,7 +151,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
                 && "window/logMessage".equals(n.getMethod())) {
             Object params = n.getParams();
             String text = extractLogMessageText(params);
-            if (text != null) Console.log("[OpenJML] " + text);
+            if (text != null) Console.logRaw(text);
         }
     }
 

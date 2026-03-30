@@ -342,7 +342,7 @@ public class OpenJMLOptions {
             generatedPropertiesFilePath = file;
             return file;
         } catch (Exception e) {
-            Console.log("[OpenJML] Failed to write preferences properties file: " + e);
+            Console.log("Failed to write preferences properties file: " + e);
             return null;
         }
     }

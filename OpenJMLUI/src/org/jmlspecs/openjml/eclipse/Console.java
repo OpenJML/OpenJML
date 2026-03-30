@@ -75,24 +75,42 @@ public class Console {
     
     // FIXME - do we really want to allocate and close a MessageConsoleStream for every write to the Console?
 
+    /** Returns a timestamp prefix of the form {@code [HH:mm:ss] } (24-hour clock). */
+    private static String ts() {
+        return "[" + java.time.LocalTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")) + "] ";
+    }
+
     /**
-     * Append {@code message} followed by a newline to the OpenJML console.
+     * Append {@code message} followed by a newline to the OpenJML console,
+     * without adding a timestamp.  Use this for messages that already carry
+     * their own timestamp (e.g. forwarded server log lines).
      * Safe to call from any thread.
      */
-    public static void log(String message) {
+    public static void logRaw(String message) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
             stream.println(message);
         } catch (Exception ignored) {}
     }
-    
+
     /**
-     * Append {@code message} followed by a newline to the OpenJML console, but in red font.
+     * Append a timestamped {@code message} followed by a newline to the OpenJML console.
      * Safe to call from any thread.
+     */
+    public static void log(String message) {
+        try (MessageConsoleStream stream = getConsole().newMessageStream()) {
+            stream.println(ts() + message);
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Append a timestamped {@code message} followed by a newline to the OpenJML console,
+     * in red font. Safe to call from any thread.
      */
     public static void errorlog(String message) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
             stream.setColor(new org.eclipse.swt.graphics.Color(255,0,0)); // Red for errors
-            stream.println(message);
+            stream.println(ts() + message);
             show();
         } catch (Exception ignored) {}
     }

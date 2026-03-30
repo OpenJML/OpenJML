@@ -75,7 +75,7 @@ public class JmlNature implements IProjectNature {
         try {
             return project.hasNature(NATURE_ID);
         } catch (CoreException e) {
-            Console.log("[OpenJML] hasNature check failed for " + project.getName() + ": " + e);
+            Console.log("hasNature check failed for " + project.getName() + ": " + e);
             return false;
         }
     }
@@ -103,7 +103,7 @@ public class JmlNature implements IProjectNature {
         if (project == null || !project.isOpen()) return;
         try {
             if (!project.hasNature(JAVA_NATURE_ID)) {
-                Console.log("[OpenJML] Cannot add JML nature: " + project.getName()
+                Console.log("Cannot add JML nature: " + project.getName()
                         + " is not a Java project.");
                 return;
             }
@@ -116,10 +116,10 @@ public class JmlNature implements IProjectNature {
             newNatures[natures.length] = NATURE_ID;
             desc.setNatureIds(newNatures);
             project.setDescription(desc, null);
-            Console.log("[OpenJML] JML nature added to " + project.getName());
+            Console.log("JML nature added to " + project.getName());
             refreshDecorator();
         } catch (CoreException e) {
-            Console.log("[OpenJML] Failed to enable JML nature on " + project.getName() + ": " + e);
+            Console.log("Failed to enable JML nature on " + project.getName() + ": " + e);
         }
     }
 
@@ -146,11 +146,11 @@ public class JmlNature implements IProjectNature {
             System.arraycopy(natures, idx + 1, newNatures, idx, natures.length - idx - 1);
             desc.setNatureIds(newNatures);
             project.setDescription(desc, null);
-            Console.log("[OpenJML] JML nature removed from " + project.getName());
+            Console.log("JML nature removed from " + project.getName());
             refreshDecorator();
             cleanupForProject(project);
         } catch (CoreException e) {
-            Console.log("[OpenJML] Failed to disable JML nature on " + project.getName() + ": " + e);
+            Console.log("Failed to disable JML nature on " + project.getName() + ": " + e);
         }
     }
 
@@ -178,7 +178,7 @@ public class JmlNature implements IProjectNature {
                 }
             }
         } catch (CoreException e) {
-            Console.log("[OpenJML] Warning: could not clear markers for "
+            Console.log("Warning: could not clear markers for "
                     + project.getName() + ": " + e.getMessage());
         }
 

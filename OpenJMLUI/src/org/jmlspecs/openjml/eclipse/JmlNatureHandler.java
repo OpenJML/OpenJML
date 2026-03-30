@@ -74,7 +74,7 @@ public class JmlNatureHandler {
         public Object execute(ExecutionEvent event) throws ExecutionException {
             List<IProject> projects = projectsFromSelection(HandlerUtil.getCurrentSelection(event));
             if (projects.isEmpty()) {
-                Console.log("[OpenJML] EnableJmlNature: no project in current selection.");
+                Console.log("EnableJmlNature: no project in current selection.");
                 return null;
             }
             for (IProject p : projects) JmlNature.enable(p);
@@ -92,7 +92,7 @@ public class JmlNatureHandler {
         public Object execute(ExecutionEvent event) throws ExecutionException {
             List<IProject> projects = projectsFromSelection(HandlerUtil.getCurrentSelection(event));
             if (projects.isEmpty()) {
-                Console.log("[OpenJML] DisableJmlNature: no project in current selection.");
+                Console.log("DisableJmlNature: no project in current selection.");
                 return null;
             }
             for (IProject p : projects) JmlNature.disable(p);

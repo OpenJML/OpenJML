@@ -63,7 +63,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 HandlerUtil.getCurrentSelection(event), editor);
 
         if (targets.isEmpty()) {
-            Console.log("[OpenJML] " + lspCommand + ": no target files found.");
+            Console.log("" + lspCommand + ": no target files found.");
             return null;
         }
 
@@ -98,7 +98,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
 
         // 3. Log and dispatch a command for each target.
-        StringBuilder sb = new StringBuilder("[OpenJML] ").append(lspCommand).append(": ");
+        StringBuilder sb = new StringBuilder("").append(lspCommand).append(": ");
         for (int i = 0; i < targets.size(); i++) {
             if (i > 0) sb.append(", ");
             SelectionResolver.Target t = targets.get(i);
@@ -138,7 +138,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             case SelectionResolver.Target.Dir d -> {
                 org.eclipse.core.runtime.IPath loc = d.container().getLocation();
                 if (loc == null) {
-                    Console.log("[OpenJML] " + lspCommand + ": cannot resolve path for "
+                    Console.log("" + lspCommand + ": cannot resolve path for "
                             + d.container().getName());
                     return;
                 }
@@ -232,17 +232,17 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     boolean sent = sendViaWrapper(
                             org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params);
                     if (!sent)
-                        Console.log("[OpenJML] ERROR: server not connected — command not sent");
+                        Console.log("ERROR: server not connected — command not sent");
                 }
               }).exceptionally(t -> {
                 boolean sent = sendViaWrapper(
                         org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params);
                 if (!sent)
-                    Console.log("[OpenJML] ERROR: server not connected — command not sent");
+                    Console.log("ERROR: server not connected — command not sent");
                 return null;
               });
         } catch (Throwable t) {
-            Console.log("[OpenJML] dispatchCommand exception: " + t);
+            Console.log("dispatchCommand exception: " + t);
         }
     }
 
@@ -278,7 +278,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             server.getWorkspaceService().executeCommand(params);
             return true;
         } catch (Throwable t) {
-            Console.log("[OpenJML] sendViaWrapper failed: " + t);
+            Console.log("sendViaWrapper failed: " + t);
             return false;
         }
     }
@@ -299,7 +299,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             org.eclipse.core.runtime.IPath location = folder.getLocation();
             return location != null ? location.toOSString() : null;
         } catch (Exception e) {
-            Console.log("[OpenJML] resolveJdtOutputDir failed: " + e);
+            Console.log("resolveJdtOutputDir failed: " + e);
             return null;
         }
     }
@@ -471,9 +471,9 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         deleted++;
                     }
                 }
-                Console.log("[OpenJML] Cleared " + deleted + " OpenJML marker(s).");
+                Console.log("Cleared " + deleted + " OpenJML marker(s).");
             } catch (org.eclipse.core.runtime.CoreException e) {
-                Console.log("[OpenJML] ClearMarkers failed: " + e);
+                Console.log("ClearMarkers failed: " + e);
             }
             return null;
         }
@@ -508,9 +508,9 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         deleted++;
                     }
                 }
-                Console.log("[OpenJML] Cleared " + deleted + " marker(s).");
+                Console.log("Cleared " + deleted + " marker(s).");
             } catch (org.eclipse.core.runtime.CoreException e) {
-                Console.log("[OpenJML] Warning: could not clear markers: " + e.getMessage());
+                Console.log("Warning: could not clear markers: " + e.getMessage());
             }
 
             // 2. Send clearAndReindex to the server.
@@ -529,7 +529,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     return null;
                 }
             }
-            Console.log("[OpenJML] WARNING: no connected server found — clearAndReindex not sent.");
+            Console.log("WARNING: no connected server found — clearAndReindex not sent.");
             return null;
         }
     }
