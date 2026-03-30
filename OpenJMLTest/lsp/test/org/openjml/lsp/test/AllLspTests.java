@@ -28,5 +28,6 @@ import org.junit.runners.Suite;
     DocumentSymbolTest.class,
     FoldingRangeTest.class,
     DoEscTest.class,
+    PropertiesFileOptionsTest.class,
 })
 public class AllLspTests {}

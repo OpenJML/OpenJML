@@ -67,6 +67,7 @@ TEST_CLASSES := \
   ReferenceFinderJmlTest \
   DiagnosticsTest \
   DocumentSymbolTest \
+  PropertiesFileOptionsTest \
   EscStatusTest \
   MultiFileEscTest \
   FastTests

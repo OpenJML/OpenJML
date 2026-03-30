@@ -80,6 +80,9 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
             showServerNotFoundDialog(path);
             throw new IOException("openjml-lsp not found or not executable: " + path);
         }
+        // Write the generated preferences file before starting the server so
+        // it is available when getInitializationOptions() is called.
+        OpenJMLOptions.writePropertiesFile();
         super.start();
         System.err.println("[OpenJML] OpenJMLStreamConnectionProvider.start() completed");
     }

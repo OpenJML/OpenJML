@@ -1209,14 +1209,40 @@ public class CheckRunner {
         return result;
     }
 
+    /**
+     * When {@code true} (default), Tab-2 tool options from the Eclipse plugin
+     * are read from a generated {@code .properties} file
+     * ({@link OpenJMLSettings#generatedPropertiesFile}).
+     * When {@code false}, they arrive as a flat args list
+     * ({@link OpenJMLSettings#toolArgs}).
+     *
+     * <p>Must match the {@code USE_PROPERTIES_FILE} flag in the Eclipse plugin's
+     * {@code OpenJMLOptions}.
+     */
+    private static final boolean USE_PROPERTIES_FILE = true;
+
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag) {
         return buildArgs(settings, modeFlag, null);
     }
 
     private static List<String> buildArgs(OpenJMLSettings settings, String modeFlag, Path prefixDir) {
         List<String> args = new ArrayList<>();
-        // --properties must come first: options in the file are read before
-        // subsequent args, so IDE settings and invocation flags override it.
+
+        if (USE_PROPERTIES_FILE) {
+            // Generated Eclipse-preferences file — lowest priority, before user file.
+            if (settings.generatedPropertiesFile != null
+                    && !settings.generatedPropertiesFile.isEmpty()) {
+                args.add("--properties");
+                args.add(settings.generatedPropertiesFile);
+            }
+        } else {
+            // Command-line args mode: prepend tool args before the mode flag.
+            if (settings.toolArgs != null && !settings.toolArgs.isEmpty()) {
+                args.addAll(settings.toolArgs);
+            }
+        }
+
+        // User's workspace properties file overrides the generated file above.
         if (settings.propertiesFile != null && !settings.propertiesFile.isEmpty()) {
             args.add("--properties");
             args.add(settings.propertiesFile);

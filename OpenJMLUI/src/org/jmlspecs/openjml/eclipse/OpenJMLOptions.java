@@ -181,6 +181,205 @@ public class OpenJMLOptions {
     }
 
     // -----------------------------------------------------------------------
+    // Tool-option descriptor — links a preference key to an openjml flag
+    // -----------------------------------------------------------------------
+
+    /**
+     * Describes one openjml tool option managed by the Tab 2 preference page.
+     *
+     * @param prefKey      Eclipse preference-store key, e.g. {@code "openjml.codeMath"}
+     * @param openjmlFlag  openjml flag name with leading dashes, e.g. {@code "--code-math"}
+     * @param defaultValue default value as a string, matching {@link #initializeDefaults}
+     * @param isBoolean    {@code true} for boolean (no-arg) flags
+     */
+    public record ToolOption(String prefKey, String openjmlFlag,
+                             String defaultValue, boolean isBoolean) {
+        /**
+         * Property-file key used by openjml's {@code --properties} mechanism:
+         * {@code "org.openjml.option.<flag-name-without-leading-dashes>"}.
+         */
+        public String propertyFileKey() {
+            return "org.openjml.option." + openjmlFlag.substring(2);
+        }
+    }
+
+    /**
+     * All Tab-2 tool options in declaration order.
+     * Used to write the generated properties file and to build command-line args.
+     * Maintaining this list keeps {@link #writePropertiesFile()} and
+     * {@link #buildToolCommandLineArgs()} free of per-option switch/if logic.
+     */
+    public static final java.util.List<ToolOption> TOOL_OPTIONS = java.util.List.of(
+        // ── JML ──────────────────────────────────────────────────────
+        new ToolOption(nullableByDefaultKey,       "--nullable-by-default",        "false",      true),
+        new ToolOption(langKey,                    "--lang",                        "openjml",    false),
+        new ToolOption(showNotImplementedKey,      "--show-not-implemented",        "false",      true),
+        new ToolOption(optionalKeysKey,            "--keys",                        "",           false),
+        new ToolOption(verbosityKey,               "--verboseness",                 "1",          false),
+        new ToolOption(checkAccessibleKey,         "--check-accessible",            "true",       true),
+        new ToolOption(codeMathKey,                "--code-math",                   "safe",       false),
+        new ToolOption(specMathKey,                "--spec-math",                   "bigint",     false),
+        new ToolOption(arithmeticKey,              "--arithmetic-failure",          "soft",       false),
+        new ToolOption(allowPureInSpecsKey,        "--allow-pure-in-specs",         "true",       true),
+        new ToolOption(requireWhiteSpaceKey,       "--require-white-space",         "false",      true),
+        new ToolOption(warnKey,                    "--warn",                        "",           false),
+        // ── ESC ──────────────────────────────────────────────────────
+        new ToolOption(escMaxWarningsKey,          "--esc-max-warnings",            "2147483647", false),
+        new ToolOption(timeoutKey,                 "--timeout",                     "",           false),
+        new ToolOption(feasibilityKey,             "--check-feasibility",           "none",       false),
+        new ToolOption(traceKey,                   "--trace",                       "false",      true),
+        new ToolOption(subexpressionsKey,          "--subexpressions",              "false",      true),
+        new ToolOption(counterexampleKey,          "--counterexample",              "false",      true),
+        new ToolOption(escBvKey,                   "--esc-bv",                      "auto",       false),
+        new ToolOption(escTriggersKey,             "--triggers",                    "true",       true),
+        new ToolOption(escWarningsPathKey,         "--esc-warnings-path",           "false",      true),
+        new ToolOption(splitKey,                   "--split",                       "",           false),
+        new ToolOption(solverSeedKey,              "--solver-seed",                 "0",          false),
+        // ── RAC ──────────────────────────────────────────────────────
+        new ToolOption(compileToJavaAssertKey,     "--rac-compile-to-java-assert",  "false",      true),
+        new ToolOption(racCheckJavaFeaturesKey,    "--rac-java-checks",             "false",      true),
+        new ToolOption(racCheckAssumptionsKey,     "--rac-check-assumptions",       "true",       true),
+        new ToolOption(racPreconditionEntryKey,    "--rac-precondition-entry",      "false",      true),
+        new ToolOption(racShowSourceKey,           "--rac-show-source",             "source",     false),
+        new ToolOption(showNotExecutableKey,       "--show-not-executable",         "false",      true),
+        new ToolOption(racMissingModelFieldRepKey, "--rac-missing-model-field-rep", "skip",       false)
+    );
+
+    // -----------------------------------------------------------------------
+    // Internal policy flags
+    // -----------------------------------------------------------------------
+
+    /**
+     * When {@code true} (default), Tab-2 options are communicated to the LSP
+     * server via a generated {@code .properties} file passed as
+     * {@code --properties}.  When {@code false}, options are passed as
+     * individual command-line flags in a {@code toolArgs} list.
+     */
+    private static final boolean USE_PROPERTIES_FILE = true;
+
+    /**
+     * When {@code true} (default), only options whose current value differs
+     * from the factory default are written / included.  When {@code false},
+     * every option is always written regardless of its value.
+     */
+    private static final boolean ONLY_NON_DEFAULTS = true;
+
+    // -----------------------------------------------------------------------
+    // Generated properties file
+    // -----------------------------------------------------------------------
+
+    /** Path of the last successfully written generated properties file. */
+    private static volatile java.nio.file.Path generatedPropertiesFilePath;
+
+    /**
+     * Returns the OS path of the last written generated preferences file, or
+     * {@code null} if it has not been written yet.
+     */
+    public static String getGeneratedPropertiesFilePath() {
+        java.nio.file.Path p = generatedPropertiesFilePath;
+        return p != null ? p.toString() : null;
+    }
+
+    /** Returns the plugin's Eclipse state directory, falling back to a temp dir. */
+    private static java.nio.file.Path stateDir() {
+        try {
+            org.eclipse.core.runtime.IPath loc =
+                    org.openjml.ui.Activator.getDefault().getStateLocation();
+            return java.nio.file.Paths.get(loc.toOSString());
+        } catch (Exception e) {
+            return java.nio.file.Paths.get(System.getProperty("java.io.tmpdir"),
+                    "openjml-eclipse");
+        }
+    }
+
+    /**
+     * Writes the current Tab-2 preference values to a {@code .properties} file
+     * in the plugin's state directory and caches the path.
+     *
+     * <p>The file is read by openjml via {@code --properties}, which maps each
+     * {@code org.openjml.option.<flag>=<value>} entry to the corresponding
+     * command-line flag.
+     *
+     * <p>Safe to call from any thread; returns the file path on success or
+     * {@code null} on failure.
+     *
+     * <p>Boolean options that need to be <em>disabled</em> (current value
+     * {@code "false"} but default is {@code "true"}) are skipped in properties-file
+     * mode because openjml's properties reader cannot negate boolean flags.
+     * Use {@code USE_PROPERTIES_FILE = false} (command-line mode) if reliable
+     * negation of default-true booleans is required.
+     */
+    public static java.nio.file.Path writePropertiesFile() {
+        org.eclipse.jface.preference.IPreferenceStore store;
+        try {
+            store = org.openjml.ui.Activator.getDefault().getPreferenceStore();
+        } catch (Exception e) {
+            return null; // activator not yet available
+        }
+        var props = new java.util.Properties();
+        for (ToolOption opt : TOOL_OPTIONS) {
+            String val = store.getString(opt.prefKey());
+            if (val == null) val = "";
+            if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
+            if (opt.isBoolean()) {
+                if ("true".equals(val)) {
+                    props.setProperty(opt.propertyFileKey(), "true");
+                }
+                // "false" on a boolean cannot be reliably communicated via
+                // the properties file (the reader always treats the entry as
+                // enabling the flag), so we omit it here.
+            } else if (!val.isBlank()) {
+                props.setProperty(opt.propertyFileKey(), val);
+            }
+        }
+        try {
+            java.nio.file.Path dir = stateDir();
+            java.nio.file.Files.createDirectories(dir);
+            java.nio.file.Path file = dir.resolve("eclipse-preferences.properties");
+            try (var os = java.nio.file.Files.newOutputStream(file)) {
+                props.store(os, "Generated by OpenJML Eclipse plugin — do not edit manually");
+            }
+            generatedPropertiesFilePath = file;
+            return file;
+        } catch (Exception e) {
+            Console.log("[OpenJML] Failed to write preferences properties file: " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Builds a list of openjml command-line arguments from the current Tab-2
+     * preference values.  Used when {@link #USE_PROPERTIES_FILE} is
+     * {@code false}.
+     *
+     * <p>Only non-default values are included when {@link #ONLY_NON_DEFAULTS}
+     * is {@code true}.  Boolean flags that need to be disabled are passed as
+     * {@code --flag=false}, which openjml correctly interprets as a negation.
+     */
+    public static java.util.List<String> buildToolCommandLineArgs() {
+        org.eclipse.jface.preference.IPreferenceStore store =
+                org.openjml.ui.Activator.getDefault().getPreferenceStore();
+        var args = new java.util.ArrayList<String>();
+        for (ToolOption opt : TOOL_OPTIONS) {
+            String val = store.getString(opt.prefKey());
+            if (val == null) val = "";
+            if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
+            if (opt.isBoolean()) {
+                if ("true".equals(val)) {
+                    args.add(opt.openjmlFlag());
+                } else if ("false".equals(val) && !"false".equals(opt.defaultValue())) {
+                    // Explicitly disable a default-true boolean flag
+                    args.add(opt.openjmlFlag() + "=false");
+                }
+            } else if (!val.isBlank()) {
+                args.add(opt.openjmlFlag());
+                args.add(val);
+            }
+        }
+        return args;
+    }
+
+    // -----------------------------------------------------------------------
     // Accessors
     // -----------------------------------------------------------------------
 
@@ -192,11 +391,20 @@ public class OpenJMLOptions {
         return (s == null || s.isBlank()) ? fallback : s;
     }
 
-    /** Collect all settings into a map suitable for LSP initializationOptions. */
+    /**
+     * Collects all settings into a map suitable for LSP
+     * {@code initializationOptions} / {@code workspace/didChangeConfiguration}.
+     *
+     * <p>Tab-1 (plugin/LSP) settings are always sent individually.
+     * Tab-2 (tool) options are communicated either as a path to a generated
+     * {@code .properties} file ({@link #USE_PROPERTIES_FILE}{@code = true}) or
+     * as a flat {@code toolArgs} list of command-line flags
+     * ({@link #USE_PROPERTIES_FILE}{@code = false}).
+     */
     public static java.util.Map<String, Object> buildInitializationOptions() {
         var opts = new java.util.LinkedHashMap<String, Object>();
 
-        // Tab 1 — plugin / LSP settings
+        // Tab 1 — plugin / LSP settings (always sent individually)
         opts.put("checkTriggerOn",         nonBlank(value(checkTriggerOnKey),  "edit"));
         opts.put("escTriggerOn",           nonBlank(value(escTriggerOnKey),    "manual"));
         opts.put("specsPath",              value(specsPathKey));
@@ -214,45 +422,15 @@ public class OpenJMLOptions {
             catch (NumberFormatException ignored) {}
         }
 
-        // Tab 2 — JML tool options
-        opts.put("nullableByDefault",      value(nullableByDefaultKey));
-        opts.put("lang",                   nonBlank(value(langKey), "openjml"));
-        opts.put("showNotImplemented",     value(showNotImplementedKey));
-        opts.put("optionalKeys",           value(optionalKeysKey));
-        opts.put("verboseness",            nonBlank(value(verbosityKey), "1"));
-        opts.put("checkAccessible",        value(checkAccessibleKey));
-        opts.put("codeMath",               nonBlank(value(codeMathKey), "safe"));
-        opts.put("specMath",               nonBlank(value(specMathKey), "bigint"));
-        opts.put("arithmeticFailure",      nonBlank(value(arithmeticKey), "soft"));
-        opts.put("allowPureInSpecs",       value(allowPureInSpecsKey));
-        opts.put("requireWhiteSpace",      value(requireWhiteSpaceKey));
-        String warn = value(warnKey);
-        if (warn != null && !warn.isBlank()) opts.put("warn", warn);
-
-        // Tab 2 — ESC tool options
-        opts.put("escMaxWarnings",         nonBlank(value(escMaxWarningsKey), "2147483647"));
-        String timeout = value(timeoutKey);
-        if (timeout != null && !timeout.isBlank()) opts.put("timeout", timeout);
-        opts.put("feasibility",            nonBlank(value(feasibilityKey), "none"));
-        opts.put("trace",                  value(traceKey));
-        opts.put("subexpressions",         value(subexpressionsKey));
-        opts.put("counterexample",         value(counterexampleKey));
-        opts.put("escBv",                  nonBlank(value(escBvKey), "auto"));
-        opts.put("escTriggers",            value(escTriggersKey));
-        opts.put("escWarningsPath",        value(escWarningsPathKey));
-        String split = value(splitKey);
-        if (split != null && !split.isBlank()) opts.put("split", split);
-        String solverSeed = value(solverSeedKey);
-        if (solverSeed != null && !solverSeed.isBlank() && !solverSeed.equals("0")) opts.put("solverSeed", solverSeed);
-
-        // Tab 2 — RAC tool options
-        opts.put("racCompileToJavaAssert", value(compileToJavaAssertKey));
-        opts.put("racJavaChecks",          value(racCheckJavaFeaturesKey));
-        opts.put("racCheckAssumptions",    value(racCheckAssumptionsKey));
-        opts.put("racPreconditionEntry",   value(racPreconditionEntryKey));
-        opts.put("racShowSource",          nonBlank(value(racShowSourceKey), "source"));
-        opts.put("showNotExecutable",      value(showNotExecutableKey));
-        opts.put("racMissingModelFieldRep", nonBlank(value(racMissingModelFieldRepKey), "skip"));
+        // Tab 2 — tool options communicated via properties file or args list
+        if (USE_PROPERTIES_FILE) {
+            java.nio.file.Path propsFile = writePropertiesFile();
+            if (propsFile != null) {
+                opts.put("generatedPropertiesFile", propsFile.toString());
+            }
+        } else {
+            opts.put("toolArgs", buildToolCommandLineArgs());
+        }
 
         return opts;
     }

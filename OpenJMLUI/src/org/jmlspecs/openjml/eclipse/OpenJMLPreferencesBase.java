@@ -222,7 +222,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 "Language variant (--lang):",
                 new String[][] {
                     { "openjml (default)", "openjml" },
-                    { "jml5 (strict)",     "jml5"    } },
+                    { "jml (strict)",      "jml"     } },
                 parent));
 
         addBoolean(parent, OpenJMLOptions.showNotImplementedKey,
@@ -256,9 +256,9 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.specMathKey,
                 "Arithmetic mode for specs (--spec-math):",
                 new String[][] {
-                    { "bigint", "bigint" },
+                    { "java",   "java"   },
                     { "safe",   "safe"   },
-                    { "java",   "java"   } },
+                    { "bigint", "bigint" } },
                 parent));
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.arithmeticKey,
@@ -300,9 +300,9 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.feasibilityKey,
                 "Feasibility checking (--check-feasibility):",
                 new String[][] {
-                    { "none",   "none"   },
-                    { "basics", "basics" },
-                    { "all",    "all"    } },
+                    { "none",  "none"  },
+                    { "basic", "basic" },
+                    { "all",   "all"   } },
                 parent));
 
         addBoolean(parent, OpenJMLOptions.traceKey,

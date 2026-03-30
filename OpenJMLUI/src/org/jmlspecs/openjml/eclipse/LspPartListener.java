@@ -146,6 +146,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             return;
         }
         try {
+            // Refresh the generated properties file before building the options map so
+            // the server always sees the latest preference values on next tool invocation.
+            // (buildInitializationOptions() also calls this, but being explicit here
+            // avoids any future refactor from breaking the ordering guarantee.)
+            OpenJMLOptions.writePropertiesFile();
             java.util.Map<String, Object> map = OpenJMLOptions.buildInitializationOptions();
             org.eclipse.lsp4j.DidChangeConfigurationParams params =
                     new org.eclipse.lsp4j.DidChangeConfigurationParams(map);
