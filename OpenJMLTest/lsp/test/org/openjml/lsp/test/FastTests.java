@@ -12,5 +12,6 @@ import org.junit.runners.Suite;
     FoldingRangeTest.class,
     LspProtocolTest.class,
     SemanticTokensTest.class,
+    CheckRunnerDirTest.class,
 })
 public class FastTests {}

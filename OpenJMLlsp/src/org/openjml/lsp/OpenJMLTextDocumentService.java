@@ -683,18 +683,54 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Run {@code --esc --dirs path1 path2 ...} on one or more files or directories
-     * (for the {@code openjml.runEscDir} command from the Eclipse plugin).
+     * Run {@code --check --dirs path1 path2 ...} on one or more OS paths
+     * (for the {@code openjml.checkJML} command).
+     *
+     * <p>Diagnostics are stored in {@link #checkDiags} and published via
+     * {@link #publishMerged} for each affected URI.
+     */
+    void scheduleCheckForPaths(List<String> paths, String sourcePath, String classPath,
+                                String specsPath, String propertiesFile) {
+        if (paths == null || paths.isEmpty()) return;
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
+        executor.submit(() -> {
+            try {
+                CheckRunner.DirCheckResult result = CheckRunner.runCheckDir(paths, s);
+                for (var entry : result.diagnosticsByUri().entrySet()) {
+                    checkDiags.put(entry.getKey(), entry.getValue());
+                    publishMerged(entry.getKey());
+                }
+                // Clear stale check diags for paths that produced no diagnostics.
+                for (String path : paths) {
+                    String uri;
+                    try { uri = java.nio.file.Path.of(path).toUri().toString(); }
+                    catch (Exception e) { continue; }
+                    if (!result.diagnosticsByUri().containsKey(uri)) {
+                        checkDiags.remove(uri);
+                        publishMerged(uri);
+                    }
+                }
+            } catch (Throwable e) {
+                System.err.println("[scheduleCheckForPaths] error: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Run {@code --esc --dirs path1 path2 ...} on one or more OS paths
+     * (for the {@code openjml.runEsc} command).
      *
      * <p>Each path may be a {@code .java} file or a directory processed recursively.
      * Diagnostics are published per source file.  Code-lens status is updated for
      * any URIs that are currently open in the editor.
      */
-    void scheduleEscForPaths(List<String> paths) {
+    void scheduleEscForPaths(List<String> paths, String sourcePath, String classPath,
+                              String specsPath, String propertiesFile) {
         if (paths == null || paths.isEmpty()) return;
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
         executor.submit(() -> {
             try {
-                CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, settings);
+                CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, s);
                 if (client == null) return;
                 // Publish diagnostics for every file that had diagnostics.
                 for (var entry : result.diagnosticsByUri().entrySet()) {
@@ -719,6 +755,34 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
             } catch (Throwable e) {
                 System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Run {@code --rac --dirs path1 path2 ...} on one or more OS paths
+     * (for the {@code openjml.runRac} command).
+     *
+     * <p>Diagnostics are stored in {@link #racDiags} and published via
+     * {@link #publishMerged} for each affected URI.
+     */
+    void scheduleRacForPaths(List<String> paths, String sourcePath, String classPath,
+                              String specsPath, String propertiesFile, String outputDir) {
+        if (paths == null || paths.isEmpty()) return;
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, outputDir);
+        executor.submit(() -> {
+            try {
+                CheckRunner.CheckResult result = CheckRunner.runRacPaths(paths, s);
+                result.allDiagnostics().forEach((uri, diags) -> {
+                    racDiags.put(uri, diags);
+                    publishMerged(uri);
+                });
+                if (result.exitCode() == 0 && client != null) {
+                    client.logMessage(new MessageParams(MessageType.Info,
+                            "RAC compile succeeded for " + paths.size() + " path(s)"));
+                }
+            } catch (Throwable e) {
+                System.err.println("[scheduleRacForPaths] error: " + e.getMessage());
             }
         });
     }
@@ -903,6 +967,74 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return SymbolKind.Object;
     }
 
+    // -----------------------------------------------------------------------
+    // Per-project path overrides
+    // -----------------------------------------------------------------------
+
+    /**
+     * Returns a per-invocation copy of {@link #settings} with path/settings fields
+     * overridden by any non-empty arguments, or {@code settings} itself when all
+     * arguments are null/empty.  The {@link OpenJMLSettings#escPool} is always shared.
+     *
+     * @param sourcePath      override for {@code -sourcepath} (null/empty = keep)
+     * @param classPath       override for {@code -classpath}  (null/empty = keep)
+     * @param specsPath       override for {@code --specs-path} (null/empty = keep)
+     * @param propertiesFile  override for {@code generatedPropertiesFile} (null/empty = keep)
+     * @param outputDir       override for {@code racOutputDir} (null/empty = keep)
+     */
+    private OpenJMLSettings withContext(String sourcePath, String classPath,
+                                         String specsPath, String propertiesFile,
+                                         String outputDir) {
+        boolean hasSrc = sourcePath     != null && !sourcePath.isEmpty();
+        boolean hasCp  = classPath      != null && !classPath.isEmpty();
+        boolean hasSp  = specsPath      != null && !specsPath.isEmpty();
+        boolean hasPf  = propertiesFile != null && !propertiesFile.isEmpty();
+        boolean hasOd  = outputDir      != null && !outputDir.isEmpty();
+        if (!hasSrc && !hasCp && !hasSp && !hasPf && !hasOd) return settings;
+        OpenJMLSettings s = new OpenJMLSettings(settings);
+        if (hasSrc) s.sourcePath              = sourcePath;
+        if (hasCp)  s.classPath               = classPath;
+        if (hasSp)  s.specsPath               = specsPath;
+        if (hasPf)  s.generatedPropertiesFile  = propertiesFile;
+        if (hasOd)  s.racOutputDir             = outputDir;
+        return s;
+    }
+
+    // -----------------------------------------------------------------------
+    // Explicit-check commands (from Eclipse CheckJML handler)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Type-check the given URI on demand (for the {@code openjml.checkJML} command).
+     *
+     * <p>If the file is currently open, checks the in-memory content so that
+     * unsaved edits are included.  Otherwise falls back to the on-disk version.
+     * Per-project {@code sourcePath} and {@code classPath} overrides are applied
+     * when non-empty; {@code null} or empty means use the global settings.
+     */
+    void scheduleCheckForUri(String uri, String sourcePath, String classPath,
+                             String specsPath, String propertiesFile) {
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
+        String content = lastContent.get(uri);
+        if (content != null) {
+            // File is open — check the current in-memory content.
+            executor.submit(() -> runCheckContent(uri, content, s));
+        } else {
+            // File is not open — check from disk.
+            String filePath = CheckRunner.uriToPath(uri);
+            if (filePath == null) return;
+            executor.submit(() -> {
+                try {
+                    CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, s);
+                    checkDiags.put(uri, result.diagnostics());
+                    publishMerged(uri);
+                } catch (Throwable e) {
+                    System.err.println("[OpenJML] checkForUri failed: " + e);
+                }
+            });
+        }
+    }
+
     /**
      * Trigger a --check recheck of an already-open file (e.g. when focus returns
      * to it after its dependencies were edited).  Uses in-memory content so that
@@ -920,11 +1052,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         executor.submit(() -> runCheckContent(uri, content));
     }
 
-    void scheduleEscForUri(String uri) {
-        if (settings.isEscApiMode()) {
-            submitEscApiWorkList(uri);
+    void scheduleEscForUri(String uri, String sourcePath, String classPath,
+                           String specsPath, String propertiesFile) {
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
+        if (s.isEscApiMode()) {
+            submitEscApiWorkList(uri, s);
         } else {
-            scheduleEscFile(uri);
+            scheduleEscFile(uri, s);
         }
     }
 
@@ -938,6 +1072,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * diagnostics.
      */
     private void submitEscApiWorkList(String uri) {
+        submitEscApiWorkList(uri, settings);
+    }
+
+    private void submitEscApiWorkList(String uri, OpenJMLSettings s) {
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(true);
 
@@ -945,7 +1083,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         markEscChecking(uri);
 
         CompletableFuture<CheckRunner.CheckResult> cf =
-                CheckRunner.runDoEscFileAsync(uri, settings, methodResult -> {
+                CheckRunner.runDoEscFileAsync(uri, s, methodResult -> {
                     // Called on a pool thread as each method finishes — update its
                     // code-lens status immediately so the user sees progress.
                     if (escGen.get(uri).get() != myGen) return;
@@ -1006,21 +1144,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>Unlike a full-file ESC, only the target method's code-lens status and its
      * diagnostics (within its line range) are updated; other methods are left unchanged.
      */
-    void scheduleEscForMethod(String uri, String methodName) {
+    void scheduleEscForMethod(String uri, String methodName, String sourcePath, String classPath,
+                              String specsPath, String propertiesFile) {
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethodByFqn(content, methodName);
 
-        if (settings.isEscApiMode()) {
+        if (s.isEscApiMode()) {
             // Submit through escPool so this request joins the same shared queue
             // as any in-flight runDoEscFileAsync tasks for the same URI.
             submitEscForMethod(uri, target,
-                    () -> CheckRunner.runDoEscMethod(uri, methodName, settings),
-                    settings.escPool);
+                    () -> CheckRunner.runDoEscMethod(uri, methodName, s),
+                    s.escPool);
         } else {
             String filePath = CheckRunner.uriToPath(uri);
             if (filePath == null) return;
             submitEscForMethod(uri, target,
-                    () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, settings),
+                    () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s),
                     executor);
         }
     }
@@ -1270,47 +1410,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleEscFile(String uri) {
-        String filePath = CheckRunner.uriToPath(uri);
-        if (filePath == null) return;
-        submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, settings));
+        scheduleEscFile(uri, settings);
     }
 
-    /**
-     * Compile the focused Java file with {@code --rac} and report diagnostics.
-     * Only works on disk files (RAC requires source on disk).
-     *
-     * @param uri       file URI to compile
-     * @param outputDir optional output directory override (e.g. Eclipse project bin/ folder);
-     *                  {@code null} means use {@link OpenJMLSettings#racOutputDir}
-     */
-    void scheduleRacForUri(String uri, String outputDir) {
+    private void scheduleEscFile(String uri, OpenJMLSettings s) {
         String filePath = CheckRunner.uriToPath(uri);
-        if (filePath == null) {
-            if (client != null)
-                client.logMessage(new MessageParams(MessageType.Warning,
-                        "RAC: cannot determine file path for " + uri));
-            return;
-        }
-        executor.submit(() -> {
-            try {
-                CheckRunner.CheckResult result = CheckRunner.runRacFile(filePath, uri, settings, outputDir);
-                if (result.exitCode() == 0) {
-                    if (client != null) {
-                        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
-                        String fname = slash >= 0 ? uri.substring(slash + 1) : uri;
-                        client.logMessage(new MessageParams(MessageType.Info,
-                                "RAC compile succeeded: " + fname));
-                    }
-                } else if (result.isCommandLineError()) {
-                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from RAC for " + uri);
-                }
-                racDiags.put(uri, result.diagnostics());
-                publishMerged(uri);
-            } catch (Throwable t) {
-                System.err.println("[OpenJML] RAC failed: " + t);
-            }
-        });
+        if (filePath == null) return;
+        submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, s));
     }
+
 
     private void startEscContent(String uri, String content) {
         submitEsc(uri, () -> CheckRunner.runEsc(uri, content, settings));
@@ -1452,6 +1560,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void runCheckContent(String uri, String content) {
+        runCheckContent(uri, content, settings);
+    }
+
+    private void runCheckContent(String uri, String content, OpenJMLSettings s) {
         // .jml files are spec files; should not be passed to OpenJML on command line.
         // scheduleCheckNow redirects to the companion .java, but guard here as well.
         if (uri.endsWith(".jml")) return;
@@ -1460,7 +1572,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // Pass all open (possibly unsaved) files so cross-file dependencies use
             // their current in-memory versions rather than the on-disk saved versions.
             CheckRunner.CheckResult result = CheckRunner.checkWithContext(
-                    uri, content, lastContent, settings);
+                    uri, content, lastContent, s);
             // Publish diagnostics for all compiled files (primary + companions) uniformly.
             result.allDiagnostics().forEach((diagUri, diags) -> {
                 checkDiags.put(diagUri, diags);

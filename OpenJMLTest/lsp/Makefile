@@ -43,6 +43,25 @@ GSON_EXPORTS := \
 CLASSES    := $(LSPTEST)/build/classes
 RESULT_DIR := $(LSPTEST)/build/results
 
+## Coverage support.
+## When COV is set (to any value, including empty) the JaCoCo agent is attached
+## to each test JVM.  Each test class writes its own exec file
+## (cov/lsp-ClassName.exec) to avoid concurrent-write races between parallel
+## JVMs.  The files land in the shared OpenJMLTest/cov/ directory so the parent
+## cov-report target merges them together with the unit-test exec files.
+## When running standalone (cov-test / cov-report here), they land in
+## $(LSPTEST)/cov/ and the standalone cov-report reads from there.
+COV_DIR   := $(LSPTEST)/../cov
+COV_AGENT := $(LSPTEST)/../jacoco/lib/jacocoagent.jar
+COV_CLI   := $(LSPTEST)/../jacoco/lib/jacococli.jar
+## JAVA_AGENT is intentionally a recursively-expanded variable (=, not :=) so
+## that $* (the test-class stem) is substituted at rule-firing time.
+ifdef COV
+  JAVA_AGENT = -javaagent:$(COV_AGENT)=destfile=$(COV_DIR)/lsp-$*.exec
+else
+  JAVA_AGENT =
+endif
+
 ## Source and test trees (infrastructure in src/, test cases in test/)
 INFRA_SRCS := $(shell find $(LSPTEST)/src  -name '*.java')
 TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
@@ -53,7 +72,8 @@ TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 ## Ordered longest-first so -j5 keeps the pool busy and finishes sooner.
 ## Timings (approximate, single run): RenameTest[1-3] ~41s each, DefinitionFinderTest 37s,
 ## DoEscTest 31s, ReferenceFinderTest 28s, DiagnosticsTest 26s, DocumentSymbolTest 24s,
-## EscStatusTest 17s, MultiFileEscTest 15s, FastTests (FoldingRange+LspProtocol+SemanticTokens) 6s.
+## EscStatusTest 17s, MultiFileEscTest 15s, CommandDispatchTest ~60s (ESC×3 + RAC),
+## FastTests (FoldingRange+LspProtocol+SemanticTokens+CheckRunnerDirTest) ~10s.
 TEST_CLASSES := \
   RenameTest1 \
   RenameTest2 \
@@ -70,11 +90,12 @@ TEST_CLASSES := \
   PropertiesFileOptionsTest \
   EscStatusTest \
   MultiFileEscTest \
+  CommandDispatchTest \
   FastTests
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
-.PHONY: all compile run-tests run-tests-seq _run-logs clean .FORCE
+.PHONY: all compile run-tests run-tests-seq _run-logs clean cov-test cov-report cov-show .FORCE
 
 all: run-tests
 
@@ -109,7 +130,7 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	      OPENJML_INSTALL="$(BUILDJDK)" \
 	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
 	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
-	      "$(NJAVA)" $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	      "$(NJAVA)" $(JAVA_AGENT) $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
 	        -Dlsp.testdata=$(LSPTEST)/testdata \
 	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
 	        org.junit.runner.JUnitCore \
@@ -150,5 +171,33 @@ test-%: .FORCE $(RESULT_DIR)/.compiled
 clean: .FORCE
 	rm -rf $(LSPTEST)/build
 	$(MAKE) -C $(LSPROOT) clean
+
+### Coverage targets (standalone — operate on $(LSPTEST)/cov/)
+
+## Run all LSP tests under JaCoCo and generate an HTML coverage report.
+## Usage: make cov-test   (writes report to $(LSPTEST)/cov/html/)
+cov-test: .FORCE
+	@mkdir -p $(LSPTEST)/cov
+	@rm -f $(LSPTEST)/cov/lsp-*.exec
+	@$(MAKE) --no-print-directory COV=1 COV_DIR=$(LSPTEST)/cov run-tests
+	@$(MAKE) --no-print-directory COV_DIR=$(LSPTEST)/cov cov-report
+
+## Generate (or refresh) the HTML coverage report from existing exec files.
+## Can be run without re-running tests if the exec files are already present.
+cov-report: .FORCE
+	@rm -rf "$(LSPTEST)/cov/html"
+	@( rm -f $(LSPTEST)/cov/combined.exec; \
+	   java -jar $(COV_CLI) merge --quiet $(LSPTEST)/cov/lsp-*.exec \
+	        --destfile $(LSPTEST)/cov/combined.exec )
+	@( java -jar $(COV_CLI) report --quiet $(LSPTEST)/cov/combined.exec \
+	        --html $(LSPTEST)/cov/html \
+	        --sourcefiles $(LSPROOT)/src \
+	        --classfiles $(LSPROOT)/build/classes )
+	@echo "Coverage report: $(LSPTEST)/cov/html/index.html"
+
+## Open the coverage report in a browser.
+cov-show: .FORCE
+	@if [ "$$(uname)" = "Darwin" ]; then open $(LSPTEST)/cov/html/index.html; \
+	 else xdg-open $(LSPTEST)/cov/html/index.html 2>/dev/null || true; fi
 
 .FORCE:

@@ -175,6 +175,24 @@ public class CheckRunner {
      * Diagnostics are returned grouped by source-file URI so the caller can
      * publish them to the correct LSP document.
      */
+    /**
+     * Run {@code --check --dirs path1 path2 ...} on one or more files or directories.
+     * Returns diagnostics grouped by source-file URI.
+     */
+    public static DirCheckResult runCheckDir(List<String> paths, OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out = new PrintWriter(new StringWriter());
+        var api = IAPI.make(out, listener);
+        List<String> args = buildArgs(settings, "--check");
+        args.add("--dirs");
+        args.addAll(paths);
+        logInvocation("runCheckDir", args);
+        int rc = api.execute(args.toArray(new String[0]));
+        System.err.println("[CheckRunner.runCheckDir] exit code " + rc
+                + " for " + paths.size() + " path(s)");
+        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
+    }
+
     public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings) {
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(new StringWriter());
@@ -191,6 +209,54 @@ public class CheckRunner {
                 + " for " + paths.size() + " path(s)");
 
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, prc.getResults());
+    }
+
+    /**
+     * Run {@code --rac --dirs path1 path2 ...} on one or more files or directories.
+     *
+     * <p>The output directory is taken from {@link OpenJMLSettings#racOutputDir}
+     * (resolved relative to the first workspace folder when relative, defaulting to
+     * {@code rac-classes} when absent).  The directory is created if it does not exist.
+     *
+     * <p>Returns a {@link CheckResult} whose {@link CheckResult#allDiagnostics()} map
+     * contains diagnostics grouped by source-file URI.
+     */
+    public static CheckResult runRacPaths(List<String> paths, OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out = new PrintWriter(new StringWriter());
+        var api = IAPI.make(out, listener);
+
+        List<String> args = buildArgs(settings, "--rac");
+
+        // Resolve and create the RAC output directory.
+        String rawDir = (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
+                ? settings.racOutputDir : "rac-classes";
+        java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
+        java.nio.file.Path outputPath;
+        if (raw.isAbsolute()) {
+            outputPath = raw;
+        } else {
+            String wsRoot = (settings.workspaceFolderPaths != null
+                    && !settings.workspaceFolderPaths.isEmpty())
+                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
+                    : ".";
+            outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
+        }
+        try { java.nio.file.Files.createDirectories(outputPath); }
+        catch (java.io.IOException e) {
+            System.err.println("[CheckRunner.runRacPaths] failed to create output dir: " + e);
+        }
+        args.add("-d");
+        args.add(outputPath.toString());
+        args.add("--dirs");
+        args.addAll(paths);
+        logInvocation("runRacPaths", args);
+        int rc = api.execute(args.toArray(new String[0]));
+        System.err.println("[CheckRunner.runRacPaths] exit code " + rc
+                + " for " + paths.size() + " path(s)");
+
+        return new CheckResult(List.of(), rc, Map.of(), List.of(),
+                listener.toLspDiagnosticsByFile());
     }
 
     // --- public API: --check ---

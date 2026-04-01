@@ -153,7 +153,8 @@ cov-test:
 	- COV= time $(MAKE) release-tests
 	- COV= time $(MAKE) tutorial-tests
 	- COV= time $(MAKE) userguide-tests
-	- COV= time ./unittests/runpar 
+	- COV= time ./unittests/runpar
+	- COV= $(MAKE) -C lsp run-tests
 
 # Creates or updates html files based on coverage data
 cov-report:
@@ -165,7 +166,9 @@ cov-report:
             --sourcefiles ./../OpenJMLTest/src/ \
             --classfiles ./../OpenJMLTest/src/ \
             --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/java.base \
-            --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
+            --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler \
+            --sourcefiles ./../OpenJMLlsp/src \
+            --classfiles ./../OpenJMLlsp/build/classes )
 
 # Launches a browser on the current coverage data
 cov-show:

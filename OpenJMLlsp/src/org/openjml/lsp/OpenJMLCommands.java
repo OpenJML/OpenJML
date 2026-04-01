@@ -3,31 +3,58 @@ package org.openjml.lsp;
 /**
  * LSP {@code workspace/executeCommand} identifiers for the OpenJML language server.
  *
- * <p>These strings are shared constants used by all clients — the VS Code extension,
- * the Eclipse plugin, and the server itself.  They must match the command IDs declared
- * in the VS Code extension's {@code package.json} and in the Eclipse plugin's
- * {@code plugin.xml}.
+ * <p>These strings are shared constants used by all clients -- the VS Code extension,
+ * the Eclipse plugin, and the server itself.
+ *
+ * <p><b>Unified argument encoding.</b>  All commands share a fixed 4-element prefix:
+ * <pre>
+ *   args[0]  sourcePath     -- OS path(s) for -sourcepath (empty = use server default)
+ *   args[1]  classPath      -- OS path(s) for -classpath  (empty = use server default)
+ *   args[2]  specsPath      -- path to OpenJML specs dir   (empty = use server default)
+ *   args[3]  propertiesFile -- path to generated .properties file (empty = none)
+ * </pre>
+ * Command-specific arguments follow at position 4+.  Empty strings are used for
+ * absent optional values so that positions are always fixed.
  */
 public final class OpenJMLCommands {
 
-    /** Full-file ESC: {@code openjml.runEsc}. */
-    public static final String RUN_ESC             = "openjml.runEsc";
+    /**
+     * JML type-check: {@code openjml.checkJML}.
+     *
+     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * {@code path1..N} are OS file-system paths (files or directories) passed to
+     * {@code --check --dirs}.
+     */
+    public static final String CHECK_JML          = "openjml.checkJML";
+
+    /**
+     * Multi-target ESC: {@code openjml.runEsc}.
+     *
+     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * {@code path1..N} are OS file-system paths (files or directories) passed to
+     * {@code --esc --dirs}.
+     */
+    public static final String RUN_ESC            = "openjml.runEsc";
 
     /**
      * Per-method ESC: {@code openjml.runEscForMethod}.
      *
-     * <p>Arguments: {@code [uri, methodFqn]} where {@code methodFqn} is
-     * {@code pkg.Class.method} as produced by {@link JavaSourceScanner#methodFqn}.
+     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, uri, methodFqn]}.
+     * {@code uri} is the document URI and {@code methodFqn} is {@code pkg.Class.method}
+     * as produced by {@link JavaSourceScanner#methodFqn}.  An empty {@code methodFqn}
+     * causes the server to ESC the whole file.
      */
-    public static final String RUN_ESC_FOR_METHOD  = "openjml.runEscForMethod";
+    public static final String RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
     /**
-     * Multi-path ESC: {@code openjml.runEscDir}.
+     * Multi-target RAC: {@code openjml.runRac}.
      *
-     * <p>Arguments: one or more file-system paths (files or directories).
-     * Each path is processed recursively via OpenJML's {@code --dirs} flag.
+     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, outputDir, path1, path2, ...]}.
+     * {@code outputDir} is the output directory for compiled class files (empty = use server default).
+     * {@code path1..N} are OS file-system paths (files or directories) passed to
+     * {@code --rac --dirs}.
      */
-    public static final String RUN_ESC_DIR         = "openjml.runEscDir";
+    public static final String RUN_RAC            = "openjml.runRac";
 
     /**
      * Focus notification: {@code openjml.focusFile}.
@@ -36,16 +63,7 @@ public final class OpenJMLCommands {
      * Triggers a {@code --check} recheck so stale diagnostics from fixed dependencies
      * are cleared.
      */
-    public static final String FOCUS_FILE          = "openjml.focusFile";
-
-    /**
-     * RAC compile: {@code openjml.runRac}.
-     *
-     * <p>Arguments: {@code [uri]} or {@code [uri, outputDir]}.  When {@code outputDir}
-     * is supplied (e.g. the Eclipse project's JDT output folder), RAC class files are
-     * written there; otherwise the server uses the {@code openjml.racOutputDir} setting.
-     */
-    public static final String RUN_RAC             = "openjml.runRac";
+    public static final String FOCUS_FILE         = "openjml.focusFile";
 
     /**
      * Semantic tokens request: {@code openjml.getSemanticTokens}.
@@ -61,10 +79,10 @@ public final class OpenJMLCommands {
      * Clear-and-reindex: {@code openjml.clearAndReindex}.
      *
      * <p>Clears all server-side caches (AST cache, diagnostics, ESC status) and
-     * restarts as if the server had just started — re-checking open files and
+     * restarts as if the server had just started -- re-checking open files and
      * re-indexing the workspace.  Takes no arguments.
      */
-    public static final String CLEAR_AND_REINDEX   = "openjml.clearAndReindex";
+    public static final String CLEAR_AND_REINDEX  = "openjml.clearAndReindex";
 
     /**
      * Clear markers: {@code openjml.clearMarkers}.
@@ -73,7 +91,7 @@ public final class OpenJMLCommands {
      * any new checks.  Useful when markers are stale and the user wants a clean slate
      * without a full reindex.  Takes no arguments.
      */
-    public static final String CLEAR_MARKERS       = "openjml.clearMarkers";
+    public static final String CLEAR_MARKERS      = "openjml.clearMarkers";
 
     private OpenJMLCommands() {}
 }

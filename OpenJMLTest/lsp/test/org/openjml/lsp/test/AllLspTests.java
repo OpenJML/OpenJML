@@ -15,6 +15,8 @@ import org.junit.runners.Suite;
     EscStatusTest.class,
     MultiFileEscTest.class,
     LspProtocolTest.class,
+    CheckRunnerDirTest.class,
+    CommandDispatchTest.class,
     DefinitionFinderTest.class,
     DefinitionFinderJmlTest.class,
     ReferenceFinderTest.class,

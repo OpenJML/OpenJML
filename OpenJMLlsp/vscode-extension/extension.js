@@ -220,6 +220,16 @@ function ts() {
     return new Date().toTimeString().slice(0, 8);
 }
 
+/**
+ * Build the fixed 4-element command prefix used by all openjml.* commands:
+ *   [sourcePath, classPath, specsPath, propertiesFile]
+ * Empty strings are used for absent values so that argument positions are fixed.
+ */
+function commandPrefix() {
+    const s = getSettings();
+    return [s.sourcePath || '', s.classPath || '', s.specsPath || '', s.propertiesFile || ''];
+}
+
 async function activate(context) {
     outputChannel = vscode.window.createOutputChannel('OpenJML');
     context.subscriptions.push(outputChannel);
@@ -284,11 +294,11 @@ async function activate(context) {
 
         if (!await checkDirtyAndProceed(doc)) return;
 
-        const uri = doc.uri.toString();
+        const fsPath = doc.uri.fsPath;
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEsc',
-                arguments: [uri],
+                arguments: [...commandPrefix(), fsPath],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
@@ -337,7 +347,7 @@ async function activate(context) {
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEscForMethod',
-                arguments: [uri, methodName],
+                arguments: [...commandPrefix(), uri, methodName],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
@@ -367,11 +377,11 @@ async function activate(context) {
             }
             targetUri = javaUri;
         }
-        const uri = targetUri.toString();
+        const fsPath = targetUri.fsPath;
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runEsc',
-                arguments: [uri],
+                arguments: [...commandPrefix(), fsPath],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
@@ -397,11 +407,12 @@ async function activate(context) {
             }
             targetUri = javaUri;
         }
-        const uri = targetUri.toString();
+        const fsPath = targetUri.fsPath;
+        const outputDir = getSettings().racOutputDir || '';
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runRac',
-                arguments: [uri],
+                arguments: [...commandPrefix(), outputDir, fsPath],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
@@ -422,8 +433,8 @@ async function activate(context) {
         const paths = folders.map(f => f.uri.fsPath);
         try {
             await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEscDir',
-                arguments: paths,
+                command:   'openjml.runEsc',
+                arguments: [...commandPrefix(), ...paths],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC on project failed: ' + err);
@@ -626,7 +637,7 @@ async function activate(context) {
             try {
                 await client.sendRequest('workspace/executeCommand', {
                     command:   'openjml.runEsc',
-                    arguments: [uri],
+                    arguments: [...commandPrefix(), doc.uri.fsPath],
                 });
             } catch (err) {
                 // ESC errors are surfaced by the server via diagnostics; ignore here.

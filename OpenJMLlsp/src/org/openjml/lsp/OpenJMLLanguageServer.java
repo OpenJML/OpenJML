@@ -58,12 +58,43 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 OpenJMLCommands.RUN_ESC_FOR_METHOD);
 
         CommandRegistry registry = new CommandRegistry();
-        registry.onUri       (OpenJMLCommands.RUN_ESC,             textDocumentService::scheduleEscForUri);
-        registry.onUriStr    (OpenJMLCommands.RUN_ESC_FOR_METHOD,  textDocumentService::scheduleEscForMethod);
-        registry.onStringList(OpenJMLCommands.RUN_ESC_DIR,         textDocumentService::scheduleEscForPaths);
+
+        // All commands share a fixed 4-element prefix:
+        //   args[0] sourcePath, args[1] classPath, args[2] specsPath, args[3] propertiesFile
+        // Command-specific arguments follow at position 4+.
+
+        registry.on(OpenJMLCommands.CHECK_JML, args -> {
+            // [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]
+            List<String> paths = extractPaths(args, 4);
+            if (!paths.isEmpty()) textDocumentService.scheduleCheckForPaths(
+                    paths, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
+            return null;
+        });
+        registry.on(OpenJMLCommands.RUN_ESC, args -> {
+            // [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]
+            List<String> paths = extractPaths(args, 4);
+            if (!paths.isEmpty()) textDocumentService.scheduleEscForPaths(
+                    paths, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
+            return null;
+        });
+        registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {
+            // [sourcePath, classPath, specsPath, propertiesFile, uri, methodFqn]
+            String uri    = str(args, 4);
+            String method = str(args, 5);
+            if (uri != null) textDocumentService.scheduleEscForMethod(
+                    uri, method, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
+            return null;
+        });
+        registry.on(OpenJMLCommands.RUN_RAC, args -> {
+            // [sourcePath, classPath, specsPath, propertiesFile, outputDir, path1, path2, ...]
+            List<String> paths = extractPaths(args, 5);
+            if (!paths.isEmpty()) textDocumentService.scheduleRacForPaths(
+                    paths, str(args, 0), str(args, 1), str(args, 2), str(args, 3), str(args, 4));
+            return null;
+        });
+
         registry.onUri       (OpenJMLCommands.FOCUS_FILE,          textDocumentService::recheckUri);
         registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
-        registry.onUriStr    (OpenJMLCommands.RUN_RAC,             (uri, dir) -> textDocumentService.scheduleRacForUri(uri, dir));
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
 
@@ -171,5 +202,25 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public void connect(LanguageClient client) {
         textDocumentService.connect(client);
+    }
+
+    /** Extract the string at {@code index} from a raw LSP args list, or {@code null}. */
+    private static String str(java.util.List<?> args, int index) {
+        return (args != null && args.size() > index)
+                ? CommandRegistry.extractString(args.get(index)) : null;
+    }
+
+    /**
+     * Extract a variable-length list of non-empty strings from {@code args}
+     * starting at {@code start}.
+     */
+    private static List<String> extractPaths(java.util.List<?> args, int start) {
+        if (args == null || args.size() <= start) return List.of();
+        var result = new java.util.ArrayList<String>();
+        for (int i = start; i < args.size(); i++) {
+            String p = CommandRegistry.extractString(args.get(i));
+            if (p != null && !p.isEmpty()) result.add(p);
+        }
+        return result;
     }
 }

@@ -177,4 +177,34 @@ public class OpenJMLSettings {
      * {@code false}.  {@code null} or empty means no extra args.
      */
     public volatile java.util.List<String> toolArgs;
+
+    /**
+     * No-arg constructor.  Used by Gson deserialization (initializationOptions /
+     * didChangeConfiguration) and by test code that creates default settings.
+     */
+    public OpenJMLSettings() {}
+
+    /**
+     * Copy constructor.  Creates a shallow copy of {@code src} suitable for
+     * per-invocation path overrides.  The {@link #escPool} is shared (not
+     * recreated) so the copy participates in the same thread pool.
+     */
+    public OpenJMLSettings(OpenJMLSettings src) {
+        this.propertiesFile          = src.propertiesFile;
+        this.specsPath               = src.specsPath;
+        this.solversPath             = src.solversPath;
+        this.sourcePath              = src.sourcePath;
+        this.workspaceFolderPaths    = src.workspaceFolderPaths;
+        this.classPath               = src.classPath;
+        this.useIntegratedOutline    = src.useIntegratedOutline;
+        this.checkTriggerOn          = src.checkTriggerOn;
+        this.escTriggerOn            = src.escTriggerOn;
+        this.syntaxColoringStrategy  = src.syntaxColoringStrategy;
+        this.escEngine               = src.escEngine;
+        this.escThreads              = src.escThreads;
+        this.escPool                 = src.escPool;   // share the pool
+        this.racOutputDir            = src.racOutputDir;
+        this.generatedPropertiesFile = src.generatedPropertiesFile;
+        this.toolArgs                = src.toolArgs;
+    }
 }
