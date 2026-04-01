@@ -144,7 +144,77 @@ public class SignatureHelpTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // (5) Method with JML requires: signature label is present
+    // (5) Nested call: cursor inside inner call returns inner method's signature
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testSignatureHelpNestedCall() {
+        // Source layout:
+        // line 0: public class SigHelp {
+        // line 1:     public int add(int a, int b) { return a + b; }
+        // line 2:     public int neg(int x) { return -x; }
+        // line 3:     public void caller() { int x = add(neg(1), 2); }
+        //                                                    ^ col 39 = '1', inside neg(
+        // The cursor is inside the inner call neg(1), so the provider should
+        // return neg's signature (one parameter), not add's.
+        String source =
+                "public class SigHelp {\n" +
+                "    public int add(int a, int b) { return a + b; }\n" +
+                "    public int neg(int x) { return -x; }\n" +
+                "    public void caller() { int x = add(neg(1), 2); }\n" +
+                "}\n";
+        checkContent(URI, source);
+        // line 3: "    public void caller() { int x = add(neg(1), 2); }"
+        //          0         1         2         3         4
+        //          0123456789012345678901234567890123456789012345678901
+        //                                              ^ col 43 = '1', inside neg(
+        int line = 3;
+        int col = 43;
+        SignatureHelp result = SignatureHelpProvider.compute(at(URI, line, col), source,
+                CheckRunner.getASTCache());
+
+        assertNotNull("Expected non-null SignatureHelp for nested call", result);
+        assertFalse("Expected at least one signature", result.getSignatures().isEmpty());
+        String label = result.getSignatures().get(0).getLabel();
+        assertTrue("Label must be for 'neg', the inner call", label.contains("neg"));
+    }
+
+    // -----------------------------------------------------------------------
+    // (6) Field-access receiver: this.method(args) — finds the declaration
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testSignatureHelpWithThisReceiver() {
+        // Source layout:
+        // line 0: public class SigHelp {
+        // line 1:     public int add(int a, int b) { return a + b; }
+        // line 2:     public void caller() { int x = this.add(1, 2); }
+        // line 3: }
+        // Cursor at '1' (col 44), inside this.add(
+        String source =
+                "public class SigHelp {\n" +
+                "    public int add(int a, int b) { return a + b; }\n" +
+                "    public void caller() { int x = this.add(1, 2); }\n" +
+                "}\n";
+        checkContent(URI, source);
+        // line 2: "    public void caller() { int x = this.add(1, 2); }"
+        //          0         1         2         3         4
+        //          01234567890123456789012345678901234567890123456789012
+        //                                                  ^ col 44 = '1'
+        int line = 2;
+        int col = 44;
+        SignatureHelp result = SignatureHelpProvider.compute(at(URI, line, col), source,
+                CheckRunner.getASTCache());
+
+        assertNotNull("Expected non-null SignatureHelp for this.add(", result);
+        assertFalse("Expected at least one signature for 'add'", result.getSignatures().isEmpty());
+        String label = result.getSignatures().get(0).getLabel();
+        assertTrue("Label must contain 'add'", label.contains("add"));
+        assertEquals("Expected activeParameter=0 for first arg", Integer.valueOf(0), result.getActiveParameter());
+    }
+
+    // -----------------------------------------------------------------------
+    // (7) Method with JML requires: signature label is present
     // -----------------------------------------------------------------------
 
     @Test

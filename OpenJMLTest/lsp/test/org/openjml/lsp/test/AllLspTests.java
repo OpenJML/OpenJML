@@ -6,17 +6,26 @@ import org.junit.runners.Suite;
 /**
  * JUnit 4 test suite that aggregates all LSP server tests.
  *
- * <p>Add new test classes here as they are created — the Makefile runs only
- * this suite, so listing them here is the single point of registration.
+ * <h3>How to add a new test class</h3>
+ * <ul>
+ *   <li><b>Fast test</b> (pure logic, no ESC, &lt;5 s): add to {@link FastTests} only —
+ *       this suite picks it up automatically via the {@code FastTests.class} entry below.</li>
+ *   <li><b>Slow test</b> (starts the LSP server, runs ESC, or uses disk files):
+ *       add here AND add a separate entry to {@code TEST_CLASSES} in the
+ *       {@code lsp/Makefile} so it gets its own JVM process.</li>
+ * </ul>
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+    // ---- Fast tests (all in one JVM via FastTests suite) ----
+    FastTests.class,
+
+    // ---- Slow tests (each runs in its own JVM via the Makefile) ----
     DiagnosticsTest.class,
     EscStatusTest.class,
     MultiFileEscTest.class,
-    LspProtocolTest.class,
-    CheckRunnerDirTest.class,
     CommandDispatchTest.class,
+    DocumentLifecycleTest.class,
     DefinitionFinderTest.class,
     DefinitionFinderJmlTest.class,
     ReferenceFinderTest.class,
@@ -26,9 +35,7 @@ import org.junit.runners.Suite;
     RenameTest3.class,
     RenameJmlTest.class,
     MethodAndClassTest.class,
-    SemanticTokensTest.class,
     DocumentSymbolTest.class,
-    FoldingRangeTest.class,
     DoEscTest.class,
     PropertiesFileOptionsTest.class,
 })

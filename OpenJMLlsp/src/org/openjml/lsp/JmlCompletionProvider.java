@@ -102,7 +102,7 @@ public class JmlCompletionProvider {
      * <p>Recognises {@code //@} (single-line) and {@code /*@} (block) with
      * optional whitespace between the comment opener and the {@code @}.
      */
-    static boolean isInJmlContext(String content, Position pos) {
+    public static boolean isInJmlContext(String content, Position pos) {
         String[] lines = content.split("\n", -1);
         if (pos.getLine() >= lines.length) return false;
         String line = lines[pos.getLine()];
@@ -137,7 +137,7 @@ public class JmlCompletionProvider {
      * Return the partial word (including a leading {@code \} if present)
      * immediately before the cursor.
      */
-    static String wordBeforeCursor(String content, Position pos) {
+    public static String wordBeforeCursor(String content, Position pos) {
         String[] lines = content.split("\n", -1);
         if (pos.getLine() >= lines.length) return "";
         String line = lines[pos.getLine()];
@@ -156,7 +156,7 @@ public class JmlCompletionProvider {
      * leading {@code \}) immediately before the cursor — i.e. the range a
      * TextEdit should replace.
      */
-    static Range wordBeforeCursorRange(String content, Position pos) {
+    public static Range wordBeforeCursorRange(String content, Position pos) {
         String[] lines = content.split("\n", -1);
         if (pos.getLine() >= lines.length) return new Range(pos, pos);
         String line = lines[pos.getLine()];

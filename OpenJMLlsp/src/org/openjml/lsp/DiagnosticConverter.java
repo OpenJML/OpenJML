@@ -13,7 +13,12 @@ import java.util.Locale;
  *
  * <p>Position conventions:
  * <ul>
- *   <li>javax.tools.Diagnostic: 1-indexed line; {@code NOPOS} (-1) means unknown</li>
+ *   <li>{@code getLineNumber()} — 1-indexed; subtract 1 for LSP</li>
+ *   <li>{@code getColumnNumber()} — 1-indexed; subtract 1 for LSP</li>
+ *   <li>{@code getStartPosition()} / {@code getEndPosition()} — <em>0-indexed</em> absolute
+ *       character offsets from the start of the file ({@code Position.FIRSTPOS = 0});
+ *       no adjustment needed when used with {@link #buildLineStartOffsets}</li>
+ *   <li>{@code NOPOS} (-1) means unknown</li>
  *   <li>LSP: 0-indexed lines and characters</li>
  * </ul>
  *

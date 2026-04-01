@@ -169,4 +169,69 @@ public class DocumentSymbolTest extends LspTestBase {
         assertFalse("javaMethod must NOT appear",
                 children.stream().anyMatch(c -> "javaMethod".equals(c.getName())));
     }
+
+    /**
+     * A class with an explicit constructor must not expose the constructor as a
+     * symbol (constructors are Java members, not JML-specific).  The class itself
+     * is shown as a container only when it has JML children.
+     */
+    @Test
+    public void testConstructorIsNotIncludedAsSymbol() {
+        String source =
+                "public class DocSymTest {\n" +
+                "    //@ ghost int g;\n" +
+                "    public DocSymTest() {}\n" +
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        assertEquals("Expected the class container", 1, syms.size());
+        List<DocumentSymbol> children = syms.get(0).getChildren();
+        assertNotNull(children);
+        assertTrue("Ghost field must appear", children.stream().anyMatch(c -> "g".equals(c.getName())));
+        assertFalse("Constructor must NOT appear as a JML symbol",
+                children.stream().anyMatch(c -> "DocSymTest".equals(c.getName())));
+    }
+
+    /**
+     * Local variables declared inside method bodies must not appear in the
+     * document symbols — only class-level JML members are shown.
+     */
+    @Test
+    public void testLocalVariablesAreExcluded() {
+        String source =
+                "public class DocSymTest {\n" +
+                "    //@ ghost int classLevel;\n" +
+                "    public int m() {\n" +
+                "        int localVar = 42;\n" +
+                "        return localVar;\n" +
+                "    }\n" +
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        assertEquals(1, syms.size());
+        List<DocumentSymbol> children = syms.get(0).getChildren();
+        assertNotNull(children);
+        assertTrue("classLevel must appear", children.stream().anyMatch(c -> "classLevel".equals(c.getName())));
+        assertFalse("localVar must NOT appear",
+                children.stream().anyMatch(c -> "localVar".equals(c.getName())));
+    }
+
+    /**
+     * A nested (static member) class with a ghost field must appear as a child
+     * container of the outer class, with its own ghost field as a grandchild.
+     */
+    @Test
+    public void testNestedClassWithGhostField() {
+        String source =
+                "public class DocSymTest {\n" +
+                "    public static class Inner {\n" +
+                "        //@ ghost int innerGhost;\n" +
+                "    }\n" +
+                "}\n";
+        List<DocumentSymbol> syms = symbolsFor(source);
+        // Either the outer class is shown as a container, or we find Inner directly
+        DocumentSymbol inner = findSymbol(syms, "Inner");
+        assertNotNull("Inner class must appear as a symbol", inner);
+        assertNotNull("Inner must have children", inner.getChildren());
+        assertTrue("innerGhost must be a child of Inner",
+                inner.getChildren().stream().anyMatch(c -> "innerGhost".equals(c.getName())));
+    }
 }

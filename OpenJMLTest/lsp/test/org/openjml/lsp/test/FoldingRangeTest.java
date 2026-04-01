@@ -226,4 +226,29 @@ public class FoldingRangeTest {
         assertEquals(1, fs.size());
         assertEquals("comment", fs.get(0).getKind());
     }
+
+    // -----------------------------------------------------------------------
+    // Unclosed block comment
+    // -----------------------------------------------------------------------
+
+    /**
+     * An unclosed {@code /*@} block comment should produce a fold that extends
+     * from the opener to the last line of the file.  The provider must not
+     * crash or silently drop the fold when {@code *}{@code /} is never found.
+     */
+    @Test
+    public void testUnclosedBlockCommentFoldsToEndOfFile() {
+        // Four lines; the block comment on line 0 is never closed.
+        String source =
+                "/*@ requires x > 0;\n" +
+                "  @ ensures \\result > x;\n" +
+                "  @ assignable \\nothing;\n" +
+                "public int m(int x) { return x; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertFalse("An unclosed block comment must produce at least one fold", fs.isEmpty());
+        FoldingRange fold = fs.get(0);
+        assertEquals("Fold must start at line 0", 0, fold.getStartLine());
+        // The fold end must be at or beyond line 2 (covers the JML body lines)
+        assertTrue("Fold must extend beyond the opening line", fold.getEndLine() > 0);
+    }
 }

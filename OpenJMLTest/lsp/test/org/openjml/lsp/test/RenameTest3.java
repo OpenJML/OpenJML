@@ -128,6 +128,20 @@ public class RenameTest3 extends RenameTestBase {
     }
 
     @Test
+    public void testRenameToNullLiteralAborts() {
+        // "null" is a reserved Java literal — not a valid identifier.
+        try {
+            renameAt(primaryUri, primarySrc,
+                    "requires pJavaField", "pJavaField", "null");
+            fail("Expected ResponseErrorException when renaming to 'null'");
+        } catch (ResponseErrorException e) {
+            assertNotNull(e.getResponseError());
+            assertTrue("Error message should mention invalid identifier",
+                    e.getResponseError().getMessage().contains("Not a valid Java identifier"));
+        }
+    }
+
+    @Test
     public void testRenameToEmptyStringAborts() {
         // Renaming to an empty string is not a valid Java identifier.
         // The renamer must reject it with an InvalidParams error rather than

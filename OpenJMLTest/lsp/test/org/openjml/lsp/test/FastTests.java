@@ -4,14 +4,27 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 /**
- * Combined suite for fast test classes (each under ~5s).
- * Running them together avoids 3× JVM startup overhead.
+ * Combined suite for fast test classes (pure logic or light {@code --check} calls, each under ~5s).
+ * Running them together in one JVM avoids per-class startup overhead.
+ *
+ * <p>This suite is referenced by {@link AllLspTests} as a single entry, so adding a
+ * fast test here automatically makes it part of the full test run — no separate edit
+ * to {@code AllLspTests} is needed.  Slow tests (ESC, protocol, disk-file tests) go
+ * directly in {@code AllLspTests} and get a dedicated entry in the Makefile
+ * {@code TEST_CLASSES}.
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
     FoldingRangeTest.class,
     LspProtocolTest.class,
     SemanticTokensTest.class,
+    SemanticTokensAstTest.class,
+    SignatureHelpTest.class,
+    JmlCompletionProviderTest.class,
+    OpenJMLSettingsTest.class,
+    DiagnosticConverterTest.class,
+    JavaSourceScannerTest.class,
+    CodeLensTest.class,
     CheckRunnerDirTest.class,
 })
 public class FastTests {}

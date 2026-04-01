@@ -109,13 +109,13 @@ public class JavaSourceScanner {
     }
 
     // Requires ≥1 modifier keyword to avoid matching calls and field declarations.
-    // [^(;{]* (greedy, stops at first '(', ';', or '{') ensures we capture the
-    // identifier *immediately* before the opening '(' of the parameter list, which
-    // is always the method name — not a type parameter or annotation name.
+    // [^(;{]*[^(;{\w] consumes the return type and any other modifiers/annotations,
+    // stopping at the last non-word character before the method name so that
+    // (\w+) captures the full method identifier rather than just its last character.
     private static final Pattern METHOD_DECL = Pattern.compile(
             "^[ \\t]*(?:public|private|protected|static|final|synchronized|abstract|"
             + "native|default|strictfp)"
-            + "[^(;{]*(\\w+)[ \\t]*\\(");
+            + "[^(;{]*[^(;{\\w](\\w+)[ \\t]*\\(");
 
     /**
      * Return all method declarations found in {@code content}, ordered by line.

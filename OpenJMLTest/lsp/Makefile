@@ -91,6 +91,7 @@ TEST_CLASSES := \
   EscStatusTest \
   MultiFileEscTest \
   CommandDispatchTest \
+  DocumentLifecycleTest \
   FastTests
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))

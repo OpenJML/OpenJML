@@ -84,4 +84,5 @@ public class RenameTest1 extends RenameTestBase {
                 p.contains("requires pModelMethod"));
         assertNoErrors(validateModified(modified));
     }
+
 }
