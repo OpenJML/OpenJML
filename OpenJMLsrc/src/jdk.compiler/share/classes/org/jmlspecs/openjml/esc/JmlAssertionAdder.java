@@ -16345,15 +16345,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (type.type == null) { System.out.println("NULL TYPE IN TYPETEST " + that + " # " + type); }
 		JCTree clazz = treeutils.makeType(type.pos, type.type);
 
-		// No checks needed - Java allows (null instanceof type)
-		// The value is always false
+		// No checks needed - Java allows (null instanceof type) and the value is always false
+		// Consider o instanceof @Nullable Oabject. One might say this is true of o is null. However, that would change the behavior
+		// of the Java runtime. OpenJML checks and perhaps warns about nullity violations, but this would be a case of
+		// OpenJML changing the Java runtime behavior.  Hence a nullity annotation on the type in an instanceof operation
+		// is ignored by OpenJML.
 		JCExpression e = M.at(that).TypeTest(lhs, clazz);
 		e.setType(that.type);
-        boolean hasNullable = type.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nullableAnnotationSymbol.type); // FIXME - use some common method for this calculation
-		if (hasNullable) {
-	        JCExpression eqnull = treeutils.makeEqObject(that.pos, lhs, treeutils.makeNullLiteral(that.pos));
-		    e = treeutils.makeOr(e,  eqnull, e);
-		}
+//        boolean hasNullable = type.type.getAnnotationMirrors().stream().anyMatch(a->a.type == attr.nullableAnnotationSymbol.type); // FIXME - use some common method for this calculation
+//		if (hasNullable) {
+//	        JCExpression eqnull = treeutils.makeEqObject(that.pos, lhs, treeutils.makeNullLiteral(that.pos));
+//		    e = treeutils.makeOr(e,  eqnull, e);
+//		}
 		treeutils.copyEndPosition(e, that);
 		result = eresult = translatingJML ? e : newTemp(e);
         if (bindingAssumption != null) addAssume(pat, Label.IMPLICIT_ASSUME, treeutils.makeImplies(pat, eresult, bindingAssumption));
@@ -18426,6 +18429,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
     public boolean isNonNullExplicit(Type t) {
         return !utils.isJavaOrJmlPrimitiveType(t) && hasNonNull(t) ;
+    }
+
+    public boolean isNullableExplicit(Type t) {
+        return !utils.isJavaOrJmlPrimitiveType(t) && hasNullable(t) ;
+    }
+
+    public boolean isNonNull(Type t) {
+        return isNonNullExplicit(t) || (!isNullableExplicit(t) && specs.defaultNullity(enclosingClass) == Modifiers.NON_NULL);
+    }
+
+    public boolean isNullable(Type t) {
+        return isNullableExplicit(t) || (!isNonNullExplicit(t) && specs.defaultNullity(enclosingClass) == Modifiers.NULLABLE);
     }
 
     public boolean isNonNullLocal(Type t) {
