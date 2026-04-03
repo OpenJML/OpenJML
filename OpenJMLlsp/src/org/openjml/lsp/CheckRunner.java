@@ -643,6 +643,64 @@ public class CheckRunner {
         return new CheckResult(diags, rc, Map.of(), listener.toForeignMessages(filePath), Map.of());
     }
 
+    /**
+     * Run {@code --rac --dirs path1 path2 ...} on one or more files or directories.
+     *
+     * <p>Each path may be a {@code .java} file or a directory; OpenJML processes
+     * directory arguments recursively (same behaviour as repeated {@code --dir}).
+     * Diagnostics are returned grouped by source-file URI.
+     *
+     * @param paths     one or more OS paths (files or directories) to compile
+     * @param outputDir directory for RAC {@code .class} output; {@code null} or empty
+     *                  falls back to {@link OpenJMLSettings#racOutputDir} then {@code "rac-classes"}
+     * @param settings  current server settings
+     */
+    public static DirCheckResult runRacDir(List<String> paths, String outputDir,
+                                           OpenJMLSettings settings) {
+        var listener = new LspDiagnosticListener();
+        var out      = new PrintWriter(new StringWriter());
+        var api      = IAPI.make(out, listener);
+
+        List<String> args = buildArgs(settings, "--rac");
+
+        // Resolve and create the RAC output directory.
+        String rawDir = (outputDir != null && !outputDir.isEmpty()) ? outputDir
+                : (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
+                        ? settings.racOutputDir : "rac-classes";
+        java.nio.file.Path outputPath;
+        java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
+        if (raw.isAbsolute()) {
+            outputPath = raw;
+        } else {
+            String wsRoot = (settings.workspaceFolderPaths != null
+                          && !settings.workspaceFolderPaths.isEmpty())
+                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
+                    : (!paths.isEmpty() ? new java.io.File(paths.get(0)).getParent() : ".");
+            outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
+        }
+        try {
+            java.nio.file.Files.createDirectories(outputPath);
+        } catch (java.io.IOException e) {
+            System.err.println("[CheckRunner.runRacDir] failed to create output dir: " + e);
+        }
+        args.add("-d");
+        args.add(outputPath.toString());
+        args.add("--dirs");
+        args.addAll(paths);
+        logInvocation("runRacDir", args);
+        log(ts() + " --rac --dirs " + paths.size() + " path(s) → " + outputPath);
+
+        int rc;
+        try {
+            rc = api.execute(args.toArray(new String[0]));
+        } catch (Throwable e) {
+            System.err.println("[CheckRunner.runRacDir] exception: " + e);
+            rc = -1;
+        }
+        System.err.println("[CheckRunner.runRacDir] exit code " + rc);
+        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
+    }
+
     // --- utility ---
 
     /**

@@ -20,7 +20,10 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -65,69 +68,83 @@ public abstract class LspCommandHandler extends AbstractHandler {
         this.lspCommand = lspCommand;
     }
 
-    // -----------------------------------------------------------------------
-    // Main execute flow
-    // -----------------------------------------------------------------------
-
+    /**
+     * Default execute: resolve targets and dispatch grouped by project.
+     * Handlers that need pre-dispatch logic (e.g. dirty-file checks) override this.
+     */
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        // 1. Resolve targets from the current selection / active editor.
-        IEditorPart editor = HandlerUtil.getActiveEditor(event);
         List<SelectionResolver.Target> targets = SelectionResolver.resolve(
-                HandlerUtil.getCurrentSelection(event), editor);
+                HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+        dispatchGroupedByProject(targets, event);
+        return null;
+    }
 
-        if (targets.isEmpty()) {
-            Console.log("" + lspCommand + ": no target files found.");
-            return null;
-        }
+    // -----------------------------------------------------------------------
+    // Per-project dispatch infrastructure
+    // -----------------------------------------------------------------------
 
-        // 2. Nature gate: warn if any project lacks the OpenJML nature.
+    /**
+     * Nature gate: checks that every involved project has the OpenJML nature.
+     * Shows a dialog offering to add the nature; returns {@code false} if the
+     * user cancels.  Must be called on the UI thread.
+     */
+    private static boolean ensureNature(List<SelectionResolver.Target> targets) {
         Set<IProject> missing = new LinkedHashSet<>();
         for (SelectionResolver.Target t : targets) {
             IProject proj = owningProject(t);
             if (!JmlNature.hasNature(proj)) missing.add(proj);
         }
-        if (!missing.isEmpty()) {
-            String names = missing.stream()
-                    .map(IProject::getName)
-                    .collect(Collectors.joining(", "));
-            MessageDialog dialog = new MessageDialog(
-                    Display.getDefault().getActiveShell(),
-                    "OpenJML — No JML Nature",
-                    null,
-                    "Project(s) '" + names + "' do not have the OpenJML nature.\n\n"
-                    + "Add it now to enable OpenJML checking for these projects.",
-                    MessageDialog.WARNING,
-                    new String[] { "Add JML Nature", "Cancel" },
-                    0 /* default: Add JML Nature */);
-            if (dialog.open() != 0) return null; // Cancel
-            for (IProject p : missing) JmlNature.enable(p);
-        }
+        if (missing.isEmpty()) return true;
+        String names = missing.stream().map(IProject::getName).collect(Collectors.joining(", "));
+        MessageDialog dialog = new MessageDialog(
+                Display.getDefault().getActiveShell(),
+                "OpenJML — No JML Nature", null,
+                "Project(s) '" + names + "' do not have the OpenJML nature.\n\n"
+                + "Add it now to enable OpenJML checking for these projects.",
+                MessageDialog.WARNING,
+                new String[] { "Add JML Nature", "Cancel" }, 0);
+        if (dialog.open() != 0) return false;
+        for (IProject p : missing) JmlNature.enable(p);
+        return true;
+    }
 
-        // 3. Group by project, topo-sort, dispatch.
+    /** Log the selected targets at the start of a dispatch. */
+    private static void logTargets(String command, List<SelectionResolver.Target> targets) {
+        StringBuilder sb = new StringBuilder("[OpenJML] ").append(command).append(": ");
+        for (int i = 0; i < targets.size(); i++) {
+            if (i > 0) sb.append(", ");
+            switch (targets.get(i)) {
+                case SelectionResolver.Target.File f   -> sb.append("file ").append(f.file().getName());
+                case SelectionResolver.Target.Method m -> sb.append("method ").append(m.methodFqn());
+                case SelectionResolver.Target.Dir d    -> sb.append("dir ").append(d.container().getName());
+            }
+        }
+        Console.log(sb.toString());
+    }
+
+    /**
+     * Group targets by Eclipse project, topo-sort projects, and dispatch one
+     * command per project via {@link #buildCommand} / {@link #buildMethodCommand}.
+     *
+     * <p>Does NOT perform a dirty-file check — callers that need one do it
+     * before invoking this method.
+     */
+    protected void dispatchGroupedByProject(
+            List<SelectionResolver.Target> targets, ExecutionEvent event) {
+        if (targets.isEmpty()) {
+            Console.log("[OpenJML] " + lspCommand + ": no target files found.");
+            return;
+        }
+        if (!ensureNature(targets)) return;
+        logTargets(lspCommand, targets);
+
         Map<IProject, List<SelectionResolver.Target>> byProject = new LinkedHashMap<>();
         for (SelectionResolver.Target t : targets) {
             byProject.computeIfAbsent(owningProject(t), k -> new ArrayList<>()).add(t);
         }
         List<IProject> sortedProjects = topoSortProjects(byProject.keySet());
 
-        // Log summary.
-        StringBuilder sb = new StringBuilder(lspCommand).append(": ");
-        boolean first = true;
-        for (IProject proj : sortedProjects) {
-            for (SelectionResolver.Target t : byProject.get(proj)) {
-                if (!first) sb.append(", ");
-                first = false;
-                sb.append(switch (t) {
-                    case SelectionResolver.Target.File   f -> f.file().getName();
-                    case SelectionResolver.Target.Dir    d -> d.container().getName() + "/";
-                    case SelectionResolver.Target.Method m -> m.methodFqn();
-                });
-            }
-        }
-        Console.log(sb.toString());
-
-        // Dispatch in dependency order.
         for (IProject proj : sortedProjects) {
             InvocationContext ctx = resolveInvocationContext(proj);
             List<String> paths = new ArrayList<>();
@@ -150,7 +167,6 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 if (params != null) dispatchCommand(params, null, proj);
             }
         }
-        return null;
     }
 
     // -----------------------------------------------------------------------
@@ -362,9 +378,9 @@ public abstract class LspCommandHandler extends AbstractHandler {
             return new InvocationContext(
                     String.join(java.io.File.pathSeparator, srcParts),
                     String.join(java.io.File.pathSeparator, cpParts),
-                    specsPath     != null ? specsPath     : "",
+                    specsPath      != null ? specsPath      : "",
                     propertiesFile != null ? propertiesFile : "",
-                    outputDir     != null ? outputDir     : "");
+                    outputDir      != null ? outputDir      : "");
         } catch (Exception e) {
             Console.log("resolveInvocationContext failed for " + project.getName() + ": " + e);
             return emptyContext();
@@ -427,8 +443,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
         Map<String, IProject> byName = new LinkedHashMap<>();
         for (IProject p : projects) byName.put(p.getName(), p);
 
-        Map<String, Integer>    inDegree = new LinkedHashMap<>();
-        Map<String, Set<String>> rdeps   = new LinkedHashMap<>();
+        Map<String, Integer>     inDegree = new LinkedHashMap<>();
+        Map<String, Set<String>> rdeps    = new LinkedHashMap<>();
         for (IProject p : projects) {
             rdeps.put(p.getName(), new LinkedHashSet<>());
             inDegree.put(p.getName(), 0);
@@ -466,11 +482,152 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     // -----------------------------------------------------------------------
+    // Dirty-file handling for ESC and RAC
+    // -----------------------------------------------------------------------
+
+    /** Collect the dirty {@link org.eclipse.core.filebuffers.ITextFileBuffer}s for all file/method targets. */
+    private static List<org.eclipse.core.filebuffers.ITextFileBuffer>
+            collectDirtyBuffers(List<SelectionResolver.Target> targets) {
+        List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty = new ArrayList<>();
+        for (SelectionResolver.Target t : targets) {
+            IFile file = switch (t) {
+                case SelectionResolver.Target.File f   -> f.file();
+                case SelectionResolver.Target.Method m -> m.file();
+                case SelectionResolver.Target.Dir d    -> null;
+            };
+            if (file == null) continue;
+            org.eclipse.core.filebuffers.ITextFileBuffer buf =
+                    org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
+                            .getTextFileBuffer(file.getFullPath(),
+                                    org.eclipse.core.filebuffers.LocationKind.IFILE);
+            if (buf != null && buf.isDirty()) dirty.add(buf);
+        }
+        return dirty;
+    }
+
+    /**
+     * Check for dirty editors among {@code targets} and, based on the
+     * {@link OpenJMLOptions#escDirtyFilesBehaviorKey} preference, either save
+     * them, proceed as-is (using in-memory content), or ask the user.
+     *
+     * <p>Must be called on the UI thread (may open a dialog).
+     *
+     * @return {@code true} if ESC should proceed, {@code false} if the user cancelled
+     */
+    static boolean handleDirtyFilesForEsc(List<SelectionResolver.Target> targets) {
+        List<org.eclipse.core.filebuffers.ITextFileBuffer> dirtyBuffers = collectDirtyBuffers(targets);
+        if (dirtyBuffers.isEmpty()) return true;
+
+        String behavior = OpenJMLOptions.value(OpenJMLOptions.escDirtyFilesBehaviorKey);
+        if (behavior == null) behavior = "ask";
+
+        switch (behavior) {
+            case "content" -> { return true; }
+            case "save"    -> { saveBuffers(dirtyBuffers); return true; }
+            default        -> { /* "ask" — fall through to dialog */ }
+        }
+
+        // "ask": show MessageDialogWithToggle with custom button labels.
+        MessageDialogWithToggle dlg = new MessageDialogWithToggle(
+                Display.getDefault().getActiveShell(),
+                "OpenJML — Unsaved Changes",
+                null,
+                "Some files have unsaved changes.\n\n"
+                + "Choose how ESC should handle the edited content:",
+                MessageDialog.QUESTION,
+                new String[] {
+                    "Act on Edited Content",
+                    "Save and Run ESC",
+                    IDialogConstants.CANCEL_LABEL },
+                0,  // default button: "Act on Edited Content"
+                "Remember my choice (can be changed in Preferences \u2192 OpenJML)",
+                false);
+        int result = dlg.open();
+
+        // Persist "don't ask again" choice to the preference store.
+        if (dlg.getToggleState()) {
+            String newBehavior = (result == 0) ? "content" : (result == 1) ? "save" : "ask";
+            org.openjml.ui.Activator.getDefault().getPreferenceStore()
+                    .setValue(OpenJMLOptions.escDirtyFilesBehaviorKey, newBehavior);
+        }
+
+        if (result == 1) { saveBuffers(dirtyBuffers); return true; }
+        if (result == 0) return true;
+        return false;  // Cancel (result == 2 or window closed)
+    }
+
+    private static void saveBuffers(List<org.eclipse.core.filebuffers.ITextFileBuffer> buffers) {
+        NullProgressMonitor monitor = new NullProgressMonitor();
+        for (org.eclipse.core.filebuffers.ITextFileBuffer buf : buffers) {
+            try {
+                buf.commit(monitor, false);
+            } catch (org.eclipse.core.runtime.CoreException e) {
+                Console.log("[OpenJML] Warning: could not save buffer: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Check for dirty editors among {@code targets} and, based on the
+     * {@link OpenJMLOptions#racSaveBeforeKey} preference, either save them
+     * automatically or ask the user.
+     *
+     * <p>RAC cannot operate on unsaved content.  When dirty files are found:
+     * <ul>
+     *   <li>If "always save" is set, files are saved silently.</li>
+     *   <li>Otherwise a dialog asks to save or cancel.</li>
+     * </ul>
+     *
+     * <p>Must be called on the UI thread (may open a dialog).
+     *
+     * @return {@code true} if RAC should proceed, {@code false} if the user cancelled
+     */
+    static boolean handleDirtyFilesForRac(List<SelectionResolver.Target> targets) {
+        List<org.eclipse.core.filebuffers.ITextFileBuffer> dirtyBuffers = collectDirtyBuffers(targets);
+        if (dirtyBuffers.isEmpty()) return true;
+
+        if (org.openjml.ui.Activator.getDefault().getPreferenceStore()
+                .getBoolean(OpenJMLOptions.racSaveBeforeKey)) {
+            saveBuffers(dirtyBuffers);
+            return true;
+        }
+
+        // Ask the user: save or cancel.
+        MessageDialogWithToggle dlg = new MessageDialogWithToggle(
+                Display.getDefault().getActiveShell(),
+                "OpenJML — Unsaved Changes",
+                null,
+                "Some files have unsaved changes. RAC requires saved files.\n\n"
+                + "Save the files and run RAC, or cancel?",
+                MessageDialog.QUESTION,
+                new String[] { "Save and Run RAC", IDialogConstants.CANCEL_LABEL },
+                0,  // default button: "Save and Run RAC"
+                "Always save edited files before running RAC (no dialog)",
+                false);
+        int result = dlg.open();
+
+        if (dlg.getToggleState()) {
+            org.openjml.ui.Activator.getDefault().getPreferenceStore()
+                    .setValue(OpenJMLOptions.racSaveBeforeKey, true);
+        }
+
+        if (result == 0) { saveBuffers(dirtyBuffers); return true; }
+        return false;  // Cancel
+    }
+
+    // -----------------------------------------------------------------------
     // Concrete handlers registered via plugin.xml
     // -----------------------------------------------------------------------
 
     /**
      * Runs {@code openjml.checkJML} (JML type-check) on selected files/directories.
+     *
+     * <p>No dirty-file dialog is shown: the LSP server automatically uses
+     * in-memory (edited) content for {@code --check} via its {@code lastContent}
+     * map, so checking on unsaved files works transparently without user
+     * interaction.  The equivalent policy for ESC is configurable via
+     * {@link OpenJMLOptions#escDirtyFilesBehaviorKey} and enforced in
+     * {@link RunEsc} / {@link RunEscForMethod}.
      */
     public static final class CheckJML extends LspCommandHandler {
         public CheckJML() { super("openjml.checkJML"); }
@@ -493,6 +650,14 @@ public abstract class LspCommandHandler extends AbstractHandler {
         public RunRac() { super("openjml.runRac"); }
 
         @Override
+        public Object execute(ExecutionEvent event) throws ExecutionException {
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            if (!handleDirtyFilesForRac(targets)) return null;
+            return super.execute(event);
+        }
+
+        @Override
         protected ExecuteCommandParams buildCommand(List<String> osPaths, InvocationContext ctx) {
             List<Object> args = prefixArgs(ctx);
             args.add(ctx.outputDir() != null ? ctx.outputDir() : "");
@@ -504,11 +669,23 @@ public abstract class LspCommandHandler extends AbstractHandler {
     /**
      * Runs {@code openjml.runEsc} on the selected entities.
      *
-     * <p>When a method is selected (e.g. in the Outline) dispatches
-     * {@code openjml.runEscForMethod} with the method FQN.
+     * <p>When a method is selected (e.g. in the Outline), dispatches
+     * {@code openjml.runEscForMethod} with the method FQN so that only
+     * that method is checked.
+     *
+     * <p>File and directory targets are grouped by Eclipse project and dispatched
+     * as a single {@code openjml.runEsc} command per project.
      */
     public static final class RunEsc extends LspCommandHandler {
         public RunEsc() { super("openjml.runEsc"); }
+
+        @Override
+        public Object execute(ExecutionEvent event) throws ExecutionException {
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            if (!handleDirtyFilesForEsc(targets)) return null;
+            return super.execute(event);
+        }
 
         @Override
         protected ExecuteCommandParams buildCommand(List<String> osPaths, InvocationContext ctx) {
@@ -541,6 +718,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
             if (editor == null) return null;
             if (!(editor.getEditorInput() instanceof IFileEditorInput fi)) return null;
             IFile file = fi.getFile();
+
+            if (!handleDirtyFilesForEsc(List.of(new SelectionResolver.Target.File(file)))) return null;
 
             if (!JmlNature.hasNature(file.getProject())) {
                 MessageDialog dialog = new MessageDialog(

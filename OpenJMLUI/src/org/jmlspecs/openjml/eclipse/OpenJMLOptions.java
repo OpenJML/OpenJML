@@ -28,6 +28,13 @@ public class OpenJMLOptions {
     public static final String checkTriggerOnKey       = "openjml.checkTriggerOn";
     /** When to run --esc: "manual" (default), "save", or "edit". */
     public static final String escTriggerOnKey         = "openjml.escTriggerOn";
+    /**
+     * How ESC behaves when there are dirty (unsaved) editors:
+     * "ask" (default) — show a dialog each time,
+     * "content" — always run ESC on edited content without asking,
+     * "save" — always save first, then run ESC on saved files.
+     */
+    public static final String escDirtyFilesBehaviorKey = "openjml.escDirtyFilesBehavior";
 
     /** Path to openjml.properties (blank = auto-discover at workspace root). */
     public static final String propertiesFileKey       = "openjml.propertiesFile";
@@ -47,6 +54,12 @@ public class OpenJMLOptions {
 
     /** Output directory for RAC-compiled classes (blank = project output). */
     public static final String racOutputDirKey         = "openjml.racOutputDir";
+    /**
+     * When {@code true}, edited (unsaved) files are saved automatically before
+     * RAC without prompting.  When {@code false} (default), a dialog asks the
+     * user to save or cancel.
+     */
+    public static final String racSaveBeforeKey        = "openjml.racSaveBefore";
 
     /** Whether the outline shows JML-only items (true) or full Java+JML (false). */
     public static final String useIntegratedOutlineKey = "openjml.useIntegratedOutline";
@@ -141,6 +154,8 @@ public class OpenJMLOptions {
         // Tab 1
         store.setDefault(checkTriggerOnKey,           "edit");
         store.setDefault(escTriggerOnKey,             "manual");
+        store.setDefault(escDirtyFilesBehaviorKey,    "ask");
+        store.setDefault(racSaveBeforeKey,            false);
         store.setDefault(escEngineKey,                "subprocess");
         store.setDefault(escThreadsKey,               "0");
         store.setDefault(useIntegratedOutlineKey,     "true");

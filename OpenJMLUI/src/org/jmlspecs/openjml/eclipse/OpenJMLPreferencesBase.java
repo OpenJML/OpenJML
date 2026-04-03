@@ -144,6 +144,14 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "On edit (expensive)",  "edit"   } },
                 parent));
 
+        addEditor(new ComboFieldEditor(OpenJMLOptions.escDirtyFilesBehaviorKey,
+                "ESC behavior on edited (unsaved) files:",
+                new String[][] {
+                    { "Always ask",                            "ask"     },
+                    { "Always act on edited content",          "content" },
+                    { "Always save edited files then run ESC", "save"    } },
+                parent));
+
         addSpace(parent);
 
         // ── Paths ───────────────────────────────────────────────────────────
@@ -190,6 +198,9 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new StringFieldEditor(OpenJMLOptions.racOutputDirKey,
                 "RAC output directory (blank = project output):",
                 parent));
+
+        addBoolean(parent, OpenJMLOptions.racSaveBeforeKey,
+                "Always save edited files before running RAC (no dialog)");
 
         addBoolean(parent, OpenJMLOptions.useIntegratedOutlineKey,
                 "Show full Java+JML outline (uncheck for JML-only symbols)");

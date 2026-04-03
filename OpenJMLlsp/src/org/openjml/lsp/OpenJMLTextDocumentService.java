@@ -1157,11 +1157,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     () -> CheckRunner.runDoEscMethod(uri, methodName, s),
                     s.escPool);
         } else {
-            String filePath = CheckRunner.uriToPath(uri);
-            if (filePath == null) return;
-            submitEscForMethod(uri, target,
-                    () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s),
-                    executor);
+            runWithContentOrFile(uri,
+                    c -> submitEscForMethod(uri, target, () -> CheckRunner.runEscMethod(uri, c, methodName, s), executor),
+                    f -> submitEscForMethod(uri, target, () -> CheckRunner.runEscFileMethod(f, uri, methodName, s), executor));
         }
     }
 
@@ -1399,18 +1397,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         // For .java files: prefer content-based check if the file is open in memory,
         // so that the current (possibly unsaved) .jml companion content is also checked.
-        String openContent = lastContent.get(uri);
-        if (openContent != null) {
-            executor.submit(() -> runCheckContent(uri, openContent));
-            return;
-        }
-        String filePath = CheckRunner.uriToPath(uri);
-        if (filePath == null) return;
-        executor.submit(() -> runCheckFile(filePath, uri));
+        runWithContentOrFile(uri,
+                c -> executor.submit(() -> runCheckContent(uri, c)),
+                f -> executor.submit(() -> runCheckFile(f, uri)));
     }
 
     private void scheduleEscFile(String uri) {
-        scheduleEscFile(uri, settings);
+        runWithContentOrFile(uri,
+                c -> submitEsc(uri, () -> CheckRunner.runEsc(uri, c, settings)),
+                f -> submitEsc(uri, () -> CheckRunner.runEscFile(f, uri, settings)));
+    }
+
+    /**
+     * If {@code uri} has in-memory content (i.e. the file is open in an editor),
+     * invoke {@code onContent} with that content; otherwise resolve the on-disk
+     * path and invoke {@code onFile} with it.  Silently returns if neither source
+     * is available (file path cannot be determined).
+     *
+     * <p>Both {@link #scheduleCheckFile} and {@link #scheduleEscFile} apply the
+     * same "prefer edited content over saved file" policy — this helper avoids
+     * duplicating that logic.
+     */
+    private void runWithContentOrFile(String uri,
+            java.util.function.Consumer<String> onContent,
+            java.util.function.Consumer<String> onFile) {
+        String content = lastContent.get(uri);
+        if (content != null) { onContent.accept(content); return; }
+        String filePath = CheckRunner.uriToPath(uri);
+        if (filePath == null) return;
+        onFile.accept(filePath);
     }
 
     private void scheduleEscFile(String uri, OpenJMLSettings s) {

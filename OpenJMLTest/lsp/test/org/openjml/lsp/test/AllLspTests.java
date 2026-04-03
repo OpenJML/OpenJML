@@ -38,5 +38,6 @@ import org.junit.runners.Suite;
     DocumentSymbolTest.class,
     DoEscTest.class,
     PropertiesFileOptionsTest.class,
+    RacTest.class,
 })
 public class AllLspTests {}

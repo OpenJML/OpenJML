@@ -294,6 +294,12 @@ public class LspProtocolTest {
         client.sendRequest("workspace/executeCommand", params);
     }
 
+    /** Send workspace/executeCommand with a single URI argument. */
+    private void executeCommandWithUri(String command, String uri) throws Exception {
+        String params = "{\"command\":\"" + command + "\",\"arguments\":[\"" + uri + "\"]}";
+        client.sendRequest("workspace/executeCommand", params);
+    }
+
     /**
      * Wait for the next publishDiagnostics notification whose URI matches the
      * given URI.  Ignores notifications for other URIs.
@@ -319,6 +325,75 @@ public class LspProtocolTest {
             if (d.has("severity") && d.get("severity").getAsInt() == 1) return true;
         }
         return false;
+    }
+
+    // -----------------------------------------------------------------------
+    // openjml.runEsc command (scheduleEscFile → runWithContentOrFile)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code openjml.runEsc [uri]} triggers an ESC pass and
+     * publishes diagnostics for a file that is open in the editor (i.e. has
+     * content stored in {@code lastContent}).
+     *
+     * <p>The URI does not correspond to a real disk file, so the server's
+     * {@code runWithContentOrFile} helper must choose the in-memory content
+     * path.  A postcondition that is always false guarantees ESC reports a
+     * violation.
+     */
+    @Test
+    public void testRunEscCommandPublishesEscDiagnostics() throws Exception {
+        String uri = "file:///EscCmdTest.java";
+        // Postcondition \result > x is never satisfied when the method returns x.
+        String source = "public class EscCmdTest {\\n"
+                + "    //@ ensures \\\\result > x;\\n"
+                + "    public int noOp(int x) { return x; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+        // Wait for the initial --check to complete (no type errors expected).
+        nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        // Execute openjml.runEsc — server calls scheduleEscFile(uri)
+        // → runWithContentOrFile finds lastContent → runs ESC on in-memory source.
+        executeCommandWithUri(OpenJMLCommands.RUN_ESC, uri);
+
+        // ESC publishes its own diagnostics notification.
+        JsonObject escNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics notification after openjml.runEsc", escNotif);
+        JsonArray escDiags = escNotif.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected ESC to report a postcondition violation", escDiags.isEmpty());
+    }
+
+    /**
+     * Verifies that {@code textDocument/didOpen} triggers a {@code --check} and
+     * publishes diagnostics when the document content (not a disk file) has a
+     * type error.
+     *
+     * <p>The file URI does not correspond to a real disk file, so the server's
+     * {@code scheduleCheckNow} falls back to content-based checking.  This
+     * exercises the "no disk file → use in-memory content" branch of
+     * {@code scheduleCheckNow} and confirms that {@code didOpen} always
+     * triggers a check (including the case where Eclipse opens files on startup).
+     */
+    @Test
+    public void testDidOpenWithContentTriggersCheck() throws Exception {
+        String uri = "file:///OpenContentTest.java";
+        String source = "public class OpenContentTest {\\n"
+                + "    public int m() { return \\\"not an int\\\"; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        JsonObject notification =
+                client.nextNotification("textDocument/publishDiagnostics",
+                        TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        assertNotNull("Expected publishDiagnostics after didOpen with content", notification);
+        JsonArray diags = notification.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected at least one diagnostic for type error in didOpen content",
+                diags.isEmpty());
+        assertTrue("Expected Error-severity diagnostic", hasErrorDiagnostic(diags));
     }
 
     // -----------------------------------------------------------------------
