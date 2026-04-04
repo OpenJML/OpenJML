@@ -111,7 +111,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
     /** Log the selected targets at the start of a dispatch. */
     private static void logTargets(String command, List<SelectionResolver.Target> targets) {
-        StringBuilder sb = new StringBuilder("[OpenJML] ").append(command).append(": ");
+        StringBuilder sb = new StringBuilder(command).append(": ");
         for (int i = 0; i < targets.size(); i++) {
             if (i > 0) sb.append(", ");
             switch (targets.get(i)) {
@@ -133,7 +133,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
     protected void dispatchGroupedByProject(
             List<SelectionResolver.Target> targets, ExecutionEvent event) {
         if (targets.isEmpty()) {
-            Console.log("[OpenJML] " + lspCommand + ": no target files found.");
+            Console.log(lspCommand + ": no target files found.");
             return;
         }
         if (!ensureNature(targets)) return;
@@ -562,7 +562,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             try {
                 buf.commit(monitor, false);
             } catch (org.eclipse.core.runtime.CoreException e) {
-                Console.log("[OpenJML] Warning: could not save buffer: " + e.getMessage());
+                Console.log("Warning: could not save buffer: " + e.getMessage());
             }
         }
     }
