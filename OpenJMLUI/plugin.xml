@@ -1886,4 +1886,22 @@
      </factory>
   </extension>
 
+  <!-- Code mining provider for OpenJML ESC proof status in the JDT Java editor.
+       LSP4E's CodeLensProvider uses enabledWhen=editorHasLanguageServer which
+       only matches the generic text editor, not the JDT Java editor.  This
+       provider is registered specifically for JavaEditor instances and calls
+       the OpenJML LSP server directly via OpenJMLLanguageClient. -->
+  <extension point="org.eclipse.ui.workbench.texteditor.codeMiningProviders">
+    <codeMiningProvider
+        class="org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider"
+        id="org.openjml.OpenJMLUI.codelens"
+        label="OpenJML ESC Status">
+      <enabledWhen>
+        <with variable="editor">
+          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
+        </with>
+      </enabledWhen>
+    </codeMiningProvider>
+  </extension>
+
 </plugin>

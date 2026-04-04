@@ -311,7 +311,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
         String uri = params.getTextDocument().getUri();
         String content = lastContent.get(uri);
-        System.err.println("[codeLens] uri=" + uri + " content=" + (content == null ? "null" : content.length() + " chars"));
+        if (content == null) {
+            // didOpen may not have arrived yet; fall back to reading from disk so that
+            // initial UNKNOWN-status lenses are returned rather than an empty list.
+            try { content = java.nio.file.Files.readString(
+                      java.nio.file.Path.of(new java.net.URI(uri))); }
+            catch (Exception ignored) {}
+        }
         if (content == null) return CompletableFuture.completedFuture(List.of());
 
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
@@ -330,7 +336,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                   List.<Object>of(uri, fqn));
             lenses.add(new CodeLens(range, cmd, null));
         }
-        System.err.println("[codeLens] returning " + lenses.size() + " lenses for " + uri);
         return CompletableFuture.completedFuture(lenses);
     }
 
@@ -727,6 +732,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                               String specsPath, String propertiesFile) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
+
+        // Mark all directly-specified open files as CHECKING before submitting.
+        // Directory paths are handled after the run via the affected-URI scan.
+        for (String path : paths) {
+            try {
+                java.nio.file.Path p = java.nio.file.Path.of(path);
+                if (!java.nio.file.Files.isDirectory(p)) {
+                    String uri = p.toUri().toString();
+                    if (lastContent.containsKey(uri)) markAllMethodStatus(uri, MethodStatus.CHECKING);
+                }
+            } catch (Exception ignored) {}
+        }
+        refreshCodeLenses();
+
         executor.submit(() -> {
             try {
                 // Publish ESC diagnostics progressively as each method's proof completes.
@@ -752,11 +771,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         publishMerged(uri);
                     }
                 }
-                // Update code-lens status for any files currently open.
-                for (var entry : result.diagnosticsByUri().entrySet()) {
-                    String uri = entry.getKey();
-                    if (lastContent.containsKey(uri)) {
-                        updateEscStatus(uri, entry.getValue(),
+                // Update code-lens status for ALL open files touched by this ESC run,
+                // including fully-verified files that have no diagnostics (and therefore
+                // are absent from result.diagnosticsByUri()).
+                for (String uri : new java.util.HashSet<>(lastContent.keySet())) {
+                    if (isUriAffectedByPaths(uri, paths)) {
+                        List<Diagnostic> diags =
+                                result.diagnosticsByUri().getOrDefault(uri, List.of());
+                        updateEscStatus(uri, diags,
                                 result.proofResults(), result.exitCode(), List.of());
                     }
                 }
@@ -764,6 +786,21 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
             }
         });
+    }
+
+    /**
+     * Returns true if {@code uri} (a {@code file:///} URI of an open file) is
+     * covered by at least one entry in {@code paths} (OS file or directory paths).
+     */
+    private static boolean isUriAffectedByPaths(String uri, List<String> paths) {
+        for (String path : paths) {
+            try {
+                java.nio.file.Path p = java.nio.file.Path.of(path);
+                String pathUri = p.toUri().toString(); // ends with '/' for directories
+                if (uri.equals(pathUri) || uri.startsWith(pathUri)) return true;
+            } catch (Exception ignored) {}
+        }
+        return false;
     }
 
     /**
@@ -1723,7 +1760,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void refreshCodeLenses() {
-        System.err.println("[refreshCodeLenses] client=" + (client != null ? client.getClass().getSimpleName() : "null"));
         if (client != null) client.refreshCodeLenses();
     }
 

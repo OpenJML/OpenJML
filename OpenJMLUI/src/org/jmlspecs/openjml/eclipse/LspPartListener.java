@@ -427,12 +427,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     String uri = (String) params.getClass().getMethod("getUri").invoke(params);
                     if (uri != null) refreshColorizerForUri(uri);
                 } catch (Exception ignored) {}
-                // Schedule a code-mining refresh on the UI thread.  lsp4e's
-                // DefaultLanguageClient.refreshCodeLenses() runs updateCodeMinings() on
-                // ForkJoinPool where UI.getActivePage() returns null (a no-op).
-                // We bypass that and call updateCodeMinings() directly on each viewer.
-                System.err.println("[OpenJML] diagnosticsHook: scheduling refreshAllCodeMinings");
-                org.eclipse.swt.widgets.Display.getDefault().asyncExec(LspPartListener::refreshAllCodeMinings);
+                // Code-mining refresh is handled by OpenJMLLanguageClient.refreshCodeLenses().
             };
             setter.invoke(client, wrapped);
             diagnosticsHookInstalled = true;  // success — don't install again
@@ -698,10 +693,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
      * {@code DefaultLanguageClient} entirely and walk all viewers directly using
      * {@code getWorkbenchWindows()} (which works even when Eclipse does not have OS focus).
      */
-    private static void refreshAllCodeMinings() {
+    static void refreshAllCodeMinings() {
         try {
             org.eclipse.ui.IWorkbench wb = org.eclipse.ui.PlatformUI.getWorkbench();
-            int updated = 0;
             for (org.eclipse.ui.IWorkbenchWindow win : wb.getWorkbenchWindows()) {
                 for (org.eclipse.ui.IWorkbenchPage page : win.getPages()) {
                     for (org.eclipse.ui.IEditorReference ref : page.getEditorReferences()) {
@@ -711,48 +705,15 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         if (adapted == null)
                             adapted = editor.getAdapter(org.eclipse.jface.text.ITextOperationTarget.class);
                         if (adapted == null) continue;
-                        logCodeMiningState(adapted, editor.getTitle());
                         if (adapted instanceof org.eclipse.jface.text.source.ISourceViewerExtension5 ext5) {
                             ext5.updateCodeMinings();
-                            updated++;
-                            System.err.println("[OpenJML] refreshAllCodeMinings: updateCodeMinings() for " + editor.getTitle());
-                        } else {
-                            System.err.println("[OpenJML] refreshAllCodeMinings: viewer not ISourceViewerExtension5 for "
-                                    + editor.getTitle() + " (" + adapted.getClass().getSimpleName() + ")");
                         }
                     }
                 }
             }
-            System.err.println("[OpenJML] refreshAllCodeMinings: updated " + updated + " viewer(s)");
         } catch (Throwable t) {
             System.err.println("[OpenJML] refreshAllCodeMinings failed: " + t);
         }
-    }
-
-    /** Logs the code mining manager and provider state of a viewer (diagnostic only). */
-    private static void logCodeMiningState(Object viewer, String editorTitle) {
-        try {
-            java.lang.reflect.Field fMgr = null, fProv = null;
-            for (Class<?> c = viewer.getClass(); c != null; c = c.getSuperclass()) {
-                if (fMgr == null) try { fMgr = c.getDeclaredField("fCodeMiningManager"); } catch (NoSuchFieldException ignored) {}
-                if (fProv == null) try { fProv = c.getDeclaredField("fCodeMiningProviders"); } catch (NoSuchFieldException ignored) {}
-                if (fMgr != null && fProv != null) break;
-            }
-            String mgrStr = "field not found";
-            if (fMgr != null) { fMgr.setAccessible(true); Object v = fMgr.get(viewer); mgrStr = v == null ? "null" : v.getClass().getSimpleName(); }
-            String provStr = "field not found";
-            if (fProv != null) {
-                fProv.setAccessible(true);
-                Object arr = fProv.get(viewer);
-                if (arr instanceof Object[] pa) {
-                    StringBuilder sb = new StringBuilder("[");
-                    for (Object p : pa) sb.append(p == null ? "null" : p.getClass().getSimpleName()).append(", ");
-                    sb.append("]");
-                    provStr = sb.toString();
-                } else { provStr = String.valueOf(arr); }
-            }
-            System.err.println("[OpenJML] " + editorTitle + " fCodeMiningManager=" + mgrStr + " providers=" + provStr);
-        } catch (Throwable ignored) {}
     }
 
     @SuppressWarnings("unchecked")

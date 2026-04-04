@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -25,6 +27,7 @@ import org.eclipse.lsp4e.client.DefaultLanguageClient;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.swt.widgets.Display;
 
 /**
  * Custom LSP4E language client that routes ESC diagnostics to a dedicated
@@ -146,11 +149,32 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
     }
 
     /**
+     * Overrides the base implementation, which runs on a ForkJoinPool thread
+     * where {@code UI.getActivePage()} returns null and the update is silently
+     * skipped.  Dispatches to the SWT UI thread instead and walks all open
+     * editors directly.
+     */
+    @Override
+    public CompletableFuture<Void> refreshCodeLenses() {
+        Display display = Display.getDefault();
+        if (display != null && !display.isDisposed())
+            display.asyncExec(LspPartListener::refreshAllCodeMinings);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /** Package-private access to the language server for {@link OpenJMLCodeMiningProvider}. */
+    org.eclipse.lsp4j.services.LanguageServer server() {
+        return getLanguageServer();
+    }
+
+    /**
      * Wraps the LSP4E-supplied check-diagnostic consumer with a splitter so
      * that ESC diagnostics go to {@link #escHandler} instead.
+     * Also registers this client with {@link OpenJMLCodeMiningProvider}.
      */
     @Override
     public void setDiagnosticsConsumer(Consumer<PublishDiagnosticsParams> checkConsumer) {
+        OpenJMLCodeMiningProvider.languageClient = this;
         super.setDiagnosticsConsumer(params -> {
             var checkDiags = new ArrayList<Diagnostic>();
             var escDiags   = new ArrayList<Diagnostic>();

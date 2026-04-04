@@ -222,7 +222,6 @@ public class CheckRunner {
             try { uri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
             catch (Exception e) { log("[runEscDir callback] URI conversion failed: " + e); return; }
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(uri);
-            log("[runEscDir callback] uri=" + uri + " diags=" + diags.size());
             perFileCallback.accept(uri, diags);
         });
         api.setProofResultListener(prc);
