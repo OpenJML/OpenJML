@@ -104,6 +104,19 @@ public class Console {
     }
 
     /**
+     * Append {@code message} followed by a newline to the OpenJML console in red font,
+     * without adding a timestamp.  Use this for messages that already carry their own
+     * timestamp (e.g. forwarded server error lines).
+     * Safe to call from any thread.
+     */
+    public static void errorlogRaw(String message) {
+        try (MessageConsoleStream stream = getConsole().newMessageStream()) {
+            stream.setColor(new org.eclipse.swt.graphics.Color(255, 0, 0));
+            stream.println(message);
+        } catch (Exception ignored) {}
+    }
+
+    /**
      * Append a timestamped {@code message} followed by a newline to the OpenJML console,
      * in red font. Safe to call from any thread.
      */

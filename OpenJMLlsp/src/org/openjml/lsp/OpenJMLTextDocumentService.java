@@ -160,6 +160,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Pending debounce futures for --check, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
 
+    /** Pending debounce future for scheduleCheckForPaths (path-based manual check). */
+    private volatile ScheduledFuture<?> pendingCheckPaths;
+
     /** Pending debounce futures for --esc, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingEsc   = new ConcurrentHashMap<>();
 
@@ -697,27 +700,47 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 String specsPath, String propertiesFile) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
-        executor.submit(() -> {
-            try {
-                CheckRunner.DirCheckResult result = CheckRunner.runCheckDir(paths, s);
-                for (var entry : result.diagnosticsByUri().entrySet()) {
-                    checkDiags.put(entry.getKey(), entry.getValue());
-                    publishMerged(entry.getKey());
-                }
-                // Clear stale check diags for paths that produced no diagnostics.
-                for (String path : paths) {
-                    String uri;
-                    try { uri = java.nio.file.Path.of(path).toUri().toString(); }
-                    catch (Exception e) { continue; }
-                    if (!result.diagnosticsByUri().containsKey(uri)) {
-                        checkDiags.remove(uri);
-                        publishMerged(uri);
+        List<String> pathsCopy = List.copyOf(paths);
+
+        // Debounce: cancel any previously scheduled check-paths task so that rapid
+        // toolbar clicks collapse into a single check.  A 300 ms delay is short enough
+        // to feel immediate but long enough to absorb a double-click burst.
+        ScheduledFuture<?> prev = pendingCheckPaths;
+        if (prev != null) prev.cancel(false);
+        pendingCheckPaths = scheduler.schedule(() -> {
+            pendingCheckPaths = null;
+            executor.submit(() -> {
+                try {
+                    CheckRunner.DirCheckResult result = CheckRunner.runCheckDir(pathsCopy, s);
+                    for (var entry : result.diagnosticsByUri().entrySet()) {
+                        checkDiags.put(entry.getKey(), entry.getValue());
+                        publishMerged(entry.getKey());
                     }
+                    // Clear stale check diags for paths that produced no diagnostics.
+                    for (String path : pathsCopy) {
+                        String uri;
+                        try { uri = java.nio.file.Path.of(path).toUri().toString(); }
+                        catch (Exception e) { continue; }
+                        if (!result.diagnosticsByUri().containsKey(uri)) {
+                            checkDiags.remove(uri);
+                            publishMerged(uri);
+                        }
+                    }
+
+                    // Report completion to the client (shown in the JML Console).
+                    int total = result.diagnosticsByUri().values()
+                            .stream().mapToInt(List::size).sum();
+                    String summary = (total == 0)
+                            ? "Check complete: no issues found"
+                            : "Check complete: " + total + " issue(s) in "
+                              + result.diagnosticsByUri().size() + " file(s)";
+                    clientLog(summary);
+                } catch (Throwable e) {
+                    System.err.println("[scheduleCheckForPaths] error: " + e.getMessage());
+                    clientError("Check failed: " + e.getMessage());
                 }
-            } catch (Throwable e) {
-                System.err.println("[scheduleCheckForPaths] error: " + e.getMessage());
-            }
-        });
+            });
+        }, 300, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -826,9 +849,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     racDiags.put(uri, diags);
                     publishMerged(uri);
                 });
-                if (result.exitCode() == 0 && client != null) {
-                    client.logMessage(new MessageParams(MessageType.Info,
-                            "RAC compile succeeded for " + paths.size() + " path(s)"));
+                if (result.exitCode() == 0) {
+                    clientLog("RAC compile succeeded for " + paths.size() + " path(s)");
                 }
             } catch (Throwable e) {
                 System.err.println("[scheduleRacForPaths] error: " + e.getMessage());
@@ -891,9 +913,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
      */
     List<SymbolInformation> symbols(String query) {
-        if (CheckRunner.getASTCache().isIndexing() && client != null) {
-            client.logMessage(new MessageParams(MessageType.Info,
-                    "workspace/symbol: background index still running — results may be incomplete"));
+        if (CheckRunner.getASTCache().isIndexing()) {
+            clientLog("workspace/symbol: background index still running — results may be incomplete");
         }
         String lowerQuery = query == null ? "" : query.toLowerCase(java.util.Locale.ROOT);
         List<SymbolInformation> result = new ArrayList<>();
@@ -952,8 +973,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (filePaths.isEmpty()) return;
 
                 CheckRunner.getASTCache().setIndexing(true);
-                if (client != null) client.logMessage(new MessageParams(MessageType.Info,
-                        "OpenJML: indexing workspace (" + filePaths.size() + " file(s))…"));
+                clientLog("OpenJML: indexing workspace (" + filePaths.size() + " file(s))…");
 
                 int indexed = 0, totalDiags = 0;
                 try {
@@ -977,9 +997,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     }
                 } finally {
                     CheckRunner.getASTCache().setIndexing(false);
-                    if (client != null) client.logMessage(new MessageParams(MessageType.Info,
-                            "OpenJML: workspace index complete — "
-                            + indexed + " file(s), " + totalDiags + " diagnostic(s)"));
+                    clientLog("OpenJML: workspace index complete — "
+                            + indexed + " file(s), " + totalDiags + " diagnostic(s)");
                 }
             } catch (Throwable e) {
                 System.err.println("[OpenJML] Background index failed: " + e);
@@ -1719,11 +1738,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         methodEscStatus.put(uri, statuses);
         refreshCodeLenses();
 
-        if (hasForeignErrors && client != null) {
+        if (hasForeignErrors) {
             String fileName = uri.substring(uri.lastIndexOf('/') + 1);
-            String msg = "OpenJML: ESC on " + fileName
-                    + " could not run — type errors in: " + String.join(", ", foreignFiles);
-            client.logMessage(new MessageParams(MessageType.Warning, msg));
+            clientWarn("OpenJML: ESC on " + fileName
+                    + " could not run — type errors in: " + String.join(", ", foreignFiles));
         }
     }
 
@@ -1785,6 +1803,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>An empty list removes {@code uri} from {@link #markedUris}; a non-empty
      * list adds it.
      */
+    // --- client console logging helpers ---
+
+    /** Send an Info-level message to the client (shown timestamped in the JML Console). */
+    private void clientLog(String message) {
+        if (client == null) return;
+        client.logMessage(new MessageParams(MessageType.Info, message));
+    }
+
+    /** Send a Warning-level message to the client (shown timestamped in the JML Console). */
+    private void clientWarn(String message) {
+        if (client == null) return;
+        client.logMessage(new MessageParams(MessageType.Warning, message));
+    }
+
+    /** Send an Error-level message to the client (shown timestamped in the JML Console). */
+    private void clientError(String message) {
+        if (client == null) return;
+        client.logMessage(new MessageParams(MessageType.Error, message));
+    }
+
     private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
@@ -1862,6 +1900,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         pendingCheck.clear();
         pendingEsc.values().forEach(f -> f.cancel(false));
         pendingEsc.clear();
+        ScheduledFuture<?> pcp = pendingCheckPaths;
+        if (pcp != null) { pcp.cancel(false); pendingCheckPaths = null; }
         runningEscTasks.values().forEach(f -> f.cancel(false));
         runningEscTasks.clear();
         lastCheckFuture.clear();
@@ -1882,10 +1922,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (String uri : toClean) {
             publishDiags(uri, List.of());
         }
-        if (client != null) {
-            client.logMessage(new MessageParams(MessageType.Info,
-                    "OpenJML: caches cleared — re-checking open files and re-indexing workspace…"));
-        }
+        clientLog("OpenJML: caches cleared — re-checking open files and re-indexing workspace…");
 
         // Re-check every currently open file.
         for (Map.Entry<String, String> e : lastContent.entrySet()) {

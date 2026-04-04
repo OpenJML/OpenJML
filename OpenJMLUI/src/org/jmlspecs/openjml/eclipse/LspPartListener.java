@@ -52,6 +52,17 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Map<org.eclipse.core.runtime.IPath, JmlColorizer> colorizersByPath =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** Single-thread scheduler for debouncing CMD_FOCUS_FILE sends. */
+    private static final java.util.concurrent.ScheduledExecutorService FOCUS_SCHEDULER =
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "openjml-focus");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /** Pending debounced CMD_FOCUS_FILE task; cancelled on each new activation. */
+    private static volatile java.util.concurrent.ScheduledFuture<?> pendingFocusTask;
+
     public LspPartListener() {
         INSTANCE = this;
     }
@@ -180,6 +191,40 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     }
 
     /**
+     * Schedules a {@code CMD_FOCUS_FILE} command for {@code file} with a 200 ms debounce.
+     *
+     * <p>Cancels any previously pending focus task so that rapidly switching between
+     * editors does not launch a check for every intermediate file — only the file the
+     * user actually stops on triggers a server-side recheck.
+     */
+    private static void scheduleFocusFile(IFile file) {
+        java.net.URI fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file);
+        if (fileUri == null) return;
+        String uri = fileUri.toString();
+
+        java.util.concurrent.ScheduledFuture<?> old = pendingFocusTask;
+        if (old != null) old.cancel(false);
+
+        pendingFocusTask = FOCUS_SCHEDULER.schedule(() -> {
+            org.eclipse.jface.text.IDocument doc = cachedDocument;
+            if (doc == null) return;
+            try {
+                org.eclipse.lsp4j.ExecuteCommandParams params =
+                        new org.eclipse.lsp4j.ExecuteCommandParams(
+                                OpenJMLConstants.CMD_FOCUS_FILE,
+                                java.util.List.of(uri));
+                org.eclipse.lsp4e.LanguageServers.forDocument(doc)
+                        .computeAll(ls -> {
+                            ls.getWorkspaceService().executeCommand(params);
+                            return java.util.concurrent.CompletableFuture.completedFuture(null);
+                        });
+            } catch (Exception e) {
+                System.err.println("[OpenJML] scheduleFocusFile failed: " + e);
+            }
+        }, 200, java.util.concurrent.TimeUnit.MILLISECONDS);
+    }
+
+    /**
      * Disposes all JML folding managers for editors whose file belongs to
      * {@code project}.  Called when the JML nature is removed from a project.
      */
@@ -242,7 +287,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         }
 
         org.eclipse.core.runtime.IPath path = file.getFullPath();
-        if (!triggered.add(path)) return;
+        if (!triggered.add(path)) {
+            // Already set up — send CMD_FOCUS_FILE so the server can recheck if content changed.
+            scheduleFocusFile(file);
+            return;
+        }
 
         System.err.println("[OpenJML] LspPartListener: handling " + file.getName());
 

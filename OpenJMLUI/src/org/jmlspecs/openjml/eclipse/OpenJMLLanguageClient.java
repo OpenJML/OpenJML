@@ -26,6 +26,8 @@ import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.client.DefaultLanguageClient;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
+import org.eclipse.lsp4j.MessageParams;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.swt.widgets.Display;
 
@@ -146,6 +148,26 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
             if (content.charAt(i) == '\n') offsets.add(i + 1);
         }
         return offsets.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /**
+     * Routes server {@code window/logMessage} notifications to the JML Console.
+     *
+     * <p>{@link MessageType#Info}, {@link MessageType#Warning}, and
+     * {@link MessageType#Error} messages are written to the JML Console so that
+     * server-side completion events (e.g. "Check complete: …") are visible to
+     * the user without requiring the LSP trace view to be open.
+     * {@link MessageType#Log} (verbose/debug) messages are forwarded to the
+     * default LSP4E handler and do not appear in the Console.
+     */
+    @Override
+    public void logMessage(org.eclipse.lsp4j.MessageParams message) {
+        switch (message.getType()) {
+            case Info    -> Console.log(message.getMessage());
+            case Warning -> Console.log("Warning: " + message.getMessage());
+            case Error   -> Console.errorlog(message.getMessage());
+            default      -> super.logMessage(message);  // Log level → LSP trace only
+        }
     }
 
     /**
