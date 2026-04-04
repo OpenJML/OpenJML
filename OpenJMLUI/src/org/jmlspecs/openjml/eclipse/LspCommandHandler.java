@@ -274,19 +274,41 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 if (opt == null || opt.isEmpty()) {
                     boolean sent = sendViaWrapper(
                             org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params);
-                    if (!sent)
-                        Console.log("ERROR: server not connected — command not sent");
+                    if (!sent) showServerNotConnectedDialog();
                 }
               }).exceptionally(t -> {
                 boolean sent = sendViaWrapper(
                         org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params);
-                if (!sent)
-                    Console.log("ERROR: server not connected — command not sent");
+                if (!sent) showServerNotConnectedDialog();
                 return null;
               });
         } catch (Throwable t) {
             Console.log("dispatchCommand exception: " + t);
         }
+    }
+
+    /**
+     * Shows a warning dialog telling the user the server is not connected,
+     * and offers to restart it.  Safe to call from any thread.
+     */
+    private static void showServerNotConnectedDialog() {
+        Console.errorlog("OpenJML server not connected — command not sent");
+        Display display = Display.getDefault();
+        if (display == null || display.isDisposed()) return;
+        display.asyncExec(() -> {
+            String msg =
+                    "The OpenJML LSP server is not connected.\n\n"
+                    + "The command could not be sent.  Without a running server, all OpenJML\n"
+                    + "features (type-checking, ESC, RAC, syntax coloring, etc.) are non-functional.\n\n"
+                    + "Click \"Restart\" to restart the server, or \"OK\" to continue without OpenJML.";
+            MessageDialog dialog = new MessageDialog(display.getActiveShell(),
+                    "OpenJML: Server Not Connected", null, msg,
+                    MessageDialog.WARNING,
+                    new String[] { "Restart", "OK" }, 0);
+            if (dialog.open() == 0) {
+                OpenJMLStreamConnectionProvider.triggerReconnect();
+            }
+        });
     }
 
     /**
@@ -797,7 +819,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         @Override
         public Object execute(ExecutionEvent event) {
-            Console.errorlog(lspCommand);
+            Console.log(lspCommand);
 
             // 1. Clear all OpenJML Eclipse markers workspace-wide.
             // JML_PROBLEM_MARKER with includeSubtypes=true removes both

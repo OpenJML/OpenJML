@@ -67,7 +67,7 @@ public class CheckRunner {
     /** Set the callback that receives user-visible log lines (routed to the VS Code Output channel). */
     public static void setLogCallback(java.util.function.Consumer<String> cb) { logCallback = cb; }
 
-    private static void log(String msg) {
+    static void log(String msg) {
         java.util.function.Consumer<String> cb = logCallback;
         if (cb != null) cb.accept(msg);
     }
@@ -123,6 +123,19 @@ public class CheckRunner {
     private static class ProofResultCollector implements IAPI.IProofResultListener {
         private final Map<String, IProverResult.Kind> results = new LinkedHashMap<>();
 
+        /**
+         * Optional callback invoked after each final proof result is recorded.
+         * Receives the {@link MethodSymbol} so the caller can publish per-file
+         * diagnostics immediately rather than waiting for the full run to finish.
+         */
+        private final java.util.function.Consumer<MethodSymbol> perMethodCallback;
+
+        ProofResultCollector() { this(null); }
+
+        ProofResultCollector(java.util.function.Consumer<MethodSymbol> perMethodCallback) {
+            this.perMethodCallback = perMethodCallback;
+        }
+
         @Override
         public void reportProofResult(MethodSymbol msym, IProverResult result) {
             IProverResult.Kind kind = result.result();
@@ -138,6 +151,7 @@ public class CheckRunner {
                     msym.enclClass() != null ? msym.enclClass().sourcefile : null;
             String fname = src != null ? fileName(src.getName()) : "unknown";
             log(ts() + " --esc " + fname + " " + name + ": " + kindLabel(kind));
+            if (perMethodCallback != null) perMethodCallback.accept(msym);
         }
 
         Map<String, IProverResult.Kind> getResults() {
@@ -185,12 +199,32 @@ public class CheckRunner {
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
     }
 
-    public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings) {
+    /**
+     * Run {@code --esc --dirs path1 path2 ...}.
+     *
+     * @param perFileCallback  called after each method's proof completes with the
+     *                         file URI and the diagnostics accumulated so far for
+     *                         that file.  Lets the caller publish markers
+     *                         progressively rather than waiting for the full run.
+     *                         Pass {@code null} to skip progressive publishing.
+     */
+    public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings,
+            java.util.function.BiConsumer<String, List<org.eclipse.lsp4j.Diagnostic>> perFileCallback) {
         var listener = new LspDiagnosticListener();
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
-        var prc = new ProofResultCollector();
+        var prc = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+            javax.tools.JavaFileObject src =
+                    msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+            if (src == null) { log("[runEscDir callback] src is null for " + msym); return; }
+            String uri;
+            try { uri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
+            catch (Exception e) { log("[runEscDir callback] URI conversion failed: " + e); return; }
+            List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(uri);
+            log("[runEscDir callback] uri=" + uri + " diags=" + diags.size());
+            perFileCallback.accept(uri, diags);
+        });
         api.setProofResultListener(prc);
 
         List<String> args = buildArgs(settings, "--esc");
@@ -198,13 +232,18 @@ public class CheckRunner {
         args.addAll(paths);
         logInvocation("runEscDir", args);
         int rc = api.execute(args.toArray(new String[0]));
-        System.err.println("[CheckRunner.runEscDir] exit code " + rc
+        log("[CheckRunner.runEscDir] exit code " + rc
                 + " for " + paths.size() + " path(s)");
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
         log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         return new DirCheckResult(diagsByUri, rc, proofResults);
+    }
+
+    /** Convenience overload with no progressive callback. */
+    public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings) {
+        return runEscDir(paths, settings, null);
     }
 
     /**

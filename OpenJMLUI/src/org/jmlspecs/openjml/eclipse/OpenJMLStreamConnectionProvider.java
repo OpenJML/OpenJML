@@ -5,23 +5,40 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 /**
  * Launches the openjml-lsp server process and connects to it via
  * stdin/stdout using the LSP4E framework.
  *
  * The server executable path is taken from the preference
- * {@link Options#lspServerPathKey} if set; otherwise it defaults to
+ * {@link OpenJMLOptions#lspServerPathKey} if set; otherwise it defaults to
  * an {@code openjml-lsp} script in the same directory as the Eclipse
  * installation.
+ *
+ * <p>If the server script is not found at startup, a dialog loops until the
+ * user either configures a valid path via Preferences or cancels (in which case
+ * the server is not started and all OpenJML features remain non-functional for
+ * the session).
+ *
+ * <p>If the server process stops unexpectedly (crash or external kill), a
+ * recovery dialog offers to restart it.
  */
 public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProvider {
 
@@ -29,18 +46,30 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         System.err.println("OpenJMLStreamConnectionProvider class loaded");
     }
 
+    /** The most recently created provider instance; used for deliberate stop/restart. */
+    private static volatile OpenJMLStreamConnectionProvider currentInstance;
+
+    /**
+     * {@code true} when the server was stopped intentionally (e.g. preference change,
+     * Eclipse shutdown, explicit {@link #stopCurrent()}).  Prevents the EOF monitor
+     * from showing a crash-recovery dialog on deliberate stops.
+     */
+    private volatile boolean intentionalStop = false;
+
     public OpenJMLStreamConnectionProvider() {
         String path = findServerPath();
         System.err.println("OpenJMLStreamConnectionProvider created, path=" + path);
         setCommands(Arrays.asList(path));
         setWorkingDirectory(System.getProperty("user.dir"));
+        currentInstance = this;
     }
 
     /**
      * Resolves the path to the openjml-lsp launcher script.
      * Priority:
-     *   1. User preference (Options.lspServerPathKey)
-     *   2. Directory of the Eclipse install (Platform.getInstallLocation)
+     *   1. User preference ({@link OpenJMLOptions#lspServerPathKey})
+     *   2. System property — used by the test harness
+     *   3. Directory of the Eclipse install ({@link Platform#getInstallLocation})
      */
     public static String findServerPath() {
         // 1. User preference (set via OpenJML Preferences page)
@@ -50,7 +79,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         }
         // 2. System property — used by the test harness to inject the dev path
         //    without modifying workspace preferences.
-        String sysProp = System.getProperty("openjml.lsp.server.path");
+        String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
         if (sysProp != null && !sysProp.isBlank()) {
             return sysProp;
         }
@@ -66,27 +95,16 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         }
     }
 
+    /** Returns {@code true} if the server script is present and executable. */
+    public static boolean isServerAvailable() {
+        java.io.File f = new java.io.File(findServerPath());
+        return f.isFile() && f.canExecute();
+    }
+
     /**
      * Sends OpenJML analysis settings to the server as initialization options,
      * matching the fields in {@link org.openjml.lsp.OpenJMLSettings}.
      */
-    @Override
-    public void start() throws IOException {
-        System.err.println("OpenJMLStreamConnectionProvider.start() called");
-        String path = findServerPath();
-        java.io.File f = new java.io.File(path);
-        if (!f.isFile() || !f.canExecute()) {
-            Console.errorlog("server script not found or not executable: " + path);
-            showServerNotFoundDialog(path);
-            throw new IOException("openjml-lsp not found or not executable: " + path);
-        }
-        // Write the generated preferences file before starting the server so
-        // it is available when getInitializationOptions() is called.
-        OpenJMLOptions.writePropertiesFile();
-        super.start();
-        System.err.println("OpenJMLStreamConnectionProvider.start() completed");
-    }
-
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();
@@ -96,47 +114,187 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     }
 
     /**
-     * Returns true if the server script is present and executable at the
-     * currently configured path.
+     * Starts the server process.  If the server script is not found at the
+     * currently configured path, a dialog loops until the user either sets a
+     * valid path via Preferences or cancels.  Cancelling throws
+     * {@link IOException}, which tells LSP4E to abandon the connection for
+     * this Eclipse session.
      */
-    public static boolean isServerAvailable() {
-        java.io.File f = new java.io.File(findServerPath());
-        return f.isFile() && f.canExecute();
+    @Override
+    public void start() throws IOException {
+        System.err.println("OpenJMLStreamConnectionProvider.start() called");
+        intentionalStop = false;
+
+        // Loop until we have a valid server path or the user cancels.
+        while (true) {
+            String path = findServerPath();
+            if (isServerAvailable()) {
+                setCommands(Arrays.asList(path));
+                break;
+            }
+            Console.errorlog("OpenJML server script not found or not executable: " + path);
+
+            Display display = Display.getDefault();
+            if (display == null || display.isDisposed()) {
+                throw new IOException("openjml-lsp not found or not executable: " + path);
+            }
+            boolean[] retry = { false };
+            display.syncExec(() -> {
+                Shell shell = display.getActiveShell();
+                String msg =
+                        "The OpenJML LSP server script was not found or is not executable:\n\n"
+                        + "  " + path + "\n\n"
+                        + "Without a running server, all OpenJML features (type-checking, ESC,\n"
+                        + "RAC, syntax coloring, etc.) will be non-functional.\n\n"
+                        + "Open Preferences to set the server script path, or Cancel to continue\n"
+                        + "without OpenJML (the plugin will be non-functional for this session).";
+                MessageDialog dialog = new MessageDialog(shell,
+                        "OpenJML: Server Not Found", null, msg,
+                        MessageDialog.WARNING,
+                        new String[] { "Open Preferences", "Cancel" }, 0);
+                if (dialog.open() == 0) {
+                    PreferencesUtil.createPreferenceDialogOn(shell,
+                            "org.jmlspecs.openjml.eclipse.SettingsPage",
+                            null, null).open();
+                    retry[0] = true;
+                }
+            });
+
+            if (!retry[0]) {
+                throw new IOException(
+                        "openjml-lsp not configured; server startup cancelled by user.");
+            }
+            // Path may have changed in preferences; loop to re-check.
+        }
+
+        // Write the generated preferences file before starting the server so
+        // it is available when getInitializationOptions() is called.
+        OpenJMLOptions.writePropertiesFile();
+        super.start();
+        System.err.println("OpenJMLStreamConnectionProvider.start() completed");
     }
 
     /**
-     * Shows a warning dialog offering to open OpenJML Preferences so the
-     * user can set the LSP server path.  Safe to call from any thread.
+     * Wraps the server's stdout stream to detect unexpected process death.
+     * When EOF is received and the stop was not intentional, schedules a
+     * crash-recovery dialog on the UI thread.
      */
-    public static void showServerNotFoundDialog(String path) {
-        org.eclipse.swt.widgets.Display display =
-                org.eclipse.swt.widgets.Display.getDefault();
-        if (display == null) return;
-        display.asyncExec(() -> {
-            org.eclipse.swt.widgets.Shell shell = display.getActiveShell();
-            String message =
-                    "The OpenJML LSP server script was not found at:\n\n  " + path + "\n\n"
-                    + "OpenJML features (error markers, ESC, syntax coloring, etc.) "
-                    + "will not work until the path is configured.\n\n"
-                    + "Click \"Open Preferences\" to set the LSP Server Path now.";
-            org.eclipse.jface.dialogs.MessageDialog dialog =
-                    new org.eclipse.jface.dialogs.MessageDialog(
-                            shell,
-                            "OpenJML: Server Not Configured",
-                            null,
-                            message,
-                            org.eclipse.jface.dialogs.MessageDialog.WARNING,
-                            new String[]{"Open Preferences", "Dismiss"},
-                            0);
-            if (dialog.open() == 0) {   // "Open Preferences"
-                org.eclipse.ui.dialogs.PreferencesUtil
-                        .createPreferenceDialogOn(shell,
-                                "org.jmlspecs.openjml.eclipse.SettingsPage",
-                                null, null)
-                        .open();
+    @Override
+    public InputStream getInputStream() {
+        InputStream real = super.getInputStream();
+        if (real == null) return null;
+        return new FilterInputStream(real) {
+            private boolean eofReported = false;
+
+            @Override
+            public int read() throws IOException {
+                int b = super.read();
+                if (b == -1) onEof();
+                return b;
             }
-        });
+
+            @Override
+            public int read(byte[] buf, int off, int len) throws IOException {
+                int n = super.read(buf, off, len);
+                if (n == -1) onEof();
+                return n;
+            }
+
+            private void onEof() {
+                if (!intentionalStop && !eofReported) {
+                    eofReported = true;
+                    Display display = Display.getDefault();
+                    if (display != null && !display.isDisposed()) {
+                        display.asyncExec(
+                                OpenJMLStreamConnectionProvider.this::showCrashRecoveryDialog);
+                    }
+                }
+            }
+        };
     }
+
+    /**
+     * Marks the stop as intentional before delegating to the superclass,
+     * so the EOF monitor does not show a crash-recovery dialog.
+     */
+    @Override
+    public void stop() {
+        intentionalStop = true;
+        super.stop();
+    }
+
+    // -----------------------------------------------------------------------
+    // Static lifecycle helpers (called from preferences and command handlers)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Stops the current server instance if one is running.  Sets
+     * {@code intentionalStop} so no crash dialog appears.
+     */
+    public static void stopCurrent() {
+        OpenJMLStreamConnectionProvider inst = currentInstance;
+        if (inst != null) {
+            inst.intentionalStop = true;
+            inst.stop();
+        }
+    }
+
+    /**
+     * Asks LSP4E to (re)connect to the OpenJML language server by finding the
+     * first open JML-natured project and requesting its language servers.
+     * LSP4E will start the server (calling {@link #start()}) if it is not
+     * already running.  Must be called on the UI thread.
+     */
+    public static void triggerReconnect() {
+        try {
+            for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+                if (project.isOpen() && JmlNature.hasNature(project)) {
+                    LanguageServers.forProject(project)
+                            .computeFirst(ls ->
+                                java.util.concurrent.CompletableFuture.completedFuture(null));
+                    Console.log("OpenJML LSP server reconnect requested.");
+                    return;
+                }
+            }
+            Console.log("No JML-natured project found; open a Java file "
+                    + "in a JML-natured project to reconnect the OpenJML server.");
+        } catch (Exception e) {
+            Console.log("Server reconnect failed: " + e.getMessage());
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Crash recovery
+    // -----------------------------------------------------------------------
+
+    /**
+     * Shows a warning dialog telling the user the server has stopped, and
+     * offers to restart it.  Called on the UI thread via {@code asyncExec}.
+     */
+    private void showCrashRecoveryDialog() {
+        String path = findServerPath();
+        Console.errorlog("OpenJML LSP server stopped unexpectedly (path: " + path + ")");
+        Display display = Display.getDefault();
+        Shell shell = display != null ? display.getActiveShell() : null;
+        String msg =
+                "The OpenJML LSP server has stopped unexpectedly.\n\n"
+                + "Server path: " + path + "\n\n"
+                + "Without a running server, all OpenJML features (type-checking, ESC, RAC,\n"
+                + "syntax coloring, etc.) are non-functional.\n\n"
+                + "Click \"Restart\" to restart the server now, or \"Continue\" to proceed\n"
+                + "without OpenJML for the rest of this Eclipse session.";
+        MessageDialog dialog = new MessageDialog(shell,
+                "OpenJML: Server Stopped Unexpectedly", null, msg,
+                MessageDialog.WARNING,
+                new String[] { "Restart", "Continue without OpenJML" }, 0);
+        if (dialog.open() == 0) {
+            triggerReconnect();
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // LSP4E message interception
+    // -----------------------------------------------------------------------
 
     /**
      * Intercept every incoming server message.  {@code window/logMessage}

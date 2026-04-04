@@ -59,11 +59,9 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
             }
         });
 
-        // Proactive check: warn immediately if openjml-lsp is not reachable.
-        if (!org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider.isServerAvailable()) {
-            org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider.showServerNotFoundDialog(
-                    org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider.findServerPath());
-        }
+        // Note: if openjml-lsp is not reachable, the looping dialog in
+        // OpenJMLStreamConnectionProvider.start() will handle it when LSP4E
+        // first tries to connect (i.e., when a JML file is opened).
     }
 
     @Override

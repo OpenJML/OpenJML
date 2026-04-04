@@ -9,7 +9,6 @@ import java.util.Map;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.lsp4e.operations.diagnostics.IMarkerAttributeComputer;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 
@@ -41,20 +40,23 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
  * {@code markerAttributeComputer} attribute value in the
  * {@code org.eclipse.lsp4e.languageServer} extension.
  */
-public class OpenJMLMarkerAttributeComputer implements IMarkerAttributeComputer {
+public class OpenJMLMarkerAttributeComputer implements org.eclipse.lsp4e.IMarkerAttributeComputer {
 
     @Override
     public void addMarkerAttributesForDiagnostic(
-            Diagnostic diagnostic,
+            Diagnostic diagnostic, // LSP diagnostic
             IDocument document,
             IResource resource,
             Map<String, Object> attributes) {
 
         String src = diagnostic.getSource();
+        String code = diagnostic.getCode().getLeft();
+        Console.log("DIAGNOSTIC CODE " + code + " " + diagnostic.getSeverity());
 
-        if (OpenJMLConstants.SOURCE_ESC.equals(src)) {
+        //if (OpenJMLConstants.SOURCE_ESC.equals(src)) {
+        if ("compiler.warn.esc.assertion.invalid".equals(code)) {
             // Route ESC diagnostics to the JMLESCProblem marker type.
-            attributes.put(IMarker.MARKER_TYPE, OpenJMLConstants.JML_ESC_MARKER);
+            attributes.put(IMarker.MARKER, OpenJMLConstants.JML_ESC_MARKER);
             // Verification failures arrive as Warning (javac Kind.WARNING).
             // Associated-declaration info messages arrive as Information/Hint.
             DiagnosticSeverity sev = diagnostic.getSeverity();
@@ -62,7 +64,11 @@ public class OpenJMLMarkerAttributeComputer implements IMarkerAttributeComputer 
                                   || sev == DiagnosticSeverity.Error)
                     ? IMarker.SEVERITY_ERROR   // verification failure
                     : IMarker.SEVERITY_INFO;   // associated info
-            attributes.put(IMarker.SEVERITY, markerSeverity);
+            attributes.put(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+        } else if (code.startsWith("compiler.warn.jml.associated.decl")) {
+            // Route ESC diagnostics to the JMLESCProblem marker type.
+            attributes.put(IMarker.MARKER, OpenJMLConstants.JML_ESC_MARKER);
+            attributes.put(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
         } else {
             // Check diagnostics: map severity directly.
             // Check diagnostics stay with the default JMLProblem marker type.

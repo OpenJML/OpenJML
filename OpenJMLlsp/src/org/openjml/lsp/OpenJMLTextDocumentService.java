@@ -227,7 +227,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
-        System.err.println("[didOpen] uri=" + uri);
+        CheckRunner.log("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
 
         // Notify the client to re-query code lenses now that lastContent is populated.
@@ -730,19 +730,27 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
         executor.submit(() -> {
             try {
-                CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, s);
+                // Publish ESC diagnostics progressively as each method's proof completes.
+                CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, s, (uri, diags) -> {
+                    if (client == null) return;
+                    escDiags.put(uri, diags);
+                    publishMerged(uri);
+                });
                 if (client == null) return;
-                // Publish diagnostics for every file that had diagnostics.
+                // After the full run, publish the final state for every affected file
+                // (catches any remaining diagnostics not yet covered by the callback).
                 for (var entry : result.diagnosticsByUri().entrySet()) {
-                    publishDiags(entry.getKey(), entry.getValue());
+                    escDiags.put(entry.getKey(), entry.getValue());
+                    publishMerged(entry.getKey());
                 }
-                // Clear diagnostics for files that had none but are currently open.
+                // Clear ESC diagnostics for files that had none but are currently open.
                 for (String path : paths) {
                     String uri;
                     try { uri = java.nio.file.Path.of(path).toUri().toString(); }
                     catch (Exception e) { continue; }
                     if (!result.diagnosticsByUri().containsKey(uri) && lastContent.containsKey(uri)) {
-                        publishDiags(uri, List.of());
+                        escDiags.remove(uri);
+                        publishMerged(uri);
                     }
                 }
                 // Update code-lens status for any files currently open.
@@ -1734,6 +1742,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
+        CheckRunner.log("[publishDiags] uri=" + uri + " count=" + diags.size());
+        for (var d : diags) CheckRunner.log("  diag: severity=" + d.getSeverity()
+                + " source=" + d.getSource() + " msg=" + d.getMessage());
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
         if (diags.isEmpty()) markedUris.remove(uri);
         else                 markedUris.add(uri);
@@ -1744,6 +1755,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
         merged.addAll(escDiags.getOrDefault(uri, List.of()));
         merged.addAll(racDiags.getOrDefault(uri, List.of()));
+        CheckRunner.log("[publishMerged] uri=" + uri
+                + " check=" + checkDiags.getOrDefault(uri, List.of()).size()
+                + " esc=" + escDiags.getOrDefault(uri, List.of()).size()
+                + " rac=" + racDiags.getOrDefault(uri, List.of()).size());
         publishDiags(uri, merged);
     }
 

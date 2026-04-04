@@ -108,9 +108,23 @@ public class Console {
      * in red font. Safe to call from any thread.
      */
     public static void errorlog(String message) {
+        errorlog(message, null);
+    }
+
+    /**
+     * Append a timestamped {@code message} followed by a newline to the OpenJML console
+     * in red font; if {@code ex} is non-null, appends the full stack trace on subsequent
+     * lines. Safe to call from any thread.
+     */
+    public static void errorlog(String message, Throwable ex) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
             stream.setColor(new org.eclipse.swt.graphics.Color(255,0,0)); // Red for errors
             stream.println(ts() + message);
+            if (ex != null) {
+                java.io.StringWriter sw = new java.io.StringWriter();
+                ex.printStackTrace(new java.io.PrintWriter(sw));
+                stream.print(sw.toString());
+            }
             show();
         } catch (Exception ignored) {}
     }

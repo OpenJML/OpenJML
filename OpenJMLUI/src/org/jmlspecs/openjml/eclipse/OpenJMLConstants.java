@@ -188,6 +188,19 @@ public final class OpenJMLConstants {
             "org.openjml.eclipse.commands.rename";
 
     // -----------------------------------------------------------------------
+    // Decorator ID
+    // -----------------------------------------------------------------------
+
+    /**
+     * Eclipse decorator ID for the JML overlay icon shown on JML-natured
+     * projects in the Package/Project Explorer.
+     *
+     * <p><b>plugin.xml sync</b>: {@code <decorator id="...">} in the
+     * {@code org.eclipse.ui.decorators} extension.
+     */
+    public static final String DECORATOR_ID = "org.openjml.OpenJMLUI.JMLDecoration";
+
+    // -----------------------------------------------------------------------
     // System-property keys
     // -----------------------------------------------------------------------
 

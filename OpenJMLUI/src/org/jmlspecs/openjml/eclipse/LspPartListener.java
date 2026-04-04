@@ -74,32 +74,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     public static void restartServer() {
         System.err.println("[OpenJML] restartServer: stopping old server and resetting state");
 
-        // Stop the old server (graceful shutdown + process destroy via lsp4e).
+        // Reset connection state immediately so no further operations use the old wrapper.
+        // cachedDef and startLanguageServerMethod are path-independent and stable across restarts.
         Object wrapper = cachedWrapper;
-        if (wrapper != null) {
-            try {
-                java.lang.reflect.Method stopMethod = null;
-                for (Class<?> c = wrapper.getClass(); c != null; c = c.getSuperclass()) {
-                    try { stopMethod = c.getDeclaredMethod("stop"); break; }
-                    catch (NoSuchMethodException ignored) {}
-                }
-                if (stopMethod != null) {
-                    stopMethod.setAccessible(true);
-                    stopMethod.invoke(wrapper);
-                    System.err.println("[OpenJML] restartServer: LanguageServerWrapper.stop() called");
-                } else {
-                    System.err.println("[OpenJML] restartServer: stop() not found on wrapper");
-                }
-            } catch (Throwable t) {
-                System.err.println("[OpenJML] restartServer: stop() failed: " + t);
-            }
-        } else {
-            System.err.println("[OpenJML] restartServer: no running server to stop");
-        }
-
-        // Reset connection state. cachedDef and startLanguageServerMethod are safe
-        // to keep — the definition is path-independent and the reflected method
-        // is stable across restarts.
         cachedWrapper           = null;
         cachedDocument          = null;
         diagnosticsHookInstalled = false;
@@ -110,24 +87,61 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
         System.err.println("[OpenJML] restartServer: state reset");
 
-        // Re-trigger partOpened for all open editors so the server starts
-        // immediately rather than waiting for the next file activation.
-        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
-            LspPartListener listener = INSTANCE;
-            if (listener == null) return;
-            try {
-                for (org.eclipse.ui.IWorkbenchWindow win :
-                        org.eclipse.ui.PlatformUI.getWorkbench().getWorkbenchWindows()) {
-                    for (org.eclipse.ui.IWorkbenchPage page : win.getPages()) {
-                        for (org.eclipse.ui.IEditorReference ref : page.getEditorReferences()) {
-                            listener.partOpened(ref);
+        // Stop the old server on a background thread.  LanguageServerWrapper.stop()
+        // performs a graceful LSP shutdown followed by process destroy and may block
+        // waiting for the process to exit; calling it on the UI thread freezes Eclipse.
+        //
+        // The re-trigger of partOpened is scheduled from inside the stop thread, AFTER
+        // the stop completes.  If we scheduled it immediately here, startLanguageServer()
+        // (called from partOpened on the UI thread) might block waiting for the old
+        // LanguageServerWrapper to reach STOPPED state — also freezing the UI thread.
+        final Object w = wrapper;
+        Runnable retrigger = () -> {
+            org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+                LspPartListener listener = INSTANCE;
+                if (listener == null) return;
+                try {
+                    for (org.eclipse.ui.IWorkbenchWindow win :
+                            org.eclipse.ui.PlatformUI.getWorkbench().getWorkbenchWindows()) {
+                        for (org.eclipse.ui.IWorkbenchPage page : win.getPages()) {
+                            for (org.eclipse.ui.IEditorReference ref : page.getEditorReferences()) {
+                                listener.partOpened(ref);
+                            }
                         }
                     }
+                } catch (Throwable t) {
+                    System.err.println("[OpenJML] restartServer: re-trigger failed: " + t);
                 }
-            } catch (Throwable t) {
-                System.err.println("[OpenJML] restartServer: re-trigger failed: " + t);
-            }
-        });
+            });
+        };
+        if (w != null) {
+            Thread stopThread = new Thread(() -> {
+                try {
+                    java.lang.reflect.Method stopMethod = null;
+                    for (Class<?> c = w.getClass(); c != null; c = c.getSuperclass()) {
+                        try { stopMethod = c.getDeclaredMethod("stop"); break; }
+                        catch (NoSuchMethodException ignored) {}
+                    }
+                    if (stopMethod != null) {
+                        stopMethod.setAccessible(true);
+                        stopMethod.invoke(w);
+                        System.err.println("[OpenJML] restartServer: LanguageServerWrapper.stop() called");
+                    } else {
+                        System.err.println("[OpenJML] restartServer: stop() not found on wrapper");
+                    }
+                } catch (Throwable t) {
+                    System.err.println("[OpenJML] restartServer: stop() failed: " + t);
+                }
+                // Re-trigger only after the old server has fully stopped.
+                retrigger.run();
+            }, "openjml-server-stop");
+            stopThread.setDaemon(true);
+            stopThread.start();
+        } else {
+            System.err.println("[OpenJML] restartServer: no running server to stop");
+            // No server to stop — re-trigger immediately.
+            retrigger.run();
+        }
     }
 
     /**

@@ -335,6 +335,8 @@ public class OpenJMLOptions {
         for (ToolOption opt : TOOL_OPTIONS) {
             String val = store.getString(opt.prefKey());
             if (val == null) val = "";
+            // Verboseness=0 (quiet) suppresses ESC diagnostics; clamp to minimum 1.
+            if (opt.prefKey().equals(verbosityKey) && "0".equals(val)) val = "1";
             if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
             if (opt.isBoolean()) {
                 if ("true".equals(val)) {

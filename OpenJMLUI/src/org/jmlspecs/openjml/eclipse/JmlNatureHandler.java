@@ -12,9 +12,13 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
@@ -61,11 +65,55 @@ public class JmlNatureHandler {
     }
 
     // -----------------------------------------------------------------------
+    // Shared helper
+    // -----------------------------------------------------------------------
+
+    /**
+     * If the JML Decoration is currently disabled, shows a warning dialog
+     * giving the user three choices:
+     * <ul>
+     *   <li><b>OK</b> — proceed without enabling the decoration</li>
+     *   <li><b>Enable Decoration</b> — enable the decoration and proceed</li>
+     *   <li><b>Cancel</b> — abort the nature change entirely</li>
+     * </ul>
+     *
+     * @return {@code true} if the caller should proceed with the nature change,
+     *         {@code false} if the user cancelled
+     */
+    private static boolean checkDecoratorAndPrompt(Shell shell) {
+        var dm = PlatformUI.getWorkbench().getDecoratorManager();
+        if (dm.getEnabled(OpenJMLConstants.DECORATOR_ID)) return true;
+
+        MessageDialog dialog = new MessageDialog(
+                shell,
+                "JML Decoration Disabled",
+                null,
+                "The JML Decoration overlay is currently disabled in your Eclipse "
+                + "preferences (Window > Preferences > General > Appearance > "
+                + "Label Decorations).\n\n"
+                + "Without it, JML-natured projects will not show the JML overlay "
+                + "icon in the Package/Project Explorer.",
+                MessageDialog.WARNING,
+                new String[] { "OK", "Enable Decoration", "Cancel" },
+                1);
+        int choice = dialog.open();
+        if (choice < 0 || choice == 2) return false;  // Cancel or dialog closed
+        if (choice == 1) {  // Enable Decoration
+            try {
+                dm.setEnabled(OpenJMLConstants.DECORATOR_ID, true);
+            } catch (CoreException e) {
+                Console.errorlog("Failed to enable JML decoration: " + e.getMessage(), e);
+            }
+        }
+        return true;
+    }
+
+    // -----------------------------------------------------------------------
     // Concrete handlers
     // -----------------------------------------------------------------------
 
     /**
-     * Adds the OpenJML nature to the selected project.
+     * Adds the OpenJML nature to the selected project(s).
      *
      * <p>Registered as the handler for {@code org.jmlspecs.openjml.commands.enableJmlNature}.
      */
@@ -77,13 +125,14 @@ public class JmlNatureHandler {
                 Console.log("EnableJmlNature: no project in current selection.");
                 return null;
             }
+            if (!checkDecoratorAndPrompt(HandlerUtil.getActiveShell(event))) return null;
             for (IProject p : projects) JmlNature.enable(p);
             return null;
         }
     }
 
     /**
-     * Removes the OpenJML nature from the selected project.
+     * Removes the OpenJML nature from the selected project(s).
      *
      * <p>Registered as the handler for {@code org.jmlspecs.openjml.commands.disableJmlNature}.
      */
@@ -95,6 +144,7 @@ public class JmlNatureHandler {
                 Console.log("DisableJmlNature: no project in current selection.");
                 return null;
             }
+            if (!checkDecoratorAndPrompt(HandlerUtil.getActiveShell(event))) return null;
             for (IProject p : projects) JmlNature.disable(p);
             return null;
         }

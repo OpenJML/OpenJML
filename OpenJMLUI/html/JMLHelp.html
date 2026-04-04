@@ -217,6 +217,14 @@ is regenerated.  The operation is intended just if it seems internal information
 themselves.
 <H2><A NAME="LSPInteractions">Standard LSP interactions implemented for OpenJML</A></H2>
 
+<H3><A NAME="Markers">Problem markers</A></H3>
+
+The plugin implements its own set of problem markers, using the LSP's mechanism for reporting problems. 
+JML Markers identify JML syntax and type errors and warnings and iunformational 
+messages. ESC Markers identify JML Verification failures (as errors) and associated information (as information markers).
+The style and coloring of these markers can be set in the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
+settings. 
+
 <H3><A NAME="SyntaxColoring">Syntax coloring</A></H3>
 
 FIXME
@@ -278,10 +286,7 @@ The plugin implements a standard Help page to give user guide style information 
 Nothing special is implemented with the following functionality, but it is available to users of the plugin to improve their own
 experience with Eclipse.
 <UL>
-<LI>Keyboard commands: All OpenJML commands are available to be mapped to key combinations on the General-&gt;Keys setting page.</LI>
-<LI>Marker style: OpenJML warnings and errors are shown, via the LSP server, as standard Eclipse Problems in the Problems View and as markers in
-    editors. There are Preference settings that allow changing the style of markers. For example, one can change
-    squiggly underlines to block highlighting to make the markers more visible.
+<LI>Keyboard commands: All OpenJML commands are available to be mapped to key combinations on the General &gt;&gt; Keys setting page.</LI>
 </LI>
 </UL>
 

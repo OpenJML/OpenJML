@@ -83,6 +83,10 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        String src = diagnostic.getSource() == null ? "<null>" : diagnostic.getSource().getName();
+        CheckRunner.log("[LspDiagnosticListener.report] kind=" + diagnostic.getKind()
+                + " src=" + src + " source=" + sourceTag
+                + " msg=" + diagnostic.getMessage(java.util.Locale.ENGLISH).replace('\n', ' '));
         List<Diagnostic<? extends JavaFileObject>> cap = captureMode.get();
         if (cap != null) {
             cap.add(diagnostic);  // capture mode: goes to thread-local list only
@@ -214,6 +218,26 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
+    /**
+     * Returns the LSP diagnostics currently accumulated for a specific file URI.
+     * May be called while {@code api.execute()} is still running to get a
+     * mid-run snapshot (e.g. from a {@code ProofResultListener} callback).
+     */
+    public List<org.eclipse.lsp4j.Diagnostic> getLspDiagnosticsForUri(String uri) {
+        var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
+        for (var d : collected) {
+            if (d.getSource() == null) continue;
+            String srcPath = d.getSource().getName();
+            if (srcPath.isEmpty()) continue;
+            String srcUri;
+            try { srcUri = java.nio.file.Path.of(srcPath).toUri().toString(); }
+            catch (Exception e) { continue; }
+            if (uri.equals(srcUri))
+                result.add(DiagnosticConverter.convert(d, uri, null, sourceTag));
+        }
+        return result;
+    }
+
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
         var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
         for (var d : collected) {
@@ -231,7 +255,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             }
             result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets, sourceTag));
         }
-        System.err.println("[LspDiagnosticListener] " + collected.size()
+        CheckRunner.log("[LspDiagnosticListener] " + collected.size()
                 + " raw, " + result.size() + " LSP diagnostic(s) for " + sourcePath);
         return result;
     }

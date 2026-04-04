@@ -18,10 +18,20 @@ const cp     = require('child_process');
 const fs     = require('fs');
 const path   = require('path');
 const vscode = require('vscode');
-const { LanguageClient, TransportKind, RevealOutputChannelOn } = require('vscode-languageclient/node');
+const { LanguageClient, TransportKind, RevealOutputChannelOn, State } = require('vscode-languageclient/node');
 
 let client;
 let outputChannel;
+
+/**
+ * {@code true} when the server was stopped intentionally (settings change,
+ * deactivate, explicit restart).  Prevents the state-change listener from
+ * showing a crash-recovery dialog on deliberate stops.
+ */
+let intentionalStop = false;
+
+/** The VS Code ExtensionContext — set once in activate(). */
+let extensionContext;
 
 /**
  * Return the absolute path of `name` if it is found on the system PATH,
@@ -50,6 +60,200 @@ function isJmlLike(langId) {
  */
 function fileIfExists(p) {
     try { return fs.statSync(p).isFile() ? p : null; } catch (_) { return null; }
+}
+
+/**
+ * Resolves the path to the openjml-lsp launcher script.
+ * Re-reads the current setting on every call so that preference changes are
+ * picked up without reloading the extension.
+ *
+ * Priority:
+ *   1. OPENJML_SERVER_PATH env var (set by launch.json for extension development)
+ *   2. openjml.serverPath setting (explicit user config)
+ *   3. openjml-lsp file one directory above the extension  (dev / release-zip layout)
+ *   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
+ */
+function findServerPath() {
+    const cfg = vscode.workspace.getConfiguration('openjml');
+    const configuredPath = cfg.get('serverPath', '').trim();
+    const siblingDir = path.join(__dirname, '..');
+    return (process.env.OPENJML_SERVER_PATH || '')
+        || configuredPath
+        || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
+        || findOnPath('openjml-lsp')
+        || null;
+}
+
+/** Returns true if the server script is present and executable. */
+function isServerAvailable() {
+    const p = findServerPath();
+    if (!p) return false;
+    try {
+        const stat = fs.statSync(p);
+        if (!stat.isFile()) return false;
+        // On Unix, check execute permission.  On Windows any .cmd/.bat is runnable.
+        if (process.platform !== 'win32') {
+            // fs.constants.X_OK = 1
+            fs.accessSync(p, fs.constants.X_OK);
+        }
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+/**
+ * Loops showing a warning dialog until the server script is found or the user
+ * cancels.  Returns the resolved script path, or null if the user cancelled.
+ */
+async function ensureServerScript() {
+    while (true) {
+        if (isServerAvailable()) return findServerPath();
+
+        const currentPath = findServerPath() || '(not configured)';
+        outputChannel.appendLine(ts() + ' OpenJML server script not found: ' + currentPath);
+
+        const choice = await vscode.window.showWarningMessage(
+            'OpenJML: the openjml-lsp server script was not found or is not executable:\n\n' +
+            '  ' + currentPath + '\n\n' +
+            'Without a running server, all OpenJML features (type-checking, ESC, RAC, ' +
+            'syntax coloring, etc.) will be non-functional.\n\n' +
+            'Set the "openjml.serverPath" setting to the openjml-lsp script path, ' +
+            'then click Retry.',
+            'Open Settings', 'Retry', 'Cancel'
+        );
+        if (choice === 'Open Settings') {
+            await vscode.commands.executeCommand('workbench.action.openSettings', 'openjml.serverPath');
+            // Loop back to re-check after the user edits the setting.
+        } else if (choice === 'Retry') {
+            // Loop back to re-check.
+        } else {
+            // Cancel or dialog dismissed.
+            return null;
+        }
+    }
+}
+
+/**
+ * Creates, wires, and starts the LanguageClient.  If the server script is not
+ * available, shows the retry dialog (ensureServerScript).  If the user cancels
+ * the dialog, returns without starting (all commands remain registered but
+ * non-functional).
+ */
+async function startClient() {
+    const serverScript = await ensureServerScript();
+    if (!serverScript) {
+        outputChannel.appendLine(ts() + ' OpenJML server startup cancelled by user.');
+        return;
+    }
+
+    outputChannel.appendLine(ts() + ' server script: ' + serverScript);
+
+    const serverOptions = {
+        command:   serverScript,
+        transport: TransportKind.stdio,
+    };
+
+    const clientOptions = {
+        documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
+        outputChannel,          // reuse our named channel; suppresses the auto-created one
+        revealOutputChannelOn: RevealOutputChannelOn.Warn,
+        initializationOptions: getSettings(),
+        synchronize: {
+            configurationSection: 'openjml',
+        },
+        middleware: {
+            // Override prepareRename so our server's rename provider takes priority
+            // over the Red Hat Java extension for both JML comment positions and
+            // regular Java identifiers.  We return the word range at the cursor
+            // immediately (without a server round-trip) whenever the cursor is on
+            // a Java identifier character; otherwise we fall back to the server.
+            prepareRename: (document, position, token, next) => {
+                const wordRange = document.getWordRangeAtPosition(
+                    position, /[a-zA-Z_$][a-zA-Z0-9_$]*/);
+                if (wordRange && !wordRange.isEmpty) {
+                    return { range: wordRange, placeholder: document.getText(wordRange) };
+                }
+                return next(document, position, token);
+            },
+            // Suppress the LSP-channel semantic tokens in VS Code.  We register a
+            // direct DocumentSemanticTokensProvider below so that our JML tokens
+            // merge additively with Red Hat's Java tokens instead of competing with
+            // them via the LSP provider race.
+            provideDocumentSemanticTokens: (_document, _token, _next) => {
+                return new vscode.SemanticTokens(new Uint32Array([]));
+            },
+            window: {
+                // Route window/logMessage notifications from the server to our
+                // dedicated OpenJML output channel instead of the generic LSP log.
+                logMessage: (params, _next) => {
+                    outputChannel.appendLine(params.message);
+                },
+            },
+        },
+    };
+
+    intentionalStop = false;
+    client = new LanguageClient(
+        'openjml',
+        'OpenJML Language Server',
+        serverOptions,
+        clientOptions
+    );
+
+    // Detect unexpected server death (crash or external kill).
+    client.onDidChangeState(event => {
+        if (event.newState === State.Stopped && !intentionalStop) {
+            showCrashRecoveryDialog();
+        }
+    });
+
+    // Register the client as a subscription so VS Code disposes it on deactivate.
+    extensionContext.subscriptions.push(client);
+
+    client.start().then(() => {
+        outputChannel.appendLine(ts() + ' server started');
+    }).catch(err => {
+        outputChannel.appendLine(ts() + ' server failed to start: ' + (err?.message ?? err));
+    });
+}
+
+/**
+ * Shows a warning dialog telling the user the server has stopped unexpectedly,
+ * and offers to restart it.
+ */
+async function showCrashRecoveryDialog() {
+    const serverPath = findServerPath() || '(not configured)';
+    outputChannel.appendLine(ts() + ' OpenJML LSP server stopped unexpectedly (path: ' + serverPath + ')');
+    const choice = await vscode.window.showWarningMessage(
+        'OpenJML: the LSP server has stopped unexpectedly.\n\n' +
+        'Server path: ' + serverPath + '\n\n' +
+        'Without a running server, all OpenJML features (type-checking, ESC, RAC, ' +
+        'syntax coloring, etc.) are non-functional.\n\n' +
+        'Click "Restart" to restart the server now.',
+        'Restart', 'Continue without OpenJML'
+    );
+    if (choice === 'Restart') {
+        client = null;
+        await startClient();
+    }
+}
+
+/**
+ * Shows a warning that the server is not running and offers to restart it.
+ * Called from command handlers when {@code client} is null.
+ */
+function requireServer() {
+    vscode.window.showWarningMessage(
+        'OpenJML: the server is not running. ' +
+        'Without a running server, OpenJML features are non-functional.',
+        'Restart Server', 'OK'
+    ).then(choice => {
+        if (choice === 'Restart Server') {
+            client = null;
+            startClient();
+        }
+    });
 }
 
 /**
@@ -231,41 +435,10 @@ function commandPrefix() {
 }
 
 async function activate(context) {
+    extensionContext = context;
     outputChannel = vscode.window.createOutputChannel('OpenJML');
     context.subscriptions.push(outputChannel);
     outputChannel.appendLine(ts() + ' OpenJML extension started');
-
-    const cfg = vscode.workspace.getConfiguration('openjml');
-    const configuredPath = cfg.get('serverPath', '').trim();
-
-    // Resolution order (first match wins):
-    //   1. OPENJML_SERVER_PATH env var (set by launch.json for extension development)
-    //   2. openjml.serverPath setting (explicit user config)
-    //   3. openjml-lsp file one directory above the extension  (dev / release-zip layout)
-    //   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
-    const siblingDir = path.join(__dirname, '..');
-    const serverScript = (process.env.OPENJML_SERVER_PATH || '')
-        || configuredPath
-        || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
-        || findOnPath('openjml-lsp');
-
-    outputChannel.appendLine(ts() + ' server script: ' + (serverScript || '(not found)'));
-
-    // Helper: show error and open settings when the server is not configured.
-    function requireServer() {
-        vscode.window.showErrorMessage(
-            'OpenJML: cannot find the openjml-lsp server script. ' +
-            'Please install OpenJML (https://github.com/OpenJML/OpenJML/releases) ' +
-            'and set the "openjml.serverPath" setting to the full path of the ' +
-            'openjml-lsp script from your installation.',
-            'Open Settings'
-        ).then(choice => {
-            if (choice === 'Open Settings') {
-                vscode.commands.executeCommand(
-                    'workbench.action.openSettings', 'openjml.serverPath');
-            }
-        });
-    }
 
     // Always register commands so VS Code can find them regardless of server state.
     // Each command checks whether the client is available before sending a request.
@@ -470,13 +643,6 @@ async function activate(context) {
     });
     context.subscriptions.push(clearMarkersCmd);
 
-    // If no server script is available, stop here — commands are registered above so
-    // VS Code can find them; they will show a helpful error when invoked.
-    if (!serverScript) {
-        requireServer();
-        return;
-    }
-
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
     // Use workspace state so the user is only asked once per workspace.
@@ -504,63 +670,21 @@ async function activate(context) {
         }
     }
 
-    const serverOptions = {
-        command:   serverScript,
-        transport: TransportKind.stdio,
-    };
-
-    const clientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
-        outputChannel,          // reuse our named channel; suppresses the auto-created one
-        revealOutputChannelOn: RevealOutputChannelOn.Warn,
-        initializationOptions: getSettings(),
-        synchronize: {
-            configurationSection: 'openjml',
-        },
-        middleware: {
-            // Override prepareRename so our server's rename provider takes priority
-            // over the Red Hat Java extension for both JML comment positions and
-            // regular Java identifiers.  We return the word range at the cursor
-            // immediately (without a server round-trip) whenever the cursor is on
-            // a Java identifier character; otherwise we fall back to the server.
-            prepareRename: (document, position, token, next) => {
-                const wordRange = document.getWordRangeAtPosition(
-                    position, /[a-zA-Z_$][a-zA-Z0-9_$]*/);
-                if (wordRange && !wordRange.isEmpty) {
-                    return { range: wordRange, placeholder: document.getText(wordRange) };
-                }
-                return next(document, position, token);
-            },
-            // Suppress the LSP-channel semantic tokens in VS Code.  We register a
-            // direct DocumentSemanticTokensProvider below so that our JML tokens
-            // merge additively with Red Hat's Java tokens instead of competing with
-            // them via the LSP provider race.
-            provideDocumentSemanticTokens: (_document, _token, _next) => {
-                return new vscode.SemanticTokens(new Uint32Array([]));
-            },
-            window: {
-                // Route window/logMessage notifications from the server to our
-                // dedicated OpenJML output channel instead of the generic LSP log.
-                logMessage: (params, _next) => {
-                    outputChannel.appendLine(params.message);
-                },
-            },
-        },
-    };
-
-    client = new LanguageClient(
-        'openjml',
-        'OpenJML Language Server',
-        serverOptions,
-        clientOptions
+    // When openjml.serverPath changes, stop the current server and restart at the
+    // new path.  Other openjml.* changes are forwarded to the running server by
+    // vscode-languageclient's synchronize.configurationSection mechanism.
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(async e => {
+            if (!e.affectsConfiguration('openjml.serverPath')) return;
+            outputChannel.appendLine(ts() + ' Server path changed; stopping current OpenJML LSP server.');
+            if (client) {
+                intentionalStop = true;
+                await client.stop();
+                client = null;
+            }
+            await startClient();
+        })
     );
-
-    client.start().then(() => {
-        outputChannel.appendLine(ts() + ' server started');
-    }).catch(err => {
-        outputChannel.appendLine(ts() + ' server failed to start: ' + (err?.message ?? err));
-    });
-    context.subscriptions.push(client);
 
     // Register a direct DocumentSemanticTokensProvider for JML syntax colouring.
     // This runs independently of (and merges additively with) the Red Hat Java
@@ -644,10 +768,14 @@ async function activate(context) {
             }
         })
     );
+
+    // Start the language client (shows retry dialog if script not found).
+    await startClient();
 }
 
 function deactivate() {
     if (!client) return undefined;
+    intentionalStop = true;
     return client.stop();
 }
 

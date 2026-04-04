@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
@@ -42,6 +43,9 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
     protected final List<FieldEditor> allEditors = new ArrayList<>();
 
+    /** Reference to the server-path field editor, saved for validation in {@link #performOk}. */
+    private StringFieldEditor serverPathEditor;
+
     // -----------------------------------------------------------------------
     // IWorkbenchPreferencePage
     // -----------------------------------------------------------------------
@@ -57,6 +61,28 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
     @Override
     public boolean performOk() {
+        // Validate the server path before committing if the user explicitly set one.
+        if (serverPathEditor != null) {
+            String typedPath = serverPathEditor.getStringValue().trim();
+            if (!typedPath.isBlank()) {
+                // Validate the typed path directly (not via isServerAvailable(), which
+                // reads the preference store and would see the not-yet-stored value).
+                java.io.File f = new java.io.File(typedPath);
+                if (!f.isFile() || !f.canExecute()) {
+                    String msg = "Server script not found or not executable:\n\n  " + typedPath;
+                    setErrorMessage(msg);
+                    setValid(false);
+                    MessageDialog.openError(getShell(), "OpenJML: Invalid Server Path", msg);
+                    return false;  // keep dialog open
+                }
+            }
+        }
+        setErrorMessage(null);
+        setValid(true);
+
+        // Store all fields.  The Activator property-change listener fires synchronously
+        // here for lspServerPathKey changes and calls LspPartListener.restartServer(),
+        // which handles stopping the old server (on a background thread) and reconnecting.
         allEditors.forEach(FieldEditor::store);
         return true;
     }
@@ -120,9 +146,10 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         // ── LSP Server ──────────────────────────────────────────────────────
         addLabel(parent, "LSP Server", SWT.SEPARATOR | SWT.HORIZONTAL);
 
-        addEditor(new StringFieldEditor(OpenJMLOptions.lspServerPathKey,
+        serverPathEditor = new StringFieldEditor(OpenJMLOptions.lspServerPathKey,
                 "Server script path (blank = find on PATH or beside Eclipse):",
-                parent));
+                parent);
+        addEditor(serverPathEditor);
 
         addSpace(parent);
 
@@ -246,7 +273,6 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.verbosityKey,
                 "Verbosity level (--verboseness):",
                 new String[][] {
-                    { "quiet",    "0" },
                     { "normal",   "1" },
                     { "progress", "2" },
                     { "verbose",  "3" },
