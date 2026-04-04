@@ -557,25 +557,35 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 "Some files have unsaved changes.\n\n"
                 + "Choose how ESC should handle the edited content:",
                 MessageDialog.QUESTION,
+                // NOTE: Eclipse always assigns IDialogConstants.CANCEL_ID (1) to any
+                // button labelled "Cancel", regardless of array position.  Keep
+                // "Cancel" at index 1 and "Save and Run ESC" at index 2 so there
+                // is no collision with the save action.
                 new String[] {
                     "Act on Edited Content",
-                    "Save and Run ESC",
-                    IDialogConstants.CANCEL_LABEL },
+                    IDialogConstants.CANCEL_LABEL,
+                    "Save and Run ESC" },
                 0,  // default button: "Act on Edited Content"
                 "Remember my choice (can be changed in Preferences \u2192 OpenJML)",
                 false);
         int result = dlg.open();
 
+        // MessageDialogWithToggle assigns IDialogConstants.INTERNAL_ID (256) to the first
+        // non-cancel button, incrementing for each subsequent non-cancel button.
+        // Cancel always gets IDialogConstants.CANCEL_ID (1).
+        final int ACT_ID  = IDialogConstants.INTERNAL_ID;      // 256
+        final int SAVE_ID = IDialogConstants.INTERNAL_ID + 1;  // 257
+
         // Persist "don't ask again" choice to the preference store.
         if (dlg.getToggleState()) {
-            String newBehavior = (result == 0) ? "content" : (result == 1) ? "save" : "ask";
+            String newBehavior = (result == ACT_ID) ? "content" : (result == SAVE_ID) ? "save" : "ask";
             org.openjml.ui.Activator.getDefault().getPreferenceStore()
                     .setValue(OpenJMLOptions.escDirtyFilesBehaviorKey, newBehavior);
         }
 
-        if (result == 1) { saveBuffers(dirtyBuffers); return true; }
-        if (result == 0) return true;
-        return false;  // Cancel (result == 2 or window closed)
+        if (result == ACT_ID)  return true;                        // "Act on Edited Content"
+        if (result == SAVE_ID) { saveBuffers(dirtyBuffers); return true; }  // "Save and Run ESC"
+        return false;  // Cancel (IDialogConstants.CANCEL_ID = 1) or window closed
     }
 
     private static void saveBuffers(List<org.eclipse.core.filebuffers.ITextFileBuffer> buffers) {
@@ -703,10 +713,14 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
+            // Resolve targets before showing any dialog — the live IEvaluationContext
+            // backing HandlerUtil.getActiveEditor(event) may change focus while a
+            // modal dialog is open, making a second resolve return empty results.
             List<SelectionResolver.Target> targets = SelectionResolver.resolve(
                     HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
             if (!handleDirtyFilesForEsc(targets)) return null;
-            return super.execute(event);
+            dispatchGroupedByProject(targets, event);
+            return null;
         }
 
         @Override

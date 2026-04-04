@@ -251,8 +251,6 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             }
             result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets, sourceTag));
         }
-        CheckRunner.log("[LspDiagnosticListener] " + collected.size()
-                + " raw, " + result.size() + " LSP diagnostic(s) for " + sourcePath);
         return result;
     }
 }
