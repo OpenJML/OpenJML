@@ -65,15 +65,24 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         if (serverPathEditor != null) {
             String typedPath = serverPathEditor.getStringValue().trim();
             if (!typedPath.isBlank()) {
-                // Validate the typed path directly (not via isServerAvailable(), which
-                // reads the preference store and would see the not-yet-stored value).
-                java.io.File f = new java.io.File(typedPath);
-                if (!f.isFile() || !f.canExecute()) {
+                if (!OpenJMLStreamConnectionProvider.isServerAvailable(typedPath)) {
                     String msg = "Server script not found or not executable:\n\n  " + typedPath;
                     setErrorMessage(msg);
                     setValid(false);
                     MessageDialog.openError(getShell(), "OpenJML: Invalid Server Path", msg);
                     return false;  // keep dialog open
+                }
+            } else {
+                // Blank = use the system-property / Eclipse-install default.
+                // Resolve and warn now so the user isn't surprised at startup.
+                String defaultPath = OpenJMLStreamConnectionProvider.findDefaultServerPath();
+                if (!OpenJMLStreamConnectionProvider.isServerAvailable(defaultPath)) {
+                    MessageDialog.openWarning(getShell(), "OpenJML: Default Server Path Not Found",
+                            "No server path is set. The resolved default path is not found"
+                            + " or not executable:\n\n  " + defaultPath
+                            + "\n\nOpenJML will not be functional until a valid path is"
+                            + " configured or the server is installed at that location.");
+                    // Warning only — allow saving the blank (user may fix it later).
                 }
             }
         }

@@ -77,13 +77,23 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         if (pref != null && !pref.isBlank()) {
             return pref;
         }
-        // 2. System property — used by the test harness to inject the dev path
+        return findDefaultServerPath();
+    }
+
+    /**
+     * Resolves the server path ignoring the stored preference — checks only
+     * the system property and the Eclipse install directory.  Used by the
+     * preferences page to validate what path will be used when the field is
+     * left blank.
+     */
+    public static String findDefaultServerPath() {
+        // 1. System property — used by the test harness to inject the dev path
         //    without modifying workspace preferences.
         String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
         if (sysProp != null && !sysProp.isBlank()) {
             return sysProp;
         }
-        // 3. Script alongside the Eclipse install (release layout)
+        // 2. Script alongside the Eclipse install (release layout)
         try {
             URL installUrl = Platform.getInstallLocation().getURL();
             String installDir = installUrl.getPath();
@@ -95,9 +105,9 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         }
     }
 
-    /** Returns {@code true} if the server script is present and executable. */
-    public static boolean isServerAvailable() {
-        java.io.File f = new java.io.File(findServerPath());
+    /** Returns {@code true} if the server script at {@code path} is present and executable. */
+    public static boolean isServerAvailable(String path) {
+        java.io.File f = new java.io.File(path);
         return f.isFile() && f.canExecute();
     }
 
@@ -128,7 +138,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         // Loop until we have a valid server path or the user cancels.
         while (true) {
             String path = findServerPath();
-            if (isServerAvailable()) {
+            if (isServerAvailable(path)) {
                 setCommands(Arrays.asList(path));
                 break;
             }
@@ -170,6 +180,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         // Write the generated preferences file before starting the server so
         // it is available when getInitializationOptions() is called.
         OpenJMLOptions.writePropertiesFile();
+        Console.log("OpenJML LSP server starting: " + getCommands().get(0));
         super.start();
         System.err.println("OpenJMLStreamConnectionProvider.start() completed");
     }
