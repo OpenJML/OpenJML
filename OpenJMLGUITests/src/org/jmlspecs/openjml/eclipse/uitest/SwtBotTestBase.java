@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.eclipse.uitest;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
+import org.jmlspecs.openjml.eclipse.OpenJMLConstants;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -40,16 +41,17 @@ public abstract class SwtBotTestBase {
     /**
      * Logs the LSP server path that will be used.
      * {@code OpenJMLStreamConnectionProvider.findServerPath()} reads the
-     * {@code openjml.lsp.server.path} system property directly (set by the
-     * Makefile), so no preference-store manipulation is needed here.
+     * {@link OpenJMLConstants#LSP_SERVER_PATH_PROPERTY} system property
+     * directly (set by the Makefile), so no preference-store manipulation
+     * is needed here.
      */
     protected static void configureLspServerPath() {
-        String path = System.getProperty("openjml.lsp.server.path");
+        String path = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
         if (path != null && !path.isBlank()) {
             System.out.println("[GUITest] LSP server path (system property): " + path);
         } else {
-            System.out.println("[GUITest] openjml.lsp.server.path not set; "
-                    + "LSP server will be sought at Eclipse install dir");
+            System.out.println("[GUITest] " + OpenJMLConstants.LSP_SERVER_PATH_PROPERTY
+                    + " not set; LSP server will be sought at Eclipse install dir");
         }
     }
 

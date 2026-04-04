@@ -154,9 +154,6 @@ public class JmlNature implements IProjectNature {
         }
     }
 
-    private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
-    private static final String SERVER_ID    = "org.jmlspecs.openjml.lsp.server";
-
     /**
      * Cleans up all Eclipse-side and server-side state for {@code project}
      * after its JML nature has been removed:
@@ -169,13 +166,14 @@ public class JmlNature implements IProjectNature {
      */
     private static void cleanupForProject(IProject project) {
         // 1. Delete all OpenJML markers on this project.
+        // JML_PROBLEM_MARKER with includeSubtypes=true catches both JMLProblem
+        // and JMLESCProblem (its subtype) in a single call.
         try {
             IMarker[] markers = project.findMarkers(
-                    LSP4E_MARKER, /*includeSubtypes=*/ false, IResource.DEPTH_INFINITE);
+                    OpenJMLConstants.JML_PROBLEM_MARKER,
+                    /*includeSubtypes=*/ true, IResource.DEPTH_INFINITE);
             for (IMarker m : markers) {
-                if (SERVER_ID.equals(m.getAttribute("languageServerId"))) {
-                    m.delete();
-                }
+                m.delete();
             }
         } catch (CoreException e) {
             Console.log("Warning: could not clear markers for "
@@ -187,7 +185,7 @@ public class JmlNature implements IProjectNature {
 
         // 3. Tell the server to clear its caches and reindex.
         ExecuteCommandParams p = new ExecuteCommandParams(
-                "openjml.clearAndReindex", List.of());
+                OpenJMLConstants.CMD_CLEAR_AND_REINDEX, List.of());
         LanguageServers.forProject(project).computeFirst(
                 server -> server.getWorkspaceService().executeCommand(p));
     }

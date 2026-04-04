@@ -20,6 +20,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.ide.IDE;
+import org.jmlspecs.openjml.eclipse.OpenJMLConstants;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -59,10 +60,8 @@ public class LspFeatureTest extends GUITestBase {
     // Action test constants
     // -----------------------------------------------------------------------
 
-    private static final String RENAME_COMMAND_ID =
-            "org.openjml.eclipse.commands.rename";
-    private static final String FIND_REFS_COMMAND_ID =
-            "org.openjml.eclipse.commands.findReferences";
+    private static final String RENAME_COMMAND_ID    = OpenJMLConstants.CMD_UI_RENAME;
+    private static final String FIND_REFS_COMMAND_ID = OpenJMLConstants.CMD_UI_FIND_REFERENCES;
     private static final String TARGET_SYMBOL = "myField";
 
     /**
@@ -91,9 +90,9 @@ public class LspFeatureTest extends GUITestBase {
     // Marker test constants
     // -----------------------------------------------------------------------
 
-    private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
-    private static final String SERVER_ID_ATTR = "languageServerId";
-    private static final String OPENJML_SERVER_ID = "org.jmlspecs.openjml.lsp.server";
+    private static final String LSP4E_MARKER      = OpenJMLConstants.LSP4E_MARKER_TYPE;
+    private static final String SERVER_ID_ATTR    = "languageServerId";
+    private static final String OPENJML_SERVER_ID = OpenJMLConstants.SERVER_ID;
     private static final String JAVA_MARKER = "org.eclipse.jdt.core.problem";
     private static final int CHECK_JML_TIMEOUT_MS = 90_000;
 

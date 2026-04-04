@@ -20,6 +20,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.jmlspecs.openjml.eclipse.JmlNature;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
@@ -47,8 +48,8 @@ import org.junit.BeforeClass;
  */
 public abstract class GUITestBase extends SwtBotTestBase {
 
-    /** OpenJML nature identifier (matches plugin.xml). */
-    protected static final String JML_NATURE_ID = "org.openjml.OpenJMLUI.JMLNatureID";
+    /** OpenJML nature identifier. */
+    protected static final String JML_NATURE_ID = JmlNature.NATURE_ID;
 
     /** JRE container path string — avoids a compile-time dependency on jdt.launching. */
     private static final String JRE_CONTAINER =

@@ -630,7 +630,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
      * {@link RunEsc} / {@link RunEscForMethod}.
      */
     public static final class CheckJML extends LspCommandHandler {
-        public CheckJML() { super("openjml.checkJML"); }
+        public CheckJML() { super(OpenJMLConstants.CMD_CHECK_JML); }
 
         @Override
         protected ExecuteCommandParams buildCommand(List<String> osPaths, InvocationContext ctx) {
@@ -647,7 +647,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
      * RAC-compiled {@code .class} files land alongside the regular compiled classes.
      */
     public static final class RunRac extends LspCommandHandler {
-        public RunRac() { super("openjml.runRac"); }
+        public RunRac() { super(OpenJMLConstants.CMD_RUN_RAC); }
 
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -677,7 +677,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
      * as a single {@code openjml.runEsc} command per project.
      */
     public static final class RunEsc extends LspCommandHandler {
-        public RunEsc() { super("openjml.runEsc"); }
+        public RunEsc() { super(OpenJMLConstants.CMD_RUN_ESC); }
 
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -700,7 +700,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             List<Object> args = prefixArgs(ctx);
             args.add(uri);
             args.add(fqn != null ? fqn : "");
-            return new ExecuteCommandParams("openjml.runEscForMethod", args);
+            return new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args);
         }
     }
 
@@ -710,7 +710,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
      * are ignored.
      */
     public static final class RunEscForMethod extends LspCommandHandler {
-        public RunEscForMethod() { super("openjml.runEscForMethod"); }
+        public RunEscForMethod() { super(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD); }
 
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -746,7 +746,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             args.add(uri);
             args.add("");
             ExecuteCommandParams params =
-                    new ExecuteCommandParams("openjml.runEscForMethod", args);
+                    new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args);
             dispatchCommand(params, getDocument(file), file.getProject());
             return null;
         }
@@ -760,26 +760,25 @@ public abstract class LspCommandHandler extends AbstractHandler {
     /**
      * Deletes all OpenJML diagnostic markers from the entire workspace directly
      * via the Eclipse {@link org.eclipse.core.resources.IMarker} API.
+     *
+     * <p>Uses {@link OpenJMLConstants#JML_PROBLEM_MARKER} with
+     * {@code includeSubtypes=true} so both {@code JMLProblem} (check) and
+     * {@code JMLESCProblem} (ESC) markers are removed in a single pass.
      */
     public static final class ClearMarkers extends AbstractHandler {
-        private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
-        private static final String SERVER_ID    = "org.jmlspecs.openjml.lsp.server";
-
         @Override
         public Object execute(ExecutionEvent event) {
             try {
                 org.eclipse.core.resources.IWorkspaceRoot root =
                         org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
                 org.eclipse.core.resources.IMarker[] markers =
-                        root.findMarkers(LSP4E_MARKER,
-                                /*includeSubtypes=*/ false,
+                        root.findMarkers(OpenJMLConstants.JML_PROBLEM_MARKER,
+                                /*includeSubtypes=*/ true,
                                 org.eclipse.core.resources.IResource.DEPTH_INFINITE);
                 int deleted = 0;
                 for (org.eclipse.core.resources.IMarker m : markers) {
-                    if (SERVER_ID.equals(m.getAttribute("languageServerId"))) {
-                        m.delete();
-                        deleted++;
-                    }
+                    m.delete();
+                    deleted++;
                 }
                 Console.log("Cleared " + deleted + " OpenJML marker(s).");
             } catch (org.eclipse.core.runtime.CoreException e) {
@@ -794,29 +793,26 @@ public abstract class LspCommandHandler extends AbstractHandler {
      * reindexes the workspace.
      */
     public static final class ClearAndReindex extends LspCommandHandler {
-        private static final String LSP4E_MARKER = "org.eclipse.lsp4e.diagnostic";
-        private static final String SERVER_ID    = "org.jmlspecs.openjml.lsp.server";
-
-        public ClearAndReindex() { super("openjml.clearAndReindex"); }
+        public ClearAndReindex() { super(OpenJMLConstants.CMD_CLEAR_AND_REINDEX); }
 
         @Override
         public Object execute(ExecutionEvent event) {
             Console.errorlog(lspCommand);
 
             // 1. Clear all OpenJML Eclipse markers workspace-wide.
+            // JML_PROBLEM_MARKER with includeSubtypes=true removes both
+            // JMLProblem (check) and JMLESCProblem (ESC) markers in one pass.
             try {
                 org.eclipse.core.resources.IWorkspaceRoot root =
                         org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
                 org.eclipse.core.resources.IMarker[] markers =
-                        root.findMarkers(LSP4E_MARKER,
-                                /*includeSubtypes=*/ false,
+                        root.findMarkers(OpenJMLConstants.JML_PROBLEM_MARKER,
+                                /*includeSubtypes=*/ true,
                                 org.eclipse.core.resources.IResource.DEPTH_INFINITE);
                 int deleted = 0;
                 for (org.eclipse.core.resources.IMarker m : markers) {
-                    if (SERVER_ID.equals(m.getAttribute("languageServerId"))) {
-                        m.delete();
-                        deleted++;
-                    }
+                    m.delete();
+                    deleted++;
                 }
                 Console.log("Cleared " + deleted + " marker(s).");
             } catch (org.eclipse.core.runtime.CoreException e) {
@@ -824,7 +820,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             }
 
             // 2. Send clearAndReindex to the server.
-            ExecuteCommandParams p = new ExecuteCommandParams("openjml.clearAndReindex", List.of());
+            ExecuteCommandParams p = new ExecuteCommandParams(OpenJMLConstants.CMD_CLEAR_AND_REINDEX, List.of());
             if (sendViaWrapper(LspPartListener.cachedWrapper, p)) {
                 return null;
             }

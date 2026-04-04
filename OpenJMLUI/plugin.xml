@@ -101,12 +101,18 @@
            contentType="org.jmlspecs.openjml.jmlSource"/>
   </extension>
 
-  <!-- LSP4E integration: connect Java and .jml source files to the openjml-lsp server -->
+  <!-- LSP4E integration: connect Java and .jml source files to the openjml-lsp server.
+       id must match OpenJMLConstants.SERVER_ID in Java code.
+       markerType must match OpenJMLConstants.JML_PROBLEM_MARKER in Java code.
+       markerAttributeComputer names the class that routes ESC diagnostics to
+       JMLESCProblem and normalises IMarker.SEVERITY for annotation matching. -->
   <extension point="org.eclipse.lsp4e.languageServer">
      <languageServer
            class="org.jmlspecs.openjml.eclipse.OpenJMLStreamConnectionProvider"
            id="org.jmlspecs.openjml.lsp.server"
-           label="OpenJML Language Server">
+           label="OpenJML Language Server"
+           markerType="org.openjml.OpenJMLUI.JMLProblem"
+           markerAttributeComputer="org.jmlspecs.openjml.eclipse.OpenJMLMarkerAttributeComputer">
         <contentTypeMapping
               contentTypeId="org.eclipse.jdt.core.javaSource"
               priority="normal"/>
@@ -114,6 +120,129 @@
               contentTypeId="org.jmlspecs.openjml.jmlSource"
               priority="high"/>
      </languageServer>
+  </extension>
+
+  <!-- JML type-check and syntax-check marker type.
+       Must extend org.eclipse.lsp4e.diagnostic (LSP4E requirement) and be
+       persistent=false (LSP4E manages marker lifecycle).
+       id "JMLProblem" → full ID "org.openjml.OpenJMLUI.JMLProblem"
+       — must match OpenJMLConstants.JML_PROBLEM_MARKER in Java code. -->
+  <extension
+        id="JMLProblem"
+        name="JML Problem"
+        point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.lsp4e.diagnostic"/>
+    <persistent value="false"/>
+  </extension>
+
+  <!-- ESC (Extended Static Checking) proof-result marker type.
+       Subtype of JMLProblem so findMarkers(JML_PROBLEM_MARKER, includeSubtypes=true)
+       deletes both check and ESC markers in one call.
+       id "JMLESCProblem" → full ID "org.openjml.OpenJMLUI.JMLESCProblem"
+       — must match OpenJMLConstants.JML_ESC_MARKER in Java code. -->
+  <extension
+        id="JMLESCProblem"
+        name="JML ESC Problem"
+        point="org.eclipse.core.resources.markers">
+    <super type="org.openjml.OpenJMLUI.JMLProblem"/>
+    <persistent value="false"/>
+  </extension>
+
+  <!-- Annotation types for OpenJML markers.
+       markerSeverity: 0=info/note  1=warning  2=error -->
+  <extension point="org.eclipse.ui.editors.annotationTypes">
+    <!-- ESC proof failures shown as errors -->
+    <type
+          name="org.openjml.OpenJMLUI.ESCProblemAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLESCProblem"
+          markerSeverity="2"/>
+    <!-- JML type-check errors -->
+    <type
+          name="org.openjml.OpenJMLUI.JMLProblemAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLProblem"
+          markerSeverity="2"/>
+    <!-- JML type-check warnings -->
+    <type
+          name="org.openjml.OpenJMLUI.JMLWarningAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLProblem"
+          markerSeverity="1"/>
+    <!-- JML type-check notes / informational -->
+    <type
+          name="org.openjml.OpenJMLUI.JMLNoteAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLProblem"
+          markerSeverity="0"/>
+  </extension>
+
+  <!-- Annotation display preferences for OpenJML markers (Annotations preference page). -->
+  <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+    <specification
+          annotationType="org.openjml.OpenJMLUI.ESCProblemAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeKey"
+          colorPreferenceValue="255,192,0"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeKey"
+          highlightPreferenceValue="true"
+          icon="icons/jml_orange.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.3"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeKey"
+          overviewRulerPreferenceValue="true"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeKey"
+          verticalRulerPreferenceValue="true">
+    </specification>
+    <specification
+          annotationType="org.openjml.OpenJMLUI.JMLProblemAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpKey"
+          colorPreferenceValue="255,64,64"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpKey"
+          highlightPreferenceValue="true"
+          icon="icons/jml_problem.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.4"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpKey"
+          overviewRulerPreferenceValue="true"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpKey"
+          verticalRulerPreferenceValue="true">
+    </specification>
+    <specification
+          annotationType="org.openjml.OpenJMLUI.JMLWarningAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpwKey"
+          colorPreferenceValue="255,255,128"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpwKey"
+          highlightPreferenceValue="true"
+          icon="icons/jml_warning.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.5"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpwKey"
+          overviewRulerPreferenceValue="true"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpwKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpwKey"
+          verticalRulerPreferenceValue="true">
+    </specification>
+    <specification
+          annotationType="org.openjml.OpenJMLUI.JMLNoteAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpnKey"
+          colorPreferenceValue="192,192,255"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpnKey"
+          highlightPreferenceValue="true"
+          icon="icons/jml_blue.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.6"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpnKey"
+          overviewRulerPreferenceValue="true"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpnKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpnKey"
+          verticalRulerPreferenceValue="true">
+    </specification>
   </extension>
 
   <!-- OpenJML command definitions -->

@@ -17,6 +17,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.ide.IDE;
+import org.jmlspecs.openjml.eclipse.OpenJMLConstants;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -61,13 +62,11 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ActionTest extends GUITestBase {
 
-    /** Command ID for the OpenJML Rename handler (from plugin.xml). */
-    private static final String RENAME_COMMAND_ID =
-            "org.openjml.eclipse.commands.rename";
+    /** Command ID for the OpenJML Rename handler. */
+    private static final String RENAME_COMMAND_ID    = OpenJMLConstants.CMD_UI_RENAME;
 
-    /** Command ID for the OpenJML Find References handler (from plugin.xml). */
-    private static final String FIND_REFS_COMMAND_ID =
-            "org.openjml.eclipse.commands.findReferences";
+    /** Command ID for the OpenJML Find References handler. */
+    private static final String FIND_REFS_COMMAND_ID = OpenJMLConstants.CMD_UI_FIND_REFERENCES;
 
     /** Identifier we position the cursor on in every test. */
     private static final String TARGET_SYMBOL = "myField";

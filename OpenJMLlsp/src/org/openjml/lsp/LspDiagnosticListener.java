@@ -27,6 +27,23 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     private static final boolean DEBUG_DIAGNOSTICS = false;
 
     /**
+     * Source tag written into every LSP {@link org.eclipse.lsp4j.Diagnostic} produced
+     * by this listener.  Defaults to {@link DiagnosticConverter#SOURCE_CHECK}.
+     * Call {@link #setSourceTag} before running the check to override.
+     */
+    private String sourceTag = DiagnosticConverter.SOURCE_CHECK;
+
+    /**
+     * Sets the source tag that will be written into every LSP diagnostic produced
+     * by this listener.  Call this once before invoking {@code api.execute()}.
+     * Use {@link DiagnosticConverter#SOURCE_CHECK} for {@code --check} runs and
+     * {@link DiagnosticConverter#SOURCE_ESC} for {@code --esc} runs.
+     */
+    public void setSourceTag(String tag) {
+        this.sourceTag = tag;
+    }
+
+    /**
      * Precomputed line-start offsets for the primary source being checked.
      * Set via {@link #setSourceContent} before {@code api.execute()} so that
      * {@link DiagnosticConverter} can compute accurate tab-safe LSP columns.
@@ -80,16 +97,30 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
      * @param rawDiags   diagnostics captured during a {@code doESC} call
      * @param sourcePath temp/real file path used during compilation (for source-filtering)
      * @param targetUri  the LSP document URI to map diagnostics to
+     * @param sourceTag  value for {@link org.eclipse.lsp4j.Diagnostic#setSource}; use
+     *                   {@link DiagnosticConverter#SOURCE_CHECK} or
+     *                   {@link DiagnosticConverter#SOURCE_ESC}
+     */
+    public static List<org.eclipse.lsp4j.Diagnostic> toLspDiagnosticsFromList(
+            List<Diagnostic<? extends JavaFileObject>> rawDiags,
+            String sourcePath, String targetUri, String sourceTag) {
+        var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
+        for (var d : rawDiags) {
+            if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) continue;
+            result.add(DiagnosticConverter.convert(d, targetUri, null, sourceTag));
+        }
+        return result;
+    }
+
+    /**
+     * {@link #toLspDiagnosticsFromList} with {@link DiagnosticConverter#SOURCE_CHECK}
+     * as the source tag.
      */
     public static List<org.eclipse.lsp4j.Diagnostic> toLspDiagnosticsFromList(
             List<Diagnostic<? extends JavaFileObject>> rawDiags,
             String sourcePath, String targetUri) {
-        var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
-        for (var d : rawDiags) {
-            if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) continue;
-            result.add(DiagnosticConverter.convert(d, targetUri));
-        }
-        return result;
+        return toLspDiagnosticsFromList(rawDiags, sourcePath, targetUri,
+                                        DiagnosticConverter.SOURCE_CHECK);
     }
 
     public List<Diagnostic<? extends JavaFileObject>> getDiagnostics() {
@@ -148,7 +179,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
                 continue;
             }
             result.computeIfAbsent(uri, k -> new ArrayList<>())
-                  .add(DiagnosticConverter.convert(d, uri));
+                  .add(DiagnosticConverter.convert(d, uri, null, sourceTag));
         }
         return result;
     }
@@ -175,7 +206,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             if (d.getSource() == null) continue;
             for (Map.Entry<String, String> entry : tempPathToRealUri.entrySet()) {
                 if (DiagnosticConverter.matchesSourcePath(d, entry.getKey())) {
-                    result.get(entry.getValue()).add(DiagnosticConverter.convert(d, entry.getValue()));
+                    result.get(entry.getValue()).add(DiagnosticConverter.convert(d, entry.getValue(), null, sourceTag));
                     break;
                 }
             }
@@ -198,7 +229,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
                 if (DEBUG_DIAGNOSTICS) System.err.println("    ^ filtered (wrong source file)");
                 continue;
             }
-            result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets));
+            result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets, sourceTag));
         }
         System.err.println("[LspDiagnosticListener] " + collected.size()
                 + " raw, " + result.size() + " LSP diagnostic(s) for " + sourcePath);

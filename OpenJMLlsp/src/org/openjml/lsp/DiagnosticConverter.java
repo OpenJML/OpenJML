@@ -40,6 +40,24 @@ import java.util.Locale;
 public class DiagnosticConverter {
 
     /**
+     * LSP {@code Diagnostic.source} value for diagnostics produced by
+     * {@code --check} (JML type-check / syntax-check) passes.
+     *
+     * <p><b>OpenJMLUI sync</b>: {@code OpenJMLConstants.SOURCE_CHECK}
+     * in the {@code OpenJMLUI} bundle.  Both copies must be identical.
+     */
+    public static final String SOURCE_CHECK = "openjml.check";
+
+    /**
+     * LSP {@code Diagnostic.source} value for diagnostics produced by
+     * {@code --esc} (Extended Static Checking) passes.
+     *
+     * <p><b>OpenJMLUI sync</b>: {@code OpenJMLConstants.SOURCE_ESC}
+     * in the {@code OpenJMLUI} bundle.  Both copies must be identical.
+     */
+    public static final String SOURCE_ESC = "openjml.esc";
+
+    /**
      * Builds a line-start-offset table from a source string.
      * {@code result[i]} is the character offset of the first character of line {@code i}
      * (0-indexed).  The table can be passed to {@link #convert} to avoid tab-expansion
@@ -84,11 +102,19 @@ public class DiagnosticConverter {
         return srcName.isEmpty() || srcName.endsWith(baseName(sourcePath));
     }
 
-    /** Convert without a line-start table. */
+    /** Convert without a line-start table; uses {@link #SOURCE_CHECK} as the source tag. */
     public static Diagnostic convert(
             javax.tools.Diagnostic<? extends JavaFileObject> d,
             String targetUri) {
-        return convert(d, targetUri, null);
+        return convert(d, targetUri, null, SOURCE_CHECK);
+    }
+
+    /** Convert with a line-start table; uses {@link #SOURCE_CHECK} as the source tag. */
+    public static Diagnostic convert(
+            javax.tools.Diagnostic<? extends JavaFileObject> d,
+            String targetUri,
+            int[] lineStartOffsets) {
+        return convert(d, targetUri, lineStartOffsets, SOURCE_CHECK);
     }
 
     /**
@@ -101,11 +127,14 @@ public class DiagnosticConverter {
      * @param targetUri        the LSP document URI to report the diagnostic against
      * @param lineStartOffsets optional precomputed table from {@link #buildLineStartOffsets};
      *                         used for accurate tab-safe column numbers; may be {@code null}
+     * @param source           value to set on {@link Diagnostic#setSource}; use
+     *                         {@link #SOURCE_CHECK} or {@link #SOURCE_ESC}
      */
     public static Diagnostic convert(
             javax.tools.Diagnostic<? extends JavaFileObject> d,
             String targetUri,
-            int[] lineStartOffsets) {
+            int[] lineStartOffsets,
+            String source) {
 
         long line     = d.getLineNumber();
         long startPos = d.getStartPosition();
@@ -115,7 +144,7 @@ public class DiagnosticConverter {
         if (line == javax.tools.Diagnostic.NOPOS || line <= 0
                 || startPos == javax.tools.Diagnostic.NOPOS) {
             var pt = new Position(0, 0);
-            return buildDiagnostic(d, new Range(pt, pt));
+            return buildDiagnostic(d, new Range(pt, pt), source);
         }
 
         int lspLine = (int)(line - 1);
@@ -157,11 +186,11 @@ public class DiagnosticConverter {
             range = new Range(pt, pt);
         }
 
-        return buildDiagnostic(d, range);
+        return buildDiagnostic(d, range, source);
     }
 
-    private static Diagnostic buildDiagnostic(
-            javax.tools.Diagnostic<? extends JavaFileObject> d, Range range) {
+    static Diagnostic buildDiagnostic(
+            javax.tools.Diagnostic<? extends JavaFileObject> d, Range range, String source) {
         DiagnosticSeverity severity = switch (d.getKind()) {
             case ERROR            -> DiagnosticSeverity.Error;
             case WARNING,
@@ -171,7 +200,7 @@ public class DiagnosticConverter {
         };
         var lsp = new Diagnostic(range, d.getMessage(Locale.ENGLISH));
         lsp.setSeverity(severity);
-        lsp.setSource("openjml");
+        lsp.setSource(source);
         lsp.setCode(d.getCode());
         return lsp;
     }

@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.jmlspecs.openjml.eclipse.OpenJMLConstants;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -53,21 +54,14 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MarkersTest extends GUITestBase {
 
-    /**
-     * LSP4E diagnostic marker type — the LSP-based OpenJML plugin produces
-     * diagnostics via {@code textDocument/publishDiagnostics}, which LSP4E
-     * stores as markers of this type.  The old custom marker type
-     * {@code org.jmlspecs.openjml.markers.JMLProblem} is no longer used.
-     */
-    private static final String LSP4E_MARKER =
-            "org.eclipse.lsp4e.diagnostic";
+    /** LSP4E diagnostic marker type (see {@link OpenJMLConstants#LSP4E_MARKER_TYPE}). */
+    private static final String LSP4E_MARKER = OpenJMLConstants.LSP4E_MARKER_TYPE;
 
     /** Attribute set by LSP4E on each diagnostic marker to identify the server. */
     private static final String SERVER_ID_ATTR = "languageServerId";
 
-    /** OpenJML's language server ID (from plugin.xml). */
-    private static final String OPENJML_SERVER_ID =
-            "org.jmlspecs.openjml.lsp.server";
+    /** OpenJML's language server ID (see {@link OpenJMLConstants#SERVER_ID}). */
+    private static final String OPENJML_SERVER_ID = OpenJMLConstants.SERVER_ID;
 
     /** Standard Java problem marker type. */
     private static final String JAVA_MARKER =

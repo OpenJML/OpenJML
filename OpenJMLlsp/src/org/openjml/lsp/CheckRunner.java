@@ -195,6 +195,7 @@ public class CheckRunner {
 
     public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings) {
         var listener = new LspDiagnosticListener();
+        listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
         var prc = new ProofResultCollector();
@@ -490,6 +491,7 @@ public class CheckRunner {
                                                  Map<String, String> extraSources,
                                                  OpenJMLSettings settings) {
         var listener = new LspDiagnosticListener();
+        listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
         var prc = new ProofResultCollector();
@@ -765,6 +767,7 @@ public class CheckRunner {
 
         var listener = new LspDiagnosticListener();
         listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
+        if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out      = new PrintWriter(new StringWriter());
         var api      = IAPI.make(out, listener);
 
@@ -909,6 +912,7 @@ public class CheckRunner {
             String methodName, boolean collectProofResults) {
         var listener = new LspDiagnosticListener();
         listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
+        if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
 
@@ -996,6 +1000,7 @@ public class CheckRunner {
             String filePath, String uri, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults) {
         var listener = new LspDiagnosticListener();
+        if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
 
