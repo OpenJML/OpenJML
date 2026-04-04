@@ -112,7 +112,8 @@
            id="org.jmlspecs.openjml.lsp.server"
            label="OpenJML Language Server"
            markerType="org.openjml.OpenJMLUI.JMLProblem"
-           markerAttributeComputer="org.jmlspecs.openjml.eclipse.OpenJMLMarkerAttributeComputer">
+           markerAttributeComputer="org.jmlspecs.openjml.eclipse.OpenJMLMarkerAttributeComputer"
+           clientImpl="org.jmlspecs.openjml.eclipse.OpenJMLLanguageClient">
         <contentTypeMapping
               contentTypeId="org.eclipse.jdt.core.javaSource"
               priority="normal"/>
@@ -136,15 +137,16 @@
   </extension>
 
   <!-- ESC (Extended Static Checking) proof-result marker type.
-       Subtype of JMLProblem so findMarkers(JML_PROBLEM_MARKER, includeSubtypes=true)
-       deletes both check and ESC markers in one call.
+       Direct subtype of org.eclipse.lsp4e.diagnostic (NOT JMLProblem) so that
+       findMarkers(JMLProblem, includeSubtypes=true) does NOT return ESC markers,
+       preventing the check handler from deleting ESC markers on each check run.
        id "JMLESCProblem" → full ID "org.openjml.OpenJMLUI.JMLESCProblem"
        — must match OpenJMLConstants.JML_ESC_MARKER in Java code. -->
   <extension
         id="JMLESCProblem"
         name="JML ESC Problem"
         point="org.eclipse.core.resources.markers">
-    <super type="org.openjml.OpenJMLUI.JMLProblem"/>
+    <super type="org.eclipse.lsp4e.diagnostic"/>
     <persistent value="false"/>
   </extension>
 

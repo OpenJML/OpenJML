@@ -62,9 +62,8 @@ public final class OpenJMLConstants {
 
     /**
      * Eclipse marker type for ESC (Extended Static Checking) proof-result
-     * diagnostics.  This type is a subtype of {@link #JML_PROBLEM_MARKER},
-     * so {@code findMarkers(JML_PROBLEM_MARKER, includeSubtypes=true)} finds
-     * both check and ESC markers in a single call.
+     * diagnostics.  Created directly by {@link OpenJMLLanguageClient}; managed
+     * independently of {@link #JML_PROBLEM_MARKER}.
      *
      * <p><b>plugin.xml sync</b>:
      * {@code <extension id="JMLESCProblem" point="org.eclipse.core.resources.markers">}.

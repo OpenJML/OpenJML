@@ -782,10 +782,6 @@ public abstract class LspCommandHandler extends AbstractHandler {
     /**
      * Deletes all OpenJML diagnostic markers from the entire workspace directly
      * via the Eclipse {@link org.eclipse.core.resources.IMarker} API.
-     *
-     * <p>Uses {@link OpenJMLConstants#JML_PROBLEM_MARKER} with
-     * {@code includeSubtypes=true} so both {@code JMLProblem} (check) and
-     * {@code JMLESCProblem} (ESC) markers are removed in a single pass.
      */
     public static final class ClearMarkers extends AbstractHandler {
         @Override
@@ -793,14 +789,16 @@ public abstract class LspCommandHandler extends AbstractHandler {
             try {
                 org.eclipse.core.resources.IWorkspaceRoot root =
                         org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
-                org.eclipse.core.resources.IMarker[] markers =
-                        root.findMarkers(OpenJMLConstants.JML_PROBLEM_MARKER,
-                                /*includeSubtypes=*/ true,
-                                org.eclipse.core.resources.IResource.DEPTH_INFINITE);
                 int deleted = 0;
-                for (org.eclipse.core.resources.IMarker m : markers) {
-                    m.delete();
-                    deleted++;
+                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
+                        OpenJMLConstants.JML_PROBLEM_MARKER, true,
+                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
+                    m.delete(); deleted++;
+                }
+                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
+                        OpenJMLConstants.JML_ESC_MARKER, false,
+                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
+                    m.delete(); deleted++;
                 }
                 Console.log("Cleared " + deleted + " OpenJML marker(s).");
             } catch (org.eclipse.core.runtime.CoreException e) {
@@ -822,19 +820,19 @@ public abstract class LspCommandHandler extends AbstractHandler {
             Console.log(lspCommand);
 
             // 1. Clear all OpenJML Eclipse markers workspace-wide.
-            // JML_PROBLEM_MARKER with includeSubtypes=true removes both
-            // JMLProblem (check) and JMLESCProblem (ESC) markers in one pass.
             try {
                 org.eclipse.core.resources.IWorkspaceRoot root =
                         org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
-                org.eclipse.core.resources.IMarker[] markers =
-                        root.findMarkers(OpenJMLConstants.JML_PROBLEM_MARKER,
-                                /*includeSubtypes=*/ true,
-                                org.eclipse.core.resources.IResource.DEPTH_INFINITE);
                 int deleted = 0;
-                for (org.eclipse.core.resources.IMarker m : markers) {
-                    m.delete();
-                    deleted++;
+                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
+                        OpenJMLConstants.JML_PROBLEM_MARKER, true,
+                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
+                    m.delete(); deleted++;
+                }
+                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
+                        OpenJMLConstants.JML_ESC_MARKER, false,
+                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
+                    m.delete(); deleted++;
                 }
                 Console.log("Cleared " + deleted + " marker(s).");
             } catch (org.eclipse.core.runtime.CoreException e) {

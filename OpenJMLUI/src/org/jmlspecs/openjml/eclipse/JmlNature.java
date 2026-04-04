@@ -166,15 +166,13 @@ public class JmlNature implements IProjectNature {
      */
     private static void cleanupForProject(IProject project) {
         // 1. Delete all OpenJML markers on this project.
-        // JML_PROBLEM_MARKER with includeSubtypes=true catches both JMLProblem
-        // and JMLESCProblem (its subtype) in a single call.
         try {
-            IMarker[] markers = project.findMarkers(
-                    OpenJMLConstants.JML_PROBLEM_MARKER,
-                    /*includeSubtypes=*/ true, IResource.DEPTH_INFINITE);
-            for (IMarker m : markers) {
+            for (IMarker m : project.findMarkers(
+                    OpenJMLConstants.JML_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE))
                 m.delete();
-            }
+            for (IMarker m : project.findMarkers(
+                    OpenJMLConstants.JML_ESC_MARKER, false, IResource.DEPTH_INFINITE))
+                m.delete();
         } catch (CoreException e) {
             Console.log("Warning: could not clear markers for "
                     + project.getName() + ": " + e.getMessage());
