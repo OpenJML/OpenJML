@@ -149,36 +149,50 @@
   </extension>
 
   <!-- Annotation types for OpenJML markers.
-       markerSeverity: 0=info/note  1=warning  2=error -->
+       markerSeverity: 0=info  1=warning  2=error
+       ESC markers (JMLESCProblem) come in two severities:
+         ERROR  — verification failure (proof obligation not satisfied)
+         INFO   — associated-declaration message accompanying a failure
+       JML check markers (JMLProblem) come in three severities:
+         ERROR, WARNING, INFO -->
   <extension point="org.eclipse.ui.editors.annotationTypes">
-    <!-- ESC proof failures shown as errors -->
+    <!-- ESC verification failure: JMLESCProblem + ERROR severity → orange -->
     <type
-          name="org.openjml.OpenJMLUI.ESCProblemAnnotation"
+          name="org.openjml.OpenJMLUI.ESCErrorAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLESCProblem"
           markerSeverity="2"/>
-    <!-- JML type-check errors -->
+    <!-- ESC associated info: JMLESCProblem + INFO severity → blue -->
     <type
-          name="org.openjml.OpenJMLUI.JMLProblemAnnotation"
+          name="org.openjml.OpenJMLUI.ESCInfoAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLESCProblem"
+          markerSeverity="0"/>
+    <!-- JML type-check error: JMLProblem + ERROR severity → red -->
+    <type
+          name="org.openjml.OpenJMLUI.JMLErrorAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLProblem"
           markerSeverity="2"/>
-    <!-- JML type-check warnings -->
+    <!-- JML type-check warning: JMLProblem + WARNING severity → yellow -->
     <type
           name="org.openjml.OpenJMLUI.JMLWarningAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLProblem"
           markerSeverity="1"/>
-    <!-- JML type-check notes / informational -->
+    <!-- JML type-check info/note: JMLProblem + INFO severity → blue -->
     <type
-          name="org.openjml.OpenJMLUI.JMLNoteAnnotation"
+          name="org.openjml.OpenJMLUI.JMLInfoAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLProblem"
           markerSeverity="0"/>
   </extension>
 
-  <!-- Annotation display preferences for OpenJML markers (Annotations preference page). -->
+  <!-- Annotation display preferences for OpenJML markers (Annotations preference page).
+       Users can change colour, underline, highlight, and ruler visibility at
+       General > Editors > Text Editors > Annotations.
+       Colours: ESC failure=orange, ESC info=blue, JML error=red, JML warning=yellow, JML info=blue -->
   <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+    <!-- ESC verification failure: orange (distinguishable from JML error=red) -->
     <specification
-          annotationType="org.openjml.OpenJMLUI.ESCProblemAnnotation"
+          annotationType="org.openjml.OpenJMLUI.ESCErrorAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeKey"
-          colorPreferenceValue="255,192,0"
+          colorPreferenceValue="255,128,0"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeKey"
           highlightPreferenceValue="true"
           icon="icons/jml_orange.gif"
@@ -192,8 +206,27 @@
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeKey"
           verticalRulerPreferenceValue="true">
     </specification>
+    <!-- ESC associated info: blue, no highlight by default (informational only) -->
     <specification
-          annotationType="org.openjml.OpenJMLUI.JMLProblemAnnotation"
+          annotationType="org.openjml.OpenJMLUI.ESCInfoAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeiKey"
+          colorPreferenceValue="192,192,255"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeiKey"
+          highlightPreferenceValue="false"
+          icon="icons/jml_blue.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.7"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeiKey"
+          overviewRulerPreferenceValue="false"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeiKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeiKey"
+          verticalRulerPreferenceValue="false">
+    </specification>
+    <!-- JML type-check error: red -->
+    <specification
+          annotationType="org.openjml.OpenJMLUI.JMLErrorAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpKey"
           colorPreferenceValue="255,64,64"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpKey"
@@ -209,6 +242,7 @@
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpKey"
           verticalRulerPreferenceValue="true">
     </specification>
+    <!-- JML type-check warning: yellow -->
     <specification
           annotationType="org.openjml.OpenJMLUI.JMLWarningAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpwKey"
@@ -226,22 +260,23 @@
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpwKey"
           verticalRulerPreferenceValue="true">
     </specification>
+    <!-- JML type-check info/note: blue, no highlight by default (informational only) -->
     <specification
-          annotationType="org.openjml.OpenJMLUI.JMLNoteAnnotation"
+          annotationType="org.openjml.OpenJMLUI.JMLInfoAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpnKey"
           colorPreferenceValue="192,192,255"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpnKey"
-          highlightPreferenceValue="true"
+          highlightPreferenceValue="false"
           icon="icons/jml_blue.gif"
           includeOnPreferencePage="true"
           label="%specification.label.6"
           overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpnKey"
-          overviewRulerPreferenceValue="true"
+          overviewRulerPreferenceValue="false"
           presentationLayer="3"
           textPreferenceKey="org.jmlspecs.openjml.eclipse.trpnKey"
           textPreferenceValue="true"
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpnKey"
-          verticalRulerPreferenceValue="true">
+          verticalRulerPreferenceValue="false">
     </specification>
   </extension>
 

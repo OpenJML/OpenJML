@@ -22,15 +22,16 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
  * {@code --check} diagnostic.  This class reads that tag and:
  * <ul>
  *   <li>For ESC diagnostics — overrides the marker type to
- *       {@link OpenJMLConstants#JML_ESC_MARKER} and forces
- *       {@code IMarker.SEVERITY_ERROR}.  Verification failures are emitted by
- *       the javac back-end as {@code Kind.WARNING}, so the LSP severity arrives
- *       as {@code Warning}; the override makes them appear as errors in Eclipse.</li>
+ *       {@link OpenJMLConstants#JML_ESC_MARKER} and maps severity as follows:
+ *       {@code Error} or {@code Warning} → {@code SEVERITY_ERROR} (verification
+ *       failures; javac emits them as {@code Kind.WARNING});
+ *       {@code Information} or {@code Hint} → {@code SEVERITY_INFO} (associated-
+ *       declaration messages that accompany a proof failure).</li>
  *   <li>For check diagnostics — leaves the marker type as
  *       {@link OpenJMLConstants#JML_PROBLEM_MARKER} (the default configured
  *       via the {@code markerType} attribute on the {@code languageServer}
- *       element in {@code plugin.xml}) and normalises {@code IMarker.SEVERITY}
- *       from the LSP severity.</li>
+ *       element in {@code plugin.xml}) and maps {@code Error} → {@code SEVERITY_ERROR},
+ *       {@code Warning} → {@code SEVERITY_WARNING}, anything else → {@code SEVERITY_INFO}.</li>
  * </ul>
  *
  * <p>Registered via the {@code markerAttributeComputer} attribute on the
@@ -54,13 +55,16 @@ public class OpenJMLMarkerAttributeComputer implements IMarkerAttributeComputer 
         if (OpenJMLConstants.SOURCE_ESC.equals(src)) {
             // Route ESC diagnostics to the JMLESCProblem marker type.
             attributes.put(IMarker.MARKER_TYPE, OpenJMLConstants.JML_ESC_MARKER);
-            // Verification failures are reported by the javac back-end as
-            // Kind.WARNING (not Kind.ERROR), so the LSP severity arrives as
-            // Warning.  Override to ERROR so they appear as errors in Eclipse.
-            attributes.put(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+            // Verification failures arrive as Warning (javac Kind.WARNING).
+            // Associated-declaration info messages arrive as Information/Hint.
+            DiagnosticSeverity sev = diagnostic.getSeverity();
+            int markerSeverity = (sev == DiagnosticSeverity.Warning
+                                  || sev == DiagnosticSeverity.Error)
+                    ? IMarker.SEVERITY_ERROR   // verification failure
+                    : IMarker.SEVERITY_INFO;   // associated info
+            attributes.put(IMarker.SEVERITY, markerSeverity);
         } else {
-            // For check diagnostics: normalise IMarker.SEVERITY to the Integer
-            // form so the annotation framework can match on markerSeverity.
+            // Check diagnostics: map severity directly.
             // Check diagnostics stay with the default JMLProblem marker type.
             DiagnosticSeverity sev = diagnostic.getSeverity();
             if (sev != null) {
