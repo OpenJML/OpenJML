@@ -261,8 +261,11 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
             for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
                 if (project.isOpen() && JmlNature.hasNature(project)) {
                     LanguageServers.forProject(project)
-                            .computeFirst(ls ->
-                                java.util.concurrent.CompletableFuture.completedFuture(null));
+                            .computeFirst(ls -> ls.getWorkspaceService()
+                                .executeCommand(new ExecuteCommandParams(
+                                        OpenJMLConstants.CMD_CLEAR_MARKERS,
+                                        java.util.List.of()))
+                                .exceptionally(e -> null));
                     Console.log("OpenJML LSP server reconnect requested.");
                     return;
                 }
@@ -292,13 +295,19 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
                 + "Server path: " + path + "\n\n"
                 + "Without a running server, all OpenJML features (type-checking, ESC, RAC,\n"
                 + "syntax coloring, etc.) are non-functional.\n\n"
-                + "Click \"Restart\" to restart the server now, or \"Continue\" to proceed\n"
+                + "Restart the server, open Preferences to fix the server path, or continue\n"
                 + "without OpenJML for the rest of this Eclipse session.";
         MessageDialog dialog = new MessageDialog(shell,
                 "OpenJML: Server Stopped Unexpectedly", null, msg,
                 MessageDialog.WARNING,
-                new String[] { "Restart", "Continue without OpenJML" }, 0);
-        if (dialog.open() == 0) {
+                new String[] { "Restart", "Open Preferences", "Continue without OpenJML" }, 0);
+        int choice = dialog.open();
+        if (choice == 0) {
+            triggerReconnect();
+        } else if (choice == 1) {
+            PreferencesUtil.createPreferenceDialogOn(shell,
+                    "org.jmlspecs.openjml.eclipse.SettingsPage",
+                    null, null).open();
             triggerReconnect();
         }
     }
