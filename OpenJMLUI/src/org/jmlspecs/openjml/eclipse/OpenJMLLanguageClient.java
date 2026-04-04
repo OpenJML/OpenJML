@@ -52,10 +52,6 @@ import org.eclipse.lsp4j.PublishDiagnosticsParams;
  */
 public class OpenJMLLanguageClient extends DefaultLanguageClient {
 
-    public OpenJMLLanguageClient() {
-        Console.log("[OpenJMLLanguageClient] instantiated");
-    }
-
     /**
      * Creates and schedules a workspace job that deletes all existing
      * {@link OpenJMLConstants#JML_ESC_MARKER} markers on the file and creates
@@ -66,8 +62,6 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
         if (!(resource instanceof IFile file) || !file.isAccessible()) return;
 
         List<Diagnostic> diags = params.getDiagnostics();
-        Console.log("[OpenJMLLanguageClient] escHandler uri=" + params.getUri()
-                + " markers=" + diags.size());
 
         var job = new Job("Update ESC markers") {
             @Override
@@ -157,7 +151,6 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
      */
     @Override
     public void setDiagnosticsConsumer(Consumer<PublishDiagnosticsParams> checkConsumer) {
-        Console.log("[OpenJMLLanguageClient] setDiagnosticsConsumer called");
         super.setDiagnosticsConsumer(params -> {
             var checkDiags = new ArrayList<Diagnostic>();
             var escDiags   = new ArrayList<Diagnostic>();
@@ -168,8 +161,6 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
                     checkDiags.add(d);
                 }
             }
-            Console.log("[OpenJMLLanguageClient] split uri=" + params.getUri()
-                    + " check=" + checkDiags.size() + " esc=" + escDiags.size());
             checkConsumer.accept(new PublishDiagnosticsParams(params.getUri(), checkDiags));
             escHandler.accept(new PublishDiagnosticsParams(params.getUri(), escDiags));
         });

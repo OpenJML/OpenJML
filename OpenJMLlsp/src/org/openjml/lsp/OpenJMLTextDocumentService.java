@@ -227,7 +227,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
-        CheckRunner.log("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
 
         // Notify the client to re-query code lenses now that lastContent is populated.
@@ -1742,9 +1741,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
-        CheckRunner.log("[publishDiags] uri=" + uri + " count=" + diags.size());
-        for (var d : diags) CheckRunner.log("  diag: severity=" + d.getSeverity()
-                + " source=" + d.getSource() + " msg=" + d.getMessage());
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
         if (diags.isEmpty()) markedUris.remove(uri);
         else                 markedUris.add(uri);
@@ -1755,10 +1751,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
         merged.addAll(escDiags.getOrDefault(uri, List.of()));
         merged.addAll(racDiags.getOrDefault(uri, List.of()));
-        CheckRunner.log("[publishMerged] uri=" + uri
-                + " check=" + checkDiags.getOrDefault(uri, List.of()).size()
-                + " esc=" + escDiags.getOrDefault(uri, List.of()).size()
-                + " rac=" + racDiags.getOrDefault(uri, List.of()).size());
         publishDiags(uri, merged);
     }
 

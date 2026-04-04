@@ -83,10 +83,6 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String src = diagnostic.getSource() == null ? "<null>" : diagnostic.getSource().getName();
-        CheckRunner.log("[LspDiagnosticListener.report] kind=" + diagnostic.getKind()
-                + " src=" + src + " source=" + sourceTag
-                + " msg=" + diagnostic.getMessage(java.util.Locale.ENGLISH).replace('\n', ' '));
         List<Diagnostic<? extends JavaFileObject>> cap = captureMode.get();
         if (cap != null) {
             cap.add(diagnostic);  // capture mode: goes to thread-local list only
