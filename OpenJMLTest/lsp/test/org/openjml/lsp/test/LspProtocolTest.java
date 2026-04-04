@@ -294,9 +294,13 @@ public class LspProtocolTest {
         client.sendRequest("workspace/executeCommand", params);
     }
 
-    /** Send workspace/executeCommand with a single URI argument. */
+    /**
+     * Send workspace/executeCommand with the standard 4-element prefix
+     * (all empty) followed by a single URI argument at position 4.
+     */
     private void executeCommandWithUri(String command, String uri) throws Exception {
-        String params = "{\"command\":\"" + command + "\",\"arguments\":[\"" + uri + "\"]}";
+        String params = "{\"command\":\"" + command + "\",\"arguments\":[\"\",\"\",\"\",\"\",\""
+                + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
     }
 

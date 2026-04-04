@@ -219,7 +219,7 @@ public class DiagnosticsTest extends LspTestBase {
                 "}\n";
         List<Diagnostic> diags = checkContent("file:///SrcCheck.java", source);
         assertFalse(diags.isEmpty());
-        assertTrue("Expected source='openjml' on all diagnostics",
-                diags.stream().allMatch(d -> "openjml".equals(d.getSource())));
+        assertTrue("Expected source='openjml.check' on all diagnostics",
+                diags.stream().allMatch(d -> "openjml.check".equals(d.getSource())));
     }
 }

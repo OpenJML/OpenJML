@@ -78,10 +78,11 @@ public class EscStatusTest extends LspTestBase {
                 kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT);
 
         assertFalse("Expected at least one ESC diagnostic", result.diagnostics().isEmpty());
-        // ESC failures are reported as MANDATORY_WARNING → LSP Warning, not Error.
-        assertTrue("Expected all diagnostics to be Warning severity (ESC failures are warnings)",
+        // ESC failures (MANDATORY_WARNING from javac) are promoted to Error severity so
+        // Eclipse displays them as red error markers, distinct from ordinary JML warnings.
+        assertTrue("Expected all diagnostics to be Error severity (ESC failures are promoted to Error)",
                 result.diagnostics().stream()
-                        .allMatch(d -> d.getSeverity() == DiagnosticSeverity.Warning));
+                        .allMatch(d -> d.getSeverity() == DiagnosticSeverity.Error));
     }
 
     // -----------------------------------------------------------------------
@@ -113,12 +114,12 @@ public class EscStatusTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // (4) Mixed: one verified, one failing — only Warning diagnostics, no Errors
+    // (4) Mixed: one verified, one failing — Error diagnostics for failures
     // -----------------------------------------------------------------------
 
     /**
      * When a file has one verified method and one failing method, ESC produces
-     * exit code 6 and Warning-severity diagnostics only (no Errors).
+     * exit code 6 and Error-severity diagnostics for the failing method.
      * The verified method still records UNSAT; the failing method records
      * SAT or POSSIBLY_SAT.
      *
@@ -133,7 +134,7 @@ public class EscStatusTest extends LspTestBase {
      * </pre>
      */
     @Test
-    public void testEscWithOnlyWarnings() throws Exception {
+    public void testEscWithMixedResults() throws Exception {
         String source =
                 "public class MixedEsc {\n" +
                 "    //@ ensures \\result == x;\n" +
@@ -146,11 +147,11 @@ public class EscStatusTest extends LspTestBase {
 
         assertEquals("Expected exit code 6 (failure in at least one method)", 6, result.exitCode());
 
-        // Diagnostics from ESC failures are Warning severity, not Error.
+        // ESC failures are promoted to Error severity (see DiagnosticConverter).
         assertFalse("Expected at least one diagnostic", result.diagnostics().isEmpty());
-        assertTrue("Expected only Warning-severity diagnostics (ESC failures are warnings, not errors)",
+        assertTrue("Expected only Error-severity diagnostics (ESC failures are promoted to Error)",
                 result.diagnostics().stream()
-                        .allMatch(d -> d.getSeverity() == DiagnosticSeverity.Warning));
+                        .allMatch(d -> d.getSeverity() == DiagnosticSeverity.Error));
 
         // Per-method proof results.
         IProverResult.Kind verifiedKind = result.proofResults().get("verified");

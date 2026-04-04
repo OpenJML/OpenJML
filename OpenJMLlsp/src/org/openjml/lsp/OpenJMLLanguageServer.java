@@ -72,9 +72,21 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         });
         registry.on(OpenJMLCommands.RUN_ESC, args -> {
             // [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]
-            List<String> paths = extractPaths(args, 4);
-            if (!paths.isEmpty()) textDocumentService.scheduleEscForPaths(
-                    paths, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
+            // A "path" that starts with "file://" is treated as a document URI and
+            // routed to scheduleEscForUri (so it works on in-memory content);
+            // all other paths are collected for a single scheduleEscForPaths call.
+            List<String> uris = new java.util.ArrayList<>();
+            List<String> paths = new java.util.ArrayList<>();
+            for (String p : extractPaths(args, 4)) {
+                if (p.startsWith("file://")) uris.add(p);
+                else paths.add(p);
+            }
+            String src = str(args, 0), cp = str(args, 1),
+                   sp  = str(args, 2), pf = str(args, 3);
+            for (String uri : uris)
+                textDocumentService.scheduleEscForUri(uri, src, cp, sp, pf);
+            if (!paths.isEmpty())
+                textDocumentService.scheduleEscForPaths(paths, src, cp, sp, pf);
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {

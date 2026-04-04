@@ -749,8 +749,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         executor.submit(() -> {
             try {
                 // Publish ESC diagnostics progressively as each method's proof completes.
+                // Skip publishing when diags is empty: the callback fires after each method's
+                // proof result, but the diagnostic for a failed proof may not yet be in the
+                // listener's collected list at that instant.  Publishing empty mid-run would
+                // prematurely clear any previously-shown diagnostics; the post-run loop below
+                // handles the final state for all files including fully-verified ones.
                 CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, s, (uri, diags) -> {
-                    if (client == null) return;
+                    if (client == null || diags.isEmpty()) return;
                     escDiags.put(uri, diags);
                     publishMerged(uri);
                 });
@@ -1473,6 +1478,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleEscFile(String uri, OpenJMLSettings s) {
+        String content = lastContent.get(uri);
+        if (content != null) {
+            submitEsc(uri, () -> CheckRunner.runEsc(uri, content, s));
+            return;
+        }
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
         submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, s));

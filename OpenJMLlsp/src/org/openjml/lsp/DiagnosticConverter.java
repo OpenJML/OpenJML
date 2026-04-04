@@ -191,9 +191,9 @@ public class DiagnosticConverter {
 
     static Diagnostic buildDiagnostic(
             javax.tools.Diagnostic<? extends JavaFileObject> d, Range range, String source) {
-        // ESC verification failures are emitted as Kind.WARNING by javac.
-        // Promote them to Error so the Eclipse client can distinguish them
-        // from ordinary JML warnings (which stay as Warning).
+        // ESC verification failures are emitted as Kind.MANDATORY_WARNING by javac.
+        // Promote them to Error so that Eclipse displays them as red error markers,
+        // making them visually distinct from ordinary JML warnings (which stay Warning).
         DiagnosticSeverity severity = switch (d.getKind()) {
             case ERROR            -> DiagnosticSeverity.Error;
             case WARNING,
