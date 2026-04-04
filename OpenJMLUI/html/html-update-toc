@@ -165,21 +165,19 @@ def build_xml(headings):
         '<?NLS TYPE="org.eclipse.help.toc"?>',
         '',
         f'<toc label="JML"  topic="{XML_HREF_PREFIX}">',
-        f'    <topic label="JML Eclipse User Guide" href="{XML_HREF_PREFIX}">',
     ]
 
     for (_, anchor, label), children in groups:
         href = f'{XML_HREF_PREFIX}#{anchor}'
         if children:
-            lines.append(f'      <topic label="{label}" href="{href}">')
+            lines.append(f'    <topic label="{label}" href="{href}">')
             for _, ca, cl in children:
-                lines.append(f'          <topic label="{cl}" href="{XML_HREF_PREFIX}#{ca}"/>')
-            lines.append('        </topic>')
+                lines.append(f'        <topic label="{cl}" href="{XML_HREF_PREFIX}#{ca}"/>')
+            lines.append('    </topic>')
         else:
-            lines.append(f'      <topic label="{label}" href="{href}"/>')
+            lines.append(f'    <topic label="{label}" href="{href}"/>')
 
     lines += [
-        '    </topic>',
         '',
         '</toc>',
         '',

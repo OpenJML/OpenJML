@@ -91,18 +91,6 @@ public class CheckRunner {
         return kind.toString();
     }
 
-    /** Log ESC proof results from a subprocess (--esc) run. */
-    private static void logEscResults(String fname,
-                                      Map<String, IProverResult.Kind> proofResults,
-                                      int numDiags) {
-        if (!proofResults.isEmpty()) {
-            for (Map.Entry<String, IProverResult.Kind> e : proofResults.entrySet())
-                log(ts() + " --esc " + fname + " " + e.getKey() + ": " + kindLabel(e.getValue()));
-        } else {
-            log(ts() + " --esc " + fname + ": " + numDiags + " diagnostic(s)");
-        }
-    }
-
     /**
      * Result of a single OpenJML invocation.
      *
@@ -144,8 +132,12 @@ public class CheckRunner {
                 return;
             }
             String name = msym.getSimpleName().toString();
-            System.err.println("[ProofResultCollector] " + name + " -> " + kind);
             results.put(name, kind);
+            // Log immediately so the console shows progress as each method completes.
+            javax.tools.JavaFileObject src =
+                    msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+            String fname = src != null ? fileName(src.getName()) : "unknown";
+            log(ts() + " --esc " + fname + " " + name + ": " + kindLabel(kind));
         }
 
         Map<String, IProverResult.Kind> getResults() {
@@ -208,8 +200,11 @@ public class CheckRunner {
         int rc = api.execute(args.toArray(new String[0]));
         System.err.println("[CheckRunner.runEscDir] exit code " + rc
                 + " for " + paths.size() + " path(s)");
-
-        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, prc.getResults());
+        Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
+        Map<String, IProverResult.Kind> proofResults = prc.getResults();
+        int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
+        log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+        return new DirCheckResult(diagsByUri, rc, proofResults);
     }
 
     /**
@@ -889,8 +884,8 @@ public class CheckRunner {
                         ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
                         : "";
                 log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
-            } else {
-                logEscResults(fname, proofResults, primaryDiags.size());
+            } else if (proofResults.isEmpty()) {
+                log(ts() + " --esc " + fname + ": " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(tempFile.toString()), allDiags);
@@ -980,7 +975,7 @@ public class CheckRunner {
             if ("--check".equals(modeFlag))
                 log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
             else
-                logEscResults(fname, proofResults, diags.size());
+                log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
             return new CheckResult(diags, rc,
                     proofResults, listener.toForeignMessages(tempFile.toString()), Map.of());
         } catch (IOException e) {
@@ -1065,8 +1060,8 @@ public class CheckRunner {
         List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
         if ("--check".equals(modeFlag))
             log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
-        else
-            logEscResults(fname, proofResults, diags.size());
+        else if (proofResults.isEmpty())
+            log(ts() + " --esc " + fname + ": " + diags.size() + " diagnostic(s)");
         return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath), Map.of());
     }

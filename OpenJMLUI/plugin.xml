@@ -222,7 +222,7 @@
           textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeiKey"
           textPreferenceValue="true"
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeiKey"
-          verticalRulerPreferenceValue="false">
+          verticalRulerPreferenceValue="true">
     </specification>
     <!-- JML type-check error: red -->
     <specification
@@ -276,7 +276,7 @@
           textPreferenceKey="org.jmlspecs.openjml.eclipse.trpnKey"
           textPreferenceValue="true"
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpnKey"
-          verticalRulerPreferenceValue="false">
+          verticalRulerPreferenceValue="true">
     </specification>
   </extension>
 
