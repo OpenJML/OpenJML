@@ -232,8 +232,6 @@ public class CheckRunner {
         args.addAll(paths);
         logInvocation("runEscDir", args);
         int rc = api.execute(args.toArray(new String[0]));
-        log("[CheckRunner.runEscDir] exit code " + rc
-                + " for " + paths.size() + " path(s)");
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
