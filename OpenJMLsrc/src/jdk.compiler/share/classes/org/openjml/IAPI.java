@@ -102,12 +102,8 @@ public interface IAPI {
 //     */
 //    public void setProgressListener(/*@ nullable */ Main.IProgressListener p);
 //    
-//    /** Sets a listener for ESC proof results as they are generated. Any previous
-//     * listener is returned and forgotten (there is just one listener at a time, 
-//     * unless they are explicitly chained).
-//     * @param p the listener
-//     */
-//    public IProofResultListener setProofResultListener(/*@nullable*/ IProofResultListener p);
+    /** Sets a listener for ESC proof results as they are generated. */
+    public void setProofResultListener(/*@nullable*/ IProofResultListener p);
 //
 //    /** This method initializes the Options instance of the current compilation
 //     * context. If the options argument is not null, its content is used
