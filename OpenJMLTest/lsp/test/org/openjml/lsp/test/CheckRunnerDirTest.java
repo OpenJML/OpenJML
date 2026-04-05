@@ -12,8 +12,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 
@@ -346,6 +348,51 @@ public class CheckRunnerDirTest extends LspTestBase {
         Path classFile = outDir.resolve("RacPathsClean.class");
         assertTrue("Expected RacPathsClean.class in RAC output directory",
                 Files.exists(classFile));
+    }
+
+    // -----------------------------------------------------------------------
+    // runRacPaths — type error yields non-zero exit
+    // -----------------------------------------------------------------------
+
+    /**
+     * A file with a type error passed to {@link CheckRunner#runRacPaths} must
+     * return a non-zero exit code, and no class file must be produced for the
+     * erroneous class.
+     */
+    // -----------------------------------------------------------------------
+    // runEscDir — with per-file callback
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@link CheckRunner#runEscDir(List, OpenJMLSettings, java.util.function.BiConsumer)}
+     * must invoke the callback at least once per verified method, and the URI
+     * argument must be a {@code file://} URI (not a bare path).
+     */
+    @Test
+    public void testRunEscDirWithCallback() throws Exception {
+        File f = writeJava("EscDirCb.java",
+                "public class EscDirCb {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n");
+
+        List<String> callbackUris = new ArrayList<>();
+        AtomicInteger callbackCount = new AtomicInteger(0);
+
+        CheckRunner.runEscDir(
+                List.of(f.getAbsolutePath()),
+                new OpenJMLSettings(),
+                (uri, diags) -> {
+                    callbackUris.add(uri);
+                    callbackCount.incrementAndGet();
+                });
+
+        assertTrue("Expected runEscDir callback to be called at least once",
+                callbackCount.get() > 0);
+        for (String uri : callbackUris) {
+            assertTrue("Callback URI must be a file:// URI: " + uri,
+                    uri.startsWith("file:"));
+        }
     }
 
     // -----------------------------------------------------------------------
