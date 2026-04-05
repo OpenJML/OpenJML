@@ -1,0 +1,14 @@
+Proving methods in p.Test
+Starting proof of p.Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of p.Test.Test() with prover !!!! - no warnings
+Starting proof of p.Test.abs(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of p.Test.abs(int) with prover !!!! - no warnings
+Starting proof of p.Test.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of p.Test.main(String...) with prover !!!! - no warnings
+Completed proving methods in p.Test

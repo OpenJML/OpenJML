@@ -107,6 +107,7 @@ public class JmlEsc extends JmlTreeScanner {
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
+            if (tree instanceof JCTree.JCModuleDecl) return;  // module-info.java has no methods to prove
         	//org.jmlspecs.openjml.esc.JmlAssertionAdder.CheckTree.check(context,tree);
             // FIXME - would prefer for esc to just translate the methods that are to be proved
             // We convert the whole tree first
