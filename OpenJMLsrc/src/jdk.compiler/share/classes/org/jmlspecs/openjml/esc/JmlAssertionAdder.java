@@ -7351,6 +7351,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	// This translation follows
 	// https://docs.oracle.com/javase/specs/jls/se8/html/jls-14.html#jls-ResourceList
+	// Updated to also handle Java 9+ expression resources (JEP 213) and
+	// generic resource types (e.g. <R extends Closeable>).
 	protected void transformTryWithResources(JCTry that) {
 		if (that.resources == null || that.resources.isEmpty()) return;
 
@@ -7359,11 +7361,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCTree resource = that.resources.head;
 		List<JCTree> resourceRest = that.resources.tail;
 		int pos = resource.pos;
-		JCVariableDecl decl = (JCVariableDecl) resource;
-		decl.mods.flags |= Flags.FINAL; // implicitly final
+
+		// Bug A fix: Handle both JCVariableDecl resources (traditional syntax:
+		//   try (Type v = expr) {...}) and JCExpression resources (Java 9+ syntax:
+		//   try (existingVar) {...}).  For expression resources, create a synthetic
+		//   final variable initialized from the expression, mirroring the approach
+		//   used in Lower.makeTwrBlock().
+		JCVariableDecl decl;
+		if (resource instanceof JCVariableDecl vd) {
+			decl = vd;
+			decl.mods.flags |= Flags.FINAL; // implicitly final
+		} else {
+			// Java 9+ effectively-final expression resource (JCIdent or JCFieldAccess)
+			JCExpression resExpr = (JCExpression) resource;
+			Name synName = names.fromString("__JMLtwrVar_" + resource.pos);
+			Symbol owner = methodDecl != null ? methodDecl.sym : classDecl.sym;
+			decl = treeutils.makeVarDef(resource.type, synName, owner, resExpr);
+			decl.mods.flags |= Flags.FINAL;
+		}
 
 		ListBuffer<JCStatement> stats = new ListBuffer<>();
-		stats.add((JCStatement) resource);
+		stats.add(decl);
 
 		Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
 		JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName,
@@ -7393,7 +7411,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCCatch newCatch = M.at(pos).Catch(catchDecl, M.at(pos).Block(0L, List.<JCStatement>of(exStat, exThrow)));
 
 		JCIdent id = treeutils.makeIdent(pos, decl.sym);
-		MethodSymbol msym = findCloseMethod((ClassSymbol) resource.type.tsym);
+		// Bug B fix: When the resource has a generic type (e.g. <R extends Closeable>),
+		// resource.type.tsym is a TypeVariableSymbol, not a ClassSymbol.  Use
+		// types.asSuper() to resolve to the AutoCloseable supertype, which correctly
+		// follows TypeVar upper bounds (Types.java visitTypeVar) and always yields a
+		// ClassSymbol.  For concrete types (already a ClassSymbol), use the original
+		// type directly to preserve the specific close() method resolution.
+		Type resourceType = decl.sym.type;
+		ClassSymbol closeClassSym;
+		if (resourceType.tsym instanceof ClassSymbol cs) {
+			closeClassSym = cs;
+		} else {
+			// TypeVariableSymbol or other non-ClassSymbol: resolve through bounds
+			Type autoCloseableSuper = types.asSuper(resourceType, syms.autoCloseableType.tsym);
+			if (autoCloseableSuper != null && autoCloseableSuper.tsym instanceof ClassSymbol cs2) {
+				closeClassSym = cs2;
+			} else {
+				// Last resort fallback
+				closeClassSym = (ClassSymbol) syms.autoCloseableType.tsym;
+			}
+		}
+		MethodSymbol msym = findCloseMethod(closeClassSym);
 		M.at(pos);
 		JCExpression fcn1 = M.Select(id, msym);
 		fcn1.type = msym.type;
