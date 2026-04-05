@@ -174,6 +174,59 @@ public class CommandDispatchTest {
     }
 
     // -----------------------------------------------------------------------
+    // openjml.checkJML — dirty in-memory content
+    // -----------------------------------------------------------------------
+
+    /**
+     * When a file is open in the editor with dirty in-memory content (unsaved edits)
+     * and {@code openjml.checkJML} is run on that file's OS path, the diagnostics
+     * must reflect the dirty content rather than the clean on-disk version.
+     *
+     * <p>Setup: disk file is clean; the editor opens it with dirty (error) content.
+     * The open-triggered {@code --check} reads from disk (clean), publishing no
+     * diagnostics.  The subsequent {@code openjml.checkJML} command must snapshot
+     * the dirty in-memory content and produce error diagnostics.
+     */
+    @Test
+    public void testCheckJmlCommandUsesDirtyEditorContent() throws Exception {
+        // File on disk: clean (no errors).
+        File f = writeJava("CmdDirtyCheck.java",
+                "public class CmdDirtyCheck {\n" +
+                "    public int add(int a, int b) { return a + b; }\n" +
+                "}\n");
+        String uri = f.toPath().toUri().toString();
+
+        // Open the file with dirty content that has a type error.
+        // The server stores this as the in-memory (lastContent) version.
+        String dirtyContent = "public class CmdDirtyCheck {\n"
+                + "    public int m() { return \"not an int\"; }\n"
+                + "}\n";
+        String openParams = "{\"textDocument\":{\"uri\":\"" + uri
+                + "\",\"languageId\":\"java\",\"version\":1,"
+                + "\"text\":\"" + jsonEscape(dirtyContent) + "\"}}";
+        client.sendNotification("textDocument/didOpen", openParams);
+
+        // The open-triggered check reads from disk (clean file) and publishes empty
+        // diagnostics.  Drain that notification before sending the command so the
+        // second call to nextDiagsContaining sees only the command's result.
+        nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        // Run openjml.checkJML on the file's OS path.
+        String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
+        sendCommand(OpenJMLCommands.CHECK_JML, argsJson);
+
+        // The command snapshots the dirty in-memory content, applies a 300 ms debounce,
+        // then runs runCheckDirWithContext which writes the dirty content to a temp dir
+        // and checks it instead of the clean disk file.
+        JsonObject note = nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after openjml.checkJML on dirty file", note);
+        JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected diagnostics from dirty editor content, not clean disk file",
+                diags.isEmpty());
+        assertTrue("Expected Error-severity diagnostic from dirty content", hasError(diags));
+    }
+
+    // -----------------------------------------------------------------------
     // openjml.runRac — wiring smoke test
     // -----------------------------------------------------------------------
 

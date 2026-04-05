@@ -702,6 +702,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
         List<String> pathsCopy = List.copyOf(paths);
 
+        // Snapshot dirty-file content at submission time so rapid edits during the
+        // debounce window do not mutate the context passed to OpenJML.
+        Map<String, String> snapshot = Map.copyOf(lastContent);
+
         // Debounce: cancel any previously scheduled check-paths task so that rapid
         // toolbar clicks collapse into a single check.  A 300 ms delay is short enough
         // to feel immediate but long enough to absorb a double-click burst.
@@ -711,7 +715,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             pendingCheckPaths = null;
             executor.submit(() -> {
                 try {
-                    CheckRunner.DirCheckResult result = CheckRunner.runCheckDir(pathsCopy, s);
+                    CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(pathsCopy, snapshot, s);
                     for (var entry : result.diagnosticsByUri().entrySet()) {
                         checkDiags.put(entry.getKey(), entry.getValue());
                         publishMerged(entry.getKey());
@@ -769,6 +773,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         refreshCodeLenses();
 
+        // Snapshot dirty-file content before submitting so edits during the run
+        // do not mutate the context map passed to OpenJML.
+        Map<String, String> escSnapshot = Map.copyOf(lastContent);
+
         executor.submit(() -> {
             try {
                 // Publish ESC diagnostics progressively as each method's proof completes.
@@ -777,7 +785,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 // listener's collected list at that instant.  Publishing empty mid-run would
                 // prematurely clear any previously-shown diagnostics; the post-run loop below
                 // handles the final state for all files including fully-verified ones.
-                CheckRunner.DirCheckResult result = CheckRunner.runEscDir(paths, s, (uri, diags) -> {
+                CheckRunner.DirCheckResult result = CheckRunner.runEscDirWithContext(paths, escSnapshot, s, (uri, diags) -> {
                     if (client == null || diags.isEmpty()) return;
                     escDiags.put(uri, diags);
                     publishMerged(uri);
@@ -1225,9 +1233,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     () -> CheckRunner.runDoEscMethod(uri, methodName, s),
                     s.escPool);
         } else {
-            runWithContentOrFile(uri,
-                    c -> submitEscForMethod(uri, target, () -> CheckRunner.runEscMethod(uri, c, methodName, s), executor),
-                    f -> submitEscForMethod(uri, target, () -> CheckRunner.runEscFileMethod(f, uri, methodName, s), executor));
+            String contentForMethod = lastContent.get(uri);
+            Map<String, String> snapshot = Map.copyOf(lastContent);
+            if (contentForMethod != null) {
+                final String c = contentForMethod;
+                submitEscForMethod(uri, target,
+                        () -> CheckRunner.escMethodWithContext(uri, c, methodName, snapshot, s),
+                        executor);
+            } else {
+                String filePath = CheckRunner.uriToPath(uri);
+                if (filePath != null)
+                    submitEscForMethod(uri, target,
+                            () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s),
+                            executor);
+            }
         }
     }
 
@@ -1471,9 +1490,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleEscFile(String uri) {
-        runWithContentOrFile(uri,
-                c -> submitEsc(uri, () -> CheckRunner.runEsc(uri, c, settings)),
-                f -> submitEsc(uri, () -> CheckRunner.runEscFile(f, uri, settings)));
+        String content = lastContent.get(uri);
+        if (content != null) {
+            Map<String, String> snapshot = Map.copyOf(lastContent);
+            submitEsc(uri, () -> CheckRunner.escWithContext(uri, content, snapshot, settings));
+        } else {
+            String filePath = CheckRunner.uriToPath(uri);
+            if (filePath != null) submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, settings));
+        }
     }
 
     /**
@@ -1499,7 +1523,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void scheduleEscFile(String uri, OpenJMLSettings s) {
         String content = lastContent.get(uri);
         if (content != null) {
-            submitEsc(uri, () -> CheckRunner.runEsc(uri, content, s));
+            Map<String, String> snapshot = Map.copyOf(lastContent);
+            submitEsc(uri, () -> CheckRunner.escWithContext(uri, content, snapshot, s));
             return;
         }
         String filePath = CheckRunner.uriToPath(uri);
@@ -1509,7 +1534,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
 
     private void startEscContent(String uri, String content) {
-        submitEsc(uri, () -> CheckRunner.runEsc(uri, content, settings));
+        Map<String, String> snapshot = Map.copyOf(lastContent);
+        submitEsc(uri, () -> CheckRunner.escWithContext(uri, content, snapshot, settings));
     }
 
 
@@ -1657,10 +1683,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (uri.endsWith(".jml")) return;
         lastCheckedContent.put(uri, content);
         try {
-            // Pass all open (possibly unsaved) files so cross-file dependencies use
-            // their current in-memory versions rather than the on-disk saved versions.
+            // Snapshot lastContent at execution time so that concurrent edits do not
+            // mutate the context map while OpenJML is parsing it.
+            Map<String, String> snapshot = Map.copyOf(lastContent);
             CheckRunner.CheckResult result = CheckRunner.checkWithContext(
-                    uri, content, lastContent, s);
+                    uri, content, snapshot, s);
             // Publish diagnostics for all compiled files (primary + companions) uniformly.
             result.allDiagnostics().forEach((diagUri, diags) -> {
                 checkDiags.put(diagUri, diags);

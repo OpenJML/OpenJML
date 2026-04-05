@@ -317,20 +317,47 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     // -----------------------------------------------------------------------
 
     /**
-     * Intercept every incoming server message.  {@code window/logMessage}
-     * notifications are routed to the JML Console so proof results and other
-     * server messages are visible to the user without opening the Error Log.
+     * Intercept every incoming server message and route {@code window/logMessage}
+     * notifications to the JML Console.
+     *
+     * <p>In practice {@link OpenJMLLanguageClient#logMessage} is never invoked —
+     * all {@code window/logMessage} notifications arrive here and nowhere else.
+     * Routing by type:
+     * <ul>
+     *   <li>{@code Error} (1) → {@link Console#errorlog} (red, with timestamp)</li>
+     *   <li>{@code Warning} (2), {@code Info} (3) → {@link Console#log} (with timestamp)</li>
+     *   <li>{@code Log} (4) → {@link Console#logRaw} (no timestamp; verbose invocation lines)</li>
+     * </ul>
      */
     @Override
     public void handleMessage(org.eclipse.lsp4j.jsonrpc.messages.Message message,
                               org.eclipse.lsp4j.services.LanguageServer server,
                               java.net.URI rootUri) {
-        if (message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n
-                && "window/logMessage".equals(n.getMethod())) {
-            Object params = n.getParams();
-            String text = extractLogMessageText(params);
-            if (text != null) Console.logRaw(text);
+        if (!(message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n)
+                || !"window/logMessage".equals(n.getMethod())) return;
+        Object params = n.getParams();
+        String text = extractLogMessageText(params);
+        if (text == null) return;
+        int type = extractMessageType(params);
+        if (type == 1) {
+            Console.errorlog(text);
+        } else if (type == 4) {
+            Console.logRaw(text);
+        } else {
+            Console.log(text);
         }
+    }
+
+    /** Returns the numeric {@code type} field from {@code window/logMessage} params, or 3 (Info) if unknown. */
+    private static int extractMessageType(Object params) {
+        if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
+            var t = mp.getType();
+            return t == null ? 3 : t.getValue();
+        }
+        String json = params == null ? "" : params.toString();
+        var m = java.util.regex.Pattern.compile("\"type\"\\s*:\\s*(\\d+)").matcher(json);
+        if (m.find()) { try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException ignored) {} }
+        return 3;
     }
 
     /**
