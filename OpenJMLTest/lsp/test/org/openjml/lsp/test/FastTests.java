@@ -26,5 +26,6 @@ import org.junit.runners.Suite;
     JavaSourceScannerTest.class,
     CodeLensTest.class,
     CheckRunnerDirTest.class,
+    JmlKeywordSyncTest.class,
 })
 public class FastTests {}

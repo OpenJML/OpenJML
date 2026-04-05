@@ -134,6 +134,8 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
 	      "$(NJAVA)" $(JAVA_AGENT) $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
 	        -Dlsp.testdata=$(LSPTEST)/testdata \
+	        -Djml.grammar.lsp=$(LSPROOT)/vscode-extension/syntaxes/jml.tmLanguage.json \
+	        -Djml.grammar.ui=$(LSPTEST)/../../OpenJMLUI/syntaxes/jml.tmLanguage.json \
 	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
 	        org.junit.runner.JUnitCore \
 	        org.openjml.lsp.test.$* \

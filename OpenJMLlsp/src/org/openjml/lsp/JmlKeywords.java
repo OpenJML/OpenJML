@@ -90,7 +90,9 @@ public final class JmlKeywords {
         // loop / sequence
         "values", "count", "index", 
         // misc
-        "exception", "witness", "empty", "singleton", "same"
+        "exception", "same",
+        // let-expressions
+        "let"
     );
 
     // -----------------------------------------------------------------------
