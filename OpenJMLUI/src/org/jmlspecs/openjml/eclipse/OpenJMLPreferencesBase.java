@@ -294,8 +294,8 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.codeMathKey,
                 "Arithmetic mode for Java code (--code-math):",
                 new String[][] {
-                    { "safe",   "safe"   },
                     { "java",   "java"   },
+                    { "safe",   "safe"   },
                     { "bigint", "bigint" } },
                 parent));
 

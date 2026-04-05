@@ -41,6 +41,11 @@
      -->
   </extension>
 
+  <!-- Register default preference values so "Restore Defaults" works correctly -->
+  <extension point="org.eclipse.core.runtime.preferences">
+     <initializer class="org.jmlspecs.openjml.eclipse.OpenJMLPreferenceInitializer"/>
+  </extension>
+
   <!-- Activate this bundle early so LspPartListener registers before any files are opened -->
   <extension point="org.eclipse.ui.startup">
      <startup class="org.openjml.ui.Activator"/>

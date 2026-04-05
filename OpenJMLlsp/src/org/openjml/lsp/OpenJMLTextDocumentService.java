@@ -843,25 +843,52 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Run {@code --rac --dirs path1 path2 ...} on one or more OS paths
      * (for the {@code openjml.runRac} command).
      *
-     * <p>Diagnostics are stored in {@link #racDiags} and published via
-     * {@link #publishMerged} for each affected URI.
+     * <p>RAC subsumes {@code --check}, so existing check diagnostics are cleared
+     * for all affected URIs before publishing the RAC result.  Diagnostics are
+     * stored in {@link #racDiags} and published via {@link #publishMerged} for
+     * each affected URI.
      */
     void scheduleRacForPaths(List<String> paths, String sourcePath, String classPath,
                               String specsPath, String propertiesFile, String outputDir) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, outputDir);
+        List<String> pathsCopy = List.copyOf(paths);
         executor.submit(() -> {
             try {
-                CheckRunner.CheckResult result = CheckRunner.runRacPaths(paths, s);
+                CheckRunner.CheckResult result = CheckRunner.runRacPaths(pathsCopy, s);
                 result.allDiagnostics().forEach((uri, diags) -> {
+                    checkDiags.remove(uri);  // RAC subsumes check; clear stale check markers
                     racDiags.put(uri, diags);
                     publishMerged(uri);
                 });
+                // Clear stale check/rac diags for paths not in the result.
+                for (String path : pathsCopy) {
+                    String uri;
+                    try { uri = java.nio.file.Path.of(path).toUri().toString(); }
+                    catch (Exception e) { continue; }
+                    if (!result.allDiagnostics().containsKey(uri)) {
+                        checkDiags.remove(uri);
+                        racDiags.remove(uri);
+                        publishMerged(uri);
+                    }
+                }
+                int total = result.allDiagnostics().values()
+                        .stream().mapToInt(List::size).sum();
                 if (result.exitCode() == 0) {
-                    clientLog("RAC compile succeeded for " + paths.size() + " path(s)");
+                    clientLog("RAC compile succeeded for " + pathsCopy.size() + " path(s)");
+                } else {
+                    clientLog("RAC compile failed: " + total + " issue(s) in "
+                            + result.allDiagnostics().size() + " file(s)");
+                    result.allDiagnostics().forEach((uri, diags) -> {
+                        if (!diags.isEmpty()) {
+                            String fname = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
+                            clientLog("  " + fname + ": " + diags.size() + " issue(s)");
+                        }
+                    });
                 }
             } catch (Throwable e) {
                 System.err.println("[scheduleRacForPaths] error: " + e.getMessage());
+                clientError("RAC failed: " + e.getMessage());
             }
         });
     }

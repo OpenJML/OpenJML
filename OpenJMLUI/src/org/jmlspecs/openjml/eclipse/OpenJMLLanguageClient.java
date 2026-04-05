@@ -26,7 +26,6 @@ import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.client.DefaultLanguageClient;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
-import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.swt.widgets.Display;
 
@@ -147,17 +146,6 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
             if (content.charAt(i) == '\n') offsets.add(i + 1);
         }
         return offsets.stream().mapToInt(Integer::intValue).toArray();
-    }
-
-    /**
-     * In practice this method is never called — all {@code window/logMessage}
-     * notifications are routed to the JML Console by
-     * {@link OpenJMLStreamConnectionProvider#handleMessage} before LSP4E
-     * dispatches them here.  Forwarded to super as a no-op fallback.
-     */
-    @Override
-    public void logMessage(org.eclipse.lsp4j.MessageParams message) {
-        super.logMessage(message);
     }
 
     /**

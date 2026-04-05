@@ -527,6 +527,11 @@ public class CheckRunner {
         int rc = api.execute(args.toArray(new String[0]));
         System.err.println("[CheckRunner.runRacPaths] exit code " + rc
                 + " for " + paths.size() + " path(s)");
+        if (rc != 0) {
+            StringBuilder sb = new StringBuilder("RAC command args:");
+            for (String a : args) sb.append(' ').append(a);
+            log(sb.toString());
+        }
 
         return new CheckResult(List.of(), rc, Map.of(), List.of(),
                 listener.toLspDiagnosticsByFile());

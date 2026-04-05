@@ -18,9 +18,21 @@ import java.util.stream.Collectors;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
@@ -156,10 +168,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         org.eclipse.core.runtime.IPath loc = f.file().getLocation();
                         if (loc != null) paths.add(loc.toOSString());
                     }
-                    case SelectionResolver.Target.Dir d -> {
-                        org.eclipse.core.runtime.IPath loc = d.container().getLocation();
-                        if (loc != null) paths.add(loc.toOSString());
-                    }
+                    case SelectionResolver.Target.Dir d ->
+                        paths.addAll(containerSourcePaths(d.container()));
                 }
             }
             if (!paths.isEmpty()) {
@@ -214,6 +224,36 @@ public abstract class LspCommandHandler extends AbstractHandler {
             case SelectionResolver.Target.Method m -> m.file().getProject();
             case SelectionResolver.Target.Dir    d -> d.container().getProject();
         };
+    }
+
+    /**
+     * Returns the OS paths to pass to {@code --dirs} for a {@link SelectionResolver.Target.Dir}.
+     *
+     * <p>When the container is an {@link IProject}, the project's declared Java source folders
+     * (CPE_SOURCE entries from its build path) are returned so that openjml does not receive the
+     * project root (which includes output folders, config files, etc.).  For any other container
+     * (an IFolder, e.g. a package or source directory), the container's own location is returned.
+     */
+    private static List<String> containerSourcePaths(IContainer container) {
+        if (container instanceof IProject project) {
+            try {
+                IJavaProject jp = JavaCore.create(project);
+                if (jp != null && jp.exists()) {
+                    List<String> paths = new ArrayList<>();
+                    for (IClasspathEntry entry : jp.getRawClasspath()) {
+                        if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+                            org.eclipse.core.runtime.IPath loc =
+                                    ResourcesPlugin.getWorkspace().getRoot()
+                                            .getFolder(entry.getPath()).getLocation();
+                            if (loc != null) paths.add(loc.toOSString());
+                        }
+                    }
+                    if (!paths.isEmpty()) return paths;
+                }
+            } catch (Exception ignored) {}
+        }
+        org.eclipse.core.runtime.IPath loc = container.getLocation();
+        return loc != null ? List.of(loc.toOSString()) : List.of();
     }
 
     /** Dispatch a method target, falling back to the file path if no method command is available. */
@@ -507,24 +547,42 @@ public abstract class LspCommandHandler extends AbstractHandler {
     // Dirty-file handling for ESC and RAC
     // -----------------------------------------------------------------------
 
-    /** Collect the dirty {@link org.eclipse.core.filebuffers.ITextFileBuffer}s for all file/method targets. */
+    /** Collect the dirty {@link org.eclipse.core.filebuffers.ITextFileBuffer}s for all targets.
+     *  For {@code Dir} targets the full resource subtree is walked. */
     private static List<org.eclipse.core.filebuffers.ITextFileBuffer>
             collectDirtyBuffers(List<SelectionResolver.Target> targets) {
         List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty = new ArrayList<>();
         for (SelectionResolver.Target t : targets) {
-            IFile file = switch (t) {
-                case SelectionResolver.Target.File f   -> f.file();
-                case SelectionResolver.Target.Method m -> m.file();
-                case SelectionResolver.Target.Dir d    -> null;
-            };
-            if (file == null) continue;
-            org.eclipse.core.filebuffers.ITextFileBuffer buf =
-                    org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
-                            .getTextFileBuffer(file.getFullPath(),
-                                    org.eclipse.core.filebuffers.LocationKind.IFILE);
-            if (buf != null && buf.isDirty()) dirty.add(buf);
+            switch (t) {
+                case SelectionResolver.Target.File f   -> checkDirty(f.file(), dirty);
+                case SelectionResolver.Target.Method m -> checkDirty(m.file(), dirty);
+                case SelectionResolver.Target.Dir d    -> {
+                    try {
+                        d.container().accept(resource -> {
+                            if (resource instanceof IFile f
+                                    && isSourceFile(f.getName()))
+                                checkDirty(f, dirty);
+                            return true;  // recurse into sub-folders
+                        });
+                    } catch (org.eclipse.core.runtime.CoreException ignored) {}
+                }
+            }
         }
         return dirty;
+    }
+
+    private static boolean isSourceFile(String name) {
+        return name.endsWith(".java") || name.endsWith(".jml");
+    }
+
+    private static void checkDirty(IFile file,
+            List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty) {
+        if (file == null) return;
+        org.eclipse.core.filebuffers.ITextFileBuffer buf =
+                org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
+                        .getTextFileBuffer(file.getFullPath(),
+                                org.eclipse.core.filebuffers.LocationKind.IFILE);
+        if (buf != null && buf.isDirty()) dirty.add(buf);
     }
 
     /**
@@ -630,7 +688,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 "OpenJML — Unsaved Changes",
                 null,
                 "Some files have unsaved changes. RAC requires saved files.\n\n"
-                + "Save the files and run RAC, or cancel?",
+                + "Save the files and run RAC, or cancel?\n\n"
+                + "The Java+RAC compilation will be executed in an Eclipse background job.",
                 MessageDialog.QUESTION,
                 new String[] { "Save and Run RAC", IDialogConstants.CANCEL_LABEL },
                 0,  // default button: "Save and Run RAC"
@@ -643,7 +702,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     .setValue(OpenJMLOptions.racSaveBeforeKey, true);
         }
 
-        if (result == 0) { saveBuffers(dirtyBuffers); return true; }
+        // "Save and Run RAC" gets IDialogConstants.INTERNAL_ID (256); Cancel gets CANCEL_ID (1).
+        if (result == IDialogConstants.INTERNAL_ID) { saveBuffers(dirtyBuffers); return true; }
         return false;  // Cancel
     }
 
@@ -681,12 +741,93 @@ public abstract class LspCommandHandler extends AbstractHandler {
     public static final class RunRac extends LspCommandHandler {
         public RunRac() { super(OpenJMLConstants.CMD_RUN_RAC); }
 
+        /**
+         * Saves dirty files, then runs a JDT build per project (waiting for
+         * auto-build if enabled, or triggering an explicit incremental build
+         * otherwise) before dispatching the RAC command to the LSP server.
+         *
+         * <p>The build step runs in a background {@link Job} so the UI thread
+         * is not blocked while waiting for compilation to finish.
+         */
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
+            // 1. Capture targets on the UI thread (selection is live here).
             List<SelectionResolver.Target> targets = SelectionResolver.resolve(
                     HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+
+            // 2. Save dirty files or cancel (UI thread — may open a dialog).
             if (!handleDirtyFilesForRac(targets)) return null;
-            return super.execute(event);
+
+            // 3. Ensure JML nature on all involved projects (UI thread — may open a dialog).
+            if (!ensureNature(targets)) return null;
+
+            // 4. Log and organise targets (UI thread).
+            if (targets.isEmpty()) {
+                Console.log(lspCommand + ": no target files found.");
+                return null;
+            }
+            logTargets(lspCommand, targets);
+
+            // Group targets by project and topo-sort (mirrors dispatchGroupedByProject).
+            Map<IProject, List<SelectionResolver.Target>> byProject = new LinkedHashMap<>();
+            for (SelectionResolver.Target t : targets)
+                byProject.computeIfAbsent(owningProject(t), k -> new ArrayList<>()).add(t);
+            List<IProject> sortedProjects = topoSortProjects(byProject.keySet());
+
+            // Capture a final reference for the lambda.
+            final Map<IProject, List<SelectionResolver.Target>> byProjectFinal = byProject;
+
+            // 5. Build then dispatch — in a background Job so the UI thread is free.
+            Job job = new Job("OpenJML: Build and Run RAC") {
+                @Override
+                protected IStatus run(IProgressMonitor monitor) {
+                    boolean autoBuilding =
+                            ResourcesPlugin.getWorkspace().getDescription().isAutoBuilding();
+                    for (IProject proj : sortedProjects) {
+                        if (monitor.isCanceled()) return Status.CANCEL_STATUS;
+
+                        // Wait for or trigger a JDT compile before RAC.
+                        if (autoBuilding) {
+                            try {
+                                Job.getJobManager().join(
+                                        ResourcesPlugin.FAMILY_AUTO_BUILD, monitor);
+                            } catch (OperationCanceledException | InterruptedException ignored) {}
+                        } else {
+                            try {
+                                proj.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+                            } catch (CoreException ignored) {}
+                        }
+
+                        // Collect OS paths for this project and dispatch RAC.
+                        List<String> paths = new ArrayList<>();
+                        for (SelectionResolver.Target t : byProjectFinal.get(proj)) {
+                            switch (t) {
+                                case SelectionResolver.Target.File f -> {
+                                    org.eclipse.core.runtime.IPath loc = f.file().getLocation();
+                                    if (loc != null) paths.add(loc.toOSString());
+                                }
+                                case SelectionResolver.Target.Method m -> {
+                                    org.eclipse.core.runtime.IPath loc = m.file().getLocation();
+                                    if (loc != null) paths.add(loc.toOSString());
+                                }
+                                case SelectionResolver.Target.Dir d ->
+                                    paths.addAll(containerSourcePaths(d.container()));
+                                default -> {}
+                            }
+                        }
+                        if (!paths.isEmpty()) {
+                            InvocationContext ctx = resolveInvocationContext(proj);
+                            ExecuteCommandParams params = buildCommand(paths, ctx);
+                            if (params != null) dispatchCommand(params, null, proj);
+                        }
+                    }
+                    return Status.OK_STATUS;
+                }
+            };
+            job.setUser(false);
+            job.setSystem(false);
+            job.schedule();
+            return null;
         }
 
         @Override
