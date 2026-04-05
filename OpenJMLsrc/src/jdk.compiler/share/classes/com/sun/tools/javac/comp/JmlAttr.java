@@ -5168,7 +5168,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - fix how to get a type with the type variable resolved
                 if (left.getTypeArguments().length() > 0 && left.getTypeArguments().get(0) instanceof Type.TypeVar) {
                 } else if (right.getTypeArguments().length() > 0 && right.getTypeArguments().get(0) instanceof Type.TypeVar) {
-                } else if (left.tsym == jmltypes.STRINGsym(context) && right.tsym == syms.charType.tsym) {
+                } else if (left.tsym == jmltypes.STRINGsym() && right.tsym == syms.charType.tsym) {
                     // FIXME - ought to be able to avoid a particular test because the operator is allowed
                 } else {
                 utils.error(that, "jml.message", "No allowed implicit conversion permits this operation on JML types: " + left + " " + operator.name + " " + right);

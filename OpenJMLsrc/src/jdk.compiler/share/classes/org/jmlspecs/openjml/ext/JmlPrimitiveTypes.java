@@ -39,12 +39,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
         return sym == null ? "<ERROR>" : jmlNames.get(sym.toString());
     }
 
-    public JmlPrimitiveTypes() {
+    public JmlPrimitiveTypes(Context context) {
     }
     
     public static class JmlTypeKind extends IJmlClauseKind {
         private String typename; // flat or unqualified type name
-        public final Map<Context, Symbol.ClassSymbol> symbols = new java.util.concurrent.ConcurrentHashMap<>();
 
         public JmlTypeKind(String keyword, String typename) {
             super(keyword);
@@ -64,21 +63,23 @@ public class JmlPrimitiveTypes extends JmlExtension {
             return Names.instance(context).fromString(typename);
         }
         
+        public Symbol.ClassSymbol init(Context context) {
+            var s = getSymbol(context);
+            initOps(context, s.type);
+            return s;
+        }
+        
         public Symbol.ClassSymbol getSymbol(Context context) {
-            // Caching the type (which depends on context) for general use
-            Symbol.ClassSymbol sym = symbols.get(context);
+            //System.out.println("GetTOMG SYM FOPr " + typename + " " + this.getClass());
+            String fqname = typename;
+            var nm = Names.instance(context).fromString("java.base");
+            com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
+            //System.out.println("   MODULE " + moduleSym);
+            Symbol.ClassSymbol sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
+            //System.out.println("   CLASS " + sym);
             if (sym == null) {
-                String fqname = typename;
-                var nm = Names.instance(context).fromString("java.base");
-                com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
-                sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
-                if (sym == null) {
-                    System.out.println("FAILED TO GET SYM FOR " + fqname);
-                }
-                symbols.put(context, sym);
-                initOps(context, getType(context));
+                System.out.println("FAILED TO GET SYM FOR " + fqname);
             }
-            //System.out.println("GETSYM " + typename + " " + sym);
             return sym;
         }
         
@@ -343,13 +344,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("+", type, type, type);
             jt.enterBinop("+", type, jt.syms.charType, type);
         }
-
-//        public Type getType(Context context) {
-//            var t = super.getType(context);
-//            JmlTypes.instance(context).enterBinop("+", t, t, t);
-//            return t;
-//        }
-        
         
         // FIXME - don't think these are needed or used
         @Override
@@ -368,7 +362,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         private void test(Type t, JmlAttr attr, DiagnosticPosition p) {
             JmlTypes types = JmlTypes.instance(attr.context);
-            if (types.isSameType(t, stringTypeKind.getType(attr.context)) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
+            if (types.isSameType(t, stringTypeKind.getSymbol(attr.context).type) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
             utils.error(p, "jml.message", "Cannot convert " + t + " to \\string");
         }
     };
@@ -453,7 +447,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 					else if (t instanceof JmlTree.JmlSingleton && ((JmlTree.JmlSingleton)t).kind instanceof LocSet) {}
 					else utils.error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
 				});
-				tree.type = getType(attr.context);
+				tree.type = getSymbol(attr.context).type;
 				return tree.type;
 			}
 			// FIXME - internal error
@@ -467,7 +461,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
+            return JmlPrimitiveTypes.locsetTypeKind.getSymbol(attr.context).type;
         }
     };
 
