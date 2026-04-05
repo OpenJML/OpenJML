@@ -131,20 +131,6 @@ json-tests: .FORCE
 
 .FORCE:
 
-##### The following are debugging tests
-
-debug:
-	rm -f Test.class
-	njavac -cp . Test.java
-	njava -cp . Test 
-
-tests:
-	NOJML= njavac -d bin -cp src:../OpenJDKModule/runtime/src:libs/junit-4.13.2.jar:libs/hamcrest-core-1.3.jar:libs/junit-jupiter-api-5.5.2.jar:libs/apiguardian-api-1.1.0.jar --add-modules jdk.compiler,java.base RunTests.java  `find src -name '*.java' -and -not -name Activator.java`
-	STACK=X njava -cp bin:../OpenJDKModule/runtime/src:libs/junit-4.13.2.jar:libs/hamcrest-core-1.3.jar:libs/junit-jupiter-api-5.5.2.jar:libs/apiguardian-api-1.1.0.jar --add-modules jdk.compiler,java.base RunTests
-
-test:
-	STACK=X njava -cp ../OpenJDKModule/runtime/src:libs/junit-4.13.2.jar:libs/hamcrest-core-1.3.jar:libs/junit-jupiter-api-5.5.2.jar:libs/apiguardian-api-1.1.0.jar --add-modules jdk.compiler,java.base RunTests
-
 ### The following are for coverage measurement
 
 # Deletes all coverage data and html files
@@ -178,4 +164,5 @@ cov-report:
 
 # Launches a browser on the current coverage data
 cov-show:
-	@open ${TEST}/cov/html/index.html
+	@if [ "$$(uname)" = "Darwin" ]; then open ${TEST}/cov/html/index.html; \
+	 else xdg-open ${TEST}/cov/html/index.html 2>/dev/null || true; fi

@@ -1,5 +1,10 @@
 #! /bin/bash
 
+if [ "$(uname)" != "Darwin" ]; then
+    echo "This script is for macOS only." >&2
+    exit 1
+fi
+
 ## This is run to fix some Mac security warnings
 ## It actually only needs to be run once; it emits errors on subsequent runs.
 
