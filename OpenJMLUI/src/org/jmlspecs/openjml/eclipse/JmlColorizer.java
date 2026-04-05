@@ -105,7 +105,7 @@ public class JmlColorizer implements ITextPresentationListener {
                 create.setAccessible(true);  // TokenTypeMapper class is package-private
                 return (Function<String, IToken>) create.invoke(null, viewer);
             } catch (Exception e) {
-                System.err.println("[OpenJML] JmlColorizer: TokenTypeMapper unavailable: " + e);
+                Console.errorlog("JmlColorizer: TokenTypeMapper unavailable", e);
             }
         }
         // Fallback: use JFace color registry colors pre-registered in ensureColors().

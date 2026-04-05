@@ -121,7 +121,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         }
                     }
                 } catch (Throwable t) {
-                    System.err.println("[OpenJML] restartServer: re-trigger failed: " + t);
+                    Console.errorlog("restartServer: re-trigger failed", t);
                 }
             });
         };
@@ -141,7 +141,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         System.err.println("[OpenJML] restartServer: stop() not found on wrapper");
                     }
                 } catch (Throwable t) {
-                    System.err.println("[OpenJML] restartServer: stop() failed: " + t);
+                    Console.errorlog("restartServer: stop() failed", t);
                 }
                 // Re-trigger only after the old server has fully stopped.
                 retrigger.run();
@@ -377,8 +377,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 System.err.println("[OpenJML] LspPartListener: startLanguageServer method not found");
             }
         } catch (Throwable t) {
-            System.err.println("[OpenJML] LspPartListener: start/connect failed: " + t);
-            t.printStackTrace(System.err);
+            Console.errorlog("LSP start/connect failed", t);
         }
     }
 
@@ -399,8 +398,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                             + editor.getEditorInput().getName());
                 }
             } catch (Throwable t) {
-                System.err.println("[OpenJML] setupFolding failed: " + t);
-                t.printStackTrace(System.err);
+                Console.errorlog("setupFolding failed", t);
             }
         });
     }
@@ -482,8 +480,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             diagnosticsHookInstalled = true;  // success — don't install again
             System.err.println("[OpenJML] diagnosticsHook installed");
         } catch (Throwable t) {
-            System.err.println("[OpenJML] installDiagnosticsHook failed: " + t);
-            t.printStackTrace(System.err);
+            Console.errorlog("installDiagnosticsHook failed", t);
         }
     }
 
@@ -565,8 +562,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 // Immediate fetch — gets cached tokens if a prior check has already run.
                 colorizer.refreshAsync();
             } catch (Throwable t) {
-                System.err.println("[OpenJML] setupColorizer failed: " + t);
-                t.printStackTrace(System.err);
+                Console.errorlog("setupColorizer failed", t);
             }
         });
     }
@@ -665,8 +661,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 System.err.println("[OpenJML]   " + c);
             }
         } catch (Throwable t) {
-            System.err.println("[OpenJML] findOurDefinition failed: " + t);
-            t.printStackTrace(System.err);
+            Console.errorlog("findOurDefinition failed", t);
         }
         return null;
     }

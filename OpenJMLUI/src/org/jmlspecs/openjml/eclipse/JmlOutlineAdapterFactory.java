@@ -106,7 +106,7 @@ public class JmlOutlineAdapterFactory implements IAdapterFactory {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[OpenJML] JmlOutlineAdapterFactory: createOutlinePage failed: " + e);
+            Console.errorlog("JmlOutlineAdapterFactory: createOutlinePage failed", e);
         }
         return null;
     }

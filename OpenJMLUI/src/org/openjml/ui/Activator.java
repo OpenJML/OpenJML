@@ -30,7 +30,6 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
     /** Called by org.eclipse.ui.startup early in workbench lifecycle. */
     @Override
     public void earlyStartup() {
-        System.err.println("[OpenJML] earlyStartup() called");
         // Store the lsp4e bundle's classloader for use by LspPartListener.
         // LSP4E populates LanguageServersRegistry lazily (on first document open),
         // so there is nothing to start here — document connection happens in LspPartListener.
@@ -40,9 +39,9 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                             org.eclipse.lsp4e.LanguageServers.class);
             lsp4eLoader = lsp4eBundle.adapt(
                     org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
-            System.err.println("[OpenJML] lsp4e loader acquired");
         } catch (Throwable t) {
-            System.err.println("[OpenJML] earlyStartup failed to acquire lsp4e loader: " + t);
+            org.jmlspecs.openjml.eclipse.Console.errorlog(
+                    "Plugin startup: failed to acquire lsp4e loader", t);
         }
         org.jmlspecs.openjml.eclipse.Console.log("OpenJMLUI plugin started");
 
@@ -95,10 +94,9 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                     @Override public void windowDeactivated(org.eclipse.ui.IWorkbenchWindow w) {}
                     @Override public void windowClosed(org.eclipse.ui.IWorkbenchWindow w) {}
                 });
-                System.err.println("[OpenJML] LspPartListener registered");
             } catch (Throwable e) {
-                System.err.println("[OpenJML] Failed to register LspPartListener: " + e);
-                e.printStackTrace(System.err);
+                org.jmlspecs.openjml.eclipse.Console.errorlog(
+                        "Failed to register LspPartListener", e);
             }
         });
         // Diagnostic: verify LSP4E language server extension point and our config elements
@@ -106,24 +104,9 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                 org.eclipse.core.runtime.Platform.getExtensionRegistry();
         org.eclipse.core.runtime.IExtensionPoint ep =
                 reg.getExtensionPoint("org.eclipse.lsp4e.languageServer");
-        if (ep != null) {
-            System.err.println("[OpenJML] lsp4e ext point found, "
-                    + ep.getExtensions().length + " extension(s)");
-            for (org.eclipse.core.runtime.IExtension ext : ep.getExtensions()) {
-                if ("org.openjml.OpenJMLUI".equals(ext.getContributor().getName())) {
-                    System.err.println("[OpenJML] Our extension config elements:");
-                    for (org.eclipse.core.runtime.IConfigurationElement ce : ext.getConfigurationElements()) {
-                        System.err.println("[OpenJML]   <" + ce.getName() + ">");
-                        for (org.eclipse.core.runtime.IConfigurationElement child : ce.getChildren()) {
-                            System.err.println("[OpenJML]     <" + child.getName()
-                                    + " contentTypeId=" + child.getAttribute("contentTypeId")
-                                    + " priority=" + child.getAttribute("priority") + ">");
-                        }
-                    }
-                }
-            }
-        } else {
-            System.err.println("[OpenJML] lsp4e ext point NOT FOUND");
+        if (ep == null) {
+            org.jmlspecs.openjml.eclipse.Console.errorlog(
+                    "lsp4e extension point not found — LSP features disabled");
         }
     }
 

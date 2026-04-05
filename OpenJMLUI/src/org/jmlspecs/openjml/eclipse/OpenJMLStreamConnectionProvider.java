@@ -42,10 +42,6 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
  */
 public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProvider {
 
-    static {
-        System.err.println("OpenJMLStreamConnectionProvider class loaded");
-    }
-
     /** The most recently created provider instance; used for deliberate stop/restart. */
     private static volatile OpenJMLStreamConnectionProvider currentInstance;
 
@@ -58,7 +54,6 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
 
     public OpenJMLStreamConnectionProvider() {
         String path = findServerPath();
-        System.err.println("OpenJMLStreamConnectionProvider created, path=" + path);
         setCommands(Arrays.asList(path));
         setWorkingDirectory(System.getProperty("user.dir"));
         currentInstance = this;
@@ -132,7 +127,6 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      */
     @Override
     public void start() throws IOException {
-        System.err.println("OpenJMLStreamConnectionProvider.start() called");
         intentionalStop = false;
 
         // Loop until we have a valid server path or the user cancels.
@@ -182,7 +176,6 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         OpenJMLOptions.writePropertiesFile();
         Console.log("OpenJML LSP server starting: " + getCommands().get(0));
         super.start();
-        System.err.println("OpenJMLStreamConnectionProvider.start() completed");
     }
 
     /**
