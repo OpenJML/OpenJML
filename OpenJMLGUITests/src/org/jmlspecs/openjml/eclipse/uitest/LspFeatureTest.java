@@ -137,8 +137,16 @@ public class LspFeatureTest extends GUITestBase {
                 throw new RuntimeException("Could not open ActionTarget.java", e);
             }
         });
-        // Allow the LSP server to start and complete its initial file check.
-        bot.sleep(10_000);
+        // Wait for LSP server to connect and perform its initial file check (up to 30s).
+        // Poll the Console text for evidence that the server has started or a check completed.
+        long lspDeadline = System.currentTimeMillis() + 30_000;
+        while (System.currentTimeMillis() < lspDeadline) {
+            String console = getConsoleText();
+            if (console.contains("--check complete") || console.contains("OpenJMLUI plugin started"))
+                break;
+            bot.sleep(500);
+        }
+        bot.sleep(1_000);  // brief additional settle time
     }
 
     /**
@@ -148,7 +156,6 @@ public class LspFeatureTest extends GUITestBase {
     private static boolean markersProjectsCreated = false;
     private static void ensureMarkersProjects() throws Exception {
         if (markersProjectsCreated) return;
-        markersProjectsCreated = true;
 
         markersProjectA = createJavaProject("MarkersProjectA");
         populateFromTestdata(markersProjectA, "ProjectA", "projecta", "Broken.java");
@@ -164,6 +171,7 @@ public class LspFeatureTest extends GUITestBase {
 
         waitForBuild();
         bot.sleep(500);
+        markersProjectsCreated = true;
     }
 
     @AfterClass
@@ -186,6 +194,7 @@ public class LspFeatureTest extends GUITestBase {
      */
     @Test
     public void a1_renameDialogPrefilledWithCursorWord() {
+        ensureActionEditorOpen();
         positionCursorOnTargetSymbol();
         executeCommandAsync(RENAME_COMMAND_ID);
 
@@ -207,6 +216,7 @@ public class LspFeatureTest extends GUITestBase {
      */
     @Test
     public void a2_findReferencesFindsExpectedReferences() {
+        ensureActionEditorOpen();
         positionCursorOnTargetSymbol();
         executeCommandAsync(FIND_REFS_COMMAND_ID);
 
@@ -353,6 +363,31 @@ public class LspFeatureTest extends GUITestBase {
     // -----------------------------------------------------------------------
     // Action test helpers
     // -----------------------------------------------------------------------
+
+    /**
+     * Ensure ActionTarget.java is open in the active editor.  If JUnit ran
+     * {@code resetWorkbench()} between tests the editor may have been closed;
+     * re-opening it here avoids a {@code WidgetNotFoundException} in
+     * {@link #positionCursorOnTargetSymbol()}.
+     */
+    private static void ensureActionEditorOpen() {
+        boolean open = false;
+        try {
+            open = bot.activeEditor().getTitle().contains("ActionTarget");
+        } catch (Exception ignored) {}
+        if (!open) {
+            UIThreadRunnable.syncExec((VoidResult) () -> {
+                try {
+                    IWorkbenchPage page = PlatformUI.getWorkbench()
+                            .getActiveWorkbenchWindow().getActivePage();
+                    IDE.openEditor(page, actionSourceFile, true);
+                } catch (Exception e) {
+                    System.err.println("[LspFeatureTest] re-open ActionTarget.java failed: " + e);
+                }
+            });
+            bot.sleep(1_000);
+        }
+    }
 
     private static void positionCursorOnTargetSymbol() {
         SWTBotEclipseEditor editor = bot.activeEditor().toTextEditor();
