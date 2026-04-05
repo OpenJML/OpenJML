@@ -152,6 +152,11 @@ public class JmlTreeTranslator extends TreeTranslator implements IJmlVisitor {
         // not translating: mode, FIXME
         result = r;
     }
+    
+    @Override
+    public void visitModuleDef(JCModuleDecl that) {
+        result = that;
+    }
 
     @Override
     public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {

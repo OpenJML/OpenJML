@@ -625,6 +625,12 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void gitbug950() {
+        helpCompileRun("p.Test");
+        Assert.assertTrue(new java.io.File(outdir + "/module-info.class").exists());
+    }
+    
+    @Test
     public void textRac() {
         helpCompileRun("BL");
     }

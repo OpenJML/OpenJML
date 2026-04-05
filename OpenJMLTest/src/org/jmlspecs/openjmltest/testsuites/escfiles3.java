@@ -90,6 +90,11 @@ public class escfiles3 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug950() {
+        helpEscSimple();
+    }
+    
+    @Test
     public void byteQuant() {
         helpEscSimple();
     }

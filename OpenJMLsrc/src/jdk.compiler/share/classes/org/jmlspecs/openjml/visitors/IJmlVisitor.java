@@ -58,7 +58,13 @@ public interface IJmlVisitor extends IVisitor {
         scan(tree.elseBlock);
     }
 
-    default public void visitClassDef(JCClassDecl tree)               {}
+    default public void visitClassDef(JCClassDecl tree) {}
+    
+    default public void visitModuleDef(JCModuleDecl tree) {
+        scan(tree.mods);
+        scan(tree.qualId);
+        scan(tree.directives);
+    }
 
     default public void visitJmlMethodSig(JmlMethodSig tree) {
         scan(tree.expression);
