@@ -11,6 +11,7 @@
 # Local scratch / legacy directories never meant for source control
 OpenJMLFeature-OLD/
 old-OpenJML21/
+OpenJMLTest/unittests/*.java
 OpenJMLTest/unittests/dups
 OpenJMLTest/tempout.txt
 OpenJMLTest/esc1.smt
