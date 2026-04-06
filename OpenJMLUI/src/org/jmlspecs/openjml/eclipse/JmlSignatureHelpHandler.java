@@ -48,8 +48,9 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * requests (because JML text lives in comment partitions).
  *
  * <p>The popup remains visible while the user types the arguments and is
- * dismissed when {@code )}, {@code Escape}, or {@code Enter} is pressed, or
- * after a 30-second idle timeout.  A {@code ,} keystroke replaces the popup
+ * dismissed when {@code )}, {@code Escape}, or {@code Enter} is pressed,
+ * when {@code Backspace} deletes the opening {@code (}, or after a
+ * 30-second idle timeout.  A {@code ,} keystroke replaces the popup
  * with an updated hint (via {@link JmlAutoEditStrategy}) highlighting the next
  * parameter.
  */
@@ -154,11 +155,15 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
             if (!popup.isDisposed()) popup.dispose();
         });
 
-        // Dismiss on Escape, Enter, or ')'; stay alive while the user types arguments
+        // Dismiss on Escape, Enter, ')', or Backspace over the opening '('
         st.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.keyCode == SWT.ESC || e.character == ')' || e.character == '\r') {
+                boolean dismiss = e.keyCode == SWT.ESC
+                        || e.character == ')'
+                        || e.character == '\r'
+                        || (e.keyCode == SWT.BS && caretIsJustAfterOpenParen(st));
+                if (dismiss) {
                     st.removeKeyListener(this);
                     activePopups.remove(st, popup);
                     if (!popup.isDisposed()) popup.dispose();
@@ -167,6 +172,22 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
                 // alive; JmlAutoEditStrategy will replace it with an updated hint on ','.
             }
         });
+    }
+
+    /**
+     * Returns {@code true} when the caret is positioned immediately after an
+     * open-paren — meaning Backspace would delete the {@code (} that opened the
+     * current call, so the popup should be dismissed.
+     */
+    private static boolean caretIsJustAfterOpenParen(StyledText st) {
+        if (st == null || st.isDisposed()) return false;
+        int caret = st.getCaretOffset();
+        if (caret <= 0) return false;
+        try {
+            return "(".equals(st.getTextRange(caret - 1, 1));
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     /**

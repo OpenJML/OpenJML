@@ -56,18 +56,13 @@ public class SignatureHelpProvider {
         if (offset < 0) return new SignatureHelp();
 
         CallSite site = findCallSite(content, offset);
-        System.err.println("[SigHelp] callSite=" + site);
         if (site == null) return new SignatureHelp();
 
         String uri = params.getTextDocument().getUri();
         ASTCache.Entry entry = cache.get(uri);
-        System.err.println("[SigHelp] uri=" + uri + " entryFound=" + (entry != null));
         if (entry == null) return new SignatureHelp();
 
         List<JCMethodDecl> decls = findMethodDecls(entry.ast(), site.methodName());
-        System.err.println("[SigHelp] decls.size=" + decls.size()
-                + " specscu=" + (entry.ast().specsCompilationUnit == null ? "null"
-                        : entry.ast().specsCompilationUnit == entry.ast() ? "same" : "different"));
         if (decls.isEmpty()) return new SignatureHelp();
 
         SignatureInformation sig = buildSignatureInfo(decls.get(0));

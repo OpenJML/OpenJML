@@ -85,13 +85,9 @@ class JmlAutoEditStrategy implements IAutoEditStrategy {
             SignatureHelpParams params = new SignatureHelpParams(
                     new TextDocumentIdentifier(docUri.toString()), pos, ctx);
 
-            System.err.println("[AutoEdit] signatureHelp request: uri=" + docUri + " pos=" + pos);
             LanguageServers.forDocument(document)
                     .computeFirst(ls -> ls.getTextDocumentService().signatureHelp(params))
                     .thenAccept(optHelp -> {
-                        System.err.println("[AutoEdit] signatureHelp response: present=" + optHelp.isPresent()
-                                + (optHelp.isPresent() && optHelp.get() != null
-                                        ? " sigs=" + optHelp.get().getSignatures() : ""));
                         if (optHelp.isEmpty()) return;
                         SignatureHelp help = optHelp.get();
                         if (help == null || help.getSignatures() == null
