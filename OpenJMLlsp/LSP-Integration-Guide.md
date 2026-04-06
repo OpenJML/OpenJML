@@ -149,9 +149,9 @@ The server advertises the following capabilities:
 | Capability | Value |
 |---|---|
 | `textDocumentSync` | `2` (Incremental) by default; `1` (Full) when `incrementalSync` is `false` |
+| `hoverProvider` | `true` |
 | `codeLensProvider` | `{ "resolveProvider": false }` |
 | `completionProvider` | trigger characters: `\`, `@` |
-| `hoverProvider` | `true` |
 | `documentSymbolProvider` | `true` |
 | `foldingRangeProvider` | `true` |
 | `workspaceSymbolProvider` | `true` |
@@ -761,6 +761,3 @@ the debug log; this always indicates a bug in the server.
   However, per-folder configuration, cross-folder dependency tracking, and
   `workspace/didChangeWorkspaceFolders` are not implemented.
 
-- **Capabilities not advertised**: Hover and code lens are implemented but not listed
-  in `ServerCapabilities`. Strictly conforming clients that gate feature requests on
-  capability declarations will not invoke these features.
