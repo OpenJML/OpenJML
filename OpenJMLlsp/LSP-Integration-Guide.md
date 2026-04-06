@@ -95,7 +95,18 @@ The launcher sets these if not already present in the environment:
 A client may override any of these before spawning the server process. They serve as
 fallbacks when the equivalent settings are not provided via LSP configuration.
 
-FIXME -- there is also a development java property to set the server path
+### Eclipse-only: Server Path System Property
+
+The Eclipse plugin resolves the `openjml-lsp` launcher path in this order:
+
+1. The value stored in the OpenJML Preferences page (`openjml.lspServerPath`).
+2. The Java system property `openjml.lsp.server.path` — intended for the test harness
+   and development setups where modifying workspace preferences is inconvenient.
+3. The Eclipse install directory (release layout).
+4. `openjml-lsp` on `PATH` (last resort).
+
+To use option 2, pass `-Dopenjml.lsp.server.path=/path/to/openjml-lsp` in the Eclipse
+JVM arguments (e.g. in `eclipse.ini` or a launch configuration).
 
 ### JVM Notes
 
@@ -299,8 +310,7 @@ These exit codes are logged to stderr and influence how the server interprets re
 | 0 | Success — no parse, type, or verification errors (warnings may still be present) |
 | 1 | Syntax or type errors |
 | 2 | Bad command-line arguments (indicates a server bug) |
-| 3 | System error — an unexpected exception escaped the top-level handler (e.g. initialization failure) |
-| 4 | Internal / catastrophic OpenJML error |
+| 3 or 4 | Catastrophic error — resource exhaustion (e.g. out of memory), significant misconfiguration, or internal bug |
 | 6 | ESC verification failures (postcondition or assertion violations) |
 
 ---
@@ -681,13 +691,8 @@ to `IAPI.make()` (a `StringWriter` in the server) and discarded, so it does not 
 even in the log under normal operation. Only debug-level output (`System.err` calls in
 the server) and verbose OpenJML output (when verbose mode is active) appear in the log.
 
-If OpenJML exits with code 4 (internal error), the server marks all methods as
-`Check error` and publishes whatever diagnostics were collected before the failure.
-
-Exit code 3 (system error — unexpected exception) is not currently handled
-separately: the server treats it as a non-error exit, publishing whatever diagnostics
-were collected and leaving method statuses as `Unknown`. This is a known gap; exit
-code 3 should be treated the same as exit code 4.
+If OpenJML exits with code 3 or 4 (catastrophic error), the server marks all methods
+as `Check error` and publishes whatever diagnostics were collected before the failure.
 
 If OpenJML exits with code 2 (bad command-line arguments), a message is written to
 the debug log; this always indicates a bug in the server.

@@ -107,8 +107,10 @@ public class CheckRunner {
                                Map<String, IProverResult.Kind> proofResults,
                                List<String> foreignMessages,
                                Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiagnostics) {
-        /** Returns {@code true} when OpenJML reported a catastrophic internal error. */
-        public boolean isInternalError() { return exitCode == 4; }
+        /** Returns {@code true} when OpenJML reported a catastrophic error (exit codes 3 and 4
+         *  are not distinguished — both indicate resource exhaustion, misconfiguration, or
+         *  an internal bug). */
+        public boolean isInternalError() { return exitCode == 3 || exitCode == 4; }
         /** Returns {@code true} when OpenJML rejected the command line — indicates a server bug. */
         public boolean isCommandLineError() { return exitCode == 2; }
         /** Returns {@code true} when errors in other files (dependencies) prevented ESC. */
