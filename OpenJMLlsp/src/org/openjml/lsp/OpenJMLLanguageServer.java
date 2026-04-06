@@ -3,6 +3,7 @@ package org.openjml.lsp;
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.RenameOptions;
+import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.InitializeParams;
@@ -27,15 +28,15 @@ import java.util.concurrent.CompletableFuture;
  *   <li>textDocumentSync: Full</li>
  *   <li>codeLens: per-method ESC status (verified / issues / checking)</li>
  *   <li>hover: JML spec for the method under the cursor</li>
+ *   <li>completion: JML keywords (triggers: {@code \}, {@code @})</li>
+ *   <li>documentSymbol, foldingRange, workspaceSymbol</li>
+ *   <li>definition, declaration, references, rename (with prepareRename)</li>
+ *   <li>signatureHelp: parameter hints for method calls</li>
+ *   <li>semanticTokens/full: JML keyword, macro, and variable highlighting</li>
  * </ul>
  *
  * Configuration is received via {@code initialize} ({@code initializationOptions})
  * and {@code workspace/didChangeConfiguration}.
- *
- * Future capabilities (not yet implemented):
- * <ul>
- *   <li>completion — JML keywords</li>
- * </ul>
  */
 public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAware {
 
@@ -168,6 +169,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setDeclarationProvider(Boolean.TRUE);
         caps.setReferencesProvider(Boolean.TRUE);
         caps.setRenameProvider(new RenameOptions(true));  // prepareProvider=true
+        // Trigger on '(' (call open) and ',' (next argument).
+        caps.setSignatureHelpProvider(new SignatureHelpOptions(List.of("(", ",")));
 
         // Semantic tokens for non-VS Code clients (Neovim, Eclipse LSP4E, etc.).
         // In VS Code the extension uses a directly-registered provider instead to

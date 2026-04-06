@@ -23,6 +23,8 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.SignatureHelp;
+import org.eclipse.lsp4j.SignatureHelpParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
@@ -438,6 +440,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         var hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN,
                 "**JML spec for `" + method.name() + "`**\n```java\n" + spec + "\n```"));
         return CompletableFuture.completedFuture(hover);
+    }
+
+    // --- signature help ---
+
+    @Override
+    public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        return CompletableFuture.completedFuture(
+                SignatureHelpProvider.compute(params, content, CheckRunner.getASTCache()));
     }
 
     // --- go to definition ---
