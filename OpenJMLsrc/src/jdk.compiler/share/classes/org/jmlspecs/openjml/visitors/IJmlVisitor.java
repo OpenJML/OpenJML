@@ -63,7 +63,7 @@ public interface IJmlVisitor extends IVisitor {
     default public void visitModuleDef(JCModuleDecl tree) {
         scan(tree.mods);
         scan(tree.qualId);
-        scan(tree.directives);
+        //scan(tree.directives); // Skip until we've implemented the various JCDirectives
     }
 
     default public void visitJmlMethodSig(JmlMethodSig tree) {
