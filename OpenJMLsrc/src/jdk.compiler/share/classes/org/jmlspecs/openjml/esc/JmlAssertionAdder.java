@@ -1279,6 +1279,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCStatement s = iter.next();
 					convert(s);
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
+
+				// === Record compact constructor implicit field assignments ===
+				// In record compact constructors, the compiler (Lower.java) appends
+				// this.field = param for each record component AFTER the user body.
+				// Lower runs after ESC, so we must synthesize assume this.field == param here.
+				if (isConstructor && esc
+						&& ((methodDecl.sym.flags() & Flags.COMPACT_RECORD_CONSTRUCTOR) != 0
+							|| ((methodDecl.sym.flags() & (Flags.GENERATEDCONSTR | Flags.RECORD))
+									== (Flags.GENERATEDCONSTR | Flags.RECORD)))) {
+					addStat(comment(methodDecl,
+							"Record component field assignments (implicit)", null));
+					for (Symbol sym : classDecl.sym.getEnclosedElements()) {
+						if (sym.kind == Kinds.Kind.VAR
+								&& (sym.flags() & Flags.RECORD) != 0) {
+							for (JCVariableDecl param : methodDecl.params) {
+								if (param.name == sym.name) {
+									JCExpression field =
+											treeutils.makeIdent(param.pos, sym);
+									field = convertJML(field);
+									JCExpression paramExpr =
+											treeutils.makeIdent(param.pos, param.sym);
+									addAssumeEqual(param.pos(),
+											Label.IMPLICIT_ASSUME, field, paramExpr);
+									break;
+								}
+							}
+						}
+					}
+				}
+
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 				if (continuation == Continuation.CONTINUE) {
