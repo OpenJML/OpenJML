@@ -155,29 +155,47 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
             if (!popup.isDisposed()) popup.dispose();
         });
 
-        // Dismiss on Escape, Enter, ')', or Backspace over the opening '('
+        // Dismiss on Escape, Enter, ')', or Backspace that deletes the opening '('
+        //
+        // For Backspace we use a two-phase check: record in keyPressed whether the
+        // caret is immediately after '(' (meaning the upcoming Backspace will delete
+        // it), then dismiss in keyReleased once the character is actually gone.
+        // This avoids dismissing one keystroke too early while '(' is still present.
+        boolean[] caretWasAfterParen = {false};
         st.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                boolean dismiss = e.keyCode == SWT.ESC
-                        || e.character == ')'
-                        || e.character == '\r'
-                        || (e.keyCode == SWT.BS && caretIsJustAfterOpenParen(st));
-                if (dismiss) {
-                    st.removeKeyListener(this);
-                    activePopups.remove(st, popup);
-                    if (!popup.isDisposed()) popup.dispose();
+                if (e.keyCode == SWT.BS) {
+                    caretWasAfterParen[0] = caretIsJustAfterOpenParen(st);
+                    return; // decision deferred to keyReleased
                 }
-                // Normal characters (letters, digits, ',', ' ', etc.) keep the popup
-                // alive; JmlAutoEditStrategy will replace it with an updated hint on ','.
+                if (e.keyCode == SWT.ESC || e.character == ')' || e.character == '\r') {
+                    dismiss();
+                }
+                // Normal characters keep the popup alive; ',' will retrigger via
+                // JmlAutoEditStrategy, which replaces the popup with the updated hint.
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // After the Backspace has been applied: if the character that was just
+                // before the caret was '(', that '(' has now been deleted → dismiss.
+                if (e.keyCode == SWT.BS && caretWasAfterParen[0]) {
+                    dismiss();
+                }
+            }
+
+            private void dismiss() {
+                st.removeKeyListener(this);
+                activePopups.remove(st, popup);
+                if (!popup.isDisposed()) popup.dispose();
             }
         });
     }
 
     /**
-     * Returns {@code true} when the caret is positioned immediately after an
-     * open-paren — meaning Backspace would delete the {@code (} that opened the
-     * current call, so the popup should be dismissed.
+     * Returns {@code true} when the character immediately before the caret is
+     * {@code (}, i.e. a Backspace keystroke is about to delete the open-paren.
      */
     private static boolean caretIsJustAfterOpenParen(StyledText st) {
         if (st == null || st.isDisposed()) return false;
