@@ -497,6 +497,33 @@ If the source file has not yet been type-checked (no AST cached), an empty
 `SignatureHelp` is returned gracefully. Only the first matching overload is returned;
 overload resolution across multiple signatures is not yet supported.
 
+**Method lookup scope and known limitations**
+
+The server searches for method declarations only within the current file's
+`JmlCompilationUnit` and its sibling `.jml` specs file (if any). This covers:
+
+- Regular Java methods declared in the same source file.
+- JML model methods (`//@ model public int foo(int x);`) declared in the same
+  file or in the companion `.jml` file.
+- Accessor methods synthesised for JML model fields
+  (`//@ model public int size;`), stored in `typeSpecs.modelFieldMethods`.
+
+**Cross-class calls are not supported.** When the receiver of a call is an
+object of another class (e.g. `list.isEmpty(`, `Collections.max(`), the server
+cannot resolve the receiver type and returns an empty result. Full cross-class
+support would require resolving the receiver expression using OpenJML's
+`Resolve`/`Symtab` infrastructure. Eclipse's own JDT parameter hints
+(`Ctrl+Shift+Space`) handle cross-class calls for Java code.
+
+**Auto-trigger in `.java` file JML regions.** Eclipse's Java editor suppresses
+LSP4E's automatic `(` / `,` trigger inside comment partitions
+(`__java_singleline_comment`, `__java_multiline_comment`). As a result,
+signature help does not pop up automatically when typing `(` inside a
+`//@ assert` or similar JML statement in a `.java` file. Use the
+`Ctrl+Shift+J H` ("JML Parameter Hints") key binding to invoke it manually.
+Standalone `.jml` files are opened in the Generic Editor where the automatic
+trigger works normally.
+
 ### Workspace Symbols — `workspace/symbol`
 
 Returns declarations from all currently open (cached) files whose simple name

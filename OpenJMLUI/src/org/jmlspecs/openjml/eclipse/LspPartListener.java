@@ -52,6 +52,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Map<org.eclipse.core.runtime.IPath, JmlColorizer> colorizersByPath =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** .java editors that have had JmlAutoEditStrategy installed (to avoid duplicates). */
+    private final java.util.Set<IEditorPart> autoEditEditors =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(
+                    new java.util.WeakHashMap<>()));
+
     /** Single-thread scheduler for debouncing CMD_FOCUS_FILE sends. */
     private static final java.util.concurrent.ScheduledExecutorService FOCUS_SCHEDULER =
             java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
@@ -278,6 +283,13 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         if ("java".equals(ext) && part instanceof IEditorPart ep
                 && !colorizersByPath.containsKey(file.getFullPath())) {
             setupColorizer(ep, file);
+        }
+
+        // Install JmlAutoEditStrategy for .java files so ( and , in JML comment
+        // regions trigger signature help automatically (once per editor instance).
+        if ("java".equals(ext) && part instanceof IEditorPart ep
+                && autoEditEditors.add(ep)) {
+            setupAutoEdit(ep);
         }
 
         // Retry the diagnostics hook on every activation until it succeeds.
@@ -563,6 +575,42 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 colorizer.refreshAsync();
             } catch (Throwable t) {
                 Console.errorlog("setupColorizer failed", t);
+            }
+        });
+    }
+
+    /**
+     * Installs {@link JmlAutoEditStrategy} on the {@link org.eclipse.jface.text.source.SourceViewer}
+     * of a {@code .java} editor so that {@code (} and {@code ,} typed inside JML comment
+     * regions automatically trigger a signature-help popup.
+     */
+    private static void setupAutoEdit(IEditorPart editor) {
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            try {
+                Object adapted = editor.getAdapter(
+                        org.eclipse.jface.text.ITextOperationTarget.class);
+                if (adapted == null) return;
+
+                // Obtain the StyledText widget via reflection (avoids a cross-bundle
+                // instanceof check on AdaptedSourceViewer which extends SourceViewer
+                // but is loaded by the JDT bundle's class loader).
+                java.lang.reflect.Method getWidget =
+                        adapted.getClass().getMethod("getTextWidget");
+                Object widgetObj = getWidget.invoke(adapted);
+                if (!(widgetObj instanceof org.eclipse.swt.custom.StyledText st)) return;
+
+                JmlAutoEditStrategy strategy = new JmlAutoEditStrategy(st);
+
+                // Install via reflection for the same classloader-boundary reason.
+                java.lang.reflect.Method prepend = adapted.getClass().getMethod(
+                        "prependAutoEditStrategy",
+                        org.eclipse.jface.text.IAutoEditStrategy.class, String.class);
+                prepend.invoke(adapted, strategy, "__java_singleline_comment");
+                prepend.invoke(adapted, strategy, "__java_multiline_comment");
+                System.err.println("[OpenJML] JmlAutoEditStrategy installed for "
+                        + editor.getTitle());
+            } catch (Throwable t) {
+                Console.errorlog("setupAutoEdit failed", t);
             }
         });
     }

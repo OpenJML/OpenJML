@@ -347,6 +347,11 @@
            name="Rename (JML-aware)"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Rename the identifier at the cursor, updating all Java and JML references"/>
+     <command
+           id="org.jmlspecs.openjml.commands.signatureHelp"
+           name="JML Parameter Hints"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Show parameter hints for the method call at the cursor (works in JML comment regions)"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -373,6 +378,8 @@
               class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler"/>
      <handler commandId="org.openjml.eclipse.commands.rename"
               class="org.jmlspecs.openjml.eclipse.JmlRenameHandler"/>
+     <handler commandId="org.jmlspecs.openjml.commands.signatureHelp"
+              class="org.jmlspecs.openjml.eclipse.JmlSignatureHelpHandler"/>
   </extension>
 
   
@@ -555,6 +562,9 @@
           contextId="org.eclipse.ui.textEditorScope"
           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
      <key sequence="M1+M2+J M" commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+          contextId="org.eclipse.ui.textEditorScope"
+          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+     <key sequence="M1+M2+J H" commandId="org.jmlspecs.openjml.commands.signatureHelp"
           contextId="org.eclipse.ui.textEditorScope"
           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
      <key
@@ -1793,15 +1803,12 @@
   </extension>
   -->
 
-  <!--
   <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
       id="openjml_proposals"
       name="%extension.name.7">
       <proposalCategory icon="icons/jml-logo-16x16.png"/>
   </extension>
-  -->
 
-  <!--
   <extension
          id="org.openjml.completionProposals_sl"
          name="%extension.name.8"
@@ -1812,9 +1819,7 @@
         <partition type="__java_singleline_comment"/>
       </javaCompletionProposalComputer>
   </extension>
-  -->
 
-  <!--
   <extension
          id="org.openjml.completionProposals_ml"
          name="%extension.name.9"
@@ -1825,7 +1830,6 @@
         <partition type="__java_multiline_comment"/>
       </javaCompletionProposalComputer>
   </extension>
-  -->
 
   <!--
   <extension
