@@ -190,18 +190,19 @@ userguide-examples:
 	else echo Userguide examples are not available; fi
 
 TEMPDOCS=tempDocs
-DOWNLOADS=~/Desktop  # Mac-specific path; adjust for other platforms
+# Mac-specific path; adjust for other platforms
+DOWNLOADS=$(wildcard ~/Desktop)
 ## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
 ## Requires a local installation of pdflatex
 update-docs:
-	rm -rf ${DOWNLOADS}/OpenJMLUserGuide.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf 
+	rm -rf "${DOWNLOADS}/OpenJMLUserGuide.pdf" "${DOWNLOADS}/JML_Reference_Manual.pdf" 
 	$(MAKE) userguide-examples
 	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${REFMANID} ; cd ${REFMANID}; pdflatex JMLReferenceManual.tex --interaction batchmode ; bibtex JMLReferenceManual ; pdflatex JMLReferenceManual.tex --interaction batchmode; pdflatex JMLReferenceManual.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf; )
 	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; cd ${USERGUIDEID} ; pdflatex OpenJMLUserGuide.tex --interaction batchmode; bibtex OpenJMLUserGuide; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}; )
-	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf ../../openjml.github.io/documentation
-	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf $(RELFILES)
-	cp ${DOWNLOADS}/JML_Reference_Manual.pdf ../../openjml.github.io/documentation
-	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
+	cp "${DOWNLOADS}/OpenJMLUserGuide.pdf" ../../openjml.github.io/documentation
+	cp "${DOWNLOADS}/OpenJMLUserGuide.pdf" "$(RELFILES)"
+	cp "${DOWNLOADS}/JML_Reference_Manual.pdf" ../../openjml.github.io/documentation
+	cp "${DOWNLOADS}/JML_Reference_Manual.pdf" "$(RELFILES)"
 
 ## Commits and pushes the builds produced by `update-docs` to openjml.github.io
 ## (Does not commit them to the current branch of OpenJMLsrc)
