@@ -14,30 +14,54 @@ import java.util.List;
  * changes in the same event have been applied.  Reordering changes (e.g. by
  * sort) would corrupt the result for overlapping or adjacent ranges.
  *
- * <p>Algorithm:
+ * <h3>Algorithm</h3>
  * <ol>
- *   <li>Scan backward to find the last full-document replacement
- *       ({@code range == null}).  Everything before it is discarded; it
- *       becomes the new baseline {@code current}.  All changes after it are
+ *   <li><b>Phase 1 — skip obsolete history.</b>  Scan backward to find the
+ *       last full-document replacement ({@code range == null}).  Everything
+ *       before it, including the original content, is discarded; it becomes
+ *       the new baseline {@code current}.  All remaining changes are
  *       guaranteed to be incremental.</li>
- *   <li>Compute a conservative upper-bound capacity for the {@link StringBuilder}:
- *       {@code current.length() + sum of all remaining newText lengths}.
- *       This overestimates by the amount of deleted text, but guarantees the
- *       builder never needs to resize (no internal copy).</li>
- *   <li>Apply incremental changes in order:
+ *   <li><b>Phase 2 — size the buffer.</b>  Compute a conservative upper-bound
+ *       capacity: {@code current.length() + sum of all remaining newText
+ *       lengths}.  This overestimates by the amount of deleted text but
+ *       guarantees the {@link StringBuilder} never needs to resize.</li>
+ *   <li><b>Phase 3 — apply changes.</b>  A single
+ *       {@link DefinitionFinder.LineIndex} is created for {@code current} and
+ *       kept alive across all changes:
  *       <ul>
- *         <li>First change: three-part copy (prefix, newText, suffix) into
- *             the pre-sized builder — a single O(n) pass.</li>
- *         <li>Subsequent changes: {@link StringBuilder#replace} in place —
- *             no intermediate {@link String} per change.</li>
+ *         <li><em>First change:</em> three-part copy (prefix, newText, suffix)
+ *             into the pre-sized builder using
+ *             {@code append(String, start, end)} — reads directly from the
+ *             {@code String}'s backing array, no substring allocation.  The
+ *             index is then rebound to the builder via
+ *             {@link DefinitionFinder.LineIndex#rebind}.</li>
+ *         <li><em>Subsequent changes:</em> {@link StringBuilder#replace} in
+ *             place.  After each edit,
+ *             {@link DefinitionFinder.LineIndex#applyEdit} truncates the
+ *             cached line-start array so that entries at or after the edit
+ *             point are lazily recomputed from the updated builder — no
+ *             {@code sb.toString()} snapshot is needed between changes.</li>
  *       </ul></li>
  * </ol>
  *
- * <p>Memory notes: {@code StringBuilder.append(String, start, end)} copies
- * directly from the source {@code String}'s backing array without creating a
- * substring.  The single {@link StringBuilder#toString()} call at the end
- * produces the final immutable {@link String}.  For the common single-change
- * case there is exactly one allocation (the builder) and one final copy.
+ * <h3>Performance notes</h3>
+ * <p>The dominant cost is the {@code (line, col) → offset} conversion required
+ * by the LSP range format.  {@link DefinitionFinder.LineIndex} amortises this
+ * by caching line-start offsets and using {@code String.indexOf('\n', from)}
+ * (JVM-intrinsified via SIMD) rather than a char-by-char scan.  Sharing one
+ * index across the start and end of each range halves the number of scans; for
+ * multi-delta events the rebound index eliminates redundant re-scanning of the
+ * document prefix.  Benchmarks show incremental reconstruction is ~20–30%
+ * faster than naive substring concatenation at 100K–1M characters.
+ *
+ * <p>The larger saving is on the wire: the JSON payload for a full-sync 1M-char
+ * document is ~1 MB; an incremental payload is ~160 bytes regardless of size.
+ * Gson serialisation of a 1M full-sync event costs ~2 ms versus ~2 µs for
+ * incremental — a 1000x difference.  See {@code SyncTimingTests} for measured
+ * data.
+ *
+ * <p>The {@code incrementalSync} flag in {@link OpenJMLSettings} allows
+ * switching back to full-document sync if needed for debugging.
  */
 public final class IncrementalSyncApplier {
 
@@ -93,33 +117,33 @@ public final class IncrementalSyncApplier {
         }
 
         // --- Phase 3: apply incremental changes in order ---
-        StringBuilder sb = null;
+        // One LineIndex is created for 'current' and kept alive across all
+        // changes.  After each edit the index is updated via applyEdit() and,
+        // after the first change, rebound to the StringBuilder so subsequent
+        // toOffset() calls scan the builder directly — no sb.toString() needed
+        // between changes in a multi-delta event.
+        StringBuilder sb  = null;
+        DefinitionFinder.LineIndex idx = new DefinitionFinder.LineIndex(current);
 
         for (int i = firstIdx; i < changes.size(); i++) {
             TextDocumentContentChangeEvent change = changes.get(i);
-            String newText = change.getText() != null ? change.getText() : "";
-            Range  range   = change.getRange();          // guaranteed non-null by Phase 1
+            String newText   = change.getText() != null ? change.getText() : "";
+            Range  range     = change.getRange(); // guaranteed non-null by Phase 1
+            int    startLine = range.getStart().getLine();
+            int    startCol  = range.getStart().getCharacter();
+            int    endLine   = range.getEnd().getLine();
+            int    endCol    = range.getEnd().getCharacter();
 
-            // Resolve (line,col) ranges against the current content snapshot.
-            // For i == firstIdx  the snapshot is the original String (no extra copy).
-            // For i > firstIdx   we need sb.toString() — O(n), but multi-change
-            // events are rare and this is still cheaper than a full-document sync.
-            String snapshot = (sb == null) ? current : sb.toString();
+            int start = idx.toOffset(startLine, startCol);
+            int end   = idx.toOffset(endLine,   endCol);
 
-            int start = DefinitionFinder.lineColToOffset(
-                    snapshot,
-                    range.getStart().getLine(),
-                    range.getStart().getCharacter());
-            int end = DefinitionFinder.lineColToOffset(
-                    snapshot,
-                    range.getEnd().getLine(),
-                    range.getEnd().getCharacter());
-
-            if (start < 0 || end < 0 || start > end || end > snapshot.length()) {
+            int sourceLen = (sb == null) ? current.length() : sb.length();
+            if (start < 0 || end < 0 || start > end || end > sourceLen) {
                 // Out-of-bounds range — treat the new text as a full replacement
                 // and continue applying subsequent changes on top of it.
                 current = newText;
-                sb = null;
+                sb  = null;
+                idx = new DefinitionFinder.LineIndex(current);
                 capacity = current.length();
                 // Re-sum remaining insertions for the new capacity.
                 for (int j = i + 1; j < changes.size(); j++) {
@@ -134,15 +158,23 @@ public final class IncrementalSyncApplier {
                 // append(String, start, end) reads directly from the String's char
                 // array — no substring allocation.
                 sb = new StringBuilder(capacity);
-                sb.append(snapshot, 0, start);
+                sb.append(current, 0, start);
                 sb.append(newText);
-                sb.append(snapshot, end, snapshot.length());
+                sb.append(current, end, current.length());
+                // From here on, the live source is sb, not current.
+                idx.rebind(sb);
             } else {
                 // Subsequent changes: in-place replace inside the builder.
                 sb.replace(start, end, newText);
             }
+
+            // Discard all cached line-start entries from startLine+1 onward:
+            // the replacement text may have a different number of newlines.
+            // toOffset() will lazily rescan from starts[startLine] as needed.
+            idx.applyEdit(startLine);
         }
 
         return (sb != null) ? sb.toString() : current;
     }
+
 }

@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -118,12 +119,90 @@ public class DefinitionFinder {
     /** Convert 0-indexed (line, col) to a character offset in {@code source}. */
     static int lineColToOffset(String source, int line, int col) {
         int offset = 0;
-        int currentLine = 0;
-        while (currentLine < line && offset < source.length()) {
-            if (source.charAt(offset) == '\n') currentLine++;
-            offset++;
+        for (int i = 0; i < line; i++) {
+            int next = source.indexOf('\n', offset);
+            if (next < 0) return source.length() + col; // line beyond EOF
+            offset = next + 1;
         }
         return offset + col;
+    }
+
+    /**
+     * Lazy line-start index that survives incremental edits.
+     *
+     * <p>Maintains a growing {@code int[]} where {@code starts[i]} is the
+     * character offset of the first character on line {@code i} (0-indexed).
+     * Entries are computed on demand; {@link #toOffset} only scans the
+     * characters between the last built line and the requested line.
+     *
+     * <p>After an in-place edit, call {@link #applyEdit} to shift the cached
+     * line-start offsets that lie beyond the edited range, and call
+     * {@link #rebind} to point the index at the updated source buffer.  This
+     * avoids the O(n) {@code StringBuilder.toString()} snapshot that would
+     * otherwise be required before each subsequent change in a multi-delta
+     * event.
+     *
+     * <p>For single-change events (the common case) just construct, call
+     * {@link #toOffset} twice, and discard.
+     */
+    static final class LineIndex {
+        private CharSequence source;
+        private int[] starts;
+        private int built; // number of entries stored (starts[0..built-1] are valid)
+
+        LineIndex(CharSequence source) {
+            this.source = source;
+            // Assumes average line length >= 32 chars (typical for Java source),
+            // so (length >> 5) + 1 is a sufficient line-count upper bound.
+            // Files with shorter average lines will trigger a resize in toOffset().
+            this.starts = new int[Math.max(64, (source.length() >> 5) + 1)];
+            this.starts[0] = 0;
+            this.built = 1; // line 0 always starts at offset 0
+        }
+
+        /** Switch the backing source (e.g. from the original String to a StringBuilder). */
+        void rebind(CharSequence newSource) { this.source = newSource; }
+
+        /** Convert 0-indexed (line, col) to a character offset. */
+        int toOffset(int line, int col) {
+            if (line < built) return starts[line] + col;
+            // Grow the starts array if needed.
+            if (line >= starts.length)
+                starts = Arrays.copyOf(starts, Math.max(starts.length * 2, line + 1));
+            int offset = starts[built - 1];
+            while (built <= line) {
+                int next = indexOfNewline(offset);
+                if (next < 0) return source.length() + col; // line beyond EOF
+                starts[built++] = next + 1;
+                offset = next + 1;
+            }
+            return offset + col;
+        }
+
+        /**
+         * Invalidate all cached line-start entries at or after {@code startLine + 1}.
+         *
+         * <p>After an edit that begins on {@code startLine}, the start offset of
+         * {@code startLine} itself ({@code starts[startLine]}) is still valid — it
+         * precedes the edit point.  Every subsequent entry is potentially wrong
+         * (the replacement text may contain a different number of newlines than
+         * the deleted range).  Truncating {@code built} to {@code startLine + 1}
+         * causes {@link #toOffset} to lazily rescan from {@code starts[startLine]}
+         * through the updated source on the next call.
+         */
+        void applyEdit(int startLine) {
+            built = Math.min(built, startLine + 1);
+        }
+
+        /** Fast newline search: uses intrinsic/optimised paths for String and StringBuilder. */
+        private int indexOfNewline(int from) {
+            if (source instanceof String s)        return s.indexOf('\n', from);
+            if (source instanceof StringBuilder sb) return sb.indexOf("\n", from);
+            // Generic fallback for any other CharSequence.
+            int len = source.length();
+            for (int i = from; i < len; i++) if (source.charAt(i) == '\n') return i;
+            return -1;
+        }
     }
 
     /** Convert a character offset to 0-indexed (line, col). */
