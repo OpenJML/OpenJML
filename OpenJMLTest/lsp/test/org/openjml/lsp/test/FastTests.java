@@ -28,5 +28,6 @@ import org.junit.runners.Suite;
     CheckRunnerDirTest.class,
     EscDirWithContextTest.class,
     JmlKeywordSyncTest.class,
+    IncrementalSyncApplierTest.class,
 })
 public class FastTests {}

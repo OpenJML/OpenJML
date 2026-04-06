@@ -155,7 +155,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         }
 
         var caps = new ServerCapabilities();
-        caps.setTextDocumentSync(TextDocumentSyncKind.Full);
+        caps.setTextDocumentSync(settings.incrementalSync
+                ? TextDocumentSyncKind.Incremental
+                : TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
         // Trigger on '\' (backslash tokens) and '@' (entering a JML annotation).
         // The handler filters out non-JML contexts, so '@' in Java annotations

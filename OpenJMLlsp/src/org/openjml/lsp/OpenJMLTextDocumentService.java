@@ -248,7 +248,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didChange(DidChangeTextDocumentParams params) {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
-        String content = params.getContentChanges().get(0).getText();
+        String content = settings.incrementalSync
+                ? IncrementalSyncApplier.apply(lastContent.get(uri),
+                                               params.getContentChanges())
+                : params.getContentChanges().get(0).getText();
         lastContent.put(uri, content);
         // Invalidate cached check state for all other open files so that focus-triggered
         // rechecks pick up this change in their cross-file context.  When the primary

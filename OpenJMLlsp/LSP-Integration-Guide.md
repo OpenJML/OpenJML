@@ -148,7 +148,7 @@ The server advertises the following capabilities:
 
 | Capability | Value |
 |---|---|
-| `textDocumentSync` | `1` (Full) |
+| `textDocumentSync` | `2` (Incremental) by default; `1` (Full) when `incrementalSync` is `false` |
 | `codeLensProvider` | `{ "resolveProvider": false }` |
 | `completionProvider` | trigger characters: `\`, `@` |
 | `hoverProvider` | `true` |
@@ -162,8 +162,10 @@ The server advertises the following capabilities:
 | `signatureHelpProvider` | trigger characters: `(`, `,` |
 | `semanticTokensProvider` | full-file; see legend in response |
 
-`textDocumentSync: Full` means the client must send the complete document text on
-every `textDocument/didChange` notification; incremental changes are not supported.
+`textDocumentSync: Incremental` (default) means the client sends only the changed
+ranges on each `textDocument/didChange` notification; the server applies them
+internally and passes the reconstructed full text to OpenJML.  Setting
+`incrementalSync: false` reverts to `Full` (client sends entire file each time).
 
 ---
 
@@ -203,6 +205,7 @@ Example `workspace/didChangeConfiguration` payload:
 | `classPath` | string | none | Classpath for pre-compiled dependencies, passed as `-classpath` directly; also used as a sourcepath fallback (see note) |
 | `checkTriggerOn` | string | `"edit"` | When to run `--check`: `"edit"` or `"save"` |
 | `escTriggerOn` | string | `"manual"` | When to run `--esc`: `"manual"`, `"save"`, or `"edit"` (see note) |
+| `incrementalSync` | boolean | `true` | When `true`, advertise `Incremental` sync and apply ranged edits internally; when `false`, revert to `Full` sync |
 
 `null` or absent fields leave the current value unchanged.
 
@@ -230,9 +233,13 @@ the installed content for specifications and solvers, these variables should be 
 
 ## Document Synchronization
 
-Sync kind is **Full** (`TextDocumentSyncKind.Full`). Every `textDocument/didChange`
-notification must contain the complete current document text in
-`contentChanges[0].text`.
+Sync kind is **Incremental** (`TextDocumentSyncKind.Incremental`) by default.
+Each `textDocument/didChange` notification carries a list of ranged edits; the
+server applies them in the order given (each range refers to the document state
+after all preceding changes in the same event) and reconstructs the full text
+before passing it to OpenJML.  Set `incrementalSync: false` in
+`initializationOptions` to revert to **Full** sync, where every notification
+must contain the complete document text in `contentChanges[0].text`.
 
 ### `textDocument/didOpen`
 
@@ -740,14 +747,6 @@ the debug log; this always indicates a bug in the server.
   suite) for wrapping an in-memory string as a mock `JavaFileObject`, which would
   eliminate the temp file entirely and remove the associated disk I/O on every
   keystroke check. Using mock files is a planned optimization.
-
-- **No incremental text sync**: The server advertises `TextDocumentSyncKind.Full`,
-  so the client sends the entire file on every change. This is independent of
-  OpenJML's compilation model — the server could advertise
-  `TextDocumentSyncKind.Incremental`, apply the client's range patches internally to
-  reconstruct the full text, and continue passing the full text to OpenJML unchanged.
-  This optimization is planned and would reduce traffic noticeably for large files
-  checked on every keystroke.
 
 - **ESC-on-save**: The server does not trigger ESC from `textDocument/didSave`.
   Clients that want ESC-on-save must issue `openjml.runEsc` themselves after save.

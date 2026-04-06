@@ -149,6 +149,15 @@ public class OpenJMLSettings {
             java.util.concurrent.Executors.newFixedThreadPool(5);
 
     /**
+     * When {@code true} (default), the server advertises
+     * {@code TextDocumentSyncKind.Incremental} and applies each
+     * {@code textDocument/didChange} event as a set of ranged edits rather than
+     * replacing the full document string.  Set to {@code false} to revert to
+     * full-document sync (useful for debugging or performance comparison).
+     */
+    public volatile boolean incrementalSync = true;
+
+    /**
      * Output directory for {@code --rac}-compiled class files, passed as {@code -d}.
      * Relative paths are resolved against the workspace root.
      * {@code null} or empty means {@code rac-classes} in the workspace root.
@@ -206,5 +215,6 @@ public class OpenJMLSettings {
         this.racOutputDir            = src.racOutputDir;
         this.generatedPropertiesFile = src.generatedPropertiesFile;
         this.toolArgs                = src.toolArgs;
+        this.incrementalSync         = src.incrementalSync;
     }
 }
